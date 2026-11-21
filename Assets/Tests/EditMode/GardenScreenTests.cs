@@ -293,6 +293,28 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Fifth_Station_Needs_A_Plot_Bought_From_Its_Card()
+        {
+            runner.State.Levels = new[] { 1, 1, 1, 1, 0, 0, 0, 0 };
+            runner.State.Coins = new BigNum(1e12);
+            screen.Refresh();
+            Button openFifth = Find("Canvas/Panel/Scroll/Content/Row lo-banh/Buy");
+            Assert.IsFalse(openFifth.interactable, "no plot yet");
+            Transform plot = root.transform.Find("Canvas/Panel/Scroll/Content/Plot");
+            Assert.AreEqual(4, plot.GetSiblingIndex(), "right after the fourth station");
+
+            Find("Canvas/Panel/Scroll/Content/Plot/Buy").onClick.Invoke();
+            Assert.AreEqual(5, runner.State.Plots);
+            screen.Refresh();
+            Assert.IsTrue(openFifth.interactable);
+            Assert.AreEqual(5, plot.GetSiblingIndex());
+
+            runner.State.Plots = 8;
+            screen.Refresh();
+            Assert.IsFalse(plot.gameObject.activeSelf, "nothing left to sell");
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");

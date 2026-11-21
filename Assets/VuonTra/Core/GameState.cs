@@ -31,6 +31,15 @@ namespace VuonTra.Core
         public BigNum DailyEarnedBase;
         public BigNum DailyCarrotTarget;
 
+        /// <summary>How many garden plots are owned; station i needs plot i.</summary>
+        public int Plots;
+        /// <summary>"Trà lực", 0 to Energy.Max.</summary>
+        public double Energy = VuonTra.Core.Energy.Max;
+        /// <summary>Seconds left of a running double-speed burst.</summary>
+        public double BoostSecondsLeft;
+        public List<Item> Items = new List<Item>();
+        public long NextItemId;
+
         /// <summary>The rabbits the player has collected.</summary>
         public List<Rabbit> Rabbits = new List<Rabbit>();
         public long NextRabbitId;
@@ -48,6 +57,7 @@ namespace VuonTra.Core
                 BuyMode = 1,
                 UpgradeLevels = new int[upgradeCount]
             };
+            s.Plots = System.Math.Min(defs.Count, VuonTra.Core.Plots.Starting);
             if (defs.Count > 0) s.Levels[0] = 1;
             return s;
         }

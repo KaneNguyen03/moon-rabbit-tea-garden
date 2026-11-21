@@ -29,8 +29,8 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits.</summary>
-        public const int CurrentVersion = 3;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy.</summary>
+        public const int CurrentVersion = 4;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -86,11 +86,33 @@ namespace VuonTra.Core
                 if (i > 0) sb.Append(',');
                 sb.Append("{\"id\":").Append(r.Id.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"tier\":").Append(r.Tier.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"level\":").Append(r.Level.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"name\":");
                 WriteString(sb, r.Name);
                 // Stations by id, like everywhere else in the save, so reordering them is safe.
                 sb.Append(",\"station\":");
                 WriteString(sb, r.Station >= 0 && r.Station < defs.Count ? defs[r.Station].Id : "");
+                sb.Append('}');
+            }
+            sb.Append("],\"plots\":").Append(s.Plots.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"energy\":").Append(Sane(s.Energy).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"boost\":").Append(Sane(s.BoostSecondsLeft).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"nextItemId\":").Append(s.NextItemId.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"items\":[");
+            for (int i = 0; i < s.Items.Count; i++)
+            {
+                Item item = s.Items[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":").Append(item.Id.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"def\":");
+                WriteString(sb, item.DefId);
+                sb.Append(",\"name\":");
+                WriteString(sb, item.Name);
+                sb.Append(",\"slot\":").Append(((int)item.Slot).ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"effect\":").Append(((int)item.Effect).ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"tier\":").Append(item.Tier.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"amount\":").Append(Sane(item.Amount).ToString("R", CultureInfo.InvariantCulture));
+                sb.Append(",\"wornBy\":").Append(item.WornBy.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
             sb.Append("]}");
@@ -203,6 +225,7 @@ namespace VuonTra.Core
                     {
                         Id = rabbitId,
                         Tier = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "tier"), Rabbits.TierCount - 1)),
+                        Level = 1,
                         Name = entry.TryGetValue("name", out object nameObj) && nameObj is string name ? name : "",
                     };
                     if (entry.TryGetValue("station", out object stationObj) && stationObj is string stationId && stationId.Length > 0)
@@ -211,12 +234,53 @@ namespace VuonTra.Core
                         // One rabbit per station, and only at stations that are open.
                         if (index >= 0 && s.Levels[index] > 0 && taken.Add(index)) rabbit.Station = index;
                     }
+                    rabbit.Level = (int)Math.Max(1d, Math.Min(ReadNumber(entry, "level"), Rabbits.LevelCaps[rabbit.Tier]));
                     s.Rabbits.Add(rabbit);
                     if (rabbitId > s.NextRabbitId) s.NextRabbitId = rabbitId;
                 }
             }
             long savedNext = ToLong(ReadNumber(root, "nextRabbitId"));
             if (savedNext > s.NextRabbitId) s.NextRabbitId = savedNext;
+
+            // Version 4. A save from before plots existed keeps every station it had already opened.
+            int highestOpen = 0;
+            for (int i = 0; i < s.Levels.Length; i++)
+                if (s.Levels[i] > 0) highestOpen = i + 1;
+            int plots = TryNumber(root, "plots", out double savedPlots) ? (int)Math.Min(savedPlots, defs.Count) : 0;
+            s.Plots = Math.Min(defs.Count, Math.Max(Math.Max(plots, highestOpen), Math.Min(defs.Count, Plots.Starting)));
+
+            s.Energy = TryNumber(root, "energy", out double energy) ? Math.Max(0d, Math.Min(energy, Energy.Max)) : Energy.Max;
+            s.BoostSecondsLeft = Math.Max(0d, Math.Min(ReadNumber(root, "boost"), Energy.BoostSeconds));
+
+            if (root.TryGetValue("items", out object itemsObj) && itemsObj is List<object> items)
+            {
+                var itemIds = new HashSet<long>();
+                var slots = new HashSet<string>();
+                foreach (object raw in items)
+                {
+                    if (!(raw is Dictionary<string, object> entry)) continue;
+                    long itemId = ToLong(ReadNumber(entry, "id"));
+                    if (itemId <= 0 || !itemIds.Add(itemId)) continue;
+                    double slot = ReadNumber(entry, "slot"), effect = ReadNumber(entry, "effect");
+                    var item = new Item
+                    {
+                        Id = itemId,
+                        DefId = entry.TryGetValue("def", out object defObj) && defObj is string defId ? defId : "",
+                        Name = entry.TryGetValue("name", out object itemNameObj) && itemNameObj is string itemName ? itemName : "",
+                        Slot = slot == 1d ? ItemSlot.Charm : ItemSlot.Hat,
+                        Effect = effect == 1d ? ItemEffect.GardenSpeed : (effect == 2d ? ItemEffect.AwayIncome : ItemEffect.StationIncome),
+                        Tier = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "tier"), Rabbits.TierCount - 1)),
+                        Amount = Math.Max(0d, Math.Min(ReadNumber(entry, "amount"), 1000d)),
+                    };
+                    long wornBy = ToLong(ReadNumber(entry, "wornBy"));
+                    // Worn only by a rabbit that exists, one item per slot.
+                    if (wornBy > 0 && Rabbits.Find(s, wornBy) != null && slots.Add(wornBy + ":" + (int)item.Slot)) item.WornBy = wornBy;
+                    s.Items.Add(item);
+                    if (itemId > s.NextItemId) s.NextItemId = itemId;
+                }
+            }
+            long savedNextItem = ToLong(ReadNumber(root, "nextItemId"));
+            if (savedNextItem > s.NextItemId) s.NextItemId = savedNextItem;
 
             result.Status = LoadStatus.Ok;
             return result;

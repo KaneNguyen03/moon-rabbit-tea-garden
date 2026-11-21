@@ -108,6 +108,7 @@ namespace VuonTra.Core
         public static bool CanUnlock(GameState s, int index)
         {
             if (index < 0 || index >= s.Levels.Length) return false;
+            if (index >= s.Plots) return false; // no plot for it yet
             return index == 0 || s.Levels[index - 1] > 0;
         }
     }

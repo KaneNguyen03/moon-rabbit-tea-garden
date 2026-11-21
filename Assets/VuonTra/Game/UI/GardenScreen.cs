@@ -33,6 +33,9 @@ namespace VuonTra.Game.UI
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
         RabbitListView _rabbitList;
+        RectTransform _plotRow;
+        ChunkyButton _plotBuy;
+        Text _plotTitle, _plotSub, _plotCost;
         GameObject _modes, _badge;
         Text _badgeText, _clovers;
 
@@ -233,6 +236,8 @@ namespace VuonTra.Game.UI
                 _rows.Add(row);
             }
 
+            BuildPlotRow(stations, catalog);
+
             RectTransform upgrades = AddList("Upgrades", 1);
             AddNote(upgrades, "Bùa có tác dụng với cả khu vườn.");
             for (int i = 0; i < catalog.Upgrades.Length; i++)
@@ -269,6 +274,50 @@ namespace VuonTra.Game.UI
             });
 
             SetTab(0);
+        }
+
+        /// <summary>The card that sells the next garden plot; it sits right after the last station that has one.</summary>
+        void BuildPlotRow(RectTransform list, GameCatalog catalog)
+        {
+            _plotRow = UiKit.Rect("Plot", list);
+            _plotRow.AddImage(catalog.Panel, Palette.Mix(Palette.Grass, Palette.Ink, 0.25f), true);
+            var layout = _plotRow.gameObject.AddComponent<LayoutElement>();
+            layout.preferredHeight = 176;
+            layout.minHeight = 176;
+            UiKit.Rect("Card", _plotRow).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Mix(Palette.Moss, Palette.Paper, 0.6f), true);
+            _plotTitle = UiKit.Rect("Title", _plotRow).Stretch(0, 0.55f, 1, 1, 36, 4, 330, 20)
+                .AddText("", 34, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+            _plotSub = UiKit.Rect("Sub", _plotRow).Stretch(0, 0.14f, 1, 0.55f, 36, 0, 330, 6)
+                .AddText("", 25, Palette.InkSoft, TextAnchor.UpperLeft);
+            var buy = UiKit.Rect("Buy", _plotRow).Place(1f, 0.5f, -166, 4, 284, 120);
+            _plotBuy = UiKit.Chunky(buy, catalog.Panel, OnBuyPlot);
+            UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 10)
+                .AddText("Mua đất", 23, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _plotCost = UiKit.Rect("Cost", _plotBuy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 10, 8, 0)
+                .AddText("", 36, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+        }
+
+        void RefreshPlotRow(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            bool more = Plots.CanBuy(defs, s);
+            if (_plotRow.gameObject.activeSelf != more) _plotRow.gameObject.SetActive(more);
+            if (!more) return;
+            if (_plotRow.GetSiblingIndex() != s.Plots) _plotRow.SetSiblingIndex(s.Plots);
+            BigNum cost = Plots.CostOfNext(defs, s);
+            bool can = s.Coins >= cost;
+            _plotTitle.text = "Ô đất thứ " + (s.Plots + 1);
+            _plotSub.text = "Mở chỗ cho " + defs[s.Plots].Name;
+            _plotCost.text = cost.ToShortString();
+            _plotCost.color = can ? Palette.Card : Palette.OffInk;
+            _plotBuy.SetEnabled(can);
+        }
+
+        void OnBuyPlot()
+        {
+            if (!Runner.BuyPlot()) return;
+            _plotBuy.Press(Tweens);
+            Sfx.Sting();
+            Feel.Moment("Khu vườn rộng thêm!", "Có chỗ cho " + Runner.Defs[Runner.State.Plots - 1].Name);
         }
 
         /// <summary>A scrolling column of cards under the drawer's header; returns where the cards go.</summary>
@@ -427,6 +476,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
             for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
 
+            RefreshPlotRow(defs, s);
             _rabbitList.Refresh(defs, s);
             for (int i = 0; i < _tierChips.Count; i++)
             {

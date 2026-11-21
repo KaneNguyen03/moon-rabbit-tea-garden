@@ -208,8 +208,18 @@ namespace VuonTra.Game
             Changed();
         }
 
+        /// <summary>Buys the next garden plot, which lets the next station be opened.</summary>
+        public bool BuyPlot()
+        {
+            bool ok = Plots.TryBuy(Defs, State);
+            if (ok) Changed();
+            return ok;
+        }
+
         void Changed()
         {
+            // Upgrades, working rabbits and their items all feed the modifiers.
+            Mods = Modifiers.From(UpgradeDefs, State);
             StateChanged?.Invoke();
             Save();
         }

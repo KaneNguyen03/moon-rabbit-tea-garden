@@ -77,7 +77,7 @@ namespace VuonTra.Game.UI
                 BigNum cost = Economy.CostOfNext(d, 0, 1);
                 _level.text = "Chưa mở";
                 _levelChip.color = Palette.OffLip;
-                _sub.text = previousOpen ? Describe(defs, s, d, 1, m) : "Mở trạm phía trên trước";
+                _sub.text = previousOpen ? Describe(defs, s, d, 1, m) : (_index >= s.Plots ? "Cần mua thêm ô đất" : "Mở trạm phía trên trước");
                 _buyTop.text = "Mở trạm";
                 _buyCost.text = cost.ToShortString();
                 canAfford = previousOpen && s.Coins >= cost;

@@ -9,6 +9,8 @@ namespace VuonTra.Core
         public long Id;
         public int Tier;
         public string Name;
+        /// <summary>1 and up; each level adds to what the rabbit is worth. The tier sets the cap.</summary>
+        public int Level = 1;
         /// <summary>Index of the station it works at, or -1 when resting.</summary>
         public int Station = -1;
     }
@@ -25,6 +27,38 @@ namespace VuonTra.Core
 
         /// <summary>Silver, green, blue, purple, gold, red.</summary>
         public static readonly double[] Multipliers = { 1.1, 1.25, 1.5, 2, 3, 5 };
+        /// <summary>Highest level a rabbit of each tier can reach.</summary>
+        public static readonly int[] LevelCaps = { 10, 20, 30, 40, 50, 60 };
+        /// <summary>Each level above 1 adds this share of the tier's multiplier.</summary>
+        public const double LevelBonus = 0.05;
+
+        static int ClampTier(int tier) => Math.Max(0, Math.Min(TierCount - 1, tier));
+
+        /// <summary>What this rabbit multiplies its station by: tier, level, then its own items.</summary>
+        public static double Multiplier(GameState s, Rabbit r)
+        {
+            double fromLevel = Multipliers[ClampTier(r.Tier)] * (1d + LevelBonus * (Math.Max(1, r.Level) - 1));
+            return fromLevel * (1d + Items.StationBonus(s, r.Id));
+        }
+
+        public static bool IsMaxLevel(Rabbit r) => r.Level >= LevelCaps[ClampTier(r.Tier)];
+
+        public static BigNum LevelCost(Rabbit r)
+        {
+            return new BigNum(1.3).Pow(Math.Max(1, r.Level) - 1) * (100d * Math.Pow(2d, ClampTier(r.Tier)));
+        }
+
+        public static bool TryLevelUp(GameState s, long id)
+        {
+            Rabbit r = Find(s, id);
+            if (r == null || IsMaxLevel(r)) return false;
+            BigNum cost = LevelCost(r);
+            if (s.Coins < cost) return false;
+            s.Coins -= cost;
+            r.Level++;
+            return true;
+        }
+
         /// <summary>Chance of each tier from one call; they add up to 1.</summary>
         public static readonly double[] Odds = { 0.60, 0.25, 0.10, 0.04, 0.009, 0.001 };
 
@@ -80,14 +114,23 @@ namespace VuonTra.Core
                     if (r.Tier == tier && resting == (pass == 0)) used.Add(r);
                 }
 
-            int station = -1;
+            int station = -1, level = 1;
             foreach (Rabbit r in used)
             {
                 if (station < 0 && r.Station >= 0) station = r.Station;
+                if (r.Level > level) level = r.Level; // the training is not lost
                 s.Rabbits.Remove(r);
             }
-            var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Name = used[0].Name, Station = station };
+            var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Name = used[0].Name, Station = station, Level = level };
             s.Rabbits.Add(merged);
+            // Items move to the new rabbit, first come first served per slot; the rest come off.
+            foreach (Rabbit r in used)
+                for (int i = 0; i < s.Items.Count; i++)
+                {
+                    Item item = s.Items[i];
+                    if (item.WornBy != r.Id) continue;
+                    item.WornBy = Items.Worn(s, merged.Id, item.Slot) == null ? merged.Id : 0;
+                }
             return merged;
         }
 
@@ -109,7 +152,7 @@ namespace VuonTra.Core
         public static double StationMultiplier(GameState s, int station)
         {
             Rabbit r = AtStation(s, station);
-            return r == null ? 1d : Multipliers[Math.Max(0, Math.Min(TierCount - 1, r.Tier))];
+            return r == null ? 1d : Multiplier(s, r);
         }
 
         /// <summary>

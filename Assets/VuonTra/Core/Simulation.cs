@@ -18,12 +18,13 @@ namespace VuonTra.Core
         {
             if (!(dt > 0d)) return; // also rejects NaN
             Modifiers m = mods ?? Modifiers.None;
+            double work = Energy.Advance(s, dt); // a running burst makes these seconds count double
             for (int i = 0; i < defs.Count; i++)
             {
                 var d = defs[i];
                 if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d) continue;
 
-                double p = s.Progress[i] + dt * m.SpeedMultiplier / d.CycleSeconds;
+                double p = s.Progress[i] + work * m.SpeedMultiplier / d.CycleSeconds;
                 if (p >= 1d)
                 {
                     double cycles = Math.Floor(p);
@@ -88,7 +89,9 @@ namespace VuonTra.Core
             if (elapsed < AwayMinSeconds) return BigNum.Zero;
 
             countedSeconds = Math.Min(elapsed, m.AwayCapSeconds);
-            BigNum paid = Economy.IncomePerSecond(defs, s) * (countedSeconds * m.IncomeMultiplier * m.SpeedMultiplier);
+            Energy.PassAway(s, elapsed);
+            double awayBonus = m.AwayIncomeMultiplier > 0d ? m.AwayIncomeMultiplier : 1d;
+            BigNum paid = Economy.IncomePerSecond(defs, s) * (countedSeconds * m.IncomeMultiplier * m.SpeedMultiplier * awayBonus);
             s.Coins += paid;
             s.TotalEarned += paid;
             return paid;

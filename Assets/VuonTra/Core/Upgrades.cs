@@ -35,16 +35,22 @@ namespace VuonTra.Core
         public double SpeedMultiplier;
         public double TapSeconds;
         public double AwayCapSeconds;
+        /// <summary>Extra on top of normal income for time away (1 = none).</summary>
+        public double AwayIncomeMultiplier;
 
         public static readonly Modifiers None = new Modifiers
         {
             IncomeMultiplier = 1d, SpeedMultiplier = 1d,
-            TapSeconds = Simulation.TapSeconds, AwayCapSeconds = Simulation.AwayCapSeconds
+            TapSeconds = Simulation.TapSeconds, AwayCapSeconds = Simulation.AwayCapSeconds,
+            AwayIncomeMultiplier = 1d
         };
 
         public static Modifiers From(IReadOnlyList<UpgradeDef> upgrades, GameState s)
         {
             Modifiers m = None;
+            // Items worn by working rabbits count whether or not there are upgrades.
+            m.SpeedMultiplier += Items.GardenBonus(s, ItemEffect.GardenSpeed);
+            m.AwayIncomeMultiplier += Items.GardenBonus(s, ItemEffect.AwayIncome);
             if (upgrades == null || s.UpgradeLevels == null) return m;
             for (int i = 0; i < upgrades.Count && i < s.UpgradeLevels.Length; i++)
             {
