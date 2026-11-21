@@ -89,6 +89,14 @@ namespace VuonTra.EditorTools
                 // a worn path the stations stand along
                 float path = Mathf.Abs(t - 0.52f - 0.03f * Mathf.Sin(u * Mathf.PI * 8f));
                 c = Color.Lerp(c, Hex("7fb39c"), Mathf.Clamp01(1f - path / 0.05f) * 0.22f);
+                // short grass tufts: darker flecks, denser near the viewer
+                float gx = Mathf.Floor(u * 96f), gy = Mathf.Floor(v * 40f);
+                if (Hash(gx + 11, gy + 5) > 0.78f)
+                {
+                    float tx = (u * 96f - gx) - 0.5f, ty = (v * 40f - gy) - 0.3f;
+                    float blade = Mathf.Clamp01(1f - Mathf.Abs(tx) * 5f - Mathf.Abs(ty) * 1.6f);
+                    c = Color.Lerp(c, Hex("5fb58a"), blade * 0.5f);
+                }
                 // glowing flowers, one per cell in most cells; cells tile across the texture
                 float cx = Mathf.Floor(u * 16f), cy = Mathf.Floor(v * 8f);
                 if (Hash(cx + 40, cy) > 0.35f)
@@ -102,14 +110,24 @@ namespace VuonTra.EditorTools
                 return c;
             });
 
+            // Darkened corners pull the eye to the lit middle of the street.
+            Color edge = Hex("0b0f2a");
+            Write("bg_vignette", 256, 144, (u, v) =>
+            {
+                float dx = (u - 0.5f) * 1.9f, dy = (v - 0.46f) * 2.2f;
+                float d = Mathf.Sqrt(dx * dx + dy * dy);
+                float a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((d - 0.62f) / 0.75f)) * 0.62f;
+                return new Color(edge.r, edge.g, edge.b, a);
+            });
+
             AssetDatabase.Refresh();
-            foreach (string name in new[] { "bg_sky", "bg_hills", "bg_trees", "bg_ground" })
+            foreach (string name in new[] { "bg_sky", "bg_hills", "bg_trees", "bg_ground", "bg_vignette" })
             {
                 var importer = (TextureImporter)AssetImporter.GetAtPath(Folder + "/" + name + ".png");
                 importer.textureType = TextureImporterType.Default;
                 importer.alphaIsTransparency = true;
                 importer.mipmapEnabled = false;
-                importer.wrapMode = name == "bg_sky" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
+                importer.wrapMode = name == "bg_sky" || name == "bg_vignette" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
                 importer.npotScale = TextureImporterNPOTScale.None;
                 importer.SaveAndReimport();
             }

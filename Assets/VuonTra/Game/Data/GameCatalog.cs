@@ -32,6 +32,7 @@ namespace VuonTra.Game
         public Texture2D BgHills;
         public Texture2D BgTrees;
         public Texture2D BgGround;
+        public Texture2D BgVignette;
 
         [Tooltip("Street dressing, in this order: tree, bush, lantern, fence, mushrooms, stones.")]
         public Sprite[] Decor = new Sprite[0];

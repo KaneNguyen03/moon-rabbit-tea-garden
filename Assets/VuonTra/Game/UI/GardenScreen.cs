@@ -53,6 +53,8 @@ namespace VuonTra.Game.UI
         RectTransform _canvas, _street, _hud, _purse, _currency, _panel, _tabBar, _energyFill, _plotRow;
         RawImage _hills, _trees, _ground;
         RectTransform _decorFront;
+        readonly List<RectTransform> _fireflies = new List<RectTransform>();
+        readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
         Text _coins, _perSecond, _awayAmount, _awayTime, _badgeText, _barBadgeText, _clovers, _energyLabel, _energyAction;
         Text _plotTitle, _plotSub, _plotCost;
@@ -100,6 +102,7 @@ namespace VuonTra.Game.UI
             Feel.Update(dt);
             Shell.Update(_clock);
             UpdateParallax();
+            UpdateFireflies();
 
             // The counter counts up instead of snapping.
             double target = s.Coins.ToDouble();
@@ -185,6 +188,7 @@ namespace VuonTra.Game.UI
 
             BuildBackdrop(catalog);
             BuildStreet(catalog);
+            BuildAtmosphere(catalog);
             BuildHud(catalog);
             BuildTabBar(catalog);
             BuildSheet(catalog);
@@ -276,6 +280,44 @@ namespace VuonTra.Game.UI
             _hint = hint.gameObject;
         }
 
+        /// <summary>Fireflies drifting over the street and darkened corners, above the stations and below the HUD.</summary>
+        void BuildAtmosphere(GameCatalog catalog)
+        {
+            _fireflies.Clear();
+            _fireflyImages.Clear();
+            var layer = UiKit.Rect("Fireflies", _canvas).Stretch(0, 0, 1, 1);
+            for (int i = 0; i < 16; i++)
+            {
+                var rt = UiKit.Rect("Firefly", layer).Place(0f, 0f, 0, 0, 34, 34);
+                _fireflyImages.Add(rt.AddImage(catalog.Glow, Palette.Lantern));
+                UiKit.Rect("Core", rt).Place(0.5f, 0.5f, 0, 0, 7, 7).AddImage(catalog.Round, Palette.Mix(Palette.Lantern, Color.white, 0.6f));
+                _fireflies.Add(rt);
+            }
+            if (catalog.BgVignette != null)
+            {
+                var v = UiKit.Rect("Vignette", _canvas).Stretch(0, 0, 1, 1);
+                var raw = v.gameObject.AddComponent<RawImage>();
+                raw.texture = catalog.BgVignette;
+                raw.raycastTarget = false;
+            }
+        }
+
+        /// <summary>Each firefly wanders on its own slow loop and pulses; they drift a little with the street.</summary>
+        void UpdateFireflies()
+        {
+            float drift = -_street.anchoredPosition.x * 0.6f;
+            for (int i = 0; i < _fireflies.Count; i++)
+            {
+                float seed = i * 7.31f;
+                float x = Mathf.Repeat(Hash(seed) * 2200f + Mathf.Sin(_clock * 0.23f + seed) * 140f - drift, 2200f) - 140f;
+                float y = 150f + Hash(seed + 3f) * 520f + Mathf.Sin(_clock * 0.31f + seed * 1.7f) * 46f;
+                _fireflies[i].anchoredPosition = new Vector2(x, y);
+                float pulse = 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
+                _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.15f + 0.6f * pulse);
+                _fireflies[i].localScale = Vector3.one * (0.7f + 0.5f * pulse);
+            }
+        }
+
         static float Hash(float n)
         {
             float v = Mathf.Sin(n * 12.9898f) * 43758.5453f;
@@ -302,7 +344,7 @@ namespace VuonTra.Game.UI
             const int Tree = 0, Bush = 1, Lantern = 2, Fence = 3, Mushrooms = 4, Stones = 5;
             float length = FirstStationX + stations * StationSpacing + StreetEndPadding;
             // Far things are a little bluer and dimmer, which reads as distance at night.
-            Color far = Palette.Mix(Color.white, Palette.Night, 0.38f), mid = Palette.Mix(Color.white, Palette.Night, 0.12f);
+            Color far = Palette.Mix(Color.white, Palette.Night, 0.22f), mid = Palette.Mix(Color.white, Palette.Night, 0.06f);
 
             for (float x = 40f; x < length; x += 230f)
             {
@@ -323,7 +365,7 @@ namespace VuonTra.Game.UI
                 if (pick == 0)
                 {
                     var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, x + 14f, y + 150f, 330f, 330f);
-                    glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.42f));
+                    glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.6f));
                     AddDecor(_street, d[Lantern], x, y, 226f, Color.white);
                 }
                 else if (pick == 1) AddDecor(_street, d[Mushrooms], x + 10f, y + 6f, 84f, mid);
@@ -333,7 +375,7 @@ namespace VuonTra.Game.UI
             _decorFront = UiKit.Rect("DecorFront", _canvas);
             _decorFront.anchorMin = _decorFront.anchorMax = _decorFront.pivot = Vector2.zero;
             _decorFront.sizeDelta = Vector2.zero;
-            Color near = Palette.Mix(Color.white, Palette.Night, 0.55f);
+            Color near = Palette.Mix(Color.white, Palette.Night, 0.45f);
             for (float x = 120f; x < length * 1.3f; x += 610f)
             {
                 float h = Hash(x + 50);

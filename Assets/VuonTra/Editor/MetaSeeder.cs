@@ -139,6 +139,7 @@ namespace VuonTra.EditorTools
             catalog.BgHills = StreetArt.Load("bg_hills");
             catalog.BgTrees = StreetArt.Load("bg_trees");
             catalog.BgGround = StreetArt.Load("bg_ground");
+            catalog.BgVignette = StreetArt.Load("bg_vignette");
 
             catalog.Upgrades = upgrades.ToArray();
             catalog.Quests = quests.ToArray();
