@@ -2229,5 +2229,53 @@ namespace VuonTra.Core.Tests
             Assert.Less(min, 0.99f);
             Assert.Less(max, 1.05f, "but only a little");
         }
+
+        [Test]
+        public void Edge_Pills_Count_What_Waits_Out_Of_View_And_A_Touch_Flies_There()
+        {
+            Motion.SetReduced(true); // moves arrive at once, so the test reads positions right after a touch
+            for (int i = 0; i < runner.State.Levels.Length; i++) runner.State.Levels[i] = 1 + i;
+            runner.State.Plots = runner.State.Levels.Length;
+            runner.State.Coins = new BigNum(1e300); // every station can be raised
+            screen.Shell.StartGame();
+            screen.Refresh();
+            GameObject up = root.transform.Find("Canvas/EdgeUp").gameObject, down = root.transform.Find("Canvas/EdgeDown").gameObject, home = root.transform.Find("Canvas/Home").gameObject;
+            int Count(GameObject pill) => pill.activeSelf ? int.Parse(pill.transform.Find("Text").GetComponent<Text>().text.Substring(2)) : 0;
+
+            // The usual zoom, looking at the top of the garden: the lowest stations are out of view below.
+            screen.LookAt(new Vector2(540f, 2900f));
+            screen.Advance(1f / 30f);
+            Assert.IsTrue(down.activeSelf, "stations that can be raised wait below");
+            StringAssert.StartsWith("▼ ", down.transform.Find("Text").GetComponent<Text>().text);
+            int waiting = Count(down);
+            Assert.GreaterOrEqual(waiting, 2, "the spring and the observatory");
+            Assert.IsFalse(home.activeSelf, "the teapot is still in view at this zoom");
+
+            Find("Canvas/EdgeDown").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.Less(Count(down), waiting, "the touch flew to the nearest waiting station, which is now in view");
+
+            // Close in and look at the foot of the garden: the teapot has scrolled away, the way home shows.
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
+            screen.LookAt(new Vector2(540f, 300f));
+            screen.Advance(1f / 30f);
+            Assert.IsTrue(home.activeSelf, "the teapot is out of view");
+            Assert.IsTrue(up.activeSelf, "and the stations above wait");
+            Find("Canvas/Home").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.IsFalse(home.activeSelf, "home again: the teapot is on screen");
+
+            runner.State.Coins = BigNum.Zero; // nothing to raise, nobody dozing: nothing to point at
+            screen.Refresh();
+            screen.LookAt(new Vector2(540f, 300f));
+            screen.Advance(1f / 30f);
+            Assert.IsFalse(down.activeSelf);
+            Assert.IsFalse(up.activeSelf);
+            Assert.IsTrue(home.activeSelf, "but the way home still shows far from the teapot");
+
+            screen.OpenSheet(0);
+            screen.Advance(1f / 30f);
+            Assert.IsFalse(home.activeSelf, "nothing at the edges while a sheet is up");
+        }
     }
 }

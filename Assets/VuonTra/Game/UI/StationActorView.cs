@@ -246,6 +246,9 @@ namespace VuonTra.Game.UI
             if (sprite != null) slot.sprite = sprite;
         }
 
+        /// <summary>True while the "tap me" arrow is up: this station can be raised right now.</summary>
+        public bool CanUpgradeShown => _upArrow.activeSelf;
+
         public void SetCanUpgrade(bool can)
         {
             if (_upArrow.activeSelf != can) _upArrow.SetActive(can);

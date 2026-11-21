@@ -326,6 +326,22 @@ namespace VuonTra.EditorTools
             screen.LookAt(new Vector2(540f, 300f));
             Step(screen, 0.3f);
             Capture(screen, "16-all-bottom");
+            // With a full purse every station can be raised: the pill at the top counts the ones out of view,
+            // and close in at the foot of the garden the teapot button shows the way home.
+            var purseWas = state.Coins;
+            state.Coins = new BigNum(1e30);
+            screen.Refresh();
+            Step(screen, 0.2f);
+            Capture(screen, "31-edges");
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
+            screen.LookAt(new Vector2(540f, 300f));
+            Step(screen, 0.2f);
+            Capture(screen, "31-home");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.LookAt(new Vector2(540f, 300f));
+            state.Coins = purseWas;
+            screen.Refresh();
+            Step(screen, 0.2f);
             // Every place to rest open and taken, to see the seats and the strollers.
             state.RestSpots = RestSpots.Max;
             for (int i = 0; i < state.Rabbits.Count && i < 7; i++) state.Rabbits[i].Station = -1;

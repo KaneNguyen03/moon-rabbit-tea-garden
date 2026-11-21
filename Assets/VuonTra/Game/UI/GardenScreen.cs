@@ -65,6 +65,11 @@ namespace VuonTra.Game.UI
         readonly float[] _tabShown = new float[TabCount], _tabPop = new float[TabCount];
         float _tabFade = 1f, _badgePop, _safeBottom = -1f;
         bool _energyReady;
+        // Pills at the top and bottom edges that count what waits out of view, and the way home to the teapot.
+        RectTransform _edgeUp, _edgeDown;
+        Text _edgeUpText, _edgeDownText;
+        int _edgeUpTarget = -1, _edgeDownTarget = -1;
+        GameObject _home;
         int _shownClaimable = -1;
         RectTransform _barBadgeRect, _rabbitBadgeRect;
         Text _rabbitBadgeText;
@@ -206,6 +211,7 @@ namespace VuonTra.Game.UI
             GameState s = Runner.State;
             bool boosting = s.BoostSecondsLeft > 0d;
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
+            UpdateEdges();
             // A full bar breathes: the one hint that the boost is there to be taken.
             _energyButton.FaceRect.localScale = Vector3.one * (_energyReady ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
 
@@ -737,6 +743,7 @@ namespace VuonTra.Game.UI
             ProductTray = new TrayView(_canvas, catalog, OnSellProduct, OnSellAllProducts);
             BuildPhotoMode(catalog);
             ProductTray.Root.anchoredPosition = new Vector2(0f, SafeBottom() + TabBarGap + TabBarHeight + 10f); // just above the tab bar
+            BuildEdges(catalog);
             BuildSheet(catalog);
             Feel = new FeelLayer(_canvas, catalog, Tweens);
             Arrival = new SummonMomentView(_canvas, catalog);
@@ -2470,6 +2477,85 @@ namespace VuonTra.Game.UI
             card.localScale = Vector3.one * 0.8f;
             Tweens.Add(0.3f, t => card.localScale = Vector3.one * Mathf.LerpUnclamped(0.8f, 1f, t), Ease.OutBack);
         }
+
+        /// <summary>
+        /// Two pills at the edges say how many stations out of view can be raised or have a dozing rabbit; a
+        /// touch flies to the nearest. A teapot button appears when the garden's heart has scrolled away.
+        /// </summary>
+        void BuildEdges(GameCatalog catalog)
+        {
+            float bottom = ProductTray.Root.anchoredPosition.y + ProductTray.Root.sizeDelta.y + 26f;
+            _edgeDown = EdgePill(catalog, "EdgeDown", bottom, () => FlyTo(_edgeDownTarget), out _edgeDownText);
+            _edgeUp = EdgePill(catalog, "EdgeUp", ScreenH - 150f - 46f, () => FlyTo(_edgeUpTarget), out _edgeUpText);
+
+            var home = UiKit.Rect("Home", _canvas).Place(1f, 0f, -72, bottom + 4f, 92, 92);
+            home.AddShadow(14f, 10f, 0.3f);
+            Image homeBack = home.AddImage(catalog.Round, Palette.Paper);
+            homeBack.raycastTarget = true;
+            var homeButton = home.gameObject.AddComponent<Button>();
+            homeButton.transition = Selectable.Transition.None;
+            homeButton.targetGraphic = homeBack;
+            homeButton.onClick.AddListener(() => FlyTo(0));
+            Sprite teapot = catalog.Stations.Length > 0 ? catalog.Stations[0].Prop : null;
+            if (teapot != null) UiKit.Rect("Icon", home).Stretch(0, 0, 1, 1, 12, 12, 12, 12).AddImage(teapot, Color.white).preserveAspect = true;
+            _home = home.gameObject;
+            _home.SetActive(false);
+        }
+
+        RectTransform EdgePill(GameCatalog catalog, string name, float y, System.Action onTap, out Text text)
+        {
+            var pill = UiKit.Rect(name, _canvas).Place(0.5f, 0f, 0, y, 160, 56);
+            pill.AddShadow(12f, 8f, 0.3f);
+            Image back = pill.AddImage(catalog.Panel, Palette.Paper, true);
+            back.raycastTarget = true;
+            var button = pill.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = back;
+            button.onClick.AddListener(() => onTap());
+            text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            pill.gameObject.SetActive(false);
+            return pill;
+        }
+
+        void FlyTo(int index)
+        {
+            if (index < 0 || index >= _actors.Count) return;
+            Sfx.Click();
+            ZoomToStation(index, !Motion.Reduced);
+        }
+
+        /// <summary>Counts, per edge, the stations out of view that wait for the player, and keeps the nearest as the target.</summary>
+        void UpdateEdges()
+        {
+            GameState s = Runner.State;
+            bool shown = Shell.State == ShellState.Playing && !SheetOpen;
+            int up = 0, down = 0;
+            float upNear = float.MaxValue, downNear = float.MaxValue;
+            _edgeUpTarget = -1;
+            _edgeDownTarget = -1;
+            if (shown)
+            {
+                for (int i = 0; i < _actors.Count && i < s.Plots; i++)
+                {
+                    if (!_actors[i].Root.gameObject.activeSelf) continue;
+                    if (!_actors[i].CanUpgradeShown && !_actors[i].Dozing) continue;
+                    // Where the station sits on the screen, from the view's own numbers: no layout pass needed.
+                    float y = ViewPointOf(i).y - ScreenH / 2f;
+                    if (Mathf.Abs(y) < ScreenH / 2f + 160f) continue;
+                    if (y > 0f) { up++; if (y < upNear) { upNear = y; _edgeUpTarget = i; } }
+                    else { down++; if (-y < downNear) { downNear = -y; _edgeDownTarget = i; } }
+                }
+            }
+            if (_edgeUp.gameObject.activeSelf != (up > 0)) _edgeUp.gameObject.SetActive(up > 0);
+            if (_edgeDown.gameObject.activeSelf != (down > 0)) _edgeDown.gameObject.SetActive(down > 0);
+            if (up > 0) _edgeUpText.text = "▲ " + up;
+            if (down > 0) _edgeDownText.text = "▼ " + down;
+            bool far = shown && _actors.Count > 0 && Mathf.Abs(ViewPointOf(0).y - ScreenH / 2f) > ScreenH / 2f + 160f;
+            if (_home.activeSelf != far) _home.SetActive(far);
+        }
+
+        /// <summary>A station's spot in screen space (0..ScreenW, 0..ScreenH), from the street's position and the zoom.</summary>
+        Vector2 ViewPointOf(int station) => _street.anchoredPosition + StationSpot(station) * _zoom;
 
         /// <summary>True when a station is inside the visible part of the street.</summary>
         bool OnScreen(RectTransform actor)
