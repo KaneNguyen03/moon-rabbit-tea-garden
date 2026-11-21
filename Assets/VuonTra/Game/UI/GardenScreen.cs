@@ -47,7 +47,8 @@ namespace VuonTra.Game.UI
         readonly float[] _tabShown = new float[TabCount], _tabPop = new float[TabCount];
         float _tabFade = 1f, _badgePop, _safeBottom = -1f;
         int _shownClaimable = -1;
-        RectTransform _barBadgeRect;
+        RectTransform _barBadgeRect, _rabbitBadgeRect;
+        Text _rabbitBadgeText;
         const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f;
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
@@ -99,6 +100,8 @@ namespace VuonTra.Game.UI
         public FeelLayer Feel { get; private set; }
         public ShellView Shell { get; private set; }
         public ItemPickerView Picker { get; private set; }
+        /// <summary>The list of the player's rabbits, opened from a station's empty pad or its card.</summary>
+        public WorkerPickerView Workers { get; private set; }
         public RenameView Rename { get; private set; }
         public RabbitDetailView Detail { get; private set; }
         /// <summary>The moon gate a newly called or merged rabbit steps out of.</summary>
@@ -554,19 +557,28 @@ namespace VuonTra.Game.UI
             if (_dozeTimer <= 0f)
             {
                 _dozeTimer = 22f + Hash(_clock) * 16f;
-                GameState s = Runner.State;
-                // One open station at a time, picked from wherever the clock happens to point.
-                int start = Mathf.FloorToInt(Hash(_clock + 3f) * _actors.Count);
-                for (int n = 0; n < _actors.Count; n++)
+                DozeSomeone();
+            }
+        }
+
+        /// <summary>
+        /// One working rabbit nods off, picked from wherever the clock happens to point. False when nobody
+        /// is at work: an empty station has no one to fall asleep.
+        /// </summary>
+        public bool DozeSomeone()
+        {
+            GameState s = Runner.State;
+            int start = Mathf.FloorToInt(Hash(_clock + 3f) * _actors.Count);
+            for (int n = 0; n < _actors.Count; n++)
+            {
+                int i = (start + n) % _actors.Count;
+                if (s.Levels[i] > 0 && Rabbits.AtStation(s, i) != null && !_actors[i].Dozing && _actors[i].Root.gameObject.activeSelf)
                 {
-                    int i = (start + n) % _actors.Count;
-                    if (s.Levels[i] > 0 && !_actors[i].Dozing && _actors[i].Root.gameObject.activeSelf)
-                    {
-                        _actors[i].SetDozing(true);
-                        break;
-                    }
+                    _actors[i].SetDozing(true);
+                    return true;
                 }
             }
+            return false;
         }
 
         /// <summary>Sends a golden firefly across the screen. Catching it pays about 45 seconds of income.</summary>
@@ -638,6 +650,7 @@ namespace VuonTra.Game.UI
             // The old helpers belong to the destroyed canvas; Build makes new ones.
             Feel = null;
             Picker = null;
+            Workers = null;
             Rename = null;
             Detail = null;
             Arrival = null;
@@ -699,6 +712,7 @@ namespace VuonTra.Game.UI
                 (itemId, rabbitId) => { Sfx.Blip(); Runner.EquipItem(itemId, rabbitId); },
                 itemId => { Sfx.Click(); Runner.UnequipItem(itemId); });
             Rename = new RenameView(_canvas, catalog, Tweens, (rabbitId, name) => { Sfx.Blip(); Runner.RenameRabbit(rabbitId, name); });
+            Workers = new WorkerPickerView(_canvas, catalog, Tweens, (rabbitId, station) => { Sfx.Blip(); Runner.AssignRabbit(rabbitId, station); });
             BuildAwayPopup(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame());
             Shell.Changed += OnShellChanged;
@@ -802,13 +816,12 @@ namespace VuonTra.Game.UI
             {
                 Vector2 spot = StationSpot(i);
                 var actor = new StationActorView(i);
-                actor.Build(_street, catalog, catalog.Stations[i], OnTap);
+                actor.Build(_street, catalog, catalog.Stations[i], OnTap, OnPad);
                 actor.Root.Place(0f, 0f, spot.x, spot.y, 440, 360);
                 actor.BaseScale = StationSize(i);
                 actor.Root.localScale = Vector3.one * StationSize(i);
-                var plate = (RectTransform)actor.Root.Find("Level");
-                plate.localScale = Vector3.one * (0.78f / StationSize(i)); // every station's level reads at the same size
-                plate.anchoredPosition += new Vector2(0, -26f); // clear of the rabbit's feet and the prop
+                // Every station's level reads at the same size, clear of the rabbit's feet and the prop.
+                actor.PlacePlate(0.78f / StationSize(i), new Vector2(0, -26f));
                 _actors.Add(actor);
                 standing.Add(new KeyValuePair<float, Transform>(spot.y - 112f * StationSize(i), actor.Root));
 
@@ -965,7 +978,12 @@ namespace VuonTra.Game.UI
 
             // Who works here: the rabbit's face, its name, and its kind and trade.
             _cardWorker = UiKit.Rect("Worker", _card).Place(0f, 0f, 262, 74, 460, 96);
-            _cardWorker.AddImage(catalog.Panel, Palette.Track, true);
+            Image workerBack = _cardWorker.AddImage(catalog.Panel, Palette.Track, true);
+            workerBack.raycastTarget = true; // the second place to put a rabbit to work
+            var workerButton = _cardWorker.gameObject.AddComponent<Button>();
+            workerButton.transition = Selectable.Transition.None;
+            workerButton.targetGraphic = workerBack;
+            workerButton.onClick.AddListener(() => OnPad(Selected));
             var portrait = UiKit.Rect("Portrait", _cardWorker).Place(0f, 0.5f, 50, 0, 80, 80);
             _cardWorkerFrame = portrait.AddImage(catalog.Round, Palette.Paper);
             _cardWorkerArt = UiKit.Rect("Art", portrait).Stretch(0, 0, 1, 1, 6, 6, 6, 6).AddImage(null, Color.white);
@@ -1443,6 +1461,11 @@ namespace VuonTra.Game.UI
             _barBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
             _barBadgeText = UiKit.Rect("Text", _barBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _barBadge = _barBadgeRect.gameObject;
+            // How many open stations still have nobody working, on the corner of the rabbits tab.
+            _rabbitBadgeRect = UiKit.Rect("RabbitsBadge", _tabBar).Place(3.5f / TabCount, 0f, 46, 140, 48, 48);
+            _rabbitBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
+            _rabbitBadgeText = UiKit.Rect("Text", _rabbitBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _rabbitBadgeRect.gameObject.SetActive(false);
             _shownClaimable = -1;
             _safeBottom = -1f;
             PlaceTabBar();
@@ -1931,6 +1954,7 @@ namespace VuonTra.Game.UI
             _rabbitList.Refresh(defs, s);
             Detail.Refresh(defs, s);
             Picker.Refresh(s);
+            Workers.Refresh(defs, s);
 
             int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s);
             _barBadge.SetActive(claimable > 0);
@@ -1938,6 +1962,9 @@ namespace VuonTra.Game.UI
             if (_shownClaimable >= 0 && claimable > _shownClaimable)
                 Tweens.Add(0.32f, t => _badgePop = 0.4f * Ease.Pop(t), Ease.Linear, 0f, () => _badgePop = 0f); // one more to collect
             _shownClaimable = claimable;
+            int missing = Rabbits.StationsWithoutWorker(s);
+            if (_rabbitBadgeRect.gameObject.activeSelf != (missing > 0)) _rabbitBadgeRect.gameObject.SetActive(missing > 0);
+            _rabbitBadgeText.text = missing.ToString();
             _clovers.text = L10n.T("quests.clovers", s.Clovers);
 
             foreach (KeyValuePair<int, Image> pair in _modeButtons)
@@ -1994,7 +2021,19 @@ namespace VuonTra.Game.UI
 
             for (int i = 0; i < shown; i++)
             {
-                _actors[i].SetLevel(s.Levels[i], defs[i].Kind == StationKind.Brew, i >= s.Plots);
+                StationLook look = i >= s.Plots ? StationLook.Land : (s.Levels[i] <= 0 ? StationLook.Unbuilt : StationLook.Open);
+                _actors[i].SetLook(look, s.Levels[i], defs[i].Kind == StationKind.Brew);
+                if (look == StationLook.Land)
+                {
+                    _actors[i].SetSign(L10n.T("land.expand"), Expansion.CanExpand(defs, s));
+                }
+                else if (look == StationLook.Unbuilt)
+                {
+                    // The price sign: what it costs to build, or how many carrots are still missing for the next one.
+                    BigNum cost = Economy.CostOfNext(defs[i], 0, 1);
+                    bool next = Economy.CanUnlock(s, i), can = next && s.Coins >= cost;
+                    _actors[i].SetSign(next && !can ? L10n.T("plot.short", (cost - s.Coins).Short()) : L10n.T("plot.build", cost.Short()), can);
+                }
                 _actors[i].SetCanUpgrade(CanAfford(defs, s, i));
 
                 Rabbit worker = Rabbits.AtStation(s, i);
@@ -2176,6 +2215,15 @@ namespace VuonTra.Game.UI
             _actors[index].Squish();
             Sfx.Pet();
             DismissHint();
+        }
+
+        /// <summary>The empty pad at a station, or the card's "who works here", was touched: choose a rabbit for it.</summary>
+        void OnPad(int index)
+        {
+            GameState s = Runner.State;
+            if (index < 0 || index >= s.Levels.Length || s.Levels[index] <= 0 || index >= s.Plots) return;
+            Sfx.Click();
+            Workers.Open(Runner.Defs, s, index);
         }
 
         void OnQuick(int index)

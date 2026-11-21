@@ -96,10 +96,11 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Tapping_A_Sleeping_Rabbit_Does_Nothing()
+        public void Tapping_An_Unbuilt_Plot_Does_Nothing_But_Show_Its_Card()
         {
             Find("Canvas/Garden/Content/Station noi-mut").onClick.Invoke();
             Assert.AreEqual(0, runner.State.Progress[2]);
+            Assert.AreEqual(2, screen.Selected);
         }
 
         [Test]
@@ -977,7 +978,7 @@ namespace VuonTra.Core.Tests
         public void A_Collected_Rabbit_Stands_At_Its_Station_Wearing_Its_Hat()
         {
             Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
-            Sprite own = rabbit.GetComponent<Image>().sprite;
+            Assert.IsFalse(rabbit.gameObject.activeSelf, "the station has no rabbit of its own");
             Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
 
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 4, Kind = "tho-sao", Name = "Sao", Station = 0 });
@@ -985,7 +986,8 @@ namespace VuonTra.Core.Tests
             Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
             runner.EquipItem(hat.Id, 1);
             screen.Refresh();
-            Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the collected rabbit, not the station's own");
+            Assert.IsTrue(rabbit.gameObject.activeSelf);
+            Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the collected rabbit itself");
             Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
             Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Station am-tra/Halo").gameObject.activeSelf, "gold and red rabbits get a warm light");
             for (int i = 0; i < 40; i++) screen.Advance(0.1f);
@@ -993,7 +995,7 @@ namespace VuonTra.Core.Tests
 
             runner.ToggleRabbitWork(1); // off to rest
             screen.Refresh();
-            Assert.AreEqual(own, rabbit.GetComponent<Image>().sprite, "the station's own rabbit is back");
+            Assert.IsFalse(rabbit.gameObject.activeSelf, "nobody stands there now: no rabbit is drawn");
             Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
         }
 
@@ -1274,6 +1276,9 @@ namespace VuonTra.Core.Tests
         {
             screen.Shell.StartGame();
             runner.State.Energy = 10;
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
             Transform bubble = root.transform.Find("Canvas/Garden/Content/Station am-tra/Doze");
             Assert.IsFalse(bubble.gameObject.activeSelf);
             for (int i = 0; i < 30 * 20; i++) screen.Advance(1f / 30f); // the first nap comes within 20 seconds
@@ -1346,6 +1351,173 @@ namespace VuonTra.Core.Tests
             runner.UnequipItem(hat.Id);
             screen.Refresh();
             Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
+        }
+
+        // ----- #43: a rabbit is drawn only where one of the player's rabbits really stands -----
+
+        Transform Station(string id) => root.transform.Find("Canvas/Garden/Content/Station " + id);
+
+        [Test]
+        public void Nobody_Stands_At_A_Station_Until_One_Of_Your_Rabbits_Is_Put_There()
+        {
+            // Open, nobody there: the prop works in full colour and an empty pad with a plus marks the rabbit's place.
+            Transform teapot = Station("am-tra");
+            Assert.IsFalse(teapot.Find("Rabbit").gameObject.activeSelf);
+            Assert.IsTrue(teapot.Find("Pad").gameObject.activeSelf);
+            Assert.IsFalse(teapot.Find("Ground").gameObject.activeSelf);
+            Assert.AreEqual(Color.white, teapot.Find("Prop").GetComponent<Image>().color);
+            Assert.AreEqual("Cấp 1", teapot.Find("Level/Text").GetComponent<Text>().text);
+
+            // A plot you own with nothing built: bare ground with a sign, the prop as a shadow, no rabbit, no pad.
+            Transform basket = Station("gio-la");
+            Assert.IsFalse(basket.Find("Rabbit").gameObject.activeSelf);
+            Assert.IsFalse(basket.Find("Pad").gameObject.activeSelf);
+            Assert.IsTrue(basket.Find("Ground").gameObject.activeSelf);
+            Assert.IsTrue(basket.Find("Prop").gameObject.activeSelf);
+            Assert.Less(basket.Find("Prop").GetComponent<Image>().color.a, 0.6f, "only a shadow of what will stand here");
+            Assert.IsFalse(basket.Find("Doze").gameObject.activeSelf, "no sleeping rabbit on empty land");
+            Text sign = basket.Find("Level/Text").GetComponent<Text>();
+            Assert.AreEqual("Còn thiếu 120", sign.text, "short of carrots: the sign says how many");
+            runner.State.Coins = new BigNum(1000);
+            screen.Refresh();
+            Assert.AreEqual("Xây · 120", sign.text);
+            Assert.AreEqual(Palette.Carrot, basket.Find("Level").GetComponent<Image>().color, "lit when it can be paid for");
+
+            // Land the garden has not grown into: only a sign under the mist, nothing else.
+            for (int i = 1; i < 4; i++) runner.State.Levels[i] = 1;
+            screen.Refresh();
+            Transform oven = Station("lo-banh");
+            Assert.IsTrue(oven.gameObject.activeSelf, "the plot after the last one owned stands as land");
+            Assert.IsFalse(oven.Find("Rabbit").gameObject.activeSelf);
+            Assert.IsFalse(oven.Find("Pad").gameObject.activeSelf);
+            Assert.IsFalse(oven.Find("Prop").gameObject.activeSelf);
+            Assert.AreEqual("Mở rộng vườn", oven.Find("Level/Text").GetComponent<Text>().text);
+
+            // One of your rabbits arrives: the rabbit shows and the pad goes.
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
+            Assert.IsTrue(teapot.Find("Rabbit").gameObject.activeSelf);
+            Assert.IsFalse(teapot.Find("Pad").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void A_Station_With_Nobody_Working_Earns_The_Same_As_Before()
+        {
+            Assert.AreEqual(1d, Rabbits.StationMultiplier(runner.Defs, runner.State, 0), 1e-12);
+            Assert.AreEqual(1d / 1.5, Economy.IncomePerSecond(runner.Defs, runner.State).ToDouble(), 1e-9, "the teapot's base income");
+        }
+
+        [Test]
+        public void The_Pad_Lists_Your_Rabbits_With_Its_Own_Trade_First_And_Puts_One_To_Work()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 1, Kind = "tho-cup", Name = "Cụp" });    // gatherer
+            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-bong", Name = "Bông" });  // brewer: suits the teapot
+            runner.State.NextRabbitId = 2;
+            screen.Refresh();
+
+            Transform picker = root.transform.Find("Canvas/WorkerPicker");
+            Assert.IsFalse(picker.gameObject.activeSelf);
+            Find("Canvas/Garden/Content/Station am-tra/Pad").onClick.Invoke();
+            Assert.IsTrue(picker.gameObject.activeSelf);
+            StringAssert.Contains("Ấm trà sương", picker.Find("Card/Title").GetComponent<Text>().text);
+            Transform content = picker.Find("Card/Scroll/Content");
+            Assert.AreEqual("Rabbit 2", content.GetChild(0).name, "the rabbit of the station's trade comes first");
+            StringAssert.Contains("×1,5", content.GetChild(0).Find("Sub").GetComponent<Text>().text);
+            Assert.AreEqual("Rabbit 1", content.GetChild(1).name);
+            StringAssert.DoesNotContain("×1,5", content.GetChild(1).Find("Sub").GetComponent<Text>().text);
+
+            Find("Canvas/WorkerPicker/Card/Scroll/Content/Rabbit 2/Put").onClick.Invoke();
+            Assert.AreEqual(0, Rabbits.Find(runner.State, 2).Station);
+            Assert.IsFalse(picker.gameObject.activeSelf, "done: the list closes");
+            screen.Refresh();
+            Assert.IsTrue(Station("am-tra").Find("Rabbit").gameObject.activeSelf);
+            Assert.IsFalse(Station("am-tra").Find("Pad").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void The_Pad_Says_So_When_You_Have_No_Rabbits_Yet()
+        {
+            Find("Canvas/Garden/Content/Station am-tra/Pad").onClick.Invoke();
+            Transform picker = root.transform.Find("Canvas/WorkerPicker");
+            Assert.IsTrue(picker.gameObject.activeSelf);
+            Assert.IsNotNull(picker.Find("Card/Scroll/Content/Empty"));
+            Find("Canvas/WorkerPicker/Card/Close").onClick.Invoke();
+            Assert.IsFalse(picker.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void The_Who_Works_Here_Slot_On_The_Card_Opens_The_Same_List()
+        {
+            screen.SelectStation(0);
+            Find("Canvas/Card/Worker").onClick.Invoke();
+            Assert.IsTrue(root.transform.Find("Canvas/WorkerPicker").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Only_A_Station_With_A_Rabbit_Can_Doze()
+        {
+            screen.Shell.StartGame();
+            Assert.IsFalse(screen.DozeSomeone(), "nobody is there to nod off");
+            Assert.IsFalse(Station("am-tra").Find("Doze").gameObject.activeSelf);
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
+            Assert.IsTrue(screen.DozeSomeone());
+            Assert.IsTrue(Station("am-tra").Find("Doze").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void The_Rabbits_Tab_Counts_The_Stations_Still_Missing_A_Rabbit()
+        {
+            screen.Shell.StartGame();
+            Transform badge = root.transform.Find("Canvas/TabBar/RabbitsBadge");
+            Assert.IsTrue(badge.gameObject.activeSelf);
+            Assert.AreEqual("1", badge.Find("Text").GetComponent<Text>().text, "the teapot has nobody");
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
+            Assert.IsFalse(badge.gameObject.activeSelf);
+            runner.State.Levels[1] = 1;
+            screen.Refresh();
+            Assert.IsTrue(badge.gameObject.activeSelf);
+            Assert.AreEqual("1", badge.Find("Text").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void A_Fresh_Garden_Starts_With_One_Rabbit_At_The_Teapot_But_An_Old_Save_Gets_None()
+        {
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-test-" + System.Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(dir);
+            try
+            {
+                var go = new GameObject("Fresh");
+                var fresh = go.AddComponent<GameRunner>();
+                fresh.Catalog = runner.Catalog;
+                fresh.SaveDirectory = dir;
+                fresh.Init();
+                Assert.AreEqual(1, fresh.State.Rabbits.Count);
+                Assert.AreEqual("tho-bong", fresh.State.Rabbits[0].Kind);
+                Assert.AreEqual(0, fresh.State.Rabbits[0].Station);
+                Object.DestroyImmediate(go);
+
+                // An older garden with no rabbits stays that way.
+                GameState old = GameState.NewGame(runner.Defs, runner.UpgradeDefs.Count);
+                old.Levels[1] = 3;
+                System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "save.json"), SaveCodec.Encode(runner.Defs, old, runner.UpgradeDefs));
+                go = new GameObject("Old");
+                var loaded = go.AddComponent<GameRunner>();
+                loaded.Catalog = runner.Catalog;
+                loaded.SaveDirectory = dir;
+                loaded.Init();
+                Assert.AreEqual(0, loaded.State.Rabbits.Count);
+                Assert.AreEqual(3, loaded.State.Levels[1]);
+                Object.DestroyImmediate(go);
+            }
+            finally
+            {
+                System.IO.Directory.Delete(dir, true);
+            }
         }
 
         [Test]

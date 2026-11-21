@@ -418,6 +418,39 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_New_Player_Is_Given_One_Cotton_Rabbit_At_The_Teapot()
+        {
+            s = GameState.NewGame(defs);
+            Rabbit gift = Rabbits.GiftFirst(s, "Bông");
+            Assert.IsNotNull(gift);
+            Assert.AreEqual(1, s.Rabbits.Count);
+            Assert.AreEqual("tho-bong", gift.Kind);
+            Assert.AreEqual(0, gift.Tier);
+            Assert.AreEqual(0, gift.Station, "it already stands at the teapot");
+            Assert.AreEqual("Bông", gift.Name);
+            Assert.AreEqual(gift.Id, s.NextRabbitId);
+            Assert.IsTrue(s.SeenKinds.Contains("tho-bong"), "and is in the album");
+            Assert.IsNull(Rabbits.GiftFirst(s, "Mây"), "one gift only");
+            Assert.AreEqual(1, s.Rabbits.Count);
+        }
+
+        [Test]
+        public void A_Garden_That_Already_Has_Rabbits_Gets_No_Gift()
+        {
+            Add(2);
+            Assert.IsNull(Rabbits.GiftFirst(s, "Bông"));
+            Assert.AreEqual(1, s.Rabbits.Count);
+        }
+
+        [Test]
+        public void An_Old_Save_With_No_Rabbits_Loads_With_None()
+        {
+            const string json = "{\"version\":8,\"stations\":[{\"id\":\"tea\",\"level\":3,\"progress\":0}],\"rabbits\":[]}";
+            GameState r = SaveCodec.Decode(defs, json).State;
+            Assert.AreEqual(0, r.Rabbits.Count, "the gift is for a new garden, not an old one");
+        }
+
+        [Test]
         public void Load_Repairs_Bad_Rabbit_Data()
         {
             const string json = "{\"version\":3,\"stations\":[{\"id\":\"tea\",\"level\":3,\"progress\":0}],\"rabbits\":[" +

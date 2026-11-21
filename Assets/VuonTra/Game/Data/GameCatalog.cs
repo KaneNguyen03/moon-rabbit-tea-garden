@@ -59,6 +59,11 @@ namespace VuonTra.Game
         [Tooltip("The moon gate a called rabbit steps out of.")]
         public Sprite MoonGate;
 
+        [Tooltip("Bare ground with a signpost: a plot that has nothing built on it yet.")]
+        public Sprite PlotSign;
+        [Tooltip("An empty cushion with a dotted edge and a plus: where a rabbit could stand at a station.")]
+        public Sprite Pad;
+
         [Tooltip("Furniture for the places to rest, indexed by seat; null where the seat is a stump that is already in the garden.")]
         public Sprite[] RestProps = new Sprite[0];
 

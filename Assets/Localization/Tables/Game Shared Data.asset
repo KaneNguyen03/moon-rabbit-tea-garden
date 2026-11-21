@@ -1143,6 +1143,42 @@ MonoBehaviour:
     m_Key: pause.haptics
     m_Metadata:
       m_Items: []
+  - m_Id: 68780284698624
+    m_Key: plot.build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087232
+    m_Key: plot.short
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087233
+    m_Key: land.expand
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087234
+    m_Key: pad.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087235
+    m_Key: worker.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087236
+    m_Key: worker.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087237
+    m_Key: worker.put
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087238
+    m_Key: worker.here
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087239
+    m_Key: worker.resting
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

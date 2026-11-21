@@ -168,6 +168,22 @@ namespace VuonTra.Core
             return rabbit;
         }
 
+        /// <summary>The kind every new player's first rabbit is: a cotton rabbit, a brewer, so the teapot has company.</summary>
+        public const string FirstKind = "tho-bong";
+
+        /// <summary>
+        /// A new garden's one rabbit, already at work at the first station. Nothing happens, and null comes
+        /// back, when the garden has any rabbit at all: an older save keeps the stations it left empty.
+        /// </summary>
+        public static Rabbit GiftFirst(GameState s, string name)
+        {
+            if (s.Rabbits.Count > 0) return null;
+            var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Kind = FirstKind, Name = name, Station = s.Levels.Length > 0 && s.Levels[0] > 0 ? 0 : -1 };
+            See(s, rabbit.Kind);
+            s.Rabbits.Add(rabbit);
+            return rabbit;
+        }
+
         public static int CountOfTier(GameState s, int tier)
         {
             int n = 0;
@@ -233,6 +249,15 @@ namespace VuonTra.Core
             for (int i = 0; i < s.Rabbits.Count; i++)
                 if (s.Rabbits[i].Station == station) return s.Rabbits[i];
             return null;
+        }
+
+        /// <summary>How many open stations have nobody working at them.</summary>
+        public static int StationsWithoutWorker(GameState s)
+        {
+            int n = 0;
+            for (int i = 0; i < s.Levels.Length; i++)
+                if (s.Levels[i] > 0 && AtStation(s, i) == null) n++;
+            return n;
         }
 
         /// <summary>The rabbit's own multiplier at a station, without the trade bonus. Income uses the overload with the stations.</summary>

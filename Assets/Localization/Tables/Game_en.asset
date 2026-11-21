@@ -1150,6 +1150,42 @@ MonoBehaviour:
     m_Localized: Vibration
     m_Metadata:
       m_Items: []
+  - m_Id: 68780284698624
+    m_Localized: "Build \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087232
+    m_Localized: Still need {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087233
+    m_Localized: Widen the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087234
+    m_Localized: Add a rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087235
+    m_Localized: A rabbit for {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087236
+    m_Localized: No rabbits yet. Do quests for clovers, then call one in the Rabbits tab.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087237
+    m_Localized: Put here
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087238
+    m_Localized: Here now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087239
+    m_Localized: Resting
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

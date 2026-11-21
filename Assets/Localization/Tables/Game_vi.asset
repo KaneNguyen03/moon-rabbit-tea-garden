@@ -1146,6 +1146,42 @@ MonoBehaviour:
     m_Localized: "Rung khi ch\u1EA1m"
     m_Metadata:
       m_Items: []
+  - m_Id: 68780284698624
+    m_Localized: "X\xE2y \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087232
+    m_Localized: "C\xF2n thi\u1EBFu {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087233
+    m_Localized: "M\u1EDF r\u1ED9ng v\u01B0\u1EDDn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087234
+    m_Localized: "X\u1EBFp th\u1ECF"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087235
+    m_Localized: "Ch\u1ECDn b\xE9 th\u1ECF cho {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087236
+    m_Localized: "Ch\u01B0a c\xF3 b\xE9 th\u1ECF n\xE0o. L\xE0m nhi\u1EC7m v\u1EE5 \u0111\u1EC3 l\u1EA5y c\u1ECF b\u1ED1n l\xE1 r\u1ED3i g\u1ECDi b\xE9 m\u1EDBi \u1EDF tab Th\u1ECF."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087237
+    m_Localized: "X\u1EBFp v\xE0o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087238
+    m_Localized: "\u0110ang \u1EDF \u0111\xE2y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 68780293087239
+    m_Localized: "\u0110ang ngh\u1EC9"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

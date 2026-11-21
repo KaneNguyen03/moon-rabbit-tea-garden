@@ -149,6 +149,7 @@ namespace VuonTra.EditorTools
             Background();
             Props();
             Decor();
+            Plots();
             ItemIcons();
             File.WriteAllText(Path.Combine(Folder, "CREDITS.md"),
                 "# Hình giữ chỗ\n\nMọi file ảnh trong thư mục này do `PlaceholderArt.cs` của dự án tự vẽ ra, " +
@@ -608,6 +609,35 @@ namespace VuonTra.EditorTools
             p.Ellipse(75, 72, 30, 10, 0, Hex("c9a674")); p.Ellipse(75, 72, 14, 5, 0, Hex("d9b98a"));
             p.Blob(118, 30, 12, 6, -30, Hex("6fbf8a"), 2.4f); p.Blob(32, 22, 10, 5, 25, Hex("6fbf8a"), 2.4f);
             p.Save("decor_stump");
+        }
+
+        /// <summary>What a station's place looks like before the station, and a rabbit's place before the rabbit.</summary>
+        static void Plots()
+        {
+            Painter p;
+
+            p = new Painter(300, 190, 2); // bare earth with a signpost
+            p.Blob(150, 60, 136, 44, 0, Hex("8a6a4e"));
+            p.Ellipse(150, 64, 118, 32, 0, Hex("a3815f"));
+            p.Ellipse(118, 72, 60, 14, -6, Hex("b8956f", 0.7f));
+            p.Blob(222, 48, 11, 6, 0, Hex("7880a8"), 2.2f); p.Blob(70, 40, 9, 5, 0, Hex("7880a8"), 2.2f);
+            p.Blob(258, 70, 10, 5, -20, Hex("6fbf8a"), 2.2f); p.Blob(42, 62, 8, 4, 25, Hex("6fbf8a"), 2.2f);
+            p.Box(78, 110, 6, 54, 4, Hex("8a5a3a"));
+            p.Box(92, 142, 44, 22, 7, Hex("e6d2a8"));
+            p.Box(92, 142, 30, 3, 2, Hex("c9a674"), 0f); p.Box(92, 150, 22, 3, 2, Hex("c9a674"), 0f);
+            p.Save("plot_sign");
+
+            p = new Painter(240, 150, 2); // an empty cushion: dotted edge, a plus in the middle
+            p.Ellipse(120, 62, 106, 50, 0, Hex("3a2a4d", 0.18f));
+            p.Ellipse(120, 70, 100, 46, 0, Hex("fff4e0", 0.78f));
+            for (int k = 0; k < 28; k++)
+            {
+                float a = k / 28f * Mathf.PI * 2f;
+                p.Ellipse(120 + Mathf.Cos(a) * 96f, 70 + Mathf.Sin(a) * 42f, 3.6f, 3.6f, 0, Hex("3a2a4d", 0.75f));
+            }
+            p.Box(120, 72, 22, 5, 3, Hex("3a2a4d", 0.7f), 0f);
+            p.Box(120, 72, 5, 22, 3, Hex("3a2a4d", 0.7f), 0f);
+            p.Save("pad");
         }
     }
 }

@@ -9,6 +9,8 @@ namespace VuonTra.Game
     public sealed class GameRunner : MonoBehaviour
     {
         public GameCatalog Catalog;
+        /// <summary>Where the save file lives; null is the player's own save folder. Tests point it at a folder of their own.</summary>
+        public string SaveDirectory;
 
         const float AutosaveSeconds = 5f;
         const float LongFrameSeconds = 2f;
@@ -69,18 +71,21 @@ namespace VuonTra.Game
             }
             else
             {
-                _store = new SaveStore();
+                _store = new SaveStore(SaveDirectory);
                 LoadResult loaded = _store.Load(Defs, UpgradeDefs);
                 State = loaded.State;
-                Mods = Modifiers.From(UpgradeDefs, State);
                 if (loaded.Status == LoadStatus.Ok)
                 {
+                    Mods = Modifiers.From(UpgradeDefs, State);
                     _pendingAway = Simulation.ClaimAway(Defs, State, Now, out _pendingAwaySeconds, Mods);
                 }
                 else
                 {
+                    // A garden that starts from nothing starts with one rabbit; a save we could load keeps what it had.
+                    Rabbits.GiftFirst(State, PickName());
                     State.LastSeenUnixSeconds = Now;
                 }
+                Mods = Modifiers.From(UpgradeDefs, State);
             }
 
             Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
@@ -219,11 +224,16 @@ namespace VuonTra.Game
         /// <summary>Calls one new rabbit for clovers; null when there are not enough.</summary>
         public Rabbit SummonRabbit()
         {
-            string[] names = Catalog.RabbitNames;
-            string name = names != null && names.Length > 0 ? names[_rng.Next(names.Length)] : L10n.T("rabbit.default");
-            Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), name, _rng.NextDouble());
+            Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), PickName(), _rng.NextDouble());
             if (rabbit != null) Changed();
             return rabbit;
+        }
+
+        /// <summary>A given name for a rabbit that has just arrived, from the catalog's list.</summary>
+        string PickName()
+        {
+            string[] names = Catalog.RabbitNames;
+            return names != null && names.Length > 0 ? names[_rng.Next(names.Length)] : L10n.T("rabbit.default");
         }
 
         public Rabbit MergeRabbits(int tier)
@@ -270,6 +280,7 @@ namespace VuonTra.Game
         {
             int buyMode = State.BuyMode;
             State = GameState.NewGame(Defs, UpgradeDefs.Count);
+            Rabbits.GiftFirst(State, PickName());
             State.BuyMode = buyMode;
             State.HintSeen = true;
             State.LastSeenUnixSeconds = Now;

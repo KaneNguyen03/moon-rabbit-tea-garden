@@ -62,6 +62,11 @@ namespace VuonTra.EditorTools
             }
             Step(screen, 0.4f);
             Capture(screen, "2-garden");
+            // Nobody works anywhere yet: every open station shows its empty pad, the unbuilt plot its price sign.
+            screen.FocusStation(1);
+            Step(screen, 0.4f);
+            Capture(screen, "43-tram-trong");
+            screen.SelectStation(-1);
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Step(screen, 0.2f);
             Capture(screen, "z1-far");
@@ -175,6 +180,11 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             Capture(screen, "9-items");
             screen.Picker.Close();
+            // Choosing a rabbit for a station: its own trade first, marked ×1,5.
+            screen.Workers.Open(runner.Defs, state, 2);
+            Step(screen, 0.4f);
+            Capture(screen, "43-chon-tho");
+            screen.Workers.Close();
             screen.Rename.Open(state, state.Rabbits[0].Id);
             Step(screen, 0.4f);
             Capture(screen, "9b-rename");
