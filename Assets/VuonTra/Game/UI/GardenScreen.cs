@@ -2589,7 +2589,7 @@ namespace VuonTra.Game.UI
         void Welcome(Rabbit rabbit)
         {
             if (rabbit.FirstOfKind) _freshKinds.Add(Rabbits.KindOf(rabbit));
-            Arrival.Show(Runner.Catalog.RabbitArt(rabbit), rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Tier(rabbit.Tier)),
+            Arrival.Show(Runner.Catalog.RabbitArt(rabbit), rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Rarity(rabbit.Tier)),
                 Palette.Tiers[rabbit.Tier], rabbit.FirstOfKind, L10n.T("summon.new"), L10n.T("summon.hint"), rabbit.Tier == 0);
         }
 
@@ -2661,7 +2661,7 @@ namespace VuonTra.Game.UI
             }
             Item gift = Runner.LastQuestItem;
             if (gift != null)
-                Feel.Moment(L10n.T("moment.gift.title", L10n.ItemName(gift)), L10n.T("moment.gift.sub", L10n.Tier(gift.Tier), ItemPickerView.Describe(gift)));
+                Feel.Moment(L10n.T("moment.gift.title", L10n.ItemName(gift)), L10n.T("moment.gift.sub", L10n.Rarity(gift.Tier), ItemPickerView.Describe(gift)));
         }
 
         /// <summary>Collects every finished quest at once.</summary>

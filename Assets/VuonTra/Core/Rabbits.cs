@@ -25,7 +25,7 @@ namespace VuonTra.Core
     /// </summary>
     public static class Rabbits
     {
-        public const int TierCount = 6;
+        public const int TierCount = Rarity.Count;
         public const int SummonCost = 1;
         public const int MergeCount = 3;
 

@@ -150,6 +150,7 @@ namespace VuonTra.Game.UI
             var tile = UiKit.Rect("Tile", root).Place(0f, 0.5f, 86, 4, 112, 112);
             tile.AddImage(_catalog.Round, Palette.Mix(tier, Palette.Paper, 0.3f));
             UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 10, 8, 10, 8).AddImage(_catalog.RabbitArt(r), Color.white).preserveAspect = true;
+            UiKit.Stars(tile, r.Tier, 0.5f, 0f, 0, -4, 14);
 
             Text name = UiKit.Rect("Name", root).Stretch(0, 0.5f, 1, 1, 164, 0, 290, 22)
                 .AddText(r.Name + " · " + L10n.Kind(r), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);

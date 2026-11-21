@@ -179,7 +179,7 @@ namespace VuonTra.Game.UI
             var plate = UiKit.Rect("Kind", _body).Place(0f, 1f, 420 + 210, -150, 420, 46);
             plate.AddImage(_catalog.Panel, tier, true);
             Text plateText = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 12, 0, 12, 0)
-                .AddText(L10n.T("detail.kind", L10n.Kind(r), L10n.Tier(r.Tier)), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("detail.kind", L10n.Kind(r), L10n.Rarity(r.Tier)), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             plateText.resizeTextForBestFit = true;
             plateText.resizeTextMinSize = 15;
             plateText.resizeTextMaxSize = 24;
@@ -324,6 +324,7 @@ namespace VuonTra.Game.UI
             tile.AddImage(_catalog.Panel, Palette.Tiers[kind.Tier], true);
             UiKit.Rect("Back", tile).Stretch(0, 0, 1, 1, 12, 12, 12, 12).AddImage(_catalog.Panel, Palette.Mix(Palette.Paper, Color.white, 0.35f), true);
             UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 26, 22, 26, 22).AddImage(_catalog.KindSprite(kind.Id), Color.white).preserveAspect = true;
+            UiKit.Stars(tile, kind.Tier, 0.5f, 0f, 0, 30, 24);
 
             Text name = UiKit.Rect("Name", _body).Stretch(0, 1, 1, 1, 60, -650, 60, 580)
                 .AddText(L10n.T("kind." + kind.Id), 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -332,7 +333,7 @@ namespace VuonTra.Game.UI
             name.resizeTextMaxSize = 48;
             var plate = UiKit.Rect("Tier", _body).Place(0.5f, 1f, 0, -700, 360, 50);
             plate.AddImage(_catalog.Panel, Palette.Tiers[kind.Tier], true);
-            UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1).AddText(L10n.T("album.kind.tier", L10n.Tier(kind.Tier), UiKit.Times(Rabbits.Multipliers[kind.Tier])), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1).AddText(L10n.T("album.kind.tier", L10n.Rarity(kind.Tier), UiKit.Times(Rabbits.Multipliers[kind.Tier])), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var tradeChip = UiKit.Rect("Trade", _body).Place(0.5f, 1f, 0, -776, 360, 50);
             tradeChip.AddImage(_catalog.Panel, Palette.Lantern, true);

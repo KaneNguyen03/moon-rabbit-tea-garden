@@ -1,3 +1,4 @@
+using VuonTra.Core;
 using System;
 using System.Globalization;
 using UnityEngine;
@@ -93,6 +94,18 @@ namespace VuonTra.Game.UI
             t.verticalOverflow = VerticalWrapMode.Overflow;
             t.raycastTarget = false;
             return t;
+        }
+
+        /// <summary>
+        /// A tier's stars on a small paper pill, in ink: the rarity cue that does not depend on colour.
+        /// Sits at the given spot of its parent (anchor and offset), one star for silver up to six for red.
+        /// </summary>
+        public static Text Stars(RectTransform parent, int tier, float anchorX, float anchorY, float x, float y, int size = 18)
+        {
+            int stars = Rarity.Stars(tier);
+            var pill = Rect("Stars", parent).Place(anchorX, anchorY, x, y, stars * size * 0.95f + 16f, size + 10f);
+            pill.AddImage(null, Palette.Alpha(Palette.Paper, 0.92f));
+            return Rect("Text", pill).Stretch(0, 0, 1, 1).AddText(Rarity.Marks(tier), size, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>A soft drop shadow in the bible's ink, so text reads on any backdrop.</summary>

@@ -204,7 +204,7 @@ namespace VuonTra.Game.UI
             root.AddImage(_catalog.Panel, Palette.Mix(Palette.Tiers[tier + 1], Palette.Paper, 0.5f), true);
             root.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
             Text text = UiKit.Rect("Text", root).Stretch(0, 0, 1, 1, 24, 0, 220, 0)
-                .AddText(L10n.T("rabbits.merge", L10n.Tier(tier), L10n.Tier(tier + 1), count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(L10n.T("rabbits.merge", L10n.Rarity(tier), L10n.Rarity(tier + 1), count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             text.resizeTextForBestFit = true;
             text.resizeTextMinSize = 16;
             text.resizeTextMaxSize = 24;
@@ -291,6 +291,7 @@ namespace VuonTra.Game.UI
             if (charmIcon != null)
                 UiKit.Rect("CharmOn", tile).Place(0.5f, 0f, across, foot + (GameCatalog.CharmHeight + kind.HatY) * art, art * GameCatalog.CharmSize, art * GameCatalog.CharmSize)
                     .AddImage(charmIcon, Color.white).preserveAspect = true;
+            UiKit.Stars(tile, r.Tier, 0.5f, 0f, 0, inset + 14f, Mathf.RoundToInt(Mathf.Clamp(size * 0.085f, 14f, 22f)));
             return tile;
         }
 
@@ -307,7 +308,7 @@ namespace VuonTra.Game.UI
                 head.gameObject.AddComponent<LayoutElement>().preferredHeight = 58;
                 head.AddImage(_catalog.Panel, Palette.Mix(Palette.Tiers[tier], Palette.Paper, 0.25f), true);
                 UiKit.Rect("Text", head).Stretch(0, 0, 1, 1, 22, 0, 22, 0)
-                    .AddText(L10n.T("album.tier", L10n.Tier(tier), met, kinds.Count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                    .AddText(L10n.T("album.tier", L10n.Rarity(tier), met, kinds.Count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
                 _dynamic.Add(head.gameObject);
 
                 RectTransform row = null;
@@ -338,6 +339,7 @@ namespace VuonTra.Game.UI
             // Unmet: the same drawing with every colour pulled to ink, so only the outline of the rabbit shows.
             Image art = UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 12, 10, 12, 10).AddImage(_catalog.KindSprite(kind.Id), met ? Color.white : Palette.Alpha(Color.black, 0.78f));
             art.preserveAspect = true;
+            UiKit.Stars(tile, kind.Tier, 0.5f, 0f, 0, 18, 16);
             Text name = UiKit.Rect("Name", cell).Place(0.5f, 0f, 0, 30, CellW - 20f, 40)
                 .AddText(met ? L10n.T("kind." + kind.Id) : "???", UiKit.TextBody, met ? Palette.Ink : Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
             name.resizeTextForBestFit = true;

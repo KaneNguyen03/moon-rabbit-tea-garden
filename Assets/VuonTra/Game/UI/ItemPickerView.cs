@@ -161,13 +161,18 @@ namespace VuonTra.Game.UI
             Sprite icon = _catalog.ItemIcon(item.DefId);
             if (icon != null) UiKit.Rect("Icon", tile).Stretch(0, 0, 1, 1, 14, 14, 14, 14).AddImage(icon, Color.white).preserveAspect = true;
             else UiKit.Rect("Glyph", tile).Stretch(0, 0, 1, 1).AddText(Glyph(item), 46, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Stars(tile, item.Tier, 0.5f, 0f, 0, -4, 14);
 
             UiKit.Rect("Name", root).Stretch(0, 0.5f, 1, 1, 164, 0, 290, 22)
-                .AddText(L10n.T("picker.name", L10n.ItemName(item), L10n.Tier(item.Tier)), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.ItemName(item), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             Rabbit wearer = item.WornBy > 0 ? Rabbits.Find(s, item.WornBy) : null;
             string where = wornHere ? L10n.T("picker.worn.here") : (wearer != null ? L10n.T("picker.worn.other", wearer.Name) : "");
-            UiKit.Rect("Sub", root).Stretch(0, 0.12f, 1, 0.5f, 164, 0, 290, 4)
-                .AddText(Describe(item) + where, UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
+            Text sub = UiKit.Rect("Sub", root).Stretch(0, 0.08f, 1, 0.5f, 164, 0, 290, 4)
+                .AddText(L10n.T("picker.name", L10n.Rarity(item.Tier), Describe(item)) + where, UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
+            sub.resizeTextForBestFit = true; // two lines at most, never past the row's foot
+            sub.verticalOverflow = VerticalWrapMode.Truncate; // best fit only measures height when overflow is not allowed
+            sub.resizeTextMinSize = 16;
+            sub.resizeTextMaxSize = UiKit.TextBody;
 
             long itemId = item.Id;
             var button = UiKit.Rect("Use", root).Place(1f, 0.5f, -140, 4, 230, 100);

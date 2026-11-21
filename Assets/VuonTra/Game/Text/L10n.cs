@@ -71,6 +71,8 @@ namespace VuonTra.Game
 
         public static string Station(string id) => T("station." + id);
         public static string Tier(int tier) => T("tier." + tier);
+        /// <summary>The tier's name followed by its stars, "Vàng ★★★★★": rarity that reads without colour.</summary>
+        public static string Rarity(int tier) => Tier(tier) + " " + VuonTra.Core.Rarity.Marks(tier);
         public static string Trade(RabbitTrade trade) => T("trade." + trade);
         public static string Kind(Rabbit rabbit) => T("kind." + Rabbits.KindOf(rabbit));
         public static string ItemName(Item item) => T("item." + item.DefId);

@@ -2054,5 +2054,41 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Trà Trăng", T("Canvas/Pause/Card/Profile/Name").text);
             Assert.AreEqual("kind_" + second, root.transform.Find("Canvas/Pause/Card/Profile/Avatar/Art").GetComponent<Image>().sprite.name);
         }
+
+        [Test]
+        public void Rarity_Reads_By_Stars_As_Well_As_By_Colour_On_Rabbits_Items_And_The_Album()
+        {
+            string blue = RabbitKinds.OfTier(2)[0].Id, red = RabbitKinds.OfTier(5)[0].Id;
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 2, Kind = blue, Name = "Mây" });
+            runner.State.NextRabbitId = 1;
+            Item charm = Items.Grant(runner.State, runner.ItemDefs[0], 1);
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+
+            Assert.AreEqual("Xanh dương ★★★", L10n.Rarity(2));
+            L10n.SetLocale("en");
+            Assert.AreEqual("Blue ★★★", L10n.Rarity(2));
+            L10n.SetLocale("vi");
+
+            Assert.AreEqual("★★★", T("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/Stars/Text").text, "the grid tile");
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1").onClick.Invoke();
+            Assert.AreEqual("★★★", T("Canvas/RabbitSheet/Card/Body/Portrait/Tile/Stars/Text").text, "the rabbit's own sheet");
+            StringAssert.Contains("★★★", T("Canvas/RabbitSheet/Card/Body/Kind/Text").text, "and its kind line");
+            screen.Detail.Close();
+
+            screen.Picker.Open(runner.State, 1, runner.ItemDefs[0].Slot);
+            string row = "Canvas/Picker/Card/Scroll/Content/Item " + charm.Id;
+            Assert.AreEqual("★★", T(row + "/Tile/Stars/Text").text, "an item of the second tier");
+            StringAssert.Contains("★★", T(row + "/Sub").text, "the tier line under the name");
+            screen.Picker.Close();
+
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Transform redCell = null;
+            foreach (Transform albumRow in root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content")) { redCell = albumRow.Find("Kind " + red); if (redCell != null) break; }
+            Assert.IsNotNull(redCell);
+            Assert.AreEqual("★★★★★★", redCell.Find("Tile/Stars/Text").GetComponent<Text>().text, "a kind not met yet still shows how rare it is");
+        }
     }
 }
