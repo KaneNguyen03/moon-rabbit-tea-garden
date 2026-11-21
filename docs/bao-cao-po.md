@@ -33,3 +33,20 @@ Mỗi bước xong được nối thêm một đoạn vào cuối file này. Vi�
 
 ### Việc kế tiếp
 - R6: bảng số cấp vườn và mô phỏng sẽ được ghi vào file này trước khi code giao diện.
+
+## R5 bổ sung — hiệu ứng bậc Bạc, bản Mac mới
+
+- Test: 266/266 EditMode qua, chạy SAU lần build và sau lần sửa file cuối trong Assets.
+- Thông điệp commit đề xuất: `Silver arrivals get a white light and a shower of glints`
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Ảnh (docs/anh/po-r5/, đã chụp lại): `18a-gate.png` (bậc Bạc: ánh trắng và hạt lấp lánh), `18b-shadow.png`, `18c-arrived.png`.
+- Bản Mac: `Build/Mac/VuonTraTho.app`, build thành công, đang mở, Player.log không có exception. Gồm mọi thứ tới R5.
+
+### Đã làm
+- Cổng trăng: mọi lần gọi có 4 hạt lấp lánh quanh cổng theo màu bậc; riêng bậc Bạc ánh sáng trong cổng là trắng, quầng sáng mạnh hơn và có đủ 10 hạt, nhấp nháy to hơn.
+
+### Lưu ý cho lần commit
+- Build làm đổi `Assets/AddressableAssetsData/OSX/addressables_content_state.bin` và xoá `link.xml` cùng `.meta` của nó. Ba mục này do Unity sinh ra khi build, không phải thay đổi của bước này; đừng đưa việc xoá `link.xml` vào commit.
+
+### Chưa đạt
+- Bản Mac chưa ai thử tay. Chuyển động cổng trăng mới được soi qua khung hình tĩnh.

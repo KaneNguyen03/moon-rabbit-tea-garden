@@ -18,7 +18,10 @@ namespace VuonTra.Game.UI
         readonly Image _burst, _tint, _rabbitImage, _plate;
         readonly Text _name, _kind, _newText, _hintText;
         readonly CanvasGroup _textGroup;
+        readonly RectTransform[] _sparkles = new RectTransform[10];
+        readonly Image[] _sparkleImages = new Image[10];
         float _t;
+        bool _silver;
         Color _tier;
         bool _isNew;
 
@@ -44,6 +47,16 @@ namespace VuonTra.Game.UI
             else _gate.AddImage(catalog.Round, Palette.Lantern);
             // The light inside the gate takes the tier's colour.
             _tint = UiKit.Rect("Tint", _gate).Place(0.5f, 0.5f, 4, -18, 372, 430).AddImage(catalog.Round, Color.white);
+
+            // Glints round the gate. Every arrival has a few; silver, whose colour is nearly the gate's own, has many and bright.
+            for (int i = 0; i < _sparkles.Length; i++)
+            {
+                float angle = i * Mathf.PI * 2f / _sparkles.Length + 0.3f, reach = 300f + (i % 3) * 46f;
+                var dot = UiKit.Rect("Sparkle", overlay).Place(0.5f, 0.5f, Mathf.Cos(angle) * reach, 170f + Mathf.Sin(angle) * reach, 54, 54);
+                _sparkleImages[i] = dot.AddImage(catalog.Glow, Color.white);
+                UiKit.Rect("Core", dot).Place(0.5f, 0.5f, 0, 0, 10, 10).AddImage(catalog.Round, Color.white);
+                _sparkles[i] = dot;
+            }
 
             _rabbit = UiKit.Rect("Rabbit", overlay).Place(0.5f, 0.5f, 0, 60, 460, 460);
             _rabbit.pivot = new Vector2(0.5f, 0f);
@@ -78,8 +91,10 @@ namespace VuonTra.Game.UI
         }
 
         /// <param name="kindLine">The kind and tier, e.g. "Thỏ Sao · bậc Vàng".</param>
-        public void Show(Sprite art, string name, string kindLine, Color tier, bool isNew, string newLabel, string hint)
+        /// <param name="silver">The commonest tier: its light is white with a shower of glints instead of a colour.</param>
+        public void Show(Sprite art, string name, string kindLine, Color tier, bool isNew, string newLabel, string hint, bool silver = false)
         {
+            _silver = silver;
             _t = 0f;
             _tier = tier;
             _isNew = isNew;
@@ -129,8 +144,19 @@ namespace VuonTra.Game.UI
             // Its light swells to the tier's colour, then settles.
             float flash = Span(_t, GateIn, FlashEnd), pulse = Mathf.Sin(flash * Mathf.PI);
             float held = Mathf.Max(flash * 0.55f, pulse);
-            _tint.color = Palette.Alpha(_tier, held * 0.85f);
-            _burst.color = Palette.Alpha(_tier, 0.10f + pulse * 0.45f);
+            Color light = _silver ? Color.white : _tier;
+            _tint.color = Palette.Alpha(light, held * (_silver ? 0.95f : 0.85f));
+            _burst.color = Palette.Alpha(light, 0.10f + pulse * (_silver ? 0.6f : 0.45f));
+            int lit = _silver ? _sparkles.Length : 4;
+            for (int i = 0; i < _sparkles.Length; i++)
+            {
+                bool on = i < lit && _t > GateIn * 0.6f;
+                if (_sparkles[i].gameObject.activeSelf != on) _sparkles[i].gameObject.SetActive(on);
+                if (!on) continue;
+                float twinkle = 0.5f + 0.5f * Mathf.Sin(_t * (5f + i % 4) + i * 1.7f);
+                _sparkleImages[i].color = Palette.Alpha(_silver ? Color.white : Palette.Mix(_tier, Color.white, 0.5f), (0.25f + 0.75f * twinkle) * Mathf.Max(0.35f, pulse));
+                _sparkles[i].localScale = Vector3.one * (0.6f + twinkle * (_silver ? 1.1f : 0.6f));
+            }
             _burst.rectTransform.localScale = Vector3.one * (0.7f + pulse * 0.5f);
 
             // A shadow steps out of the gate towards us.

@@ -1846,7 +1846,7 @@ namespace VuonTra.Game.UI
         {
             if (rabbit.FirstOfKind) _freshKinds.Add(Rabbits.KindOf(rabbit));
             Arrival.Show(Runner.Catalog.RabbitArt(rabbit), rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Tier(rabbit.Tier)),
-                Palette.Tiers[rabbit.Tier], rabbit.FirstOfKind, L10n.T("summon.new"), L10n.T("summon.hint"));
+                Palette.Tiers[rabbit.Tier], rabbit.FirstOfKind, L10n.T("summon.new"), L10n.T("summon.hint"), rabbit.Tier == 0);
         }
 
         void OnLevelUp(long rabbitId)
