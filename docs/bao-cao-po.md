@@ -373,6 +373,30 @@ Sau khi sửa cả bốn xanh.
 - tồn đọng: lắc khi thiếu cho nút Lên cấp thỏ và Gọi thỏ.
 - tồn đọng: tiếng riêng cho ghép thỏ và học bùa.
 
+## #43 — Trạm trống không hiện thỏ, mỗi trạng thái một lời mời
+
+- Test: 325/325 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 11 test mới (3 core, 8 màn hình).
+- Commit `738da68`, đã push lên origin main. Issue #43 đã đóng, #16 đã tick.
+- File mới: `Assets/VuonTra/Game/UI/WorkerPickerView.cs` (+ .meta), hai hình giữ chỗ `Art/Placeholder/plot_sign.png` và `pad.png` (vẽ trong `PlaceholderArt.Plots`). Catalog thêm `PlotSign`, `Pad`. Bảng chuỗi seed lại (10 key mới: `plot.build`, `plot.short`, `land.expand`, `pad.hint`, `worker.*`).
+- Ảnh (docs/anh/po-43/): `43-truoc-vuon.png` (vườn cũ, thỏ mặc định đứng ở mọi trạm), `43-sau-vuon-tram-trong.png` (tấm đệm ở trạm trống, biển giá ở ô chưa xây, cọc biển dưới sương), `43-sau-the-dat-chua-xay.png`, `43-sau-chon-tho.png` (danh sách chọn thỏ, đúng nghề lên đầu), `43-sau-tho-dang-lam.png`.
+
+### Đã làm (đối chiếu với nguyên văn #43)
+- Ba trạng thái tách hẳn trong `StationActorView` (`StationLook.Land / Unbuilt / Open`): đất chưa mở rộng chỉ còn cọc biển mờ "Mở rộng vườn" dưới sương; ô chưa xây có nền đất, cọc biển, bóng mờ nhạt của đạo cụ, biển giá "Xây · 120" (cam và nảy khi đủ tiền, "Còn thiếu N" trên tấm xám khi thiếu); trạm đã xây mà chưa có thỏ thì đạo cụ chạy đủ màu, chỗ thỏ là tấm đệm viền chấm có dấu "+" và nhãn "Xếp thỏ +".
+- Thỏ chỉ được vẽ khi có thỏ của người chơi ở đó. Thỏ mặc định của trạm không còn trong vườn; `StationData.Rabbit` và `WorkFrames` vẫn giữ trong catalog cho #2.
+- Chạm tấm đệm, hoặc ô "ai làm ở đây" trên tấm trạm, mở `WorkerPickerView`: thỏ đúng nghề lên đầu, nền vàng, "×1,5"; nút "Xếp vào"; xếp xong tự đóng. Chưa có thỏ thì nói đi làm nhiệm vụ.
+- Ngủ gật chỉ xảy ra ở trạm có thỏ (`GardenScreen.DozeSomeone`).
+- Người mới: `Rabbits.GiftFirst` tặng một Thỏ Bông ở ấm trà khi không có save (và khi Chơi lại từ đầu). Save cũ không có thỏ giữ nguyên. `GameRunner.SaveDirectory` cho test trỏ vào thư mục tạm để thử cả hai đường thật.
+- Huy hiệu trên tab Thỏ: số trạm đã mở chưa có thỏ (`Rabbits.StationsWithoutWorker`).
+- Thu nhập trạm không có thỏ không đổi (test).
+
+### Chưa đạt so với #43
+- Hai hình mới là hình giữ chỗ vẽ bằng code, chưa phải vẽ tay. Thay bằng file cùng tên trong `Art/Final/` rồi seed.
+- Đất chưa mở rộng còn một cọc biển dưới sương (issue viết "chỉ có sương và cây"); giữ để thẻ Mở rộng còn chạm được từ vườn.
+- Chưa ai bấm thử tấm đệm và danh sách chọn thỏ bằng tay trong bản Mac.
+
+### Tồn đọng
+- tồn đọng: vẽ tay nền đất có cọc biển và tấm đệm trống.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
