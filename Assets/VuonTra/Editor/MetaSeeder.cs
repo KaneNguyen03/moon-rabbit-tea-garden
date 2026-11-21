@@ -93,6 +93,11 @@ namespace VuonTra.EditorTools
             for (int t = 0; t < tierSprites.Length; t++)
                 tierSprites[t] = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/rabbit_tier_" + t + ".png");
             catalog.TierRabbits = tierSprites;
+            // One drawing per kind: Art/Final/kind_<id>.png. A missing one falls back at run time.
+            var kindSprites = new Sprite[RabbitKinds.All.Count];
+            for (int k = 0; k < kindSprites.Length; k++)
+                kindSprites[k] = FinalArt.Find("kind_" + RabbitKinds.All[k].Id);
+            catalog.KindArt = kindSprites;
 
             var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount)[]
             {

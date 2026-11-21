@@ -138,11 +138,13 @@ namespace VuonTra.EditorTools
             // Moonlight coming down through the canopy: soft slanted shafts, tiling sideways.
             Write("bg_moonbeam", 512, 512, (u, v) =>
             {
-                float across = u + v * 0.35f; // slanted
-                float shafts = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(across * Mathf.PI * 4f)), 6f) * 0.6f
-                             + Mathf.Pow(Mathf.Max(0f, Mathf.Sin(across * Mathf.PI * 6f + 1.7f)), 10f) * 0.4f;
-                float fade = Mathf.SmoothStep(0f, 1f, v) * 0.85f + 0.15f; // strongest near the top, where the light comes in
-                return new Color(0.80f, 0.90f, 1f, shafts * fade * 0.5f);
+                // Three slanted shafts that die away at every edge, so the picture can sit on the grass by the pond.
+                float across = u + (v - 0.5f) * 0.3f;
+                float shafts = Mathf.Pow(Mathf.Max(0f, Mathf.Sin((across - 0.08f) * Mathf.PI * 3.6f)), 5f);
+                float Rise(float t, float over) => Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / over));
+                float sides = Rise(u, 0.22f) * Rise(1f - u, 0.22f);
+                float fade = Rise(v, 0.55f) * Rise(1f - v, 0.12f); // from above, gone before the ground
+                return new Color(0.80f, 0.90f, 1f, shafts * sides * fade * 0.25f);
             });
 
             // Darkened corners pull the eye to the lit middle of the street.
@@ -162,7 +164,7 @@ namespace VuonTra.EditorTools
                 importer.textureType = TextureImporterType.Default;
                 importer.alphaIsTransparency = true;
                 importer.mipmapEnabled = false;
-                importer.wrapMode = name == "bg_sky" || name == "bg_vignette" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
+                importer.wrapMode = name == "bg_sky" || name == "bg_vignette" || name == "bg_moonbeam" ? TextureWrapMode.Clamp : TextureWrapMode.Repeat;
                 importer.npotScale = TextureImporterNPOTScale.None;
                 importer.SaveAndReimport();
             }

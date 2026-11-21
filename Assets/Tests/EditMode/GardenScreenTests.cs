@@ -387,17 +387,139 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_World_Is_Bigger_Than_The_Screen_And_Stations_Do_Not_Overlap()
+        public void The_World_Scrolls_Only_Up_And_Down_And_Stations_Do_Not_Overlap()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            Assert.Greater(world.sizeDelta.x, 1080f * 1.5f, "wider than the portrait screen");
+            Assert.AreEqual(1080f, world.sizeDelta.x, 0.5f, "as wide as the portrait screen");
             Assert.Greater(world.sizeDelta.y, 1920f * 1.2f, "taller than the portrait screen");
+            var scroll = world.parent.GetComponent<UnityEngine.UI.ScrollRect>();
+            Assert.IsFalse(scroll.horizontal);
+            Assert.IsTrue(scroll.vertical);
             for (int a = 0; a < runner.Defs.Count; a++)
             {
                 Vector2 p = GardenScreen.StationSpot(a);
                 Assert.IsTrue(p.x > 200 && p.x < world.sizeDelta.x - 200 && p.y > 200 && p.y < world.sizeDelta.y - 200, "station " + a + " is inside the world");
                 for (int b = a + 1; b < runner.Defs.Count; b++)
-                    Assert.Greater(Vector2.Distance(p, GardenScreen.StationSpot(b)), 480f, a + " and " + b);
+                    Assert.Greater(Vector2.Distance(p, GardenScreen.StationSpot(b)), 280f, a + " and " + b);
+            }
+        }
+
+        [Test]
+        public void Zooming_Out_Shows_The_Whole_Garden_And_Hides_The_Small_Print()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var plate = world.Find("Station am-tra/Level").gameObject;
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
+            Assert.IsTrue(plate.activeSelf);
+
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
+            Assert.LessOrEqual(world.sizeDelta.y * world.localScale.y, 1920f + 0.5f, "the whole garden fits top to bottom");
+            Assert.IsFalse(plate.activeSelf, "no level plates from far away");
+            // Smaller than the screen sideways: it sits in the middle, not against an edge.
+            Assert.AreEqual((1080f - world.sizeDelta.x * world.localScale.x) / 2f, world.anchoredPosition.x, 0.5f);
+
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            Assert.IsTrue(plate.activeSelf);
+            Assert.AreEqual(1f, world.localScale.x, 1e-4f);
+        }
+
+        [Test]
+        public void Zooming_In_Never_Shows_Past_The_Edge_Of_The_Garden()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false, new Vector2(0f, 0f));
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
+            float w = world.sizeDelta.x * world.localScale.x, h = world.sizeDelta.y * world.localScale.y;
+            Assert.LessOrEqual(world.anchoredPosition.x, 0.5f);
+            Assert.GreaterOrEqual(world.anchoredPosition.x, 1080f - w - 0.5f);
+            Assert.LessOrEqual(world.anchoredPosition.y, 0.5f);
+            Assert.GreaterOrEqual(world.anchoredPosition.y, 1920f - h - 0.5f);
+        }
+
+        [Test]
+        public void The_Zoom_Button_Goes_Round_The_Three_Levels()
+        {
+            Button zoom = Find("Canvas/Hud/Zoom");
+            zoom.onClick.Invoke(); screen.Advance(1f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
+            zoom.onClick.Invoke(); screen.Advance(1f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
+            zoom.onClick.Invoke(); screen.Advance(1f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
+        }
+
+        [Test]
+        public void The_Hud_Is_One_Row()
+        {
+            var purse = (RectTransform)root.transform.Find("Canvas/Hud/Purse");
+            var energy = (RectTransform)root.transform.Find("Canvas/Hud/Energy");
+            Assert.AreEqual(purse.anchoredPosition.y, energy.anchoredPosition.y, 0.5f);
+            Assert.LessOrEqual(purse.anchoredPosition.x + purse.sizeDelta.x / 2f, energy.anchoredPosition.x - energy.sizeDelta.x / 2f, "they do not overlap");
+        }
+
+        [Test]
+        public void A_Station_Card_Does_Not_Cover_A_Neighbour_When_A_Side_Is_Free()
+        {
+            for (int i = 0; i < runner.Defs.Count; i++) if (runner.State.Levels[i] <= 0) runner.State.Levels[i] = 1;
+            runner.State.Plots = runner.Defs.Count;
+            screen.Refresh();
+            var card = (RectTransform)root.transform.Find("Canvas/Garden/Content/Card");
+            int last = runner.Defs.Count - 1; // the observatory: its card used to sit on the flower mortar
+            screen.SelectStation(last);
+            var rect = new Rect(card.anchoredPosition.x - 262f, card.anchoredPosition.y, 524f, 270f);
+            for (int j = 0; j < last; j++)
+            {
+                Vector2 p = GardenScreen.StationSpot(j);
+                Assert.IsFalse(rect.Contains(p), "the card covers station " + j);
+            }
+        }
+
+        [Test]
+        public void A_Double_Tap_On_A_Station_Flies_In_Close()
+        {
+            var station = Find("Canvas/Garden/Content/Station am-tra");
+            station.onClick.Invoke();
+            station.onClick.Invoke();
+            screen.Advance(1f); // let the flight finish
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
+        }
+
+        [Test]
+        public void Only_The_Next_Two_Locked_Stations_Show()
+        {
+            var world = root.transform.Find("Canvas/Garden/Content");
+            int open = 0;
+            for (int i = 0; i < runner.Defs.Count; i++) if (runner.State.Levels[i] > 0) open = i + 1;
+            runner.State.Plots = runner.Defs.Count;
+            screen.Refresh();
+            for (int i = 0; i < runner.Defs.Count; i++)
+                Assert.AreEqual(i < open + 2, world.Find("Station " + runner.Defs[i].Id).gameObject.activeSelf, runner.Defs[i].Id);
+        }
+
+        [Test]
+        public void The_Hint_Goes_Away_For_Good_After_The_First_Drag()
+        {
+            runner.State.HintSeen = false;
+            screen.DismissHint();
+            Assert.IsTrue(runner.State.HintSeen);
+        }
+
+        [Test]
+        public void The_Teapot_Is_The_Centrepiece_And_Ingredients_Stand_By_What_They_Supply()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Assert.AreEqual(world.sizeDelta.x / 2f, GardenScreen.StationSpot(0).x, 0.5f, "teapot in the middle");
+            float teapot = world.Find("Station am-tra").localScale.x;
+            for (int i = 1; i < runner.Defs.Count; i++)
+                Assert.Greater(teapot, world.Find("Station " + runner.Defs[i].Id).localScale.x * 1.3f, "teapot is clearly the largest");
+
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                if (runner.Defs[i].Kind != VuonTra.Core.StationKind.Ingredient) continue;
+                for (int j = 0; j < runner.Defs.Count; j++)
+                    if (runner.Defs[i].Boosts(runner.Defs[j].Id))
+                        Assert.Less(Vector2.Distance(GardenScreen.StationSpot(i), GardenScreen.StationSpot(j)), 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
             }
         }
 
@@ -608,6 +730,8 @@ namespace VuonTra.Core.Tests
             runner.EquipItem(hat.Id, 1);
             runner.EquipItem(charm.Id, 1);
             screen.Refresh();
+            Assert.IsFalse(chip.Find("Hat").gameObject.activeSelf, "at the usual zoom the plate shows the name only");
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
             Assert.IsTrue(chip.Find("Hat").gameObject.activeSelf);
             Assert.IsTrue(chip.Find("Charm").gameObject.activeSelf);
             Assert.AreEqual("item_mu-rom", chip.Find("Hat").GetComponent<Image>().sprite.name);

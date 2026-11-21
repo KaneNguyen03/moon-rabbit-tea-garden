@@ -19,6 +19,10 @@
     {
       "asset_id": "2388318a-d1ab-4666-9085-817439e7c40f",
       "label": "carrot + teapot sheet"
+    },
+    {
+      "asset_id": "bd6782e4-7e71-4146-aeac-cede0005fe8e",
+      "label": "twelve collectible rabbit kinds 4x3 sheet (gpt-image-2 low)"
     }
   ],
   "local_files": [
@@ -111,6 +115,78 @@
       "sha12": "b9712d0abbaf",
       "label": "prop_am-tra",
       "sliced_from": "2388318a-d1ab-4666-9085-817439e7c40f"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-bong.png",
+      "sha12": "4bb21d21b415",
+      "label": "kind_tho-bong",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-me.png",
+      "sha12": "f1bb05a3c155",
+      "label": "kind_tho-me",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-cup.png",
+      "sha12": "6381a078accb",
+      "label": "kind_tho-cup",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-matcha.png",
+      "sha12": "0ba1516e8507",
+      "label": "kind_tho-matcha",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-suong.png",
+      "sha12": "69802ef20f4e",
+      "label": "kind_tho-suong",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-o-long.png",
+      "sha12": "e8efbbe93481",
+      "label": "kind_tho-o-long",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-oai-huong.png",
+      "sha12": "8b7a4a9ed4c8",
+      "label": "kind_tho-oai-huong",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-khoai-mon.png",
+      "sha12": "23041800b359",
+      "label": "kind_tho-khoai-mon",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-mat-ong.png",
+      "sha12": "4c0bc4a6671c",
+      "label": "kind_tho-mat-ong",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-sao.png",
+      "sha12": "40c569c21fd0",
+      "label": "kind_tho-sao",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-hong-tra.png",
+      "sha12": "5b56a6507e0b",
+      "label": "kind_tho-hong-tra",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/kind_tho-trang.png",
+      "sha12": "dc837611a92e",
+      "label": "kind_tho-trang",
+      "sliced_from": "bd6782e4-7e71-4146-aeac-cede0005fe8e"
     }
   ]
 }

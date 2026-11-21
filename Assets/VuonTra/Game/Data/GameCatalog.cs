@@ -51,6 +51,21 @@ namespace VuonTra.Game
             return defs;
         }
 
+        [Tooltip("One drawing per rabbit kind, in the order of RabbitKinds.All.")]
+        public Sprite[] KindArt = new Sprite[0];
+
+        /// <summary>The drawing of a kind of rabbit; the tier's drawing, then the shared rabbit, when it has none yet.</summary>
+        public Sprite KindSprite(string kindId)
+        {
+            int index = RabbitKinds.IndexOf(kindId);
+            if (KindArt != null && index >= 0 && index < KindArt.Length && KindArt[index] != null) return KindArt[index];
+            RabbitKind kind = RabbitKinds.Find(kindId);
+            return RabbitFor(kind != null ? kind.Tier : 0);
+        }
+
+        /// <summary>The drawing for this rabbit.</summary>
+        public Sprite RabbitArt(Rabbit rabbit) => KindSprite(Rabbits.KindOf(rabbit));
+
         /// <summary>The drawing for a tier, falling back to the shared rabbit.</summary>
         public Sprite RabbitFor(int tier)
         {

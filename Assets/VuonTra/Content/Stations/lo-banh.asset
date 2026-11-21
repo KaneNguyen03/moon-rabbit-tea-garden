@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: lo-banh
   DisplayName: "L\xF2 b\xE1nh h\u1EA1t d\u1EBB"
   Kind: 0
+  Trade: 2
   BaseCost: 190000
   CostGrowth: 1.13
   BaseIncome: 6500

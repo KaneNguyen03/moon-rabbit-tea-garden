@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: tiem-banh
   DisplayName: "Ti\u1EC7m b\xE1nh trung thu"
   Kind: 0
+  Trade: 2
   BaseCost: 90000000000
   CostGrowth: 1.15
   BaseIncome: 70000000

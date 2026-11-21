@@ -101,7 +101,7 @@ namespace VuonTra.Game.UI
         {
             var sb = new StringBuilder();
             foreach (Rabbit r in s.Rabbits)
-                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(';');
+                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(';');
             sb.Append('|');
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             return sb.ToString();
@@ -182,8 +182,10 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Card", root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(_catalog.Panel, Palette.Card, true);
 
             var tile = UiKit.Rect("Tile", root).Place(0f, 0.5f, 108, 4, 156, 156);
-            tile.AddImage(_catalog.Panel, Palette.Mix(tier, Palette.Paper, 0.35f), true);
-            UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(_catalog.RabbitFor(r.Tier), Color.white).preserveAspect = true;
+            // The tier colours the frame only; the rabbit stands on cream so no coat sinks into its own tier colour.
+            tile.AddImage(_catalog.Panel, tier, true);
+            UiKit.Rect("Back", tile).Stretch(0, 0, 1, 1, 6, 6, 6, 6).AddImage(_catalog.Panel, Palette.Mix(Palette.Paper, Color.white, 0.35f), true);
+            UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(_catalog.RabbitArt(r), Color.white).preserveAspect = true;
             // What it wears shows on it: the hat between the ears, the charm at the neck.
             Item hat = Items.Worn(s, r.Id, ItemSlot.Hat), charm = Items.Worn(s, r.Id, ItemSlot.Charm);
             Sprite hatIcon = hat != null ? _catalog.ItemIcon(hat.DefId) : null, charmIcon = charm != null ? _catalog.ItemIcon(charm.DefId) : null;
@@ -205,15 +207,22 @@ namespace VuonTra.Game.UI
                 .AddText(r.Name, 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             name.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-            var chip = UiKit.Rect("Tier", root).Place(0f, 0.5f, 318, -6, 220, 44);
+            // The plate is the tier's colour and names the kind: "Thỏ Sao ×3".
+            var chip = UiKit.Rect("Tier", root).Place(0f, 0.5f, 334, -6, 252, 44);
             chip.AddImage(_catalog.Panel, tier, true);
-            UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.tier", L10n.Tier(r.Tier), UiKit.Times(Rabbits.Multiplier(s, r))),
-                23, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.tier", L10n.Kind(r), UiKit.Times(Rabbits.WorkMultiplier(defs, s, r))),
+                20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             bool working = r.Station >= 0 && r.Station < defs.Count;
-            UiKit.Rect("Where", root).Band(208, 548, 22, 56)
-                .AddText(working ? L10n.T("rabbits.where.working", r.Level, Rabbits.LevelCaps[r.Tier], L10n.Station(defs[r.Station].Id)) : L10n.T("rabbits.where.resting", r.Level, Rabbits.LevelCaps[r.Tier]),
-                    22, Palette.InkSoft, TextAnchor.MiddleLeft);
+            // Its trade, and whether it is at a station where the trade counts.
+            string trade = L10n.Trade(Rabbits.TradeOf(r));
+            bool inTrade = Rabbits.InTrade(defs, r);
+            Text where = UiKit.Rect("Where", root).Band(208, 548, 22, 56)
+                .AddText(working
+                        ? L10n.T("rabbits.where.working", r.Level, Rabbits.LevelCaps[r.Tier], L10n.Station(defs[r.Station].Id), trade, inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "")
+                        : L10n.T("rabbits.where.resting", r.Level, Rabbits.LevelCaps[r.Tier], trade),
+                    20, inTrade ? Palette.Mix(Palette.Moss, Palette.Ink, 0.45f) : Palette.InkSoft, TextAnchor.MiddleLeft);
+            where.horizontalOverflow = HorizontalWrapMode.Overflow; // the two lines are set by hand; never a third
 
             // What the rabbit wears: tap a slot to choose.
             AddSlot(root, s, r, ItemSlot.Hat, -492);

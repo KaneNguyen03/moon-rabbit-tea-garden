@@ -221,14 +221,14 @@ namespace VuonTra.Game
         {
             string[] names = Catalog.RabbitNames;
             string name = names != null && names.Length > 0 ? names[_rng.Next(names.Length)] : L10n.T("rabbit.default");
-            Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), name);
+            Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), name, _rng.NextDouble());
             if (rabbit != null) Changed();
             return rabbit;
         }
 
         public Rabbit MergeRabbits(int tier)
         {
-            Rabbit merged = Rabbits.Merge(State, tier);
+            Rabbit merged = Rabbits.Merge(State, tier, _rng.NextDouble());
             if (merged != null) Changed();
             return merged;
         }

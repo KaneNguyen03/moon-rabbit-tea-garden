@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: coi-hoa
   DisplayName: "C\u1ED1i gi\xE3 hoa"
   Kind: 1
+  Trade: 3
   BaseCost: 16000
   CostGrowth: 1.13
   BaseIncome: 0

@@ -28,6 +28,19 @@ namespace VuonTra.EditorTools
             public string[] Boosts;
         }
 
+        /// <summary>Which trade a station belongs to: every ingredient station is for gatherers, the rest go by what they make.</summary>
+        static RabbitTrade TradeOf(Row row)
+        {
+            if (row.Kind == StationKind.Ingredient) return RabbitTrade.Gatherer;
+            switch (row.Id)
+            {
+                case "am-tra": case "tra-sua": return RabbitTrade.Brewer;
+                case "noi-mut": case "lo-banh": case "tiem-banh": return RabbitTrade.Baker;
+                case "binh-sao": case "dai-sao": return RabbitTrade.Stargazer;
+                default: return RabbitTrade.None;
+            }
+        }
+
         // Unlock order. Numbers are a first pass; they get tuned through playtests.
         static readonly Row[] Rows =
         {
@@ -69,6 +82,7 @@ namespace VuonTra.EditorTools
                 data.Id = row.Id;
                 data.DisplayName = row.Name;
                 data.Kind = row.Kind;
+                data.Trade = TradeOf(row);
                 data.BaseCost = row.Cost;
                 data.CostGrowth = row.Growth;
                 data.BaseIncome = row.Income;

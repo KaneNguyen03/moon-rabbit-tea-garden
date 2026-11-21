@@ -29,8 +29,8 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy.</summary>
-        public const int CurrentVersion = 4;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds.</summary>
+        public const int CurrentVersion = 5;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -87,6 +87,8 @@ namespace VuonTra.Core
                 sb.Append("{\"id\":").Append(r.Id.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"tier\":").Append(r.Tier.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"level\":").Append(r.Level.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"kind\":");
+                WriteString(sb, Rabbits.KindOf(r));
                 sb.Append(",\"name\":");
                 WriteString(sb, r.Name);
                 // Stations by id, like everywhere else in the save, so reordering them is safe.
@@ -235,6 +237,9 @@ namespace VuonTra.Core
                         if (index >= 0 && s.Levels[index] > 0 && taken.Add(index)) rabbit.Station = index;
                     }
                     rabbit.Level = (int)Math.Max(1d, Math.Min(ReadNumber(entry, "level"), Rabbits.LevelCaps[rabbit.Tier]));
+                    // Version 5: the kind. Older saves have none, and a kind must belong to the rabbit's tier.
+                    rabbit.Kind = entry.TryGetValue("kind", out object kindObj) && kindObj is string kindId ? kindId : null;
+                    rabbit.Kind = Rabbits.KindOf(rabbit);
                     s.Rabbits.Add(rabbit);
                     if (rabbitId > s.NextRabbitId) s.NextRabbitId = rabbitId;
                 }

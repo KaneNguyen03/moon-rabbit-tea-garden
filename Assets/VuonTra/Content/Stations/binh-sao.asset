@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: binh-sao
   DisplayName: "B\xECnh \u1EE7 sao"
   Kind: 0
+  Trade: 4
   BaseCost: 450000000
   CostGrowth: 1.15
   BaseIncome: 6000000

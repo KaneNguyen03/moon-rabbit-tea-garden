@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: suoi-hoa
   DisplayName: "Su\u1ED1i kho\xE1ng hoa"
   Kind: 1
+  Trade: 3
   BaseCost: 1300000000000
   CostGrowth: 1.16
   BaseIncome: 0

@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: to-mat
   DisplayName: "T\u1ED5 m\u1EADt ong"
   Kind: 1
+  Trade: 3
   BaseCost: 2400000
   CostGrowth: 1.14
   BaseIncome: 0

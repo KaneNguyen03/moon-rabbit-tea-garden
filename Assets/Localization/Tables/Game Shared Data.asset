@@ -651,6 +651,78 @@ MonoBehaviour:
     m_Key: rename.cancel
     m_Metadata:
       m_Items: []
+  - m_Id: 21363950608384
+    m_Key: kind.tho-bong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191296
+    m_Key: kind.tho-me
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191297
+    m_Key: kind.tho-cup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191298
+    m_Key: kind.tho-matcha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191299
+    m_Key: kind.tho-suong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191300
+    m_Key: kind.tho-o-long
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191301
+    m_Key: kind.tho-oai-huong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191302
+    m_Key: kind.tho-khoai-mon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191303
+    m_Key: kind.tho-mat-ong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191304
+    m_Key: kind.tho-sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191305
+    m_Key: kind.tho-hong-tra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191306
+    m_Key: kind.tho-trang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869519642624
+    m_Key: trade.Brewer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031232
+    m_Key: trade.Baker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031233
+    m_Key: trade.Gatherer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031234
+    m_Key: trade.Stargazer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031235
+    m_Key: trade.None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031236
+    m_Key: rabbits.intrade
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

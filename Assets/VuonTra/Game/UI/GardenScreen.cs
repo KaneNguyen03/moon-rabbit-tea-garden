@@ -23,8 +23,11 @@ namespace VuonTra.Game.UI
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
-        const float WorldW = 2480f, WorldH = 2760f;
-        const int PerRow = 3;
+        // The garden is as wide as the screen and only scrolls up and down.
+        const float WorldW = 1080f, WorldH = 2900f; // 200 more than the stations need, so the top station's card clears the HUD
+        /// <summary>Stations are drawn at this size so four or five fit on one screen.</summary>
+        const float StationScale = 0.7f;
+        const float DecorScale = 0.7f;
         const float DozeEnergy = 8f;
 
         static readonly string[] TabNames = { "Trạm", "Bùa", "Nhiệm vụ", "Thỏ" };
@@ -44,6 +47,7 @@ namespace VuonTra.Game.UI
         readonly List<Text> _tierLabels = new List<Text>();
         readonly List<Image> _tierHats = new List<Image>();
         readonly List<Image> _tierCharms = new List<Image>();
+        readonly List<GameObject> _tierMatches = new List<GameObject>();
         // Life in the world: rabbits out for a walk, and ingredients carried between stations.
         sealed class Walker { public RectTransform Rect; public float X0, X1, Y, Speed, Phase; }
         sealed class Courier { public RectTransform Rect; public Vector2 From, To; public float T, Duration; public int Target; }
@@ -79,6 +83,8 @@ namespace VuonTra.Game.UI
         readonly List<RectTransform> _fireflies = new List<RectTransform>();
         readonly List<Vector2> _glowSpots = new List<Vector2>(); // lanterns and other lights the fireflies gather round
         RawImage _moonbeams;
+        CanvasGroup _hintGroup;
+        bool _hintFading;
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
         Text _coins, _perSecond, _awayAmount, _awayTime, _badgeText, _barBadgeText, _clovers, _energyLabel, _energyAction;
@@ -112,6 +118,7 @@ namespace VuonTra.Game.UI
 
         void Update()
         {
+            HandleZoomInput(Time.unscaledDeltaTime);
             Advance(Time.unscaledDeltaTime);
         }
 
@@ -140,33 +147,233 @@ namespace VuonTra.Game.UI
             if (_sinceRefresh >= RefreshInterval) Refresh(_sinceRefresh);
         }
 
-        /// <summary>Position of station <paramref name="i"/> in the world: rows of four, snaking back and forth.</summary>
+        /// <summary>The teapot stands here, in the middle of the garden; everything else is placed around it.</summary>
+        static readonly Vector2 Heart = new Vector2(540f, 1350f);
+
+        /// <summary>
+        /// Where each station stands, as an offset from the teapot, in the order they open. Placed by hand:
+        /// the first ring opens first and later stations spread outward, and every ingredient station
+        /// sits between the stations it supplies.
+        /// </summary>
+        /// <summary>The worn paths: out from the teapot to the first ring, then on to the far corners.</summary>
+        static readonly Vector2Int[] Paths =
+        {
+            new Vector2Int(0, 4), new Vector2Int(0, 6), new Vector2Int(0, 2), new Vector2Int(0, 7),
+            new Vector2Int(4, 9), new Vector2Int(2, 11),
+        };
+
+        static readonly Vector2[] Spots =
+        {
+            new Vector2(0, 0),       //  0 teapot: the heart
+            new Vector2(326, 70),    //  1 leaf basket: beside the teapot, below the milk tea stall
+            new Vector2(-276, -372), //  2 jam pot
+            new Vector2(12, -548),   //  3 flower mortar: between the jam pot and the star jar
+            new Vector2(-292, 408),  //  4 chestnut oven
+            new Vector2(-336, 20),   //  5 beehive: between the oven and the jam pot
+            new Vector2(270, 432),   //  6 moon milk tea
+            new Vector2(296, -366),  //  7 star jar
+            new Vector2(24, 690),    //  8 grape vine: between the milk tea and the bakery
+            new Vector2(-270, 850),  //  9 mooncake bakery
+            new Vector2(246, -770),  // 10 flower spring: between the star jar and the observatory
+            new Vector2(-214, -900), // 11 star observatory
+        };
+
+        /// <summary>Position of station <paramref name="i"/> in the world.</summary>
         public static Vector2 StationSpot(int i)
         {
-            int row = i / PerRow, col = i % PerRow;
-            bool reversed = row % 2 == 1;
-            if (reversed) col = PerRow - 1 - col;
-            return new Vector2(520f + col * 620f + (reversed ? 200f : 0f), WorldH - 560f - row * 560f);
+            if (i >= 0 && i < Spots.Length) return Heart + Spots[i];
+            // More stations than the table knows: carry on downward rather than stack them up.
+            return Heart + new Vector2((i % 2 == 0 ? -240f : 240f), -1000f - (i - Spots.Length) * 280f);
         }
 
-        /// <summary>Moves the view so a world point sits near the middle of the screen.</summary>
+        /// <summary>How large a station is drawn. The teapot is the centrepiece.</summary>
+        public static float StationSize(int i) => i == 0 ? 1f : StationScale;
+
+        /// <summary>How much of the screen the HUD covers at the top and the tab bar at the bottom, and how tall the card stands.</summary>
+        const float WheelScroll = 60f;
+        const float HudCover = 160f, TabCover = 250f, CardHeight = 270f;
+
+        public enum ZoomLevel { Far, Default, Near }
+
+        /// <summary>Far shows the whole garden top to bottom; near is for looking at one rabbit.</summary>
+        public const float ZoomFar = ScreenH / WorldH, ZoomDefault = 1f, ZoomNear = 1.5f;
+        float _zoom = 1f;
+        Text _zoomMark;
+        bool _wheelLatched;
+        float _wheelQuiet;
+        RectTransform _cardTail;
+        float _cardPop = 1f;
+        ScrollRect _scroll;
+        ZoomLevel _shownZoom = ZoomLevel.Default;
+        int _lastTapIndex = -1;
+        float _lastTapAt = -10f;
+        bool _pinching;
+        float _pinchStartDistance, _pinchStartZoom, _wheelWait;
+        Vector2 _pinchAt;
+
+        public float ZoomScale => _zoom;
+        public ZoomLevel Zoom => _zoom < 0.85f ? ZoomLevel.Far : (_zoom > 1.2f ? ZoomLevel.Near : ZoomLevel.Default);
+
+        static float ScaleOf(ZoomLevel level) => level == ZoomLevel.Far ? ZoomFar : (level == ZoomLevel.Near ? ZoomNear : ZoomDefault);
+
+        /// <summary>Where a point of the garden is on the screen (canvas units from the bottom left).</summary>
+        Vector2 ToView(Vector2 world) => world * _zoom + _street.anchoredPosition;
+
+        /// <summary>Keeps the view inside the garden; when the garden is smaller than the screen it sits in the middle.</summary>
+        static Vector2 ClampView(Vector2 pos, float zoom)
+        {
+            float w = WorldW * zoom, h = WorldH * zoom;
+            return new Vector2(
+                w <= ScreenW ? (ScreenW - w) / 2f : Mathf.Clamp(pos.x, ScreenW - w, 0f),
+                h <= ScreenH ? (ScreenH - h) / 2f : Mathf.Clamp(pos.y, ScreenH - h, 0f));
+        }
+
+        /// <summary>Scales the garden so the point under <paramref name="pivotView"/> stays where it is.</summary>
+        void ApplyZoom(float zoom, Vector2 pivotView)
+        {
+            Vector2 world = (pivotView - _street.anchoredPosition) / _zoom;
+            PlaceView(world, pivotView, zoom);
+        }
+
+        /// <summary>Scales the garden and puts a garden point at a screen point, as far as the edges allow.</summary>
+        void PlaceView(Vector2 world, Vector2 atView, float zoom)
+        {
+            _zoom = Mathf.Clamp(zoom, ZoomFar, ZoomNear);
+            _street.localScale = new Vector3(_zoom, _zoom, 1f);
+            _street.anchoredPosition = ClampView(atView - world * _zoom, _zoom);
+            if (_scroll != null) _scroll.horizontal = WorldW * _zoom > ScreenW + 1f;
+            if (_card != null) _card.localScale = Vector3.one * (_cardPop / _zoom); // the card stays readable at every zoom
+            if (Zoom != _shownZoom) ShowZoomDetail();
+        }
+
+        /// <summary>Far away the plates and names would be specks, so they go; up close the worn items show too.</summary>
+        void ShowZoomDetail()
+        {
+            _shownZoom = Zoom;
+            if (_zoomMark != null) _zoomMark.text = _shownZoom == ZoomLevel.Far ? "–" : (_shownZoom == ZoomLevel.Near ? "+" : "");
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                Transform plate = _actors[i].Root.Find("Level");
+                if (plate != null) plate.gameObject.SetActive(_shownZoom != ZoomLevel.Far);
+            }
+            if (Runner != null && Runner.State != null && _built) RefreshStreet(Runner.Defs, Runner.State);
+        }
+
+        /// <summary>Goes to one of the three zoom levels, keeping a screen point (the middle by default) in place.</summary>
+        public void SetZoom(ZoomLevel level, bool animate = true, Vector2? pivotView = null)
+        {
+            Vector2 pivot = pivotView ?? new Vector2(ScreenW / 2f, ScreenH / 2f);
+            float from = _zoom, to = ScaleOf(level);
+            if (_scroll != null) _scroll.StopMovement();
+            if (!animate) { ApplyZoom(to, pivot); return; }
+            Vector2 world = (pivot - _street.anchoredPosition) / _zoom;
+            Tweens.Add(0.28f, t => { if (_street != null) PlaceView(world, pivot, Mathf.LerpUnclamped(from, to, t)); }, Ease.OutCubic);
+        }
+
+        /// <summary>The zoom button: far, usual, near, and round again.</summary>
+        public void CycleZoom()
+        {
+            SelectStation(-1);
+            SetZoom((ZoomLevel)(((int)Zoom + 1) % 3));
+            DismissHint();
+        }
+
+        /// <summary>Flies to a station and looks at it up close.</summary>
+        public void ZoomToStation(int index, bool animate = true)
+        {
+            if (index < 0 || index >= _actors.Count) return;
+            Vector2 world = StationSpot(index) + new Vector2(0, 40f * StationSize(index));
+            Vector2 to = new Vector2(ScreenW / 2f, ScreenH * 0.5f), fromAt = ToView(world);
+            float from = _zoom;
+            if (_scroll != null) _scroll.StopMovement();
+            if (!animate) { PlaceView(world, to, ZoomNear); return; }
+            Tweens.Add(0.35f, t => { if (_street != null) PlaceView(world, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.OutCubic);
+        }
+
+        /// <summary>Pinch on a phone, wheel on a desktop. Both land on one of the three levels.</summary>
+        void HandleZoomInput(float dt)
+        {
+            if (_street == null || Shell == null || Shell.State != ShellState.Playing || SheetOpen) return;
+            _wheelWait -= dt;
+
+            var touch = UnityEngine.InputSystem.Touchscreen.current;
+            int down = 0;
+            Vector2 a = default, b = default;
+            if (touch != null)
+                foreach (var finger in touch.touches)
+                {
+                    if (!finger.press.isPressed) continue;
+                    if (down == 0) a = finger.position.ReadValue(); else if (down == 1) b = finger.position.ReadValue();
+                    down++;
+                }
+            if (down >= 2)
+            {
+                float distance = Mathf.Max(1f, Vector2.Distance(a, b));
+                _pinchAt = ScreenToView((a + b) / 2f);
+                if (!_pinching)
+                {
+                    _pinching = true;
+                    _pinchStartDistance = distance;
+                    _pinchStartZoom = _zoom;
+                    if (_scroll != null) { _scroll.StopMovement(); _scroll.enabled = false; } // one gesture at a time
+                }
+                ApplyZoom(_pinchStartZoom * distance / _pinchStartDistance, _pinchAt);
+                DismissHint();
+                return;
+            }
+            if (_pinching)
+            {
+                _pinching = false;
+                if (_scroll != null) _scroll.enabled = true;
+                SetZoom(Zoom, true, _pinchAt); // settle on the nearest level
+                return;
+            }
+
+            // The wheel (or two fingers on a trackpad) scrolls the garden. Held with Cmd or Ctrl it zooms,
+            // and a whole swipe, however many small steps it sends, changes one level.
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            var keys = UnityEngine.InputSystem.Keyboard.current;
+            bool held = keys != null && (keys.leftCommandKey.isPressed || keys.rightCommandKey.isPressed || keys.leftCtrlKey.isPressed || keys.rightCtrlKey.isPressed);
+            if (_scroll != null) _scroll.scrollSensitivity = held ? 0f : WheelScroll;
+            float wheel = mouse != null ? mouse.scroll.ReadValue().y : 0f;
+            if (!held || Mathf.Abs(wheel) < 0.01f)
+            {
+                _wheelQuiet += dt;
+                if (_wheelQuiet > 0.25f) _wheelLatched = false; // the swipe is over
+                return;
+            }
+            _wheelQuiet = 0f;
+            if (_wheelLatched) return;
+            _wheelLatched = true;
+            int step = (int)Zoom + (wheel > 0f ? 1 : -1);
+            if (step < 0 || step > 2) return;
+            SetZoom((ZoomLevel)step, true, ScreenToView(mouse.position.ReadValue()));
+        }
+
+        /// <summary>A pointer position in screen pixels, as canvas units from the bottom left of the garden view.</summary>
+        Vector2 ScreenToView(Vector2 screen)
+        {
+            var view = (RectTransform)_street.parent;
+            Canvas canvas = _canvas.GetComponent<Canvas>();
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(view, screen, canvas != null ? canvas.worldCamera : null, out Vector2 local))
+                return new Vector2(ScreenW / 2f, ScreenH / 2f);
+            return local - view.rect.min;
+        }
+
         /// <summary>Moves the view to a point in the garden (used by the preview shots).</summary>
         public void LookAt(Vector2 point) => CenterOn(point);
 
+        /// <summary>Moves the view so a garden point sits a little above the middle of the screen, clear of the tab bar.</summary>
         void CenterOn(Vector2 point)
         {
-            _street.anchoredPosition = new Vector2(
-                Mathf.Clamp(ScreenW / 2f - point.x, ScreenW - WorldW, 0f),
-                Mathf.Clamp(ScreenH * 0.5f - point.y, ScreenH - WorldH, 0f));
+            _street.anchoredPosition = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - point * _zoom, _zoom);
         }
 
         /// <summary>The grass follows the drag, the walkers walk, and ingredients travel to where they are used.</summary>
         void UpdateWorld(float dt)
         {
-            Vector2 offset = -_street.anchoredPosition;
-            _groundTile.uvRect = new Rect(offset.x / 512f, offset.y / 512f, ScreenW / 512f, ScreenH / 512f);
-            // The shafts of moonlight drift a little as the view moves, so they feel like they come from above.
-            if (_moonbeams != null) _moonbeams.uvRect = new Rect(offset.x / 2600f, 0f, 1.2f, 1f);
+            Vector2 offset = -_street.anchoredPosition / _zoom;
+            _groundTile.uvRect = new Rect(offset.x / 512f, offset.y / 512f, ScreenW / 512f / _zoom, ScreenH / 512f / _zoom);
 
             foreach (Walker w in _walkers)
             {
@@ -217,11 +424,11 @@ namespace VuonTra.Game.UI
                 if (s.Levels[route.x] <= 0 || s.Levels[route.y] <= 0) continue;
 
                 GameCatalog catalog = Runner.Catalog;
-                Vector2 from = StationSpot(route.x) + new Vector2(112, -70), to = StationSpot(route.y) + new Vector2(112, -70);
-                var rt = UiKit.Rect("Courier", _street).Place(0f, 0f, from.x, from.y, 62, 62);
-                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, -2, 54, 16).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
+                Vector2 from = StationSpot(route.x) + new Vector2(112, -70) * StationSize(route.x), to = StationSpot(route.y) + new Vector2(112, -70) * StationSize(route.y);
+                var rt = UiKit.Rect("Courier", _street).Place(0f, 0f, from.x, from.y, 46, 46);
+                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, -2, 40, 12).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
                 UiKit.Rect("Item", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Stations[route.x].Prop, Color.white).preserveAspect = true;
-                _couriers.Add(new Courier { Rect = rt, From = from, To = to, Target = route.y, Duration = Mathf.Max(1.2f, Vector2.Distance(from, to) / 380f) });
+                _couriers.Add(new Courier { Rect = rt, From = from, To = to, Target = route.y, Duration = Mathf.Max(1.2f, Vector2.Distance(from, to) / 260f) });
                 return;
             }
         }
@@ -326,7 +533,7 @@ namespace VuonTra.Game.UI
 
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
-            _tierChips.Clear(); _tierLabels.Clear(); _tierHats.Clear(); _tierCharms.Clear();
+            _tierChips.Clear(); _tierLabels.Clear(); _tierHats.Clear(); _tierCharms.Clear(); _tierMatches.Clear();
             _walkers.Clear(); _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
@@ -339,7 +546,8 @@ namespace VuonTra.Game.UI
             Build();
             if (before != ShellState.Title) Shell.SkipTitle();
             Refresh(-1f);
-            _street.anchoredPosition = streetAt;
+            _street.anchoredPosition = ClampView(streetAt, _zoom);
+            ShowZoomDetail();
             if (sheetWasOpen) OpenSheet(tab);
             if (before == ShellState.Paused) Shell.OpenPause(); // back to the card the language buttons are on
         }
@@ -410,28 +618,32 @@ namespace VuonTra.Game.UI
             ground.onClick.AddListener(() => SelectStation(-1)); // tapping empty ground closes the card
             var scroll = view.gameObject.AddComponent<ScrollRect>();
             scroll.vertical = true;
-            scroll.horizontal = true;
+            scroll.horizontal = false;
             scroll.movementType = ScrollRect.MovementType.Elastic;
-            scroll.scrollSensitivity = 60f;
+            scroll.scrollSensitivity = WheelScroll;
+            _scroll = scroll;
 
             _street = UiKit.Rect("Content", view);
             _street.anchorMin = _street.anchorMax = _street.pivot = Vector2.zero;
             _street.sizeDelta = new Vector2(WorldW, WorldH);
+            _street.localScale = new Vector3(_zoom, _zoom, 1f);
+            scroll.horizontal = WorldW * _zoom > ScreenW + 1f;
             scroll.content = _street;
             scroll.viewport = view;
 
             int count = catalog.Stations.Length;
 
-            // Stepping stones from each station to the next lie flat on the grass, under everything.
+            // A few worn paths lead out from the teapot; they lie flat on the grass, under everything.
             Color stone = Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Grass, 0.5f), 0.6f);
-            for (int i = 0; i + 1 < count; i++)
+            foreach (Vector2Int path in Paths)
             {
-                Vector2 a = StationSpot(i) + new Vector2(0, -150), b = StationSpot(i + 1) + new Vector2(0, -150);
-                int steps = Mathf.Max(2, Mathf.RoundToInt(Vector2.Distance(a, b) / 74f));
+                if (path.x >= count || path.y >= count) continue;
+                Vector2 a = StationSpot(path.x) + new Vector2(0, -150f * StationSize(path.x)), b = StationSpot(path.y) + new Vector2(0, -150f * StationSize(path.y));
+                int steps = Mathf.Max(2, Mathf.RoundToInt(Vector2.Distance(a, b) / 56f));
                 for (int k = 1; k < steps; k++)
                 {
-                    Vector2 at = Vector2.Lerp(a, b, k / (float)steps) + new Vector2(0, Mathf.Sin(k * 1.7f) * 10f);
-                    UiKit.Rect("Stone", _street).Place(0f, 0f, at.x, at.y, 50, 20).AddImage(catalog.Round, stone);
+                    Vector2 at = Vector2.Lerp(a, b, k / (float)steps) + new Vector2(0, Mathf.Sin(k * 1.7f) * 7f);
+                    UiKit.Rect("Stone", _street).Place(0f, 0f, at.x, at.y, 38, 15).AddImage(catalog.Round, stone);
                 }
             }
 
@@ -445,10 +657,16 @@ namespace VuonTra.Game.UI
                 var actor = new StationActorView(i);
                 actor.Build(_street, catalog, catalog.Stations[i], OnTap);
                 actor.Root.Place(0f, 0f, spot.x, spot.y, 440, 360);
+                actor.Root.localScale = Vector3.one * StationSize(i);
+                var plate = (RectTransform)actor.Root.Find("Level");
+                plate.localScale = Vector3.one * (0.78f / StationSize(i)); // every station's level reads at the same size
+                plate.anchoredPosition += new Vector2(0, -26f); // clear of the rabbit's feet and the prop
                 _actors.Add(actor);
-                standing.Add(new KeyValuePair<float, Transform>(spot.y - 112f, actor.Root));
+                standing.Add(new KeyValuePair<float, Transform>(spot.y - 112f * StationSize(i), actor.Root));
 
-                var chip = UiKit.Rect("Tier", actor.Root).Place(0.5f, 0.5f, -72, 176, 200, 44);
+                // Every name plate is the same size on screen and floats the same distance above its rabbit.
+                var chip = UiKit.Rect("Tier", actor.Root).Place(0.5f, 0.5f, -72, 122 + 40f / StationSize(i), 200, 44);
+                chip.localScale = Vector3.one * (0.78f / StationSize(i));
                 _tierChips.Add(chip.AddImage(catalog.Panel, Palette.Paper, true));
                 _tierLabels.Add(UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold));
                 // What the worker wears shows at the two ends of its name plate.
@@ -458,6 +676,11 @@ namespace VuonTra.Game.UI
                 Image charmOn = UiKit.Rect("Charm", chip).Place(1f, 0.5f, 8, 0, 50, 50).AddImage(null, Color.white);
                 charmOn.preserveAspect = true;
                 _tierCharms.Add(charmOn);
+                // A small gold mark on the plate says the rabbit here is in its own trade.
+                var match = UiKit.Rect("Match", chip).Place(1f, 1f, -8, -4, 26, 26);
+                match.AddImage(catalog.Round, Palette.Ink);
+                UiKit.Rect("Dot", match).Place(0.5f, 0.5f, 0, 0, 18, 18).AddImage(catalog.Round, Palette.Lantern);
+                _tierMatches.Add(match.gameObject);
                 chip.gameObject.SetActive(false);
 
                 // Where this station's ingredients go, for the couriers.
@@ -471,15 +694,17 @@ namespace VuonTra.Game.UI
             }
 
             // Rabbits out for a walk along the grass between the rows.
-            float[] lanes = { WorldH - 850f, WorldH - 1410f, WorldH - 1970f, 210f };
+            // Each walker keeps to a stretch of grass that no station stands on.
+            float[] lanes = { Heart.y + 212f, Heart.y - 312f, 150f };
+            float[] laneFrom = { 390f, 400f, 170f }, laneTo = { 700f, 715f, WorldW - 170f };
             for (int i = 0; i < lanes.Length && catalog.Rabbit != null; i++)
             {
-                var rt = UiKit.Rect("Walker", _street).Place(0f, 0f, 400, lanes[i], 130, 130);
+                var rt = UiKit.Rect("Walker", _street).Place(0f, 0f, 400, lanes[i], 92, 92);
                 rt.pivot = new Vector2(0.5f, 0f);
-                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 90, 22).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
+                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 64, 16).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
                 UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white).preserveAspect = true;
-                _walkers.Add(new Walker { Rect = rt, X0 = 320f, X1 = WorldW - 320f, Y = lanes[i], Speed = 70f + i * 22f, Phase = i * 900f });
-                standing.Add(new KeyValuePair<float, Transform>(lanes[i], rt));
+                _walkers.Add(new Walker { Rect = rt, X0 = laneFrom[i], X1 = laneTo[i], Y = lanes[i], Speed = 50f + i * 14f, Phase = i * 900f });
+                standing.Add(new KeyValuePair<float, Transform>(float.MaxValue, rt)); // drawn first, so a walker never covers a level plate
             }
 
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
@@ -489,11 +714,78 @@ namespace VuonTra.Game.UI
             BuildStationCard(catalog);
             CenterOn(StationSpot(0));
 
-            var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -318, 940, 60);
+            var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -196, 940, 60);
             hint.AddShadow(14f, 8f, 0.28f);
             UiKit.Rect("Body", hint).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Text", hint).Stretch(0, 0, 1, 1).AddText(L10n.T("hint"), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _hint = hint.gameObject;
+            _hintGroup = hint.gameObject.AddComponent<CanvasGroup>();
+            _hintGroup.blocksRaycasts = false;
+            // The first drag also counts as having understood.
+            var drag = view.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
+            var entry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.BeginDrag };
+            entry.callback.AddListener(_ => DismissHint());
+            drag.triggers.Add(entry);
+        }
+
+        /// <summary>The ground a station takes up, plates included, in garden units.</summary>
+        static Rect StationBox(int i)
+        {
+            float size = StationSize(i);
+            Vector2 spot = StationSpot(i);
+            return Rect.MinMaxRect(spot.x - 160f * size, spot.y - 215f * size, spot.x + 178f * size, spot.y + 196f * size);
+        }
+
+        /// <summary>
+        /// Where the card of a station goes, in garden units: on whichever side (above, below, right, left)
+        /// covers the least of the neighbouring stations. It only overlaps one when no side is free.
+        /// </summary>
+        Rect PlaceCard(int index)
+        {
+            float w = 524f / _zoom, h = CardHeight / _zoom, gap = 6f / _zoom;
+            Rect me = StationBox(index);
+            float midX = WorldW > w ? Mathf.Clamp(me.center.x, w / 2f, WorldW - w / 2f) : WorldW / 2f;
+            var sides = new[]
+            {
+                new Rect(midX - w / 2f, me.yMax, w, h),
+                new Rect(midX - w / 2f, me.yMin - gap - h, w, h),
+                new Rect(me.xMax + gap, me.center.y - h / 2f, w, h),
+                new Rect(me.xMin - gap - w, me.center.y - h / 2f, w, h),
+            };
+            int best = 0;
+            float bestCost = float.MaxValue;
+            for (int k = 0; k < sides.Length; k++)
+            {
+                Rect r = sides[k];
+                float cost = 0f;
+                // Off the garden, or where the HUD or the tab bar would always cover it, is worse than any overlap.
+                if (r.xMin < -4f || r.xMax > WorldW + 4f) cost += 1e9f;
+                if (r.yMax > WorldH - HudCover / _zoom || r.yMin < TabCover / _zoom) cost += 1e9f;
+                for (int j = 0; j < _actors.Count; j++)
+                {
+                    if (j == index || !_actors[j].Root.gameObject.activeSelf) continue;
+                    Rect other = StationBox(j);
+                    float ox = Mathf.Min(r.xMax, other.xMax) - Mathf.Max(r.xMin, other.xMin), oy = Mathf.Min(r.yMax, other.yMax) - Mathf.Max(r.yMin, other.yMin);
+                    if (ox > 0f && oy > 0f) cost += ox * oy;
+                }
+                if (cost < bestCost - 1f) { bestCost = cost; best = k; }
+            }
+            CardSide = best;
+            if (_cardTail != null) _cardTail.gameObject.SetActive(best == 0); // the tail only points down
+            return sides[best];
+        }
+
+        /// <summary>Which side of its station the card is on: 0 above, 1 below, 2 right, 3 left.</summary>
+        public int CardSide { get; private set; }
+
+        /// <summary>The hint is for the very first moments only: it fades at the first tap or drag and never returns.</summary>
+        public void DismissHint()
+        {
+            if (Runner != null && Runner.State != null) Runner.State.HintSeen = true;
+            if (_hint == null || !_hint.activeSelf || _hintFading) return;
+            _hintFading = true;
+            Tweens.Add(0.45f, t => { if (_hintGroup != null) _hintGroup.alpha = 1f - t; },
+                Ease.OutCubic, 0f, () => { if (_hint != null) _hint.SetActive(false); _hintFading = false; if (_hintGroup != null) _hintGroup.alpha = 1f; });
         }
 
         /// <summary>The small card over a tapped station: what it is, what it earns, and the one button to grow it.</summary>
@@ -503,6 +795,7 @@ namespace VuonTra.Game.UI
             _card.pivot = new Vector2(0.5f, 0f);
             _card.AddShadow(18f, 10f, 0.4f);
             var tail = UiKit.Rect("Tail", _card).Place(0.5f, 0f, 0, 8, 40, 40);
+            _cardTail = tail;
             tail.localRotation = Quaternion.Euler(0, 0, 45);
             tail.AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
@@ -550,23 +843,30 @@ namespace VuonTra.Game.UI
             Selected = index;
             _card.gameObject.SetActive(true);
             _card.SetAsLastSibling();
-            _card.anchoredPosition = StationSpot(index) + new Vector2(16, 196);
+            Rect card = PlaceCard(index);
+            _card.anchoredPosition = new Vector2(card.center.x, card.yMin);
+            _card.localScale = Vector3.one * (_cardPop / _zoom);
             if (changed)
             {
-                // Slide the world just enough that the station and its card are clear of the HUD and the tab bar.
-                Vector2 spot = StationSpot(index), from = _street.anchoredPosition;
-                Vector2 onScreen = spot + from;
-                var target = new Vector2(
-                    from.x + Mathf.Clamp(onScreen.x, 290f, ScreenW - 290f) - onScreen.x,
-                    from.y + Mathf.Clamp(onScreen.y, 520f, 1080f) - onScreen.y);
-                target.x = Mathf.Clamp(target.x, ScreenW - WorldW, 0f);
-                target.y = Mathf.Clamp(target.y, ScreenH - WorldH, 0f);
-                var scroll = _street.parent.GetComponent<ScrollRect>();
-                if (scroll != null) scroll.StopMovement();
+                // Slide the garden just enough that the station and its card are both clear of the HUD and the tab bar.
+                Rect station = StationBox(index);
+                Vector2 from = _street.anchoredPosition;
+                float top = Mathf.Max(station.yMax, card.yMax) * _zoom + from.y, bottom = Mathf.Min(station.yMin, card.yMin) * _zoom + from.y;
+                float left = Mathf.Min(station.xMin, card.xMin) * _zoom + from.x, right = Mathf.Max(station.xMax, card.xMax) * _zoom + from.x;
+                Vector2 move = Vector2.zero;
+                if (top > ScreenH - HudCover) move.y = ScreenH - HudCover - top;
+                else if (bottom < TabCover) move.y = TabCover - bottom;
+                if (right > ScreenW - 6f) move.x = ScreenW - 6f - right;
+                else if (left < 6f) move.x = 6f - left;
+                Vector2 target = ClampView(from + move, _zoom);
+                if (_scroll != null) _scroll.StopMovement();
                 Tweens.Add(0.25f, t => { if (_street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, target, t); }, Ease.OutCubic);
 
-                _card.localScale = Vector3.one * 0.8f;
-                Tweens.Add(0.22f, t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.8f, 1f, t); }, Ease.OutBack);
+                Tweens.Add(0.22f, t =>
+                {
+                    _cardPop = Mathf.LerpUnclamped(0.8f, 1f, t);
+                    if (_card != null) _card.localScale = Vector3.one * (_cardPop / _zoom);
+                }, Ease.OutBack);
             }
             RefreshCard(Runner.Defs, Runner.State, Runner.Mods);
         }
@@ -618,13 +918,6 @@ namespace VuonTra.Game.UI
             // The moon itself is above the canopy; its glow spills in at the top corner.
             UiKit.Rect("MoonGlow", _canvas).Place(1f, 1f, -140, -200, 1300, 1300)
                 .AddImage(catalog.Glow, new Color(0.80f, 0.90f, 1f, 0.26f));
-            if (catalog.BgMoonbeam != null)
-            {
-                var beams = UiKit.Rect("Moonbeams", _canvas).Stretch(0, 0, 1, 1);
-                _moonbeams = beams.gameObject.AddComponent<RawImage>();
-                _moonbeams.texture = catalog.BgMoonbeam;
-                _moonbeams.raycastTarget = false;
-            }
             if (catalog.BgVignette != null)
             {
                 var v = UiKit.Rect("Vignette", _canvas).Stretch(0, 0, 1, 1);
@@ -657,7 +950,7 @@ namespace VuonTra.Game.UI
             {
                 float seed = i * 7.31f;
                 Vector2 home = _glowSpots[i % _glowSpots.Count];
-                float angle = _clock * (0.35f + Hash(seed) * 0.4f) + seed, reach = 70f + Hash(seed + 2f) * 110f;
+                float angle = _clock * (0.35f + Hash(seed) * 0.4f) + seed, reach = 50f + Hash(seed + 2f) * 80f;
                 _fireflies[i].anchoredPosition = home + new Vector2(Mathf.Cos(angle) * reach, Mathf.Sin(angle * 1.3f) * reach * 0.6f);
                 float pulse = 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
                 _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.2f + 0.6f * pulse);
@@ -691,18 +984,21 @@ namespace VuonTra.Game.UI
             const int Tree = 0, Bush = 1, Lantern = 2, Mushrooms = 4, Stones = 5, Pond = 6, TeaTable = 7, Stump = 8;
             Color soft = Palette.Mix(Color.white, Palette.Night, 0.12f);
 
-            var pondAt = new Vector2(WorldW - 370f, WorldH - 640f);
+            // The pond lies in the top corner, where the moonlight comes in.
+            var pondAt = Heart + new Vector2(330f, 900f);
 
             void Put(int kind, float x, float y, float height, Color tint)
             {
+                height *= DecorScale;
                 // Nothing tall may stand in front of the pond: the moon in it has to stay in view.
-                if (kind == Tree && x < WorldW - 110f && Mathf.Abs(x - pondAt.x) < 250f && y > pondAt.y - 440f && y < pondAt.y + 40f) return;
+                if (kind == Tree && x > 120f && x < WorldW - 60f && Mathf.Abs(x - pondAt.x) < 200f && y > pondAt.y - 330f && y < pondAt.y + 30f) return;
                 if (kind == Lantern)
                 {
-                    var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, x + 14f, y + 150f, 420f, 420f);
+                    var at = new Vector2(x + 14f * DecorScale, y + 150f * DecorScale);
+                    var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, at.x, at.y, 300f, 300f);
                     glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.6f));
                     standing.Add(new KeyValuePair<float, Transform>(y + 0.5f, glow));
-                    _glowSpots.Add(new Vector2(x + 14f, y + 150f));
+                    _glowSpots.Add(at);
                 }
                 Image img = AddDecor(_street, d[kind], x, y, height, tint);
                 if (img != null) standing.Add(new KeyValuePair<float, Transform>(y, img.transform));
@@ -719,56 +1015,66 @@ namespace VuonTra.Game.UI
             }
 
             // The pond lies flat, so it goes down before anything that stands. It holds the moon.
-            AddDecor(_street, d[Pond], pondAt.x, pondAt.y - 120f, 250f, Color.white);
-            UiKit.Rect("PondGlow", _street).Place(0f, 0f, pondAt.x + 30f, pondAt.y + 10f, 520f, 380f)
+            AddDecor(_street, d[Pond], pondAt.x, pondAt.y - 85f, 175f, Color.white);
+            UiKit.Rect("PondGlow", _street).Place(0f, 0f, pondAt.x + 20f, pondAt.y + 6f, 370f, 270f)
                 .AddImage(catalog.Glow, new Color(0.80f, 0.90f, 1f, 0.3f));
-            _glowSpots.Add(pondAt + new Vector2(20, 40));
+            _glowSpots.Add(pondAt + new Vector2(14, 28));
 
             // Places to sit, in the corners the stations leave free.
-            Put(TeaTable, 300f, WorldH - 1180f, 170f, Color.white);
-            Put(Stump, WorldW - 300f, WorldH - 1760f, 110f, Color.white);
-            Put(Stump, WorldW - 440f, WorldH - 1700f, 96f, Color.white);
-            Put(TeaTable, 330f, 420f, 170f, Color.white);
+            Put(TeaTable, Heart.x + 90f, Heart.y - 1100f, 170f, Color.white);
+            Put(Stump, Heart.x + 246f, Heart.y - 1090f, 110f, Color.white);
+            Put(Stump, Heart.x - 60f, Heart.y - 1120f, 96f, Color.white);
 
-            // Lanterns walk the path with you: one beside every stretch between two stations.
-            for (int i = 0; i + 1 < stations; i++)
+            // A lantern beside each path, halfway along.
+            for (int n = 0; n < Paths.Length; n++)
             {
-                Vector2 a = StationSpot(i), b = StationSpot(i + 1);
-                Vector2 mid = (a + b) / 2f + new Vector2(0, -150f);
-                Vector2 side = new Vector2(-(b - a).y, (b - a).x).normalized * 96f;
-                if (side.y < 0f) side = -side; // on the far side of the path, so the post does not hide the stones
+                Vector2Int path = Paths[n];
+                if (path.x >= stations || path.y >= stations) continue;
+                if (n == 1 || n == 2) continue; // two by the teapot are enough; four crowd it
+                Vector2 a = StationSpot(path.x), b = StationSpot(path.y);
+                bool outer = path.x != 0; // the long paths to the far corners run past name plates, so stand further off
+                Vector2 mid = (a + b) / 2f + new Vector2(0, outer ? -70f : -30f);
+                Vector2 side = new Vector2(-(b - a).y, (b - a).x).normalized * (outer ? 190f : 112f);
+                if (side.x * (mid.x - Heart.x) < 0f) side = -side; // on the outer side, away from the teapot
                 Vector2 at = mid + side;
-                if (Free(at.x, at.y, 300f, 600f, 240f)) Put(Lantern, at.x, at.y, 226f, Color.white);
+                if (path.x == 0 && path.y == 7) at = Heart + new Vector2(-190f, -272f); // the computed spot lands on a level plate; here it is clear of plates and of the upgrade arrow
+                Put(Lantern, at.x, at.y, 226f, Color.white);
             }
 
-            // The wood around the clearing: two staggered rows on every side, so the canopy closes over the edge.
-            for (float x = -40f; x < WorldW + 60f; x += 190f)
+            // The wood around the clearing closes over every edge.
+            for (float x = -40f; x < WorldW + 60f; x += 150f)
             {
-                float jitter = Hash(x) * 60f;
-                Put(Tree, x + jitter, WorldH - 470f + Hash(x + 5) * 50f, 380f + Hash(x + 9) * 70f, soft);
-                Put(Tree, x + 95f - jitter, WorldH - 380f + Hash(x + 6) * 40f, 360f + Hash(x + 4) * 60f, soft);
-                Put(Tree, x + jitter, -40f + Hash(x + 7) * 40f, 330f + Hash(x + 2) * 70f, soft);
-                Put(Bush, x + 95f - jitter, 30f + Hash(x + 3) * 40f, 130f, soft);
+                float jitter = Hash(x) * 50f;
+                Put(Tree, x + jitter, WorldH - 300f + Hash(x + 5) * 40f, 380f + Hash(x + 9) * 70f, soft);
+                Put(Tree, x + 75f - jitter, WorldH - 230f + Hash(x + 6) * 30f, 360f + Hash(x + 4) * 60f, soft);
+                Put(Tree, x + jitter, -30f + Hash(x + 7) * 30f, 330f + Hash(x + 2) * 70f, soft);
+                Put(Bush, x + 75f - jitter, 30f + Hash(x + 3) * 30f, 130f, soft);
             }
-            for (float y = 240f; y < WorldH - 520f; y += 200f)
+            // Beyond the edges the wood goes on, so zooming out shows forest and not the end of the world.
+            for (float y = -120f; y < WorldH + 60f; y += 160f)
+                for (int row = 1; row <= 3; row++)
+                {
+                    float away = 60f + row * 105f + Hash(y + row) * 40f, lift = (row % 2) * 80f;
+                    Put(Tree, -away, y + lift, 330f + Hash(y + row * 3) * 90f, soft);
+                    Put(Tree, WorldW + away, y + 80f - lift, 330f + Hash(y + row * 5) * 90f, soft);
+                }
+            for (float y = 180f; y < WorldH - 330f; y += 150f)
             {
-                Put(Tree, -30f + Hash(y) * 60f, y, 340f + Hash(y + 4) * 80f, soft);
-                Put(Tree, 70f + Hash(y + 1) * 50f, y + 100f, 300f + Hash(y + 5) * 60f, soft);
-                Put(Tree, WorldW - 40f + Hash(y + 2) * 60f, y + 50f, 340f + Hash(y + 6) * 80f, soft);
-                Put(Tree, WorldW - 150f + Hash(y + 3) * 50f, y + 150f, 300f + Hash(y + 7) * 60f, soft);
+                Put(Tree, -50f + Hash(y) * 40f, y, 340f + Hash(y + 4) * 80f, soft);
+                Put(Tree, WorldW + 10f + Hash(y + 2) * 40f, y + 60f, 340f + Hash(y + 6) * 80f, soft);
             }
 
             // Inside: small things wherever there is room that is not a station, a seat or the pond.
-            for (int n = 0; n < 46; n++)
+            for (int n = 0; n < 60; n++)
             {
-                float x = 300f + Hash(n * 3.1f + 1f) * (WorldW - 600f), y = 260f + Hash(n * 5.7f + 2f) * (WorldH - 820f);
+                float x = 150f + Hash(n * 3.1f + 1f) * (WorldW - 300f), y = 200f + Hash(n * 5.7f + 2f) * (WorldH - 560f);
                 float pick = Hash(n * 9.3f);
-                bool tall = pick < 0.16f;
-                if (!Free(x, y, 360f, tall ? 620f : 240f, 250f)) continue;
-                if (Vector2.Distance(new Vector2(x, y), pondAt) < 330f) continue;
+                bool tall = pick < 0.10f;
+                if (!Free(x, y, 230f, tall ? 380f : 220f, 240f)) continue; // nothing may cover a level plate or a name
+                if (Vector2.Distance(new Vector2(x, y), pondAt) < 240f) continue;
                 if (tall) Put(Tree, x, y, 270f + Hash(n + 40f) * 90f, soft);
-                else if (pick < 0.50f) Put(Bush, x, y, 104f, soft);
-                else if (pick < 0.78f) Put(Mushrooms, x, y, 84f, soft);
+                else if (pick < 0.46f) Put(Bush, x, y, 104f, soft);
+                else if (pick < 0.76f) Put(Mushrooms, x, y, 84f, soft);
                 else Put(Stones, x, y, 62f, soft);
             }
 
@@ -780,33 +1086,59 @@ namespace VuonTra.Game.UI
         {
             _hud = UiKit.Rect("Hud", _canvas).Stretch(0, 1, 1, 1);
             _hud.pivot = new Vector2(0.5f, 1f);
-            _hud.sizeDelta = new Vector2(0, 270);
+            _hud.sizeDelta = new Vector2(0, 150);
 
-            _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 260, -78, 440, 104);
+            // One row: carrots, tea power, zoom, settings. Everything below it is garden.
+            _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 204, -76, 360, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _purse).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            _currency = UiKit.Rect("Currency", _purse).Place(0f, 0.5f, 60, 4, 76, 76);
+            _currency = UiKit.Rect("Currency", _purse).Place(0f, 0.5f, 52, 4, 68, 68);
             _currency.AddImage(catalog.Currency, Color.white).preserveAspect = true;
-            _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 108, 0, 20, 6)
-                .AddText("0", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _perSecond = UiKit.Rect("PerSecond", _purse).Stretch(0, 0, 1, 0.46f, 108, 14, 20, 0)
-                .AddText(L10n.T("persec", "0"), 24, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 92, 0, 14, 6)
+                .AddText("0", 40, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _perSecond = UiKit.Rect("PerSecond", _purse).Stretch(0, 0, 1, 0.46f, 92, 14, 14, 0)
+                .AddText(L10n.T("persec", "0"), 22, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             // "Trà lực": the bar and the boost button are one control.
-            var energy = UiKit.Rect("Energy", _hud).Place(0.5f, 1f, 0, -204, 640, 104);
+            var energy = UiKit.Rect("Energy", _hud).Place(0f, 1f, 616, -76, 440, 100);
             energy.AddShadow();
             _energyButton = UiKit.Chunky(energy, catalog.Panel, OnBoost);
-            _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.6f, 1, 28, 0, 0, 6)
-                .AddText("", 28, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _energyAction = UiKit.Rect("Action", _energyButton.FaceRect).Stretch(0.5f, 0.46f, 1, 1, 0, 0, 28, 6)
-                .AddText("", 26, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
-            var track = UiKit.Rect("Track", _energyButton.FaceRect).Band(28, 28, 16, 20);
+            _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.55f, 1, 22, 0, 0, 6)
+                .AddText("", 25, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _energyAction = UiKit.Rect("Action", _energyButton.FaceRect).Stretch(0.45f, 0.46f, 1, 1, 0, 0, 22, 6)
+                .AddText("", 23, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
+            var track = UiKit.Rect("Track", _energyButton.FaceRect).Band(22, 22, 16, 18);
             track.AddImage(catalog.Panel, Palette.Track, true);
             _energyFill = UiKit.Rect("Fill", track).Stretch(0, 0, 0, 1);
             _energyFill.AddImage(catalog.Panel, Palette.Moss, true);
 
-            var gear = UiKit.Rect("Settings", _hud).Place(1f, 1f, -92, -78, 104, 104);
+            // A visible way to zoom, for players who would never guess at pinching or double-tapping.
+            var zoom = UiKit.Rect("Zoom", _hud).Place(1f, 1f, -184, -76, 96, 96);
+            zoom.AddShadow(14f, 10f, 0.3f);
+            ChunkyButton zoomButton = null;
+            zoomButton = UiKit.Chunky(zoom, catalog.Round, () =>
+            {
+                zoomButton.Press(Tweens);
+                Sfx.Click();
+                CycleZoom();
+            });
+            zoomButton.Lip.type = Image.Type.Simple;
+            zoomButton.Face.type = Image.Type.Simple;
+            zoomButton.Lip.color = Palette.CardLip;
+            zoomButton.Face.color = Palette.Paper;
+            Transform zoomShine = zoomButton.FaceRect.Find("Shine");
+            if (zoomShine != null) zoomShine.gameObject.SetActive(false);
+            // A magnifying glass drawn from what the catalog already has.
+            var handle = UiKit.Rect("Handle", zoomButton.FaceRect).Place(0.5f, 0.5f, 16, -16, 10, 30);
+            handle.localRotation = Quaternion.Euler(0, 0, 45);
+            handle.AddImage(catalog.Panel, Palette.Ink, true);
+            UiKit.Rect("Rim", zoomButton.FaceRect).Place(0.5f, 0.5f, -6, 6, 46, 46).AddImage(catalog.Round, Palette.Ink);
+            UiKit.Rect("Glass", zoomButton.FaceRect).Place(0.5f, 0.5f, -6, 6, 32, 32).AddImage(catalog.Round, Palette.Paper);
+            _zoomMark = UiKit.Rect("Mark", zoomButton.FaceRect).Place(0.5f, 0.5f, -6, 7, 32, 32)
+                .AddText("", 22, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+
+            var gear = UiKit.Rect("Settings", _hud).Place(1f, 1f, -76, -76, 96, 96);
             gear.AddShadow(14f, 10f, 0.3f);
             ChunkyButton gearButton = null;
             gearButton = UiKit.Chunky(gear, catalog.Round, () =>
@@ -818,7 +1150,7 @@ namespace VuonTra.Game.UI
             gearButton.Face.type = Image.Type.Simple;
             gearButton.Lip.color = Palette.CardLip;
             gearButton.Face.color = Palette.Paper;
-            UiKit.Rect("Icon", gearButton.FaceRect).Stretch(0, 0, 1, 1, 22, 22, 22, 22).AddImage(catalog.Gear, Palette.Ink).preserveAspect = true;
+            UiKit.Rect("Icon", gearButton.FaceRect).Stretch(0, 0, 1, 1, 20, 20, 20, 20).AddImage(catalog.Gear, Palette.Ink).preserveAspect = true;
             UiKit.Rect("Hub", gearButton.FaceRect).Place(0.5f, 0.5f, 0, 0, 22, 22).AddImage(catalog.Round, Palette.Paper);
         }
 
@@ -1163,7 +1495,7 @@ namespace VuonTra.Game.UI
 
             BigNum perSecond = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));
             _perSecond.text = L10n.T("persec", perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
-            _hint.SetActive(!s.HintSeen && Shell.State == ShellState.Playing && !SheetOpen);
+            if (!_hintFading) _hint.SetActive(!s.HintSeen && Shell.State == ShellState.Playing && !SheetOpen);
             if (dt < 0f) _shownCoins = s.Coins.ToDouble();
 
             RefreshEnergy(s, boosting);
@@ -1217,7 +1549,10 @@ namespace VuonTra.Game.UI
         void RefreshStreet(IReadOnlyList<StationDef> defs, GameState s)
         {
             // Stations with a plot, plus the one waiting for the next plot.
-            int shown = Mathf.Min(defs.Count, s.Plots + 1);
+            // Open stations, plus the grey outline of the next two at most: the garden grows as you do.
+            int open = 0;
+            for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0) open = i + 1;
+            int shown = Mathf.Min(defs.Count, Mathf.Min(s.Plots + 1, open + 2));
             if (shown != _shownStations)
             {
                 _shownStations = shown;
@@ -1232,12 +1567,21 @@ namespace VuonTra.Game.UI
 
                 Rabbit worker = Rabbits.AtStation(s, i);
                 GameObject chip = _tierChips[i].gameObject;
-                if (chip.activeSelf != (worker != null)) chip.SetActive(worker != null);
-                if (worker == null) continue;
+                bool named = worker != null && Zoom != ZoomLevel.Far;
+                if (chip.activeSelf != named) chip.SetActive(named);
+                if (!named) continue;
                 _tierChips[i].color = Palette.Tiers[worker.Tier];
                 _tierLabels[i].text = worker.Name;
+                bool inTrade = Rabbits.InTrade(defs, worker);
+                if (_tierMatches[i].activeSelf != inTrade) _tierMatches[i].SetActive(inTrade);
                 ShowWorn(_tierHats[i], Items.Worn(s, worker.Id, ItemSlot.Hat));
                 ShowWorn(_tierCharms[i], Items.Worn(s, worker.Id, ItemSlot.Charm));
+                if (Zoom != ZoomLevel.Near)
+                {
+                    // What a rabbit wears is a detail for when you look closely.
+                    _tierHats[i].gameObject.SetActive(false);
+                    _tierCharms[i].gameObject.SetActive(false);
+                }
             }
             RefreshCard(defs, s, Runner.Mods);
         }
@@ -1296,6 +1640,9 @@ namespace VuonTra.Game.UI
         void OnTap(int index)
         {
             SelectStation(index); // a tap always shows the station's card, asleep or not
+            if (index == _lastTapIndex && _clock - _lastTapAt < 0.35f && Zoom != ZoomLevel.Near) ZoomToStation(index);
+            _lastTapIndex = index;
+            _lastTapAt = _clock;
             if (Runner.State.Levels[index] <= 0) return;
             if (_actors[index].Dozing)
             {
@@ -1307,7 +1654,7 @@ namespace VuonTra.Game.UI
             Runner.Tap(index);
             _actors[index].Squish();
             Sfx.Blip();
-            if (_hint.activeSelf) _hint.SetActive(false);
+            DismissHint();
         }
 
         void OnQuick(int index)

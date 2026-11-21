@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: tra-sua
   DisplayName: "Qu\u1EA7y tr\xE0 s\u1EEFa tr\u0103ng"
   Kind: 0
+  Trade: 1
   BaseCost: 32000000
   CostGrowth: 1.14
   BaseIncome: 600000

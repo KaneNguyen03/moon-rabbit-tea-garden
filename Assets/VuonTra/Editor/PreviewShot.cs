@@ -39,6 +39,7 @@ namespace VuonTra.EditorTools
                 state.Progress[i] = progress[i];
             }
             state.Plots = 6;
+            state.HintSeen = true; // the first-run hint would cover the garden in every frame
             state.Coins = new BigNum(5.2e6);
             state.Energy = 73;
             runner.Init(state);
@@ -54,9 +55,23 @@ namespace VuonTra.EditorTools
             screen.Shell.StartGame();
             Step(screen, 1.2f);
             Capture(screen, "2-garden");
-            screen.LookAt(new Vector2(1920f, 1860f)); // the pond corner
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Step(screen, 0.2f);
-            Capture(screen, "2c-pond");
+            Capture(screen, "z1-far");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.ZoomToStation(0, false);
+            Step(screen, 0.2f);
+            Capture(screen, "z3-near");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.LookAt(new Vector2(540f, 1350f));
+            Step(screen, 0.2f);
+            Capture(screen, "z2-default");
+            screen.LookAt(new Vector2(540f, 2900f)); // the top of the garden
+            Step(screen, 0.2f);
+            Capture(screen, "2c-top");
+            screen.LookAt(new Vector2(540f, 300f)); // the far end
+            Step(screen, 0.2f);
+            Capture(screen, "2d-bottom");
 
             // Busy frame: open the next station so the milestone moment is on screen.
             screen.FocusStation(5);
@@ -71,7 +86,7 @@ namespace VuonTra.EditorTools
             string[] names = { "Bông", "Mây", "Sữa", "Mochi", "Đậu", "Kem", "Nếp", "Mật" };
             int[] tiers = { 5, 4, 3, 2, 1, 0, 0, 0 };
             for (int i = 0; i < tiers.Length; i++)
-                state.Rabbits.Add(new Rabbit { Id = ++state.NextRabbitId, Tier = tiers[i], Name = names[i], Level = 1 + i * 2 });
+                state.Rabbits.Add(new Rabbit { Id = ++state.NextRabbitId, Tier = tiers[i], Kind = RabbitKinds.OfTier(tiers[i])[i % 2].Id, Name = names[i], Level = 1 + i * 2 });
             state.Clovers = 4;
             Rabbits.AutoAssign(runner.Defs, state);
             var itemDefs = runner.Catalog.BuildItems();
@@ -135,6 +150,32 @@ namespace VuonTra.EditorTools
             Step(screen, 0.6f);
             Capture(screen, "14-pause-en");
             L10n.SetLocale("vi");
+
+            // The whole garden with every station open, to check the layout.
+            screen.Shell.Resume();
+            for (int i = 0; i < state.Levels.Length; i++) if (state.Levels[i] <= 0) state.Levels[i] = 1 + i;
+            state.Plots = state.Levels.Length;
+            screen.Refresh();
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            Step(screen, 0.5f);
+            Capture(screen, "15-all-far");
+            screen.ZoomToStation(4, false);
+            Step(screen, 0.3f);
+            Capture(screen, "15-all-near");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.LookAt(new Vector2(540f, 2900f));
+            Step(screen, 0.3f);
+            Capture(screen, "15-all-top");
+            screen.FocusStation(9);
+            Step(screen, 0.4f);
+            Capture(screen, "15-card-top");
+            screen.FocusStation(11);
+            Step(screen, 0.4f);
+            Capture(screen, "15-card-bottom");
+            screen.SelectStation(-1);
+            screen.LookAt(new Vector2(540f, 300f));
+            Step(screen, 0.3f);
+            Capture(screen, "16-all-bottom");
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.

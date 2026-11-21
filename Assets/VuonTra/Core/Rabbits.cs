@@ -8,6 +8,8 @@ namespace VuonTra.Core
     {
         public long Id;
         public int Tier;
+        /// <summary>Which of the tier's kinds it is (a <see cref="RabbitKind"/> id). Use <see cref="Rabbits.KindOf"/> to read it safely.</summary>
+        public string Kind;
         public string Name;
         /// <summary>1 and up; each level adds to what the rabbit is worth. The tier sets the cap.</summary>
         public int Level = 1;
@@ -41,6 +43,31 @@ namespace VuonTra.Core
             return fromLevel * (1d + Items.StationBonus(s, r.Id));
         }
 
+        /// <summary>What a rabbit's multiplier is multiplied by at a station of its own trade.</summary>
+        public const double TradeBonus = 1.5;
+
+        public static RabbitTrade TradeOf(Rabbit r) => RabbitKinds.Find(KindOf(r)).Trade;
+
+        /// <summary>True when the rabbit is working at a station of its trade.</summary>
+        public static bool InTrade(IReadOnlyList<StationDef> defs, Rabbit r) => r.Station >= 0 && Suits(defs, r, r.Station);
+
+        /// <summary>True when this station belongs to the rabbit's trade.</summary>
+        public static bool Suits(IReadOnlyList<StationDef> defs, Rabbit r, int station)
+        {
+            if (defs == null || station < 0 || station >= defs.Count) return false;
+            RabbitTrade trade = defs[station].Trade;
+            return trade != RabbitTrade.None && trade == TradeOf(r);
+        }
+
+        /// <summary>What the rabbit would be worth at a station: its own multiplier, half again in its trade.</summary>
+        public static double MultiplierAt(IReadOnlyList<StationDef> defs, GameState s, Rabbit r, int station)
+        {
+            return Multiplier(s, r) * (Suits(defs, r, station) ? TradeBonus : 1d);
+        }
+
+        /// <summary>What the rabbit is worth where it is now (resting counts as no bonus).</summary>
+        public static double WorkMultiplier(IReadOnlyList<StationDef> defs, GameState s, Rabbit r) => MultiplierAt(defs, s, r, r.Station);
+
         public const int MaxNameLength = 12;
 
         /// <summary>
@@ -67,6 +94,13 @@ namespace VuonTra.Core
             if (r == null || name == null) return false;
             r.Name = name;
             return true;
+        }
+
+        /// <summary>The rabbit's kind, or its tier's default when it has none or one that belongs to another tier.</summary>
+        public static string KindOf(Rabbit r)
+        {
+            RabbitKind kind = RabbitKinds.Find(r.Kind);
+            return kind != null && kind.Tier == ClampTier(r.Tier) ? kind.Id : RabbitKinds.DefaultFor(r.Tier);
         }
 
         public static bool IsMaxLevel(Rabbit r) => r.Level >= LevelCaps[ClampTier(r.Tier)];
@@ -104,11 +138,13 @@ namespace VuonTra.Core
         }
 
         /// <summary>Spends clovers for one new rabbit; null when there are not enough.</summary>
-        public static Rabbit Summon(GameState s, double roll, string name)
+        /// <param name="kindRoll">A second number in [0, 1) that picks the kind within the tier.</param>
+        public static Rabbit Summon(GameState s, double roll, string name, double kindRoll = 0d)
         {
             if (s.Clovers < SummonCost) return null;
             s.Clovers -= SummonCost;
-            var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = RollTier(roll), Name = name };
+            int tier = RollTier(roll);
+            var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = tier, Kind = RabbitKinds.Pick(tier, kindRoll), Name = name };
             s.Rabbits.Add(rabbit);
             return rabbit;
         }
@@ -130,7 +166,8 @@ namespace VuonTra.Core
         /// Three rabbits of a tier become one of the next. Resting ones are used up first; the new
         /// rabbit keeps the first one's name and takes over a station if any of the three had one.
         /// </summary>
-        public static Rabbit Merge(GameState s, int tier)
+        /// <param name="kindRoll">A number in [0, 1) that picks which kind of the next tier comes out.</param>
+        public static Rabbit Merge(GameState s, int tier, double kindRoll = 0d)
         {
             if (!CanMerge(s, tier)) return null;
             var used = new List<Rabbit>(MergeCount);
@@ -149,7 +186,7 @@ namespace VuonTra.Core
                 if (r.Level > level) level = r.Level; // the training is not lost
                 s.Rabbits.Remove(r);
             }
-            var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Name = used[0].Name, Station = station, Level = level };
+            var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Kind = RabbitKinds.Pick(tier + 1, kindRoll), Name = used[0].Name, Station = station, Level = level };
             s.Rabbits.Add(merged);
             // Items move to the new rabbit, first come first served per slot; the rest come off.
             foreach (Rabbit r in used)
@@ -177,10 +214,18 @@ namespace VuonTra.Core
             return null;
         }
 
+        /// <summary>The rabbit's own multiplier at a station, without the trade bonus. Income uses the overload with the stations.</summary>
         public static double StationMultiplier(GameState s, int station)
         {
             Rabbit r = AtStation(s, station);
             return r == null ? 1d : Multiplier(s, r);
+        }
+
+        /// <summary>What the rabbit at a station multiplies it by, trade bonus included; 1 when nobody is there.</summary>
+        public static double StationMultiplier(IReadOnlyList<StationDef> defs, GameState s, int station)
+        {
+            Rabbit r = AtStation(s, station);
+            return r == null ? 1d : MultiplierAt(defs, s, r, station);
         }
 
         /// <summary>
@@ -203,37 +248,61 @@ namespace VuonTra.Core
         }
 
         /// <summary>
-        /// The open station where this rabbit would help most: an empty one if there is one,
-        /// otherwise the one whose current rabbit is the weakest and weaker than this one. -1 if none.
+        /// The open station where this rabbit would help most: an empty one (one of its own trade first),
+        /// otherwise the station where it beats the rabbit already there by the most. -1 if it beats nobody.
         /// Stations that earn more come first.
         /// </summary>
         public static int BestStationFor(IReadOnlyList<StationDef> defs, GameState s, Rabbit rabbit)
         {
             List<int> order = StationsByWorth(defs, s);
+            int empty = -1;
             foreach (int i in order)
-                if (AtStation(s, i) == null) return i;
+            {
+                if (AtStation(s, i) != null) continue;
+                if (Suits(defs, rabbit, i)) return i;
+                if (empty < 0) empty = i;
+            }
+            if (empty >= 0) return empty;
 
-            int best = -1, weakest = rabbit.Tier;
+            int best = -1;
+            double bestGain = 1e-9;
             foreach (int i in order)
             {
                 Rabbit there = AtStation(s, i);
-                if (there != rabbit && there.Tier < weakest)
+                if (there == rabbit) continue;
+                double gain = MultiplierAt(defs, s, rabbit, i) - MultiplierAt(defs, s, there, i);
+                if (gain > bestGain)
                 {
-                    weakest = there.Tier;
+                    bestGain = gain;
                     best = i;
                 }
             }
             return best;
         }
 
-        /// <summary>Best rabbits to the stations that earn the most; everyone else rests.</summary>
+        /// <summary>
+        /// Fills the stations from the biggest earner down, each with the free rabbit worth most there
+        /// (trade bonus counted); everyone left over rests.
+        /// </summary>
         public static void AutoAssign(IReadOnlyList<StationDef> defs, GameState s)
         {
             foreach (Rabbit r in s.Rabbits) r.Station = -1;
-            List<int> order = StationsByWorth(defs, s);
-            var ranked = new List<Rabbit>(s.Rabbits);
-            ranked.Sort((a, b) => b.Tier != a.Tier ? b.Tier.CompareTo(a.Tier) : a.Id.CompareTo(b.Id));
-            for (int i = 0; i < order.Count && i < ranked.Count; i++) ranked[i].Station = order[i];
+            var free = new List<Rabbit>(s.Rabbits);
+            foreach (int station in StationsByWorth(defs, s))
+            {
+                Rabbit pick = null;
+                double worth = 0d;
+                foreach (Rabbit r in free)
+                {
+                    double here = MultiplierAt(defs, s, r, station);
+                    bool better = pick == null || here > worth + 1e-12
+                        || (Math.Abs(here - worth) <= 1e-12 && (r.Tier > pick.Tier || (r.Tier == pick.Tier && r.Id < pick.Id)));
+                    if (better) { pick = r; worth = here; }
+                }
+                if (pick == null) break;
+                pick.Station = station;
+                free.Remove(pick);
+            }
         }
 
         /// <summary>Open stations, biggest earners first, ingredient stations after the brew ones.</summary>

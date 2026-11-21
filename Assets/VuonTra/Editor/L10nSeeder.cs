@@ -69,6 +69,9 @@ namespace VuonTra.EditorTools
                 // Match the table by locale code: the order of tables is not guaranteed.
                 var table = collection.GetTable(id) as StringTable ?? collection.AddNewTable(id) as StringTable;
                 for (int r = 0; r < rows.GetLength(0); r++) table.AddEntry(rows[r, 0], rows[r, column + 1]);
+                // Rabbit kinds name themselves, so a new kind needs no line here.
+                foreach (VuonTra.Core.RabbitKind kind in VuonTra.Core.RabbitKinds.All)
+                    table.AddEntry("kind." + kind.Id, codes[column] == "en" ? kind.NameEn : kind.NameVi);
                 LocalizationEditorSettings.SetPreloadTableFlag(table, true);
                 EditorUtility.SetDirty(table);
             }

@@ -132,6 +132,147 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void There_Are_Twelve_Kinds_Two_For_Every_Tier()
+        {
+            Assert.AreEqual(12, RabbitKinds.All.Count);
+            var ids = new HashSet<string>();
+            foreach (RabbitKind k in RabbitKinds.All) Assert.IsTrue(ids.Add(k.Id), k.Id + " twice");
+            for (int tier = 0; tier < Rabbits.TierCount; tier++)
+            {
+                Assert.AreEqual(2, RabbitKinds.OfTier(tier).Count, "tier " + tier);
+                Assert.AreEqual(tier, RabbitKinds.Find(RabbitKinds.DefaultFor(tier)).Tier);
+            }
+            Assert.AreEqual("tho-bong", RabbitKinds.DefaultFor(0));
+            Assert.AreEqual("tho-trang", RabbitKinds.OfTier(5)[1].Id);
+            Assert.IsNull(RabbitKinds.Find("tho-la"));
+            Assert.IsNull(RabbitKinds.Find(null));
+        }
+
+        [TestCase(0.1, 0.0, 0, "tho-bong")]
+        [TestCase(0.1, 0.49, 0, "tho-bong")]
+        [TestCase(0.1, 0.5, 0, "tho-me")]
+        [TestCase(0.9, 0.99, 2, "tho-o-long")]
+        [TestCase(0.9995, 0.0, 5, "tho-hong-tra")]
+        [TestCase(0.1, 1.5, 0, "tho-me")]            // a roll past the end still lands inside the tier
+        [TestCase(0.1, double.NaN, 0, "tho-bong")]
+        public void Summon_Picks_A_Kind_From_The_Tier_It_Rolled(double roll, double kindRoll, int tier, string kind)
+        {
+            s.Clovers = 1;
+            Rabbit r = Rabbits.Summon(s, roll, "A", kindRoll);
+            Assert.AreEqual(tier, r.Tier);
+            Assert.AreEqual(kind, r.Kind);
+        }
+
+        [Test]
+        public void Summon_Without_A_Kind_Roll_Gives_The_Tier_Default()
+        {
+            s.Clovers = 1;
+            Assert.AreEqual("tho-bong", Rabbits.Summon(s, 0.1, "A").Kind);
+        }
+
+        [TestCase(0.0, "tho-cup")]
+        [TestCase(0.7, "tho-matcha")]
+        public void Merge_Gives_A_Kind_Of_The_Next_Tier(double kindRoll, string kind)
+        {
+            Add(0); Add(0); Add(0);
+            Rabbit merged = Rabbits.Merge(s, 0, kindRoll);
+            Assert.AreEqual(1, merged.Tier);
+            Assert.AreEqual(kind, merged.Kind);
+        }
+
+        [Test]
+        public void KindOf_Falls_Back_To_The_Tier_Default()
+        {
+            Assert.AreEqual("tho-sao", Rabbits.KindOf(new Rabbit { Tier = 4, Kind = "tho-sao" }));
+            Assert.AreEqual("tho-mat-ong", Rabbits.KindOf(new Rabbit { Tier = 4 }), "no kind yet");
+            Assert.AreEqual("tho-mat-ong", Rabbits.KindOf(new Rabbit { Tier = 4, Kind = "tho-bong" }), "a kind of another tier");
+        }
+
+        List<StationDef> TradeDefs()
+        {
+            var d = Fixture.Defs();
+            d[0].Trade = RabbitTrade.Brewer;   // tea
+            d[1].Trade = RabbitTrade.Gatherer; // leaf, the ingredient station
+            d[2].Trade = RabbitTrade.Baker;    // jam
+            return d;
+        }
+
+        Rabbit AddKind(string kind, int station = -1)
+        {
+            var r = new Rabbit { Id = ++s.NextRabbitId, Tier = RabbitKinds.Find(kind).Tier, Kind = kind, Name = kind, Station = station };
+            s.Rabbits.Add(r);
+            return r;
+        }
+
+        [TestCase("tho-bong", RabbitTrade.Brewer)] [TestCase("tho-matcha", RabbitTrade.Brewer)] [TestCase("tho-hong-tra", RabbitTrade.Brewer)]
+        [TestCase("tho-me", RabbitTrade.Baker)] [TestCase("tho-khoai-mon", RabbitTrade.Baker)] [TestCase("tho-mat-ong", RabbitTrade.Baker)]
+        [TestCase("tho-cup", RabbitTrade.Gatherer)] [TestCase("tho-o-long", RabbitTrade.Gatherer)] [TestCase("tho-oai-huong", RabbitTrade.Gatherer)]
+        [TestCase("tho-suong", RabbitTrade.Stargazer)] [TestCase("tho-sao", RabbitTrade.Stargazer)] [TestCase("tho-trang", RabbitTrade.Stargazer)]
+        public void Every_Kind_Has_Its_Trade(string kind, RabbitTrade trade)
+        {
+            Assert.AreEqual(trade, RabbitKinds.Find(kind).Trade);
+        }
+
+        [Test]
+        public void A_Rabbit_In_Its_Trade_Is_Worth_Half_Again()
+        {
+            var d = TradeDefs();
+            Rabbit bong = AddKind("tho-bong", 0); // a brewer at the tea station
+            Assert.IsTrue(Rabbits.InTrade(d, bong));
+            Assert.AreEqual(1.1 * 1.5, Rabbits.StationMultiplier(d, s, 0), 1e-12);
+            Assert.AreEqual(5 * 1.2 * 1.1 * 1.5, Economy.IncomePerCycle(d, s, 0).ToDouble(), 1e-9);
+
+            Rabbits.Assign(s, bong.Id, 2); // the same rabbit at the jam pot: it works, without the bonus
+            Assert.IsFalse(Rabbits.InTrade(d, bong));
+            Assert.AreEqual(1.1, Rabbits.StationMultiplier(d, s, 2), 1e-12);
+            Assert.AreEqual(1.1, Rabbits.WorkMultiplier(d, s, bong), 1e-12);
+
+            Rabbits.Assign(s, bong.Id, -1);
+            Assert.IsFalse(Rabbits.InTrade(d, bong), "resting");
+        }
+
+        [Test]
+        public void A_Station_Without_A_Trade_Gives_No_Bonus()
+        {
+            Rabbit bong = AddKind("tho-bong", 0);
+            Assert.IsFalse(Rabbits.InTrade(defs, bong));
+            Assert.AreEqual(1.1, Rabbits.StationMultiplier(defs, s, 0), 1e-12);
+        }
+
+        [Test]
+        public void A_Gatherer_Strengthens_What_Its_Ingredient_Station_Gives()
+        {
+            var d = TradeDefs();
+            double plain = Economy.IncomePerCycle(d, s, 0).ToDouble();          // 5 x (1 + 0.2)
+            AddKind("tho-cup", 1); // green gatherer at the leaf basket
+            double boosted = Economy.IncomePerCycle(d, s, 0).ToDouble();
+            Assert.AreEqual(5 * 1.2, plain, 1e-9);
+            Assert.AreEqual(5 * (1 + 0.2 * 1.25 * 1.5), boosted, 1e-9);
+        }
+
+        [Test]
+        public void AutoAssign_Counts_The_Trade_Bonus()
+        {
+            var d = TradeDefs();
+            Rabbit matcha = AddKind("tho-matcha"), cup = AddKind("tho-cup"), me = AddKind("tho-me");
+            Rabbits.AutoAssign(d, s);
+            // jam earns most: the silver baker (1.1 x 1.5 = 1.65) beats either green rabbit there (1.25)
+            Assert.AreEqual(2, me.Station);
+            Assert.AreEqual(0, matcha.Station, "the brewer takes the tea");
+            Assert.AreEqual(1, cup.Station, "the gatherer takes the leaves");
+        }
+
+        [Test]
+        public void BestStationFor_Prefers_An_Empty_Station_Of_Its_Trade()
+        {
+            var d = TradeDefs();
+            Rabbit cup = AddKind("tho-cup");
+            Assert.AreEqual(1, Rabbits.BestStationFor(d, s, cup), "the leaf basket, though jam earns more");
+            AddKind("tho-o-long", 1);
+            Assert.AreEqual(2, Rabbits.BestStationFor(d, s, cup), "its own station is taken: the best empty one");
+        }
+
+        [Test]
         public void Top_Tier_Cannot_Merge()
         {
             Add(5); Add(5); Add(5);

@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: gian-nho
   DisplayName: "Gi\xE0n nho tr\u0103ng"
   Kind: 1
+  Trade: 3
   BaseCost: 6500000000
   CostGrowth: 1.15
   BaseIncome: 0

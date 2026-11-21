@@ -167,6 +167,43 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Rabbit_Kinds_Round_Trip()
+        {
+            s.Rabbits.Add(new Rabbit { Id = 1, Tier = 4, Kind = "tho-sao", Name = "Sao" });
+            s.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-me", Name = "Mè" });
+            s.NextRabbitId = 2;
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual("tho-sao", r.Rabbits[0].Kind);
+            Assert.AreEqual("tho-me", r.Rabbits[1].Kind);
+        }
+
+        [Test]
+        public void A_Save_From_Before_Kinds_Gets_Each_Tier_Its_Default()
+        {
+            const string v4 = "{\"version\":4,\"stations\":[],\"nextRabbitId\":3,\"rabbits\":[" +
+                "{\"id\":1,\"tier\":0,\"level\":3,\"name\":\"Bông\"}," +
+                "{\"id\":2,\"tier\":3,\"level\":1,\"name\":\"Mây\"}," +
+                "{\"id\":3,\"tier\":5,\"level\":1,\"name\":\"Sữa\",\"kind\":7}]}";
+            LoadResult r = SaveCodec.Decode(defs, v4);
+            Assert.AreEqual(LoadStatus.Ok, r.Status);
+            Assert.AreEqual("tho-bong", r.State.Rabbits[0].Kind);
+            Assert.AreEqual(3, r.State.Rabbits[0].Level, "nothing else about the rabbit changes");
+            Assert.AreEqual("tho-oai-huong", r.State.Rabbits[1].Kind);
+            Assert.AreEqual("tho-hong-tra", r.State.Rabbits[2].Kind, "a kind that is not text");
+        }
+
+        [Test]
+        public void An_Unknown_Or_Mismatched_Kind_Is_Replaced()
+        {
+            const string json = "{\"version\":5,\"stations\":[],\"rabbits\":[" +
+                "{\"id\":1,\"tier\":1,\"name\":\"A\",\"kind\":\"tho-khong-co\"}," +
+                "{\"id\":2,\"tier\":1,\"name\":\"B\",\"kind\":\"tho-trang\"}]}";
+            GameState r = SaveCodec.Decode(defs, json).State;
+            Assert.AreEqual("tho-cup", r.Rabbits[0].Kind);
+            Assert.AreEqual("tho-cup", r.Rabbits[1].Kind, "a red-tier kind on a green-tier rabbit");
+        }
+
+        [Test]
         public void Wrong_Field_Types_Do_Not_Throw()
         {
             const string json = "{\"version\":1,\"coinsMantissa\":\"lots\",\"stations\":{\"id\":\"tea\"},\"buyMode\":null,\"hintSeen\":3}";

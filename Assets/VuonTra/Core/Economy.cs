@@ -87,9 +87,9 @@ namespace VuonTra.Core
                 if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0) continue;
                 // A rabbit at an ingredient station strengthens the bonus it gives, not the base 1.
                 if (other.Boosts(d.Id))
-                    income *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(s, i);
+                    income *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i);
             }
-            return income * Rabbits.StationMultiplier(s, index);
+            return income * Rabbits.StationMultiplier(defs, s, index);
         }
 
         public static BigNum IncomePerSecond(IReadOnlyList<StationDef> defs, GameState s)

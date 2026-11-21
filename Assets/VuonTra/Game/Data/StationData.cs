@@ -10,6 +10,7 @@ namespace VuonTra.Game
         public string Id;
         public string DisplayName;
         public StationKind Kind;
+        public RabbitTrade Trade;
         public double BaseCost = 10;
         public double CostGrowth = 1.1;
         public double BaseIncome = 1;
@@ -32,7 +33,8 @@ namespace VuonTra.Game
                 Id = Id, Name = DisplayName, Kind = Kind,
                 BaseCost = BaseCost, CostGrowth = CostGrowth,
                 BaseIncome = BaseIncome, CycleSeconds = CycleSeconds,
-                BoostsIds = ids
+                BoostsIds = ids,
+                Trade = Trade
             };
         }
     }

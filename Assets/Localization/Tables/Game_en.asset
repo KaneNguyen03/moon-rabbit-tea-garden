@@ -353,11 +353,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236370
-    m_Localized: "Lv {0}/{1} \xB7 at {2}"
+    m_Localized: "Lv {0}/{1} \xB7 {3}{4}\nat {2}"
     m_Metadata:
       m_Items: []
   - m_Id: 372236371
-    m_Localized: "Lv {0}/{1} \xB7 resting"
+    m_Localized: "Lv {0}/{1} \xB7 {2}\nresting"
     m_Metadata:
       m_Items: []
   - m_Id: 372236372
@@ -654,6 +654,78 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 13359234670595
     m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363950608384
+    m_Localized: Cotton Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191296
+    m_Localized: Sesame Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191297
+    m_Localized: Lop Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191298
+    m_Localized: Matcha Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191299
+    m_Localized: Dew Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191300
+    m_Localized: Oolong Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191301
+    m_Localized: Lavender Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191302
+    m_Localized: Taro Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191303
+    m_Localized: Honey Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191304
+    m_Localized: Star Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191305
+    m_Localized: Ruby Tea Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 21363963191306
+    m_Localized: Moon Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869519642624
+    m_Localized: Brewing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031232
+    m_Localized: Baking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031233
+    m_Localized: Gathering
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031234
+    m_Localized: Stargazing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031235
+    m_Localized: No trade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 33869528031236
+    m_Localized: " \xD7{0}"
     m_Metadata:
       m_Items: []
   references:

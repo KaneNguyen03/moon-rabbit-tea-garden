@@ -24,6 +24,8 @@ namespace VuonTra.Core
         public double CycleSeconds;
         /// <summary>Ingredient only: ids of the Brew stations it boosts.</summary>
         public string[] BoostsIds = Array.Empty<string>();
+        /// <summary>The trade this station belongs to; a rabbit of that trade is worth more here. None gives nobody a bonus.</summary>
+        public RabbitTrade Trade;
 
         public bool Boosts(string brewId)
         {

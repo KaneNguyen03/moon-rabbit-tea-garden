@@ -15,6 +15,7 @@ MonoBehaviour:
   Id: am-tra
   DisplayName: "\u1EA4m tr\xE0 s\u01B0\u01A1ng"
   Kind: 0
+  Trade: 1
   BaseCost: 10
   CostGrowth: 1.09
   BaseIncome: 1
