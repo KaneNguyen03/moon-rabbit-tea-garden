@@ -39,6 +39,10 @@ namespace VuonTra.EditorTools
             new Row { Id = "to-mat",   Name = "Tổ mật ong",         Kind = StationKind.Ingredient, Cost = 2.4e6,  Growth = 1.14, Accent = "f0a93a", Boosts = new[] { "lo-banh", "noi-mut" } },
             new Row { Id = "tra-sua",  Name = "Quầy trà sữa trăng", Kind = StationKind.Brew,       Cost = 3.2e7,  Growth = 1.14, Income = 600000, Cycle = 24,  Accent = "8fb4ff" },
             new Row { Id = "binh-sao", Name = "Bình ủ sao",         Kind = StationKind.Brew,       Cost = 4.5e8,  Growth = 1.15, Income = 6e6,    Cycle = 32,  Accent = "ffd98a" },
+            new Row { Id = "gian-nho", Name = "Giàn nho trăng",     Kind = StationKind.Ingredient, Cost = 6.5e9,  Growth = 1.15, Accent = "b48be8", Boosts = new[] { "tra-sua", "tiem-banh" } },
+            new Row { Id = "tiem-banh",Name = "Tiệm bánh trung thu",Kind = StationKind.Brew,       Cost = 9e10,   Growth = 1.15, Income = 7e7,    Cycle = 40,  Accent = "f0a93a" },
+            new Row { Id = "suoi-hoa", Name = "Suối khoáng hoa",    Kind = StationKind.Ingredient, Cost = 1.3e12, Growth = 1.16, Accent = "6fa8f0", Boosts = new[] { "binh-sao", "dai-sao" } },
+            new Row { Id = "dai-sao",  Name = "Đài ngắm sao",       Kind = StationKind.Brew,       Cost = 2e13,   Growth = 1.16, Income = 9e8,    Cycle = 50,  Accent = "ffc866" },
         };
 
         [MenuItem("VuonTra/Seed Content")]
@@ -137,9 +141,9 @@ namespace VuonTra.EditorTools
         {
             PlayerSettings.companyName = "VuonTraTho";
             PlayerSettings.productName = "Vườn Trà Thỏ Trăng";
-            PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
-            PlayerSettings.defaultScreenWidth = 540;
-            PlayerSettings.defaultScreenHeight = 960;
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft;
+            PlayerSettings.defaultScreenWidth = 1280;
+            PlayerSettings.defaultScreenHeight = 720;
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = true;

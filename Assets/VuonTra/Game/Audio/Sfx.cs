@@ -11,13 +11,14 @@ namespace VuonTra.Game
     {
         const int Rate = 44100;
         const string MusicKey = "vol.music", SfxKey = "vol.sfx";
-        const float BedLevel = 0.5f;
+        const float BedLevel = 0.35f;
+        const float MelodyLevel = 0.5f;
 
         public static float MusicGain { get; private set; } = 0.6f;
         public static float SfxGain { get; private set; } = 0.8f;
 
-        static AudioSource _oneShots, _bed;
-        static AudioClip _blip, _click, _sting, _tick, _ambient;
+        static AudioSource _oneShots, _bed, _music;
+        static AudioClip _blip, _click, _sting, _tick, _ambient, _melody;
         static float _lastTick;
 
         /// <summary>Adds the two audio sources to <paramref name="host"/> and starts the ambient bed.</summary>
@@ -37,6 +38,14 @@ namespace VuonTra.Game
             _bed.clip = Ambient();
             _bed.volume = BedLevel * MusicGain;
             if (Application.isPlaying) _bed.Play();
+
+            _music = host.AddComponent<AudioSource>();
+            _music.playOnAwake = false;
+            _music.spatialBlend = 0f;
+            _music.loop = true;
+            _music.clip = Melody();
+            _music.volume = MelodyLevel * MusicGain;
+            if (Application.isPlaying) _music.Play();
         }
 
         public static void SetMusic(float gain)
@@ -44,6 +53,7 @@ namespace VuonTra.Game
             MusicGain = Mathf.Clamp01(gain);
             PlayerPrefs.SetFloat(MusicKey, MusicGain);
             if (_bed != null) _bed.volume = BedLevel * MusicGain;
+            if (_music != null) _music.volume = MelodyLevel * MusicGain;
         }
 
         public static void SetSfx(float gain)
@@ -137,6 +147,54 @@ namespace VuonTra.Game
                 }
                 return sum * 0.32f;
             });
+        }
+
+        /// <summary>
+        /// A slow music-box lullaby in C major pentatonic: a bell-like lead over soft low notes.
+        /// Sixteen bars of four beats at 76 bpm, written so the last bar leads back into the first.
+        /// </summary>
+        static AudioClip Melody()
+        {
+            if (_melody != null) return _melody;
+            const float beat = 60f / 76f;
+            // Semitones above middle C; -99 is a rest. One entry per half beat.
+            int[] lead =
+            {
+                 4, -99,  7, -99,  9,  7,  4, -99,    2, -99,  4, -99,  0, -99, -99, -99,
+                 4, -99,  7, -99, 12,  9,  7, -99,    9, -99,  7, -99,  4, -99, -99, -99,
+                12, -99,  9, -99,  7,  9, 12, -99,   14, -99, 12, -99,  9, -99, -99, -99,
+                 7, -99,  4, -99,  2,  4,  7, -99,    4, -99,  2, -99,  0, -99, -99, -99,
+            };
+            // One low note per two beats.
+            int[] bass = { -12, -5, -10, -5, -12, -5, -7, -5, -8, -3, -10, -5, -12, -5, -7, -12 };
+            float step = beat / 2f;
+            float seconds = lead.Length * step;
+            int n = (int)(Rate * seconds);
+            var data = new float[n];
+
+            void Add(float start, int semitone, float gain, float decay, float shimmer)
+            {
+                float freq = 261.63f * Mathf.Pow(2f, semitone / 12f);
+                int from = (int)(start * Rate), length = (int)(Rate * 2.4f);
+                for (int i = 0; i < length; i++)
+                {
+                    float t = i / (float)Rate;
+                    float env = Mathf.Min(1f, t / 0.006f) * Mathf.Exp(-t * decay);
+                    float w = 2f * Mathf.PI * freq * t;
+                    float v = Mathf.Sin(w) + shimmer * Mathf.Sin(3f * w) * Mathf.Exp(-t * 9f) + 0.18f * Mathf.Sin(2f * w);
+                    data[(from + i) % n] += v * env * gain; // tails wrap around so the loop has no seam
+                }
+            }
+
+            for (int i = 0; i < lead.Length; i++)
+                if (lead[i] > -99) Add(i * step, lead[i] + 12, 0.16f, 2.6f, 0.35f);
+            for (int i = 0; i < bass.Length; i++)
+                Add(i * beat * 2f, bass[i], 0.13f, 1.1f, 0.05f);
+
+            for (int i = 0; i < n; i++) data[i] = Mathf.Clamp(data[i], -1f, 1f);
+            _melody = AudioClip.Create("lullaby", n, 1, Rate, false);
+            _melody.SetData(data, 0);
+            return _melody;
         }
 
         static AudioClip Ambient()

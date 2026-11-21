@@ -16,6 +16,7 @@ namespace VuonTra.EditorTools
     {
         public const string UpgradeFolder = "Assets/VuonTra/Content/Upgrades";
         public const string QuestFolder = "Assets/VuonTra/Content/Quests";
+        public const string ItemFolder = "Assets/VuonTra/Content/Items";
 
         struct U { public string Id, Name, Desc, Glyph; public UpgradeEffect Effect; public double Amount, Cost, Growth; public int Max; public Color Accent; }
         struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers; public bool Daily; }
@@ -24,6 +25,8 @@ namespace VuonTra.EditorTools
         {
             Directory.CreateDirectory(UpgradeFolder);
             Directory.CreateDirectory(QuestFolder);
+            Directory.CreateDirectory(ItemFolder);
+            StreetArt.Generate();
             AssetDatabase.Refresh();
 
             var upgradeRows = new[]
@@ -90,6 +93,30 @@ namespace VuonTra.EditorTools
             for (int t = 0; t < tierSprites.Length; t++)
                 tierSprites[t] = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/rabbit_tier_" + t + ".png");
             catalog.TierRabbits = tierSprites;
+
+            var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount)[]
+            {
+                ("mu-rom",    "Mũ rơm",        ItemSlot.Hat,   ItemEffect.StationIncome, 0.10),
+                ("mu-bep",    "Mũ đầu bếp",    ItemSlot.Hat,   ItemEffect.GardenSpeed,   0.03),
+                ("vong-hoa",  "Vòng hoa",      ItemSlot.Hat,   ItemEffect.AwayIncome,    0.10),
+                ("chuong",    "Chuông bạc",    ItemSlot.Charm, ItemEffect.StationIncome, 0.10),
+                ("co-may",    "Cỏ may mắn",    ItemSlot.Charm, ItemEffect.GardenSpeed,   0.03),
+                ("long-den",  "Lồng đèn nhỏ",  ItemSlot.Charm, ItemEffect.AwayIncome,    0.10),
+            };
+            var itemAssets = new List<ItemData>();
+            foreach (var row in itemRows)
+            {
+                ItemData data = LoadOrCreate<ItemData>(ItemFolder + "/" + row.Id + ".asset");
+                data.Id = row.Id; data.DisplayName = row.Name; data.Slot = row.Slot; data.Effect = row.Effect; data.BaseAmount = row.Amount;
+                EditorUtility.SetDirty(data);
+                itemAssets.Add(data);
+            }
+            catalog.Items = itemAssets.ToArray();
+
+            catalog.BgSky = StreetArt.Load("bg_sky");
+            catalog.BgHills = StreetArt.Load("bg_hills");
+            catalog.BgTrees = StreetArt.Load("bg_trees");
+            catalog.BgGround = StreetArt.Load("bg_ground");
 
             catalog.Upgrades = upgrades.ToArray();
             catalog.Quests = quests.ToArray();

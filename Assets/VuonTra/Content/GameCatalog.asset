@@ -21,6 +21,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c6336785e9d194b98a3fc4e317a6f0be, type: 2}
   - {fileID: 11400000, guid: eb2626f9c048e4ac293f7be19d405012, type: 2}
   - {fileID: 11400000, guid: a7b23d6be200a47f69223853d32a1198, type: 2}
+  - {fileID: 11400000, guid: fe1bc0a1331614d6890cbfd629b85a34, type: 2}
+  - {fileID: 11400000, guid: e6fb321e741614ef294b3df42a7b3ff2, type: 2}
+  - {fileID: 11400000, guid: f886672d5b9a64dab87b2c96e62bc085, type: 2}
+  - {fileID: 11400000, guid: 546d92101d7d84719a00b7af13c9dd4d, type: 2}
   Upgrades:
   - {fileID: 11400000, guid: 9f5a056710c9b4905b120a8bec0b7f74, type: 2}
   - {fileID: 11400000, guid: 105226df78b1b45e68293ce618dcafc8, type: 2}
@@ -43,6 +47,13 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 9cfe938fc05094fdbad19e03385bef83, type: 2}
   - {fileID: 11400000, guid: 3feb2a7b9b9284784ae6e004f22ab26f, type: 2}
   - {fileID: 11400000, guid: cc0d6dd2a1d5d417c87cfdcc1664b943, type: 2}
+  Items:
+  - {fileID: 11400000, guid: e46dc0e7d6d184c26808df57b4f2fcf0, type: 2}
+  - {fileID: 11400000, guid: 7e3b63f42c6394a0baae4dc3f01d4ca9, type: 2}
+  - {fileID: 11400000, guid: bdfb0dbbb0b4b4a50a6752ceb6b2291b, type: 2}
+  - {fileID: 11400000, guid: c7bf35a073ad84ffaaa87291a3ca53b6, type: 2}
+  - {fileID: 11400000, guid: c3117c2c3da5f49128180a107e3d7763, type: 2}
+  - {fileID: 11400000, guid: 1c4e537d5f1ea4ac8bcc1dff56ab3eed, type: 2}
   RabbitNames:
   - "B\xF4ng"
   - "M\xE2y"
@@ -83,3 +94,7 @@ MonoBehaviour:
   Currency: {fileID: 21300000, guid: 6f4283db3d99c43e9931c494afccb3bd, type: 3}
   Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Background: {fileID: 21300000, guid: bc2b457d3e4834eca89c9e67325cd14a, type: 3}
+  BgSky: {fileID: 2800000, guid: 1798bdad823a441b7be24746c4f164c4, type: 3}
+  BgHills: {fileID: 2800000, guid: 47d4e619afd924a6cb59c3b0ca1f72a2, type: 3}
+  BgTrees: {fileID: 2800000, guid: a6ead2828cd7d4b5a986258d49d8996e, type: 3}
+  BgGround: {fileID: 2800000, guid: ec3a9db7d8d294147879634e6c39ef29, type: 3}

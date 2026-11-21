@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f95f8cd3ed8f4df8b3002d76fe34bbc, type: 3}
+  m_Name: gian-nho
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.StationData
+  Id: gian-nho
+  DisplayName: "Gi\xE0n nho tr\u0103ng"
+  Kind: 1
+  BaseCost: 6500000000
+  CostGrowth: 1.15
+  BaseIncome: 0
+  CycleSeconds: 0
+  Boosts:
+  - {fileID: 11400000, guid: eb2626f9c048e4ac293f7be19d405012, type: 2}
+  - {fileID: 11400000, guid: e6fb321e741614ef294b3df42a7b3ff2, type: 2}
+  Prop: {fileID: 21300000, guid: f703a14c0d32f4849ac9e5b1161762d4, type: 3}
+  Rabbit: {fileID: 0}
+  Accent: {r: 0.7058824, g: 0.54509807, b: 0.9098039, a: 1}

@@ -107,3 +107,16 @@ Mỗi mốc kết thúc bằng một bản bạn chơi thử được.
 - Con số cụ thể (giá, tốc độ, phần thưởng): chỉnh dần qua chơi thử ở từng mốc.
 - Danh sách đầy đủ trạm, bé thỏ, món trang trí: mốc 1 và 2 sẽ chốt.
 - Dự án nằm ở thư mục nào trên máy: mình sẽ hỏi bạn khi bắt đầu mốc 0.
+
+## Thay đổi so với bản thiết kế gốc (cập nhật 22/11/2026)
+
+Các quyết định bạn đưa ra trong lúc làm, ghi lại để bản thiết kế khớp với game:
+
+- **Màn hình ngang**, không phải dọc: khu vườn là một con phố cuộn trái phải, hai làn trước sau để có chiều sâu, nền nhiều lớp trượt khác tốc độ. Các danh sách nằm trong một bảng nổi mở từ cột nút bên phải.
+- **Tiền tệ là cà rốt.** Cỏ bốn lá là tiền hiếm, dùng để gọi thỏ.
+- **Thỏ sáu bậc:** bạc, xanh lá, xanh dương, tím, vàng, đỏ. Gọi ngẫu nhiên bằng cỏ bốn lá, ghép 3 bé cùng bậc lên bậc trên. Mỗi bé có cấp riêng (trần cấp theo bậc) và 2 ô đồ: mũ và phụ kiện.
+- **Ô đất:** trạm thứ 5 trở đi cần mua đất. Hiện có 12 trạm.
+- **Trà lực:** thanh năng lượng tự đầy; tiêu 50 để cả vườn nhanh gấp đôi trong 30 giây.
+- **Bùa vườn, nhiệm vụ hằng ngày, thành tựu** đã có; nhiệm vụ hằng ngày và thành tựu lớn tặng đồ.
+- **Chưa làm:** sự kiện theo mùa, điểm danh 7 ngày, chuyện xảy ra trong ngày, "Mùa trăng mới", trang trí vườn, đăng nhập và lưu trên mây.
+- **Lên cửa hàng:** để sau. Dự định mua Apple Developer khoảng một năm nữa, CH Play sau đó.

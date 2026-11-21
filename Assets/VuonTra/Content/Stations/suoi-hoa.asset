@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f95f8cd3ed8f4df8b3002d76fe34bbc, type: 3}
+  m_Name: suoi-hoa
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.StationData
+  Id: suoi-hoa
+  DisplayName: "Su\u1ED1i kho\xE1ng hoa"
+  Kind: 1
+  BaseCost: 1300000000000
+  CostGrowth: 1.16
+  BaseIncome: 0
+  CycleSeconds: 0
+  Boosts:
+  - {fileID: 11400000, guid: a7b23d6be200a47f69223853d32a1198, type: 2}
+  - {fileID: 11400000, guid: 546d92101d7d84719a00b7af13c9dd4d, type: 2}
+  Prop: {fileID: 21300000, guid: 185d3c668aa004714adedd9b5f8768a8, type: 3}
+  Rabbit: {fileID: 0}
+  Accent: {r: 0.43529412, g: 0.65882355, b: 0.9411765, a: 1}

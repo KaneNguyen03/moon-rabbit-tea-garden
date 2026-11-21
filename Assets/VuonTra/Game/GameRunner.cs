@@ -17,6 +17,7 @@ namespace VuonTra.Game
         public IReadOnlyList<StationDef> Defs { get; private set; }
         public IReadOnlyList<UpgradeDef> UpgradeDefs { get; private set; }
         public IReadOnlyList<QuestDef> QuestDefs { get; private set; }
+        public IReadOnlyList<ItemDef> ItemDefs { get; private set; }
         /// <summary>What the owned upgrades add up to; refreshed whenever one is bought.</summary>
         public Modifiers Mods { get; private set; } = Modifiers.None;
 
@@ -57,6 +58,7 @@ namespace VuonTra.Game
             Defs = Catalog.BuildDefs();
             UpgradeDefs = Catalog.BuildUpgrades();
             QuestDefs = Catalog.BuildQuests();
+            ItemDefs = Catalog.BuildItems();
 
             if (preset != null)
             {
@@ -147,12 +149,50 @@ namespace VuonTra.Game
         {
             paid = BigNum.Zero;
             if (index < 0 || index >= QuestDefs.Count) return false;
-            bool ok = Quests.TryClaim(QuestDefs[index], Defs, State, Mods, out paid);
+            QuestDef quest = QuestDefs[index];
+            LastQuestItem = null;
+            bool ok = Quests.TryClaim(quest, Defs, State, Mods, out paid);
+            if (!ok) return false;
+            // Daily quests and the bigger achievements also hand out something to wear.
+            if ((quest.Daily || quest.RewardClovers >= 2) && ItemDefs.Count > 0)
+                LastQuestItem = Items.Grant(State, ItemDefs[_rng.Next(ItemDefs.Count)], Rabbits.RollTier(_rng.NextDouble()));
+            Changed();
+            return true;
+        }
+
+        readonly System.Random _rng = new System.Random();
+
+        /// <summary>The item the most recent quest claim gave, if any.</summary>
+        public Item LastQuestItem { get; private set; }
+
+        /// <summary>Spends "trà lực" on a burst of double speed.</summary>
+        public bool Boost()
+        {
+            bool ok = Energy.TryBoost(State);
             if (ok) Changed();
             return ok;
         }
 
-        readonly System.Random _rng = new System.Random();
+        public bool LevelUpRabbit(long id)
+        {
+            bool ok = Rabbits.TryLevelUp(State, id);
+            if (ok) Changed();
+            return ok;
+        }
+
+        public bool EquipItem(long itemId, long rabbitId)
+        {
+            bool ok = Items.Equip(State, itemId, rabbitId);
+            if (ok) Changed();
+            return ok;
+        }
+
+        public bool UnequipItem(long itemId)
+        {
+            bool ok = Items.Unequip(State, itemId);
+            if (ok) Changed();
+            return ok;
+        }
 
         /// <summary>Calls one new rabbit for clovers; null when there are not enough.</summary>
         public Rabbit SummonRabbit()

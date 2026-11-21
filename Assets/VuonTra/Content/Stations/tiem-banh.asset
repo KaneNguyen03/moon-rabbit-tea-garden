@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3f95f8cd3ed8f4df8b3002d76fe34bbc, type: 3}
+  m_Name: tiem-banh
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.StationData
+  Id: tiem-banh
+  DisplayName: "Ti\u1EC7m b\xE1nh trung thu"
+  Kind: 0
+  BaseCost: 90000000000
+  CostGrowth: 1.15
+  BaseIncome: 70000000
+  CycleSeconds: 40
+  Boosts: []
+  Prop: {fileID: 21300000, guid: 17e32e7ef2adf4fb283c3384d1c74dee, type: 3}
+  Rabbit: {fileID: 0}
+  Accent: {r: 0.9411765, g: 0.6627451, b: 0.22745098, a: 1}

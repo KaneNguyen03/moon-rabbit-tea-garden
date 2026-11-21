@@ -14,8 +14,9 @@ namespace VuonTra.Game.UI
         Image _rabbitImage, _scarfImage, _propImage, _chip;
         Text _label;
         GameObject _bar, _glow;
-        float _squish, _shownProgress, _propPop;
+        float _squish, _shownProgress, _propPop, _hop;
         bool _locked;
+        Vector2 _rabbitHome;
         Color _accent;
 
         public StationActorView(int index)
@@ -51,6 +52,7 @@ namespace VuonTra.Game.UI
             float box = ownRabbit ? 256 : 236;
             _rabbit = UiKit.Rect("Rabbit", Root).Place(0.5f, 0.5f, -72, -112, box, box);
             _rabbit.pivot = new Vector2(0.5f, 0f); // squash from the feet
+            _rabbitHome = _rabbit.anchoredPosition;
             _rabbitImage = _rabbit.AddImage(ownRabbit ? data.Rabbit : catalog.Rabbit, Color.white);
             _rabbitImage.preserveAspect = true;
             _scarfImage = UiKit.Rect("Scarf", _rabbit).Stretch(0, 0, 1, 1).AddImage(catalog.Scarf, data.Accent);
@@ -71,10 +73,11 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>Switches between the working look and the asleep look.</summary>
-        public void SetLevel(int level, bool isBrew)
+        /// <param name="needsPlot">The station has no plot yet: it shows as empty land.</param>
+        public void SetLevel(int level, bool isBrew, bool needsPlot = false)
         {
             _locked = level <= 0;
-            _label.text = _locked ? "z z z" : "Cấp " + level;
+            _label.text = needsPlot ? "Đất trống" : (_locked ? "z z z" : "Cấp " + level);
             _label.color = _locked ? Palette.Mix(Palette.Paper, Palette.Night, 0.25f) : Palette.Ink;
             _chip.color = _locked ? Palette.Alpha(Palette.Mix(Palette.Night, Palette.Paper, 0.2f), 0.85f) : Palette.Paper;
             _rabbitImage.color = _locked ? Palette.Asleep : Color.white;
@@ -90,14 +93,16 @@ namespace VuonTra.Game.UI
             _squish = 1f;
         }
 
-        /// <summary>A cycle finished: the prop hops.</summary>
-        public void PopProp()
+        /// <summary>A cycle finished: the prop pops and the rabbit jumps for joy.</summary>
+        public void Hop()
         {
             _propPop = 1f;
+            _hop = 1f;
         }
 
         /// <summary>Per-frame: cycle bar, idle breathing, tap squish, payout hop.</summary>
-        public void Animate(double progress, float time, float deltaTime)
+        /// <param name="boosting">A speed burst is running: everyone works at double tempo.</param>
+        public void Animate(double progress, float time, float deltaTime, bool boosting = false)
         {
             if (!_locked)
             {
@@ -109,8 +114,19 @@ namespace VuonTra.Game.UI
 
             _squish = Mathf.Max(0f, _squish - deltaTime * 5f);
             _propPop = Mathf.Max(0f, _propPop - deltaTime * 4f);
-            float breathe = _locked ? Mathf.Sin(time * 1.2f + _index) * 0.012f : Mathf.Sin(time * 3f + _index * 1.7f) * 0.025f;
-            _rabbit.localScale = new Vector3(1f + _squish * 0.12f - breathe * 0.5f, 1f - _squish * 0.18f + breathe, 1f);
+            _hop = Mathf.Max(0f, _hop - deltaTime * 2.6f);
+            float tempo = boosting ? 2f : 1f;
+            float breathe = _locked ? Mathf.Sin(time * 1.2f + _index) * 0.012f : Mathf.Sin(time * 3f * tempo + _index * 1.7f) * 0.03f;
+            // Landing squash at the end of a jump, stretch on the way up.
+            float air = Mathf.Sin((1f - _hop) * Mathf.PI) * (_hop > 0f ? 1f : 0f);
+            float land = _hop > 0f && _hop < 0.18f ? (0.18f - _hop) / 0.18f * 0.12f : 0f;
+            _rabbit.localScale = new Vector3(
+                1f + _squish * 0.12f - breathe * 0.5f - air * 0.06f + land,
+                1f - _squish * 0.18f + breathe + air * 0.10f - land, 1f);
+            _rabbit.anchoredPosition = _rabbitHome + new Vector2(0, air * 46f);
+            // A working rabbit sways as it works; a sleeping one nods slowly.
+            float lean = _locked ? Mathf.Sin(time * 0.9f + _index) * 2.2f - 4f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
+            _rabbit.localRotation = Quaternion.Euler(0, 0, lean * (1f - air));
             float hop = Ease.Pop(1f - _propPop) * (_propPop > 0f ? 1f : 0f);
             _prop.localScale = new Vector3(1f - hop * 0.08f, 1f + hop * 0.14f, 1f);
         }

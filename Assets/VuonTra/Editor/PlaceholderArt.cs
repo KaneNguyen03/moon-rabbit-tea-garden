@@ -351,6 +351,36 @@ namespace VuonTra.EditorTools
             p.Ellipse(64, 70, 8, 8, 0, Color.white);
             p.Ellipse(46, 90, 10, 5, 35, new Color(1, 1, 1, 0.6f));
             p.Save("prop_binh-sao");
+
+            p = new Painter(128, 128); // giàn nho trăng
+            p.Box(30, 56, 5, 50, 4, Hex("8a5830")); p.Box(98, 56, 5, 50, 4, Hex("8a5830")); p.Box(64, 104, 46, 5, 4, Hex("a8703f"));
+            p.Blob(52, 84, 10, 10, 0, Hex("b48be8"), 3); p.Blob(66, 78, 10, 10, 0, Hex("9a6fd6"), 3); p.Blob(78, 86, 10, 10, 0, Hex("b48be8"), 3);
+            p.Blob(58, 68, 10, 10, 0, Hex("9a6fd6"), 3); p.Blob(72, 66, 10, 10, 0, Hex("b48be8"), 3); p.Blob(65, 54, 10, 10, 0, Hex("9a6fd6"), 3);
+            p.Blob(84, 100, 12, 6, -30, Hex("6fcf8a"), 3);
+            p.Save("prop_gian-nho");
+
+            p = new Painter(128, 128); // tiệm bánh trung thu
+            p.Box(64, 20, 50, 8, 6, Hex("b97a45"));
+            p.Blob(64, 58, 40, 32, 0, Hex("d9963f"));
+            p.Ellipse(64, 60, 28, 21, 0, Hex("f0b860"));
+            p.Ellipse(64, 60, 13, 3, 0, Hex("b9742c")); p.Ellipse(64, 60, 3, 13, 0, Hex("b9742c"));
+            p.Ellipse(64, 60, 10, 3, 45, Hex("b9742c")); p.Ellipse(64, 60, 10, 3, -45, Hex("b9742c"));
+            p.Save("prop_tiem-banh");
+
+            p = new Painter(128, 128); // suối khoáng hoa
+            p.Blob(64, 30, 54, 22, 0, Hex("8a93b8"));
+            p.Ellipse(64, 34, 44, 14, 0, Hex("7fc4f0")); p.Ellipse(52, 37, 16, 4, 0, Hex("c8ecff"));
+            p.Blob(40, 44, 7, 7, 0, Hex("f3a6d6"), 3); p.Blob(86, 40, 6, 6, 0, Hex("ffd0ea"), 3);
+            p.Ellipse(64, 70, 5, 5, 0, new Color(1, 1, 1, 0.55f)); p.Ellipse(74, 88, 7, 7, 0, new Color(1, 1, 1, 0.4f)); p.Ellipse(58, 106, 9, 9, 0, new Color(1, 1, 1, 0.25f));
+            p.Save("prop_suoi-hoa");
+
+            p = new Painter(128, 128); // đài ngắm sao
+            p.Box(64, 16, 34, 8, 6, Hex("6a5a8c")); p.Box(50, 44, 4, 26, 3, Hex("6a5a8c")); p.Box(78, 44, 4, 26, 3, Hex("6a5a8c"));
+            p.Blob(72, 82, 14, 36, -40, Hex("8fb4ff"));
+            p.Blob(96, 104, 12, 12, 0, Hex("c8dcff"), 4);
+            p.Ellipse(98, 106, 5, 5, 0, Color.white);
+            p.Ellipse(28, 108, 5, 5, 0, Hex("ffe9a8")); p.Ellipse(42, 94, 3, 3, 0, Hex("ffe9a8"));
+            p.Save("prop_dai-sao");
         }
     }
 }

@@ -11,6 +11,7 @@ namespace VuonTra.Game
         public StationData[] Stations = new StationData[0];
         public UpgradeData[] Upgrades = new UpgradeData[0];
         public QuestData[] Quests = new QuestData[0];
+        public ItemData[] Items = new ItemData[0];
         [Tooltip("Names handed out to newly called rabbits.")]
         public string[] RabbitNames = new string[0];
         [Tooltip("Optional: one drawing per tier (silver … red). Empty slots use the shared rabbit.")]
@@ -26,6 +27,12 @@ namespace VuonTra.Game
         public Sprite Gear;
         public Sprite Background;
 
+        [Header("Street backdrop layers (hills, trees and ground tile sideways)")]
+        public Texture2D BgSky;
+        public Texture2D BgHills;
+        public Texture2D BgTrees;
+        public Texture2D BgGround;
+
         public List<StationDef> BuildDefs()
         {
             var defs = new List<StationDef>(Stations.Length);
@@ -38,6 +45,13 @@ namespace VuonTra.Game
         {
             if (TierRabbits != null && tier >= 0 && tier < TierRabbits.Length && TierRabbits[tier] != null) return TierRabbits[tier];
             return Rabbit;
+        }
+
+        public List<ItemDef> BuildItems()
+        {
+            var defs = new List<ItemDef>(Items.Length);
+            foreach (var i in Items) defs.Add(i.ToDef());
+            return defs;
         }
 
         public List<UpgradeDef> BuildUpgrades()
