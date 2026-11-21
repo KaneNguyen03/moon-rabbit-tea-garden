@@ -255,6 +255,44 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Rabbit_Tab_Calls_Merges_And_Sends_Rabbits_To_Work()
+        {
+            Find("Canvas/Panel/Bar/Tab Thỏ").onClick.Invoke();
+            Assert.AreEqual(3, screen.Tab);
+            Button summon = Find("Canvas/Panel/Rabbits/Content/Summon/Button");
+            Assert.IsFalse(summon.interactable, "no clovers yet");
+
+            runner.State.Clovers = 3;
+            screen.Refresh();
+            Assert.IsTrue(summon.interactable);
+            summon.onClick.Invoke();
+            Assert.AreEqual(1, runner.State.Rabbits.Count);
+            Assert.AreEqual(2, runner.State.Clovers);
+            screen.Refresh();
+
+            Rabbit first = runner.State.Rabbits[0];
+            Find("Canvas/Panel/Rabbits/Content/Rabbit " + first.Id + "/Work").onClick.Invoke();
+            Assert.AreEqual(0, first.Station, "the only open station");
+            screen.Refresh();
+            Transform chip = root.transform.Find("Canvas/Garden/Station am-tra/Tier");
+            Assert.IsTrue(chip.gameObject.activeSelf);
+            Assert.AreEqual(first.Name, chip.Find("Text").GetComponent<Text>().text);
+
+            // Three silvers merge into one green that keeps the station.
+            first.Tier = 0;
+            runner.State.Rabbits.Add(new Rabbit { Id = 50, Tier = 0, Name = "B" });
+            runner.State.Rabbits.Add(new Rabbit { Id = 51, Tier = 0, Name = "C" });
+            runner.State.NextRabbitId = 51;
+            screen.Refresh();
+            Find("Canvas/Panel/Rabbits/Content/Merge 0/Button").onClick.Invoke();
+            Assert.AreEqual(1, runner.State.Rabbits.Count);
+            Assert.AreEqual(1, runner.State.Rabbits[0].Tier);
+            Assert.AreEqual(0, runner.State.Rabbits[0].Station);
+            screen.Refresh();
+            Assert.IsNull(root.transform.Find("Canvas/Panel/Rabbits/Content/Merge 0"), "merge offer goes away");
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");

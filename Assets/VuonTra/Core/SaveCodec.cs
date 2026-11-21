@@ -29,8 +29,8 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers.</summary>
-        public const int CurrentVersion = 2;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits.</summary>
+        public const int CurrentVersion = 3;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -77,6 +77,21 @@ namespace VuonTra.Core
                 if (!first) sb.Append(',');
                 first = false;
                 WriteString(sb, id);
+            }
+            sb.Append("],\"nextRabbitId\":").Append(s.NextRabbitId.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"rabbits\":[");
+            for (int i = 0; i < s.Rabbits.Count; i++)
+            {
+                Rabbit r = s.Rabbits[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":").Append(r.Id.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"tier\":").Append(r.Tier.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"name\":");
+                WriteString(sb, r.Name);
+                // Stations by id, like everywhere else in the save, so reordering them is safe.
+                sb.Append(",\"station\":");
+                WriteString(sb, r.Station >= 0 && r.Station < defs.Count ? defs[r.Station].Id : "");
+                sb.Append('}');
             }
             sb.Append("]}");
             return sb.ToString();
@@ -173,6 +188,35 @@ namespace VuonTra.Core
                 foreach (object item in claimed)
                     if (item is string claimedId) s.Claimed.Add(claimedId);
             }
+
+            // Version 3: the rabbit collection.
+            if (root.TryGetValue("rabbits", out object rabbitsObj) && rabbitsObj is List<object> rabbits)
+            {
+                var taken = new HashSet<int>();
+                var ids = new HashSet<long>();
+                foreach (object item in rabbits)
+                {
+                    if (!(item is Dictionary<string, object> entry)) continue;
+                    long rabbitId = ToLong(ReadNumber(entry, "id"));
+                    if (rabbitId <= 0 || !ids.Add(rabbitId)) continue; // no id, or a duplicate
+                    var rabbit = new Rabbit
+                    {
+                        Id = rabbitId,
+                        Tier = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "tier"), Rabbits.TierCount - 1)),
+                        Name = entry.TryGetValue("name", out object nameObj) && nameObj is string name ? name : "",
+                    };
+                    if (entry.TryGetValue("station", out object stationObj) && stationObj is string stationId && stationId.Length > 0)
+                    {
+                        int index = IndexOf(defs, stationId);
+                        // One rabbit per station, and only at stations that are open.
+                        if (index >= 0 && s.Levels[index] > 0 && taken.Add(index)) rabbit.Station = index;
+                    }
+                    s.Rabbits.Add(rabbit);
+                    if (rabbitId > s.NextRabbitId) s.NextRabbitId = rabbitId;
+                }
+            }
+            long savedNext = ToLong(ReadNumber(root, "nextRabbitId"));
+            if (savedNext > s.NextRabbitId) s.NextRabbitId = savedNext;
 
             result.Status = LoadStatus.Ok;
             return result;

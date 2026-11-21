@@ -11,6 +11,10 @@ namespace VuonTra.Game
         public StationData[] Stations = new StationData[0];
         public UpgradeData[] Upgrades = new UpgradeData[0];
         public QuestData[] Quests = new QuestData[0];
+        [Tooltip("Names handed out to newly called rabbits.")]
+        public string[] RabbitNames = new string[0];
+        [Tooltip("Optional: one drawing per tier (silver … red). Empty slots use the shared rabbit.")]
+        public Sprite[] TierRabbits = new Sprite[0];
 
         [Header("Shared art (swap the files to reskin)")]
         public Sprite Rabbit;
@@ -27,6 +31,13 @@ namespace VuonTra.Game
             var defs = new List<StationDef>(Stations.Length);
             foreach (var s in Stations) defs.Add(s.ToDef());
             return defs;
+        }
+
+        /// <summary>The drawing for a tier, falling back to the shared rabbit.</summary>
+        public Sprite RabbitFor(int tier)
+        {
+            if (TierRabbits != null && tier >= 0 && tier < TierRabbits.Length && TierRabbits[tier] != null) return TierRabbits[tier];
+            return Rabbit;
         }
 
         public List<UpgradeDef> BuildUpgrades()

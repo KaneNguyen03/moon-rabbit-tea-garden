@@ -17,6 +17,13 @@ namespace VuonTra.Game.UI
         public static readonly Color Lantern = Hex("FFC866");
         public static readonly Color Carrot = Hex("FF9B4A");
 
+        /// <summary>Rabbit tiers, common to rare: silver, green, blue, purple, gold, red.</summary>
+        public static readonly Color[] Tiers =
+        {
+            Hex("C9CEDA"), Moss, Hex("6FA8F0"), Hex("B48BE8"), Lantern, Hex("F0605E")
+        };
+        public static readonly string[] TierNames = { "Bạc", "Xanh lá", "Xanh dương", "Tím", "Vàng", "Đỏ" };
+
         // Derived roles: always a mix of two bible colours.
         public static readonly Color Card = Mix(Paper, Color.white, 0.7f);
         public static readonly Color CardLip = Mix(Paper, Ink, 0.2f);

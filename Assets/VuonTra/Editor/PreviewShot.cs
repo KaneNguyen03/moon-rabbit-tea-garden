@@ -65,6 +65,18 @@ namespace VuonTra.EditorTools
             Step(screen, 0.3f);
             Capture(screen, "6-quests");
 
+            // Rabbits: one of each tier, a mergeable set of silvers, the best ones at work.
+            string[] names = { "Bông", "Mây", "Sữa", "Mochi", "Đậu", "Kem", "Nếp", "Mật" };
+            int[] tiers = { 5, 4, 3, 2, 1, 0, 0, 0 };
+            for (int i = 0; i < tiers.Length; i++)
+                state.Rabbits.Add(new Rabbit { Id = ++state.NextRabbitId, Tier = tiers[i], Name = names[i] });
+            state.Clovers = 4;
+            Rabbits.AutoAssign(runner.Defs, state);
+            screen.SetTab(3);
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Capture(screen, "7-rabbits");
+
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

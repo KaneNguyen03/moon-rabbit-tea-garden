@@ -26,13 +26,17 @@ namespace VuonTra.Game.UI
         readonly List<QuestRowView> _questRows = new List<QuestRowView>();
         readonly Dictionary<int, Image> _modeButtons = new Dictionary<int, Image>();
         readonly Dictionary<int, Text> _modeLabels = new Dictionary<int, Text>();
-        readonly GameObject[] _lists = new GameObject[3];
-        readonly Image[] _tabButtons = new Image[3];
-        readonly Text[] _tabLabels = new Text[3];
+        const int TabCount = 4;
+        readonly GameObject[] _lists = new GameObject[TabCount];
+        readonly Image[] _tabButtons = new Image[TabCount];
+        readonly Text[] _tabLabels = new Text[TabCount];
+        readonly List<Image> _tierChips = new List<Image>();
+        readonly List<Text> _tierLabels = new List<Text>();
+        RabbitListView _rabbitList;
         GameObject _modes, _badge;
         Text _badgeText, _clovers;
 
-        /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests.</summary>
+        /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests, 3 = rabbits.</summary>
         public int Tab { get; private set; }
 
         public Tweens Tweens { get; } = new Tweens();
@@ -147,6 +151,12 @@ namespace VuonTra.Game.UI
                 float depth = 0.66f + 0.10f * row / Mathf.Max(1, rowsNeeded - 1);
                 actor.Root.localScale = new Vector3(depth, depth, 1f);
                 _actors.Add(actor);
+
+                var chip = UiKit.Rect("Tier", actor.Root).Place(0.5f, 0.5f, -72, 172, 200, 44);
+                Image chipImage = chip.AddImage(catalog.Panel, Palette.Paper, true);
+                _tierChips.Add(chipImage);
+                _tierLabels.Add(UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold));
+                chip.gameObject.SetActive(false);
             }
 
             var hint = UiKit.Rect("Hint", _garden).Place(0.468f, 0.87f, 0, 30, 226, 96);
@@ -197,21 +207,22 @@ namespace VuonTra.Game.UI
             bar.sizeDelta = new Vector2(0, 128);
             UiKit.Rect("Handle", bar).Place(0.5f, 1f, 0, -18, 96, 10).AddImage(catalog.Panel, Palette.Track, true);
 
-            UiKit.Rect("Tabs", bar).Place(0f, 0.5f, 274, -9, 492, 80).AddImage(catalog.Panel, Palette.Track, true);
-            AddTabButton(bar, catalog, 0, "Trạm", 108, 144);
-            AddTabButton(bar, catalog, 1, "Bùa", 252, 132);
-            AddTabButton(bar, catalog, 2, "Nhiệm vụ", 418, 188);
+            UiKit.Rect("Tabs", bar).Place(0f, 0.5f, 318, -9, 580, 80).AddImage(catalog.Panel, Palette.Track, true);
+            AddTabButton(bar, catalog, 0, "Trạm", 96, 120);
+            AddTabButton(bar, catalog, 1, "Bùa", 214, 108);
+            AddTabButton(bar, catalog, 2, "Nhiệm vụ", 364, 180);
+            AddTabButton(bar, catalog, 3, "Thỏ", 536, 132);
 
-            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 506, 22, 44, 44);
+            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 448, 24, 40, 40);
             badge.AddImage(catalog.Round, Palette.CarrotLip);
             _badgeText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _badge = badge.gameObject;
 
             var modes = UiKit.Rect("Modes", bar).Stretch(0, 0, 1, 1);
             _modes = modes.gameObject;
-            UiKit.Rect("Track", modes).Place(1f, 0.5f, -222, -9, 388, 80).AddImage(catalog.Panel, Palette.Track, true);
-            AddModeButton(modes, catalog, 1, "×1", -360);
-            AddModeButton(modes, catalog, 10, "×10", -252);
+            UiKit.Rect("Track", modes).Place(1f, 0.5f, -212, -9, 368, 80).AddImage(catalog.Panel, Palette.Track, true);
+            AddModeButton(modes, catalog, 1, "×1", -344);
+            AddModeButton(modes, catalog, 10, "×10", -246);
             AddModeButton(modes, catalog, 0, "Tối đa", -116);
 
             RectTransform stations = AddList("Scroll", 0);
@@ -245,6 +256,17 @@ namespace VuonTra.Game.UI
                     _questRows.Add(row);
                 }
             }
+
+            RectTransform rabbits = AddList("Rabbits", 3);
+            _rabbitList = new RabbitListView(rabbits, catalog, OnSummon, () =>
+            {
+                Sfx.Click();
+                Runner.AutoAssignRabbits();
+            }, OnMerge, id =>
+            {
+                Sfx.Click();
+                Runner.ToggleRabbitWork(id);
+            });
 
             SetTab(0);
         }
@@ -298,14 +320,14 @@ namespace VuonTra.Game.UI
                 Sfx.Click();
                 SetTab(tab);
             });
-            _tabLabels[tab] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(label, 27, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _tabLabels[tab] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(label, 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _tabButtons[tab] = img;
         }
 
         public void SetTab(int tab)
         {
-            Tab = Mathf.Clamp(tab, 0, 2);
-            for (int i = 0; i < 3; i++)
+            Tab = Mathf.Clamp(tab, 0, TabCount - 1);
+            for (int i = 0; i < TabCount; i++)
             {
                 _lists[i].SetActive(i == Tab);
                 _tabButtons[i].color = i == Tab ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
@@ -317,7 +339,7 @@ namespace VuonTra.Game.UI
 
         void AddModeButton(RectTransform bar, GameCatalog catalog, int mode, string label, float x)
         {
-            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -9, mode == 0 ? 150 : 100, 64);
+            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -9, mode == 0 ? 152 : 92, 64);
             Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -405,10 +427,21 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
             for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
 
+            _rabbitList.Refresh(defs, s);
+            for (int i = 0; i < _tierChips.Count; i++)
+            {
+                Rabbit worker = Rabbits.AtStation(s, i);
+                GameObject chip = _tierChips[i].gameObject;
+                if (chip.activeSelf != (worker != null)) chip.SetActive(worker != null);
+                if (worker == null) continue;
+                _tierChips[i].color = Palette.Tiers[worker.Tier];
+                _tierLabels[i].text = worker.Name;
+            }
+
             int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s);
             _badge.SetActive(claimable > 0);
             _badgeText.text = claimable.ToString();
-            _clovers.text = "Cỏ bốn lá: " + s.Clovers + " · dùng để đón thỏ mới ở bản sau";
+            _clovers.text = "Cỏ bốn lá: " + s.Clovers + " · dùng để gọi thỏ ở tab Thỏ";
 
             foreach (KeyValuePair<int, Image> pair in _modeButtons)
             {
@@ -477,6 +510,23 @@ namespace VuonTra.Game.UI
                 Feel.Burst(Feel.PointOf(actor, new Vector2(0, 40)), catalog.Round,
                     new[] { Palette.Carrot, Palette.Lantern, Palette.Blush }, 8, 380f, 18f);
             }
+        }
+
+        void OnSummon()
+        {
+            Rabbit rabbit = Runner.SummonRabbit();
+            if (rabbit == null) return;
+            _rabbitList.Summon.Press(Tweens);
+            Sfx.Sting();
+            Feel.Moment("Bé " + rabbit.Name + " đã tới!", "Bậc " + Palette.TierNames[rabbit.Tier] + " · ×" + UiKit.Times(Rabbits.Multipliers[rabbit.Tier]) + " cho trạm bé làm");
+        }
+
+        void OnMerge(int tier)
+        {
+            Rabbit merged = Runner.MergeRabbits(tier);
+            if (merged == null) return;
+            Sfx.Sting();
+            Feel.Moment(merged.Name + " lên bậc " + Palette.TierNames[merged.Tier] + "!", "×" + UiKit.Times(Rabbits.Multipliers[merged.Tier]) + " cho trạm bé làm");
         }
 
         void OnBuyUpgrade(int index)

@@ -152,6 +152,43 @@ namespace VuonTra.Game
             return ok;
         }
 
+        readonly System.Random _rng = new System.Random();
+
+        /// <summary>Calls one new rabbit for clovers; null when there are not enough.</summary>
+        public Rabbit SummonRabbit()
+        {
+            string[] names = Catalog.RabbitNames;
+            string name = names != null && names.Length > 0 ? names[_rng.Next(names.Length)] : "Thỏ";
+            Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), name);
+            if (rabbit != null) Changed();
+            return rabbit;
+        }
+
+        public Rabbit MergeRabbits(int tier)
+        {
+            Rabbit merged = Rabbits.Merge(State, tier);
+            if (merged != null) Changed();
+            return merged;
+        }
+
+        /// <summary>A resting rabbit goes to the station where it helps most; a working one rests.</summary>
+        public bool ToggleRabbitWork(long id)
+        {
+            Rabbit rabbit = Rabbits.Find(State, id);
+            if (rabbit == null) return false;
+            int station = rabbit.Station >= 0 ? -1 : Rabbits.BestStationFor(Defs, State, rabbit);
+            if (rabbit.Station < 0 && station < 0) return false;
+            bool ok = Rabbits.Assign(State, id, station);
+            if (ok) Changed();
+            return ok;
+        }
+
+        public void AutoAssignRabbits()
+        {
+            Rabbits.AutoAssign(Defs, State);
+            Changed();
+        }
+
         public void SetBuyMode(int mode)
         {
             State.BuyMode = mode == 0 ? 0 : (mode == 10 ? 10 : 1);

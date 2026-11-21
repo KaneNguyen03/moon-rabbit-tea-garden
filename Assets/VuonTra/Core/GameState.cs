@@ -31,6 +31,10 @@ namespace VuonTra.Core
         public BigNum DailyEarnedBase;
         public BigNum DailyCarrotTarget;
 
+        /// <summary>The rabbits the player has collected.</summary>
+        public List<Rabbit> Rabbits = new List<Rabbit>();
+        public long NextRabbitId;
+
         /// <summary>Ids of quests already paid out. Daily ids are removed when a new day starts.</summary>
         public HashSet<string> Claimed = new HashSet<string>();
 

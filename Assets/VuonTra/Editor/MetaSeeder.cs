@@ -80,6 +80,17 @@ namespace VuonTra.EditorTools
                 quests.Add(data);
             }
 
+            catalog.RabbitNames = new[]
+            {
+                "Bông", "Mây", "Sữa", "Mochi", "Đậu", "Bánh Trôi", "Kem", "Nếp", "Mật", "Gạo", "Sương", "Trăng",
+                "Mít", "Na", "Bơ", "Cốm", "Chè", "Bưởi", "Sen", "Mận", "Tuyết", "Nắng", "Su Su", "Khoai"
+            };
+            // Tier drawings are optional: Art/Final/rabbit_tier_0.png … rabbit_tier_5.png when they exist.
+            var tierSprites = new Sprite[Rabbits.TierCount];
+            for (int t = 0; t < tierSprites.Length; t++)
+                tierSprites[t] = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/rabbit_tier_" + t + ".png");
+            catalog.TierRabbits = tierSprites;
+
             catalog.Upgrades = upgrades.ToArray();
             catalog.Quests = quests.ToArray();
             EditorUtility.SetDirty(catalog);
