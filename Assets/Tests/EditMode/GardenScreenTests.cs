@@ -479,6 +479,18 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Every_Kind_Has_A_Picture_And_A_Name_In_The_Current_Language()
+        {
+            foreach (RabbitKind kind in RabbitKinds.All)
+            {
+                Sprite art = runner.Catalog.KindSprite(kind.Id);
+                Assert.IsNotNull(art, kind.Id);
+                Assert.AreEqual("kind_" + kind.Id, art.name, "its own picture, not a fallback");
+                Assert.AreNotEqual("kind." + kind.Id, L10n.T("kind." + kind.Id), kind.Id + " has no name in the table");
+            }
+        }
+
+        [Test]
         public void A_Collected_Rabbit_Stands_At_Its_Station_Wearing_Its_Hat()
         {
             Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");

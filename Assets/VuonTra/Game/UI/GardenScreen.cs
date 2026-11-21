@@ -1555,7 +1555,7 @@ namespace VuonTra.Game.UI
                     Item hat = Items.Worn(s, worker.Id, ItemSlot.Hat), charm = Items.Worn(s, worker.Id, ItemSlot.Charm);
                     _actors[i].SetWorker(catalog.RabbitArt(worker),
                         hat != null ? catalog.ItemIcon(hat.DefId) : null, charm != null ? catalog.ItemIcon(charm.DefId) : null,
-                        worker.Tier >= 4);
+                        worker.Tier >= 4 && !RabbitKinds.Find(Rabbits.KindOf(worker)).OwnGlow);
                 }
 
                 GameObject chip = _tierChips[i].gameObject;

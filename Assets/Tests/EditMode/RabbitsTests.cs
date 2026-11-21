@@ -132,35 +132,58 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void There_Are_Twelve_Kinds_Two_For_Every_Tier()
+        public void The_Kind_Table_Is_Sound()
         {
-            Assert.AreEqual(12, RabbitKinds.All.Count);
             var ids = new HashSet<string>();
-            foreach (RabbitKind k in RabbitKinds.All) Assert.IsTrue(ids.Add(k.Id), k.Id + " twice");
+            foreach (RabbitKind k in RabbitKinds.All)
+            {
+                Assert.IsTrue(ids.Add(k.Id), k.Id + " twice");
+                Assert.IsTrue(k.Tier >= 0 && k.Tier < Rabbits.TierCount, k.Id + " tier");
+                Assert.AreNotEqual(RabbitTrade.None, k.Trade, k.Id + " has a trade");
+                Assert.IsFalse(string.IsNullOrWhiteSpace(k.NameVi), k.Id + " Vietnamese name");
+                Assert.IsFalse(string.IsNullOrWhiteSpace(k.NameEn), k.Id + " English name");
+            }
             for (int tier = 0; tier < Rabbits.TierCount; tier++)
             {
-                Assert.AreEqual(2, RabbitKinds.OfTier(tier).Count, "tier " + tier);
+                Assert.GreaterOrEqual(RabbitKinds.OfTier(tier).Count, 2, "tier " + tier + " has a choice");
                 Assert.AreEqual(tier, RabbitKinds.Find(RabbitKinds.DefaultFor(tier)).Tier);
             }
-            Assert.AreEqual("tho-bong", RabbitKinds.DefaultFor(0));
-            Assert.AreEqual("tho-trang", RabbitKinds.OfTier(5)[1].Id);
             Assert.IsNull(RabbitKinds.Find("tho-la"));
             Assert.IsNull(RabbitKinds.Find(null));
         }
 
-        [TestCase(0.1, 0.0, 0, "tho-bong")]
-        [TestCase(0.1, 0.49, 0, "tho-bong")]
-        [TestCase(0.1, 0.5, 0, "tho-me")]
-        [TestCase(0.9, 0.99, 2, "tho-o-long")]
-        [TestCase(0.9995, 0.0, 5, "tho-hong-tra")]
-        [TestCase(0.1, 1.5, 0, "tho-me")]            // a roll past the end still lands inside the tier
-        [TestCase(0.1, double.NaN, 0, "tho-bong")]
-        public void Summon_Picks_A_Kind_From_The_Tier_It_Rolled(double roll, double kindRoll, int tier, string kind)
+        [Test]
+        public void Old_Saves_Keep_The_Same_Default_Kind_For_Each_Tier()
         {
-            s.Clovers = 1;
-            Rabbit r = Rabbits.Summon(s, roll, "A", kindRoll);
-            Assert.AreEqual(tier, r.Tier);
-            Assert.AreEqual(kind, r.Kind);
+            // Adding kinds must never change what a rabbit saved without one turns into.
+            CollectionAssert.AreEqual(
+                new[] { "tho-bong", "tho-cup", "tho-suong", "tho-oai-huong", "tho-mat-ong", "tho-hong-tra" },
+                new[] { RabbitKinds.DefaultFor(0), RabbitKinds.DefaultFor(1), RabbitKinds.DefaultFor(2), RabbitKinds.DefaultFor(3), RabbitKinds.DefaultFor(4), RabbitKinds.DefaultFor(5) });
+        }
+
+        [TestCase(0.1, 0)]
+        [TestCase(0.9, 2)]
+        [TestCase(0.9995, 5)]
+        public void Summon_Picks_Evenly_Among_The_Kinds_Of_The_Tier_It_Rolled(double roll, int tier)
+        {
+            IReadOnlyList<RabbitKind> kinds = RabbitKinds.OfTier(tier);
+            for (int k = 0; k < kinds.Count; k++)
+            {
+                s.Clovers = 1;
+                Rabbit r = Rabbits.Summon(s, roll, "A", (k + 0.5) / kinds.Count); // the middle of the k-th share
+                Assert.AreEqual(tier, r.Tier);
+                Assert.AreEqual(kinds[k].Id, r.Kind);
+            }
+        }
+
+        [Test]
+        public void A_Kind_Roll_Off_The_Ends_Still_Lands_Inside_The_Tier()
+        {
+            IReadOnlyList<RabbitKind> kinds = RabbitKinds.OfTier(0);
+            s.Clovers = 3;
+            Assert.AreEqual(kinds[kinds.Count - 1].Id, Rabbits.Summon(s, 0.1, "A", 1.5).Kind);
+            Assert.AreEqual(kinds[0].Id, Rabbits.Summon(s, 0.1, "A", double.NaN).Kind);
+            Assert.AreEqual(kinds[0].Id, Rabbits.Summon(s, 0.1, "A", -3).Kind);
         }
 
         [Test]
@@ -170,14 +193,16 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("tho-bong", Rabbits.Summon(s, 0.1, "A").Kind);
         }
 
-        [TestCase(0.0, "tho-cup")]
-        [TestCase(0.7, "tho-matcha")]
-        public void Merge_Gives_A_Kind_Of_The_Next_Tier(double kindRoll, string kind)
+        [Test]
+        public void Merge_Gives_A_Kind_Of_The_Next_Tier()
         {
+            IReadOnlyList<RabbitKind> next = RabbitKinds.OfTier(1);
             Add(0); Add(0); Add(0);
-            Rabbit merged = Rabbits.Merge(s, 0, kindRoll);
+            Assert.AreEqual(next[0].Id, Rabbits.Merge(s, 0, 0.0).Kind);
+            Add(0); Add(0); Add(0);
+            Rabbit merged = Rabbits.Merge(s, 0, 0.999);
             Assert.AreEqual(1, merged.Tier);
-            Assert.AreEqual(kind, merged.Kind);
+            Assert.AreEqual(next[next.Count - 1].Id, merged.Kind);
         }
 
         [Test]

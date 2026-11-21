@@ -86,7 +86,7 @@ namespace VuonTra.EditorTools
             string[] names = { "Bông", "Mây", "Sữa", "Mochi", "Đậu", "Kem", "Nếp", "Mật" };
             int[] tiers = { 5, 4, 3, 2, 1, 0, 0, 0 };
             for (int i = 0; i < tiers.Length; i++)
-                state.Rabbits.Add(new Rabbit { Id = ++state.NextRabbitId, Tier = tiers[i], Kind = RabbitKinds.OfTier(tiers[i])[i % 2].Id, Name = names[i], Level = 1 + i * 2 });
+                state.Rabbits.Add(new Rabbit { Id = ++state.NextRabbitId, Tier = tiers[i], Kind = RabbitKinds.OfTier(tiers[i])[(i * 2 + 1) % RabbitKinds.OfTier(tiers[i]).Count].Id, Name = names[i], Level = 1 + i * 2 });
             state.Clovers = 4;
             Rabbits.AutoAssign(runner.Defs, state);
             var itemDefs = runner.Catalog.BuildItems();

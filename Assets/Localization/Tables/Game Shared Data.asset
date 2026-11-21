@@ -739,6 +739,126 @@ MonoBehaviour:
     m_Key: card.noworker.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 38390878691328
+    m_Key: kind.tho-dau-do
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079936
+    m_Key: kind.tho-ca-phe
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079937
+    m_Key: kind.tho-tro
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079938
+    m_Key: kind.tho-cat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079939
+    m_Key: kind.tho-bap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079940
+    m_Key: kind.tho-khoi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079941
+    m_Key: kind.tho-hong-phan
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079942
+    m_Key: kind.tho-ca-cao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079943
+    m_Key: kind.tho-cup-kem
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079944
+    m_Key: kind.tho-cup-socola
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079945
+    m_Key: kind.tho-bac-ha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079946
+    m_Key: kind.tho-chanh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079947
+    m_Key: kind.tho-cup-suong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079948
+    m_Key: kind.tho-la-phong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079949
+    m_Key: kind.tho-dao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079950
+    m_Key: kind.tho-tuyet-hong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079951
+    m_Key: kind.tho-bao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079952
+    m_Key: kind.tho-tra-sua
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079953
+    m_Key: kind.tho-muc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079954
+    m_Key: kind.tho-cam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079955
+    m_Key: kind.tho-bang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079956
+    m_Key: kind.tho-anh-dao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079957
+    m_Key: kind.tho-luu-ly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079958
+    m_Key: kind.tho-viet-quat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079959
+    m_Key: kind.tho-dau-tay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079960
+    m_Key: kind.tho-hoa-nhai
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079961
+    m_Key: kind.tho-ho-phach
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079962
+    m_Key: kind.tho-ngan-ha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079963
+    m_Key: kind.tho-bach-kim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079964
+    m_Key: kind.tho-nguyet-thuc
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

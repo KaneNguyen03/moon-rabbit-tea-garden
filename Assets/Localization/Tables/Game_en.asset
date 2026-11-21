@@ -744,6 +744,126 @@ MonoBehaviour:
     m_Localized: 'Suits: {0}'
     m_Metadata:
       m_Items: []
+  - m_Id: 38390878691328
+    m_Localized: Red Bean Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079936
+    m_Localized: Coffee Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079937
+    m_Localized: Ash Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079938
+    m_Localized: Sand Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079939
+    m_Localized: Corn Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079940
+    m_Localized: Smoke Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079941
+    m_Localized: Blush Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079942
+    m_Localized: Cocoa Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079943
+    m_Localized: Cream Lop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079944
+    m_Localized: Chocolate Lop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079945
+    m_Localized: Mint Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079946
+    m_Localized: Lemon Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079947
+    m_Localized: Misty Lop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079948
+    m_Localized: Maple Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079949
+    m_Localized: Peach Lop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079950
+    m_Localized: Rose Snow Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079951
+    m_Localized: Storm Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079952
+    m_Localized: Milk Tea Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079953
+    m_Localized: Ink Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079954
+    m_Localized: Tangerine Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079955
+    m_Localized: Ice Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079956
+    m_Localized: Cherry Blossom Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079957
+    m_Localized: Forget-me-not Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079958
+    m_Localized: Blueberry Lop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079959
+    m_Localized: Strawberry Lop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079960
+    m_Localized: Jasmine Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079961
+    m_Localized: Amber Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079962
+    m_Localized: Galaxy Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079963
+    m_Localized: Platinum Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 38390887079964
+    m_Localized: Eclipse Rabbit
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

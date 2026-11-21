@@ -39,6 +39,14 @@ namespace VuonTra.EditorTools
             int reach = Mathf.CeilToInt(radius);
             foreach (string file in Directory.GetFiles(Folder, "kind_*.png"))
             {
+                // A picture with a glow painted in has soft edges all round: an ink line would ring the glow, not the rabbit.
+                string id = Path.GetFileNameWithoutExtension(file).Substring("kind_".Length);
+                VuonTra.Core.RabbitKind kind = VuonTra.Core.RabbitKinds.Find(id);
+                if (kind != null && kind.OwnGlow)
+                {
+                    AssetDatabase.DeleteAsset(Generated + "/" + Path.GetFileName(file));
+                    continue;
+                }
                 var source = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                 source.LoadImage(File.ReadAllBytes(file));
                 int w = source.width, h = source.height;
