@@ -680,11 +680,11 @@ Sau khi sửa cả bốn xanh.
 - `docs/issues-po.md` là bản chép do session PO giữ, đêm nay không sửa; GitHub là nguồn đúng (đóng 25, 27, 36, 43; mới 44, 45).
 - Lệnh test/seed/chụp/build như mục Bàn giao trước.
 
-## Bàn giao (22/11 ~06:30, phiên code thứ hai dừng tại đây)
+## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
 - main = origin/main (tới commit này), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
-- `tools/verify.sh --build` xanh: seed, 71 ảnh preview, biên dịch, 403/403 EditMode, build Mac mở chạy 8 giây không exception (mốc đầu phiên 369/369).
+- `tools/verify.sh --build` xanh lúc 06:29 trên đúng HEAD code (`ceca860`): seed, 76 ảnh preview, biên dịch, 417/417 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369). Chưa ai bấm thử.
 - Hai session code chạy cùng lúc trong đêm: session "Issue GitHub còn mở" làm #43, #25, #27, #36, #37 (một phần), #18 (một phần) và tạo #44, #45 (mục Bàn giao 05:40 ngay trên); session này dựng `tools/verify.sh`, chờ session kia dừng, rồi làm tiếp. Từ giờ chỉ còn một session.
 
 ### Việc session này làm (sau mục 05:40)
