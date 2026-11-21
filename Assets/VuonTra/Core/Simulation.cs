@@ -14,21 +14,23 @@ namespace VuonTra.Core
         public const double AwayMinSeconds = 30;
 
         /// <summary>Advances every open Brew station and pays each finished cycle.</summary>
-        public static void Tick(IReadOnlyList<StationDef> defs, GameState s, double dt, Action<int, BigNum> onPayout = null)
+        public static void Tick(IReadOnlyList<StationDef> defs, GameState s, double dt, Action<int, BigNum> onPayout = null, Modifiers? mods = null)
         {
             if (!(dt > 0d)) return; // also rejects NaN
+            Modifiers m = mods ?? Modifiers.None;
             for (int i = 0; i < defs.Count; i++)
             {
                 var d = defs[i];
                 if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d) continue;
 
-                double p = s.Progress[i] + dt / d.CycleSeconds;
+                double p = s.Progress[i] + dt * m.SpeedMultiplier / d.CycleSeconds;
                 if (p >= 1d)
                 {
                     double cycles = Math.Floor(p);
                     p -= cycles;
-                    BigNum paid = Economy.IncomePerCycle(defs, s, i) * cycles;
+                    BigNum paid = Economy.IncomePerCycle(defs, s, i) * (cycles * m.IncomeMultiplier);
                     s.Coins += paid;
+                    s.TotalEarned += paid;
                     onPayout?.Invoke(i, paid);
                 }
                 s.Progress[i] = (p >= 0d && p < 1d) ? p : 0d;
@@ -36,12 +38,13 @@ namespace VuonTra.Core
         }
 
         /// <summary>A tap nudges an open Brew station forward. Payout comes on the next Tick.</summary>
-        public static bool Tap(IReadOnlyList<StationDef> defs, GameState s, int index)
+        public static bool Tap(IReadOnlyList<StationDef> defs, GameState s, int index, Modifiers? mods = null)
         {
             if (index < 0 || index >= defs.Count) return false;
             var d = defs[index];
             if (d.Kind != StationKind.Brew || s.Levels[index] <= 0 || d.CycleSeconds <= 0d) return false;
-            s.Progress[index] += TapSeconds / d.CycleSeconds;
+            s.Progress[index] += (mods ?? Modifiers.None).TapSeconds / d.CycleSeconds;
+            s.TotalTaps++;
             return true;
         }
 
@@ -67,6 +70,7 @@ namespace VuonTra.Core
 
             s.Coins -= cost;
             s.Levels[index] = level + count;
+            s.LevelsBought += count;
             if (level == 0) s.Progress[index] = 0d;
             return true;
         }
@@ -75,16 +79,18 @@ namespace VuonTra.Core
         /// Pays for the time since the game was last seen, up to the cap, and stamps the new time.
         /// A clock that moved backwards counts as no time at all.
         /// </summary>
-        public static BigNum ClaimAway(IReadOnlyList<StationDef> defs, GameState s, long nowUnixSeconds, out double countedSeconds)
+        public static BigNum ClaimAway(IReadOnlyList<StationDef> defs, GameState s, long nowUnixSeconds, out double countedSeconds, Modifiers? mods = null)
         {
+            Modifiers m = mods ?? Modifiers.None;
             long elapsed = nowUnixSeconds - s.LastSeenUnixSeconds;
             s.LastSeenUnixSeconds = nowUnixSeconds;
             countedSeconds = 0d;
             if (elapsed < AwayMinSeconds) return BigNum.Zero;
 
-            countedSeconds = Math.Min(elapsed, AwayCapSeconds);
-            BigNum paid = Economy.IncomePerSecond(defs, s) * countedSeconds;
+            countedSeconds = Math.Min(elapsed, m.AwayCapSeconds);
+            BigNum paid = Economy.IncomePerSecond(defs, s) * (countedSeconds * m.IncomeMultiplier * m.SpeedMultiplier);
             s.Coins += paid;
+            s.TotalEarned += paid;
             return paid;
         }
     }

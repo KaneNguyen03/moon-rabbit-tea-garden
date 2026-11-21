@@ -99,9 +99,9 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Buy_Mode_Buttons_Change_The_Mode()
         {
-            Find("Canvas/Panel/Bar/Mode ×10").onClick.Invoke();
+            Find("Canvas/Panel/Bar/Modes/Mode ×10").onClick.Invoke();
             Assert.AreEqual(10, runner.State.BuyMode);
-            Find("Canvas/Panel/Bar/Mode Tối đa").onClick.Invoke();
+            Find("Canvas/Panel/Bar/Modes/Mode Tối đa").onClick.Invoke();
             Assert.AreEqual(0, runner.State.BuyMode);
         }
 
@@ -179,6 +179,79 @@ namespace VuonTra.Core.Tests
             Assert.AreNotEqual("900", coins.text);
             for (int i = 0; i < 90; i++) screen.Advance(1f / 30f);
             Assert.AreEqual("900", coins.text);
+        }
+
+        [Test]
+        public void Tabs_Switch_Lists_And_Hide_The_Buy_Modes()
+        {
+            Transform panel = root.transform.Find("Canvas/Panel");
+            Assert.IsTrue(panel.Find("Scroll").gameObject.activeSelf);
+            Assert.IsFalse(panel.Find("Upgrades").gameObject.activeSelf);
+
+            Find("Canvas/Panel/Bar/Tab Bùa").onClick.Invoke();
+            Assert.AreEqual(1, screen.Tab);
+            Assert.IsFalse(panel.Find("Scroll").gameObject.activeSelf);
+            Assert.IsTrue(panel.Find("Upgrades").gameObject.activeSelf);
+            Assert.IsFalse(panel.Find("Bar/Modes").gameObject.activeSelf);
+
+            Find("Canvas/Panel/Bar/Tab Nhiệm vụ").onClick.Invoke();
+            Assert.IsTrue(panel.Find("Quests").gameObject.activeSelf);
+            Find("Canvas/Panel/Bar/Tab Trạm").onClick.Invoke();
+            Assert.IsTrue(panel.Find("Bar/Modes").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Buying_An_Upgrade_Changes_What_Stations_Earn()
+        {
+            Assert.AreEqual(4, runner.UpgradeDefs.Count);
+            Button buy = Find("Canvas/Panel/Upgrades/Content/Upgrade trang-ram/Buy");
+            Assert.IsFalse(buy.interactable);
+
+            runner.State.Coins = new BigNum(3000);
+            screen.Refresh();
+            Assert.IsTrue(buy.interactable);
+            buy.onClick.Invoke();
+
+            Assert.AreEqual(1, runner.State.UpgradeLevels[2]);
+            Assert.AreEqual(2, runner.Mods.IncomeMultiplier);
+            screen.Refresh(); // in play the runner's StateChanged event does this
+            StringAssert.StartsWith("2 cà rốt", root.transform.Find("Canvas/Panel/Scroll/Content/Row am-tra/Sub").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void Quest_Badge_Appears_And_Claiming_Pays()
+        {
+            GameObject badge = root.transform.Find("Canvas/Panel/Bar/Badge").gameObject;
+            Assert.IsFalse(badge.activeSelf);
+            Button claim = Find("Canvas/Panel/Quests/Content/Quest mo-2/Claim");
+            Assert.IsFalse(claim.interactable);
+
+            runner.State.Coins = new BigNum(120);
+            Find("Canvas/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
+            screen.Refresh();
+            Assert.IsTrue(badge.activeSelf);
+            Assert.IsTrue(claim.interactable);
+
+            double before = runner.State.Coins.ToDouble();
+            claim.onClick.Invoke();
+            Assert.Greater(runner.State.Coins.ToDouble(), before);
+            Assert.IsTrue(runner.State.Claimed.Contains("mo-2"));
+            screen.Refresh();
+            Assert.IsFalse(root.transform.Find("Canvas/Panel/Quests/Content/Quest mo-2").gameObject.activeSelf, "a claimed achievement leaves the list");
+        }
+
+        [Test]
+        public void Daily_Quest_Stays_Visible_After_Claiming()
+        {
+            for (int i = 0; i < 50; i++) Find("Canvas/Garden/Station am-tra").onClick.Invoke();
+            screen.Refresh();
+            Button claim = Find("Canvas/Panel/Quests/Content/Quest ngay-cham/Claim");
+            Assert.IsTrue(claim.interactable);
+            claim.onClick.Invoke();
+            screen.Refresh();
+            Assert.AreEqual(1, runner.State.Clovers);
+            Assert.IsTrue(root.transform.Find("Canvas/Panel/Quests/Content/Quest ngay-cham").gameObject.activeSelf);
+            Assert.IsFalse(claim.interactable);
         }
 
         [Test]

@@ -29,9 +29,10 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        public const int CurrentVersion = 1;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers.</summary>
+        public const int CurrentVersion = 2;
 
-        public static string Encode(IReadOnlyList<StationDef> defs, GameState s)
+        public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
             var sb = new StringBuilder(256);
             sb.Append("{\"version\":").Append(CurrentVersion);
@@ -50,13 +51,40 @@ namespace VuonTra.Core
             sb.Append("],\"buyMode\":").Append(s.BuyMode.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"lastSeen\":").Append(s.LastSeenUnixSeconds.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"hintSeen\":").Append(s.HintSeen ? "true" : "false");
-            sb.Append('}');
+
+            sb.Append(",\"upgrades\":[");
+            int upgradeCount = upgrades == null ? 0 : Math.Min(upgrades.Count, s.UpgradeLevels.Length);
+            for (int i = 0; i < upgradeCount; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":");
+                WriteString(sb, upgrades[i].Id);
+                sb.Append(",\"level\":").Append(s.UpgradeLevels[i].ToString(CultureInfo.InvariantCulture)).Append('}');
+            }
+            sb.Append("],\"clovers\":").Append(s.Clovers.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"taps\":").Append(s.TotalTaps.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"levelsBought\":").Append(s.LevelsBought.ToString(CultureInfo.InvariantCulture));
+            WriteBig(sb, "earned", s.TotalEarned);
+            sb.Append(",\"dailyDay\":").Append(s.DailyDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"dailyTaps\":").Append(s.DailyTapsBase.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"dailyLevels\":").Append(s.DailyLevelsBase.ToString(CultureInfo.InvariantCulture));
+            WriteBig(sb, "dailyEarned", s.DailyEarnedBase);
+            WriteBig(sb, "dailyTarget", s.DailyCarrotTarget);
+            sb.Append(",\"claimed\":[");
+            bool first = true;
+            foreach (string id in s.Claimed)
+            {
+                if (!first) sb.Append(',');
+                first = false;
+                WriteString(sb, id);
+            }
+            sb.Append("]}");
             return sb.ToString();
         }
 
-        public static LoadResult Decode(IReadOnlyList<StationDef> defs, string json)
+        public static LoadResult Decode(IReadOnlyList<StationDef> defs, string json, IReadOnlyList<UpgradeDef> upgrades = null)
         {
-            var result = new LoadResult { State = GameState.NewGame(defs) };
+            var result = new LoadResult { State = GameState.NewGame(defs, upgrades == null ? 0 : upgrades.Count) };
             if (string.IsNullOrWhiteSpace(json))
             {
                 result.Status = LoadStatus.Empty;
@@ -116,6 +144,36 @@ namespace VuonTra.Core
             s.LastSeenUnixSeconds = ToLong(lastSeen);
             s.HintSeen = root.TryGetValue("hintSeen", out object hint) && hint is bool b && b;
 
+            // Everything below arrived in version 2; a version 1 save simply has none of it.
+            if (upgrades != null && root.TryGetValue("upgrades", out object upgradesObj) && upgradesObj is List<object> savedUpgrades)
+            {
+                foreach (object item in savedUpgrades)
+                {
+                    if (!(item is Dictionary<string, object> entry)) continue;
+                    if (!(entry.TryGetValue("id", out object idObj) && idObj is string id)) continue;
+                    for (int i = 0; i < upgrades.Count; i++)
+                    {
+                        if (upgrades[i].Id != id) continue;
+                        TryNumber(entry, "level", out double level);
+                        s.UpgradeLevels[i] = (int)Math.Max(0d, Math.Min(level, upgrades[i].MaxLevel));
+                    }
+                }
+            }
+            s.Clovers = (int)Math.Max(0d, Math.Min(ReadNumber(root, "clovers"), int.MaxValue));
+            s.TotalTaps = Math.Max(0L, ToLong(ReadNumber(root, "taps")));
+            s.LevelsBought = Math.Max(0L, ToLong(ReadNumber(root, "levelsBought")));
+            s.TotalEarned = ReadBig(root, "earned");
+            s.DailyDay = ToLong(ReadNumber(root, "dailyDay"));
+            s.DailyTapsBase = Math.Max(0L, ToLong(ReadNumber(root, "dailyTaps")));
+            s.DailyLevelsBase = Math.Max(0L, ToLong(ReadNumber(root, "dailyLevels")));
+            s.DailyEarnedBase = ReadBig(root, "dailyEarned");
+            s.DailyCarrotTarget = ReadBig(root, "dailyTarget");
+            if (root.TryGetValue("claimed", out object claimedObj) && claimedObj is List<object> claimed)
+            {
+                foreach (object item in claimed)
+                    if (item is string claimedId) s.Claimed.Add(claimedId);
+            }
+
             result.Status = LoadStatus.Ok;
             return result;
         }
@@ -136,6 +194,23 @@ namespace VuonTra.Core
             }
             value = 0d;
             return false;
+        }
+
+        static double ReadNumber(Dictionary<string, object> obj, string key)
+        {
+            TryNumber(obj, key, out double value);
+            return value;
+        }
+
+        static BigNum ReadBig(Dictionary<string, object> obj, string key)
+        {
+            return BigNum.FromParts(ReadNumber(obj, key + "Mantissa"), ToLong(ReadNumber(obj, key + "Exponent")));
+        }
+
+        static void WriteBig(StringBuilder sb, string key, BigNum value)
+        {
+            sb.Append(",\"").Append(key).Append("Mantissa\":").Append(value.Mantissa.ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"").Append(key).Append("Exponent\":").Append(value.Exponent.ToString(CultureInfo.InvariantCulture));
         }
 
         static long ToLong(double v)

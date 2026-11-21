@@ -22,8 +22,18 @@ namespace VuonTra.Game.UI
 
         readonly List<StationActorView> _actors = new List<StationActorView>();
         readonly List<StationRowView> _rows = new List<StationRowView>();
+        readonly List<UpgradeRowView> _upgradeRows = new List<UpgradeRowView>();
+        readonly List<QuestRowView> _questRows = new List<QuestRowView>();
         readonly Dictionary<int, Image> _modeButtons = new Dictionary<int, Image>();
         readonly Dictionary<int, Text> _modeLabels = new Dictionary<int, Text>();
+        readonly GameObject[] _lists = new GameObject[3];
+        readonly Image[] _tabButtons = new Image[3];
+        readonly Text[] _tabLabels = new Text[3];
+        GameObject _modes, _badge;
+        Text _badgeText, _clovers;
+
+        /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests.</summary>
+        public int Tab { get; private set; }
 
         public Tweens Tweens { get; } = new Tweens();
         public FeelLayer Feel { get; private set; }
@@ -186,15 +196,63 @@ namespace VuonTra.Game.UI
             bar.pivot = new Vector2(0.5f, 1f);
             bar.sizeDelta = new Vector2(0, 128);
             UiKit.Rect("Handle", bar).Place(0.5f, 1f, 0, -18, 96, 10).AddImage(catalog.Panel, Palette.Track, true);
-            UiKit.Rect("Heading", bar).Stretch(0, 0, 0.5f, 1, 48, 0, 0, 18)
-                .AddText("Trạm trà", 40, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            UiKit.Rect("Modes", bar).Place(1f, 0.5f, -252, -9, 440, 80).AddImage(catalog.Panel, Palette.Track, true);
-            AddModeButton(bar, catalog, 1, "×1", -396);
-            AddModeButton(bar, catalog, 10, "×10", -268);
-            AddModeButton(bar, catalog, 0, "Tối đa", -122);
+            UiKit.Rect("Tabs", bar).Place(0f, 0.5f, 274, -9, 492, 80).AddImage(catalog.Panel, Palette.Track, true);
+            AddTabButton(bar, catalog, 0, "Trạm", 108, 144);
+            AddTabButton(bar, catalog, 1, "Bùa", 252, 132);
+            AddTabButton(bar, catalog, 2, "Nhiệm vụ", 418, 188);
 
-            var scrollRt = UiKit.Rect("Scroll", _drawer).Stretch(0, 0, 1, 1, 0, 80, 0, 128);
+            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 506, 22, 44, 44);
+            badge.AddImage(catalog.Round, Palette.CarrotLip);
+            _badgeText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _badge = badge.gameObject;
+
+            var modes = UiKit.Rect("Modes", bar).Stretch(0, 0, 1, 1);
+            _modes = modes.gameObject;
+            UiKit.Rect("Track", modes).Place(1f, 0.5f, -222, -9, 388, 80).AddImage(catalog.Panel, Palette.Track, true);
+            AddModeButton(modes, catalog, 1, "×1", -360);
+            AddModeButton(modes, catalog, 10, "×10", -252);
+            AddModeButton(modes, catalog, 0, "Tối đa", -116);
+
+            RectTransform stations = AddList("Scroll", 0);
+            for (int i = 0; i < catalog.Stations.Length; i++)
+            {
+                var row = new StationRowView(i);
+                row.Build(stations, catalog, catalog.Stations[i], OnBuy);
+                _rows.Add(row);
+            }
+
+            RectTransform upgrades = AddList("Upgrades", 1);
+            AddNote(upgrades, "Bùa có tác dụng với cả khu vườn.");
+            for (int i = 0; i < catalog.Upgrades.Length; i++)
+            {
+                var row = new UpgradeRowView(i);
+                row.Build(upgrades, catalog, catalog.Upgrades[i], OnBuyUpgrade);
+                _upgradeRows.Add(row);
+            }
+
+            RectTransform quests = AddList("Quests", 2);
+            _clovers = AddNote(quests, "");
+            AddNote(quests, "Hôm nay", true);
+            for (int pass = 0; pass < 2; pass++)
+            {
+                if (pass == 1) AddNote(quests, "Thành tựu", true);
+                for (int i = 0; i < catalog.Quests.Length; i++)
+                {
+                    if (catalog.Quests[i].Daily != (pass == 0)) continue;
+                    var row = new QuestRowView(i);
+                    row.Build(quests, catalog, catalog.Quests[i], OnClaim);
+                    _questRows.Add(row);
+                }
+            }
+
+            SetTab(0);
+        }
+
+        /// <summary>A scrolling column of cards under the drawer's header; returns where the cards go.</summary>
+        RectTransform AddList(string name, int tab)
+        {
+            var scrollRt = UiKit.Rect(name, _drawer).Stretch(0, 0, 1, 1, 0, 80, 0, 128);
             scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
@@ -214,18 +272,52 @@ namespace VuonTra.Game.UI
             fitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             scroll.content = content;
             scroll.viewport = scrollRt;
+            _lists[tab] = scrollRt.gameObject;
+            return content;
+        }
 
-            for (int i = 0; i < catalog.Stations.Length; i++)
+        Text AddNote(RectTransform list, string text, bool heading = false)
+        {
+            var rt = UiKit.Rect(heading ? "Heading" : "Note", list);
+            var layout = rt.gameObject.AddComponent<LayoutElement>();
+            layout.preferredHeight = heading ? 52 : 44;
+            return rt.AddText(text, heading ? 30 : 25, heading ? Palette.Ink : Palette.InkSoft,
+                TextAnchor.MiddleLeft, heading ? FontStyle.Bold : FontStyle.Normal);
+        }
+
+        void AddTabButton(RectTransform bar, GameCatalog catalog, int tab, string label, float x, float width)
+        {
+            var rt = UiKit.Rect("Tab " + label, bar).Place(0f, 0.5f, x, -9, width, 64);
+            Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
+            img.raycastTarget = true;
+            var button = rt.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = img;
+            button.onClick.AddListener(() =>
             {
-                var row = new StationRowView(i);
-                row.Build(content, catalog, catalog.Stations[i], OnBuy);
-                _rows.Add(row);
+                Sfx.Click();
+                SetTab(tab);
+            });
+            _tabLabels[tab] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(label, 27, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _tabButtons[tab] = img;
+        }
+
+        public void SetTab(int tab)
+        {
+            Tab = Mathf.Clamp(tab, 0, 2);
+            for (int i = 0; i < 3; i++)
+            {
+                _lists[i].SetActive(i == Tab);
+                _tabButtons[i].color = i == Tab ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
+                _tabLabels[i].color = i == Tab ? Palette.Card : Palette.InkSoft;
             }
+            _modes.SetActive(Tab == 0);
+            if (_built && Feel != null) Refresh(-1f);
         }
 
         void AddModeButton(RectTransform bar, GameCatalog catalog, int mode, string label, float x)
         {
-            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -9, mode == 0 ? 160 : 116, 64);
+            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -9, mode == 0 ? 150 : 100, 64);
             Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -299,16 +391,24 @@ namespace VuonTra.Game.UI
             GameState s = Runner.State;
             IReadOnlyList<StationDef> defs = Runner.Defs;
 
-            BigNum perSecond = Economy.IncomePerSecond(defs, s);
+            Modifiers m = Runner.Mods;
+            BigNum perSecond = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier);
             _perSecond.text = "+" + (perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.ToShortString()) + "/giây";
             _hint.SetActive(!s.HintSeen && Shell.State != ShellState.Title);
             if (dt < 0f) _shownCoins = s.Coins.ToDouble();
 
             for (int i = 0; i < _rows.Count; i++)
             {
-                _rows[i].Refresh(defs, s, dt);
+                _rows[i].Refresh(defs, s, m, dt);
                 _actors[i].SetLevel(s.Levels[i], defs[i].Kind == StationKind.Brew);
             }
+            for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
+            for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
+
+            int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s);
+            _badge.SetActive(claimable > 0);
+            _badgeText.text = claimable.ToString();
+            _clovers.text = "Cỏ bốn lá: " + s.Clovers + " · dùng để đón thỏ mới ở bản sau";
 
             foreach (KeyValuePair<int, Image> pair in _modeButtons)
             {
@@ -377,6 +477,40 @@ namespace VuonTra.Game.UI
                 Feel.Burst(Feel.PointOf(actor, new Vector2(0, 40)), catalog.Round,
                     new[] { Palette.Carrot, Palette.Lantern, Palette.Blush }, 8, 380f, 18f);
             }
+        }
+
+        void OnBuyUpgrade(int index)
+        {
+            if (!Runner.BuyUpgrade(index)) return;
+            _upgradeRows[index].Buy.Press(Tweens);
+            Sfx.Sting();
+            UpgradeData data = Runner.Catalog.Upgrades[index];
+            Feel.Moment(data.DisplayName + " cấp " + Runner.State.UpgradeLevels[index], data.Description);
+        }
+
+        void OnClaim(int index)
+        {
+            QuestRowView row = RowOfQuest(index);
+            if (!Runner.ClaimQuest(index, out BigNum paid)) return;
+            if (row != null) row.Claim.Press(Tweens);
+            Sfx.Sting();
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), "+" + paid.ToShortString(), Palette.Lantern, 46);
+            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 12, 520f, 46f);
+        }
+
+        QuestRowView RowOfQuest(int questIndex)
+        {
+            // Rows are listed dailies first, so a row's position is not its quest index.
+            GameCatalog catalog = Runner.Catalog;
+            int position = 0;
+            for (int pass = 0; pass < 2; pass++)
+                for (int i = 0; i < catalog.Quests.Length; i++)
+                {
+                    if (catalog.Quests[i].Daily != (pass == 0)) continue;
+                    if (i == questIndex) return _questRows[position];
+                    position++;
+                }
+            return null;
         }
 
         void OnPayout(int index, BigNum amount)

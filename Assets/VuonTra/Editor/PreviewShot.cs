@@ -53,6 +53,18 @@ namespace VuonTra.EditorTools
             Step(screen, 0.6f);
             Capture(screen, "4-pause");
 
+            screen.Shell.Resume();
+            Step(screen, 0.6f);
+            screen.SetTab(1);
+            Step(screen, 0.3f);
+            Capture(screen, "5-upgrades");
+
+            state.TotalTaps = 37;
+            screen.SetTab(2);
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Capture(screen, "6-quests");
+
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

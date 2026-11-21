@@ -63,7 +63,7 @@ namespace VuonTra.Game.UI
         }
 
         /// <param name="deltaTime">Seconds since the last refresh; negative jumps bars straight to their value.</param>
-        public void Refresh(IReadOnlyList<StationDef> defs, GameState s, float deltaTime)
+        public void Refresh(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, float deltaTime)
         {
             StationDef d = defs[_index];
             int level = s.Levels[_index];
@@ -77,7 +77,7 @@ namespace VuonTra.Game.UI
                 BigNum cost = Economy.CostOfNext(d, 0, 1);
                 _level.text = "Chưa mở";
                 _levelChip.color = Palette.OffLip;
-                _sub.text = previousOpen ? Describe(defs, s, d, 1) : "Mở trạm phía trên trước";
+                _sub.text = previousOpen ? Describe(defs, s, d, 1, m) : "Mở trạm phía trên trước";
                 _buyTop.text = "Mở trạm";
                 _buyCost.text = cost.ToShortString();
                 canAfford = previousOpen && s.Coins >= cost;
@@ -91,7 +91,7 @@ namespace VuonTra.Game.UI
                 int prev = Economy.PreviousMilestone(level);
                 _level.text = "Cấp " + level;
                 _levelChip.color = Palette.Moss;
-                _sub.text = Describe(defs, s, d, level) + (next > 0 ? " · ×2 ở cấp " + next : "");
+                _sub.text = Describe(defs, s, d, level, m) + (next > 0 ? " · ×2 ở cấp " + next : "");
                 _buyTop.text = "Nâng +" + count;
                 _buyCost.text = cost.ToShortString();
                 canAfford = s.Coins >= cost;
@@ -109,14 +109,14 @@ namespace VuonTra.Game.UI
             _milestoneFill.anchorMax = new Vector2(Mathf.Clamp01(_shownMilestone), 1f);
         }
 
-        string Describe(IReadOnlyList<StationDef> defs, GameState s, StationDef d, int level)
+        string Describe(IReadOnlyList<StationDef> defs, GameState s, StationDef d, int level, Modifiers m)
         {
             if (d.Kind == StationKind.Brew)
             {
                 BigNum income = s.Levels[_index] > 0
                     ? Economy.IncomePerCycle(defs, s, _index)
                     : new BigNum(d.BaseIncome);
-                return income.ToShortString() + " cà rốt / " + UiKit.Seconds(d.CycleSeconds) + " giây";
+                return (income * m.IncomeMultiplier).ToShortString() + " cà rốt / " + UiKit.Seconds(d.CycleSeconds / m.SpeedMultiplier) + " giây";
             }
 
             var names = new StringBuilder();

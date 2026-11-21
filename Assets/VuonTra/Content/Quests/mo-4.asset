@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8704501d219f436d93221f29ed4dd17, type: 3}
+  m_Name: mo-4
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
+  Id: mo-4
+  Title: "C\xF3 4 tr\u1EA1m \u0111ang ho\u1EA1t \u0111\u1ED9ng"
+  Metric: 3
+  Station: {fileID: 0}
+  Target: 4
+  Daily: 0
+  RewardSeconds: 900
+  RewardCarrots: 500
+  RewardClovers: 2

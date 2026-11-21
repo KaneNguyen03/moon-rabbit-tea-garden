@@ -14,14 +14,35 @@ namespace VuonTra.Core
         public long LastSeenUnixSeconds;
         public bool HintSeen;
 
-        public static GameState NewGame(IReadOnlyList<StationDef> defs)
+        /// <summary>Levels of the garden-wide upgrades, indexed like the upgrade list.</summary>
+        public int[] UpgradeLevels = new int[0];
+        /// <summary>Rare currency from quests; spent on new rabbits in a later milestone.</summary>
+        public int Clovers;
+
+        // Lifetime counters that quests read.
+        public long TotalTaps;
+        public long LevelsBought;
+        public BigNum TotalEarned;
+
+        // Daily quests count from these snapshots, taken when the day began.
+        public long DailyDay;
+        public long DailyTapsBase;
+        public long DailyLevelsBase;
+        public BigNum DailyEarnedBase;
+        public BigNum DailyCarrotTarget;
+
+        /// <summary>Ids of quests already paid out. Daily ids are removed when a new day starts.</summary>
+        public HashSet<string> Claimed = new HashSet<string>();
+
+        public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState
             {
                 Coins = BigNum.Zero,
                 Levels = new int[defs.Count],
                 Progress = new double[defs.Count],
-                BuyMode = 1
+                BuyMode = 1,
+                UpgradeLevels = new int[upgradeCount]
             };
             if (defs.Count > 0) s.Levels[0] = 1;
             return s;

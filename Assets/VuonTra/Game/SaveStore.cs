@@ -24,7 +24,7 @@ namespace VuonTra.Game
         /// <summary>True when the file on disk came from a newer build, so saving is off.</summary>
         public bool ReadOnly => _readOnly;
 
-        public LoadResult Load(IReadOnlyList<StationDef> defs)
+        public LoadResult Load(IReadOnlyList<StationDef> defs, IReadOnlyList<UpgradeDef> upgrades = null)
         {
             string json = null;
             try
@@ -35,10 +35,10 @@ namespace VuonTra.Game
             {
                 Debug.LogWarning("Không đọc được file lưu: " + e.Message);
                 _readOnly = true; // do not overwrite what we could not read
-                return new LoadResult { Status = LoadStatus.Corrupt, State = GameState.NewGame(defs) };
+                return new LoadResult { Status = LoadStatus.Corrupt, State = GameState.NewGame(defs, upgrades == null ? 0 : upgrades.Count) };
             }
 
-            LoadResult result = SaveCodec.Decode(defs, json);
+            LoadResult result = SaveCodec.Decode(defs, json, upgrades);
             if (result.Status == LoadStatus.Corrupt)
             {
                 try { File.Copy(MainPath, BadPath, true); }
@@ -51,13 +51,13 @@ namespace VuonTra.Game
             return result;
         }
 
-        public bool Save(IReadOnlyList<StationDef> defs, GameState state)
+        public bool Save(IReadOnlyList<StationDef> defs, GameState state, IReadOnlyList<UpgradeDef> upgrades = null)
         {
             if (_readOnly) return false;
             try
             {
                 Directory.CreateDirectory(_dir);
-                File.WriteAllText(TempPath, SaveCodec.Encode(defs, state));
+                File.WriteAllText(TempPath, SaveCodec.Encode(defs, state, upgrades));
                 if (File.Exists(MainPath)) File.Delete(MainPath);
                 File.Move(TempPath, MainPath);
                 return true;

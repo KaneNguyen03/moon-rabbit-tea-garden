@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a06e73d1e9a640eca36b42dfbde8909, type: 3}
+  m_Name: tay-am
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.UpgradeData
+  Id: tay-am
+  DisplayName: "B\xE0n tay \u1EA5m"
+  Description: "M\u1ED7i l\u1EA7n ch\u1EA1m l\xE0m nhanh th\xEAm 0,2 gi\xE2y"
+  Effect: 0
+  Amount: 0.2
+  BaseCost: 80
+  CostGrowth: 3
+  MaxLevel: 10
+  Glyph: +
+  Accent: {r: 0.9647059, g: 0.64705884, b: 0.72156864, a: 1}

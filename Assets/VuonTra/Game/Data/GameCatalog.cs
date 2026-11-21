@@ -9,6 +9,8 @@ namespace VuonTra.Game
     public sealed class GameCatalog : ScriptableObject
     {
         public StationData[] Stations = new StationData[0];
+        public UpgradeData[] Upgrades = new UpgradeData[0];
+        public QuestData[] Quests = new QuestData[0];
 
         [Header("Shared art (swap the files to reskin)")]
         public Sprite Rabbit;
@@ -24,6 +26,20 @@ namespace VuonTra.Game
         {
             var defs = new List<StationDef>(Stations.Length);
             foreach (var s in Stations) defs.Add(s.ToDef());
+            return defs;
+        }
+
+        public List<UpgradeDef> BuildUpgrades()
+        {
+            var defs = new List<UpgradeDef>(Upgrades.Length);
+            foreach (var u in Upgrades) defs.Add(u.ToDef());
+            return defs;
+        }
+
+        public List<QuestDef> BuildQuests()
+        {
+            var defs = new List<QuestDef>(Quests.Length);
+            foreach (var q in Quests) defs.Add(q.ToDef());
             return defs;
         }
     }

@@ -100,6 +100,7 @@ namespace VuonTra.EditorTools
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
 
+            MetaSeeder.Seed(catalog); // upgrades and quests
             BuildScene(catalog);
             ApplyPlayerSettings();
             AssetDatabase.SaveAssets();
