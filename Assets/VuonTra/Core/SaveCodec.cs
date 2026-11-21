@@ -29,8 +29,8 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience.</summary>
-        public const int CurrentVersion = 10;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile.</summary>
+        public const int CurrentVersion = 11;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -147,7 +147,13 @@ namespace VuonTra.Core
                 sb.Append(",\"wornBy\":").Append(item.WornBy.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
-            sb.Append("]}");
+            // Version 11: the player profile.
+            sb.Append("],\"profile\":{\"name\":");
+            WriteString(sb, s.Profile.GardenName);
+            sb.Append(",\"avatar\":").Append(s.Profile.AvatarRabbitId.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"code\":");
+            WriteString(sb, s.Profile.Code);
+            sb.Append("}}");
             return sb.ToString();
         }
 
@@ -359,6 +365,17 @@ namespace VuonTra.Core
                     bool golden = entry.TryGetValue("golden", out object goldenObj) && goldenObj is bool g && g;
                     s.Tray.Add(new Product { Station = station, Count = count, Golden = golden });
                 }
+
+            // Version 11: the profile. A save from before it, or with a code that is not one, gets a fresh code;
+            // the avatar must be a rabbit that is still here.
+            if (root.TryGetValue("profile", out object profileObj) && profileObj is Dictionary<string, object> profile)
+            {
+                s.Profile.GardenName = profile.TryGetValue("name", out object nameObj) && nameObj is string gardenName ? (Profile.CleanName(gardenName) ?? "") : "";
+                long avatar = ToLong(ReadNumber(profile, "avatar"));
+                s.Profile.AvatarRabbitId = avatar > 0 && Rabbits.Find(s, avatar) != null ? avatar : 0;
+                if (profile.TryGetValue("code", out object codeObj) && codeObj is string code && Profile.IsCode(code)) s.Profile.Code = code;
+            }
+            if (!Profile.IsCode(s.Profile.Code)) s.Profile.Code = Profile.NewCode();
 
             result.Status = LoadStatus.Ok;
             return result;

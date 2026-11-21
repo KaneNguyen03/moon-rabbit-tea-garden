@@ -1997,5 +1997,62 @@ namespace VuonTra.Core.Tests
             Find("Canvas/Away/Card/Ok").onClick.Invoke();
             Assert.IsFalse(away.gameObject.activeSelf);
         }
+
+        [Test]
+        public void The_Pause_Card_Leads_To_A_Profile_With_Name_Code_Avatar_And_A_Local_Only_Backup()
+        {
+            string second = RabbitKinds.OfTier(2)[0].Id;
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 2, Kind = second, Name = "Mây" });
+            runner.State.NextRabbitId = 2;
+            runner.State.GardenXp = Garden.XpForLevel(4);
+            string code = runner.State.Profile.Code;
+            screen.Shell.StartGame();
+            screen.Shell.OpenPause();
+            screen.Refresh();
+
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+            Assert.AreEqual(L10n.T("profile.unnamed"), T("Canvas/Pause/Card/Profile/Name").text, "an unnamed garden still has a name to show");
+            Assert.AreEqual(code, T("Canvas/Pause/Card/Profile/Code").text);
+
+            Find("Canvas/Pause/Card/Profile").onClick.Invoke();
+            Assert.IsTrue(screen.Profile.IsOpen);
+            Assert.AreEqual(L10n.T("profile.unnamed"), T("Canvas/Profile/Card/Name").text);
+            Assert.AreEqual(code, T("Canvas/Profile/Card/Code").text);
+            Assert.AreEqual(L10n.T("profile.stats", 4, 2, 1), T("Canvas/Profile/Card/Stats").text, "garden level, rabbits, stations open");
+            Image art = root.transform.Find("Canvas/Profile/Card/Avatar/Art").GetComponent<Image>();
+            Assert.AreEqual("kind_tho-bong", art.sprite.name, "the first rabbit stands in until one is chosen");
+
+            Find("Canvas/Profile/Card/Avatar").onClick.Invoke();
+            Assert.AreEqual(2, runner.State.Profile.AvatarRabbitId, "a touch on the picture picks the next rabbit");
+            Assert.AreEqual("kind_" + second, art.sprite.name);
+
+            string copied = null;
+            ProfileView.Clipboard = text => copied = text;
+            Find("Canvas/Profile/Card/Copy").onClick.Invoke();
+            Assert.AreEqual(code, copied);
+            Assert.AreEqual(L10n.T("profile.copied"), T("Canvas/Profile/Card/Copy/Face/Text").text);
+
+            Assert.AreEqual(L10n.T("backup.local"), T("Canvas/Profile/Card/Backup").text);
+            Assert.IsFalse(Find("Canvas/Profile/Card/Link").interactable, "nothing to link to yet");
+            Assert.AreEqual(L10n.T("backup.soon"), T("Canvas/Profile/Card/LinkNote").text);
+
+            Find("Canvas/Profile/Card/Rename").onClick.Invoke();
+            Assert.IsTrue(screen.Rename.IsOpen);
+            Assert.AreEqual(L10n.T("profile.rename"), T("Canvas/Rename/Card/Title").text, "the card says it is the garden being named");
+            var input = root.transform.Find("Canvas/Rename/Card/Input").GetComponent<InputField>();
+            input.text = "  Trà   Trăng ";
+            Find("Canvas/Rename/Card/Save").onClick.Invoke();
+            Assert.IsFalse(screen.Rename.IsOpen);
+            Assert.AreEqual("Trà Trăng", runner.State.Profile.GardenName);
+            Assert.AreEqual("Trà Trăng", T("Canvas/Profile/Card/Name").text);
+
+            Find("Canvas/Profile/Card/Close").onClick.Invoke();
+            Assert.IsFalse(screen.Profile.IsOpen);
+            Assert.AreEqual(ShellState.Paused, screen.Shell.State, "back on the pause card");
+            screen.Refresh();
+            Assert.AreEqual("Trà Trăng", T("Canvas/Pause/Card/Profile/Name").text);
+            Assert.AreEqual("kind_" + second, root.transform.Find("Canvas/Pause/Card/Profile/Avatar/Art").GetComponent<Image>().sprite.name);
+        }
     }
 }

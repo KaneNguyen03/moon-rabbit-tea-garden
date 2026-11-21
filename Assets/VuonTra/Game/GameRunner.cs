@@ -237,6 +237,24 @@ namespace VuonTra.Game
             return ok;
         }
 
+        /// <summary>Where the save could be backed up to. Local-only until a store sign-in is wired in (#38, #39, #40).</summary>
+        public IAccountService Account { get; set; } = new LocalOnlyAccount();
+
+        public bool RenameGarden(string name)
+        {
+            bool ok = Profile.Rename(State, name);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>Makes the next rabbit the player's avatar; null when there are none.</summary>
+        public Rabbit NextAvatar()
+        {
+            Rabbit next = Profile.NextAvatar(State);
+            if (next != null) Changed();
+            return next;
+        }
+
         public bool EquipItem(long itemId, long rabbitId)
         {
             bool ok = Items.Equip(State, itemId, rabbitId);

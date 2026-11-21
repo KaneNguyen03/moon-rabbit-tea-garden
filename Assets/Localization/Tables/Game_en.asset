@@ -1294,6 +1294,66 @@ MonoBehaviour:
     m_Localized: Drag and zoom to frame it
     m_Metadata:
       m_Items: []
+  - m_Id: 84286723055616
+    m_Localized: Player profile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444224
+    m_Localized: Profile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444225
+    m_Localized: An unnamed garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444226
+    m_Localized: Name your garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444227
+    m_Localized: Player code
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444228
+    m_Localized: Copy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444229
+    m_Localized: Copied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444230
+    m_Localized: "Garden level {0} \xB7 {1} rabbits \xB7 {2} stations"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444231
+    m_Localized: Tap the picture to change your rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444232
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444233
+    m_Localized: Backup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444234
+    m_Localized: Only on this device
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444235
+    m_Localized: "Linked \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444236
+    m_Localized: Link an account
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444237
+    m_Localized: 'Coming soon: Game Center on iPhone, Google Play on Android'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

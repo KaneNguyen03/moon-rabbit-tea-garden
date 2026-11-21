@@ -13,9 +13,12 @@ namespace VuonTra.Game.UI
         readonly Tweens _tweens;
         readonly InputField _input;
         readonly Action<long, string> _onSave;
+        readonly Text _title;
         long _rabbitId;
+        Action<string> _onSaveText;
 
         public bool IsOpen => _root.activeSelf;
+        public RectTransform Root => (RectTransform)_root.transform;
 
         public RenameView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long, string> onSave)
         {
@@ -30,7 +33,7 @@ namespace VuonTra.Game.UI
             _card.AddShadow(26f, 16f, 0.45f);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
-            UiKit.Rect("Title", _card).Place(0.5f, 1f, 0, -84, 760, 70)
+            _title = UiKit.Rect("Title", _card).Place(0.5f, 1f, 0, -84, 760, 70)
                 .AddText(L10n.T("rename.title"), 46, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var field = UiKit.Rect("Input", _card).Place(0.5f, 1f, 0, -210, 700, 110);
@@ -79,7 +82,16 @@ namespace VuonTra.Game.UI
             Rabbit rabbit = Rabbits.Find(s, rabbitId);
             if (rabbit == null) return;
             _rabbitId = rabbitId;
-            _input.text = rabbit.Name ?? "";
+            Open(L10n.T("rename.title"), rabbit.Name ?? "", Rabbits.MaxNameLength, name => _onSave(_rabbitId, name));
+        }
+
+        /// <summary>The same card for any name: the title says what is being named, the limit is the thing's own.</summary>
+        public void Open(string title, string current, int maxLength, Action<string> onSave)
+        {
+            _onSaveText = onSave;
+            _title.text = title;
+            _input.characterLimit = maxLength;
+            _input.text = current ?? "";
             _root.SetActive(true);
             _card.localScale = Vector3.one * 0.85f;
             _tweens.Add(0.25f, t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Ease.OutBack);
@@ -91,7 +103,7 @@ namespace VuonTra.Game.UI
             if (!IsOpen) return;
             // An empty name is not saved; the card stays open so the player can type one or cancel.
             if (Rabbits.CleanName(_input.text) == null) return;
-            _onSave(_rabbitId, _input.text);
+            _onSaveText(_input.text);
             Close();
         }
 

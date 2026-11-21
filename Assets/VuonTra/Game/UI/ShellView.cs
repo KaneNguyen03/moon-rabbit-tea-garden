@@ -27,11 +27,12 @@ namespace VuonTra.Game.UI
         readonly GameObject _title, _pause;
         readonly CanvasGroup _titleGroup, _pauseGroup;
         readonly RectTransform _pauseCard;
-        readonly Text _prompt, _resetLabel;
+        readonly Text _prompt, _resetLabel, _profileName, _profileCode;
+        readonly Image _profileArt;
         readonly Action _onReset;
         float _resetArmedAt = -99f;
 
-        public ShellView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onReset)
+        public ShellView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onReset, Action onProfile = null)
         {
             _tweens = tweens;
             _onReset = onReset;
@@ -64,30 +65,49 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1070);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1190);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
                 .AddText(L10n.T("pause.title"), 60, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            AddVolumeRow(catalog, "Music", L10n.T("pause.music"), -230, Sfx.MusicGain, Sfx.SetMusic);
-            AddVolumeRow(catalog, "Effects", L10n.T("pause.sfx"), -340, Sfx.SfxGain, v =>
+            // Who is playing: the avatar rabbit, the garden's name and the player code; a touch opens the profile.
+            var profile = UiKit.Rect("Profile", _pauseCard).Place(0.5f, 1f, 0, -210, 700, 110);
+            Image profilePlate = profile.AddImage(catalog.Panel, Palette.Track, true);
+            profilePlate.raycastTarget = true;
+            var profileButton = profile.gameObject.AddComponent<Button>();
+            profileButton.transition = Selectable.Transition.None;
+            profileButton.targetGraphic = profilePlate;
+            profileButton.onClick.AddListener(() => { Sfx.Click(); onProfile?.Invoke(); });
+            var avatar = UiKit.Rect("Avatar", profile).Place(0f, 0.5f, 62, 0, 88, 88);
+            avatar.AddImage(catalog.Round, Palette.Paper);
+            _profileArt = UiKit.Rect("Art", avatar).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(catalog.Rabbit, Color.white);
+            _profileArt.preserveAspect = true;
+            _profileName = UiKit.Rect("Name", profile).Stretch(0, 0.5f, 1, 1, 124, 0, 70, 10)
+                .AddText("", 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+            _profileName.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _profileCode = UiKit.Rect("Code", profile).Stretch(0, 0, 1, 0.5f, 124, 12, 70, 0)
+                .AddText("", 24, Palette.InkSoft, TextAnchor.UpperLeft);
+            UiKit.Rect("Chevron", profile).Place(1f, 0.5f, -40, 0, 40, 60).AddText("›", 44, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+
+            AddVolumeRow(catalog, "Music", L10n.T("pause.music"), -350, Sfx.MusicGain, Sfx.SetMusic);
+            AddVolumeRow(catalog, "Effects", L10n.T("pause.sfx"), -460, Sfx.SfxGain, v =>
             {
                 Sfx.SetSfx(v);
                 Sfx.Click();
             });
 
             // Language: two pills; the package does the switching and the screen rebuilds itself.
-            UiKit.Rect("Language Label", _pauseCard).Place(0.5f, 1f, -200, -450, 300, 60)
+            UiKit.Rect("Language Label", _pauseCard).Place(0.5f, 1f, -200, -570, 300, 60)
                 .AddText(L10n.T("pause.language"), 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            UiKit.Rect("Language Track", _pauseCard).Place(0.5f, 1f, 130, -450, 440, 76).AddImage(catalog.Panel, Palette.Track, true);
+            UiKit.Rect("Language Track", _pauseCard).Place(0.5f, 1f, 130, -570, 440, 76).AddImage(catalog.Panel, Palette.Track, true);
             AddLanguageButton(catalog, "vi", 22);
             AddLanguageButton(catalog, "en", 238);
 
             // For players who get dizzy: slides, glides and bounces are skipped.
-            AddToggleRow(catalog, "Motion", L10n.T("pause.motion"), -560, () => Motion.Reduced, Motion.SetReduced);
+            AddToggleRow(catalog, "Motion", L10n.T("pause.motion"), -680, () => Motion.Reduced, Motion.SetReduced);
             // Short buzzes on a phone for upgrades, milestones and new rabbits.
-            AddToggleRow(catalog, "Haptics", L10n.T("pause.haptics"), -660, () => Haptics.On, Haptics.SetOn);
+            AddToggleRow(catalog, "Haptics", L10n.T("pause.haptics"), -780, () => Haptics.On, Haptics.SetOn);
 
             var resume = UiKit.Rect("Resume", _pauseCard).Place(0.5f, 0f, 0, 260, 620, 130);
             ChunkyButton resumeButton = null;
@@ -141,7 +161,7 @@ namespace VuonTra.Game.UI
         void AddLanguageButton(GameCatalog catalog, string code, float x)
         {
             bool current = L10n.Code == code;
-            var rt = UiKit.Rect("Language " + code, _pauseCard).Place(0.5f, 1f, x, -450, 208, 60);
+            var rt = UiKit.Rect("Language " + code, _pauseCard).Place(0.5f, 1f, x, -570, 208, 60);
             Image img = rt.AddImage(catalog.Panel, current ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f), true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -155,6 +175,14 @@ namespace VuonTra.Game.UI
             });
             UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1)
                 .AddText(L10n.T("lang." + code), 28, current ? Palette.Card : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+        }
+
+        /// <summary>Fills the profile row on the pause card.</summary>
+        public void SetProfile(string name, string code, Sprite avatar)
+        {
+            _profileName.text = name;
+            _profileCode.text = code;
+            if (avatar != null) _profileArt.sprite = avatar;
         }
 
         /// <summary>Goes straight to play with no fade or sound (the screen was rebuilt mid-game).</summary>

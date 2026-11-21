@@ -248,6 +248,11 @@ namespace VuonTra.EditorTools
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "10-pause");
+            // The profile behind the pause card's first row: avatar, garden name, code, backup.
+            Press(screen, "Canvas/Pause/Card/Profile");
+            Step(screen, 0.4f);
+            Capture(screen, "17-profile");
+            screen.Profile.Close();
 
             // The same screens in English.
             screen.Shell.Resume();
@@ -274,6 +279,10 @@ namespace VuonTra.EditorTools
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "14-pause-en");
+            Press(screen, "Canvas/Pause/Card/Profile");
+            Step(screen, 0.4f);
+            Capture(screen, "17-profile-en");
+            screen.Profile.Close();
             L10n.SetLocale("vi");
 
             // The whole garden with every station open, to check the layout.

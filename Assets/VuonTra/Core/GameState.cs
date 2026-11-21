@@ -67,6 +67,9 @@ namespace VuonTra.Core
         public long PhotoDay = -1;
         public long PhotosTaken;
 
+        /// <summary>The garden's name, its avatar rabbit and the player code.</summary>
+        public PlayerProfile Profile = new PlayerProfile { Code = VuonTra.Core.Profile.NewCode() };
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

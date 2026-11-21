@@ -121,6 +121,8 @@ namespace VuonTra.Game.UI
         /// <summary>The list of the player's rabbits, opened from a station's empty pad or its card.</summary>
         public WorkerPickerView Workers { get; private set; }
         public RenameView Rename { get; private set; }
+        /// <summary>The player's profile: avatar, garden name, player code, backup.</summary>
+        public ProfileView Profile { get; private set; }
         public RabbitDetailView Detail { get; private set; }
         /// <summary>The moon gate a newly called or merged rabbit steps out of.</summary>
         public SummonMomentView Arrival { get; private set; }
@@ -677,6 +679,7 @@ namespace VuonTra.Game.UI
             Picker = null;
             Workers = null;
             Rename = null;
+            Profile = null;
             Detail = null;
             Arrival = null;
             Shell = null;
@@ -743,7 +746,18 @@ namespace VuonTra.Game.UI
             Workers = new WorkerPickerView(_canvas, catalog, Tweens, (rabbitId, station) => { Sfx.Blip(); Runner.AssignRabbit(rabbitId, station); });
             UpgradeAll = new UpgradeAllView(_canvas, catalog, Tweens, share => Runner.SetSpendShare(share), OnUpgradeAll);
             BuildAwayPopup(catalog);
-            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame());
+            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account));
+            // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
+            Profile = new ProfileView(_canvas, catalog, Tweens,
+                () => { Runner.NextAvatar(); Profile.Refresh(Runner.Defs, Runner.State, Runner.Account); },
+                () => Rename.Open(L10n.T("profile.rename"), Runner.State.Profile.GardenName, VuonTra.Core.Profile.MaxNameLength, name =>
+                {
+                    Sfx.Blip();
+                    Runner.RenameGarden(name);
+                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account);
+                }),
+                () => Runner.Account.Link(ok => Profile.Refresh(Runner.Defs, Runner.State, Runner.Account)));
+            Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
 
@@ -2193,6 +2207,9 @@ namespace VuonTra.Game.UI
             Detail.Refresh(defs, s);
             Picker.Refresh(s);
             Workers.Refresh(defs, s);
+            Profile.Refresh(defs, s, Runner.Account);
+            Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
+            Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
             int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s);
             _barBadge.SetActive(claimable > 0);

@@ -1290,6 +1290,66 @@ MonoBehaviour:
     m_Localized: "K\xE9o v\xE0 zoom \u0111\u1EC3 c\u0103n khung"
     m_Metadata:
       m_Items: []
+  - m_Id: 84286723055616
+    m_Localized: "H\u1ED3 s\u01A1 ng\u01B0\u1EDDi ch\u01A1i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444224
+    m_Localized: "H\u1ED3 s\u01A1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444225
+    m_Localized: "V\u01B0\u1EDDn ch\u01B0a \u0111\u1EB7t t\xEAn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444226
+    m_Localized: "\u0110\u1EB7t t\xEAn cho v\u01B0\u1EDDn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444227
+    m_Localized: "M\xE3 ng\u01B0\u1EDDi ch\u01A1i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444228
+    m_Localized: "Ch\xE9p m\xE3"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444229
+    m_Localized: "\u0110\xE3 ch\xE9p"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444230
+    m_Localized: "C\u1EA5p v\u01B0\u1EDDn {0} \xB7 {1} b\xE9 th\u1ECF \xB7 {2} tr\u1EA1m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444231
+    m_Localized: "Ch\u1EA1m h\xECnh \u0111\u1EC3 \u0111\u1ED5i th\u1ECF \u0111\u1EA1i di\u1EC7n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444232
+    m_Localized: "\u0110\xF3ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444233
+    m_Localized: "Sao l\u01B0u"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444234
+    m_Localized: "Ch\u1EC9 tr\xEAn m\xE1y n\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444235
+    m_Localized: "\u0110\xE3 li\xEAn k\u1EBFt \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444236
+    m_Localized: "Li\xEAn k\u1EBFt t\xE0i kho\u1EA3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 84286731444237
+    m_Localized: "S\u1EAFp c\xF3: Game Center tr\xEAn iPhone, Google Play tr\xEAn Android"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
