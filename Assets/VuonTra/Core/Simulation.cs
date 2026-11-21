@@ -49,13 +49,33 @@ namespace VuonTra.Core
             return true;
         }
 
-        /// <summary>How many levels the buy button would purchase right now.</summary>
+        /// <summary>The buy modes, as the numbers the save file has always kept them in.</summary>
+        public const int BuyOne = 1, BuyTen = 10, BuyMax = 0, BuyToMilestone = -1;
+
+        /// <summary>What a quick upgrade may spend: the share of the purse the player chose to put at risk.</summary>
+        public static BigNum Budget(GameState s) => s.Coins * Math.Max(0.05d, Math.Min(1d, s.SpendShare));
+
+        /// <summary>How many levels the buy button would purchase right now. Always at least one.</summary>
         public static int BuyCount(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
             int level = s.Levels[index];
             if (level == 0) return 1;
-            if (s.BuyMode == 0) return Math.Max(1, Economy.MaxAffordable(defs[index], level, s.Coins));
-            return s.BuyMode == 10 ? 10 : 1;
+            switch (s.BuyMode)
+            {
+                case BuyMax:
+                    return Math.Max(1, Economy.MaxAffordable(defs[index], level, Budget(s)));
+                case BuyToMilestone:
+                {
+                    // Just enough to reach the next doubling; what can be paid for when that is out of reach.
+                    int next = Economy.NextMilestone(level);
+                    int toNext = next > 0 ? next - level : int.MaxValue;
+                    return Math.Max(1, Math.Min(toNext, Economy.MaxAffordable(defs[index], level, Budget(s))));
+                }
+                case BuyTen:
+                    return 10;
+                default:
+                    return 1;
+            }
         }
 
         /// <summary>Buys levels (or unlocks). Leaves the state untouched when it cannot.</summary>

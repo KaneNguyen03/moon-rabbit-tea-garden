@@ -9,8 +9,10 @@ namespace VuonTra.Core
         public int[] Levels;
         /// <summary>Fraction of the current cycle done, 0 ≤ p &lt; 1 between ticks.</summary>
         public double[] Progress;
-        /// <summary>1, 10, or 0 for "Tối đa".</summary>
+        /// <summary>1, 10, 0 for "Tối đa", -1 for "Tới mốc" (see <see cref="Simulation.BuyOne"/> and friends).</summary>
         public int BuyMode = 1;
+        /// <summary>The share of the purse a quick upgrade may spend: 1, 0.5 or 0.25, so some is kept for opening stations.</summary>
+        public double SpendShare = 1d;
         public long LastSeenUnixSeconds;
         public bool HintSeen;
 

@@ -138,6 +138,38 @@ namespace VuonTra.Core
             return true;
         }
 
+        /// <summary>
+        /// How many levels this rabbit could gain for <paramref name="budget"/> carrots, stopping at its tier's
+        /// cap, and what they cost together. Zero when not even one can be paid for.
+        /// </summary>
+        public static int LevelsAffordable(Rabbit r, BigNum budget, out BigNum cost)
+        {
+            cost = BigNum.Zero;
+            int level = Math.Max(1, r.Level), cap = LevelCaps[ClampTier(r.Tier)], n = 0;
+            var probe = new Rabbit { Tier = r.Tier, Level = level };
+            while (probe.Level < cap)
+            {
+                BigNum next = LevelCost(probe);
+                if (cost + next > budget) break;
+                cost += next;
+                probe.Level++;
+                n++;
+            }
+            return n;
+        }
+
+        /// <summary>Levels the rabbit up as many times as the budget allows, never past its cap. Returns how many.</summary>
+        public static int LevelUpMax(GameState s, long id, BigNum budget)
+        {
+            Rabbit r = Find(s, id);
+            if (r == null) return 0;
+            int n = LevelsAffordable(r, budget, out BigNum cost);
+            if (n <= 0 || s.Coins < cost) return 0;
+            s.Coins -= cost;
+            r.Level += n;
+            return n;
+        }
+
         /// <summary>Chance of each tier from one call; they add up to 1.</summary>
         public static readonly double[] Odds = { 0.60, 0.25, 0.10, 0.04, 0.009, 0.001 };
 

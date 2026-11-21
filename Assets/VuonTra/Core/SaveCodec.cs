@@ -30,7 +30,7 @@ namespace VuonTra.Core
     public static class SaveCodec
     {
         /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience.</summary>
-        public const int CurrentVersion = 8;
+        public const int CurrentVersion = 9;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -49,6 +49,7 @@ namespace VuonTra.Core
                 sb.Append('}');
             }
             sb.Append("],\"buyMode\":").Append(s.BuyMode.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"spendShare\":").Append(s.SpendShare.ToString("0.###", CultureInfo.InvariantCulture));
             sb.Append(",\"lastSeen\":").Append(s.LastSeenUnixSeconds.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"hintSeen\":").Append(s.HintSeen ? "true" : "false");
 
@@ -183,12 +184,16 @@ namespace VuonTra.Core
             }
             if (s.Levels.Length > 0 && s.Levels[0] < 1) s.Levels[0] = 1;
 
-            s.BuyMode = 1;
+            s.BuyMode = Simulation.BuyOne;
             if (TryNumber(root, "buyMode", out double buyMode))
             {
-                if (buyMode == 0d) s.BuyMode = 0;
-                else if (buyMode == 10d) s.BuyMode = 10;
+                if (buyMode == Simulation.BuyMax) s.BuyMode = Simulation.BuyMax;
+                else if (buyMode == Simulation.BuyTen) s.BuyMode = Simulation.BuyTen;
+                else if (buyMode == Simulation.BuyToMilestone) s.BuyMode = Simulation.BuyToMilestone;
             }
+            // Version 9: how much of the purse a quick upgrade may spend. Only the three choices the game offers.
+            s.SpendShare = 1d;
+            if (TryNumber(root, "spendShare", out double share) && (share == 0.5d || share == 0.25d)) s.SpendShare = share;
             TryNumber(root, "lastSeen", out double lastSeen);
             s.LastSeenUnixSeconds = ToLong(lastSeen);
             s.HintSeen = root.TryGetValue("hintSeen", out object hint) && hint is bool b && b;
