@@ -39,10 +39,11 @@ namespace VuonTra.EditorTools
             int reach = Mathf.CeilToInt(radius);
             foreach (string file in Directory.GetFiles(Folder, "kind_*.png"))
             {
-                // A picture with a glow painted in has soft edges all round: an ink line would ring the glow, not the rabbit.
+                // A picture with a glow painted in has soft edges all round (an ink line would ring the glow, not the rabbit),
+                // and one drawn with its own ink line needs no second.
                 string id = Path.GetFileNameWithoutExtension(file).Substring("kind_".Length);
                 VuonTra.Core.RabbitKind kind = VuonTra.Core.RabbitKinds.Find(id);
-                if (kind != null && kind.OwnGlow)
+                if (kind != null && (kind.OwnGlow || kind.OwnOutline))
                 {
                     AssetDatabase.DeleteAsset(Generated + "/" + Path.GetFileName(file));
                     continue;

@@ -234,6 +234,14 @@ namespace VuonTra.Game
         }
 
         /// <summary>A resting rabbit goes to the station where it helps most; a working one rests.</summary>
+        /// <summary>Sends a rabbit to a station (whoever was there rests), or to rest with -1.</summary>
+        public bool AssignRabbit(long id, int station)
+        {
+            bool ok = Rabbits.Assign(State, id, station);
+            if (ok) Changed();
+            return ok;
+        }
+
         public bool ToggleRabbitWork(long id)
         {
             Rabbit rabbit = Rabbits.Find(State, id);
@@ -271,6 +279,14 @@ namespace VuonTra.Game
         }
 
         /// <summary>Buys the next garden plot, which lets the next station be opened.</summary>
+        /// <summary>Opens one more place for a resting rabbit to sit in the garden.</summary>
+        public bool BuyRestSpot()
+        {
+            bool ok = RestSpots.TryBuy(State);
+            if (ok) Changed();
+            return ok;
+        }
+
         public bool BuyPlot()
         {
             bool ok = Plots.TryBuy(Defs, State);

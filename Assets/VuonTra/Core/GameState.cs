@@ -46,6 +46,10 @@ namespace VuonTra.Core
 
         /// <summary>Ids of quests already paid out. Daily ids are removed when a new day starts.</summary>
         public HashSet<string> Claimed = new HashSet<string>();
+        /// <summary>Every kind of rabbit the player has ever had, including ones since merged away: the album.</summary>
+        public HashSet<string> SeenKinds = new HashSet<string>();
+        /// <summary>How many places resting rabbits have to sit in the garden.</summary>
+        public int RestSpots = VuonTra.Core.RestSpots.Starting;
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {

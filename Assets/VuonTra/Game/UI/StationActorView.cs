@@ -83,11 +83,10 @@ namespace VuonTra.Game.UI
 
             // What a collected rabbit wears. Both hang from the rabbit, so they squash and hop with it;
             // the hat sits on the top of the head, wherever the ears go.
-            float across = (GameCatalog.KindHeadX - 0.5f) * GuestBox * GameCatalog.KindAspect;
-            _hatImage = UiKit.Rect("HatOn", _rabbit).Place(0.5f, 0f, across, GameCatalog.KindHeadTop * GuestBox + 30f, 112, 112).AddImage(null, Color.white);
+            _hatImage = UiKit.Rect("HatOn", _rabbit).Place(0.5f, 0f, 0, 0, GuestBox * GameCatalog.HatSize, GuestBox * GameCatalog.HatSize).AddImage(null, Color.white);
             _hatImage.preserveAspect = true;
             _hatImage.gameObject.SetActive(false);
-            _charmImage = UiKit.Rect("CharmOn", _rabbit).Place(0.5f, 0f, across + 2f, GuestBox * 0.37f, 48, 48).AddImage(null, Color.white);
+            _charmImage = UiKit.Rect("CharmOn", _rabbit).Place(0.5f, 0f, 0, 0, GuestBox * GameCatalog.CharmSize, GuestBox * GameCatalog.CharmSize).AddImage(null, Color.white);
             _charmImage.preserveAspect = true;
             _charmImage.gameObject.SetActive(false);
 
@@ -137,8 +136,13 @@ namespace VuonTra.Game.UI
         /// Puts a collected rabbit at this station, with what it wears, or with <paramref name="art"/> null
         /// gives the station back its own rabbit. A collected rabbit has no drawn work frames, so it bobs.
         /// </summary>
-        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo)
+        /// <param name="hatNudge">This kind's own nudge for the hat, in shares of the drawing's height.</param>
+        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo, Vector2 hatNudge = default)
         {
+            // The same numbers the rabbit list uses, so a hat sits the same on a rabbit wherever it is drawn.
+            float across = (GameCatalog.KindHeadX - 0.5f + hatNudge.x) * GuestBox * GameCatalog.KindAspect;
+            ((RectTransform)_hatImage.transform).anchoredPosition = new Vector2(across, (GameCatalog.KindHeadTop + hatNudge.y + GameCatalog.HatLift) * GuestBox);
+            ((RectTransform)_charmImage.transform).anchoredPosition = new Vector2(across, (GameCatalog.CharmHeight + hatNudge.y) * GuestBox);
             bool guest = art != null;
             if (guest != _guest || (guest && _rabbitImage.sprite != art))
             {

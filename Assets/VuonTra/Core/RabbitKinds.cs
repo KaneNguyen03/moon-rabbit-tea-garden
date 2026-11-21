@@ -29,9 +29,21 @@ namespace VuonTra.Core
         /// <summary>The picture already has a glow painted in, so the garden adds none of its own.</summary>
         public bool OwnGlow;
 
-        public RabbitKind(string id, int tier, RabbitTrade trade, string nameVi, string nameEn, bool ownGlow = false)
+        /// <summary>
+        /// Where this kind's head is, as a nudge from the usual spot in shares of the drawing's size (right and
+        /// up are positive). Hats and charms both follow it. Zero for the kinds drawn on the shared body.
+        /// </summary>
+        public float HatX, HatY;
+        /// <summary>The picture already has a dark ink line, so it is used as drawn.</summary>
+        public bool OwnOutline;
+        /// <summary>Something grows where a hat would go (antlers, horns, flame): a hat still counts but is not drawn.</summary>
+        public bool NoHat;
+
+        public RabbitKind(string id, int tier, RabbitTrade trade, string nameVi, string nameEn, bool ownGlow = false,
+            float hatX = 0f, float hatY = 0f, bool ownOutline = false, bool noHat = false)
         {
             Id = id; Tier = tier; Trade = trade; NameVi = nameVi; NameEn = nameEn; OwnGlow = ownGlow;
+            HatX = hatX; HatY = hatY; OwnOutline = ownOutline; NoHat = noHat;
         }
     }
 
@@ -87,6 +99,38 @@ namespace VuonTra.Core
             new RabbitKind("tho-ngan-ha", 4, RabbitTrade.Stargazer, "Thỏ Ngân Hà", "Galaxy Rabbit", ownGlow: true),
             new RabbitKind("tho-bach-kim", 4, RabbitTrade.Brewer, "Thỏ Bạch Kim", "Platinum Rabbit", ownGlow: true),
             new RabbitKind("tho-nguyet-thuc", 5, RabbitTrade.Stargazer, "Thỏ Nguyệt Thực", "Eclipse Rabbit", ownGlow: true),
+
+            // Thirty with shapes of their own. Each carries where its head is, since no two are alike.
+            new RabbitKind("tho-lun", 0, RabbitTrade.Brewer, "Thỏ Lùn", "Dwarf Rabbit", ownOutline: true, hatX: 0.048f, hatY: -0.041f),
+            new RabbitKind("tho-con", 0, RabbitTrade.Baker, "Thỏ Con", "Baby Rabbit", ownOutline: true, hatX: 0.030f, hatY: -0.023f),
+            new RabbitKind("tho-va", 0, RabbitTrade.Gatherer, "Thỏ Vá", "Patch Rabbit", ownOutline: true, hatX: 0.025f, hatY: -0.049f),
+            new RabbitKind("tho-dong", 0, RabbitTrade.Gatherer, "Thỏ Đồng", "Field Hare", ownOutline: true, hatX: 0.011f, hatY: -0.047f),
+            new RabbitKind("tho-long-xoan", 1, RabbitTrade.Gatherer, "Thỏ Lông Xoăn", "Woolly Rabbit", ownOutline: true, hatX: 0.052f, hatY: -0.040f),
+            new RabbitKind("tho-banh-day", 1, RabbitTrade.Baker, "Thỏ Bánh Dày", "Rice Cake Rabbit", ownOutline: true, hatX: -0.002f, hatY: -0.084f),
+            new RabbitKind("tho-dom", 1, RabbitTrade.Stargazer, "Thỏ Đốm", "Spotted Rabbit", ownOutline: true, hatX: 0.050f, hatY: -0.076f),
+            new RabbitKind("tho-kem-chay", 1, RabbitTrade.Baker, "Thỏ Kem Chảy", "Icing Rabbit", ownOutline: true, hatX: 0.008f, hatY: -0.047f),
+            new RabbitKind("tho-tai-dai", 2, RabbitTrade.Gatherer, "Thỏ Tai Dài", "Longear Rabbit", ownOutline: true, hatX: 0.036f, hatY: -0.119f),
+            new RabbitKind("tho-angora", 2, RabbitTrade.Brewer, "Thỏ Bông Gòn", "Angora Rabbit", ownOutline: true, hatX: 0.028f, hatY: -0.111f),
+            new RabbitKind("tho-latte", 2, RabbitTrade.Brewer, "Thỏ Latte", "Latte Rabbit", ownOutline: true, hatX: 0.042f, hatY: -0.020f),
+            new RabbitKind("tho-dau", 2, RabbitTrade.Baker, "Thỏ Dâu", "Berry Rabbit", ownOutline: true, hatX: 0.048f, hatY: -0.012f),
+            new RabbitKind("tho-flan", 2, RabbitTrade.Baker, "Thỏ Bánh Flan", "Custard Rabbit", ownOutline: true, hatX: 0.023f, hatY: -0.049f),
+            new RabbitKind("tho-su-tu", 3, RabbitTrade.Baker, "Thỏ Sư Tử", "Lionhead Rabbit", ownOutline: true, hatX: 0.039f, hatY: -0.020f),
+            new RabbitKind("tho-hoa-dao", 3, RabbitTrade.Brewer, "Thỏ Hoa Đào", "Peach Blossom Rabbit", ownOutline: true, hatX: 0.072f, hatY: -0.076f),
+            new RabbitKind("tho-sim", 3, RabbitTrade.Gatherer, "Thỏ Sim", "Myrtle Rabbit", ownOutline: true, hatX: 0.045f, hatY: -0.047f),
+            new RabbitKind("tho-may", 3, RabbitTrade.Stargazer, "Thỏ Mây", "Cloud Rabbit", ownOutline: true, hatX: 0.080f, hatY: -0.050f),
+            new RabbitKind("tho-reu", 3, RabbitTrade.Gatherer, "Thỏ Rêu", "Moss Rabbit", ownOutline: true, hatX: 0.053f, hatY: -0.040f),
+            new RabbitKind("tho-gac", 3, RabbitTrade.Gatherer, "Thỏ Gạc", "Antler Rabbit", ownOutline: true, hatX: 0.080f, hatY: -0.012f, noHat: true),
+            new RabbitKind("tho-den-long", 4, RabbitTrade.Stargazer, "Thỏ Đèn Lồng", "Lantern Rabbit", ownOutline: true, ownGlow: true, hatX: 0.128f, hatY: -0.009f),
+            new RabbitKind("tho-tien", 4, RabbitTrade.Gatherer, "Thỏ Tiên", "Fairy Rabbit", ownOutline: true, ownGlow: true, hatX: -0.014f, hatY: -0.125f),
+            new RabbitKind("tho-dom-dom", 4, RabbitTrade.Stargazer, "Thỏ Đom Đóm", "Firefly Rabbit", ownOutline: true, ownGlow: true, hatX: 0.105f, hatY: -0.017f),
+            new RabbitKind("tho-pha-le", 4, RabbitTrade.Stargazer, "Thỏ Pha Lê", "Crystal Rabbit", ownOutline: true, hatX: 0.062f, hatY: -0.073f),
+            new RabbitKind("tho-ba-duoi", 4, RabbitTrade.Brewer, "Thỏ Ba Đuôi", "Three-Tail Rabbit", ownOutline: true, hatX: 0.200f, hatY: -0.047f),
+            new RabbitKind("tho-hang-nga", 5, RabbitTrade.Stargazer, "Thỏ Hằng Nga", "Celestial Rabbit", ownOutline: true, hatX: 0.020f, hatY: -0.030f),
+            new RabbitKind("tho-mat-troi", 5, RabbitTrade.Baker, "Thỏ Mặt Trời", "Sun Rabbit", ownOutline: true, hatX: 0.103f, hatY: 0.000f, noHat: true),
+            new RabbitKind("tho-cuc-quang", 5, RabbitTrade.Gatherer, "Thỏ Cực Quang", "Aurora Rabbit", ownOutline: true, ownGlow: true, hatX: 0.108f, hatY: -0.017f),
+            new RabbitKind("tho-ngoc", 5, RabbitTrade.Brewer, "Thỏ Ngọc", "Jade Rabbit", ownOutline: true, hatX: 0.059f, hatY: -0.070f),
+            new RabbitKind("tho-rong", 5, RabbitTrade.Baker, "Thỏ Rồng", "Dragon Rabbit", ownOutline: true, hatX: -0.027f, hatY: 0.038f, noHat: true),
+            new RabbitKind("tho-chom-sao", 5, RabbitTrade.Stargazer, "Thỏ Chòm Sao", "Constellation Rabbit", ownOutline: true, hatX: 0.123f, hatY: -0.047f),
         };
 
         public static IReadOnlyList<RabbitKind> All => Table;

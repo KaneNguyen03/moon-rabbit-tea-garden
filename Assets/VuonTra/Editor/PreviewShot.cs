@@ -83,10 +83,11 @@ namespace VuonTra.EditorTools
             Step(screen, 2.5f);
 
             // Rabbits and items for the remaining frames.
-            string[] names = { "Bông", "Mây", "Sữa", "Mochi", "Đậu", "Kem", "Nếp", "Mật" };
-            int[] tiers = { 5, 4, 3, 2, 1, 0, 0, 0 };
+            string[] names = { "Bông", "Mây", "Sữa", "Mochi", "Đậu", "Kem", "Nếp", "Mật", "Bánh Trôi", "Su Su", "Khoai", "Tuyết" };
+            int[] tiers = { 5, 4, 3, 2, 1, 0, 0, 0, 2, 1, 3, 0 };
             for (int i = 0; i < tiers.Length; i++)
-                state.Rabbits.Add(new Rabbit { Id = ++state.NextRabbitId, Tier = tiers[i], Kind = RabbitKinds.OfTier(tiers[i])[(i * 2 + 1) % RabbitKinds.OfTier(tiers[i]).Count].Id, Name = names[i], Level = 1 + i * 2 });
+                state.Rabbits.Add(new Rabbit { Id = ++state.NextRabbitId, Tier = tiers[i], Kind = RabbitKinds.OfTier(tiers[i])[RabbitKinds.OfTier(tiers[i]).Count - 1 - i % 3].Id, Name = names[i], Level = 1 + i * 2 });
+            foreach (Rabbit seen in state.Rabbits) Rabbits.See(state, Rabbits.KindOf(seen));
             state.Clovers = 4;
             Rabbits.AutoAssign(runner.Defs, state);
             var itemDefs = runner.Catalog.BuildItems();
@@ -112,6 +113,27 @@ namespace VuonTra.EditorTools
             screen.SetTab(3);
             Step(screen, 0.2f);
             Capture(screen, "8-rabbits");
+            screen.Detail.Open(runner.Defs, state, state.Rabbits[0].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "8b-detail");
+            screen.Detail.Open(runner.Defs, state, state.Rabbits[4].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "8b-detail-2");
+            screen.Detail.Close();
+            screen.ShowRabbitAlbum(true);
+            Step(screen, 0.3f);
+            Capture(screen, "8c-album-top");
+            var albumScroll = GameObject.Find("Canvas/Sheet/Panel/Rabbits").GetComponent<UnityEngine.UI.ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            albumScroll.verticalNormalizedPosition = 0f;
+            Step(screen, 0.2f);
+            Capture(screen, "8d-album-bottom");
+            screen.Detail.OpenKind(runner.Defs, state, state.Rabbits[1].Kind);
+            Step(screen, 0.5f);
+            Capture(screen, "8e-kind");
+            screen.Detail.Close();
+            screen.ShowRabbitAlbum(false);
+            Step(screen, 0.2f);
 
             screen.Picker.Open(state, state.Rabbits[0].Id, ItemSlot.Hat);
             Step(screen, 0.4f);
@@ -142,6 +164,14 @@ namespace VuonTra.EditorTools
             screen.OpenSheet(3);
             Step(screen, 0.5f);
             Capture(screen, "12-rabbits-en");
+            screen.Detail.Open(runner.Defs, state, state.Rabbits[2].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "12b-detail-en");
+            screen.Detail.Close();
+            screen.ShowRabbitAlbum(true);
+            Step(screen, 0.3f);
+            Capture(screen, "12c-album-en");
+            screen.ShowRabbitAlbum(false);
             screen.SetTab(2);
             Step(screen, 0.2f);
             Capture(screen, "13-quests-en");
@@ -176,6 +206,16 @@ namespace VuonTra.EditorTools
             screen.LookAt(new Vector2(540f, 300f));
             Step(screen, 0.3f);
             Capture(screen, "16-all-bottom");
+            // Every place to rest open and taken, to see the seats and the strollers.
+            state.RestSpots = RestSpots.Max;
+            for (int i = 0; i < state.Rabbits.Count && i < 7; i++) state.Rabbits[i].Station = -1;
+            screen.Refresh();
+            screen.LookAt(new Vector2(540f, 300f));
+            Step(screen, 0.4f);
+            Capture(screen, "17-rest-bottom");
+            screen.LookAt(new Vector2(540f, 2900f));
+            Step(screen, 0.3f);
+            Capture(screen, "17-rest-top");
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.

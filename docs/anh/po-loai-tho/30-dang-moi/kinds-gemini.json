@@ -1,0 +1,272 @@
+[
+ {
+  "id": "tho-lun",
+  "vi": "Thỏ Lùn",
+  "en": "Dwarf Rabbit",
+  "tier": 0,
+  "trade": "Brewer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-con",
+  "vi": "Thỏ Con",
+  "en": "Baby Rabbit",
+  "tier": 0,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-va",
+  "vi": "Thỏ Vá",
+  "en": "Patch Rabbit",
+  "tier": 0,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-dong",
+  "vi": "Thỏ Đồng",
+  "en": "Field Hare",
+  "tier": 0,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-long-xoan",
+  "vi": "Thỏ Lông Xoăn",
+  "en": "Woolly Rabbit",
+  "tier": 1,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-banh-day",
+  "vi": "Thỏ Bánh Dày",
+  "en": "Rice Cake Rabbit",
+  "tier": 1,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-dom",
+  "vi": "Thỏ Đốm",
+  "en": "Spotted Rabbit",
+  "tier": 1,
+  "trade": "Stargazer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-kem-chay",
+  "vi": "Thỏ Kem Chảy",
+  "en": "Icing Rabbit",
+  "tier": 1,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-tai-dai",
+  "vi": "Thỏ Tai Dài",
+  "en": "Longear Rabbit",
+  "tier": 2,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-angora",
+  "vi": "Thỏ Bông Gòn",
+  "en": "Angora Rabbit",
+  "tier": 2,
+  "trade": "Brewer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-latte",
+  "vi": "Thỏ Latte",
+  "en": "Latte Rabbit",
+  "tier": 2,
+  "trade": "Brewer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-dau",
+  "vi": "Thỏ Dâu",
+  "en": "Berry Rabbit",
+  "tier": 2,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-flan",
+  "vi": "Thỏ Bánh Flan",
+  "en": "Custard Rabbit",
+  "tier": 2,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-su-tu",
+  "vi": "Thỏ Sư Tử",
+  "en": "Lionhead Rabbit",
+  "tier": 3,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-hoa-dao",
+  "vi": "Thỏ Hoa Đào",
+  "en": "Peach Blossom Rabbit",
+  "tier": 3,
+  "trade": "Brewer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-sim",
+  "vi": "Thỏ Sim",
+  "en": "Myrtle Rabbit",
+  "tier": 3,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-may",
+  "vi": "Thỏ Mây",
+  "en": "Cloud Rabbit",
+  "tier": 3,
+  "trade": "Stargazer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-reu",
+  "vi": "Thỏ Rêu",
+  "en": "Moss Rabbit",
+  "tier": 3,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-gac",
+  "vi": "Thỏ Gạc",
+  "en": "Antler Rabbit",
+  "tier": 3,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-den-long",
+  "vi": "Thỏ Đèn Lồng",
+  "en": "Lantern Rabbit",
+  "tier": 4,
+  "trade": "Stargazer",
+  "ownOutline": true,
+  "ownGlow": true
+ },
+ {
+  "id": "tho-tien",
+  "vi": "Thỏ Tiên",
+  "en": "Fairy Rabbit",
+  "tier": 4,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": true
+ },
+ {
+  "id": "tho-dom-dom",
+  "vi": "Thỏ Đom Đóm",
+  "en": "Firefly Rabbit",
+  "tier": 4,
+  "trade": "Stargazer",
+  "ownOutline": true,
+  "ownGlow": true
+ },
+ {
+  "id": "tho-pha-le",
+  "vi": "Thỏ Pha Lê",
+  "en": "Crystal Rabbit",
+  "tier": 4,
+  "trade": "Stargazer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-ba-duoi",
+  "vi": "Thỏ Ba Đuôi",
+  "en": "Three-Tail Rabbit",
+  "tier": 4,
+  "trade": "Brewer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-hang-nga",
+  "vi": "Thỏ Hằng Nga",
+  "en": "Celestial Rabbit",
+  "tier": 5,
+  "trade": "Stargazer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-mat-troi",
+  "vi": "Thỏ Mặt Trời",
+  "en": "Sun Rabbit",
+  "tier": 5,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-cuc-quang",
+  "vi": "Thỏ Cực Quang",
+  "en": "Aurora Rabbit",
+  "tier": 5,
+  "trade": "Gatherer",
+  "ownOutline": true,
+  "ownGlow": true
+ },
+ {
+  "id": "tho-ngoc",
+  "vi": "Thỏ Ngọc",
+  "en": "Jade Rabbit",
+  "tier": 5,
+  "trade": "Brewer",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-rong",
+  "vi": "Thỏ Rồng",
+  "en": "Dragon Rabbit",
+  "tier": 5,
+  "trade": "Baker",
+  "ownOutline": true,
+  "ownGlow": false
+ },
+ {
+  "id": "tho-chom-sao",
+  "vi": "Thỏ Chòm Sao",
+  "en": "Constellation Rabbit",
+  "tier": 5,
+  "trade": "Stargazer",
+  "ownOutline": true,
+  "ownGlow": false
+ }
+]

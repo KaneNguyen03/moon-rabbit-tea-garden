@@ -204,6 +204,33 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Seen_Kinds_Round_Trip_Even_With_No_Rabbit_Of_That_Kind_Left()
+        {
+            s.SeenKinds.Add("tho-sao");
+            s.SeenKinds.Add("tho-me");
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            CollectionAssert.AreEquivalent(new[] { "tho-sao", "tho-me" }, r.SeenKinds);
+        }
+
+        [Test]
+        public void A_Save_From_Before_The_Album_Counts_The_Rabbits_It_Has()
+        {
+            const string v5 = "{\"version\":5,\"stations\":[],\"rabbits\":[" +
+                "{\"id\":1,\"tier\":0,\"name\":\"A\",\"kind\":\"tho-me\"}," +
+                "{\"id\":2,\"tier\":3,\"name\":\"B\"}]}";
+            GameState r = SaveCodec.Decode(defs, v5).State;
+            CollectionAssert.AreEquivalent(new[] { "tho-me", "tho-oai-huong" }, r.SeenKinds);
+        }
+
+        [Test]
+        public void Seen_Kinds_That_Do_Not_Exist_Are_Dropped()
+        {
+            const string json = "{\"version\":6,\"stations\":[],\"seenKinds\":[\"tho-sao\",\"tho-khong-co\",7,null,\"tho-sao\"]}";
+            GameState r = SaveCodec.Decode(defs, json).State;
+            CollectionAssert.AreEquivalent(new[] { "tho-sao" }, r.SeenKinds);
+        }
+
+        [Test]
         public void Wrong_Field_Types_Do_Not_Throw()
         {
             const string json = "{\"version\":1,\"coinsMantissa\":\"lots\",\"stations\":{\"id\":\"tea\"},\"buyMode\":null,\"hintSeen\":3}";

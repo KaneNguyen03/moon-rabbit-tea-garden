@@ -864,6 +864,220 @@ MonoBehaviour:
     m_Localized: Eclipse Rabbit
     m_Metadata:
       m_Items: []
+  - m_Id: 40055027523584
+    m_Localized: "{0} rabbits \xB7 {1}/{2} kinds met"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912192
+    m_Localized: My rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912193
+    m_Localized: Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912194
+    m_Localized: "Call a new rabbit \xB7 {0} clovers"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912195
+    m_Localized: "{0} \xB7 {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912196
+    m_Localized: "{0} tier \xB7 \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912197
+    m_Localized: 'In its own trade it is worth {0} times more.
+
+      Stations of its trade: {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912198
+    m_Localized: "{0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912199
+    m_Localized: "Worth \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912200
+    m_Localized: Level {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912201
+    m_Localized: Working at {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912202
+    m_Localized: "Resting \xB7 pick a station"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912203
+    m_Localized: here now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912204
+    m_Localized: "its trade \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912205
+    m_Localized: '{0} is here'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912206
+    m_Localized: free
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912207
+    m_Localized: Stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912208
+    m_Localized: Charms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912209
+    m_Localized: Quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 40055035912210
+    m_Localized: Rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029308489728
+    m_Localized: Dwarf Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072640
+    m_Localized: Baby Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072641
+    m_Localized: Patch Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072642
+    m_Localized: Field Hare
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072643
+    m_Localized: Woolly Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072644
+    m_Localized: Rice Cake Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072645
+    m_Localized: Spotted Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072646
+    m_Localized: Icing Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072647
+    m_Localized: Longear Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072648
+    m_Localized: Angora Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072649
+    m_Localized: Latte Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072650
+    m_Localized: Berry Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072651
+    m_Localized: Custard Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072652
+    m_Localized: Lionhead Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072653
+    m_Localized: Peach Blossom Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072654
+    m_Localized: Myrtle Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072655
+    m_Localized: Cloud Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072656
+    m_Localized: Moss Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072657
+    m_Localized: Antler Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072658
+    m_Localized: Lantern Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072659
+    m_Localized: Fairy Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072660
+    m_Localized: Firefly Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072661
+    m_Localized: Crystal Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072662
+    m_Localized: Three-Tail Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072663
+    m_Localized: Celestial Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072664
+    m_Localized: Sun Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072665
+    m_Localized: Aurora Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072666
+    m_Localized: Jade Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072667
+    m_Localized: Dragon Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 45029321072668
+    m_Localized: Constellation Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46031948472320
+    m_Localized: 'Places to rest in the garden: {0}/{1} taken'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46031956860928
+    m_Localized: "One more \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 46031956860929
+    m_Localized: All open
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

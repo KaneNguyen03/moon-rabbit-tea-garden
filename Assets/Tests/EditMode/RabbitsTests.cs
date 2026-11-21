@@ -206,6 +206,32 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Calling_A_Rabbit_Remembers_Its_Kind_And_Says_When_It_Is_New()
+        {
+            s.Clovers = 2;
+            Assert.AreEqual(0, s.SeenKinds.Count);
+            Rabbit first = Rabbits.Summon(s, 0.1, "A");
+            Assert.IsTrue(first.FirstOfKind);
+            Assert.IsTrue(s.SeenKinds.Contains("tho-bong"));
+            Rabbit second = Rabbits.Summon(s, 0.1, "B");
+            Assert.IsFalse(second.FirstOfKind, "the same kind again is not new");
+            Assert.AreEqual(1, s.SeenKinds.Count);
+        }
+
+        [Test]
+        public void A_Kind_Stays_Seen_After_Its_Rabbits_Are_Merged_Away()
+        {
+            s.Clovers = 3;
+            Rabbits.Summon(s, 0.1, "A"); Rabbits.Summon(s, 0.1, "B"); Rabbits.Summon(s, 0.1, "C");
+            Rabbit merged = Rabbits.Merge(s, 0, 0.0);
+            Assert.IsTrue(merged.FirstOfKind);
+            Assert.AreEqual(0, Rabbits.CountOfTier(s, 0), "all three silver rabbits are gone");
+            Assert.IsTrue(s.SeenKinds.Contains("tho-bong"), "but the kind was met");
+            Assert.IsTrue(s.SeenKinds.Contains(merged.Kind));
+            Assert.AreEqual(2, s.SeenKinds.Count);
+        }
+
+        [Test]
         public void KindOf_Falls_Back_To_The_Tier_Default()
         {
             Assert.AreEqual("tho-sao", Rabbits.KindOf(new Rabbit { Tier = 4, Kind = "tho-sao" }));

@@ -29,8 +29,8 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds.</summary>
-        public const int CurrentVersion = 5;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest.</summary>
+        public const int CurrentVersion = 7;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -73,6 +73,15 @@ namespace VuonTra.Core
             sb.Append(",\"claimed\":[");
             bool first = true;
             foreach (string id in s.Claimed)
+            {
+                if (!first) sb.Append(',');
+                first = false;
+                WriteString(sb, id);
+            }
+            sb.Append("],\"restSpots\":").Append(s.RestSpots.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"seenKinds\":[");
+            first = true;
+            foreach (string id in s.SeenKinds)
             {
                 if (!first) sb.Append(',');
                 first = false;
@@ -244,6 +253,17 @@ namespace VuonTra.Core
                     if (rabbitId > s.NextRabbitId) s.NextRabbitId = rabbitId;
                 }
             }
+            // Version 7: places to rest. Older saves start with the usual two.
+            s.RestSpots = root.ContainsKey("restSpots")
+                ? (int)Math.Max(RestSpots.Starting, Math.Min(ReadNumber(root, "restSpots"), RestSpots.Max))
+                : RestSpots.Starting;
+
+            // Version 6: the album. Whatever the save says, every rabbit still here has certainly been seen.
+            if (root.TryGetValue("seenKinds", out object seenObj) && seenObj is List<object> seen)
+                foreach (object item in seen)
+                    if (item is string seenId) Rabbits.See(s, seenId);
+            foreach (Rabbit r in s.Rabbits) Rabbits.See(s, Rabbits.KindOf(r));
+
             long savedNext = ToLong(ReadNumber(root, "nextRabbitId"));
             if (savedNext > s.NextRabbitId) s.NextRabbitId = savedNext;
 

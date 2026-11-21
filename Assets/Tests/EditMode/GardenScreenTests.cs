@@ -192,15 +192,15 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(panel.Find("Scroll").gameObject.activeSelf);
             Assert.IsFalse(panel.Find("Upgrades").gameObject.activeSelf);
 
-            Find("Canvas/Sheet/Panel/Bar/Tab Bùa").onClick.Invoke();
+            screen.OpenSheet(1);
             Assert.AreEqual(1, screen.Tab);
             Assert.IsFalse(panel.Find("Scroll").gameObject.activeSelf);
             Assert.IsTrue(panel.Find("Upgrades").gameObject.activeSelf);
             Assert.IsFalse(panel.Find("Bar/Modes").gameObject.activeSelf);
 
-            Find("Canvas/Sheet/Panel/Bar/Tab Nhiệm vụ").onClick.Invoke();
+            screen.OpenSheet(2);
             Assert.IsTrue(panel.Find("Quests").gameObject.activeSelf);
-            Find("Canvas/Sheet/Panel/Bar/Tab Trạm").onClick.Invoke();
+            screen.OpenSheet(0);
             Assert.IsTrue(panel.Find("Bar/Modes").gameObject.activeSelf);
         }
 
@@ -225,7 +225,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Quest_Badge_Appears_And_Claiming_Pays()
         {
-            GameObject badge = root.transform.Find("Canvas/Sheet/Panel/Bar/Badge").gameObject;
+            GameObject badge = root.transform.Find("Canvas/TabBar/Badge").gameObject; // the one badge left: on the tab bar
             Assert.IsFalse(badge.activeSelf);
             Button claim = Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Claim");
             Assert.IsFalse(claim.interactable);
@@ -261,7 +261,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Rabbit_Tab_Calls_Merges_And_Sends_Rabbits_To_Work()
         {
-            Find("Canvas/Sheet/Panel/Bar/Tab Thỏ").onClick.Invoke();
+            screen.OpenSheet(3);
             Assert.AreEqual(3, screen.Tab);
             Button summon = Find("Canvas/Sheet/Panel/Rabbits/Content/Summon/Button");
             Assert.IsFalse(summon.interactable, "no clovers yet");
@@ -275,7 +275,9 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
 
             Rabbit first = runner.State.Rabbits[0];
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit " + first.Id + "/Work").onClick.Invoke();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit " + first.Id).onClick.Invoke();
+            Assert.IsTrue(screen.Detail.IsOpen, "tapping a rabbit opens its own sheet");
+            Find("Canvas/RabbitSheet/Card/Body/Stations/Content/Station am-tra").onClick.Invoke();
             Assert.AreEqual(0, first.Station, "the only open station");
             screen.Refresh();
             Transform chip = root.transform.Find("Canvas/Garden/Content/Station am-tra/Tier");
@@ -491,6 +493,122 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Rabbit_Tab_Is_A_Grid_Of_Three_And_The_Album_Lists_Every_Kind()
+        {
+            for (int i = 1; i <= 7; i++)
+                runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = i % 3, Kind = RabbitKinds.OfTier(i % 3)[0].Id, Name = "R" + i });
+            runner.State.NextRabbitId = 7;
+            foreach (Rabbit r in runner.State.Rabbits) Rabbits.See(runner.State, r.Kind);
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content");
+            Assert.AreEqual(3, content.Find("Row 0").childCount);
+            Assert.AreEqual(3, content.Find("Row 1").childCount);
+            Assert.AreEqual(1, content.Find("Row 2").childCount);
+            // Best tier first.
+            StringAssert.StartsWith("Rabbit ", content.Find("Row 0").GetChild(0).name);
+            long firstId = long.Parse(content.Find("Row 0").GetChild(0).name.Substring(7));
+            Assert.AreEqual(2, Rabbits.Find(runner.State, firstId).Tier);
+            StringAssert.Contains("3/" + RabbitKinds.All.Count, content.Find("Count/Text").GetComponent<Text>().text);
+
+            Find("Canvas/Sheet/Panel/Rabbits/Content/SubTabs/Album").onClick.Invoke();
+            screen.Refresh();
+            int cells = 0, met = 0;
+            foreach (RabbitKind kind in RabbitKinds.All)
+            {
+                Transform cell = null;
+                foreach (Transform row in content) { cell = row.Find("Kind " + kind.Id); if (cell != null) break; }
+                Assert.IsNotNull(cell, kind.Id + " has a place in the album");
+                cells++;
+                bool seen = runner.State.SeenKinds.Contains(kind.Id);
+                if (seen) met++;
+                Assert.AreEqual(seen ? L10n.T("kind." + kind.Id) : "???", cell.Find("Name").GetComponent<Text>().text);
+            }
+            Assert.AreEqual(RabbitKinds.All.Count, cells);
+            Assert.AreEqual(3, met);
+            Assert.IsNull(content.Find("Row 0"), "the album replaces the grid");
+        }
+
+        [Test]
+        public void Tapping_A_Station_From_Far_Away_Comes_Back_To_The_Usual_Zoom()
+        {
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
+            Assert.AreEqual(0, screen.Selected);
+        }
+
+        [Test]
+        public void A_Kind_With_Antlers_Wears_No_Hat_But_The_Hat_Still_Counts()
+        {
+            RabbitKind antlers = RabbitKinds.Find("tho-gac");
+            Assert.IsTrue(antlers.NoHat);
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = antlers.Tier, Kind = antlers.Id, Name = "Gạc", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            double bare = Rabbits.Multiplier(runner.State, runner.State.Rabbits[0]);
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 2); // straw hat: a station bonus
+            Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);
+            runner.EquipItem(hat.Id, 1);
+            runner.EquipItem(charm.Id, 1);
+            screen.Refresh();
+            Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
+            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf, "no hat drawn over the antlers");
+            Assert.IsTrue(rabbit.Find("CharmOn").gameObject.activeSelf, "the charm still shows");
+            Assert.Greater(Rabbits.Multiplier(runner.State, runner.State.Rabbits[0]), bare, "the hat's bonus is not lost");
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/HatOn"));
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/CharmOn"));
+        }
+
+        [Test]
+        public void Resting_Rabbits_Sit_In_The_Garden_As_Themselves_Up_To_The_Places_There_Are()
+        {
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Assert.IsFalse(world.Find("Seat 0").gameObject.activeSelf, "nobody resting: nobody seated");
+            Assert.IsFalse(world.Find("Walker").gameObject.activeSelf, "and nobody out walking");
+
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 4, Kind = "tho-sao", Name = "Sao" });
+            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-me", Name = "Mè" });
+            runner.State.Rabbits.Add(new Rabbit { Id = 3, Tier = 0, Kind = "tho-bong", Name = "Bông" });
+            runner.State.NextRabbitId = 3;
+            screen.Refresh();
+
+            // Each of the first seats is either sat on or its rabbit is out walking: never both, never neither.
+            int out0 = 0;
+            for (int k = 0; k < 2; k++)
+            {
+                bool sitting = world.Find("Seat " + k).gameObject.activeSelf, walking = world.GetChild(0) != null && GardenScreen.Strolling(k, 0f);
+                Assert.AreNotEqual(sitting, walking, "seat " + k);
+                if (walking) out0++;
+            }
+            Assert.AreEqual("kind_tho-sao", world.Find("Seat 0/Art").GetComponent<Image>().sprite.name, "the rarest takes the first seat");
+            Assert.AreEqual("kind_tho-me", world.Find("Seat 1/Art").GetComponent<Image>().sprite.name);
+            Assert.IsFalse(world.Find("Seat 2").gameObject.activeSelf, "two places only: the third rabbit is not out");
+
+            runner.State.RestSpots = 3;
+            screen.Refresh();
+            Assert.AreEqual("kind_tho-bong", world.Find("Seat 2/Art").GetComponent<Image>().sprite.name);
+
+            // Tapping a seated rabbit opens its own sheet.
+            int sat = GardenScreen.Strolling(1, 0f) ? 2 : 1;
+            Find("Canvas/Garden/Content/Seat " + sat).onClick.Invoke();
+            Assert.IsTrue(screen.Detail.IsOpen);
+        }
+
+        [Test]
+        public void A_Place_To_Rest_Is_Bought_From_The_Rabbit_Tab()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "A" });
+            runner.State.NextRabbitId = 1;
+            runner.State.Coins = RestSpots.CostOfNext(runner.State);
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Rest/Button").onClick.Invoke();
+            Assert.AreEqual(3, runner.State.RestSpots);
+        }
+
+        [Test]
         public void A_Collected_Rabbit_Stands_At_Its_Station_Wearing_Its_Hat()
         {
             Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
@@ -599,12 +717,14 @@ namespace VuonTra.Core.Tests
             runner.State.Coins = new BigNum(1000);
             screen.Refresh();
 
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/LevelUp").onClick.Invoke();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1").onClick.Invoke();
+            Find("Canvas/RabbitSheet/Card/Body/LevelUp").onClick.Invoke();
             Assert.AreEqual(2, runner.State.Rabbits[0].Level);
             Assert.AreEqual(900, runner.State.Coins.ToDouble(), 1e-6);
 
             screen.Refresh();
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Hat").onClick.Invoke();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1").onClick.Invoke();
+            Find("Canvas/RabbitSheet/Card/Body/Hat").onClick.Invoke();
             Assert.IsTrue(screen.Picker.IsOpen);
             Find("Canvas/Picker/Card/Scroll/Content/Item " + hat.Id + "/Use").onClick.Invoke();
             Assert.AreEqual(1, hat.WornBy);
@@ -730,7 +850,8 @@ namespace VuonTra.Core.Tests
             runner.State.NextRabbitId = 1;
             screen.Refresh();
 
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Rename").onClick.Invoke();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1").onClick.Invoke();
+            Find("Canvas/RabbitSheet/Card/Body/Rename").onClick.Invoke();
             Assert.IsTrue(screen.Rename.IsOpen);
             var input = root.transform.Find("Canvas/Rename/Card/Input").GetComponent<InputField>();
             Assert.AreEqual("Bông", input.text, "starts from the current name");
@@ -745,10 +866,11 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.Rename.IsOpen);
             Assert.AreEqual("Bánh Trôi", runner.State.Rabbits[0].Name);
             screen.Refresh();
-            Assert.AreEqual("Bánh Trôi", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Name").GetComponent<Text>().text);
+            Assert.AreEqual("Bánh Trôi", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Name").GetComponent<Text>().text);
             Assert.AreEqual("Bánh Trôi", root.transform.Find("Canvas/Garden/Content/Station am-tra/Tier/Text").GetComponent<Text>().text);
 
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Rename").onClick.Invoke();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1").onClick.Invoke();
+            Find("Canvas/RabbitSheet/Card/Body/Rename").onClick.Invoke();
             Find("Canvas/Rename/Card/Cancel").onClick.Invoke();
             Assert.IsFalse(screen.Rename.IsOpen);
             Assert.AreEqual("Bánh Trôi", runner.State.Rabbits[0].Name);
@@ -764,7 +886,7 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
             Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
-            Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Tile/HatOn"));
+            Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/HatOn"));
 
             runner.EquipItem(hat.Id, 1);
             runner.EquipItem(charm.Id, 1);
@@ -772,8 +894,11 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
             Assert.IsTrue(rabbit.Find("CharmOn").gameObject.activeSelf);
             Assert.AreEqual("item_mu-rom", rabbit.Find("HatOn").GetComponent<Image>().sprite.name);
-            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Tile/HatOn"));
-            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Hat/Icon"), "the slot shows the item's picture");
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/HatOn"));
+            screen.Detail.Open(runner.Defs, runner.State, 1);
+            Assert.IsNotNull(root.transform.Find("Canvas/RabbitSheet/Card/Body/Hat/Icon"), "the slot on the rabbit's sheet shows the item's picture");
+            Assert.IsNotNull(root.transform.Find("Canvas/RabbitSheet/Card/Body/Portrait/Tile/HatOn"), "and the big portrait wears it");
+            screen.Detail.Close();
 
             runner.UnequipItem(hat.Id);
             screen.Refresh();

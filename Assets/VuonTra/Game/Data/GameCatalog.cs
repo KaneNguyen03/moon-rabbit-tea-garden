@@ -51,6 +51,9 @@ namespace VuonTra.Game
             return defs;
         }
 
+        [Tooltip("Furniture for the places to rest, indexed by seat; null where the seat is a stump that is already in the garden.")]
+        public Sprite[] RestProps = new Sprite[0];
+
         [Tooltip("A white picture for each trade, indexed by RabbitTrade; tinted where it is shown.")]
         public Sprite[] TradeIcons = new Sprite[0];
 
@@ -65,6 +68,11 @@ namespace VuonTra.Game
         /// and where its middle is across. Ears rise above this; hats sit on it.
         /// </summary>
         public const float KindHeadTop = 0.755f, KindHeadX = 150.5f / 320f;
+        /// <summary>
+        /// Where worn things go, in shares of the drawing's height: how far above the head top the middle of a
+        /// hat sits and how big it is, and the same for a charm at the neck. One set of numbers for every view.
+        /// </summary>
+        public const float HatLift = 0.117f, HatSize = 0.44f, CharmHeight = 0.37f, CharmSize = 0.19f;
         /// <summary>The kind drawings are this much wider than tall.</summary>
         public const float KindAspect = 320f / 343f;
 

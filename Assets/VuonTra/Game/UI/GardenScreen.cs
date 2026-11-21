@@ -39,8 +39,6 @@ namespace VuonTra.Game.UI
         readonly Dictionary<int, Image> _modeButtons = new Dictionary<int, Image>();
         readonly Dictionary<int, Text> _modeLabels = new Dictionary<int, Text>();
         readonly GameObject[] _lists = new GameObject[TabCount];
-        readonly Image[] _tabButtons = new Image[TabCount];
-        readonly Text[] _tabLabels = new Text[TabCount];
         readonly ChunkyButton[] _openButtons = new ChunkyButton[TabCount];
         readonly Text[] _openLabels = new Text[TabCount];
         readonly List<Image> _tierChips = new List<Image>();
@@ -48,7 +46,25 @@ namespace VuonTra.Game.UI
         readonly List<Image> _tierTradeBadges = new List<Image>();
         readonly List<Image> _tierTradeIcons = new List<Image>();
         // Life in the world: rabbits out for a walk, and ingredients carried between stations.
-        sealed class Walker { public RectTransform Rect; public float X0, X1, Y, Speed, Phase; }
+        sealed class Walker { public RectTransform Rect; public Image Art; public float X0, X1, Y, Speed, Phase; }
+
+        /// <summary>
+        /// Where resting rabbits sit, as offsets from the teapot. The two stumps by the tea table come with the
+        /// garden; then a picnic rug by the pond, mushroom stools, a hammock and a swing, one for each place added.
+        /// </summary>
+        static readonly Vector2[] Seats =
+        {
+            new Vector2(246, -1082), new Vector2(-60, -1116),
+            new Vector2(150, 880), new Vector2(402, -1052), new Vector2(-376, -1196), new Vector2(372, -1272),
+        };
+        /// <summary>For the places that bring their own furniture: how tall it is drawn, and how far the rabbit sits above its foot.</summary>
+        static readonly float[] SeatPropHeight = { 0, 0, 104, 124, 150, 196 };
+        static readonly Vector2[] SeatPropLift = { default, default, new Vector2(0, 26), new Vector2(-38, 56), new Vector2(-4, 46), new Vector2(0, 44) };
+        readonly List<RectTransform> _seats = new List<RectTransform>();
+        readonly List<Image> _seatArt = new List<Image>();
+        readonly List<GameObject> _seatCushions = new List<GameObject>();
+        readonly long[] _seatIds = new long[RestSpots.Max];
+        int _seated;
         sealed class Courier { public RectTransform Rect; public Vector2 From, To; public float T, Duration; public int Target; }
         readonly List<Walker> _walkers = new List<Walker>();
         readonly List<Courier> _couriers = new List<Courier>();
@@ -73,6 +89,7 @@ namespace VuonTra.Game.UI
         public ShellView Shell { get; private set; }
         public ItemPickerView Picker { get; private set; }
         public RenameView Rename { get; private set; }
+        public RabbitDetailView Detail { get; private set; }
         /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests, 3 = rabbits.</summary>
         public int Tab { get; private set; }
         public bool SheetOpen => _sheet != null && _sheet.activeSelf;
@@ -86,11 +103,12 @@ namespace VuonTra.Game.UI
         bool _hintFading;
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
-        Text _coins, _perSecond, _awayAmount, _awayTime, _badgeText, _barBadgeText, _clovers, _energyLabel, _energyAction;
+        Text _coins, _perSecond, _awayAmount, _awayTime, _barBadgeText, _clovers, _energyLabel, _energyAction;
         Text _plotTitle, _plotSub, _plotCost;
         ChunkyButton _plotBuy, _energyButton;
-        GameObject _hint, _away, _sheet, _modes, _badge, _barBadge;
-        RabbitListView _rabbitList;
+        GameObject _hint, _away, _sheet, _modes, _barBadge;
+        RabbitGridView _rabbitList;
+        Text _sheetTitle;
         float _sinceRefresh, _clock;
         double _shownCoins;
         int _shownStations = -1;
@@ -190,6 +208,8 @@ namespace VuonTra.Game.UI
 
         /// <summary>How much of the screen the HUD covers at the top and the tab bar at the bottom, and how tall the card stands.</summary>
         const float WheelScroll = 60f;
+        /// <summary>The strip at the top of the sheet: the page name, the buy modes, the close button.</summary>
+        const float HeaderHeight = 124f;
         const float HudCover = 160f, TabCover = 250f, CardHeight = 280f;
 
         public enum ZoomLevel { Far, Default, Near }
@@ -374,8 +394,14 @@ namespace VuonTra.Game.UI
             Vector2 offset = -_street.anchoredPosition / _zoom;
             _groundTile.uvRect = new Rect(offset.x / 512f, offset.y / 512f, ScreenW / 512f / _zoom, ScreenH / 512f / _zoom);
 
-            foreach (Walker w in _walkers)
+            for (int i = 0; i < _walkers.Count; i++)
             {
+                Walker w = _walkers[i];
+                // Walker i is the rabbit from seat i, out for a stroll part of the time; its seat is empty meanwhile.
+                bool strolling = i < _seated && Strolling(i, _clock);
+                if (w.Rect.gameObject.activeSelf != strolling) w.Rect.gameObject.SetActive(strolling);
+                if (i < _seats.Count && i < _seated && _seats[i].gameObject.activeSelf == strolling) _seats[i].gameObject.SetActive(!strolling);
+                if (!strolling) continue;
                 float span = w.X1 - w.X0, travelled = _clock * w.Speed + w.Phase;
                 float along = Mathf.PingPong(travelled, span);
                 bool goingRight = Mathf.FloorToInt(travelled / span) % 2 == 0;
@@ -409,6 +435,12 @@ namespace VuonTra.Game.UI
                 pos.y += Mathf.Abs(Mathf.Sin(c.T * Mathf.PI * 4f)) * 34f;
                 c.Rect.anchoredPosition = pos;
             }
+        }
+
+        /// <summary>Whether the rabbit of a seat is out walking at this moment: a little under half of every 36 seconds, each at its own time.</summary>
+        public static bool Strolling(int seat, float clock)
+        {
+            return Mathf.Repeat(clock / 36f + seat * 0.37f, 1f) < 0.42f;
         }
 
         /// <summary>One ingredient sets off from its station to a station that uses it, when both are open.</summary>
@@ -533,13 +565,14 @@ namespace VuonTra.Game.UI
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
-            _walkers.Clear(); _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
+            _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
             // The old helpers belong to the destroyed canvas; Build makes new ones.
             Feel = null;
             Picker = null;
             Rename = null;
+            Detail = null;
             Shell = null;
 
             Build();
@@ -585,6 +618,11 @@ namespace VuonTra.Game.UI
             BuildTabBar(catalog);
             BuildSheet(catalog);
             Feel = new FeelLayer(_canvas, catalog, Tweens);
+            Detail = new RabbitDetailView(_canvas, catalog, Tweens, OnLevelUp,
+                rabbitId => { Sfx.Click(); Rename.Open(Runner.State, rabbitId); },
+                (rabbitId, slot) => { Sfx.Click(); Picker.Open(Runner.State, rabbitId, slot); },
+                (rabbitId, station) => { Sfx.Blip(); Runner.AssignRabbit(rabbitId, station); },
+                rabbitId => { Sfx.Click(); Runner.AssignRabbit(rabbitId, -1); });
             Picker = new ItemPickerView(_canvas, catalog, Tweens,
                 (itemId, rabbitId) => { Sfx.Blip(); Runner.EquipItem(itemId, rabbitId); },
                 itemId => { Sfx.Click(); Runner.UnequipItem(itemId); });
@@ -687,17 +725,63 @@ namespace VuonTra.Game.UI
                 }
             }
 
-            // Rabbits out for a walk along the grass between the rows.
-            // Each walker keeps to a stretch of grass that no station stands on.
-            float[] lanes = { Heart.y + 212f, Heart.y - 312f, 150f };
-            float[] laneFrom = { 390f, 400f, 170f }, laneTo = { 700f, 715f, WorldW - 170f };
+            // Resting rabbits sit about the garden. Each seat is a place a rabbit can be tapped.
+            Color shade = Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f);
+            for (int k = 0; k < Seats.Length && k < RestSpots.Max; k++)
+            {
+                int seat = k;
+                Vector2 at = Heart + Seats[k];
+                // The later places bring their own furniture, which appears with the place.
+                RectTransform prop = UiKit.Rect("SeatProp " + k, _street);
+                Sprite propArt = catalog.RestProps != null && k < catalog.RestProps.Length ? catalog.RestProps[k] : null;
+                if (propArt != null && SeatPropHeight[k] > 0f)
+                {
+                    float h = SeatPropHeight[k], w = h * propArt.rect.width / propArt.rect.height;
+                    prop.Place(0f, 0f, at.x, at.y + h / 2f, w, h).AddImage(propArt, Color.white);
+                    at += SeatPropLift[k]; // the rabbit sits on it, not at its foot
+                }
+                else
+                {
+                    prop.Place(0f, 0f, at.x, at.y + 4f, 118, 38).AddImage(catalog.Round, Palette.Mix(Palette.Blush, Palette.Paper, 0.35f));
+                }
+                prop.gameObject.SetActive(false);
+                _seatCushions.Add(prop.gameObject);
+                RectTransform cushion = prop;
+
+                var rt = UiKit.Rect("Seat " + k, _street).Place(0f, 0f, at.x, at.y, 124, 132);
+                rt.pivot = new Vector2(0.5f, 0f);
+                Image hit = rt.AddImage(null, new Color(0, 0, 0, 0));
+                hit.raycastTarget = true;
+                var seatButton = rt.gameObject.AddComponent<Button>();
+                seatButton.transition = Selectable.Transition.None;
+                seatButton.onClick.AddListener(() =>
+                {
+                    if (_seatIds[seat] <= 0) return;
+                    Sfx.Click();
+                    Detail.Open(Runner.Defs, Runner.State, _seatIds[seat]);
+                });
+                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 4, 84, 20).AddImage(catalog.Round, shade);
+                Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
+                art.preserveAspect = true;
+                _seats.Add(rt);
+                _seatArt.Add(art);
+                rt.gameObject.SetActive(false);
+                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y + 6f, cushion));
+                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y, rt));
+            }
+
+            // Now and then a seated rabbit gets up for a stroll along a stretch of grass that no station stands on.
+            float[] lanes = { Heart.y + 212f, Heart.y - 312f };
+            float[] laneFrom = { 390f, 400f }, laneTo = { 700f, 715f };
             for (int i = 0; i < lanes.Length && catalog.Rabbit != null; i++)
             {
-                var rt = UiKit.Rect("Walker", _street).Place(0f, 0f, 400, lanes[i], 92, 92);
+                var rt = UiKit.Rect("Walker", _street).Place(0f, 0f, 400, lanes[i], 104, 110);
                 rt.pivot = new Vector2(0.5f, 0f);
-                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 64, 16).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
-                UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white).preserveAspect = true;
-                _walkers.Add(new Walker { Rect = rt, X0 = laneFrom[i], X1 = laneTo[i], Y = lanes[i], Speed = 50f + i * 14f, Phase = i * 900f });
+                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(catalog.Round, shade);
+                Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
+                art.preserveAspect = true;
+                _walkers.Add(new Walker { Rect = rt, Art = art, X0 = laneFrom[i], X1 = laneTo[i], Y = lanes[i], Speed = 50f + i * 14f, Phase = i * 900f });
+                rt.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(float.MaxValue, rt)); // drawn first, so a walker never covers a level plate
             }
 
@@ -1002,9 +1086,9 @@ namespace VuonTra.Game.UI
             _glowSpots.Add(pondAt + new Vector2(14, 28));
 
             // Places to sit, in the corners the stations leave free.
-            Put(TeaTable, Heart.x + 90f, Heart.y - 1240f, 170f, Color.white);
-            Put(Stump, Heart.x + 246f, Heart.y - 1230f, 110f, Color.white);
-            Put(Stump, Heart.x - 60f, Heart.y - 1260f, 96f, Color.white);
+            Put(TeaTable, Heart.x + 90f, Heart.y - 1130f, 170f, Color.white);
+            Put(Stump, Heart.x + 246f, Heart.y - 1120f, 110f, Color.white);
+            Put(Stump, Heart.x - 60f, Heart.y - 1150f, 96f, Color.white);
 
             // A lantern beside each path, halfway along.
             for (int n = 0; n < Paths.Length; n++)
@@ -1053,6 +1137,11 @@ namespace VuonTra.Game.UI
                 bool tall = pick < 0.10f;
                 if (!Free(x, y, 230f, tall ? 380f : 220f, 240f)) continue; // nothing may cover a level plate or a name
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 240f) continue;
+                // Keep the places to rest in the open: nothing grows on a seat or in front of the tea table.
+                bool onSeat = false;
+                foreach (Vector2 seat in Seats)
+                    if (Mathf.Abs(Heart.x + seat.x - x) < 190f && y > Heart.y + seat.y - (tall ? 380f : 150f) && y < Heart.y + seat.y + 190f) onSeat = true;
+                if (onSeat) continue;
                 if (tall) Put(Tree, x, y, 270f + Hash(n + 40f) * 90f, soft);
                 else if (pick < 0.46f) Put(Bush, x, y, 104f, soft);
                 else if (pick < 0.76f) Put(Mushrooms, x, y, 84f, soft);
@@ -1196,28 +1285,20 @@ namespace VuonTra.Game.UI
 
             var bar = UiKit.Rect("Bar", _panel).Stretch(0, 1, 1, 1);
             bar.pivot = new Vector2(0.5f, 1f);
-            bar.sizeDelta = new Vector2(0, 230);
+            bar.sizeDelta = new Vector2(0, HeaderHeight);
 
-            UiKit.Rect("Tabs", bar).Place(0f, 0.5f, 318, 46, 580, 80).AddImage(catalog.Panel, Palette.Track, true);
-            // Equal widths so every language's labels fit.
-            AddTabButton(bar, catalog, 0, 102, 140);
-            AddTabButton(bar, catalog, 1, 246, 140);
-            AddTabButton(bar, catalog, 2, 390, 140);
-            AddTabButton(bar, catalog, 3, 534, 140);
-
-            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 454, 81, 40, 40);
-            badge.AddImage(catalog.Round, Palette.CarrotLip);
-            _badgeText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _badge = badge.gameObject;
+            // The tab bar along the bottom already switches pages; up here there is only the page's name.
+            _sheetTitle = UiKit.Rect("Title", bar).Stretch(0, 0, 1, 1, 40, 0, 520, 12)
+                .AddText("", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             var modes = UiKit.Rect("Modes", bar).Stretch(0, 0, 1, 1);
             _modes = modes.gameObject;
-            UiKit.Rect("Track", modes).Place(1f, 0.5f, -212, -56, 368, 80).AddImage(catalog.Panel, Palette.Track, true);
-            AddModeButton(modes, catalog, 1, "×1", -344);
-            AddModeButton(modes, catalog, 10, "×10", -246);
-            AddModeButton(modes, catalog, 0, "Tối đa", -116);
+            UiKit.Rect("Track", modes).Place(1f, 0.5f, -312, -6, 368, 76).AddImage(catalog.Panel, Palette.Track, true);
+            AddModeButton(modes, catalog, 1, "×1", -444);
+            AddModeButton(modes, catalog, 10, "×10", -346);
+            AddModeButton(modes, catalog, 0, "Tối đa", -216);
 
-            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, 46, 80, 80);
+            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, -6, 80, 80);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();
@@ -1264,22 +1345,21 @@ namespace VuonTra.Game.UI
             }
 
             RectTransform rabbits = AddList("Rabbits", 3);
-            _rabbitList = new RabbitListView(rabbits, catalog, OnSummon, () =>
+            _rabbitList = new RabbitGridView(rabbits, catalog, OnSummon, () =>
             {
                 Sfx.Click();
                 Runner.AutoAssignRabbits();
-            }, OnMerge, id =>
+            }, OnMerge, rabbitId =>
             {
                 Sfx.Click();
-                Runner.ToggleRabbitWork(id);
-            }, OnLevelUp, (rabbitId, slot) =>
+                Detail.Open(Runner.Defs, Runner.State, rabbitId);
+            }, kindId =>
             {
                 Sfx.Click();
-                Picker.Open(Runner.State, rabbitId, slot);
-            }, rabbitId =>
+                Detail.OpenKind(Runner.Defs, Runner.State, kindId);
+            }, () =>
             {
-                Sfx.Click();
-                Rename.Open(Runner.State, rabbitId);
+                if (Runner.BuyRestSpot()) Sfx.Sting();
             });
 
             SetTab(0);
@@ -1310,7 +1390,7 @@ namespace VuonTra.Game.UI
         /// <summary>A scrolling column of cards under the sheet's header; returns where the cards go.</summary>
         RectTransform AddList(string name, int tab)
         {
-            var scrollRt = UiKit.Rect(name, _panel).Stretch(0, 0, 1, 1, 0, 24, 0, 230);
+            var scrollRt = UiKit.Rect(name, _panel).Stretch(0, 0, 1, 1, 0, 24, 0, HeaderHeight);
             scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
@@ -1343,26 +1423,9 @@ namespace VuonTra.Game.UI
                 TextAnchor.MiddleLeft, heading ? FontStyle.Bold : FontStyle.Normal);
         }
 
-        void AddTabButton(RectTransform bar, GameCatalog catalog, int tab, float x, float width)
-        {
-            var rt = UiKit.Rect("Tab " + TabNames[tab], bar).Place(0f, 0.5f, x, 46, width, 64);
-            Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
-            img.raycastTarget = true;
-            var button = rt.gameObject.AddComponent<Button>();
-            button.transition = Selectable.Transition.None;
-            button.targetGraphic = img;
-            button.onClick.AddListener(() =>
-            {
-                Sfx.Click();
-                SetTab(tab);
-            });
-            _tabLabels[tab] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(L10n.T("tab." + tab), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _tabButtons[tab] = img;
-        }
-
         void AddModeButton(RectTransform bar, GameCatalog catalog, int mode, string label, float x)
         {
-            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -56, mode == 0 ? 152 : 92, 64);
+            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -6, mode == 0 ? 152 : 92, 60);
             Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -1383,11 +1446,17 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < TabCount; i++)
             {
                 _lists[i].SetActive(i == Tab);
-                _tabButtons[i].color = i == Tab ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
-                _tabLabels[i].color = i == Tab ? Palette.Card : Palette.InkSoft;
             }
             _modes.SetActive(Tab == 0);
+            if (_sheetTitle != null) _sheetTitle.text = L10n.T("sheet.title." + Tab);
             if (_built && Feel != null) Refresh(-1f);
+        }
+
+        /// <summary>Turns the rabbit tab to the album of kinds, or back to the player's rabbits.</summary>
+        public void ShowRabbitAlbum(bool album)
+        {
+            _rabbitList.ShowAlbum(album);
+            Refresh(-1f);
         }
 
         public void OpenSheet(int tab)
@@ -1487,11 +1556,10 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
             RefreshPlotRow(defs, s);
             _rabbitList.Refresh(defs, s);
+            Detail.Refresh(defs, s);
             Picker.Refresh(s);
 
             int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s);
-            _badge.SetActive(claimable > 0);
-            _badgeText.text = claimable.ToString();
             _barBadge.SetActive(claimable > 0);
             _barBadgeText.text = claimable.ToString();
             _clovers.text = L10n.T("quests.clovers", s.Clovers);
@@ -1553,9 +1621,10 @@ namespace VuonTra.Game.UI
                 {
                     // The collected rabbit itself stands at the station, wearing what it wears.
                     Item hat = Items.Worn(s, worker.Id, ItemSlot.Hat), charm = Items.Worn(s, worker.Id, ItemSlot.Charm);
+                    RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(worker));
                     _actors[i].SetWorker(catalog.RabbitArt(worker),
-                        hat != null ? catalog.ItemIcon(hat.DefId) : null, charm != null ? catalog.ItemIcon(charm.DefId) : null,
-                        worker.Tier >= 4 && !RabbitKinds.Find(Rabbits.KindOf(worker)).OwnGlow);
+                        hat != null && !kind.NoHat ? catalog.ItemIcon(hat.DefId) : null, charm != null ? catalog.ItemIcon(charm.DefId) : null,
+                        worker.Tier >= 4 && !kind.OwnGlow, new Vector2(kind.HatX, kind.HatY));
                 }
 
                 GameObject chip = _tierChips[i].gameObject;
@@ -1570,6 +1639,31 @@ namespace VuonTra.Game.UI
                 _tierTradeIcons[i].color = inTrade ? Palette.Ink : Palette.Paper;
             }
             RefreshCard(defs, s, Runner.Mods);
+            RefreshSeats(s);
+        }
+
+        /// <summary>Resting rabbits that have a place sit in the garden as themselves; the rest are not out.</summary>
+        void RefreshSeats(GameState s)
+        {
+            List<Rabbit> seated = RestSpots.Seated(s);
+            _seated = Mathf.Min(seated.Count, _seats.Count);
+            GameCatalog catalog = Runner.Catalog;
+            for (int k = 0; k < _seats.Count; k++)
+            {
+                bool taken = k < _seated;
+                _seatIds[k] = taken ? seated[k].Id : 0;
+                if (taken)
+                {
+                    Sprite art = catalog.RabbitArt(seated[k]);
+                    _seatArt[k].sprite = art;
+                    if (k < _walkers.Count) _walkers[k].Art.sprite = art;
+                }
+                bool sitting = taken && !(k < _walkers.Count && Strolling(k, _clock));
+                if (_seats[k].gameObject.activeSelf != sitting) _seats[k].gameObject.SetActive(sitting);
+                // The first two places are the stumps; each later one shows its furniture once it exists.
+                bool cushion = k >= 2 && k < s.RestSpots;
+                if (_seatCushions[k].activeSelf != cushion) _seatCushions[k].SetActive(cushion);
+            }
         }
 
         /// <summary>True when the one thing the station's card offers (land, opening, or levels) can be paid for.</summary>
@@ -1618,6 +1712,11 @@ namespace VuonTra.Game.UI
 
         void OnTap(int index)
         {
+            if (Zoom == ZoomLevel.Far)
+            {
+                // From far away the station would sit behind its own card: come in to the usual zoom on it first.
+                PlaceView(StationSpot(index), new Vector2(ScreenW / 2f, ScreenH * 0.6f), ZoomDefault);
+            }
             SelectStation(index); // a tap always shows the station's card, asleep or not
             if (index == _lastTapIndex && _clock - _lastTapAt < 0.35f && Zoom != ZoomLevel.Near) ZoomToStation(index);
             _lastTapIndex = index;

@@ -10,6 +10,8 @@ namespace VuonTra.Core
         public int Tier;
         /// <summary>Which of the tier's kinds it is (a <see cref="RabbitKind"/> id). Use <see cref="Rabbits.KindOf"/> to read it safely.</summary>
         public string Kind;
+        /// <summary>True on the rabbit that first brought its kind into the album. Not saved: it is for the moment it arrives.</summary>
+        public bool FirstOfKind;
         public string Name;
         /// <summary>1 and up; each level adds to what the rabbit is worth. The tier sets the cap.</summary>
         public int Level = 1;
@@ -105,6 +107,12 @@ namespace VuonTra.Core
             return true;
         }
 
+        /// <summary>Puts a kind in the album. True when it was not there before.</summary>
+        public static bool See(GameState s, string kindId)
+        {
+            return RabbitKinds.Find(kindId) != null && s.SeenKinds.Add(kindId);
+        }
+
         /// <summary>The rabbit's kind, or its tier's default when it has none or one that belongs to another tier.</summary>
         public static string KindOf(Rabbit r)
         {
@@ -154,6 +162,7 @@ namespace VuonTra.Core
             s.Clovers -= SummonCost;
             int tier = RollTier(roll);
             var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = tier, Kind = RabbitKinds.Pick(tier, kindRoll), Name = name };
+            rabbit.FirstOfKind = See(s, rabbit.Kind);
             s.Rabbits.Add(rabbit);
             return rabbit;
         }
@@ -196,6 +205,7 @@ namespace VuonTra.Core
                 s.Rabbits.Remove(r);
             }
             var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Kind = RabbitKinds.Pick(tier + 1, kindRoll), Name = used[0].Name, Station = station, Level = level };
+            merged.FirstOfKind = See(s, merged.Kind);
             s.Rabbits.Add(merged);
             // Items move to the new rabbit, first come first served per slot; the rest come off.
             foreach (Rabbit r in used)
