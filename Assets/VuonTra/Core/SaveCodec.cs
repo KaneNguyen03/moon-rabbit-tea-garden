@@ -30,7 +30,7 @@ namespace VuonTra.Core
     public static class SaveCodec
     {
         /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience.</summary>
-        public const int CurrentVersion = 9;
+        public const int CurrentVersion = 10;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -46,6 +46,8 @@ namespace VuonTra.Core
                 WriteString(sb, defs[i].Id);
                 sb.Append(",\"level\":").Append(s.Levels[i].ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"progress\":").Append(Sane(s.Progress[i]).ToString("R", CultureInfo.InvariantCulture));
+                double work = s.TrayWork != null && i < s.TrayWork.Length ? Sane(s.TrayWork[i]) : 0d;
+                sb.Append(",\"trayWork\":").Append(work.ToString("R", CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
             sb.Append("],\"buyMode\":").Append(s.BuyMode.ToString(CultureInfo.InvariantCulture));
@@ -108,6 +110,21 @@ namespace VuonTra.Core
                 sb.Append('}');
             }
             sb.Append("],\"plots\":").Append(s.Plots.ToString(CultureInfo.InvariantCulture));
+            // Version 10: the product tray.
+            sb.Append(",\"traySlots\":").Append(s.TraySlots.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"goldenToday\":").Append(s.GoldenToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"tray\":[");
+            for (int i = 0; i < s.Tray.Count; i++)
+            {
+                Product product = s.Tray[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"station\":");
+                WriteString(sb, product.Station >= 0 && product.Station < defs.Count ? defs[product.Station].Id : "");
+                sb.Append(",\"count\":").Append(product.Count.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"golden\":").Append(product.Golden ? "true" : "false");
+                sb.Append('}');
+            }
+            sb.Append(']');
             sb.Append(",\"energy\":").Append(Sane(s.Energy).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"boost\":").Append(Sane(s.BoostSecondsLeft).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"nextItemId\":").Append(s.NextItemId.ToString(CultureInfo.InvariantCulture));
@@ -180,6 +197,8 @@ namespace VuonTra.Core
                     TryNumber(entry, "progress", out double progress);
                     s.Levels[index] = level > 0d ? (int)Math.Min(level, int.MaxValue) : 0;
                     s.Progress[index] = (progress >= 0d && progress < 1d) ? progress : 0d;
+                    // Version 10: work towards the next special batch. Never more than one batch's worth.
+                    if (TryNumber(entry, "trayWork", out double trayWork)) s.TrayWork[index] = Math.Max(0d, Math.Min(Tray.ProductEvery, trayWork));
                 }
             }
             if (s.Levels.Length > 0 && s.Levels[0] < 1) s.Levels[0] = 1;
@@ -320,6 +339,22 @@ namespace VuonTra.Core
             // and no garden is ever below the level its land already needs.
             double xp = TryNumber(root, "gardenXp", out double savedXp) && savedXp >= 0d ? savedXp : Garden.BackfillXp(defs, s);
             s.GardenXp = Math.Max(xp, Garden.XpForLevel(Expansion.LevelForPlots(defs, s.Plots)));
+
+            // Version 10: the product tray. Only known stations, stacks within their limit, no more slots than the game has.
+            s.TraySlots = TryNumber(root, "traySlots", out double traySlots)
+                ? (int)Math.Max(Tray.StartingSlots, Math.Min(traySlots, Tray.MaxSlots))
+                : Tray.StartingSlots;
+            s.GoldenToday = TryNumber(root, "goldenToday", out double goldenToday) ? (int)Math.Max(0d, Math.Min(goldenToday, Tray.GoldenPerDay)) : 0;
+            if (root.TryGetValue("tray", out object trayObj) && trayObj is List<object> tray)
+                foreach (object item in tray)
+                {
+                    if (!(item is Dictionary<string, object> entry) || s.Tray.Count >= s.TraySlots) continue;
+                    int station = entry.TryGetValue("station", out object stationObj) && stationObj is string stationId ? IndexOf(defs, stationId) : -1;
+                    int count = (int)Math.Min(ReadNumber(entry, "count"), Tray.StackLimit);
+                    if (station < 0 || count < 1) continue;
+                    bool golden = entry.TryGetValue("golden", out object goldenObj) && goldenObj is bool g && g;
+                    s.Tray.Add(new Product { Station = station, Count = count, Golden = golden });
+                }
 
             result.Status = LoadStatus.Ok;
             return result;

@@ -14,7 +14,10 @@ namespace VuonTra.Core
         public const double AwayMinSeconds = 30;
 
         /// <summary>Advances every open Brew station and pays each finished cycle.</summary>
-        public static void Tick(IReadOnlyList<StationDef> defs, GameState s, double dt, Action<int, BigNum> onPayout = null, Modifiers? mods = null)
+        /// <param name="roll">A number in [0, 1) when asked: decides golden batches. Null never makes one.</param>
+        /// <param name="onProduct">A station finished a special batch for the tray.</param>
+        public static void Tick(IReadOnlyList<StationDef> defs, GameState s, double dt, Action<int, BigNum> onPayout = null, Modifiers? mods = null,
+            Func<double> roll = null, Action<int> onProduct = null)
         {
             if (!(dt > 0d)) return; // also rejects NaN
             Modifiers m = mods ?? Modifiers.None;
@@ -24,6 +27,7 @@ namespace VuonTra.Core
                 var d = defs[i];
                 if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d) continue;
 
+                Tray.Advance(s, i, work * m.SpeedMultiplier, roll, onProduct);
                 double p = s.Progress[i] + work * m.SpeedMultiplier / d.CycleSeconds;
                 if (p >= 1d)
                 {
@@ -113,6 +117,7 @@ namespace VuonTra.Core
 
             countedSeconds = Math.Min(elapsed, m.AwayCapSeconds);
             Energy.PassAway(s, elapsed);
+            Tray.FillAway(defs, s, countedSeconds); // the tray fills up to what it holds, and no further
             double awayBonus = m.AwayIncomeMultiplier > 0d ? m.AwayIncomeMultiplier : 1d;
             BigNum paid = Economy.IncomePerSecond(defs, s) * (countedSeconds * m.IncomeMultiplier * m.SpeedMultiplier * awayBonus);
             s.Coins += paid;

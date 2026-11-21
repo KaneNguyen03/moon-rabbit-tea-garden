@@ -55,6 +55,14 @@ namespace VuonTra.Core
         /// <summary>The garden's experience; its level follows from this.</summary>
         public double GardenXp;
 
+        /// <summary>What the stations have made and nobody has sold yet, one entry per slot.</summary>
+        public List<Product> Tray = new List<Product>();
+        public int TraySlots = VuonTra.Core.Tray.StartingSlots;
+        /// <summary>Seconds of work each station has put towards its next special batch; indexed like the stations.</summary>
+        public double[] TrayWork = new double[0];
+        /// <summary>Golden batches made today; a new day starts the count over.</summary>
+        public int GoldenToday;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState
@@ -66,6 +74,7 @@ namespace VuonTra.Core
                 UpgradeLevels = new int[upgradeCount]
             };
             s.Plots = System.Math.Min(defs.Count, VuonTra.Core.Plots.Starting);
+            s.TrayWork = new double[defs.Count];
             if (defs.Count > 0) s.Levels[0] = 1;
             return s;
         }

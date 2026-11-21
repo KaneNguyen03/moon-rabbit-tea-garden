@@ -114,7 +114,7 @@ namespace VuonTra.Game
             }
             else
             {
-                Simulation.Tick(Defs, State, dt, Payout, Mods);
+                Simulation.Tick(Defs, State, dt, Payout, Mods, _rng.NextDouble, ProductMade);
             }
 
             _sinceSave += dt;
@@ -169,6 +169,25 @@ namespace VuonTra.Game
 
         /// <summary>The item the most recent quest claim gave, if any.</summary>
         public Item LastQuestItem { get; private set; }
+
+        /// <summary>A station finished a special batch for the tray: the station's index.</summary>
+        public event Action<int> ProductMade;
+
+        /// <summary>Sells one slot of the tray. The carrots paid, and any clovers a golden stack brought.</summary>
+        public BigNum SellProduct(int slot, out int clovers)
+        {
+            BigNum paid = Tray.Sell(Defs, State, slot, Mods, out clovers);
+            if (paid > BigNum.Zero || clovers > 0) Changed();
+            return paid;
+        }
+
+        /// <summary>Sells everything in the tray.</summary>
+        public BigNum SellAllProducts(out int clovers)
+        {
+            BigNum paid = Tray.SellAll(Defs, State, Mods, out clovers);
+            if (paid > BigNum.Zero || clovers > 0) Changed();
+            return paid;
+        }
 
         /// <summary>A gift of carrots (a caught firefly, a visitor). Counts as earned.</summary>
         public void Grant(BigNum carrots)
