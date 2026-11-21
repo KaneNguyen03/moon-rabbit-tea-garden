@@ -69,11 +69,13 @@ namespace VuonTra.Game.UI
             Runner.StateChanged += RefreshNow;
             Runner.Payout += OnPayout;
             Runner.AwayClaimed += ShowAway;
+            L10n.Changed += RebuildUi;
             RefreshNow();
         }
 
         void OnDestroy()
         {
+            L10n.Changed -= RebuildUi;
             if (Runner == null) return;
             Runner.StateChanged -= RefreshNow;
             Runner.Payout -= OnPayout;
@@ -103,7 +105,7 @@ namespace VuonTra.Game.UI
             _shownCoins = System.Math.Abs(target - _shownCoins) < 0.5 || target > 1e15
                 ? target
                 : _shownCoins + (target - _shownCoins) * Mathf.Clamp01(dt * 10f);
-            _coins.text = target > 1e15 ? s.Coins.ToShortString() : new BigNum(_shownCoins).ToShortString();
+            _coins.text = target > 1e15 ? s.Coins.Short() : new BigNum(_shownCoins).Short();
 
             _sinceRefresh += dt;
             if (_sinceRefresh >= RefreshInterval) Refresh(_sinceRefresh);
@@ -116,6 +118,42 @@ namespace VuonTra.Game.UI
             _hills.uvRect = new Rect(x * 0.10f / 1920f, 0, 1, 1);
             _trees.uvRect = new Rect(x * 0.28f / 1920f, 0, 1.5f, 1);
             _ground.uvRect = new Rect(x / 960f, 0, 2, 1);
+        }
+
+        /// <summary>
+        /// Throws the whole UI away and builds it again, keeping where the player was. Used when
+        /// the language changes: most labels are written once when the screen is built.
+        /// </summary>
+        public void RebuildUi()
+        {
+            if (!_built) return;
+            ShellState before = Shell.State;
+            bool sheetWasOpen = SheetOpen;
+            int tab = Tab;
+            float streetX = _street.anchoredPosition.x;
+
+            Tweens.Clear(); // running tweens point at objects that are about to be destroyed
+            GameObject old = _canvas.gameObject;
+            old.name = "Canvas (old)"; // so lookups by path find the new one straight away
+            old.SetActive(false);
+            if (Application.isPlaying) Destroy(old);
+            else DestroyImmediate(old);
+
+            _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
+            _modeButtons.Clear(); _modeLabels.Clear();
+            _tierChips.Clear(); _tierLabels.Clear(); _quickButtons.Clear(); _quickLabels.Clear();
+            _shownStations = -1;
+            // The old helpers belong to the destroyed canvas; Build makes new ones.
+            Feel = null;
+            Picker = null;
+            Shell = null;
+
+            Build();
+            if (before != ShellState.Title) Shell.SkipTitle();
+            Refresh(-1f);
+            _street.anchoredPosition = new Vector2(streetX, _street.anchoredPosition.y);
+            if (sheetWasOpen) OpenSheet(tab);
+            if (before == ShellState.Paused) Shell.OpenPause(); // back to the card the language buttons are on
         }
 
         /// <summary>Creates every UI object. Safe to call from the editor for a preview.</summary>
@@ -228,7 +266,7 @@ namespace VuonTra.Game.UI
 
             var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -196, 900, 60);
             hint.AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Text", hint).Stretch(0, 0, 1, 1).AddText("Chạm vào bé thỏ để làm nhanh hơn · kéo ngang để đi dọc con phố", 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", hint).Stretch(0, 0, 1, 1).AddText(L10n.T("hint"), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _hint = hint.gameObject;
         }
 
@@ -246,7 +284,7 @@ namespace VuonTra.Game.UI
             _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 108, 0, 20, 6)
                 .AddText("0", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _perSecond = UiKit.Rect("PerSecond", _purse).Stretch(0, 0, 1, 0.46f, 108, 14, 20, 0)
-                .AddText("+0/giây", 24, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(L10n.T("persec", "0"), 24, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             // "Trà lực": the bar and the boost button are one control.
             var energy = UiKit.Rect("Energy", _hud).Place(0.5f, 1f, 0, -78, 520, 104);
@@ -295,7 +333,7 @@ namespace VuonTra.Game.UI
                 button.Face.color = Palette.Paper;
                 _openButtons[i] = button;
                 _openLabels[i] = UiKit.Rect("Text", button.FaceRect).Stretch(0, 0, 1, 1)
-                    .AddText(TabNames[i], 28, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    .AddText(L10n.T("tab." + i), 28, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
             var badge = UiKit.Rect("Badge", _tabBar).Place(0.5f, 1f, 78, -58 - 2 * 120 + 40, 46, 46);
             badge.AddImage(catalog.Round, Palette.CarrotLip);
@@ -325,12 +363,13 @@ namespace VuonTra.Game.UI
             bar.sizeDelta = new Vector2(0, 128);
 
             UiKit.Rect("Tabs", bar).Place(0f, 0.5f, 318, -9, 580, 80).AddImage(catalog.Panel, Palette.Track, true);
-            AddTabButton(bar, catalog, 0, 96, 120);
-            AddTabButton(bar, catalog, 1, 214, 108);
-            AddTabButton(bar, catalog, 2, 364, 180);
-            AddTabButton(bar, catalog, 3, 536, 132);
+            // Equal widths so every language's labels fit.
+            AddTabButton(bar, catalog, 0, 102, 140);
+            AddTabButton(bar, catalog, 1, 246, 140);
+            AddTabButton(bar, catalog, 2, 390, 140);
+            AddTabButton(bar, catalog, 3, 534, 140);
 
-            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 448, 24, 40, 40);
+            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 454, 26, 40, 40);
             badge.AddImage(catalog.Round, Palette.CarrotLip);
             _badgeText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _badge = badge.gameObject;
@@ -365,7 +404,7 @@ namespace VuonTra.Game.UI
             BuildPlotRow(stations, catalog);
 
             RectTransform upgrades = AddList("Upgrades", 1);
-            AddNote(upgrades, "Bùa có tác dụng với cả khu vườn.");
+            AddNote(upgrades, L10n.T("upgrades.note"));
             for (int i = 0; i < catalog.Upgrades.Length; i++)
             {
                 var row = new UpgradeRowView(i);
@@ -375,10 +414,10 @@ namespace VuonTra.Game.UI
 
             RectTransform quests = AddList("Quests", 2);
             _clovers = AddNote(quests, "");
-            AddNote(quests, "Hôm nay", true);
+            AddNote(quests, L10n.T("quests.today"), true);
             for (int pass = 0; pass < 2; pass++)
             {
-                if (pass == 1) AddNote(quests, "Thành tựu", true);
+                if (pass == 1) AddNote(quests, L10n.T("quests.achievements"), true);
                 for (int i = 0; i < catalog.Quests.Length; i++)
                 {
                     if (catalog.Quests[i].Daily != (pass == 0)) continue;
@@ -423,7 +462,7 @@ namespace VuonTra.Game.UI
             var buy = UiKit.Rect("Buy", _plotRow).Place(1f, 0.5f, -166, 4, 284, 120);
             _plotBuy = UiKit.Chunky(buy, catalog.Panel, OnBuyPlot);
             UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 10)
-                .AddText("Mua đất", 23, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("plot.buy"), 23, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _plotCost = UiKit.Rect("Cost", _plotBuy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 10, 8, 0)
                 .AddText("", 36, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
@@ -477,7 +516,7 @@ namespace VuonTra.Game.UI
                 Sfx.Click();
                 SetTab(tab);
             });
-            _tabLabels[tab] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(TabNames[tab], 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _tabLabels[tab] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(L10n.T("tab." + tab), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _tabButtons[tab] = img;
         }
 
@@ -494,7 +533,7 @@ namespace VuonTra.Game.UI
                 Sfx.Click();
                 Runner.SetBuyMode(mode);
             });
-            _modeLabels[mode] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(label, 28, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _modeLabels[mode] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(mode == 0 ? L10n.T("mode.max") : label, 28, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _modeButtons[mode] = img;
         }
 
@@ -542,9 +581,9 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Lip", card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Title", card).Stretch(0, 0.80f, 1, 1, 40, 0, 40, 40)
-                .AddText("Mừng bạn quay lại", 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("away.title"), 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             UiKit.Rect("Body", card).Stretch(0, 0.62f, 1, 0.80f, 60, 0, 60, 0)
-                .AddText("Lúc bạn đi vắng, các bé thỏ vẫn chăm chỉ pha trà và gom được", 30, Palette.InkSoft);
+                .AddText(L10n.T("away.body"), 30, Palette.InkSoft);
             UiKit.Rect("Carrot", card).Place(0.5f, 0.5f, -200, 4, 110, 110).AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _awayAmount = UiKit.Rect("Amount", card).Place(0.5f, 0.5f, 60, 4, 420, 110)
                 .AddText("+0", 84, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -560,7 +599,7 @@ namespace VuonTra.Game.UI
                 Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
                 _away.SetActive(false);
             });
-            UiKit.Rect("Text", okButton.FaceRect).Stretch(0, 0, 1, 1).AddText("Nhận cà rốt", 40, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", okButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("away.ok"), 40, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             _away.SetActive(false);
         }
@@ -596,7 +635,7 @@ namespace VuonTra.Game.UI
             bool boosting = s.BoostSecondsLeft > 0d;
 
             BigNum perSecond = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));
-            _perSecond.text = "+" + (perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.ToShortString()) + "/giây";
+            _perSecond.text = L10n.T("persec", perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
             _hint.SetActive(!s.HintSeen && Shell.State == ShellState.Playing && !SheetOpen);
             if (dt < 0f) _shownCoins = s.Coins.ToDouble();
 
@@ -615,7 +654,7 @@ namespace VuonTra.Game.UI
             _badgeText.text = claimable.ToString();
             _barBadge.SetActive(claimable > 0);
             _barBadgeText.text = claimable.ToString();
-            _clovers.text = "Cỏ bốn lá: " + s.Clovers + " · dùng để gọi thỏ ở tab Thỏ";
+            _clovers.text = L10n.T("quests.clovers", s.Clovers);
 
             foreach (KeyValuePair<int, Image> pair in _modeButtons)
             {
@@ -636,10 +675,10 @@ namespace VuonTra.Game.UI
         {
             bool can = Energy.CanBoost(s);
             _energyFill.anchorMax = new Vector2(Mathf.Clamp01((float)(s.Energy / Energy.Max)), 1f);
-            _energyLabel.text = "Trà lực " + Mathf.FloorToInt((float)s.Energy);
+            _energyLabel.text = L10n.T("energy.label", Mathf.FloorToInt((float)s.Energy));
             _energyAction.text = boosting
-                ? "×2 · " + Mathf.CeilToInt((float)s.BoostSecondsLeft) + " giây"
-                : (can ? "Tăng tốc!" : "cần " + (int)Energy.BoostCost);
+                ? L10n.T("energy.boosting", Mathf.CeilToInt((float)s.BoostSecondsLeft))
+                : (can ? L10n.T("energy.ready") : L10n.T("energy.need", (int)Energy.BoostCost));
             _energyButton.Button.interactable = can;
             _energyButton.Lip.color = boosting ? Palette.Mix(Palette.Moss, Palette.Ink, 0.3f) : (can ? Palette.CarrotLip : Palette.CardLip);
             _energyButton.Face.color = boosting ? Palette.Mix(Palette.Moss, Palette.Paper, 0.45f) : (can ? Palette.Lantern : Palette.Paper);
@@ -677,20 +716,20 @@ namespace VuonTra.Game.UI
                 if (needsPlot)
                 {
                     BigNum cost = Plots.CostOfNext(defs, s);
-                    label = "Mua đất · " + cost.ToShortString();
+                    label = L10n.T("quick.plot", cost.Short());
                     can = s.Coins >= cost;
                 }
                 else if (level <= 0)
                 {
                     BigNum cost = Economy.CostOfNext(defs[i], 0, 1);
-                    label = "Mở · " + cost.ToShortString();
+                    label = L10n.T("quick.open", cost.Short());
                     can = Economy.CanUnlock(s, i) && s.Coins >= cost;
                 }
                 else
                 {
                     int count = Simulation.BuyCount(defs, s, i);
                     BigNum cost = Economy.CostOfNext(defs[i], level, count);
-                    label = "Nâng +" + count + " · " + cost.ToShortString();
+                    label = L10n.T("quick.upgrade", count, cost.Short());
                     can = s.Coins >= cost;
                 }
                 _quickLabels[i].text = label;
@@ -707,20 +746,20 @@ namespace VuonTra.Game.UI
             if (_plotRow.GetSiblingIndex() != s.Plots) _plotRow.SetSiblingIndex(s.Plots);
             BigNum cost = Plots.CostOfNext(defs, s);
             bool can = s.Coins >= cost;
-            _plotTitle.text = "Ô đất thứ " + (s.Plots + 1);
-            _plotSub.text = "Mở chỗ cho " + defs[s.Plots].Name;
-            _plotCost.text = cost.ToShortString();
+            _plotTitle.text = L10n.T("plot.title", s.Plots + 1);
+            _plotSub.text = L10n.T("plot.sub", L10n.Station(defs[s.Plots].Id));
+            _plotCost.text = cost.Short();
             _plotCost.color = can ? Palette.Card : Palette.OffInk;
             _plotBuy.SetEnabled(can);
         }
 
         public void ShowAway(BigNum amount, double seconds)
         {
-            _awayAmount.text = "+" + amount.ToShortString();
+            _awayAmount.text = "+" + amount.Short();
             int minutes = Mathf.Max(1, (int)(seconds / 60d));
-            string span = minutes >= 60 ? (minutes / 60) + " giờ " + (minutes % 60) + " phút" : minutes + " phút";
+            string span = minutes >= 60 ? L10n.T("away.hours", minutes / 60, minutes % 60) : L10n.T("away.minutes", minutes);
             bool capped = seconds >= Runner.Mods.AwayCapSeconds;
-            _awayTime.text = "trong " + span + (capped ? " (đã chạm giới hạn vắng mặt)" : "") + ".";
+            _awayTime.text = L10n.T(capped ? "away.time.capped" : "away.time", span);
             _away.SetActive(true);
             RectTransform card = (RectTransform)_away.transform.Find("Card");
             card.localScale = Vector3.one * 0.8f;
@@ -754,7 +793,7 @@ namespace VuonTra.Game.UI
             if (!Runner.Boost()) return;
             _energyButton.Press(Tweens);
             Sfx.Sting();
-            Feel.Moment("Tăng tốc!", "Cả khu vườn làm nhanh gấp đôi trong " + (int)Energy.BoostSeconds + " giây");
+            Feel.Moment(L10n.T("moment.boost.title"), L10n.T("moment.boost.sub", (int)Energy.BoostSeconds));
         }
 
         void OnBuy(int index)
@@ -782,12 +821,12 @@ namespace VuonTra.Game.UI
             if (before == 0)
             {
                 Sfx.Sting();
-                Feel.Moment("Trạm mới thức dậy!", catalog.Stations[index].DisplayName);
+                Feel.Moment(L10n.T("moment.unlock"), L10n.Station(catalog.Stations[index].Id));
             }
             else if (Economy.MilestoneMultiplier(after) > multiplierBefore)
             {
                 Sfx.Sting();
-                Feel.Moment("Cấp " + Economy.PreviousMilestone(after) + "!", catalog.Stations[index].DisplayName + " giờ thu gấp đôi");
+                Feel.Moment(L10n.T("moment.milestone.title", Economy.PreviousMilestone(after)), L10n.T("moment.milestone.sub", L10n.Station(catalog.Stations[index].Id)));
             }
             else if (OnScreen(actor))
             {
@@ -801,7 +840,7 @@ namespace VuonTra.Game.UI
             if (!Runner.BuyPlot()) return;
             _plotBuy.Press(Tweens);
             Sfx.Sting();
-            Feel.Moment("Khu vườn rộng thêm!", "Có chỗ cho " + Runner.Defs[Runner.State.Plots - 1].Name);
+            Feel.Moment(L10n.T("moment.plot.title"), L10n.T("moment.plot.sub", L10n.Station(Runner.Defs[Runner.State.Plots - 1].Id)));
         }
 
         void OnSummon()
@@ -810,7 +849,7 @@ namespace VuonTra.Game.UI
             if (rabbit == null) return;
             _rabbitList.Summon.Press(Tweens);
             Sfx.Sting();
-            Feel.Moment("Bé " + rabbit.Name + " đã tới!", "Bậc " + Palette.TierNames[rabbit.Tier] + " · ×" + UiKit.Times(Rabbits.Multipliers[rabbit.Tier]) + " cho trạm bé làm");
+            Feel.Moment(L10n.T("moment.summon.title", rabbit.Name), L10n.T("moment.summon.sub", L10n.Tier(rabbit.Tier), UiKit.Times(Rabbits.Multipliers[rabbit.Tier])));
         }
 
         void OnMerge(int tier)
@@ -818,7 +857,7 @@ namespace VuonTra.Game.UI
             Rabbit merged = Runner.MergeRabbits(tier);
             if (merged == null) return;
             Sfx.Sting();
-            Feel.Moment(merged.Name + " lên bậc " + Palette.TierNames[merged.Tier] + "!", "×" + UiKit.Times(Rabbits.Multipliers[merged.Tier]) + " cho trạm bé làm");
+            Feel.Moment(L10n.T("moment.merge.title", merged.Name, L10n.Tier(merged.Tier)), L10n.T("moment.merge.sub", UiKit.Times(Rabbits.Multipliers[merged.Tier])));
         }
 
         void OnLevelUp(long rabbitId)
@@ -826,7 +865,7 @@ namespace VuonTra.Game.UI
             if (!Runner.LevelUpRabbit(rabbitId)) return;
             Sfx.Blip();
             Rabbit r = Rabbits.Find(Runner.State, rabbitId);
-            Feel.FloatText(new Vector2(-110, 300), r.Name + " lên cấp " + r.Level, Palette.Lantern, 44);
+            Feel.FloatText(new Vector2(-110, 300), L10n.T("float.levelup", r.Name, r.Level), Palette.Lantern, 44);
         }
 
         void OnBuyUpgrade(int index)
@@ -835,7 +874,7 @@ namespace VuonTra.Game.UI
             _upgradeRows[index].Buy.Press(Tweens);
             Sfx.Sting();
             UpgradeData data = Runner.Catalog.Upgrades[index];
-            Feel.Moment(data.DisplayName + " cấp " + Runner.State.UpgradeLevels[index], data.Description);
+            Feel.Moment(L10n.T("moment.upgrade.title", L10n.T("upgrade." + data.Id + ".name"), Runner.State.UpgradeLevels[index]), L10n.T("upgrade." + data.Id + ".desc"));
         }
 
         void OnClaim(int index)
@@ -844,11 +883,11 @@ namespace VuonTra.Game.UI
             if (!Runner.ClaimQuest(index, out BigNum paid)) return;
             if (row != null) row.Claim.Press(Tweens);
             Sfx.Sting();
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), "+" + paid.ToShortString(), Palette.Lantern, 46);
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), "+" + paid.Short(), Palette.Lantern, 46);
             Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 12, 520f, 46f);
             Item gift = Runner.LastQuestItem;
             if (gift != null)
-                Feel.Moment("Quà: " + gift.Name, "Bậc " + Palette.TierNames[gift.Tier] + " · " + ItemPickerView.Describe(gift) + " · gắn ở tab Thỏ");
+                Feel.Moment(L10n.T("moment.gift.title", L10n.ItemName(gift)), L10n.T("moment.gift.sub", L10n.Tier(gift.Tier), ItemPickerView.Describe(gift)));
         }
 
         QuestRowView RowOfQuest(int questIndex)
@@ -873,7 +912,7 @@ namespace VuonTra.Game.UI
             _actors[index].Hop();
             if (!actor.gameObject.activeSelf || !OnScreen(actor) || SheetOpen) return;
 
-            Feel.FloatText(Feel.PointOf(actor, new Vector2(60, 150)), "+" + amount.ToShortString(), Palette.Paper);
+            Feel.FloatText(Feel.PointOf(actor, new Vector2(60, 150)), "+" + amount.Short(), Palette.Paper);
             Feel.Burst(Feel.PointOf(actor, new Vector2(110, 60)), Runner.Catalog.Currency, new[] { Color.white }, 2, 300f, 34f);
             Sfx.Tick();
 

@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Game;
 using VuonTra.Game.UI;
+using L10n = VuonTra.Game.L10n;
 
 namespace VuonTra.Core.Tests
 {
@@ -17,6 +18,7 @@ namespace VuonTra.Core.Tests
         [SetUp]
         public void SetUp()
         {
+            L10n.SetLocale("vi");
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
             root = new GameObject("Game");
             var cam = new GameObject("Cam", typeof(Camera));
@@ -35,6 +37,7 @@ namespace VuonTra.Core.Tests
         public void TearDown()
         {
             Object.DestroyImmediate(root);
+            L10n.SetLocale("vi");
         }
 
         Button Find(string path)
@@ -418,6 +421,50 @@ namespace VuonTra.Core.Tests
             Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim").onClick.Invoke();
             Assert.AreEqual(1, runner.State.Items.Count);
             Assert.IsNotNull(runner.LastQuestItem);
+        }
+
+        [Test]
+        public void Switching_Language_Rewrites_The_Screen_And_Keeps_The_Game()
+        {
+            screen.Shell.StartGame();
+            runner.State.Coins = new BigNum(12345);
+            runner.State.Levels[0] = 7;
+            screen.OpenSheet(1);
+            screen.Shell.OpenPause();
+            Assert.AreEqual("Tạm nghỉ", root.transform.Find("Canvas/Pause/Card/Heading").GetComponent<Text>().text);
+
+            L10n.SetLocale("en");
+            screen.RebuildUi(); // in play the language-changed event calls this
+
+            Assert.AreEqual("Paused", root.transform.Find("Canvas/Pause/Card/Heading").GetComponent<Text>().text);
+            Assert.AreEqual(ShellState.Paused, screen.Shell.State, "back on the card with the language buttons");
+            Assert.IsTrue(screen.SheetOpen);
+            Assert.AreEqual(1, screen.Tab);
+            Assert.AreEqual("Dew Teapot", root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Name").GetComponent<Text>().text);
+            Assert.AreEqual("Lv 7", root.transform.Find("Canvas/Garden/Content/Station am-tra/Level/Text").GetComponent<Text>().text);
+            Assert.AreEqual("Warm Hands", root.transform.Find("Canvas/Sheet/Panel/Upgrades/Content/Upgrade tay-am/Name").GetComponent<Text>().text);
+            StringAssert.StartsWith("Tap rabbits", root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Title").GetComponent<Text>().text);
+            Assert.AreEqual(7, runner.State.Levels[0]);
+            for (int i = 0; i < 30; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual("12.3K", root.transform.Find("Canvas/Hud/Purse/Coins").GetComponent<Text>().text, "English decimal point");
+            Assert.AreEqual(1, root.transform.childCount - 1 >= 0 ? CountCanvases() : 0, "the old screen is gone");
+        }
+
+        int CountCanvases()
+        {
+            int n = 0;
+            foreach (Transform child in root.transform)
+                if (child.GetComponent<Canvas>() != null) n++;
+            return n;
+        }
+
+        [Test]
+        public void Language_Buttons_Switch_Through_The_Package()
+        {
+            screen.Shell.StartGame();
+            screen.Shell.OpenPause();
+            Find("Canvas/Pause/Card/Language en").onClick.Invoke();
+            Assert.AreEqual("en", L10n.Code);
         }
 
         [Test]

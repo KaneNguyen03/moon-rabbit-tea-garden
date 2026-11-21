@@ -1,0 +1,619 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: Game_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: b9f1c67ff4e18465a88fde31daf037a8, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 359653376
+    m_Localized: Moon Rabbit Tea Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236288
+    m_Localized: A little tea shop run by rabbits under the moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236289
+    m_Localized: T A P   T O   S T A R T
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236290
+    m_Localized: Paused
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236291
+    m_Localized: Music
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236292
+    m_Localized: Sound
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236293
+    m_Localized: Language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236294
+    m_Localized: Resume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236295
+    m_Localized: Start over
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236296
+    m_Localized: Tap again to erase all progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236297
+    m_Localized: "Ti\u1EBFng Vi\u1EC7t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236298
+    m_Localized: English
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236299
+    m_Localized: Stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236300
+    m_Localized: Charms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236301
+    m_Localized: Quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236302
+    m_Localized: Rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236303
+    m_Localized: "Tap a rabbit to speed it up \xB7 drag sideways to walk the street"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236304
+    m_Localized: +{0}/s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236305
+    m_Localized: Max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236306
+    m_Localized: Tea power {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236307
+    m_Localized: "\xD72 \xB7 {0} s"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236308
+    m_Localized: Boost!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236309
+    m_Localized: need {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236310
+    m_Localized: "Land \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236311
+    m_Localized: "Open \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236312
+    m_Localized: "Up +{0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236313
+    m_Localized: Lv {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236314
+    m_Localized: Empty land
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236315
+    m_Localized: Boost!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236316
+    m_Localized: The whole garden works twice as fast for {0} seconds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236317
+    m_Localized: A new station wakes up!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236318
+    m_Localized: Level {0}!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236319
+    m_Localized: '{0} now earns double'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236320
+    m_Localized: The garden grows!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236321
+    m_Localized: Room for {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236322
+    m_Localized: '{0} has arrived!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236323
+    m_Localized: "{0} tier \xB7 \xD7{1} for its station"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236324
+    m_Localized: '{0} is now {1} tier!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236325
+    m_Localized: "\xD7{0} for its station"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236326
+    m_Localized: '{0} level {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236327
+    m_Localized: 'Gift: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236328
+    m_Localized: "{0} tier \xB7 {1} \xB7 equip it in the Rabbits tab"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236329
+    m_Localized: '{0} reached level {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236330
+    m_Localized: Welcome back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236331
+    m_Localized: While you were away, the rabbits kept brewing and gathered
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236332
+    m_Localized: Collect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236333
+    m_Localized: '{0} min'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236334
+    m_Localized: '{0} h {1} min'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236335
+    m_Localized: in {0}.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236336
+    m_Localized: in {0} (away limit reached).
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236337
+    m_Localized: Locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236338
+    m_Localized: Buy more land first
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236339
+    m_Localized: Open the station above first
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236340
+    m_Localized: Open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236341
+    m_Localized: Upgrade +{0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236342
+    m_Localized: '{0} carrots / {1} s'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236343
+    m_Localized: " \xB7 \xD72 at level {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236344
+    m_Localized: "Raises prices \xD7{0} for {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236345
+    m_Localized: Buy land
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236346
+    m_Localized: Plot {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236347
+    m_Localized: Makes room for {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236348
+    m_Localized: Charms affect the whole garden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236349
+    m_Localized: Lv {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236350
+    m_Localized: Maxed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236351
+    m_Localized: Learn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236352
+    m_Localized: Today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236353
+    m_Localized: Achievements
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236354
+    m_Localized: "Clovers: {0} \xB7 spend them in the Rabbits tab"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236355
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236356
+    m_Localized: " \xB7 clovers \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236357
+    m_Localized: Claimed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236358
+    m_Localized: Claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236359
+    m_Localized: Not yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236360
+    m_Localized: Call a new rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236361
+    m_Localized: You have {0} clovers. Quests give more.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236362
+    m_Localized: "Call \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236363
+    m_Localized: Max level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236364
+    m_Localized: Level up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236365
+    m_Localized: No rabbits yet. Do quests to earn clovers, then call your first one.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236366
+    m_Localized: Merge 3 {0} into 1 {1} (you have {2})
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236367
+    m_Localized: Merge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236368
+    m_Localized: 'Auto-assign: best rabbits to the best stations'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236369
+    m_Localized: "{0} \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236370
+    m_Localized: "Lv {0}/{1} \xB7 at {2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236371
+    m_Localized: "Lv {0}/{1} \xB7 resting"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236372
+    m_Localized: Rest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236373
+    m_Localized: Work
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236374
+    m_Localized: No room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236375
+    m_Localized: Bunny
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236376
+    m_Localized: Silver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236377
+    m_Localized: Green
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236378
+    m_Localized: Blue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236379
+    m_Localized: Purple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236380
+    m_Localized: Gold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236381
+    m_Localized: Red
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236382
+    m_Localized: hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236383
+    m_Localized: charm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236384
+    m_Localized: Choose a {0} for {1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236385
+    m_Localized: Nothing for this slot yet. Daily quests and big achievements give items.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236386
+    m_Localized: Wear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236387
+    m_Localized: Remove
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236388
+    m_Localized: "{0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236389
+    m_Localized: " \xB7 wearing"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236390
+    m_Localized: " \xB7 worn by {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236391
+    m_Localized: +{0}% garden speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236392
+    m_Localized: +{0}% carrots while away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236393
+    m_Localized: +{0}% income at its station
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236394
+    m_Localized: Straw Hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236395
+    m_Localized: Chef Hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236396
+    m_Localized: Flower Crown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236397
+    m_Localized: Silver Bell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236398
+    m_Localized: Lucky Clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236399
+    m_Localized: Little Lantern
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236400
+    m_Localized: Dew Teapot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236401
+    m_Localized: Tea Leaf Basket
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236402
+    m_Localized: Berry Jam Pot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236403
+    m_Localized: Flower Mortar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236404
+    m_Localized: Chestnut Oven
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236405
+    m_Localized: Honey Hive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236406
+    m_Localized: Moon Milk Tea Stand
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236407
+    m_Localized: Star Brewing Jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236408
+    m_Localized: Moon Grape Trellis
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236409
+    m_Localized: Mooncake Bakery
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236410
+    m_Localized: Flower Spring
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236411
+    m_Localized: Stargazing Deck
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236412
+    m_Localized: Warm Hands
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236413
+    m_Localized: Each tap adds 0.2 s of work
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236414
+    m_Localized: Night Breeze
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236415
+    m_Localized: Every station works 10% faster
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236416
+    m_Localized: Full Moonlight
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236417
+    m_Localized: Every station earns double
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236418
+    m_Localized: Long Sleep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236419
+    m_Localized: Earn for 2 more hours while away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236420
+    m_Localized: Tap rabbits 50 times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236421
+    m_Localized: Upgrade stations 20 times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236422
+    m_Localized: Harvest today's carrot goal
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236423
+    m_Localized: Wake the second rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236424
+    m_Localized: Have 4 stations running
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236425
+    m_Localized: Have 8 stations running
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236426
+    m_Localized: Dew Teapot reaches level 10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236427
+    m_Localized: Dew Teapot reaches level 25
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236428
+    m_Localized: Dew Teapot reaches level 50
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236429
+    m_Localized: Tap 100 times in total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236430
+    m_Localized: Tap 1,000 times in total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236431
+    m_Localized: Learn your first charm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236432
+    m_Localized: Learn 10 charm levels in total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236433
+    m_Localized: Earn 1,000 carrots in total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236434
+    m_Localized: Earn 1 million carrots in total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236435
+    m_Localized: Earn 1 billion carrots in total
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

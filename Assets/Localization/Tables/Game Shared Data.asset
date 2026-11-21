@@ -1,0 +1,624 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: Game Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: Game
+  m_TableCollectionNameGuidString: b9f1c67ff4e18465a88fde31daf037a8
+  m_Entries:
+  - m_Id: 359653376
+    m_Key: title.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236288
+    m_Key: title.tagline
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236289
+    m_Key: title.prompt
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236290
+    m_Key: pause.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236291
+    m_Key: pause.music
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236292
+    m_Key: pause.sfx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236293
+    m_Key: pause.language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236294
+    m_Key: pause.resume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236295
+    m_Key: pause.reset
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236296
+    m_Key: pause.reset.confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236297
+    m_Key: lang.vi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236298
+    m_Key: lang.en
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236299
+    m_Key: tab.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236300
+    m_Key: tab.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236301
+    m_Key: tab.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236302
+    m_Key: tab.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236303
+    m_Key: hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236304
+    m_Key: persec
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236305
+    m_Key: mode.max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236306
+    m_Key: energy.label
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236307
+    m_Key: energy.boosting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236308
+    m_Key: energy.ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236309
+    m_Key: energy.need
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236310
+    m_Key: quick.plot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236311
+    m_Key: quick.open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236312
+    m_Key: quick.upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236313
+    m_Key: station.level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236314
+    m_Key: station.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236315
+    m_Key: moment.boost.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236316
+    m_Key: moment.boost.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236317
+    m_Key: moment.unlock
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236318
+    m_Key: moment.milestone.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236319
+    m_Key: moment.milestone.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236320
+    m_Key: moment.plot.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236321
+    m_Key: moment.plot.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236322
+    m_Key: moment.summon.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236323
+    m_Key: moment.summon.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236324
+    m_Key: moment.merge.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236325
+    m_Key: moment.merge.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236326
+    m_Key: moment.upgrade.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236327
+    m_Key: moment.gift.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236328
+    m_Key: moment.gift.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236329
+    m_Key: float.levelup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236330
+    m_Key: away.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236331
+    m_Key: away.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236332
+    m_Key: away.ok
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236333
+    m_Key: away.minutes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236334
+    m_Key: away.hours
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236335
+    m_Key: away.time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236336
+    m_Key: away.time.capped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236337
+    m_Key: row.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236338
+    m_Key: row.needplot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236339
+    m_Key: row.needprev
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236340
+    m_Key: row.open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236341
+    m_Key: row.upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236342
+    m_Key: row.income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236343
+    m_Key: row.milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236344
+    m_Key: row.boost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236345
+    m_Key: plot.buy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236346
+    m_Key: plot.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236347
+    m_Key: plot.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236348
+    m_Key: upgrades.note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236349
+    m_Key: upgrade.level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236350
+    m_Key: upgrade.maxed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236351
+    m_Key: upgrade.learn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236352
+    m_Key: quests.today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236353
+    m_Key: quests.achievements
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236354
+    m_Key: quests.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236355
+    m_Key: quest.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236356
+    m_Key: quest.reward.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236357
+    m_Key: quest.claimed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236358
+    m_Key: quest.claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236359
+    m_Key: quest.notyet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236360
+    m_Key: rabbits.summon.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236361
+    m_Key: rabbits.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236362
+    m_Key: rabbits.summon.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236363
+    m_Key: rabbits.maxlevel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236364
+    m_Key: rabbits.levelup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236365
+    m_Key: rabbits.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236366
+    m_Key: rabbits.merge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236367
+    m_Key: rabbits.merge.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236368
+    m_Key: rabbits.auto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236369
+    m_Key: rabbits.tier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236370
+    m_Key: rabbits.where.working
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236371
+    m_Key: rabbits.where.resting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236372
+    m_Key: rabbits.rest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236373
+    m_Key: rabbits.work
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236374
+    m_Key: rabbits.full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236375
+    m_Key: rabbit.default
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236376
+    m_Key: tier.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236377
+    m_Key: tier.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236378
+    m_Key: tier.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236379
+    m_Key: tier.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236380
+    m_Key: tier.4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236381
+    m_Key: tier.5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236382
+    m_Key: slot.hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236383
+    m_Key: slot.charm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236384
+    m_Key: picker.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236385
+    m_Key: picker.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236386
+    m_Key: picker.wear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236387
+    m_Key: picker.remove
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236388
+    m_Key: picker.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236389
+    m_Key: picker.worn.here
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236390
+    m_Key: picker.worn.other
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236391
+    m_Key: item.effect.speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236392
+    m_Key: item.effect.away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236393
+    m_Key: item.effect.station
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236394
+    m_Key: item.mu-rom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236395
+    m_Key: item.mu-bep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236396
+    m_Key: item.vong-hoa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236397
+    m_Key: item.chuong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236398
+    m_Key: item.co-may
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236399
+    m_Key: item.long-den
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236400
+    m_Key: station.am-tra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236401
+    m_Key: station.gio-la
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236402
+    m_Key: station.noi-mut
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236403
+    m_Key: station.coi-hoa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236404
+    m_Key: station.lo-banh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236405
+    m_Key: station.to-mat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236406
+    m_Key: station.tra-sua
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236407
+    m_Key: station.binh-sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236408
+    m_Key: station.gian-nho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236409
+    m_Key: station.tiem-banh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236410
+    m_Key: station.suoi-hoa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236411
+    m_Key: station.dai-sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236412
+    m_Key: upgrade.tay-am.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236413
+    m_Key: upgrade.tay-am.desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236414
+    m_Key: upgrade.gio-dem.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236415
+    m_Key: upgrade.gio-dem.desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236416
+    m_Key: upgrade.trang-ram.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236417
+    m_Key: upgrade.trang-ram.desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236418
+    m_Key: upgrade.giac-ngu.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236419
+    m_Key: upgrade.giac-ngu.desc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236420
+    m_Key: quest.ngay-cham
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236421
+    m_Key: quest.ngay-nang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236422
+    m_Key: quest.ngay-thu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236423
+    m_Key: quest.mo-2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236424
+    m_Key: quest.mo-4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236425
+    m_Key: quest.mo-8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236426
+    m_Key: quest.tra-10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236427
+    m_Key: quest.tra-25
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236428
+    m_Key: quest.tra-50
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236429
+    m_Key: quest.cham-100
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236430
+    m_Key: quest.cham-1000
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236431
+    m_Key: quest.bua-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236432
+    m_Key: quest.bua-10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236433
+    m_Key: quest.thu-1k
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236434
+    m_Key: quest.thu-1m
+    m_Metadata:
+      m_Items: []
+  - m_Id: 372236435
+    m_Key: quest.thu-1b
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 9137088353687306264
+  references:
+    version: 2
+    RefIds:
+    - rid: 9137088353687306264
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1795280954268

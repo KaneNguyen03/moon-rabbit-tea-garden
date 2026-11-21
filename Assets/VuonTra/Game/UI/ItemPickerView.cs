@@ -76,16 +76,16 @@ namespace VuonTra.Game.UI
         /// <summary>What an item does, in the player's words.</summary>
         public static string Describe(Item item)
         {
-            string percent = "+" + Mathf.RoundToInt((float)(item.Amount * 100d)) + "%";
+            int percent = Mathf.RoundToInt((float)(item.Amount * 100d));
             switch (item.Effect)
             {
-                case ItemEffect.GardenSpeed: return percent + " tốc độ cả vườn";
-                case ItemEffect.AwayIncome: return percent + " cà rốt lúc vắng mặt";
-                default: return percent + " thu nhập trạm của bé";
+                case ItemEffect.GardenSpeed: return L10n.T("item.effect.speed", percent);
+                case ItemEffect.AwayIncome: return L10n.T("item.effect.away", percent);
+                default: return L10n.T("item.effect.station", percent);
             }
         }
 
-        public static string SlotName(ItemSlot slot) => slot == ItemSlot.Hat ? "mũ" : "phụ kiện";
+        public static string SlotName(ItemSlot slot) => L10n.T(slot == ItemSlot.Hat ? "slot.hat" : "slot.charm");
 
         public void Open(GameState s, long rabbitId, ItemSlot slot)
         {
@@ -94,7 +94,7 @@ namespace VuonTra.Game.UI
             _rabbitId = rabbitId;
             _slot = slot;
             _signature = null;
-            _title.text = "Chọn " + SlotName(slot) + " cho " + rabbit.Name;
+            _title.text = L10n.T("picker.title", SlotName(slot), rabbit.Name);
             _root.SetActive(true);
             _card.localScale = Vector3.one * 0.85f;
             _tweens.Add(0.25f, t => _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t), Ease.OutBack);
@@ -140,7 +140,7 @@ namespace VuonTra.Game.UI
             {
                 var note = UiKit.Rect("Empty", _content);
                 note.gameObject.AddComponent<LayoutElement>().preferredHeight = 120;
-                note.AddText("Chưa có món nào cho ô này. Nhiệm vụ hằng ngày và thành tựu lớn tặng đồ.", 28, Palette.InkSoft, TextAnchor.MiddleLeft);
+                note.AddText(L10n.T("picker.empty"), 28, Palette.InkSoft, TextAnchor.MiddleLeft);
                 _rows.Add(note.gameObject);
                 return;
             }
@@ -161,9 +161,9 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Glyph", tile).Stretch(0, 0, 1, 1).AddText(Glyph(item), 46, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             UiKit.Rect("Name", root).Stretch(0, 0.5f, 1, 1, 164, 0, 290, 22)
-                .AddText(item.Name + " · " + Palette.TierNames[item.Tier], 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.T("picker.name", L10n.ItemName(item), L10n.Tier(item.Tier)), 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             Rabbit wearer = item.WornBy > 0 ? Rabbits.Find(s, item.WornBy) : null;
-            string where = wornHere ? " · đang đeo" : (wearer != null ? " · " + wearer.Name + " đang đeo" : "");
+            string where = wornHere ? L10n.T("picker.worn.here") : (wearer != null ? L10n.T("picker.worn.other", wearer.Name) : "");
             UiKit.Rect("Sub", root).Stretch(0, 0.12f, 1, 0.5f, 164, 0, 290, 4)
                 .AddText(Describe(item) + where, 25, Palette.InkSoft, TextAnchor.UpperLeft);
 
@@ -175,7 +175,7 @@ namespace VuonTra.Game.UI
                 else _onEquip(itemId, _rabbitId);
             });
             Text label = UiKit.Rect("Text", chunky.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(wornHere ? "Tháo" : "Đeo", 34, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(wornHere ? L10n.T("picker.remove") : L10n.T("picker.wear"), 34, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             if (wornHere)
             {
                 chunky.Lip.color = Palette.OffLip;
@@ -188,7 +188,8 @@ namespace VuonTra.Game.UI
         /// <summary>The first letter stands in for a picture until items have art.</summary>
         public static string Glyph(Item item)
         {
-            return string.IsNullOrEmpty(item.Name) ? "?" : item.Name.Substring(0, 1).ToUpperInvariant();
+            string name = L10n.ItemName(item);
+            return string.IsNullOrEmpty(name) ? "?" : name.Substring(0, 1).ToUpperInvariant();
         }
     }
 }

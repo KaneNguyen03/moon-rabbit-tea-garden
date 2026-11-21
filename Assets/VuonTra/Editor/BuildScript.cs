@@ -11,6 +11,9 @@ namespace VuonTra.EditorTools
         [MenuItem("VuonTra/Build Mac")]
         public static void BuildMac()
         {
+            // The language tables are Addressables content: build it first or the player has no text.
+            UnityEditor.AddressableAssets.Settings.AddressableAssetSettings.BuildPlayerContent();
+
             var options = new BuildPlayerOptions
             {
                 scenes = new[] { ContentSeeder.ScenePath },

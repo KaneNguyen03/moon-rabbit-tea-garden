@@ -49,13 +49,13 @@ namespace VuonTra.Game.UI
             start.onClick.AddListener(StartGame);
 
             Text name = UiKit.Rect("Name", title).Place(0.5f, 0.80f, 0, 0, 1600, 190)
-                .AddText("Vườn Trà Thỏ Trăng", 128, Palette.Lantern, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("title.name"), 118, Palette.Lantern, TextAnchor.MiddleCenter, FontStyle.Bold);
             name.lineSpacing = 0.9f;
             name.AddShadow(0.85f, 8f);
             UiKit.Rect("Tagline", title).Place(0.5f, 0.80f, 0, -112, 1200, 60)
-                .AddText("Tiệm trà nhỏ của những bé thỏ dưới trăng", 34, Palette.Alpha(Palette.Paper, 0.9f)).AddShadow();
+                .AddText(L10n.T("title.tagline"), 34, Palette.Alpha(Palette.Paper, 0.9f)).AddShadow();
             _prompt = UiKit.Rect("Prompt", title).Place(0.5f, 0.61f, 0, 0, 900, 60)
-                .AddText("C H Ạ M   Đ Ể   B Ắ T   Đ Ầ U", 32, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("title.prompt"), 32, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             _prompt.AddShadow();
 
             // ----- Pause and settings -----
@@ -68,14 +68,21 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
-                .AddText("Tạm nghỉ", 60, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("pause.title"), 60, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            AddVolumeRow(catalog, "Music", "Nhạc nền", -250, Sfx.MusicGain, Sfx.SetMusic);
-            AddVolumeRow(catalog, "Effects", "Âm thanh", -400, Sfx.SfxGain, v =>
+            AddVolumeRow(catalog, "Music", L10n.T("pause.music"), -230, Sfx.MusicGain, Sfx.SetMusic);
+            AddVolumeRow(catalog, "Effects", L10n.T("pause.sfx"), -340, Sfx.SfxGain, v =>
             {
                 Sfx.SetSfx(v);
                 Sfx.Click();
             });
+
+            // Language: two pills; the package does the switching and the screen rebuilds itself.
+            UiKit.Rect("Language Label", _pauseCard).Place(0.5f, 1f, -200, -450, 300, 60)
+                .AddText(L10n.T("pause.language"), 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UiKit.Rect("Language Track", _pauseCard).Place(0.5f, 1f, 130, -450, 440, 76).AddImage(catalog.Panel, Palette.Track, true);
+            AddLanguageButton(catalog, "vi", 22);
+            AddLanguageButton(catalog, "en", 238);
 
             var resume = UiKit.Rect("Resume", _pauseCard).Place(0.5f, 0f, 0, 260, 620, 130);
             ChunkyButton resumeButton = null;
@@ -85,7 +92,7 @@ namespace VuonTra.Game.UI
                 Resume();
             });
             UiKit.Rect("Text", resumeButton.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText("Chơi tiếp", 42, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("pause.resume"), 42, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var reset = UiKit.Rect("Reset", _pauseCard).Place(0.5f, 0f, 0, 120, 700, 80);
             Image resetHit = reset.AddImage(null, new Color(0, 0, 0, 0));
@@ -93,9 +100,37 @@ namespace VuonTra.Game.UI
             var resetButton = reset.gameObject.AddComponent<Button>();
             resetButton.transition = Selectable.Transition.None;
             resetButton.onClick.AddListener(OnResetPressed);
-            _resetLabel = UiKit.Rect("Text", reset).Stretch(0, 0, 1, 1).AddText("Chơi lại từ đầu", 30, Palette.InkSoft);
+            _resetLabel = UiKit.Rect("Text", reset).Stretch(0, 0, 1, 1).AddText(L10n.T("pause.reset"), 30, Palette.InkSoft);
 
             _pause.SetActive(false);
+        }
+
+        void AddLanguageButton(GameCatalog catalog, string code, float x)
+        {
+            bool current = L10n.Code == code;
+            var rt = UiKit.Rect("Language " + code, _pauseCard).Place(0.5f, 1f, x, -450, 208, 60);
+            Image img = rt.AddImage(catalog.Panel, current ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f), true);
+            img.raycastTarget = true;
+            var button = rt.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = img;
+            button.onClick.AddListener(() =>
+            {
+                if (L10n.Code == code) return;
+                Sfx.Click();
+                L10n.SetLocale(code);
+            });
+            UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1)
+                .AddText(L10n.T("lang." + code), 28, current ? Palette.Card : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+        }
+
+        /// <summary>Goes straight to play with no fade or sound (the screen was rebuilt mid-game).</summary>
+        public void SkipTitle()
+        {
+            if (State != ShellState.Title) return;
+            _titleGroup.blocksRaycasts = false;
+            _title.SetActive(false);
+            SetState(ShellState.Playing);
         }
 
         void AddVolumeRow(GameCatalog catalog, string id, string label, float y, float value, Action<float> onChange)
@@ -121,7 +156,7 @@ namespace VuonTra.Game.UI
             Sfx.Click();
             SetState(ShellState.Paused);
             _resetArmedAt = -99f;
-            _resetLabel.text = "Chơi lại từ đầu";
+            _resetLabel.text = L10n.T("pause.reset");
             _resetLabel.color = Palette.InkSoft;
             _pause.SetActive(true);
             _pauseGroup.alpha = 0f;
@@ -154,7 +189,7 @@ namespace VuonTra.Game.UI
                 return;
             }
             _resetArmedAt = Time.unscaledTime;
-            _resetLabel.text = "Chạm lần nữa để xóa toàn bộ tiến trình";
+            _resetLabel.text = L10n.T("pause.reset.confirm");
             _resetLabel.color = Palette.CarrotLip;
         }
 
@@ -176,7 +211,7 @@ namespace VuonTra.Game.UI
             else if (State == ShellState.Paused && _resetArmedAt > 0f && Time.unscaledTime - _resetArmedAt > 3f)
             {
                 _resetArmedAt = -99f;
-                _resetLabel.text = "Chơi lại từ đầu";
+                _resetLabel.text = L10n.T("pause.reset");
                 _resetLabel.color = Palette.InkSoft;
             }
         }

@@ -1,0 +1,186 @@
+namespace VuonTra.EditorTools
+{
+    /// <summary>
+    /// Every player-facing string in both languages: key, Vietnamese, English. L10nSeeder writes
+    /// these into the Localization package's string tables; the game only ever reads the tables.
+    /// {0}, {1} are filled in by the game.
+    /// </summary>
+    public static class L10nStrings
+    {
+        public static readonly string[,] All =
+        {
+            // ----- title, pause -----
+            { "title.name", "Vườn Trà Thỏ Trăng", "Moon Rabbit Tea Garden" },
+            { "title.tagline", "Tiệm trà nhỏ của những bé thỏ dưới trăng", "A little tea shop run by rabbits under the moon" },
+            { "title.prompt", "C H Ạ M   Đ Ể   B Ắ T   Đ Ầ U", "T A P   T O   S T A R T" },
+            { "pause.title", "Tạm nghỉ", "Paused" },
+            { "pause.music", "Nhạc nền", "Music" },
+            { "pause.sfx", "Âm thanh", "Sound" },
+            { "pause.language", "Ngôn ngữ", "Language" },
+            { "pause.resume", "Chơi tiếp", "Resume" },
+            { "pause.reset", "Chơi lại từ đầu", "Start over" },
+            { "pause.reset.confirm", "Chạm lần nữa để xóa toàn bộ tiến trình", "Tap again to erase all progress" },
+            { "lang.vi", "Tiếng Việt", "Tiếng Việt" },
+            { "lang.en", "English", "English" },
+
+            // ----- street and HUD -----
+            { "tab.0", "Trạm", "Stations" },
+            { "tab.1", "Bùa", "Charms" },
+            { "tab.2", "Nhiệm vụ", "Quests" },
+            { "tab.3", "Thỏ", "Rabbits" },
+            { "hint", "Chạm vào bé thỏ để làm nhanh hơn · kéo ngang để đi dọc con phố", "Tap a rabbit to speed it up · drag sideways to walk the street" },
+            { "persec", "+{0}/giây", "+{0}/s" },
+            { "mode.max", "Tối đa", "Max" },
+            { "energy.label", "Trà lực {0}", "Tea power {0}" },
+            { "energy.boosting", "×2 · {0} giây", "×2 · {0} s" },
+            { "energy.ready", "Tăng tốc!", "Boost!" },
+            { "energy.need", "cần {0}", "need {0}" },
+            { "quick.plot", "Mua đất · {0}", "Land · {0}" },
+            { "quick.open", "Mở · {0}", "Open · {0}" },
+            { "quick.upgrade", "Nâng +{0} · {1}", "Up +{0} · {1}" },
+            { "station.level", "Cấp {0}", "Lv {0}" },
+            { "station.empty", "Đất trống", "Empty land" },
+
+            // ----- moments -----
+            { "moment.boost.title", "Tăng tốc!", "Boost!" },
+            { "moment.boost.sub", "Cả khu vườn làm nhanh gấp đôi trong {0} giây", "The whole garden works twice as fast for {0} seconds" },
+            { "moment.unlock", "Trạm mới thức dậy!", "A new station wakes up!" },
+            { "moment.milestone.title", "Cấp {0}!", "Level {0}!" },
+            { "moment.milestone.sub", "{0} giờ thu gấp đôi", "{0} now earns double" },
+            { "moment.plot.title", "Khu vườn rộng thêm!", "The garden grows!" },
+            { "moment.plot.sub", "Có chỗ cho {0}", "Room for {0}" },
+            { "moment.summon.title", "Bé {0} đã tới!", "{0} has arrived!" },
+            { "moment.summon.sub", "Bậc {0} · ×{1} cho trạm bé làm", "{0} tier · ×{1} for its station" },
+            { "moment.merge.title", "{0} lên bậc {1}!", "{0} is now {1} tier!" },
+            { "moment.merge.sub", "×{0} cho trạm bé làm", "×{0} for its station" },
+            { "moment.upgrade.title", "{0} cấp {1}", "{0} level {1}" },
+            { "moment.gift.title", "Quà: {0}", "Gift: {0}" },
+            { "moment.gift.sub", "Bậc {0} · {1} · gắn ở tab Thỏ", "{0} tier · {1} · equip it in the Rabbits tab" },
+            { "float.levelup", "{0} lên cấp {1}", "{0} reached level {1}" },
+
+            // ----- away popup -----
+            { "away.title", "Mừng bạn quay lại", "Welcome back" },
+            { "away.body", "Lúc bạn đi vắng, các bé thỏ vẫn chăm chỉ pha trà và gom được", "While you were away, the rabbits kept brewing and gathered" },
+            { "away.ok", "Nhận cà rốt", "Collect" },
+            { "away.minutes", "{0} phút", "{0} min" },
+            { "away.hours", "{0} giờ {1} phút", "{0} h {1} min" },
+            { "away.time", "trong {0}.", "in {0}." },
+            { "away.time.capped", "trong {0} (đã chạm giới hạn vắng mặt).", "in {0} (away limit reached)." },
+
+            // ----- station list -----
+            { "row.locked", "Chưa mở", "Locked" },
+            { "row.needplot", "Cần mua thêm ô đất", "Buy more land first" },
+            { "row.needprev", "Mở trạm phía trên trước", "Open the station above first" },
+            { "row.open", "Mở trạm", "Open" },
+            { "row.upgrade", "Nâng +{0}", "Upgrade +{0}" },
+            { "row.income", "{0} cà rốt / {1} giây", "{0} carrots / {1} s" },
+            { "row.milestone", " · ×2 ở cấp {0}", " · ×2 at level {0}" },
+            { "row.boost", "Tăng giá ×{0} cho {1}", "Raises prices ×{0} for {1}" },
+            { "plot.buy", "Mua đất", "Buy land" },
+            { "plot.title", "Ô đất thứ {0}", "Plot {0}" },
+            { "plot.sub", "Mở chỗ cho {0}", "Makes room for {0}" },
+
+            // ----- charms -----
+            { "upgrades.note", "Bùa có tác dụng với cả khu vườn.", "Charms affect the whole garden." },
+            { "upgrade.level", "Cấp {0}/{1}", "Lv {0}/{1}" },
+            { "upgrade.maxed", "Đã đầy", "Maxed" },
+            { "upgrade.learn", "Học bùa", "Learn" },
+
+            // ----- quests -----
+            { "quests.today", "Hôm nay", "Today" },
+            { "quests.achievements", "Thành tựu", "Achievements" },
+            { "quests.clovers", "Cỏ bốn lá: {0} · dùng để gọi thỏ ở tab Thỏ", "Clovers: {0} · spend them in the Rabbits tab" },
+            { "quest.done", "Xong", "Done" },
+            { "quest.reward.clovers", " · {0} cỏ bốn lá", " · clovers ×{0}" },
+            { "quest.claimed", "Đã nhận", "Claimed" },
+            { "quest.claim", "Nhận", "Claim" },
+            { "quest.notyet", "Chưa xong", "Not yet" },
+
+            // ----- rabbits -----
+            { "rabbits.summon.title", "Gọi bé thỏ mới", "Call a new rabbit" },
+            { "rabbits.clovers", "Bạn có {0} cỏ bốn lá. Nhiệm vụ cho thêm cỏ.", "You have {0} clovers. Quests give more." },
+            { "rabbits.summon.button", "Gọi · {0} cỏ", "Call · {0}" },
+            { "rabbits.maxlevel", "Cấp tối đa", "Max level" },
+            { "rabbits.levelup", "Lên cấp", "Level up" },
+            { "rabbits.empty", "Chưa có bé thỏ nào. Làm nhiệm vụ để lấy cỏ bốn lá rồi gọi bé đầu tiên nhé.", "No rabbits yet. Do quests to earn clovers, then call your first one." },
+            { "rabbits.merge", "Ghép 3 bé {0} thành 1 bé {1} (đang có {2})", "Merge 3 {0} into 1 {1} (you have {2})" },
+            { "rabbits.merge.button", "Ghép", "Merge" },
+            { "rabbits.auto", "Xếp tự động: bé giỏi nhất vào trạm lời nhất", "Auto-assign: best rabbits to the best stations" },
+            { "rabbits.tier", "{0} ×{1}", "{0} ×{1}" },
+            { "rabbits.where.working", "Cấp {0}/{1} · ở {2}", "Lv {0}/{1} · at {2}" },
+            { "rabbits.where.resting", "Cấp {0}/{1} · đang nghỉ", "Lv {0}/{1} · resting" },
+            { "rabbits.rest", "Cho nghỉ", "Rest" },
+            { "rabbits.work", "Vào làm", "Work" },
+            { "rabbits.full", "Hết chỗ", "No room" },
+            { "rabbit.default", "Thỏ", "Bunny" },
+            { "tier.0", "Bạc", "Silver" },
+            { "tier.1", "Xanh lá", "Green" },
+            { "tier.2", "Xanh dương", "Blue" },
+            { "tier.3", "Tím", "Purple" },
+            { "tier.4", "Vàng", "Gold" },
+            { "tier.5", "Đỏ", "Red" },
+
+            // ----- items -----
+            { "slot.hat", "mũ", "hat" },
+            { "slot.charm", "phụ kiện", "charm" },
+            { "picker.title", "Chọn {0} cho {1}", "Choose a {0} for {1}" },
+            { "picker.empty", "Chưa có món nào cho ô này. Nhiệm vụ hằng ngày và thành tựu lớn tặng đồ.", "Nothing for this slot yet. Daily quests and big achievements give items." },
+            { "picker.wear", "Đeo", "Wear" },
+            { "picker.remove", "Tháo", "Remove" },
+            { "picker.name", "{0} · {1}", "{0} · {1}" },
+            { "picker.worn.here", " · đang đeo", " · wearing" },
+            { "picker.worn.other", " · {0} đang đeo", " · worn by {0}" },
+            { "item.effect.speed", "+{0}% tốc độ cả vườn", "+{0}% garden speed" },
+            { "item.effect.away", "+{0}% cà rốt lúc vắng mặt", "+{0}% carrots while away" },
+            { "item.effect.station", "+{0}% thu nhập trạm của bé", "+{0}% income at its station" },
+            { "item.mu-rom", "Mũ rơm", "Straw Hat" },
+            { "item.mu-bep", "Mũ đầu bếp", "Chef Hat" },
+            { "item.vong-hoa", "Vòng hoa", "Flower Crown" },
+            { "item.chuong", "Chuông bạc", "Silver Bell" },
+            { "item.co-may", "Cỏ may mắn", "Lucky Clover" },
+            { "item.long-den", "Lồng đèn nhỏ", "Little Lantern" },
+
+            // ----- stations -----
+            { "station.am-tra", "Ấm trà sương", "Dew Teapot" },
+            { "station.gio-la", "Giỏ lá trà", "Tea Leaf Basket" },
+            { "station.noi-mut", "Nồi mứt dâu", "Berry Jam Pot" },
+            { "station.coi-hoa", "Cối giã hoa", "Flower Mortar" },
+            { "station.lo-banh", "Lò bánh hạt dẻ", "Chestnut Oven" },
+            { "station.to-mat", "Tổ mật ong", "Honey Hive" },
+            { "station.tra-sua", "Quầy trà sữa trăng", "Moon Milk Tea Stand" },
+            { "station.binh-sao", "Bình ủ sao", "Star Brewing Jar" },
+            { "station.gian-nho", "Giàn nho trăng", "Moon Grape Trellis" },
+            { "station.tiem-banh", "Tiệm bánh trung thu", "Mooncake Bakery" },
+            { "station.suoi-hoa", "Suối khoáng hoa", "Flower Spring" },
+            { "station.dai-sao", "Đài ngắm sao", "Stargazing Deck" },
+
+            // ----- charm names and descriptions -----
+            { "upgrade.tay-am.name", "Bàn tay ấm", "Warm Hands" },
+            { "upgrade.tay-am.desc", "Mỗi lần chạm làm nhanh thêm 0,2 giây", "Each tap adds 0.2 s of work" },
+            { "upgrade.gio-dem.name", "Gió đêm", "Night Breeze" },
+            { "upgrade.gio-dem.desc", "Mọi trạm làm nhanh hơn 10%", "Every station works 10% faster" },
+            { "upgrade.trang-ram.name", "Ánh trăng rằm", "Full Moonlight" },
+            { "upgrade.trang-ram.desc", "Mọi trạm thu gấp đôi cà rốt", "Every station earns double" },
+            { "upgrade.giac-ngu.name", "Giấc ngủ dài", "Long Sleep" },
+            { "upgrade.giac-ngu.desc", "Vắng mặt vẫn thu thêm 2 giờ", "Earn for 2 more hours while away" },
+
+            // ----- quest titles -----
+            { "quest.ngay-cham", "Chạm bé thỏ 50 lần", "Tap rabbits 50 times" },
+            { "quest.ngay-nang", "Nâng cấp trạm 20 lần", "Upgrade stations 20 times" },
+            { "quest.ngay-thu", "Thu hoạch đủ cà rốt hôm nay", "Harvest today's carrot goal" },
+            { "quest.mo-2", "Đánh thức bé thỏ thứ hai", "Wake the second rabbit" },
+            { "quest.mo-4", "Có 4 trạm đang hoạt động", "Have 4 stations running" },
+            { "quest.mo-8", "Có 8 trạm đang hoạt động", "Have 8 stations running" },
+            { "quest.tra-10", "Ấm trà sương đạt cấp 10", "Dew Teapot reaches level 10" },
+            { "quest.tra-25", "Ấm trà sương đạt cấp 25", "Dew Teapot reaches level 25" },
+            { "quest.tra-50", "Ấm trà sương đạt cấp 50", "Dew Teapot reaches level 50" },
+            { "quest.cham-100", "Chạm tổng cộng 100 lần", "Tap 100 times in total" },
+            { "quest.cham-1000", "Chạm tổng cộng 1.000 lần", "Tap 1,000 times in total" },
+            { "quest.bua-1", "Học bùa đầu tiên", "Learn your first charm" },
+            { "quest.bua-10", "Học tổng cộng 10 cấp bùa", "Learn 10 charm levels in total" },
+            { "quest.thu-1k", "Thu tổng cộng 1.000 cà rốt", "Earn 1,000 carrots in total" },
+            { "quest.thu-1m", "Thu tổng cộng 1 triệu cà rốt", "Earn 1 million carrots in total" },
+            { "quest.thu-1b", "Thu tổng cộng 1 tỉ cà rốt", "Earn 1 billion carrots in total" },
+        };
+    }
+}

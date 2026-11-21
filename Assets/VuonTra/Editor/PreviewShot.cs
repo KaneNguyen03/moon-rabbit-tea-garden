@@ -6,6 +6,7 @@ using UnityEngine.UI;
 using VuonTra.Core;
 using VuonTra.Game;
 using VuonTra.Game.UI;
+using L10n = VuonTra.Game.L10n;
 
 namespace VuonTra.EditorTools
 {
@@ -23,6 +24,7 @@ namespace VuonTra.EditorTools
         public static void Render()
         {
             EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
             var runner = Object.FindAnyObjectByType<GameRunner>();
             var screen = Object.FindAnyObjectByType<GardenScreen>();
 
@@ -99,6 +101,25 @@ namespace VuonTra.EditorTools
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "10-pause");
+
+            // The same screens in English.
+            screen.Shell.Resume();
+            Step(screen, 0.6f);
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            Step(screen, 0.8f);
+            Capture(screen, "11-street-en");
+            screen.OpenSheet(3);
+            Step(screen, 0.5f);
+            Capture(screen, "12-rabbits-en");
+            screen.SetTab(2);
+            Step(screen, 0.2f);
+            Capture(screen, "13-quests-en");
+            screen.CloseSheet();
+            screen.Shell.OpenPause();
+            Step(screen, 0.6f);
+            Capture(screen, "14-pause-en");
+            L10n.SetLocale("vi");
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.

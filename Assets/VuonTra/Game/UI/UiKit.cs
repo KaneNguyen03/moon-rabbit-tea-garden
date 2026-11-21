@@ -155,12 +155,12 @@ namespace VuonTra.Game.UI
 
         public static string Seconds(double value)
         {
-            return value.ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ',');
+            return L10n.Number(value.ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ','));
         }
 
         public static string Times(double value)
         {
-            return value.ToString(value >= 100 ? "0" : "0.0", CultureInfo.InvariantCulture).Replace('.', ',');
+            return L10n.Number(value.ToString(value >= 100 ? "0" : "0.0", CultureInfo.InvariantCulture).Replace('.', ','));
         }
     }
 

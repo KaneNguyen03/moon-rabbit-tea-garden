@@ -22,7 +22,6 @@ namespace VuonTra.Game.UI
         {
             Hex("C9CEDA"), Moss, Hex("6FA8F0"), Hex("B48BE8"), Lantern, Hex("F0605E")
         };
-        public static readonly string[] TierNames = { "Bạc", "Xanh lá", "Xanh dương", "Tím", "Vàng", "Đỏ" };
 
         // Derived roles: always a mix of two bible colours.
         public static readonly Color Card = Mix(Paper, Color.white, 0.7f);

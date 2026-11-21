@@ -77,7 +77,7 @@ namespace VuonTra.Game.UI
         public void SetLevel(int level, bool isBrew, bool needsPlot = false)
         {
             _locked = level <= 0;
-            _label.text = needsPlot ? "Đất trống" : (_locked ? "z z z" : "Cấp " + level);
+            _label.text = needsPlot ? L10n.T("station.empty") : (_locked ? "z z z" : L10n.T("station.level", level));
             _label.color = _locked ? Palette.Mix(Palette.Paper, Palette.Night, 0.25f) : Palette.Ink;
             _chip.color = _locked ? Palette.Alpha(Palette.Mix(Palette.Night, Palette.Paper, 0.2f), 0.85f) : Palette.Paper;
             _rabbitImage.color = _locked ? Palette.Asleep : Color.white;

@@ -198,7 +198,7 @@ namespace VuonTra.Game
         public Rabbit SummonRabbit()
         {
             string[] names = Catalog.RabbitNames;
-            string name = names != null && names.Length > 0 ? names[_rng.Next(names.Length)] : "Thỏ";
+            string name = names != null && names.Length > 0 ? names[_rng.Next(names.Length)] : L10n.T("rabbit.default");
             Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), name);
             if (rabbit != null) Changed();
             return rabbit;

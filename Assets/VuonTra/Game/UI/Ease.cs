@@ -51,6 +51,9 @@ namespace VuonTra.Game.UI
 
         public int Count => _items.Count;
 
+        /// <summary>Drops every running tween without finishing it (their targets are going away).</summary>
+        public void Clear() => _items.Clear();
+
         public void Add(float duration, Action<float> apply, Func<float, float> curve = null, float delay = 0f, Action done = null)
         {
             _items.Add(new Item

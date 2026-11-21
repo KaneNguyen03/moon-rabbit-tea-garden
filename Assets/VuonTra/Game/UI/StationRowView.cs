@@ -39,7 +39,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Prop", icon).Stretch(0, 0, 1, 1, 12, 12, 12, 12).AddImage(data.Prop, Color.white).preserveAspect = true;
 
             Text name = UiKit.Rect("Name", root).Stretch(0, 0.62f, 1, 1, 190, 4, 480, 18)
-                .AddText(data.DisplayName, 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.Station(data.Id), 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             name.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             var chip = UiKit.Rect("Level", root).Place(1f, 1f, -392, -52, 152, 46);
@@ -75,11 +75,11 @@ namespace VuonTra.Game.UI
             {
                 bool previousOpen = Economy.CanUnlock(s, _index);
                 BigNum cost = Economy.CostOfNext(d, 0, 1);
-                _level.text = "Chưa mở";
+                _level.text = L10n.T("row.locked");
                 _levelChip.color = Palette.OffLip;
-                _sub.text = previousOpen ? Describe(defs, s, d, 1, m) : (_index >= s.Plots ? "Cần mua thêm ô đất" : "Mở trạm phía trên trước");
-                _buyTop.text = "Mở trạm";
-                _buyCost.text = cost.ToShortString();
+                _sub.text = previousOpen ? Describe(defs, s, d, 1, m) : (_index >= s.Plots ? L10n.T("row.needplot") : L10n.T("row.needprev"));
+                _buyTop.text = L10n.T("row.open");
+                _buyCost.text = cost.Short();
                 canAfford = previousOpen && s.Coins >= cost;
                 milestone = 0f;
             }
@@ -89,11 +89,11 @@ namespace VuonTra.Game.UI
                 BigNum cost = Economy.CostOfNext(d, level, count);
                 int next = Economy.NextMilestone(level);
                 int prev = Economy.PreviousMilestone(level);
-                _level.text = "Cấp " + level;
+                _level.text = L10n.T("station.level", level);
                 _levelChip.color = Palette.Moss;
-                _sub.text = Describe(defs, s, d, level, m) + (next > 0 ? " · ×2 ở cấp " + next : "");
-                _buyTop.text = "Nâng +" + count;
-                _buyCost.text = cost.ToShortString();
+                _sub.text = Describe(defs, s, d, level, m) + (next > 0 ? L10n.T("row.milestone", next) : "");
+                _buyTop.text = L10n.T("row.upgrade", count);
+                _buyCost.text = cost.Short();
                 canAfford = s.Coins >= cost;
                 milestone = next > 0 ? (level - prev) / (float)(next - prev) : 1f;
             }
@@ -116,7 +116,7 @@ namespace VuonTra.Game.UI
                 BigNum income = s.Levels[_index] > 0
                     ? Economy.IncomePerCycle(defs, s, _index)
                     : new BigNum(d.BaseIncome);
-                return (income * m.IncomeMultiplier).ToShortString() + " cà rốt / " + UiKit.Seconds(d.CycleSeconds / m.SpeedMultiplier) + " giây";
+                return L10n.T("row.income", (income * m.IncomeMultiplier).Short(), UiKit.Seconds(d.CycleSeconds / m.SpeedMultiplier));
             }
 
             var names = new StringBuilder();
@@ -124,9 +124,9 @@ namespace VuonTra.Game.UI
             {
                 if (!d.Boosts(defs[i].Id)) continue;
                 if (names.Length > 0) names.Append(", ");
-                names.Append(defs[i].Name);
+                names.Append(L10n.Station(defs[i].Id));
             }
-            return "Tăng giá ×" + UiKit.Times(Economy.IngredientBoost(level)) + " cho " + names;
+            return L10n.T("row.boost", UiKit.Times(Economy.IngredientBoost(level)), names);
         }
     }
 }

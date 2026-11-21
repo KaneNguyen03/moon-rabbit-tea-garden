@@ -48,6 +48,7 @@ namespace VuonTra.EditorTools
         [MenuItem("VuonTra/Seed Content")]
         public static void Seed()
         {
+            L10nSeeder.Seed(); // both languages, before anything reads text
             PlaceholderArt.Generate();
             FinalArt.Import(); // real art in Art/Final wins over a placeholder of the same name
             Directory.CreateDirectory(StationFolder);

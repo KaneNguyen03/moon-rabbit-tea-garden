@@ -54,7 +54,7 @@ namespace VuonTra.Game.UI
             root.gameObject.AddComponent<LayoutElement>().preferredHeight = 170;
             UiKit.Rect("Card", root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(_catalog.Panel, Palette.Card, true);
             UiKit.Rect("Title", root).Stretch(0, 0.56f, 1, 1, 36, 0, 340, 22)
-                .AddText("Gọi bé thỏ mới", 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.T("rabbits.summon.title"), 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             _clovers = UiKit.Rect("Clovers", root).Stretch(0, 0.16f, 1, 0.56f, 36, 0, 340, 6)
                 .AddText("", 26, Palette.InkSoft, TextAnchor.UpperLeft);
 
@@ -67,8 +67,8 @@ namespace VuonTra.Game.UI
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s)
         {
             bool can = s.Clovers >= Rabbits.SummonCost;
-            _clovers.text = "Bạn có " + s.Clovers + " cỏ bốn lá. Nhiệm vụ cho thêm cỏ.";
-            _summonLabel.text = "Gọi · " + Rabbits.SummonCost + " cỏ";
+            _clovers.text = L10n.T("rabbits.clovers", s.Clovers);
+            _summonLabel.text = L10n.T("rabbits.summon.button", Rabbits.SummonCost);
             _summonLabel.color = can ? Palette.Card : Palette.OffInk;
             Summon.SetEnabled(can);
 
@@ -87,8 +87,8 @@ namespace VuonTra.Game.UI
                 bool maxed = Rabbits.IsMaxLevel(r);
                 BigNum cost = Rabbits.LevelCost(r);
                 bool afford = !maxed && s.Coins >= cost;
-                card.LevelTop.text = maxed ? "Cấp tối đa" : "Lên cấp";
-                card.LevelCost.text = maxed ? "—" : cost.ToShortString();
+                card.LevelTop.text = maxed ? L10n.T("rabbits.maxlevel") : L10n.T("rabbits.levelup");
+                card.LevelCost.text = maxed ? "—" : cost.Short();
                 card.Level.SetEnabled(afford);
                 Color ink = afford ? Palette.Card : Palette.OffInk;
                 card.LevelTop.color = ink;
@@ -120,7 +120,7 @@ namespace VuonTra.Game.UI
 
             if (s.Rabbits.Count == 0)
             {
-                AddNote("Chưa có bé thỏ nào. Làm nhiệm vụ để lấy cỏ bốn lá rồi gọi bé đầu tiên nhé.");
+                AddNote(L10n.T("rabbits.empty"));
                 return;
             }
 
@@ -148,11 +148,11 @@ namespace VuonTra.Game.UI
             root.AddImage(_catalog.Panel, Palette.Mix(Palette.Tiers[tier + 1], Palette.Paper, 0.55f), true);
             root.gameObject.AddComponent<LayoutElement>().preferredHeight = 120;
             UiKit.Rect("Text", root).Stretch(0, 0, 1, 1, 36, 0, 320, 0)
-                .AddText("Ghép 3 bé " + Palette.TierNames[tier] + " thành 1 bé " + Palette.TierNames[tier + 1] + " (đang có " + count + ")",
+                .AddText(L10n.T("rabbits.merge", L10n.Tier(tier), L10n.Tier(tier + 1), count),
                     26, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -160, 2, 250, 92);
             ChunkyButton chunky = UiKit.Chunky(button, _catalog.Panel, () => _onMerge(tier));
-            UiKit.Rect("Text", chunky.FaceRect).Stretch(0, 0, 1, 1).AddText("Ghép", 32, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", chunky.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.merge.button"), 32, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _dynamic.Add(root.gameObject);
         }
 
@@ -167,7 +167,7 @@ namespace VuonTra.Game.UI
             b.transition = Selectable.Transition.None;
             b.targetGraphic = img;
             b.onClick.AddListener(() => _onAuto());
-            UiKit.Rect("Text", button).Stretch(0, 0, 1, 1).AddText("Xếp tự động: bé giỏi nhất vào trạm lời nhất", 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", button).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.auto"), 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _dynamic.Add(root.gameObject);
         }
 
@@ -190,12 +190,12 @@ namespace VuonTra.Game.UI
 
             var chip = UiKit.Rect("Tier", root).Place(0f, 0.5f, 318, -6, 220, 44);
             chip.AddImage(_catalog.Panel, tier, true);
-            UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText(Palette.TierNames[r.Tier] + " ×" + UiKit.Times(Rabbits.Multiplier(s, r)),
+            UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.tier", L10n.Tier(r.Tier), UiKit.Times(Rabbits.Multiplier(s, r))),
                 23, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             bool working = r.Station >= 0 && r.Station < defs.Count;
             UiKit.Rect("Where", root).Band(208, 548, 22, 56)
-                .AddText("Cấp " + r.Level + "/" + Rabbits.LevelCaps[r.Tier] + " · " + (working ? "ở " + defs[r.Station].Name : "đang nghỉ"),
+                .AddText(working ? L10n.T("rabbits.where.working", r.Level, Rabbits.LevelCaps[r.Tier], L10n.Station(defs[r.Station].Id)) : L10n.T("rabbits.where.resting", r.Level, Rabbits.LevelCaps[r.Tier]),
                     22, Palette.InkSoft, TextAnchor.MiddleLeft);
 
             // What the rabbit wears: tap a slot to choose.
@@ -206,7 +206,7 @@ namespace VuonTra.Game.UI
             var work = UiKit.Rect("Work", root).Place(1f, 0.5f, -166, 54, 284, 86);
             ChunkyButton workButton = UiKit.Chunky(work, _catalog.Panel, () => _onToggle(id));
             Text workLabel = UiKit.Rect("Text", workButton.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(working ? "Cho nghỉ" : (canWork ? "Vào làm" : "Hết chỗ"), 28, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(working ? L10n.T("rabbits.rest") : (canWork ? L10n.T("rabbits.work") : L10n.T("rabbits.full")), 28, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             workButton.SetEnabled(canWork);
             if (!canWork) workLabel.color = Palette.OffInk;
             if (working)
@@ -241,7 +241,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Glyph", rt).Stretch(0, 0, 1, 1).AddText(worn != null ? ItemPickerView.Glyph(worn) : "+",
                 worn != null ? 40 : 46, worn != null ? Palette.Ink : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
             UiKit.Rect("Label", rt).Place(0.5f, 0f, 0, -16, 120, 30)
-                .AddText(slot == ItemSlot.Hat ? "mũ" : "phụ kiện", 19, Palette.InkSoft, TextAnchor.MiddleCenter);
+                .AddText(ItemPickerView.SlotName(slot), 19, Palette.InkSoft, TextAnchor.MiddleCenter);
         }
     }
 }

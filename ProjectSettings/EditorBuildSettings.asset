@@ -9,4 +9,6 @@ EditorBuildSettings:
     path: Assets/VuonTra/Scenes/Garden.unity
     guid: b86a0331972ae42cdbfe19d2cd6c6a11
   m_configObjects:
+    com.unity.addressableassets: {fileID: 11400000, guid: 2897edc14b824410c99917b49c0d043c, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
+    com.unity.localization.settings: {fileID: 11400000, guid: 2f347fdae79a5425b8c2e4d4fcc2556c, type: 2}

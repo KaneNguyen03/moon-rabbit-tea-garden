@@ -26,6 +26,8 @@ namespace VuonTra.Game
         {
             MusicGain = PlayerPrefs.GetFloat(MusicKey, 0.6f);
             SfxGain = PlayerPrefs.GetFloat(SfxKey, 0.8f);
+            // Already attached here (the screen was rebuilt): keep the music playing without a gap.
+            if (_oneShots != null && _oneShots.gameObject == host) return;
 
             _oneShots = host.AddComponent<AudioSource>();
             _oneShots.playOnAwake = false;

@@ -35,7 +35,7 @@ namespace VuonTra.Game.UI
             _face = UiKit.Rect("Card", root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Card, true);
 
             Text title = UiKit.Rect("Title", root).Stretch(0, 0.60f, 1, 1, 36, 6, 290, 16)
-                .AddText(data.Title, 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.T("quest." + data.Id), 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             title.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             var track = UiKit.Rect("Track", root).Band(36, 420, 72, 14);
@@ -73,14 +73,14 @@ namespace VuonTra.Game.UI
 
             _shown = dt < 0f ? fraction : Mathf.Lerp(_shown, fraction, Mathf.Clamp01(dt * 8f));
             _fill.anchorMax = new Vector2(Mathf.Clamp01(_shown), 1f);
-            _count.text = claimed ? "Xong" : new BigNum(progress).ToShortString() + " / " + new BigNum(target).ToShortString();
+            _count.text = claimed ? L10n.T("quest.done") : new BigNum(progress).Short() + " / " + new BigNum(target).Short();
 
-            string clovers = q.RewardClovers > 0 ? " · " + q.RewardClovers + " cỏ bốn lá" : "";
-            _reward.text = "+" + Quests.RewardOf(q, defs, s, m).ToShortString() + clovers;
+            string clovers = q.RewardClovers > 0 ? L10n.T("quest.reward.clovers", q.RewardClovers) : "";
+            _reward.text = "+" + Quests.RewardOf(q, defs, s, m).Short() + clovers;
 
             bool canClaim = complete && !claimed;
             Claim.SetEnabled(canClaim);
-            _claimLabel.text = claimed ? "Đã nhận" : (complete ? "Nhận" : "Chưa xong");
+            _claimLabel.text = claimed ? L10n.T("quest.claimed") : (complete ? L10n.T("quest.claim") : L10n.T("quest.notyet"));
             _claimLabel.fontSize = canClaim ? 38 : 26;
             _claimLabel.color = canClaim ? Palette.Card : Palette.OffInk;
             _face.color = claimed ? Palette.Mix(Palette.Card, Palette.CardLip, 0.45f) : Palette.Card;

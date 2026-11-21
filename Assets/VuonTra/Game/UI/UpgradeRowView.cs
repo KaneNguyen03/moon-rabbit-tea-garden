@@ -34,7 +34,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Glyph", icon).Stretch(0, 0, 1, 1).AddText(data.Glyph, 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             Text name = UiKit.Rect("Name", root).Stretch(0, 0.62f, 1, 1, 190, 4, 480, 18)
-                .AddText(data.DisplayName, 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.T("upgrade." + data.Id + ".name"), 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             name.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             var chip = UiKit.Rect("Level", root).Place(1f, 1f, -392, -52, 152, 46);
@@ -42,7 +42,7 @@ namespace VuonTra.Game.UI
             _level = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             UiKit.Rect("Sub", root).Stretch(0, 0.2f, 1, 0.62f, 190, 0, 330, 10)
-                .AddText(data.Description, 26, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText(L10n.T("upgrade." + data.Id + ".desc"), 26, Palette.InkSoft, TextAnchor.UpperLeft);
 
             var buy = UiKit.Rect("Buy", root).Place(1f, 0.5f, -166, 4, 284, 132);
             Buy = UiKit.Chunky(buy, catalog.Panel, () => onBuy(_index));
@@ -60,10 +60,10 @@ namespace VuonTra.Game.UI
             BigNum cost = Upgrades.CostOfNext(u, level);
             bool canBuy = !maxed && s.Coins >= cost;
 
-            _level.text = "Cấp " + level + "/" + u.MaxLevel;
+            _level.text = L10n.T("upgrade.level", level, u.MaxLevel);
             _levelChip.color = level > 0 ? Palette.Moss : Palette.OffLip;
-            _buyTop.text = maxed ? "Đã đầy" : "Học bùa";
-            _buyCost.text = maxed ? "—" : cost.ToShortString();
+            _buyTop.text = maxed ? L10n.T("upgrade.maxed") : L10n.T("upgrade.learn");
+            _buyCost.text = maxed ? "—" : cost.Short();
             Buy.SetEnabled(canBuy);
             Color ink = canBuy ? Palette.Card : Palette.OffInk;
             _buyTop.color = ink;
