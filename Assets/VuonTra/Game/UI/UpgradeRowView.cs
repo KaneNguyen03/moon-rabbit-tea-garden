@@ -29,12 +29,15 @@ namespace VuonTra.Game.UI
             layout.minHeight = 200;
             UiKit.Rect("Card", root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Card, true);
 
-            var icon = UiKit.Rect("Icon", root).Place(0f, 0.5f, 100, 4, 136, 136);
-            icon.AddImage(catalog.Round, Palette.Mix(data.Accent, Palette.Paper, 0.35f));
+            // The drawn charm fills the tile on its own; only a charm with no picture yet gets a coloured disc.
+            var icon = UiKit.Rect("Icon", root).Place(0f, 0.5f, 100, 4, 148, 148);
             if (data.Icon != null)
-                UiKit.Rect("Art", icon).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(data.Icon, Color.white).preserveAspect = true;
+                UiKit.Rect("Art", icon).Stretch(0, 0, 1, 1).AddImage(data.Icon, Color.white).preserveAspect = true;
             else
+            {
+                icon.AddImage(catalog.Round, Palette.Mix(data.Accent, Palette.Paper, 0.35f));
                 UiKit.Rect("Glyph", icon).Stretch(0, 0, 1, 1).AddText(data.Glyph, 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            }
 
             Text name = UiKit.Rect("Name", root).Stretch(0, 0.62f, 1, 1, 190, 4, 480, 18)
                 .AddText(L10n.T("upgrade." + data.Id + ".name"), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);

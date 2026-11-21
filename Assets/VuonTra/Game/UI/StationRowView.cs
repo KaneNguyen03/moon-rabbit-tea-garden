@@ -23,11 +23,20 @@ namespace VuonTra.Game.UI
             _index = index;
         }
 
-        public void Build(Transform parent, GameCatalog catalog, StationData data, Action<int> onBuy)
+        public void Build(Transform parent, GameCatalog catalog, StationData data, Action<int> onBuy, Action<int> onOpen = null)
         {
             // The card is a lip with a lighter face on top, like the buttons.
             var root = UiKit.Rect("Row " + data.Id, parent);
-            root.AddImage(catalog.Panel, Palette.CardLip, true);
+            Image lip = root.AddImage(catalog.Panel, Palette.CardLip, true);
+            if (onOpen != null)
+            {
+                // Touching the card itself (not its button) shows the station in the garden.
+                lip.raycastTarget = true;
+                var open = root.gameObject.AddComponent<Button>();
+                open.transition = Selectable.Transition.None;
+                open.targetGraphic = lip;
+                open.onClick.AddListener(() => onOpen(_index));
+            }
             var layout = root.gameObject.AddComponent<LayoutElement>();
             layout.preferredHeight = 200;
             layout.minHeight = 200;

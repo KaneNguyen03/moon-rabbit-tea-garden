@@ -22,6 +22,16 @@ namespace VuonTra.Game.UI
             return 1f + c3 * u * u * u + c1 * u * u;
         }
 
+        /// <summary>Like OutBack but only a few percent past the end: for big panels, where 10% would be a lurch.</summary>
+        public static float OutBackLight(float t)
+        {
+            const float c1 = 1f, c3 = c1 + 1f;
+            float u = t - 1f;
+            return 1f + c3 * u * u * u + c1 * u * u;
+        }
+
+        public static float InCubic(float t) => t * t * t;
+
         public static float OutElastic(float t)
         {
             if (t <= 0f) return 0f;

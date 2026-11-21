@@ -100,7 +100,19 @@ namespace VuonTra.Game.UI
         public bool IsFreshKind(string kindId) => _freshKinds.Contains(kindId);
         /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests, 3 = rabbits.</summary>
         public int Tab { get; private set; }
-        public bool SheetOpen => _sheet != null && _sheet.activeSelf;
+        /// <summary>True from the moment a sheet is asked for until it is asked to close (the slide out comes after).</summary>
+        public bool SheetOpen { get; private set; }
+        /// <summary>How tall the open sheet stands, in canvas units from the bottom of the screen.</summary>
+        public float SheetHeight { get; private set; }
+        /// <summary>The sheet opens at about 60% of the screen, so the garden stays in view above it.</summary>
+        public const float SheetHalf = ScreenH * 0.6f;
+        /// <summary>Pulled all the way up it stops under the HUD.</summary>
+        public const float SheetFull = ScreenH - HudCover - 12f;
+        const float SheetLeast = 260f, SheetSink = 90f, SheetFling = 1100f, SheetFoot = 196f;
+        /// <summary>How far the garden's bottom edge may rise while a sheet is open, so the lowest stations can come above it.</summary>
+        const float SheetLift = SheetHalf - TabCover;
+        int _sheetRun;
+        float _sheetDragSpeed;
 
         RectTransform _canvas, _street, _hud, _purse, _currency, _panel, _tabBar, _energyFill, _plotRow;
         RawImage _groundTile;
@@ -218,7 +230,7 @@ namespace VuonTra.Game.UI
         /// <summary>How much of the screen the HUD covers at the top and the tab bar at the bottom, and how tall the card stands.</summary>
         const float WheelScroll = 60f;
         /// <summary>The strip at the top of the sheet: the page name, the buy modes, the close button.</summary>
-        const float HeaderHeight = 124f;
+        const float HeaderHeight = 148f;
         const float HudCover = 160f, TabCover = 250f, CardHeight = 280f;
 
         public enum ZoomLevel { Far, Default, Near }
@@ -254,12 +266,12 @@ namespace VuonTra.Game.UI
         Vector2 ToView(Vector2 world) => world * _zoom + _street.anchoredPosition;
 
         /// <summary>Keeps the view inside the garden; when the garden is smaller than the screen it sits in the middle.</summary>
-        static Vector2 ClampView(Vector2 pos, float zoom)
+        static Vector2 ClampView(Vector2 pos, float zoom, float lift = 0f)
         {
             float w = WorldW * zoom, h = WorldH * zoom;
             return new Vector2(
                 w <= ScreenW ? (ScreenW - w) / 2f : Mathf.Clamp(pos.x, ScreenW - w, 0f),
-                h <= ScreenH ? (ScreenH - h) / 2f : Mathf.Clamp(pos.y, ScreenH - h, 0f));
+                h <= ScreenH ? (ScreenH - h) / 2f : Mathf.Clamp(pos.y, ScreenH - h, lift));
         }
 
         /// <summary>Scales the garden so the point under <paramref name="pivotView"/> stays where it is.</summary>
@@ -1396,38 +1408,63 @@ namespace VuonTra.Game.UI
 
         void BuildSheet(GameCatalog catalog)
         {
+            // The sheet sits under the HUD and the tab bar in the draw order: neither is dimmed or covered by it.
             var sheet = UiKit.Rect("Sheet", _canvas).Stretch(0, 0, 1, 1);
+            sheet.SetSiblingIndex(_hud.GetSiblingIndex());
             _sheet = sheet.gameObject;
             _sheetGroup = _sheet.AddComponent<CanvasGroup>();
-            Image scrim = sheet.AddImage(null, Palette.Alpha(Palette.Scrim, 0.45f));
-            scrim.raycastTarget = true;
-            var scrimButton = _sheet.AddComponent<Button>();
-            scrimButton.transition = Selectable.Transition.None;
-            scrimButton.onClick.AddListener(CloseSheet);
+            SheetOpen = false; // a rebuilt screen starts closed; RebuildUi opens it again if it was open
 
-            _panel = UiKit.Rect("Panel", sheet).Place(0.5f, 0.5f, 0, 10, 1040, 1480);
-            _panel.AddShadow(30f, 18f, 0.45f);
-            UiKit.Rect("Lip", _panel).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true).pixelsPerUnitMultiplier = 0.6f;
-            Image body = UiKit.Rect("Face", _panel).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
+            // A touch on the garden above the sheet closes it. Nothing is drawn here: the garden stays as it is.
+            var outside = UiKit.Rect("Outside", sheet).Stretch(0, 0, 1, 1);
+            outside.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
+            var outsideButton = outside.gameObject.AddComponent<Button>();
+            outsideButton.transition = Selectable.Transition.None;
+            outsideButton.onClick.AddListener(CloseSheet);
+
+            // Bottom-anchored: its height is how far it stands up, its position is the slide in and out.
+            _panel = UiKit.Rect("Panel", sheet).Stretch(0, 0, 1, 0);
+            _panel.pivot = new Vector2(0.5f, 0f);
+            SetSheetHeight(SheetHalf);
+            // Only the strip of garden right above the edge darkens a little.
+            var shade = UiKit.Rect("Shade", _panel).Stretch(0, 1, 1, 1);
+            shade.pivot = new Vector2(0.5f, 0f);
+            shade.sizeDelta = new Vector2(0, 240);
+            shade.anchoredPosition = new Vector2(0, -30);
+            shade.AddImage(UiKit.FadeUp, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.34f));
+            UiKit.Rect("Lip", _panel).Stretch(0, 0, 1, 1, 0, -SheetSink, 0, 0).AddImage(catalog.Panel, Palette.CardLip, true).pixelsPerUnitMultiplier = 0.6f;
+            Image body = UiKit.Rect("Face", _panel).Stretch(0, 0, 1, 1, 0, -SheetSink, 0, 10).AddImage(catalog.Panel, Palette.Paper, true);
             body.pixelsPerUnitMultiplier = 0.6f;
-            body.raycastTarget = true; // clicks on the panel must not fall through to the scrim
+            body.raycastTarget = true; // touches on the panel must not fall through to the garden
 
             var bar = UiKit.Rect("Bar", _panel).Stretch(0, 1, 1, 1);
             bar.pivot = new Vector2(0.5f, 1f);
             bar.sizeDelta = new Vector2(0, HeaderHeight);
+            bar.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true; // the whole header is the grab area
+            UiKit.Rect("Grab", bar).Place(0.5f, 1f, 0, -26, 110, 12).AddImage(catalog.Panel, Palette.Mix(Palette.Track, Palette.Ink, 0.18f), true);
+            var grab = bar.gameObject.AddComponent<EventTrigger>();
+            AddDrag(grab, EventTriggerType.BeginDrag, _ => _sheetDragSpeed = 0f);
+            AddDrag(grab, EventTriggerType.Drag, e =>
+            {
+                Canvas canvas = _canvas.GetComponent<Canvas>();
+                float dy = ((PointerEventData)e).delta.y / Mathf.Max(0.01f, canvas != null ? canvas.scaleFactor : 1f);
+                _sheetDragSpeed = Mathf.Lerp(_sheetDragSpeed, dy / Mathf.Max(0.001f, Time.unscaledDeltaTime), 0.5f);
+                DragSheet(dy);
+            });
+            AddDrag(grab, EventTriggerType.EndDrag, _ => ReleaseSheet(_sheetDragSpeed));
 
             // The tab bar along the bottom already switches pages; up here there is only the page's name.
-            _sheetTitle = UiKit.Rect("Title", bar).Stretch(0, 0, 1, 1, 40, 0, 520, 12)
+            _sheetTitle = UiKit.Rect("Title", bar).Stretch(0, 0, 1, 1, 40, 0, 520, 34)
                 .AddText("", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             var modes = UiKit.Rect("Modes", bar).Stretch(0, 0, 1, 1);
             _modes = modes.gameObject;
-            UiKit.Rect("Track", modes).Place(1f, 0.5f, -312, -6, 368, 76).AddImage(catalog.Panel, Palette.Track, true);
+            UiKit.Rect("Track", modes).Place(1f, 0.5f, -312, -18, 368, 76).AddImage(catalog.Panel, Palette.Track, true);
             AddModeButton(modes, catalog, 1, "×1", -444);
             AddModeButton(modes, catalog, 10, "×10", -346);
             AddModeButton(modes, catalog, 0, "Tối đa", -216);
 
-            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, -6, 80, 80);
+            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, -18, 80, 80);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();
@@ -1444,7 +1481,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < catalog.Stations.Length; i++)
             {
                 var row = new StationRowView(i);
-                row.Build(stations, catalog, catalog.Stations[i], OnBuy);
+                row.Build(stations, catalog, catalog.Stations[i], OnBuy, index => { Sfx.Click(); ShowStationAboveSheet(index); });
                 _rows.Add(row);
             }
             BuildPlotRow(stations, catalog);
@@ -1517,7 +1554,8 @@ namespace VuonTra.Game.UI
         /// <summary>A scrolling column of cards under the sheet's header; returns where the cards go.</summary>
         RectTransform AddList(string name, int tab)
         {
-            var scrollRt = UiKit.Rect(name, _panel).Stretch(0, 0, 1, 1, 0, 24, 0, HeaderHeight);
+            // The tab bar stands in front of the sheet's foot, so the lists stop above it.
+            var scrollRt = UiKit.Rect(name, _panel).Stretch(0, 0, 1, 1, 0, SheetFoot, 0, HeaderHeight);
             scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
@@ -1552,7 +1590,7 @@ namespace VuonTra.Game.UI
 
         void AddModeButton(RectTransform bar, GameCatalog catalog, int mode, string label, float x)
         {
-            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -6, mode == 0 ? 152 : 92, 60);
+            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -18, mode == 0 ? 152 : 92, 60);
             Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -1590,21 +1628,111 @@ namespace VuonTra.Game.UI
         {
             SetTab(tab);
             if (SheetOpen) return;
-            _sheet.SetActive(true);
-            _sheetGroup.alpha = 0f;
+            SheetOpen = true;
+            SelectStation(-1); // the station card and a sheet never share the bottom of the screen
+            SetSheetHeight(SheetHalf); // it always opens at the same fixed height
+            if (!_sheet.activeSelf)
+            {
+                _sheet.SetActive(true);
+                _panel.anchoredPosition = new Vector2(0, -SheetHalf);
+            }
             _sheetGroup.blocksRaycasts = true;
-            _panel.localScale = Vector3.one * 0.9f;
-            Tweens.Add(0.2f, t => _sheetGroup.alpha = t, Ease.OutCubic);
-            Tweens.Add(0.28f, t => _panel.localScale = Vector3.one * Mathf.LerpUnclamped(0.9f, 1f, t), Ease.OutBack);
+            if (_scroll != null) { _scroll.StopMovement(); _scroll.enabled = false; } // the garden is moved by the sheet for now
+            SlideSheet(0f, 0.25f, Ease.OutBackLight, null);
             Refresh(-1f);
         }
 
         public void CloseSheet()
         {
             if (!SheetOpen) return;
+            SheetOpen = false;
             _sheetGroup.blocksRaycasts = false;
-            _sheet.SetActive(false);
+            SlideSheet(-SheetHeight - 60f, 0.2f, Ease.InCubic, () => _sheet.SetActive(false));
+
+            // The garden may have been lifted to show a low station: let it settle back inside its edges.
+            Vector2 from = _street.anchoredPosition, home = ClampView(from, _zoom);
+            Tweens.Add(0.25f, t => { if (_street != null && !SheetOpen) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); },
+                Ease.OutCubic, 0f, () => { if (_scroll != null && !SheetOpen) _scroll.enabled = true; });
             Refresh(-1f);
+        }
+
+        void SetSheetHeight(float height)
+        {
+            SheetHeight = Mathf.Clamp(height, SheetLeast, SheetFull);
+            _panel.sizeDelta = new Vector2(0, SheetHeight);
+        }
+
+        /// <summary>Slides the panel to a fixed resting place. A newer slide or a drag takes over from an older one.</summary>
+        void SlideSheet(float toY, float seconds, System.Func<float, float> curve, System.Action done)
+        {
+            int run = ++_sheetRun;
+            float fromY = _panel.anchoredPosition.y;
+            Tweens.Add(seconds, t => { if (run == _sheetRun && _panel != null) _panel.anchoredPosition = new Vector2(0, Mathf.LerpUnclamped(fromY, toY, t)); },
+                curve, 0f, () => { if (run == _sheetRun) done?.Invoke(); });
+        }
+
+        /// <summary>Stands the open sheet at one of its two heights, with the same light bounce as opening.</summary>
+        void SnapSheet(float height)
+        {
+            int run = ++_sheetRun;
+            float from = SheetHeight, fromY = _panel.anchoredPosition.y;
+            Tweens.Add(0.25f, t =>
+            {
+                if (run != _sheetRun || _panel == null) return;
+                SheetHeight = Mathf.LerpUnclamped(from, height, t);
+                _panel.sizeDelta = new Vector2(0, SheetHeight);
+                _panel.anchoredPosition = new Vector2(0, Mathf.LerpUnclamped(fromY, 0f, Mathf.Clamp01(t)));
+            }, Ease.OutBackLight, 0f, () => { if (run == _sheetRun) SetSheetHeight(height); });
+        }
+
+        /// <summary>The grab handle moved by this much (canvas units, up is positive).</summary>
+        public void DragSheet(float delta)
+        {
+            if (!SheetOpen) return;
+            _sheetRun++; // the finger takes over from any slide
+            _panel.anchoredPosition = Vector2.zero;
+            SetSheetHeight(SheetHeight + delta);
+        }
+
+        /// <summary>The handle was let go: a flick or the height decides between closed, 60% and full.</summary>
+        public void ReleaseSheet(float speed = 0f)
+        {
+            if (!SheetOpen) return;
+            float middle = (SheetHalf + SheetFull) / 2f;
+            if (speed > SheetFling) SnapSheet(SheetFull);
+            else if (speed < -SheetFling)
+            {
+                if (SheetHeight > SheetHalf + 60f) SnapSheet(SheetHalf);
+                else CloseSheet();
+            }
+            else if (SheetHeight < SheetHalf * 0.8f) CloseSheet();
+            else SnapSheet(SheetHeight > middle ? SheetFull : SheetHalf);
+        }
+
+        /// <summary>A row in the station list was touched: the garden above the sheet slides to that station.</summary>
+        public void ShowStationAboveSheet(int index)
+        {
+            if (!SheetOpen || index < 0 || index >= _actors.Count) return;
+            if (SheetHeight > SheetHalf + 1f) SnapSheet(SheetHalf); // make room to see it
+            float zoom = Zoom == ZoomLevel.Far ? ZoomDefault : _zoom, fromZoom = _zoom;
+            var open = new Vector2(ScreenW / 2f, (SheetHalf + ScreenH - HudCover) / 2f);
+            Vector2 spot = StationSpot(index), from = _street.anchoredPosition, to = ClampView(open - spot * zoom, zoom, SheetLift);
+            Tweens.Add(0.3f, t =>
+            {
+                if (_street == null || !SheetOpen) return;
+                _zoom = Mathf.LerpUnclamped(fromZoom, zoom, t);
+                _street.localScale = new Vector3(_zoom, _zoom, 1f);
+                _street.anchoredPosition = Vector2.LerpUnclamped(from, to, t);
+                if (Zoom != _shownZoom) ShowZoomDetail();
+            }, Ease.OutCubic);
+            if (_actors[index].Root.gameObject.activeSelf) _actors[index].Bump();
+        }
+
+        static void AddDrag(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> call)
+        {
+            var entry = new EventTrigger.Entry { eventID = type };
+            entry.callback.AddListener(call);
+            trigger.triggers.Add(entry);
         }
 
         void BuildAwayPopup(GameCatalog catalog)
@@ -2070,7 +2198,8 @@ namespace VuonTra.Game.UI
             if (Shell.State == ShellState.Title) return;
             RectTransform actor = _actors[index].Root;
             _actors[index].Hop();
-            if (!actor.gameObject.activeSelf || !OnScreen(actor) || SheetOpen) return;
+            if (!actor.gameObject.activeSelf || !OnScreen(actor)) return;
+            if (SheetOpen && Feel.PointOf(actor).y + ScreenH / 2f < SheetHeight + 60f) return; // it stands behind the sheet
 
             Feel.FloatText(Feel.PointOf(actor, new Vector2(60, 150)), "+" + amount.Short(), Palette.Paper);
             Feel.Burst(Feel.PointOf(actor, new Vector2(110, 60)), Runner.Catalog.Currency, new[] { Color.white }, 2, 300f, 34f);

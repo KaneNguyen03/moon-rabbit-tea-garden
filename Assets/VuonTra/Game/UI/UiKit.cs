@@ -103,6 +103,27 @@ namespace VuonTra.Game.UI
             shadow.effectDistance = new Vector2(0, -distance);
         }
 
+        static Sprite _fadeUp;
+
+        /// <summary>Solid at the bottom, clear at the top: for a soft shade that fades away upwards.</summary>
+        public static Sprite FadeUp
+        {
+            get
+            {
+                if (_fadeUp != null) return _fadeUp;
+                var tex = new Texture2D(1, 64, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, hideFlags = HideFlags.HideAndDontSave };
+                for (int y = 0; y < 64; y++)
+                {
+                    float a = 1f - y / 63f;
+                    tex.SetPixel(0, y, new Color(1, 1, 1, a * a));
+                }
+                tex.Apply();
+                _fadeUp = Sprite.Create(tex, new Rect(0, 0, 1, 64), new Vector2(0.5f, 0.5f), 100f);
+                _fadeUp.hideFlags = HideFlags.HideAndDontSave;
+                return _fadeUp;
+            }
+        }
+
         /// <summary>The sprite used for soft drop shadows; set once by the screen when it builds.</summary>
         public static Sprite ShadowSprite;
 

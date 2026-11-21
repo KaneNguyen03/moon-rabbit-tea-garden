@@ -102,9 +102,28 @@ namespace VuonTra.EditorTools
             Step(screen, 2.4f);
             Capture(screen, "4-boost");
 
+            // The sheet's slide in, frame by frame (30 frames a second), then at rest.
+            Capture(screen, "22-open-0");
             screen.OpenSheet(0);
+            for (int f = 1; f <= 5; f++)
+            {
+                Step(screen, f == 5 ? 0.14f : 0.06f);
+                Capture(screen, "22-open-" + f);
+            }
             Step(screen, 0.5f);
             Capture(screen, "5-stations");
+            // Touching a row brings that station into the strip of garden above the sheet.
+            Press(screen, "Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[3].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "22-row-to-station");
+            // Pulled up by the handle it fills the screen up to the HUD.
+            screen.DragSheet(500f);
+            screen.ReleaseSheet();
+            Step(screen, 0.5f);
+            Capture(screen, "22-full");
+            screen.DragSheet(-300f);
+            screen.ReleaseSheet(-2000f);
+            Step(screen, 0.5f);
             screen.SetTab(1);
             Step(screen, 0.2f);
             Capture(screen, "6-upgrades");

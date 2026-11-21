@@ -375,6 +375,111 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Sheet_Slides_Up_To_Sixty_Percent_And_Leaves_The_Garden_And_Hud_Alone()
+        {
+            screen.Shell.StartGame();
+            screen.OpenSheet(0);
+            var panel = (RectTransform)root.transform.Find("Canvas/Sheet/Panel");
+            Assert.Less(panel.anchoredPosition.y, -1000f, "it starts below the screen");
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(0f, panel.anchoredPosition.y, 0.5f, "0.25 s later it stands on the bottom edge");
+            Assert.AreEqual(1920f * 0.6f, screen.SheetHeight, 0.5f);
+            Assert.AreEqual(screen.SheetHeight, panel.sizeDelta.y, 0.5f);
+
+            Transform sheet = root.transform.Find("Canvas/Sheet");
+            Assert.IsNull(sheet.GetComponent<Image>(), "nothing greys the whole screen");
+            Assert.Less(sheet.GetSiblingIndex(), root.transform.Find("Canvas/Hud").GetSiblingIndex(), "the HUD is drawn over the sheet, not under a scrim");
+            Assert.Less(sheet.GetSiblingIndex(), root.transform.Find("Canvas/TabBar").GetSiblingIndex());
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Bar/Grab"), "there is a handle to grab");
+            var shade = (RectTransform)root.transform.Find("Canvas/Sheet/Panel/Shade");
+            Assert.LessOrEqual(shade.sizeDelta.y, 260f, "only a strip above the edge darkens");
+        }
+
+        [Test]
+        public void Sheet_Closes_On_A_Touch_Outside_And_Is_Gone_After_The_Slide()
+        {
+            screen.Shell.StartGame();
+            screen.OpenSheet(2);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Find("Canvas/Sheet/Outside").onClick.Invoke();
+            Assert.IsFalse(screen.SheetOpen);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(root.transform.Find("Canvas/Sheet").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Sheet_Handle_Drags_Up_To_Full_And_Down_To_Closed()
+        {
+            screen.Shell.StartGame();
+            screen.OpenSheet(0);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+
+            screen.DragSheet(400f);
+            screen.ReleaseSheet();
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(GardenScreen.SheetFull, screen.SheetHeight, 0.5f, "pulled past the middle it opens all the way");
+            Assert.Less(GardenScreen.SheetFull, 1920f - 150f, "and still stops under the HUD");
+
+            screen.DragSheet(5000f);
+            Assert.AreEqual(GardenScreen.SheetFull, screen.SheetHeight, 0.5f, "it cannot be pulled over the HUD");
+
+            screen.DragSheet(-60f);
+            screen.ReleaseSheet(-2000f);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.IsTrue(screen.SheetOpen, "a flick down from full only drops it to 60%");
+            Assert.AreEqual(GardenScreen.SheetHalf, screen.SheetHeight, 0.5f);
+
+            screen.DragSheet(-80f);
+            screen.ReleaseSheet(-2000f);
+            Assert.IsFalse(screen.SheetOpen, "one more flick down closes it");
+
+            screen.OpenSheet(0);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(GardenScreen.SheetHalf, screen.SheetHeight, 0.5f, "it always opens at 60% again");
+            screen.DragSheet(-400f);
+            screen.ReleaseSheet();
+            Assert.IsFalse(screen.SheetOpen, "dragged well down and let go closes it too");
+        }
+
+        [Test]
+        public void Touching_A_Station_Row_Slides_The_Garden_To_That_Station_Above_The_Sheet()
+        {
+            runner.State.Plots = runner.Defs.Count;
+            for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = 1;
+            screen.Shell.StartGame();
+            screen.Refresh();
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            screen.OpenSheet(0);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+
+            // Station 11 is the lowest in the garden: without lifting the view it would stay behind the sheet.
+            foreach (int index in new[] { 11, 9, 0 })
+            {
+                Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[index].Id).onClick.Invoke();
+                for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+                float y = GardenScreen.StationSpot(index).y * world.localScale.y + world.anchoredPosition.y;
+                Assert.Greater(y, screen.SheetHeight + 60f, "station " + index + " stands above the sheet");
+                Assert.Less(y, 1920f - 160f, "station " + index + " stands under the HUD");
+            }
+
+            screen.CloseSheet();
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            Assert.LessOrEqual(world.anchoredPosition.y, 0.5f, "closed again, the garden settles back inside its edges");
+        }
+
+        [Test]
+        public void Charm_Picture_Fills_Its_Tile_Without_A_Coloured_Disc()
+        {
+            Transform icon = root.transform.Find("Canvas/Sheet/Panel/Upgrades/Content/Upgrade trang-ram/Icon");
+            Transform art = icon.Find("Art");
+            Assert.IsNotNull(art, "this charm has a drawn picture");
+            Assert.IsNull(icon.GetComponent<Image>(), "no disc behind a drawn charm");
+            var rt = (RectTransform)art;
+            Assert.AreEqual(Vector2.zero, rt.offsetMin);
+            Assert.AreEqual(Vector2.zero, rt.offsetMax);
+        }
+
+        [Test]
         public void Tapping_A_Station_Opens_Its_Card_And_The_Card_Buys()
         {
             Assert.AreEqual(-1, screen.Selected);

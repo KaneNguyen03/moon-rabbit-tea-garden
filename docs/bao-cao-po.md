@@ -257,3 +257,36 @@ Sau khi sửa cả bốn xanh.
 - tồn đọng: áp thang chữ ba cỡ cho GardenScreen, Shell và Feel.
 - tồn đọng: tách dòng phụ của trạm thành số chính + chip (làm cùng #25).
 - tồn đọng: tuỳ chọn chữ to và kiểm tràn chữ tiếng Anh sau khi đổi cỡ (thuộc #33).
+
+## U1 — #22 Tấm trượt từ dưới lên (kèm sửa hình bùa)
+
+- Test: 303/303 EditMode qua (chạy sau lần sửa file cuối cùng trong Assets). Thêm 5 test mới trong `GardenScreenTests`.
+- Thông điệp commit đề xuất: `Lists open as a bottom sheet at 60% with a grab handle; the garden and HUD stay in view; charm pictures fill their tile`
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Commit này gồm cả #24 (chưa commit ở bước trước) và phần sửa hình bùa PO nhắc.
+- Ảnh (docs/anh/po-u1/):
+  - Trước: `22-truoc-5-stations.png`, `22-truoc-6-upgrades.png`, `22-truoc-7-quests.png`, `22-truoc-8-rabbits.png`.
+  - Sau: `22-sau-5-stations.png`, `22-sau-6-upgrades.png`, `22-sau-7-quests.png`, `22-sau-8-rabbits.png`, `22-sau-keo-het-co.png`, `22-sau-cham-dong-toi-tram.png`.
+  - Chuỗi khung hình lúc mở (6 khung liên tiếp, khung 0 là trước khi mở): `22-mo-khung-0.png` … `22-mo-khung-5.png`. Khung 3 cho thấy tấm vọt quá một chút rồi lùi về (độ nảy).
+
+### Đã làm (đối chiếu với nguyên văn #22)
+- Tấm mở cao 60% màn hình (1152/1920), vườn vẫn thấy và vẫn chạy ở phía trên. Số bay "+cà rốt" của trạm vẫn hiện nếu trạm nằm trên mép tấm.
+- Tay nắm ở đầu tấm; cả dải tiêu đề là vùng nắm. Kéo lên quá nửa đường hoặc hất lên thì mở hết cỡ (dừng ngay dưới HUD). Kéo xuống rõ rệt hoặc hất xuống thì đóng; hất xuống khi đang mở hết cỡ thì về 60% trước. Chạm ra ngoài (phần vườn) thì đóng. Nút × vẫn giữ cho người dùng chuột.
+- Mở: trượt lên 0,25 giây, vọt quá khoảng 3,7% rồi về. Đóng: trượt xuống 0,2 giây.
+- HUD không còn bị xám và vẫn bấm được (tấm nằm dưới HUD và thanh tab trong thứ tự vẽ). Không còn lớp phủ toàn màn; chỉ một dải tối nhạt cao khoảng 210 ngay trên mép tấm.
+- Tab Trạm: chạm vào thẻ một trạm (không phải nút Nâng) thì vườn trượt tới trạm đó, đặt nó vào giữa dải vườn còn thấy, trạm nảy một lần. Vườn được phép nâng lên thêm khi tấm đang mở để các trạm thấp nhất (ví dụ trạm 12) cũng lên được trên mép tấm; đóng tấm thì vườn tự về trong biên.
+- Mở tấm thì tấm trạm trong vườn tự đóng (hai thứ không chồng nhau ở đáy màn hình).
+- Hình bùa: bỏ đĩa màu, hình lấp đầy ô (ô 148). Bùa chưa có hình vẫn dùng đĩa màu + chữ.
+- Giữ nguyên tắc từ #35: mọi chuyển động của tấm đi tới một đích cố định (0, 60%, hết cỡ); mở lại luôn về đúng 60%.
+
+### Chưa đạt so với #22
+- Kéo tay nắm mới được kiểm bằng test gọi thẳng `DragSheet`/`ReleaseSheet` và bằng ảnh; CHƯA thử bằng ngón tay hoặc chuột trong bản Mac (bản Mac chưa build lại, sẽ build cuối U1).
+- Vuốt xuống chỉ đóng được khi bắt đầu từ dải tiêu đề của tấm. Vuốt xuống trong danh sách vẫn là cuộn danh sách, kể cả khi danh sách đang ở đầu.
+- Khi tấm đang mở, vườn phía trên không kéo hay thu phóng được (chạm vào vườn là đóng tấm).
+- Thanh tab vẫn là bốn nút tròn rời, giờ đứng trên chân tấm; lúc tấm đang trượt lên thấy các dòng chạy sau các nút (khung 1). Sẽ hết khi làm #23 (thanh tab liền mạch).
+- Tấm chi tiết thỏ, bảng chọn đồ, bảng đổi tên vẫn là hộp giữa màn hình có lớp phủ tối toàn màn (#22 chỉ nói bốn tab).
+
+### Tồn đọng
+- tồn đọng: vuốt xuống từ đầu danh sách cũng đóng tấm.
+- tồn đọng: cho kéo vườn khi tấm đang mở ở 60%.
+- tồn đọng: tấm chi tiết thỏ và các bảng chọn chuyển sang cùng kiểu tấm trượt (xem lại ở #26).
