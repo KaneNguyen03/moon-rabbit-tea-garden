@@ -202,10 +202,11 @@ namespace VuonTra.Game.UI
             // A lighter band across the top half reads as gloss.
             view.Shine = Rect("Shine", view.FaceRect).Stretch(0, 0.5f, 1, 1, 5, 0, 5, 5)
                 .AddImage(panel, new Color(1f, 1f, 1f, 0.2f), true).gameObject;
-            view.Button.onClick.AddListener(() => onClick());
             view.Dip = root.gameObject.AddComponent<PressDip>();
             view.Dip.Face = view.FaceRect;
             view.Dip.Button = view.Button;
+            view.Dip.Pressed = onClick;
+            view.Button.onClick.AddListener(view.Dip.Fire); // through the dip, so a hold that repeated does not fire once more on release
             return view;
         }
 

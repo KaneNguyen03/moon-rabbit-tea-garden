@@ -1186,6 +1186,18 @@ MonoBehaviour:
     m_Localized: Resting
     m_Metadata:
       m_Items: []
+  - m_Id: 71371198554112
+    m_Localized: "{0} more levels to \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71371206942720
+    m_Localized: Past every milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 71371206942721
+    m_Localized: Feeds
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

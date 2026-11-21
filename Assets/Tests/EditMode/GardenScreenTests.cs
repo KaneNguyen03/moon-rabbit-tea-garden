@@ -1520,6 +1520,89 @@ namespace VuonTra.Core.Tests
             }
         }
 
+        // ----- #25: the station list leads with what each station earns and upgrades under a held finger -----
+
+        [Test]
+        public void A_Station_Row_Leads_With_Carrots_A_Second_And_Says_How_Far_To_The_Next_Doubling()
+        {
+            Transform row = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra");
+            Assert.GreaterOrEqual(((RectTransform)row.Find("Icon")).sizeDelta.x, 160f, "a bigger picture");
+            Assert.AreEqual("+0,7/giây", row.Find("PerSec").GetComponent<Text>().text, "1 carrot every 1,5 s");
+            Assert.Greater(row.Find("PerSec").GetComponent<Text>().fontSize, row.Find("Name").GetComponent<Text>().fontSize, "the number is the main thing");
+            Assert.IsTrue(row.Find("Milestone").gameObject.activeSelf);
+            Assert.AreEqual("Còn 9 cấp tới ×2", row.Find("Milestone/Text").GetComponent<Text>().text);
+
+            runner.State.Levels[0] = 27;
+            screen.Refresh();
+            Assert.AreEqual("Còn 23 cấp tới ×2", row.Find("Milestone/Text").GetComponent<Text>().text);
+            Assert.AreEqual((27 - 25) / 25f, ((RectTransform)row.Find("Milestone/Fill")).anchorMax.x, 1e-4);
+            StringAssert.StartsWith("+", row.Find("PerSec").GetComponent<Text>().text);
+
+            runner.State.Levels[0] = 500;
+            screen.Refresh();
+            Assert.AreEqual("Đã qua mọi mốc", row.Find("Milestone/Text").GetComponent<Text>().text);
+            Assert.AreEqual(1f, ((RectTransform)row.Find("Milestone/Fill")).anchorMax.x, 1e-4);
+        }
+
+        [Test]
+        public void An_Ingredient_Row_Shows_The_Stations_It_Feeds_As_Pictures()
+        {
+            runner.State.Levels[1] = 1;
+            screen.Refresh();
+            Transform row = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la");
+            Assert.AreEqual("×1,1", row.Find("PerSec").GetComponent<Text>().text, "what it does to prices is its number");
+            Assert.AreEqual("Tiếp sức cho", row.Find("Sub").GetComponent<Text>().text);
+            Transform feeds = row.Find("Feeds");
+            Assert.AreEqual(2, feeds.childCount, "the teapot and the milk tea stand");
+            Assert.AreEqual(runner.Catalog.Stations[0].Prop, feeds.GetChild(0).Find("Prop").GetComponent<Image>().sprite);
+            Assert.AreEqual(runner.Catalog.Stations[6].Prop, feeds.GetChild(1).Find("Prop").GetComponent<Image>().sprite);
+            Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Feeds"), "a brew station feeds nobody");
+        }
+
+        [Test]
+        public void Stations_Not_Yet_Open_Wait_At_The_Bottom_And_The_Next_One_Is_Lit()
+        {
+            runner.State.Levels[1] = 1;
+            runner.State.Coins = new BigNum(1e9);
+            screen.Refresh();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content");
+            Assert.AreEqual("Row am-tra", content.GetChild(0).name);
+            Assert.AreEqual("Row gio-la", content.GetChild(1).name);
+            Assert.AreEqual("Row noi-mut", content.GetChild(2).name, "the next one to open comes right after the open ones");
+            Color next = content.Find("Row noi-mut/Card").GetComponent<Image>().color;
+            Color later = content.Find("Row coi-hoa/Card").GetComponent<Image>().color;
+            Color open = content.Find("Row gio-la/Card").GetComponent<Image>().color;
+            Assert.AreNotEqual(later, next, "the next station stands out from the ones after it");
+            Assert.AreNotEqual(open, next);
+            Assert.AreEqual("Mở trạm", content.Find("Row noi-mut/Buy/Face/Top").GetComponent<Text>().text);
+            Assert.IsFalse(content.Find("Row noi-mut/Milestone").gameObject.activeSelf, "no milestone bar before it is open");
+        }
+
+        [Test]
+        public void Holding_The_Upgrade_Button_Keeps_Buying_Faster_And_Faster()
+        {
+            runner.State.Coins = new BigNum(1e12);
+            screen.Refresh();
+            var dip = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").GetComponent<PressDip>();
+            dip.Hold();
+            for (int i = 0; i < 3; i++) dip.Step(0.1f);
+            Assert.AreEqual(1, runner.State.Levels[0], "a short press is not a hold yet");
+            for (int i = 0; i < 7; i++) dip.Step(0.1f); // one second held
+            int afterOne = runner.State.Levels[0];
+            Assert.Greater(afterOne, 1, "held long enough: it buys");
+            for (int i = 0; i < 10; i++) dip.Step(0.1f); // a second more
+            int afterTwo = runner.State.Levels[0];
+            Assert.Greater(afterTwo - afterOne, afterOne - 1, "and buys quicker the longer it is held");
+
+            dip.Release();
+            dip.Click(); // the click that comes with lifting the finger
+            Assert.AreEqual(afterTwo, runner.State.Levels[0], "the release is not one more purchase");
+            dip.Click();
+            Assert.AreEqual(afterTwo + 1, runner.State.Levels[0], "a plain tap still buys one");
+            for (int i = 0; i < 12; i++) dip.Step(1f / 30f);
+            Assert.IsFalse(dip.Busy);
+        }
+
         [Test]
         public void Away_Popup_Shows_And_Closes()
         {

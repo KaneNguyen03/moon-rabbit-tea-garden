@@ -1584,9 +1584,11 @@ namespace VuonTra.Game.UI
             RectTransform stations = AddList("Scroll", 0);
             for (int i = 0; i < catalog.Stations.Length; i++)
             {
+                int index = i;
                 var row = new StationRowView(i);
-                row.Build(stations, catalog, catalog.Stations[i], OnBuy, index => { Sfx.Click(); ShowStationAboveSheet(index); });
+                row.Build(stations, catalog, catalog.Stations[i], OnBuy, at => { Sfx.Click(); ShowStationAboveSheet(at); });
                 row.Buy.Dip.Denied = () => Deny(row.Buy, true);
+                row.Buy.Dip.Repeat = () => OnBuy(index); // held down, the button keeps upgrading
                 _rows.Add(row);
             }
             BuildPlotRow(stations, catalog);
