@@ -1390,6 +1390,42 @@ MonoBehaviour:
     m_Localized: "{0} \xB7 maxed"
     m_Metadata:
       m_Items: []
+  - m_Id: 92552597331968
+    m_Localized: '{0} until you can boost'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914880
+    m_Localized: Where the carrots come from
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914881
+    m_Localized: +{0}/s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914882
+    m_Localized: "rabbit \xD7{0} \xB7 ingredients \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914883
+    m_Localized: No brewing station is open yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914884
+    m_Localized: "Charms: \xD7{0} carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914885
+    m_Localized: "Garden speed: \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914886
+    m_Localized: "Boosting: \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914887
+    m_Localized: Total +{0}/s
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

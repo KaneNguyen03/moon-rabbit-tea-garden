@@ -2171,5 +2171,63 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.AreEqual("+0.2 s per tap → +0.4 s per tap", T(list + "Upgrade tay-am/Effect").text);
         }
+
+        [Test]
+        public void A_Touch_On_The_Purse_Lists_Where_The_Carrots_Come_From()
+        {
+            runner.State.Levels[0] = 5;
+            runner.State.Levels[1] = 2;
+            runner.State.Levels[2] = 3;
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 2, Kind = RabbitKinds.OfTier(2)[0].Id, Name = "Mây", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            Assert.IsTrue(screen.Income.IsOpen);
+            string rows = "Canvas/Income/Card/Scroll/Content/";
+            BigNum tea = Economy.StationIncomePerSecond(runner.Defs, runner.State, 0, out double rabbit, out double ingredients);
+            Assert.AreEqual(L10n.T("income.row", tea.Short()), T(rows + "Station am-tra/Amount").text);
+            Assert.AreEqual(L10n.T("income.factors", UiKit.Times(rabbit), UiKit.Times(ingredients)), T(rows + "Station am-tra/Factors").text);
+            Assert.IsNotNull(root.transform.Find(rows + "Station noi-mut"), "the second brewing station has a row");
+            Assert.IsNull(root.transform.Find(rows + "Station gio-la"), "an ingredient station earns nothing of its own");
+            Assert.IsNull(root.transform.Find(rows + "Boost"), "no boost line while none runs");
+            BigNum total = Economy.IncomePerSecond(runner.Defs, runner.State) * (runner.Mods.IncomeMultiplier * runner.Mods.SpeedMultiplier);
+            Assert.AreEqual(L10n.T("income.total", total.Short()), T(rows + "Total").text);
+
+            Find("Canvas/Income/Card/Close").onClick.Invoke();
+            Assert.IsFalse(screen.Income.IsOpen);
+        }
+
+        [Test]
+        public void A_Tea_Bar_Short_Of_Power_Says_How_Long_Until_A_Burst_And_A_Full_One_Breathes()
+        {
+            screen.Shell.StartGame();
+            runner.State.Energy = 20d;
+            screen.Refresh();
+            Button energy = Find("Canvas/Hud/Energy");
+            Assert.IsFalse(energy.interactable);
+            int before = screen.Feel.ParticleCount;
+            energy.GetComponent<PressDip>().Click();
+            Assert.Greater(screen.Feel.ParticleCount, before, "a line floats up saying how long to wait");
+            Assert.AreEqual(20d, runner.State.Energy, 1e-9, "nothing was spent");
+            for (int i = 0; i < 10; i++) screen.Advance(0.1f);
+            Assert.AreEqual(1f, energy.transform.Find("Face").localScale.x, 1e-4f, "short of power the bar holds still");
+
+            runner.State.Energy = 100d;
+            screen.Refresh();
+            float min = 1f, max = 1f;
+            for (int i = 0; i < 40; i++)
+            {
+                screen.Advance(0.05f);
+                float sx = energy.transform.Find("Face").localScale.x;
+                min = Mathf.Min(min, sx);
+                max = Mathf.Max(max, sx);
+            }
+            Assert.Greater(max, 1.01f, "a full bar breathes");
+            Assert.Less(min, 0.99f);
+            Assert.Less(max, 1.05f, "but only a little");
+        }
     }
 }

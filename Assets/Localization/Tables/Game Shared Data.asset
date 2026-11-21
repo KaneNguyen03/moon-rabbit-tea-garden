@@ -1383,6 +1383,42 @@ MonoBehaviour:
     m_Key: upgrade.full
     m_Metadata:
       m_Items: []
+  - m_Id: 92552597331968
+    m_Key: energy.wait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914880
+    m_Key: income.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914881
+    m_Key: income.row
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914882
+    m_Key: income.factors
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914883
+    m_Key: income.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914884
+    m_Key: income.charms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914885
+    m_Key: income.speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914886
+    m_Key: income.boost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 92552609914887
+    m_Key: income.total
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

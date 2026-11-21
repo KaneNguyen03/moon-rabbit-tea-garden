@@ -17,6 +17,9 @@ namespace VuonTra.Core
 
         public static bool CanBoost(GameState s) => s.Energy >= BoostCost && s.BoostSecondsLeft <= 0d;
 
+        /// <summary>How long the bar needs to refill to the cost of a burst; zero once it is there.</summary>
+        public static double SecondsUntilBoost(GameState s) => Math.Max(0d, (BoostCost - s.Energy) / RegenPerSecond);
+
         public static bool TryBoost(GameState s)
         {
             if (!CanBoost(s)) return false;

@@ -98,6 +98,26 @@ namespace VuonTra.Core
             return income * Rabbits.StationMultiplier(defs, s, index);
         }
 
+        /// <summary>
+        /// One station's share of the income, a second, with the two factors that shaped it: the rabbit at
+        /// work there and the ingredient stations that feed it. Zero, and both factors 1, where nothing is earned.
+        /// </summary>
+        public static BigNum StationIncomePerSecond(IReadOnlyList<StationDef> defs, GameState s, int index, out double rabbit, out double ingredients)
+        {
+            rabbit = 1d;
+            ingredients = 1d;
+            var d = defs[index];
+            if (d.Kind != StationKind.Brew || s.Levels[index] <= 0 || d.CycleSeconds <= 0d) return BigNum.Zero;
+            rabbit = Rabbits.StationMultiplier(defs, s, index);
+            for (int i = 0; i < defs.Count; i++)
+            {
+                var other = defs[i];
+                if (other.Kind == StationKind.Ingredient && s.Levels[i] > 0 && other.Boosts(d.Id))
+                    ingredients *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i);
+            }
+            return IncomePerCycle(defs, s, index) / d.CycleSeconds;
+        }
+
         public static BigNum IncomePerSecond(IReadOnlyList<StationDef> defs, GameState s)
         {
             BigNum total = BigNum.Zero;

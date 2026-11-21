@@ -64,6 +64,7 @@ namespace VuonTra.Game.UI
         /// <summary>How far each tab has come towards its chosen look (0 resting, 1 chosen), and a short pop when pressed.</summary>
         readonly float[] _tabShown = new float[TabCount], _tabPop = new float[TabCount];
         float _tabFade = 1f, _badgePop, _safeBottom = -1f;
+        bool _energyReady;
         int _shownClaimable = -1;
         RectTransform _barBadgeRect, _rabbitBadgeRect;
         Text _rabbitBadgeText;
@@ -121,6 +122,8 @@ namespace VuonTra.Game.UI
         /// <summary>The list of the player's rabbits, opened from a station's empty pad or its card.</summary>
         public WorkerPickerView Workers { get; private set; }
         public RenameView Rename { get; private set; }
+        /// <summary>Where the carrots come from, opened from the purse.</summary>
+        public IncomeView Income { get; private set; }
         /// <summary>The player's profile: avatar, garden name, player code, backup.</summary>
         public ProfileView Profile { get; private set; }
         public RabbitDetailView Detail { get; private set; }
@@ -203,6 +206,8 @@ namespace VuonTra.Game.UI
             GameState s = Runner.State;
             bool boosting = s.BoostSecondsLeft > 0d;
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
+            // A full bar breathes: the one hint that the boost is there to be taken.
+            _energyButton.FaceRect.localScale = Vector3.one * (_energyReady ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
 
             Tweens.Update(dt);
             PlaceTabBar();
@@ -680,6 +685,7 @@ namespace VuonTra.Game.UI
             Workers = null;
             Rename = null;
             Profile = null;
+            Income = null;
             Detail = null;
             Arrival = null;
             Shell = null;
@@ -757,6 +763,7 @@ namespace VuonTra.Game.UI
                     Profile.Refresh(Runner.Defs, Runner.State, Runner.Account);
                 }),
                 () => Runner.Account.Link(ok => Profile.Refresh(Runner.Defs, Runner.State, Runner.Account)));
+            Income = new IncomeView(_canvas, catalog, Tweens);
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -1542,7 +1549,13 @@ namespace VuonTra.Game.UI
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
-            UiKit.Rect("Face", _purse).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
+            Image purseFace = UiKit.Rect("Face", _purse).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
+            // A touch on the purse explains the number: which station earns what, and the factors on top.
+            purseFace.raycastTarget = true;
+            var purseButton = _purse.gameObject.AddComponent<Button>();
+            purseButton.transition = Selectable.Transition.None;
+            purseButton.targetGraphic = purseFace;
+            purseButton.onClick.AddListener(() => { Sfx.Click(); Income.Open(Runner.Defs, Runner.State, Runner.Mods); });
             _currency = UiKit.Rect("Currency", _purse).Place(0f, 0.5f, 44, 4, 60, 60);
             _currency.AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 78, 0, 10, 6)
@@ -1554,6 +1567,13 @@ namespace VuonTra.Game.UI
             var energy = UiKit.Rect("Energy", _hud).Place(0f, 1f, 632, -76, 396, 100);
             energy.AddShadow();
             _energyButton = UiKit.Chunky(energy, catalog.Panel, OnBoost);
+            // Short of power: the bar says how long until a burst can be paid for, instead of doing nothing.
+            RectTransform energyRect = energy;
+            _energyButton.Dip.Denied = () =>
+            {
+                Sfx.Deny();
+                Feel.FloatText(Feel.PointOf(energyRect, new Vector2(0, 70)), L10n.T("energy.wait", Span(Energy.SecondsUntilBoost(Runner.State))), Palette.Lantern, 32);
+            };
             _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.55f, 1, 22, 0, 0, 6)
                 .AddText("", 25, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _energyAction = UiKit.Rect("Action", _energyButton.FaceRect).Stretch(0.45f, 0.46f, 1, 1, 0, 0, 22, 6)
@@ -2209,6 +2229,7 @@ namespace VuonTra.Game.UI
             Picker.Refresh(s);
             Workers.Refresh(defs, s);
             Profile.Refresh(defs, s, Runner.Account);
+            Income.Refresh(defs, s, m);
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
@@ -2259,6 +2280,7 @@ namespace VuonTra.Game.UI
                 ? L10n.T("energy.boosting", Mathf.CeilToInt((float)s.BoostSecondsLeft))
                 : (can ? L10n.T("energy.ready") : L10n.T("energy.need", (int)Energy.BoostCost));
             _energyButton.Button.interactable = can;
+            _energyReady = can && !boosting;
             // Cream like the purse, so it never outshines the garden; only the word lights up when it is ready.
             _energyButton.Lip.color = boosting ? Palette.Mix(Palette.Moss, Palette.Ink, 0.3f) : Palette.CardLip;
             _energyButton.Face.color = boosting ? Palette.Mix(Palette.Moss, Palette.Paper, 0.6f) : Palette.Paper;

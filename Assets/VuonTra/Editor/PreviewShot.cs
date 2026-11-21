@@ -132,6 +132,11 @@ namespace VuonTra.EditorTools
             Press(screen, "Canvas/Hud/Energy");
             Step(screen, 2.4f);
             Capture(screen, "4-boost");
+            // The purse explains itself: a row per brewing station, the factors, the boost, the total.
+            Press(screen, "Canvas/Hud/Purse");
+            Step(screen, 0.4f);
+            Capture(screen, "32-income");
+            screen.Income.Close();
 
             // The sheet's slide in, frame by frame (30 frames a second), then at rest.
             Capture(screen, "22-open-0");
