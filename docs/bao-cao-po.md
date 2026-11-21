@@ -571,6 +571,21 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: hàng chọn thỏ cho trạm và hồ sơ chưa ghi sao cấp (chỉ ba chỗ trên); ☆ là ký tự chữ, chưa phải hình vẽ.
 
+## #26 — Tab Bùa: hiệu lực hiện tại → sau một cấp, thanh cấp bằng chấm
+
+- Test: 412/412 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 1 test core (`UpgradesTests.cs`) và 1 test màn hình.
+- Commit `a754d5f`, đã push. Issue #26 đã comment (phần hình đã xong từ `52be412`), nhãn chờ-PO-duyệt.
+- `Upgrades.EffectAt(u, level)`; `UpgradeRowView.EffectText`; 6 chuỗi `upgrade.effect.*`, `upgrade.next`, `upgrade.full` (seed lại). Không đổi save.
+- Ảnh (docs/anh/po-26/): `26-truoc-6-upgrades.png`, `26-sau-6-upgrades.png`.
+
+### Đã làm (đối chiếu với nguyên văn #26)
+- Bốn hình bùa vẽ cùng nét: đã có từ `52be412` (không thuộc phiên này).
+- Mỗi thẻ ghi hiệu lực hiện tại và sau khi học thêm một cấp: dòng "+0,2 giây mỗi chạm → +0,4 giây mỗi chạm"; chưa học thì "×1 cà rốt → ×2 cà rốt"; đầy thì "+10 giờ vắng mặt · đã đầy" (test hai thứ tiếng).
+- Thanh cấp dạng chấm (1/10, 5 chấm cho Giấc ngủ dài) thay chip chữ (test).
+
+### Tồn đọng
+- tồn đọng: dòng mô tả cũ ("Mỗi lần chạm làm nhanh thêm 0,2 giây") vẫn giữ phía trên dòng hiệu lực; nếu PO thấy thừa thì bỏ.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -645,12 +660,13 @@ Sau khi sửa cả bốn xanh.
 - #46 Thang độ hiếm chung (`7bb0528`, issue mới): `Rarity` 6 bậc, mỗi bậc một số sao; tên bậc kèm sao ở mọi chỗ; dải sao trên mọi khung theo bậc.
 - #47 Trần cấp trạm 500 (`283c820`, issue mới): mọi chế độ nâng và Nâng tất cả dừng ở 500; nút ghi "Cấp tối đa".
 - #48 Sao của thỏ mỗi 10 cấp (`6b7b075`, issue mới): sao rỗng ☆ sau cấp ở ô lưới, tấm thỏ, nhãn trong vườn; băng rôn khi qua mốc.
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`; #16 đã tick.
+- #26 phần còn lại (`a754d5f`): thẻ bùa ghi hiệu lực hiện tại → sau một cấp; thanh cấp bằng chấm.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (#26, #31, #32, phần còn lại của #22, #23, #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (#31, #32, phần còn lại của #22, #23, #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
