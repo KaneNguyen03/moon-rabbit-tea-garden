@@ -1243,6 +1243,10 @@ MonoBehaviour:
     m_Key: rabbits.levelmax
     m_Metadata:
       m_Items: []
+  - m_Id: 79500971859968
+    m_Key: tray.full
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

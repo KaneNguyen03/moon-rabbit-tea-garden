@@ -43,6 +43,8 @@ namespace VuonTra.EditorTools
             state.HintSeen = true; // the first-run hint would cover the garden in every frame
             state.Coins = new BigNum(5.2e6);
             state.Energy = 73;
+            // A few things waiting in the tray, one of them golden.
+            Tray.Add(state, 0, false); Tray.Add(state, 0, false); Tray.Add(state, 2, false); Tray.Add(state, 4, true);
             runner.Init(state);
 
             screen.Build();
@@ -62,6 +64,14 @@ namespace VuonTra.EditorTools
             }
             Step(screen, 0.4f);
             Capture(screen, "2-garden");
+            // Selling a stack from the tray: the carrots fly up to the purse, two frames.
+            Press(screen, "Canvas/Tray/Slot 0");
+            for (int f = 1; f <= 2; f++)
+            {
+                Step(screen, 0.18f);
+                Capture(screen, "37-ban-" + f);
+            }
+            Step(screen, 1f);
             // Nobody works anywhere yet: every open station shows its empty pad, the unbuilt plot its price sign.
             screen.FocusStation(1);
             Step(screen, 0.4f);

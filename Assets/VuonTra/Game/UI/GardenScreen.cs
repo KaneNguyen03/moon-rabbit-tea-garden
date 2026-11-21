@@ -41,6 +41,8 @@ namespace VuonTra.Game.UI
         readonly List<KeyValuePair<int, Text>> _modeLabels = new List<KeyValuePair<int, Text>>();
         /// <summary>The summary before upgrading everything.</summary>
         public UpgradeAllView UpgradeAll { get; private set; }
+        /// <summary>The product tray above the tab bar.</summary>
+        public TrayView ProductTray { get; private set; }
         RectTransform _upgradeAllRow;
         readonly GameObject[] _lists = new GameObject[TabCount];
         readonly Text[] _openLabels = new Text[TabCount];
@@ -158,6 +160,7 @@ namespace VuonTra.Game.UI
             if (!_built) Build();
             Runner.StateChanged += RefreshNow;
             Runner.Payout += OnPayout;
+            Runner.ProductMade += OnProductMade;
             Runner.AwayClaimed += ShowAway;
             L10n.Changed += RebuildUi;
             RefreshNow();
@@ -169,6 +172,7 @@ namespace VuonTra.Game.UI
             if (Runner == null) return;
             Runner.StateChanged -= RefreshNow;
             Runner.Payout -= OnPayout;
+            Runner.ProductMade -= OnProductMade;
             Runner.AwayClaimed -= ShowAway;
         }
 
@@ -650,6 +654,7 @@ namespace VuonTra.Game.UI
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
             UpgradeAll = null;
+            ProductTray = null;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
@@ -707,6 +712,8 @@ namespace VuonTra.Game.UI
             BuildEvents(catalog);
             BuildHud(catalog);
             BuildTabBar(catalog);
+            ProductTray = new TrayView(_canvas, catalog, OnSellProduct, OnSellAllProducts);
+            ProductTray.Root.anchoredPosition = new Vector2(0f, SafeBottom() + TabBarGap + TabBarHeight + 10f); // just above the tab bar
             BuildSheet(catalog);
             Feel = new FeelLayer(_canvas, catalog, Tweens);
             Arrival = new SummonMomentView(_canvas, catalog);
@@ -1501,6 +1508,7 @@ namespace VuonTra.Game.UI
             if (Mathf.Approximately(safe, _safeBottom)) return;
             _safeBottom = safe;
             _tabBar.anchoredPosition = new Vector2(0f, safe + TabBarGap);
+            if (ProductTray != null) ProductTray.Root.anchoredPosition = new Vector2(0f, safe + TabBarGap + TabBarHeight + 10f);
             for (int i = 0; i < _lists.Length; i++)
             {
                 if (_lists[i] == null) continue;
@@ -2032,6 +2040,10 @@ namespace VuonTra.Game.UI
                 _modeLabels[i].Value.color = on ? Palette.Card : Palette.InkSoft;
             }
             UpgradeAll.Refresh(defs, s);
+            ProductTray.Refresh(s);
+            // The tray lives in the plain garden view; a sheet or a station card covers its place.
+            bool trayShown = Shell.State == ShellState.Playing && !SheetOpen && Selected < 0 && (s.Tray.Count > 0 || Tray.IsFull(s));
+            if (ProductTray.Root.gameObject.activeSelf != trayShown) ProductTray.Root.gameObject.SetActive(trayShown);
         }
 
         void RefreshEnergy(GameState s, bool boosting)
@@ -2519,6 +2531,67 @@ namespace VuonTra.Game.UI
                     position++;
                 }
             return null;
+        }
+
+        /// <summary>A station finished a special batch: its product flies from the station down to its slot in the tray.</summary>
+        public void OnProductMade(int station)
+        {
+            if (Shell.State == ShellState.Title || station < 0 || station >= _actors.Count) return;
+            GameState s = Runner.State;
+            int slot = -1;
+            for (int i = 0; i < s.Tray.Count; i++) if (s.Tray[i].Station == station) slot = i;
+            if (slot < 0) return;
+            Refresh();
+            RectTransform actor = _actors[station].Root;
+            _actors[station].PopProp();
+            if (!ProductTray.Root.gameObject.activeInHierarchy || !actor.gameObject.activeSelf) return;
+            int landing = slot;
+            Feel.Fly(Feel.PointOf(actor, new Vector2(112, -40)), Feel.PointOf(ProductTray.Slot(slot)), ProductTray.ProductSprite(station), Color.white, 1, 64f,
+                () => { if (ProductTray != null) ProductTray.Pop(Tweens, landing); });
+        }
+
+        /// <summary>A slot was touched: its stack is sold and the carrots fly to the purse.</summary>
+        void OnSellProduct(int slot)
+        {
+            GameState s = Runner.State;
+            if (slot < 0 || slot >= s.Tray.Count) return;
+            Vector2 from = Feel.PointOf(ProductTray.Slot(slot));
+            BigNum paid = Runner.SellProduct(slot, out int clovers);
+            PaySale(from, paid, clovers);
+        }
+
+        /// <summary>A sweep across the tray: everything is sold at once.</summary>
+        void OnSellAllProducts()
+        {
+            GameState s = Runner.State;
+            if (s.Tray.Count == 0) return;
+            Vector2 from = Feel.PointOf(ProductTray.Slot(s.Tray.Count / 2));
+            BigNum paid = Runner.SellAllProducts(out int clovers);
+            PaySale(from, paid, clovers);
+        }
+
+        void PaySale(Vector2 from, BigNum paid, int clovers)
+        {
+            if (paid <= BigNum.Zero && clovers <= 0) return;
+            Sfx.Reward();
+            Haptics.Light();
+            GameCatalog catalog = Runner.Catalog;
+            string gained = "+" + paid.Short();
+            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 5, 44f, () =>
+            {
+                if (_purse == null) return;
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
+                Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
+            });
+            if (clovers > 0)
+                Feel.Fly(from, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
+                    () => Tweens.Add(0.22f, t => _tabPop[3] = 0.14f * Ease.Pop(t), Ease.Linear, 0f, () => _tabPop[3] = 0f));
+        }
+
+        /// <summary>A finger sweeping across the tray by this many canvas units, as the drag handler sees it.</summary>
+        public void SweepTray(float distance)
+        {
+            if (Mathf.Abs(distance) >= TrayView.SweepDistance) OnSellAllProducts();
         }
 
         void OnPayout(int index, BigNum amount)

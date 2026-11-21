@@ -89,6 +89,7 @@ namespace VuonTra.EditorTools
                 data.CycleSeconds = row.Cycle;
                 data.Accent = PlaceholderArt.Hex(row.Accent);
                 data.Prop = FinalArt.Load("prop_" + row.Id);
+                data.Product = FinalArt.Find("product_" + row.Id); // null until drawn: the tray shows the prop
                 data.Rabbit = FinalArt.Find("rabbit_" + row.Id); // null: the shared rabbit plus a tinted scarf
                 EditorUtility.SetDirty(data);
                 byId[row.Id] = data;

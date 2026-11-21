@@ -1250,6 +1250,10 @@ MonoBehaviour:
     m_Localized: "+{0} levels \xB7 {1}"
     m_Metadata:
       m_Items: []
+  - m_Id: 79500971859968
+    m_Localized: Tray full
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

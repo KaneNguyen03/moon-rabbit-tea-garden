@@ -1246,6 +1246,10 @@ MonoBehaviour:
     m_Localized: "+{0} c\u1EA5p \xB7 {1}"
     m_Metadata:
       m_Items: []
+  - m_Id: 79500971859968
+    m_Localized: "Khay \u0111\u1EA7y"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

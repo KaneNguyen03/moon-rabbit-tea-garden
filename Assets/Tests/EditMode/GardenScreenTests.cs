@@ -1819,6 +1819,97 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/LevelMax").interactable, "nothing left to buy");
         }
 
+        // ----- #37: the product tray -----
+
+        [Test]
+        public void The_Tray_Shows_What_The_Stations_Made_And_A_Touch_Sells_A_Stack()
+        {
+            screen.Shell.StartGame();
+            Transform tray = root.transform.Find("Canvas/Tray");
+            screen.Refresh();
+            Assert.IsFalse(tray.gameObject.activeSelf, "nothing made yet: no tray");
+            Tray.Add(runner.State, 0, false);
+            Tray.Add(runner.State, 0, false);
+            screen.Refresh();
+            Assert.IsTrue(tray.gameObject.activeSelf);
+            Assert.IsTrue(tray.Find("Slot 0/Icon").gameObject.activeSelf);
+            Assert.AreEqual(runner.Catalog.Stations[0].Prop, tray.Find("Slot 0/Icon").GetComponent<Image>().sprite, "the prop stands in until a product is drawn");
+            Assert.IsTrue(tray.Find("Slot 0/Count").gameObject.activeSelf);
+            Assert.AreEqual("×2", tray.Find("Slot 0/Count/Text").GetComponent<Text>().text);
+            Assert.IsFalse(tray.Find("Slot 0/Gold").gameObject.activeSelf);
+            Assert.IsFalse(tray.Find("Slot 1/Icon").gameObject.activeSelf);
+            Assert.IsFalse(tray.Find("Slot 5").gameObject.activeSelf, "five slots to begin with");
+            Assert.IsFalse(tray.Find("Full").gameObject.activeSelf);
+
+            double before = runner.State.Coins.ToDouble();
+            double price = Tray.Price(runner.Defs, runner.State, 0, runner.Mods).ToDouble();
+            Find("Canvas/Tray/Slot 0").onClick.Invoke();
+            Assert.AreEqual(before + price * 2, runner.State.Coins.ToDouble(), 1e-6);
+            Assert.AreEqual(0, runner.State.Tray.Count);
+            Assert.Greater(screen.Feel.Flying, 0, "the carrots fly to the purse");
+            Assert.AreEqual("reward", Sfx.Last);
+            screen.Refresh();
+            Assert.IsFalse(tray.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void A_Sweep_Across_The_Tray_Sells_Everything_And_A_Golden_Batch_Pays_A_Clover()
+        {
+            screen.Shell.StartGame();
+            Tray.Add(runner.State, 0, false);
+            Tray.Add(runner.State, 0, true);
+            screen.Refresh();
+            Transform tray = root.transform.Find("Canvas/Tray");
+            Assert.IsTrue(tray.Find("Slot 1/Gold").gameObject.activeSelf, "the golden one wears a ring");
+            screen.SweepTray(60f);
+            Assert.AreEqual(2, runner.State.Tray.Count, "too short to be a sweep");
+            screen.SweepTray(-200f);
+            Assert.AreEqual(0, runner.State.Tray.Count);
+            Assert.AreEqual(1, runner.State.Clovers);
+        }
+
+        [Test]
+        public void The_Tray_Hides_Under_The_Sheet_And_The_Card_And_Says_When_It_Is_Full()
+        {
+            screen.Shell.StartGame();
+            Tray.Add(runner.State, 0, false);
+            screen.Refresh();
+            Transform tray = root.transform.Find("Canvas/Tray");
+            Assert.IsTrue(tray.gameObject.activeSelf);
+            screen.OpenSheet(0);
+            screen.Refresh();
+            Assert.IsFalse(tray.gameObject.activeSelf, "the sheet covers its place");
+            screen.CloseSheet();
+            screen.Refresh();
+            Assert.IsTrue(tray.gameObject.activeSelf);
+            screen.SelectStation(0);
+            screen.Refresh();
+            Assert.IsFalse(tray.gameObject.activeSelf, "so does the station card");
+            screen.SelectStation(-1);
+
+            for (int station = 0; station < Tray.StartingSlots; station++)
+                for (int k = 0; k < Tray.StackLimit; k++) Tray.Add(runner.State, station, false);
+            screen.Refresh();
+            Assert.IsTrue(tray.gameObject.activeSelf);
+            Assert.IsTrue(tray.Find("Full").gameObject.activeSelf);
+            Assert.AreEqual("Khay đầy", tray.Find("Full/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void A_Finished_Batch_Flies_From_Its_Station_Down_To_The_Tray()
+        {
+            screen.Shell.StartGame();
+            Tray.Add(runner.State, 0, false);
+            screen.Refresh();
+            Tray.Add(runner.State, 0, false); // what the tick would have added
+            screen.OnProductMade(0);
+            Assert.Greater(screen.Feel.Flying, 0);
+            Assert.AreEqual("×2", root.transform.Find("Canvas/Tray/Slot 0/Count/Text").GetComponent<Text>().text);
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(0, screen.Feel.Flying);
+            Assert.AreEqual(Vector3.one, root.transform.Find("Canvas/Tray/Slot 0").localScale, "the slot popped and settled");
+        }
+
         [Test]
         public void Away_Popup_Shows_And_Closes()
         {

@@ -35,6 +35,7 @@ namespace VuonTra.EditorTools
             { "hint", "Chạm vào bé thỏ để làm nhanh hơn · kéo để đi quanh khu vườn", "Tap a rabbit to speed it up · drag to look around the garden" },
             { "persec", "+{0}/giây", "+{0}/s" },
             { "mode.max", "Tối đa", "Max" },
+            { "tray.full", "Khay đầy", "Tray full" },
             { "mode.milestone", "Tới mốc", "To ×2" },
             { "upgradeall.title", "Nâng tất cả", "Upgrade everything" },
             { "upgradeall.row", "Dùng cà rốt đang có để nâng nhiều trạm một lượt", "Spend what you have across every station at once" },
