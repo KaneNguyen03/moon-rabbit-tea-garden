@@ -15,6 +15,10 @@
     {
       "asset_id": "a5fec80b-92bc-4345-8ce8-dad46bad6529",
       "label": "tea brewer rabbit, 4 stirring frames 2x2"
+    },
+    {
+      "asset_id": "2388318a-d1ab-4666-9085-817439e7c40f",
+      "label": "carrot + teapot sheet"
     }
   ],
   "local_files": [
@@ -95,6 +99,18 @@
       "sha12": "b917344663c1",
       "label": "rabbit_am-tra_f3",
       "sliced_from": "a5fec80b-92bc-4345-8ce8-dad46bad6529"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/carrot.png",
+      "sha12": "4043ff9aa7b7",
+      "label": "carrot",
+      "sliced_from": "2388318a-d1ab-4666-9085-817439e7c40f"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/prop_am-tra.png",
+      "sha12": "b9712d0abbaf",
+      "label": "prop_am-tra",
+      "sliced_from": "2388318a-d1ab-4666-9085-817439e7c40f"
     }
   ]
 }
