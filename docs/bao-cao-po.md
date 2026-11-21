@@ -555,6 +555,22 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: chưa có "khoảnh khắc" khi chạm trần (một dòng chúc mừng); save cũ có trạm quá 500 (không thể xảy ra với bản này) chỉ bị khoá nâng, không bị hạ cấp.
 
+## #48 — Sao của thỏ mỗi 10 cấp
+
+- Test: 410/410 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test core (trong `RabbitsTests.cs`) và 1 test màn hình.
+- Commit `6b7b075`, đã push. Issue #48 (mới tạo cho mục "Sao của thỏ mỗi 10 cấp" trong #16) đã comment, nhãn chờ-PO-duyệt.
+- `Rabbits.Stars`, `Rabbits.StarsEarned`; `L10n.LevelStars` (" ☆☆"). Hai chuỗi `moment.star.*` (seed lại). Không đổi save, không đổi hệ số.
+- Ảnh (docs/anh/po-48/): `48-sau-tam-tho.png`, `48-sau-luoi-tho.png`, `48-sau-nhan-vuon.png` (dữ liệu chụp đặt cấp theo chỉ số nên vài thỏ Bạc vượt trần 10; chỉ là dữ liệu preview).
+
+### Đã làm (đối chiếu với #48)
+- Mỗi 10 cấp một sao rỗng ☆, trần theo bậc (Bạc tối đa 1, Đỏ tối đa 6) (test core).
+- Sao hiện sau cấp ở ô thỏ trong lưới, dòng cấp trên tấm thỏ, và sau tên trên nhãn trong vườn (test màn hình).
+- Lên cấp qua mốc 10 (một cấp hay Tối đa) thì băng rôn "Bé … được sao thứ n!" kèm tiếng (test màn hình).
+- Hệ số thỏ không đổi.
+
+### Tồn đọng
+- tồn đọng: hàng chọn thỏ cho trạm và hồ sơ chưa ghi sao cấp (chỉ ba chỗ trên); ☆ là ký tự chữ, chưa phải hình vẽ.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -628,11 +644,11 @@ Sau khi sửa cả bốn xanh.
 - #17 phần làm được ngay (`691d3fa`): hồ sơ người chơi (tên vườn, thỏ đại diện, mã `THO-XXXXXX`), màn hồ sơ sau hàng đầu tấm Tạm nghỉ, lớp `IAccountService` + `LocalOnlyAccount`. Save v11.
 - #46 Thang độ hiếm chung (`7bb0528`, issue mới): `Rarity` 6 bậc, mỗi bậc một số sao; tên bậc kèm sao ở mọi chỗ; dải sao trên mọi khung theo bậc.
 - #47 Trần cấp trạm 500 (`283c820`, issue mới): mọi chế độ nâng và Nâng tất cả dừng ở 500; nút ghi "Cấp tối đa".
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`; #16 đã tick.
+- #48 Sao của thỏ mỗi 10 cấp (`6b7b075`, issue mới): sao rỗng ☆ sau cấp ở ô lưới, tấm thỏ, nhãn trong vườn; băng rôn khi qua mốc.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
-- Sao của thỏ mỗi 10 cấp (chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
 - Lượt UI 2 (#26, #31, #32, phần còn lại của #22, #23, #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
