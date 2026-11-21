@@ -43,6 +43,18 @@ namespace VuonTra.Game.UI
         public UpgradeAllView UpgradeAll { get; private set; }
         /// <summary>The product tray above the tab bar.</summary>
         public TrayView ProductTray { get; private set; }
+
+        // ----- photo mode -----
+        /// <summary>The HUD and the tab bar are away so the garden can be framed and snapped.</summary>
+        public bool PhotoMode { get; private set; }
+        /// <summary>Where pictures are written. Null: the Pictures folder of the machine.</summary>
+        public string PhotoFolder;
+        /// <summary>The last picture written, or null.</summary>
+        public string LastPhotoPath { get; private set; }
+        GameObject _photoBar, _photoReview;
+        Image _photoPreview;
+        Text _photoNote, _photoGift;
+        Texture2D _photoTexture;
         RectTransform _upgradeAllRow;
         readonly GameObject[] _lists = new GameObject[TabCount];
         readonly Text[] _openLabels = new Text[TabCount];
@@ -655,6 +667,7 @@ namespace VuonTra.Game.UI
             _modeButtons.Clear(); _modeLabels.Clear();
             UpgradeAll = null;
             ProductTray = null;
+            PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
@@ -713,6 +726,7 @@ namespace VuonTra.Game.UI
             BuildHud(catalog);
             BuildTabBar(catalog);
             ProductTray = new TrayView(_canvas, catalog, OnSellProduct, OnSellAllProducts);
+            BuildPhotoMode(catalog);
             ProductTray.Root.anchoredPosition = new Vector2(0f, SafeBottom() + TabBarGap + TabBarHeight + 10f); // just above the tab bar
             BuildSheet(catalog);
             Feel = new FeelLayer(_canvas, catalog, Tweens);
@@ -1145,6 +1159,151 @@ namespace VuonTra.Game.UI
             _cardBuy.SetEnabled(can);
         }
 
+        void BuildPhotoMode(GameCatalog catalog)
+        {
+            // A small plate at the foot of the screen while framing: snap, or done.
+            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 150, 640, 130);
+            bar.AddShadow(18f, 10f, 0.3f);
+            UiKit.Rect("Lip", bar).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
+            UiKit.Rect("Plate", bar).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
+            UiKit.Rect("Hint", bar).Stretch(0, 1, 1, 1, 0, -6, 0, -44).AddText(L10n.T("photo.hint"), UiKit.TextSmall, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold).AddShadow();
+            var done = UiKit.Rect("Done", bar).Place(0f, 0.5f, 130, 4, 200, 76);
+            UiKit.Secondary(done, catalog.Panel, L10n.T("photo.done"), () => { Sfx.Click(); ExitPhotoMode(); });
+            var snap = UiKit.Rect("Snap", bar).Place(1f, 0.5f, -170, 4, 280, 96);
+            ChunkyButton snapButton = UiKit.Chunky(snap, catalog.Panel, Snap);
+            UiKit.Rect("Text", snapButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("photo.snap"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _photoBar = bar.gameObject;
+            _photoBar.SetActive(false);
+
+            // The picture just taken, with what to do with it.
+            var overlay = UiKit.Rect("PhotoReview", _canvas).Stretch(0, 0, 1, 1);
+            overlay.AddImage(null, Palette.Scrim).raycastTarget = true;
+            var card = UiKit.Rect("Card", overlay).Place(0.5f, 0.5f, 0, 40, 920, 1360);
+            UiKit.Rect("Lip", card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
+            UiKit.Rect("Face", card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
+            var frame = UiKit.Rect("Frame", card).Place(0.5f, 1f, 0, -40 - 460, 820, 920);
+            frame.AddImage(catalog.Panel, Palette.Card, true);
+            _photoPreview = UiKit.Rect("Picture", frame).Stretch(0, 0, 1, 1, 14, 14, 14, 14).AddImage(null, Color.white);
+            _photoPreview.preserveAspect = true;
+            _photoGift = UiKit.Rect("Gift", card).Stretch(0, 0, 1, 0, 40, 290, 40, -340)
+                .AddText("", UiKit.TextBody, Palette.Mix(Palette.Moss, Palette.Ink, 0.45f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            _photoNote = UiKit.Rect("Note", card).Stretch(0, 0, 1, 0, 40, 236, 40, -286)
+                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
+            _photoNote.resizeTextForBestFit = true;
+            _photoNote.resizeTextMinSize = 12;
+            _photoNote.resizeTextMaxSize = UiKit.TextSmall;
+            var save = UiKit.Rect("Save", card).Place(0f, 0f, 190, 150, 280, 84);
+            UiKit.Secondary(save, catalog.Panel, L10n.T("photo.save"), () => { Sfx.Click(); RevealPhoto(); });
+            var share = UiKit.Rect("Share", card).Place(0.5f, 0f, 0, 150, 280, 84);
+            UiKit.Secondary(share, catalog.Panel, L10n.T("photo.share"), () => { Sfx.Click(); CopyPhoto(); });
+            var close = UiKit.Rect("Close", card).Place(1f, 0f, -190, 150, 280, 96);
+            ChunkyButton closeButton = UiKit.Chunky(close, catalog.Panel, () => { Sfx.Click(); _photoReview.SetActive(false); _photoBar.SetActive(true); });
+            UiKit.Rect("Text", closeButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("photo.close"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _photoReview = overlay.gameObject;
+            _photoReview.SetActive(false);
+        }
+
+        /// <summary>Everything but the garden goes away, and the snap bar comes up. Only while playing.</summary>
+        public void EnterPhotoMode()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode) return;
+            PhotoMode = true;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            DismissHint();
+            _hud.gameObject.SetActive(false);
+            _tabBar.gameObject.SetActive(false);
+            ProductTray.Root.gameObject.SetActive(false);
+            _photoBar.SetActive(true);
+        }
+
+        public void ExitPhotoMode()
+        {
+            if (!PhotoMode) return;
+            PhotoMode = false;
+            _photoReview.SetActive(false);
+            _photoBar.SetActive(false);
+            _hud.gameObject.SetActive(true);
+            _tabBar.gameObject.SetActive(true);
+            Refresh();
+        }
+
+        /// <summary>The garden alone, rendered through the game's own camera and written as a PNG.</summary>
+        public void Snap()
+        {
+            if (!PhotoMode) return;
+            _photoBar.SetActive(false);
+            int width = Screen.width > 0 ? Screen.width : (int)ScreenW, height = Screen.height > 0 ? Screen.height : (int)ScreenH;
+            var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
+            RenderTexture was = Cam.targetTexture;
+            Cam.targetTexture = rt;
+            Canvas.ForceUpdateCanvases();
+            Cam.Render();
+            RenderTexture.active = rt;
+            if (_photoTexture != null) { if (Application.isPlaying) Destroy(_photoTexture); else DestroyImmediate(_photoTexture); }
+            _photoTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
+            _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            _photoTexture.Apply();
+            RenderTexture.active = null;
+            Cam.targetTexture = was;
+            rt.Release();
+
+            string folder = string.IsNullOrEmpty(PhotoFolder)
+                ? System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyPictures), "VuonTraTho")
+                : PhotoFolder;
+            string path = null;
+            try
+            {
+                System.IO.Directory.CreateDirectory(folder);
+                // One file per picture, even two in the same second.
+                string stamp = System.DateTime.Now.ToString("yyyyMMdd-HHmmss");
+                path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
+                for (int n = 2; System.IO.File.Exists(path); n++) path = System.IO.Path.Combine(folder, "vuon-" + stamp + "-" + n + ".png");
+                System.IO.File.WriteAllBytes(path, _photoTexture.EncodeToPNG());
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("Không lưu được ảnh: " + e.Message);
+            }
+            LastPhotoPath = path;
+
+            Sfx.Shutter();
+            Haptics.Medium();
+            Feel.Flash(Color.white, 0.18f);
+            bool gift = Runner.TakePhoto();
+            _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
+            _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftClovers) : L10n.T("photo.again");
+            _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
+            _photoReview.SetActive(true);
+        }
+
+        /// <summary>Opens the folder with the picture selected (Finder on a Mac).</summary>
+        void RevealPhoto()
+        {
+            if (LastPhotoPath == null) return;
+            try
+            {
+                if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXEditor)
+                    System.Diagnostics.Process.Start("open", "-R \"" + LastPhotoPath + "\"");
+                else Application.OpenURL("file://" + System.IO.Path.GetDirectoryName(LastPhotoPath));
+            }
+            catch (System.Exception e) { Debug.LogWarning("Không mở được thư mục ảnh: " + e.Message); }
+        }
+
+        /// <summary>Puts the picture itself on the clipboard (a Mac can; elsewhere the path is copied).</summary>
+        void CopyPhoto()
+        {
+            if (LastPhotoPath == null) return;
+            try
+            {
+                if (Application.platform == RuntimePlatform.OSXPlayer || Application.platform == RuntimePlatform.OSXEditor)
+                    System.Diagnostics.Process.Start("osascript", "-e 'set the clipboard to (read (POSIX file \"" + LastPhotoPath + "\") as «class PNGf»)'");
+                else GUIUtility.systemCopyBuffer = LastPhotoPath;
+                _photoNote.text = L10n.T("photo.copied");
+            }
+            catch (System.Exception e) { Debug.LogWarning("Không chép được ảnh: " + e.Message); }
+        }
+
         /// <summary>Moonlight and darkened corners over the garden, under the HUD.</summary>
         void BuildAtmosphere(GameCatalog catalog)
         {
@@ -1390,6 +1549,19 @@ namespace VuonTra.Game.UI
             _energyFill.AddImage(catalog.Panel, Palette.Moss, true);
 
             // A visible way to zoom, for players who would never guess at pinching or double-tapping.
+            var camera = UiKit.Rect("Camera", _hud).Place(1f, 1f, -292, -76, 96, 96);
+            camera.AddShadow(14f, 10f, 0.3f);
+            Image cameraBack = camera.AddImage(catalog.Round, Palette.Paper);
+            cameraBack.raycastTarget = true;
+            var cameraButton = camera.gameObject.AddComponent<Button>();
+            cameraButton.transition = Selectable.Transition.None;
+            cameraButton.targetGraphic = cameraBack;
+            cameraButton.onClick.AddListener(() => { Sfx.Click(); EnterPhotoMode(); });
+            // A little camera: a body, a lens, a bump on top.
+            UiKit.Rect("Body", camera).Place(0.5f, 0.5f, 0, -4, 52, 36).AddImage(catalog.Panel, Palette.Ink, true);
+            UiKit.Rect("Bump", camera).Place(0.5f, 0.5f, -8, 16, 20, 12).AddImage(catalog.Panel, Palette.Ink, true);
+            UiKit.Rect("Lens", camera).Place(0.5f, 0.5f, 0, -4, 22, 22).AddImage(catalog.Round, Palette.Paper);
+            UiKit.Rect("Glint", camera).Place(0.5f, 0.5f, -3, -1, 7, 7).AddImage(catalog.Round, Palette.Ink);
             var zoom = UiKit.Rect("Zoom", _hud).Place(1f, 1f, -184, -76, 96, 96);
             zoom.AddShadow(14f, 10f, 0.3f);
             ChunkyButton zoomButton = null;
@@ -2042,7 +2214,7 @@ namespace VuonTra.Game.UI
             UpgradeAll.Refresh(defs, s);
             ProductTray.Refresh(s);
             // The tray lives in the plain garden view; a sheet or a station card covers its place.
-            bool trayShown = Shell.State == ShellState.Playing && !SheetOpen && Selected < 0 && (s.Tray.Count > 0 || Tray.IsFull(s));
+            bool trayShown = Shell.State == ShellState.Playing && !SheetOpen && Selected < 0 && !PhotoMode && (s.Tray.Count > 0 || Tray.IsFull(s));
             if (ProductTray.Root.gameObject.activeSelf != trayShown) ProductTray.Root.gameObject.SetActive(trayShown);
         }
 

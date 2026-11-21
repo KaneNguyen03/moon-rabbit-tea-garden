@@ -64,6 +64,16 @@ namespace VuonTra.EditorTools
             }
             Step(screen, 0.4f);
             Capture(screen, "2-garden");
+            // Photo mode: the garden alone with the snap bar, then the picture just taken.
+            screen.PhotoFolder = Folder;
+            screen.EnterPhotoMode();
+            Step(screen, 0.3f);
+            Capture(screen, "18-chup-khung");
+            screen.Snap();
+            Step(screen, 0.4f);
+            Capture(screen, "18-chup-xem");
+            screen.ExitPhotoMode();
+            Step(screen, 0.2f);
             // Selling a stack from the tray: the carrots fly up to the purse, two frames.
             Press(screen, "Canvas/Tray/Slot 0");
             for (int f = 1; f <= 2; f++)

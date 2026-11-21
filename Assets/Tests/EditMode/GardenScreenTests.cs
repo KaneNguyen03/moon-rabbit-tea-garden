@@ -1910,6 +1910,82 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Vector3.one, root.transform.Find("Canvas/Tray/Slot 0").localScale, "the slot popped and settled");
         }
 
+        // ----- #18: photo mode (the Mac part) -----
+
+        [Test]
+        public void Photo_Mode_Hides_The_Hud_Snaps_A_Picture_To_A_File_And_Gives_Todays_Gift_Once()
+        {
+            screen.Shell.StartGame();
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            Tray.Add(runner.State, 0, false);
+            screen.Refresh();
+            Transform hud = root.transform.Find("Canvas/Hud"), bar = root.transform.Find("Canvas/TabBar"), tray = root.transform.Find("Canvas/Tray");
+            Transform photoBar = root.transform.Find("Canvas/PhotoBar"), review = root.transform.Find("Canvas/PhotoReview");
+            Assert.IsTrue(hud.gameObject.activeSelf);
+            Assert.IsFalse(photoBar.gameObject.activeSelf);
+
+            Find("Canvas/Hud/Camera").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoMode);
+            Assert.IsFalse(hud.gameObject.activeSelf, "nothing in the way of the garden");
+            Assert.IsFalse(bar.gameObject.activeSelf);
+            Assert.IsFalse(tray.gameObject.activeSelf);
+            Assert.IsTrue(photoBar.gameObject.activeSelf);
+            screen.Refresh();
+            Assert.IsFalse(tray.gameObject.activeSelf, "and it stays away while framing");
+
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-photo-" + System.Guid.NewGuid().ToString("N"));
+            try
+            {
+                screen.PhotoFolder = dir;
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Assert.AreEqual("shutter", Sfx.Last);
+                Assert.IsNotNull(screen.LastPhotoPath);
+                Assert.IsTrue(System.IO.File.Exists(screen.LastPhotoPath));
+                Assert.Greater(new System.IO.FileInfo(screen.LastPhotoPath).Length, 1000, "a real picture");
+                StringAssert.EndsWith(".png", screen.LastPhotoPath);
+                Assert.IsTrue(review.gameObject.activeSelf);
+                Assert.IsNotNull(review.Find("Card/Frame/Picture").GetComponent<Image>().sprite);
+                Assert.AreEqual(1, runner.State.Clovers, "the day's gift");
+                StringAssert.Contains("+1", review.Find("Card/Gift").GetComponent<Text>().text);
+
+                Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+                Assert.IsFalse(review.gameObject.activeSelf);
+                Assert.IsTrue(photoBar.gameObject.activeSelf, "back to framing");
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Assert.AreEqual(1, runner.State.Clovers, "one gift a day");
+                Assert.AreEqual("Hôm nay đã nhận quà chụp ảnh rồi", review.Find("Card/Gift").GetComponent<Text>().text);
+                Assert.AreEqual(2, System.IO.Directory.GetFiles(dir, "*.png").Length);
+                Assert.AreEqual(2, runner.State.PhotosTaken);
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true);
+            }
+
+            Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+            Find("Canvas/PhotoBar/Done").onClick.Invoke();
+            Assert.IsFalse(screen.PhotoMode);
+            Assert.IsTrue(hud.gameObject.activeSelf);
+            Assert.IsTrue(bar.gameObject.activeSelf);
+            Assert.IsTrue(tray.gameObject.activeSelf, "the tray is back with the rest");
+        }
+
+        [Test]
+        public void Photo_Mode_Is_For_Playing_Only_And_Closes_Whatever_Was_Open()
+        {
+            screen.EnterPhotoMode();
+            Assert.IsFalse(screen.PhotoMode, "not from the title");
+            screen.Shell.StartGame();
+            screen.OpenSheet(0);
+            screen.SelectStation(0);
+            screen.EnterPhotoMode();
+            Assert.IsTrue(screen.PhotoMode);
+            Assert.IsFalse(screen.SheetOpen);
+            Assert.AreEqual(-1, screen.Selected);
+            screen.ExitPhotoMode();
+            Assert.IsFalse(screen.PhotoMode);
+        }
+
         [Test]
         public void Away_Popup_Shows_And_Closes()
         {

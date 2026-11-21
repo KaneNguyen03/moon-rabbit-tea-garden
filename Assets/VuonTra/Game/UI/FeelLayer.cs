@@ -62,6 +62,14 @@ namespace VuonTra.Game.UI
             return new Vector2(local.x, local.y);
         }
 
+        /// <summary>A whole-screen flash of a colour that fades out: a camera, a milestone.</summary>
+        public void Flash(Color color, float seconds = 0.1f)
+        {
+            _flash.gameObject.SetActive(true);
+            _tweens.Add(Motion.Time(seconds), t => _flash.color = Palette.Alpha(color, 0.85f * (1f - t)), Ease.OutCubic,
+                done: () => _flash.gameObject.SetActive(false));
+        }
+
         /// <summary>"+12" rising and fading.</summary>
         public void FloatText(Vector2 at, string text, Color color, int size = 40)
         {

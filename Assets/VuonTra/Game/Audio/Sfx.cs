@@ -87,6 +87,8 @@ namespace VuonTra.Game
         /// <summary>A sheet slid up, or back down.</summary>
         public static void SheetUp() => Play("sheet-up", _sheetUp ?? (_sheetUp = MakeSwish(true)), 0.4f, 0.04f);
         public static void SheetDown() => Play("sheet-down", _sheetDown ?? (_sheetDown = MakeSwish(false)), 0.34f, 0.04f);
+        /// <summary>A picture was taken.</summary>
+        public static void Shutter() => Play("shutter", _click ?? (_click = MakeClick()), 0.6f, 0f);
         /// <summary>Not enough to buy this: two low soft notes going down.</summary>
         public static void Deny() => Play("deny", _deny ?? (_deny = MakeDeny()), 0.5f, 0f);
 

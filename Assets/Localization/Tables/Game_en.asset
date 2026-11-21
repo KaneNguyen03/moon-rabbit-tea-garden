@@ -1254,6 +1254,46 @@ MonoBehaviour:
     m_Localized: Tray full
     m_Metadata:
       m_Items: []
+  - m_Id: 81178450190336
+    m_Localized: Snap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578944
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578945
+    m_Localized: Show file
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578946
+    m_Localized: Copy image
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578947
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578948
+    m_Localized: 'Today''s photo gift: +{0} clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578949
+    m_Localized: Today's photo gift is already yours
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578950
+    m_Localized: 'Saved: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578951
+    m_Localized: Copied to the clipboard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578952
+    m_Localized: Drag and zoom to frame it
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

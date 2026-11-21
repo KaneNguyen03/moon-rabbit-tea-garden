@@ -1247,6 +1247,46 @@ MonoBehaviour:
     m_Key: tray.full
     m_Metadata:
       m_Items: []
+  - m_Id: 81178450190336
+    m_Key: photo.snap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578944
+    m_Key: photo.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578945
+    m_Key: photo.save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578946
+    m_Key: photo.share
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578947
+    m_Key: photo.close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578948
+    m_Key: photo.gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578949
+    m_Key: photo.again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578950
+    m_Key: photo.saved
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578951
+    m_Key: photo.copied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578952
+    m_Key: photo.hint
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

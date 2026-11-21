@@ -63,6 +63,10 @@ namespace VuonTra.Core
         /// <summary>Golden batches made today; a new day starts the count over.</summary>
         public int GoldenToday;
 
+        /// <summary>The day a photo was last taken (its gift is once a day), and how many have been taken in all.</summary>
+        public long PhotoDay = -1;
+        public long PhotosTaken;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

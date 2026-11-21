@@ -189,6 +189,17 @@ namespace VuonTra.Game
             return paid;
         }
 
+        /// <summary>A photo of the garden was taken. True when it brought today's gift.</summary>
+        public bool TakePhoto()
+        {
+            bool gift = Photos.Take(State, Today);
+            Changed();
+            return gift;
+        }
+
+        /// <summary>True while today's photo gift is still to be had.</summary>
+        public bool PhotoGiftWaiting => Photos.GiftWaiting(State, Today);
+
         /// <summary>A gift of carrots (a caught firefly, a visitor). Counts as earned.</summary>
         public void Grant(BigNum carrots)
         {

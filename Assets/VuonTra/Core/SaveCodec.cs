@@ -113,6 +113,8 @@ namespace VuonTra.Core
             // Version 10: the product tray.
             sb.Append(",\"traySlots\":").Append(s.TraySlots.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"goldenToday\":").Append(s.GoldenToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"photoDay\":").Append(s.PhotoDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"photosTaken\":").Append(s.PhotosTaken.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"tray\":[");
             for (int i = 0; i < s.Tray.Count; i++)
             {
@@ -345,6 +347,8 @@ namespace VuonTra.Core
                 ? (int)Math.Max(Tray.StartingSlots, Math.Min(traySlots, Tray.MaxSlots))
                 : Tray.StartingSlots;
             s.GoldenToday = TryNumber(root, "goldenToday", out double goldenToday) ? (int)Math.Max(0d, Math.Min(goldenToday, Tray.GoldenPerDay)) : 0;
+            s.PhotoDay = TryNumber(root, "photoDay", out double photoDay) ? ToLong(photoDay) : -1;
+            s.PhotosTaken = TryNumber(root, "photosTaken", out double photosTaken) ? Math.Max(0, ToLong(photosTaken)) : 0;
             if (root.TryGetValue("tray", out object trayObj) && trayObj is List<object> tray)
                 foreach (object item in tray)
                 {

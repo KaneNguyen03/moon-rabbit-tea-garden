@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &1424563869
+--- !u!1 &295349491
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,9 +127,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1424563872}
-  - component: {fileID: 1424563871}
-  - component: {fileID: 1424563870}
+  - component: {fileID: 295349494}
+  - component: {fileID: 295349493}
+  - component: {fileID: 295349492}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -137,27 +137,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1424563870
+--- !u!114 &295349492
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1424563869}
+  m_GameObject: {fileID: 295349491}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b0dcd5fe14d2042f7b0a8ab051a3b7c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.UI.GardenScreen
-  Runner: {fileID: 1424563871}
-  Cam: {fileID: 1552827848}
---- !u!114 &1424563871
+  Runner: {fileID: 295349493}
+  Cam: {fileID: 918548646}
+  PhotoFolder: 
+--- !u!114 &295349493
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1424563869}
+  m_GameObject: {fileID: 295349491}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8efcfe3fd326f4a05928210228429292, type: 3}
@@ -166,13 +167,13 @@ MonoBehaviour:
   Catalog: {fileID: 11400000, guid: 6721a829d346b49768b2d33f07279af0, type: 2}
   SaveDirectory: 
   Paused: 0
---- !u!4 &1424563872
+--- !u!4 &295349494
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1424563869}
+  m_GameObject: {fileID: 295349491}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -181,7 +182,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1552827847
+--- !u!1 &918548645
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -189,9 +190,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1552827850}
-  - component: {fileID: 1552827848}
-  - component: {fileID: 1552827849}
+  - component: {fileID: 918548648}
+  - component: {fileID: 918548646}
+  - component: {fileID: 918548647}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -199,13 +200,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &1552827848
+--- !u!20 &918548646
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552827847}
+  m_GameObject: {fileID: 918548645}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -250,21 +251,21 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &1552827849
+--- !u!81 &918548647
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552827847}
+  m_GameObject: {fileID: 918548645}
   m_Enabled: 1
---- !u!4 &1552827850
+--- !u!4 &918548648
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1552827847}
+  m_GameObject: {fileID: 918548645}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
@@ -277,5 +278,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1552827850}
-  - {fileID: 1424563872}
+  - {fileID: 918548648}
+  - {fileID: 295349494}

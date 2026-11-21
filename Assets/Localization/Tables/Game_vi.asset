@@ -1250,6 +1250,46 @@ MonoBehaviour:
     m_Localized: "Khay \u0111\u1EA7y"
     m_Metadata:
       m_Items: []
+  - m_Id: 81178450190336
+    m_Localized: "Ch\u1EE5p"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578944
+    m_Localized: Xong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578945
+    m_Localized: "M\u1EDF th\u01B0 m\u1EE5c"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578946
+    m_Localized: "Ch\xE9p \u1EA3nh"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578947
+    m_Localized: "\u0110\xF3ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578948
+    m_Localized: "Qu\xE0 ch\u1EE5p \u1EA3nh h\xF4m nay: +{0} c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578949
+    m_Localized: "H\xF4m nay \u0111\xE3 nh\u1EADn qu\xE0 ch\u1EE5p \u1EA3nh r\u1ED3i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578950
+    m_Localized: "\u0110\xE3 l\u01B0u: {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578951
+    m_Localized: "\u0110\xE3 ch\xE9p \u1EA3nh v\xE0o clipboard"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 81178458578952
+    m_Localized: "K\xE9o v\xE0 zoom \u0111\u1EC3 c\u0103n khung"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
