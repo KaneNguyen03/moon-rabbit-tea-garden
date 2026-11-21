@@ -461,6 +461,28 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: khi làm "Trần cấp trạm 500", `Simulation.BuyCount`, `Economy.MaxAffordable` và `UpgradePlan.Plan` cần chặn ở trần (hiện không có trần).
 
+## #37 — Khay sản phẩm (luật và khay; còn hình)
+
+- Test: 365/365 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 11 test core (`TrayTests.cs`, file mới) và 4 test màn hình.
+- Commit `5178cd2` (Core, save v10) và `7296124` (khay), đã push. Issue #37 để mở (còn hình), đã comment; #16 đã ghi chú.
+- File mới: `Assets/VuonTra/Core/Tray.cs`, `Assets/VuonTra/Game/UI/TrayView.cs` (+ .meta). `StationData` thêm `Product` (hình món, seed nhặt `Art/Final/product_<id>.png`). Bảng chuỗi seed lại (`tray.full`).
+- Ảnh (docs/anh/po-37/): `37-truoc-vuon.png`, `37-sau-vuon-khay.png` (khay trên thanh tab, một món vàng), `37-ban-1..2.png` (bán: cà rốt bay lên ví).
+
+### Đã làm (đối chiếu với nguyên văn #37)
+- `Tray`: 5 ô (tối đa 8 trong save), chồng 5; mỗi 75 giây làm việc một món (`Simulation.Tick` gọi `Tray.Advance`), giữ mẻ khi hết chỗ; bán = 15 giây thu nhập của trạm × số món; vuốt bán hết; vắng mặt làm đầy tới sức chứa (`ClaimAway` → `FillAway`); món vàng 4%, 2 mỗi ngày (`GoldenToday` reset trong `RollDaily`), bán thêm 1 cỏ.
+- `GameRunner`: sự kiện `ProductMade`, `SellProduct`, `SellAllProducts`; `_rng` cấp xúc xắc cho món vàng.
+- `TrayView`: ô tròn, hình món (đạo cụ thay thế), huy hiệu "×N", viền vàng, nhãn "Khay đầy", kéo ngang ≥ 120 để bán hết. Khay chỉ hiện khi đang chơi, không mở tấm trượt, không mở tấm trạm, và có gì trong khay.
+- `GardenScreen.OnProductMade`: món bay từ trạm xuống ô; `PaySale`: cà rốt bay lên ví, cỏ bay tới tab Thỏ.
+- Nhịp: người nhặt hết được thêm khoảng 20% (test giữ 15–25%).
+
+### Chưa đạt so với #37
+- Chưa vẽ 7 món và khung khay (khay dùng hình đạo cụ của trạm).
+- Chưa thử tay.
+
+### Tồn đọng
+- tồn đọng: vẽ `product_<id>.png` cho 7 trạm pha chế và khung khay, bỏ vào `Art/Final/`, seed.
+- tồn đọng: cách mở rộng khay lên 8 ô (bùa hoặc Tiệm, #44).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
