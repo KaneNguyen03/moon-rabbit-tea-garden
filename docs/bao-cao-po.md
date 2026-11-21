@@ -525,3 +525,40 @@ Sau khi sửa cả bốn xanh.
 - Trong test, `Motion` phải viết alias `using Motion = VuonTra.Game.UI.Motion;` vì trùng tên `UnityEngine.Motion`.
 - Nguyên tắc từ #35: mọi chuyển động đi giữa các giá trị cố định, không lấy trạng thái đang động làm gốc.
 - Player.log của bản Mac có một dòng "Curl error 35" lúc khởi động; chưa rõ nguồn, code game không gọi mạng.
+
+## Bàn giao (22/11 05:40, phiên đêm không người trực dừng tại đây)
+
+### Trạng thái
+- main = origin/main, cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `.agent/`, `.agents/`, `.github/`, `skills-lock.json`, để nguyên như dặn).
+- Test: 369/369 EditMode qua (mốc đầu đêm 314). Mỗi commit tính năng đều chạy test xanh trước khi commit.
+- Bản Mac `Build/Mac/VuonTraTho.app` build lại lúc 05:33 từ đúng HEAD (`1830282` phần code), "Build Finished, Result: Success". Mở lên chạy 12 giây, Player.log không có exception. Chưa ai bấm thử.
+- Save lên v10 (v9: `buyMode` -1 và `spendShare`; v10: khay sản phẩm, `photoDay`). Save cũ đọc được, test có.
+
+### Issue đã xong và đã đóng (theo thứ tự trong #16)
+- #43 Trạm trống không hiện thỏ: `738da68`. Thỏ chỉ hiện khi có thỏ của người chơi; tấm đệm "+" mở danh sách chọn thỏ; ô chưa xây có biển giá; người mới được tặng Thỏ Bông ở ấm trà; huy hiệu tab Thỏ.
+- #25 Tab Trạm: `9bdf90f`. Thu nhập mỗi giây là số chính, "Còn N cấp tới ×2", hình các trạm được tiếp sức, giữ tay nâng liên tục nhanh dần.
+- #27 Tab Nhiệm vụ: `1307309`. Nhận được lên đầu + Nhận tất cả, chưa xong không có nút, chip thưởng có hình (có hình cỏ bốn lá mới), đồng hồ tới lúc làm mới, thưởng bay về ví.
+- #36 Nâng cấp nhanh: `d7e6324` + `6591a5b`. Tới mốc, công tắc trên tấm trạm, Nâng tất cả có tóm tắt, giữ lại 100/50/25%, thỏ Tối đa, số cấp chạy lên.
+
+### Issue làm một phần, để mở
+- #37 Khay sản phẩm: `5178cd2` + `7296124`. Luật và khay xong, chỉnh nhịp cho người nhặt hết được thêm ~20%. Còn vẽ 7 món và khung khay (`Art/Final/product_<id>.png`, catalog đã chừa chỗ).
+- #18 Chụp ảnh (bản Mac): `1830282`. Nút máy ảnh, ẩn HUD, chụp ra PNG vào ~/Pictures/VuonTraTho, xem lại, Mở thư mục, Chép ảnh, quà ngày +1 cỏ. Còn khung ảnh, công tắc tên thỏ/đom đóm, album 12 ảnh, nhiệm vụ ăn theo, mobile.
+
+### Bỏ qua và vì sao
+- "Cà rốt vàng và Tiệm": chưa có issue và cần chủ project quyết giá, nguồn cà rốt vàng, có bán tiền thật không. Đã tạo #44 ghi đủ các phần và câu hỏi.
+- "Trò chơi nhỏ đầu tiên: Giã bánh trăng": chưa có mô tả cách chơi. Đã tạo #45 với các câu hỏi và một gợi ý để chọn nhanh.
+- #17 (hồ sơ người chơi, phần làm được ngay): hết giờ, chưa đụng.
+- Các mục sau trong #16 (thang độ hiếm, mốc trạm 25/100/300, sao thỏ, trần cấp 500, màn lúc đi vắng, lượt UI 2, hướng dẫn 60 giây): chưa đụng.
+
+### Cần chủ project thử tay hoặc quyết
+- Bấm thử trong bản Mac: tấm đệm "Xếp thỏ +" và danh sách chọn thỏ (#43); giữ nút nâng xem nhịp lặp có dễ chịu không (#25, hằng trong `PressDip`); Nhận tất cả và thưởng bay (#27); công tắc Tới mốc / Tối đa và bảng Nâng tất cả (#36); chạm và vuốt khay (#37); nút máy ảnh, "Mở thư mục", "Chép ảnh" (#18, hai nút này gọi lệnh hệ thống, chỉ chạy được trong bản Mac).
+- Quyết: #44 (cà rốt vàng và Tiệm), #45 (Giã bánh trăng), và có chấp nhận cọc biển nhỏ dưới sương ở đất chưa mở rộng không (#43, lệch so với "chỉ sương và cây").
+- Hình vẽ tay thay giữ chỗ: `plot_sign.png`, `pad.png` (#43), `icon_clover.png` (#27), `product_<id>.png` ×7 và khung khay (#37). Bỏ vào `Art/Final/` rồi seed.
+
+### Lưu ý kỹ thuật mới
+- Trong test EditMode, `GameRunner.StateChanged` không nối tới màn hình (nối trong `Start()`, không chạy ở edit mode): sau khi đổi state phải gọi `screen.Refresh()` tay trước khi đọc nhãn.
+- Nút chunky giờ đi `Button.onClick → PressDip.Fire → Pressed`; test gọi `onClick.Invoke()` vẫn chạy. Giữ tay lặp: `PressDip.Repeat`.
+- `FeelLayer.Fly(from, to, sprite, ...)` dùng chung cho mọi thứ bay (thưởng, món, cà rốt bán); hai đầu cố định lúc bắt đầu.
+- `docs/issues-po.md` là bản chép do session PO giữ, đêm nay không sửa; GitHub là nguồn đúng (đóng 25, 27, 36, 43; mới 44, 45).
+- Lệnh test/seed/chụp/build như mục Bàn giao trước.
+
