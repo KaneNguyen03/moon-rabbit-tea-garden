@@ -21,4 +21,5 @@ MonoBehaviour:
   CostGrowth: 15
   MaxLevel: 10
   Glyph: "\xD72"
+  Icon: {fileID: 21300000, guid: 6e69325a9a01c40aead67cf07c543a4a, type: 3}
   Accent: {r: 1, g: 0.78431374, b: 0.4, a: 1}

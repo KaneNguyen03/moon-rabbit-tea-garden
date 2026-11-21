@@ -19,6 +19,19 @@ namespace VuonTra.EditorTools
         public const string ItemFolder = "Assets/VuonTra/Content/Items";
 
         struct U { public string Id, Name, Desc, Glyph; public UpgradeEffect Effect; public double Amount, Cost, Growth; public int Max; public Color Accent; }
+        /// <summary>The picture file for a charm, by its id.</summary>
+        static string CharmArt(string id)
+        {
+            switch (id)
+            {
+                case "tay-am": return "bua_ban-tay-am";
+                case "gio-dem": return "bua_gio-dem";
+                case "trang-ram": return "bua_anh-trang-ram";
+                case "giac-ngu": return "bua_giac-ngu-dai";
+                default: return "bua_" + id;
+            }
+        }
+
         struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers; public bool Daily; }
 
         public static void Seed(GameCatalog catalog)
@@ -41,6 +54,7 @@ namespace VuonTra.EditorTools
             {
                 UpgradeData data = LoadOrCreate<UpgradeData>(UpgradeFolder + "/" + row.Id + ".asset");
                 data.Id = row.Id; data.DisplayName = row.Name; data.Description = row.Desc; data.Glyph = row.Glyph;
+                data.Icon = FinalArt.Find(CharmArt(row.Id));
                 data.Effect = row.Effect; data.Amount = row.Amount; data.BaseCost = row.Cost; data.CostGrowth = row.Growth;
                 data.MaxLevel = row.Max; data.Accent = row.Accent;
                 EditorUtility.SetDirty(data);
@@ -149,6 +163,8 @@ namespace VuonTra.EditorTools
                 tradeIcons[(int)trade] = trade == RabbitTrade.None ? null : PlaceholderArt.Load("icon_trade_" + trade);
             catalog.TradeIcons = tradeIcons;
             catalog.MoonGate = FinalArt.Find("prop_cong-trang");
+            catalog.LevelBadge = FinalArt.Find("icon_cap-vuon");
+            catalog.Mist = FinalArt.Find("decor_suong");
             // Seats 0 and 1 are the stumps; the rest bring a rug, stools, a hammock and a swing.
             catalog.RestProps = new[] { null, null, FinalArt.Find("decor_tham-picnic"), FinalArt.Find("decor_ghe-nam"), FinalArt.Find("decor_vong"), FinalArt.Find("decor_xich-du") };
             catalog.IconCharm = PlaceholderArt.Load("icon_charm");

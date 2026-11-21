@@ -199,3 +199,29 @@ Sau khi sửa cả bốn xanh.
 
 ### Tồn đọng
 - tồn đọng: không đọc được issue trên GitHub từ phiên này. `gh issue view` với đăng nhập mặc định báo không thấy repo (tài khoản mặc định là tài khoản công việc). Mình không tự đổi sang token của tài khoản khác khi chủ project chưa bảo. Nhờ PO chép nội dung các issue cần làm (#24, #22, #23, #28, #29) vào một file trong docs/, hoặc để chủ project cho phép.
+
+## Sau #35 — Huy hiệu cấp vườn, sương, hình bùa, bù chỗ nghỉ cho save cũ
+
+- Test: 298/298 EditMode qua, chạy SAU lần build và sau lần sửa file cuối trong Assets.
+- Thông điệp commit đề xuất: `Drawn level badge, mist banks and charm pictures; old saves get the rest places their land brings`
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Ảnh (docs/anh/po-r6/, đã chụp lại): `2c-top.png` (huy hiệu mới trên HUD, sương dạng mây thấp trên đất chưa mở), `6-upgrades.png` (bốn hình bùa), `z2-default.png`, `15-all-far.png`.
+- Bản Mac: `Build/Mac/VuonTraTho.app`, build thành công, đang mở, Player.log không có exception. Gồm bản sửa #35 và các thay đổi này.
+
+### Đã làm
+- Huy hiệu cấp vườn dùng `icon_cap-vuon.png`; con số vẽ đè lên nửa dưới; vòng tiến độ thành quầng vàng chạy quanh viền huy hiệu.
+- Sương dùng `decor_suong.png`: mỗi ô đất chưa mở có bốn mảng chồng nhau, lệch cỡ, lệch độ mờ, mảng lẻ lật ngang. Khi mở rộng, các mảng trôi sang hai bên và mờ dần trong 1,4 giây.
+- Tab Bùa: bốn ký tự +, », ×2, Zz được thay bằng bốn hình `bua_*.png` (trường `UpgradeData.Icon`; thiếu hình thì vẫn rơi về ký tự).
+- Save cũ: số chỗ nghỉ sau khi đọc = lớn nhất giữa số đã lưu và `2 + số đợt đất đã mở`, tối đa 6. Không save nào mất chỗ nghỉ đã có.
+- Sáu file hình đã chép vào `Assets/VuonTra/Art/Final/`.
+
+### Test mới
+- `An_Old_Save_Has_At_Least_The_Places_To_Rest_Its_Land_Brings`: 4 ô → 2 chỗ; 6 ô → 3; 7 ô → 4; 12 ô → 6; 6 ô nhưng đã có 5 chỗ → giữ 5.
+
+### Chưa đạt
+- Sương có viền nét rõ như mây vẽ, nên trông giống "đám mây nằm trên đất" hơn là sương mỏng; mình đã hạ độ đậm xuống khoảng 46–74% mỗi mảng. Nếu PO muốn mềm hơn thì cần hình không viền.
+- Vòng tiến độ quanh huy hiệu vẽ tay khó thấy hơn bản vòng tròn trơn (chỉ lộ một viền vàng mỏng).
+- Bản Mac chưa ai bấm thử.
+
+### Tồn đọng
+- tồn đọng: vẫn chưa đọc được issue trên GitHub từ phiên này (xem đoạn "Lỗi #35"); cần nguyên văn #24, #22, #23, #28, #29 trong một file để làm U1 đúng tiêu chí.

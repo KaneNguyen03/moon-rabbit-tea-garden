@@ -51,6 +51,11 @@ namespace VuonTra.Game
             return defs;
         }
 
+        [Tooltip("The garden level badge; the number is drawn over its lower half.")]
+        public Sprite LevelBadge;
+        [Tooltip("A low bank of mist, laid in overlapping patches over land the garden has not grown into.")]
+        public Sprite Mist;
+
         [Tooltip("The moon gate a called rabbit steps out of.")]
         public Sprite MoonGate;
 

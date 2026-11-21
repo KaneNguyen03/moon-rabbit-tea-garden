@@ -21,4 +21,5 @@ MonoBehaviour:
   CostGrowth: 10
   MaxLevel: 5
   Glyph: Zz
+  Icon: {fileID: 21300000, guid: ff060cd9bf6a04502ac65eefbfdc8105, type: 3}
   Accent: {r: 0.5976471, g: 0.5792157, b: 0.60490197, a: 1}

@@ -191,6 +191,18 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, r.Clovers, "the catch-up hands out no clovers");
         }
 
+        [TestCase(4, 2, 2)]
+        [TestCase(6, 2, 3)]
+        [TestCase(7, 2, 4)]
+        [TestCase(12, 2, 6)]
+        [TestCase(6, 5, 5)]   // more places than its land explains: it keeps them
+        public void An_Old_Save_Has_At_Least_The_Places_To_Rest_Its_Land_Brings(int plots, int saved, int expected)
+        {
+            s.Plots = plots;
+            s.RestSpots = saved;
+            Assert.AreEqual(expected, SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State.RestSpots);
+        }
+
         [Test]
         public void An_Old_Save_With_Real_Progress_Gets_Credit_For_It()
         {

@@ -308,6 +308,9 @@ namespace VuonTra.Core
             long savedNextItem = ToLong(ReadNumber(root, "nextItemId"));
             if (savedNextItem > s.NextItemId) s.NextItemId = savedNextItem;
 
+            // A garden that already holds the land of a wave also has that wave's place to rest, and keeps any it had beyond that.
+            s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + Expansion.WavesTaken(s.Plots)));
+
             // Version 8: the garden's experience. An older save is given what its progress would have earned,
             // and no garden is ever below the level its land already needs.
             double xp = TryNumber(root, "gardenXp", out double savedXp) && savedXp >= 0d ? savedXp : Garden.BackfillXp(defs, s);

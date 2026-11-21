@@ -230,7 +230,7 @@ namespace VuonTra.Game.UI
         Image _levelRing;
         RectTransform _levelBadge;
         int _shownGardenLevel = -1;
-        readonly List<Image> _fog = new List<Image>();
+        readonly List<CanvasGroup> _fog = new List<CanvasGroup>();
         readonly List<GameObject> _fogTrees = new List<GameObject>();
         int _fogPlots = -1;
         bool _wheelLatched;
@@ -739,7 +739,23 @@ namespace VuonTra.Game.UI
             {
                 if (i < Plots.Starting) { _fog.Add(null); _fogTrees.Add(null); continue; }
                 Vector2 spot = StationSpot(i);
-                _fog.Add(UiKit.Rect("Mist " + i, _street).Place(0f, 0f, spot.x + 6f, spot.y - 10f, 620f, 470f).AddImage(catalog.Glow, mist));
+                // Several banks of mist, each a different size and thickness, overlapping so no edge reads as a picture.
+                var bank = UiKit.Rect("Mist " + i, _street).Place(0f, 0f, spot.x, spot.y, 0, 0);
+                CanvasGroup veil = bank.gameObject.AddComponent<CanvasGroup>();
+                veil.blocksRaycasts = false;
+                if (catalog.Mist != null)
+                {
+                    float ratio = catalog.Mist.rect.height / catalog.Mist.rect.width;
+                    float[] dx = { -70f, 90f, 10f, -20f }, dy = { 30f, 10f, -70f, 110f }, wide = { 520f, 460f, 600f, 400f }, thick = { 0.7f, 0.58f, 0.74f, 0.46f };
+                    for (int k = 0; k < dx.Length; k++)
+                    {
+                        Image patch = UiKit.Rect("Patch", bank).Place(0.5f, 0.5f, dx[k] + (i % 2) * 24f, dy[k], wide[k], wide[k] * ratio)
+                            .AddImage(catalog.Mist, new Color(0.86f, 0.9f, 1f, thick[k]));
+                        if ((k + i) % 2 == 1) patch.rectTransform.localScale = new Vector3(-1f, 1f, 1f); // flipped, so neighbours differ
+                    }
+                }
+                else UiKit.Rect("Patch", bank).Place(0.5f, 0.5f, 6f, -10f, 620f, 470f).AddImage(catalog.Glow, mist);
+                _fog.Add(veil);
                 var grove = UiKit.Rect("Grove " + i, _street).Place(0f, 0f, 0, 0, 0, 0);
                 if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
                 {
@@ -1247,13 +1263,26 @@ namespace VuonTra.Game.UI
                 Feel.Moment(L10n.T("garden.info.title", level),
                     L10n.T("garden.info.sub", Mathf.CeilToInt((float)(Garden.XpForLevel(level + 1) - now.GardenXp))));
             });
-            _levelRing = UiKit.Rect("Ring", badge).Stretch(0, 0, 1, 1, 3, 3, 3, 3).AddImage(catalog.Round, Palette.Lantern);
+            bool drawn = catalog.LevelBadge != null;
+            if (drawn) badgeBack.color = new Color(0, 0, 0, 0); // the picture is the badge; this only catches the tap
+            // The ring behind fills towards the next level; with the drawn badge it shows as a glow round its rim.
+            _levelRing = UiKit.Rect("Ring", badge).Stretch(0, 0, 1, 1, drawn ? -5 : 3, drawn ? -5 : 3, drawn ? -5 : 3, drawn ? -5 : 3).AddImage(catalog.Round, Palette.Lantern);
             _levelRing.type = Image.Type.Filled;
             _levelRing.fillMethod = Image.FillMethod.Radial360;
             _levelRing.fillOrigin = (int)Image.Origin360.Top;
             _levelRing.fillClockwise = true;
-            UiKit.Rect("Face", badge).Stretch(0, 0, 1, 1, 13, 13, 13, 13).AddImage(catalog.Round, Palette.Paper);
-            _levelText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("1", 40, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            if (drawn)
+            {
+                UiKit.Rect("Rim", badge).Stretch(0, 0, 1, 1, 1, 1, 1, 1).AddImage(catalog.Round, Palette.Mix(Palette.Night, Palette.Ink, 0.5f));
+                UiKit.Rect("Art", badge).Stretch(0, 0, 1, 1, -4, -4, -4, -4).AddImage(catalog.LevelBadge, Color.white).preserveAspect = true;
+                // The number sits in the lower half, which the picture leaves clear for it.
+                _levelText = UiKit.Rect("Text", badge).Place(0.5f, 0.5f, 0, -15, 70, 44).AddText("1", 34, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            }
+            else
+            {
+                UiKit.Rect("Face", badge).Stretch(0, 0, 1, 1, 13, 13, 13, 13).AddImage(catalog.Round, Palette.Paper);
+                _levelText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("1", 40, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            }
             _levelBadge = badge;
 
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
@@ -1765,16 +1794,29 @@ namespace VuonTra.Game.UI
             {
                 if (_fog[i] == null) continue;
                 bool misty = i >= s.Plots;
-                Image fog = _fog[i];
+                CanvasGroup fog = _fog[i];
                 GameObject grove = _fogTrees[i];
                 if (grove.activeSelf != (i >= drawn)) grove.SetActive(i >= drawn);
                 if (misty) fog.gameObject.SetActive(true);
                 else if (lifting && fog.gameObject.activeSelf)
                 {
-                    // The mist thins away over a moment.
-                    Color from = fog.color;
-                    Tweens.Add(1.2f, t => { if (fog != null) fog.color = Palette.Alpha(from, from.a * (1f - t)); }, Ease.OutCubic, 0f,
-                        () => { if (fog != null) { fog.gameObject.SetActive(false); fog.color = from; } });
+                    // The banks drift apart to either side and thin away.
+                    var bank = (RectTransform)fog.transform;
+                    var homes = new Vector2[bank.childCount];
+                    for (int k = 0; k < homes.Length; k++) homes[k] = ((RectTransform)bank.GetChild(k)).anchoredPosition;
+                    Tweens.Add(1.4f, t =>
+                    {
+                        if (fog == null) return;
+                        fog.alpha = 1f - t;
+                        for (int k = 0; k < homes.Length && k < bank.childCount; k++)
+                            ((RectTransform)bank.GetChild(k)).anchoredPosition = homes[k] + new Vector2((k % 2 == 0 ? -1f : 1f) * 260f * t, 30f * t);
+                    }, Ease.OutCubic, 0f, () =>
+                    {
+                        if (fog == null) return;
+                        fog.gameObject.SetActive(false);
+                        fog.alpha = 1f;
+                        for (int k = 0; k < homes.Length && k < bank.childCount; k++) ((RectTransform)bank.GetChild(k)).anchoredPosition = homes[k];
+                    });
                 }
                 else fog.gameObject.SetActive(false);
             }

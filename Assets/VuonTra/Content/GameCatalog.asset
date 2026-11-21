@@ -115,6 +115,8 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 27149f17be2474be7a116941399c7a67, type: 3}
   - {fileID: 21300000, guid: c510f0af0723e469e96b9433cfa96033, type: 3}
   - {fileID: 21300000, guid: 961e35711080f480f9cd64d611af2547, type: 3}
+  LevelBadge: {fileID: 21300000, guid: 3c49a858b507c4918ae12a00f5085977, type: 3}
+  Mist: {fileID: 21300000, guid: 437ed326802354b89b1c96324c064b76, type: 3}
   MoonGate: {fileID: 21300000, guid: 25316d01279b24813930fb8846e6dc5b, type: 3}
   RestProps:
   - {fileID: 0}

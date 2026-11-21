@@ -17,6 +17,8 @@ namespace VuonTra.Game
         public int MaxLevel = 10;
         [Tooltip("One or two characters shown on the card until it has real art.")]
         public string Glyph = "?";
+        [Tooltip("The charm's picture; the glyph is only used while there is none.")]
+        public Sprite Icon;
         public Color Accent = Color.white;
 
         public UpgradeDef ToDef() => new UpgradeDef

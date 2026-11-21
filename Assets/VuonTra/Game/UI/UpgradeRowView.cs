@@ -31,7 +31,10 @@ namespace VuonTra.Game.UI
 
             var icon = UiKit.Rect("Icon", root).Place(0f, 0.5f, 100, 4, 136, 136);
             icon.AddImage(catalog.Round, Palette.Mix(data.Accent, Palette.Paper, 0.35f));
-            UiKit.Rect("Glyph", icon).Stretch(0, 0, 1, 1).AddText(data.Glyph, 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            if (data.Icon != null)
+                UiKit.Rect("Art", icon).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(data.Icon, Color.white).preserveAspect = true;
+            else
+                UiKit.Rect("Glyph", icon).Stretch(0, 0, 1, 1).AddText(data.Glyph, 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             Text name = UiKit.Rect("Name", root).Stretch(0, 0.62f, 1, 1, 190, 4, 480, 18)
                 .AddText(L10n.T("upgrade." + data.Id + ".name"), 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
