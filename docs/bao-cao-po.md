@@ -290,3 +290,28 @@ Sau khi sửa cả bốn xanh.
 - tồn đọng: vuốt xuống từ đầu danh sách cũng đóng tấm.
 - tồn đọng: cho kéo vườn khi tấm đang mở ở 60%.
 - tồn đọng: tấm chi tiết thỏ và các bảng chọn chuyển sang cùng kiểu tấm trượt (xem lại ở #26).
+
+## U1 — #23 Thanh tab liền mạch
+
+- Test: 305/305 EditMode qua (chạy sau lần sửa file cuối cùng trong Assets). Thêm 2 test mới.
+- Thông điệp commit đề xuất: `Tab bar is one plate inside the safe area; the chosen tab grows onto a raised disc with a bold name; the quest badge bounces when its count grows`
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Ảnh (docs/anh/po-u1/): trước `23-truoc-2-garden.png`, `23-truoc-5-stations.png`, `23-truoc-11-garden-en.png`; sau `23-sau-2-garden.png`, `23-sau-5-stations.png`, `23-sau-7-quests.png`, `23-sau-11-garden-en.png`.
+
+### Đã làm (đối chiếu với nguyên văn #23)
+- Một tấm nền kem liền cho cả thanh, bo góc, có viền nổi và bóng, rộng gần hết màn hình (lề 20 mỗi bên).
+- Vùng an toàn: thanh đứng cách mép an toàn dưới của máy 16 (đọc `Screen.safeArea` mỗi khung hình, nên xoay máy hay đổi máy đều theo); danh sách trong tấm trượt cũng dừng phía trên thanh theo cùng số đó.
+- Tab đang chọn: icon to từ 84 lên 108, đứng trên một đĩa vàng nổi nhô lên khỏi thanh, nhãn đậm và màu mực. Tab khác khi có tab đang chọn: icon mờ còn 55%, nhãn thường. Không mở tấm nào thì cả bốn tab rõ như nhau. Chuyển trạng thái mất 0,16 giây.
+- Nhãn cỡ 26 (trước là 20).
+- Huy hiệu số: chỉ hiện khi có phần thưởng nhiệm vụ nhận được; khi con số tăng thì nảy một lần 0,32 giây rồi về đúng cỡ gốc.
+- Cả ô tab (một phần tư thanh) đều bấm được, không chỉ icon.
+
+### Chưa đạt so với #23
+- Vùng an toàn mới kiểm bằng code; chưa thấy trên máy có thanh home (ảnh mẫu và bản Mac có vùng an toàn bằng 0).
+- Chỉ tab Nhiệm vụ có huy hiệu. Tab Thỏ chưa báo khi đủ cỏ để gọi thỏ, tab Trạm và Bùa chưa báo khi đủ tiền mua.
+- Hằng số chừa chỗ cho thanh tab trong vườn (`TabCover` 250) chưa giảm theo thanh mới (cao 186), nên tấm trạm trong vườn đứng cách thanh một khe khoảng 60.
+- Lúc tấm trượt đang đi lên, thấy mép tấm ở khe 16 dưới thanh tab.
+
+### Tồn đọng
+- tồn đọng: huy hiệu cho tab Thỏ (đủ cỏ gọi thỏ, có bộ ghép được).
+- tồn đọng: giảm `TabCover` cho khớp thanh mới và kiểm lại vị trí tấm trạm.

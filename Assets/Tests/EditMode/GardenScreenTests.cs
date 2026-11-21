@@ -480,6 +480,62 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Tab_Bar_Is_One_Plate_And_The_Chosen_Tab_Stands_Out()
+        {
+            screen.Shell.StartGame();
+            for (int i = 0; i < 30; i++) screen.Advance(1f / 30f);
+            var bar = (RectTransform)root.transform.Find("Canvas/TabBar");
+            Assert.IsNotNull(bar.Find("Plate").GetComponent<Image>(), "one plate behind all four tabs");
+            float screenWidth = ((RectTransform)bar.parent).rect.width;
+            Assert.AreEqual(screenWidth - 40f, bar.rect.width, 0.5f, "the plate runs the width of the screen, less a small margin");
+            Assert.GreaterOrEqual(bar.anchoredPosition.y, 0f, "inside the bottom edge");
+
+            string[] names = { "Trạm", "Bùa", "Nhiệm vụ", "Thỏ" };
+            foreach (string n in names)
+            {
+                Text label = bar.Find("Open " + n + "/Label").GetComponent<Text>();
+                Assert.GreaterOrEqual(label.fontSize, 26, "readable at arm's length");
+                Assert.AreEqual(FontStyle.Normal, label.fontStyle, "nothing is chosen while no sheet is open");
+                Assert.AreEqual(1f, bar.Find("Open " + n + "/Icon").GetComponent<Image>().color.a, 0.01f);
+            }
+
+            screen.OpenSheet(1);
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            var chosen = (RectTransform)bar.Find("Open Bùa/Icon");
+            var other = (RectTransform)bar.Find("Open Thỏ/Icon");
+            Assert.Greater(chosen.sizeDelta.x, other.sizeDelta.x + 15f, "the chosen icon is bigger");
+            Assert.AreEqual(FontStyle.Bold, bar.Find("Open Bùa/Label").GetComponent<Text>().fontStyle);
+            Assert.AreEqual(FontStyle.Normal, bar.Find("Open Thỏ/Label").GetComponent<Text>().fontStyle);
+            Assert.AreEqual(1f, bar.Find("Open Bùa/Lift").GetComponent<CanvasGroup>().alpha, 0.01f, "it stands on a raised disc");
+            Assert.AreEqual(0f, bar.Find("Open Thỏ/Lift").GetComponent<CanvasGroup>().alpha, 0.01f);
+            Assert.Less(other.GetComponent<Image>().color.a, 0.7f, "the others step back");
+
+            screen.CloseSheet();
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(84f, chosen.sizeDelta.x, 0.5f, "closed again, it returns to its resting size exactly");
+        }
+
+        [Test]
+        public void Tab_Badge_Shows_Only_When_Something_Waits_And_Bounces_When_The_Count_Grows()
+        {
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Transform badge = root.transform.Find("Canvas/TabBar/Badge");
+            int before = Quests.ClaimableCount(runner.QuestDefs, runner.Defs, runner.State);
+            Assert.AreEqual(before > 0, badge.gameObject.activeSelf);
+
+            runner.State.Coins = new BigNum(1e9);
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke(); // finishes "open 2 stations"
+            screen.Refresh();
+            Assert.Greater(Quests.ClaimableCount(runner.QuestDefs, runner.Defs, runner.State), before);
+            Assert.IsTrue(badge.gameObject.activeSelf);
+            for (int i = 0; i < 4; i++) screen.Advance(1f / 30f);
+            Assert.Greater(badge.localScale.x, 1.1f, "it bounces when the number goes up");
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(1f, badge.localScale.x, 0.001f, "and comes back to its own size exactly");
+        }
+
+        [Test]
         public void Tapping_A_Station_Opens_Its_Card_And_The_Card_Buys()
         {
             Assert.AreEqual(-1, screen.Selected);

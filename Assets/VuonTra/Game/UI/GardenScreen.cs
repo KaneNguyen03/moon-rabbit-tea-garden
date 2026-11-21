@@ -39,8 +39,16 @@ namespace VuonTra.Game.UI
         readonly Dictionary<int, Image> _modeButtons = new Dictionary<int, Image>();
         readonly Dictionary<int, Text> _modeLabels = new Dictionary<int, Text>();
         readonly GameObject[] _lists = new GameObject[TabCount];
-        readonly ChunkyButton[] _openButtons = new ChunkyButton[TabCount];
         readonly Text[] _openLabels = new Text[TabCount];
+        readonly Image[] _tabIcons = new Image[TabCount];
+        readonly RectTransform[] _tabLifts = new RectTransform[TabCount];
+        readonly CanvasGroup[] _tabLiftGroups = new CanvasGroup[TabCount];
+        /// <summary>How far each tab has come towards its chosen look (0 resting, 1 chosen), and a short pop when pressed.</summary>
+        readonly float[] _tabShown = new float[TabCount], _tabPop = new float[TabCount];
+        float _tabFade = 1f, _badgePop, _safeBottom = -1f;
+        int _shownClaimable = -1;
+        RectTransform _barBadgeRect;
+        const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f;
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
         readonly List<Image> _tierTradeBadges = new List<Image>();
@@ -168,6 +176,8 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
 
             Tweens.Update(dt);
+            PlaceTabBar();
+            ShowTabBar(dt);
             if (Arrival != null) Arrival.Update(dt);
             Feel.Update(dt);
             Shell.Update(_clock);
@@ -1365,45 +1375,109 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Hub", gearButton.FaceRect).Place(0.5f, 0.5f, 0, 0, 22, 22).AddImage(catalog.Round, Palette.Paper);
         }
 
-        /// <summary>The row of round icon buttons along the bottom edge that opens the sheet at a tab.</summary>
+        /// <summary>
+        /// One plate along the bottom edge with the four tabs on it. The chosen tab stands out (bigger icon on a
+        /// raised disc, bold name); the others step back while one is chosen.
+        /// </summary>
         void BuildTabBar(GameCatalog catalog)
         {
-            _tabBar = UiKit.Rect("TabBar", _canvas).Place(0.5f, 0f, 0, 96, 760, 180);
+            _tabBar = UiKit.Rect("TabBar", _canvas).Stretch(0, 0, 1, 0, 20, 0, 20, 0);
+            _tabBar.pivot = new Vector2(0.5f, 0f);
+            _tabBar.sizeDelta = new Vector2(_tabBar.sizeDelta.x, TabBarHeight);
+            _tabBar.AddShadow(26f, 12f, 0.4f);
+            UiKit.Rect("Lip", _tabBar).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true).pixelsPerUnitMultiplier = 0.6f;
+            Image plate = UiKit.Rect("Plate", _tabBar).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
+            plate.pixelsPerUnitMultiplier = 0.6f;
+            plate.raycastTarget = true; // a touch between two tabs must not reach the garden behind
+
             Sprite firstProp = catalog.Stations.Length > 0 ? catalog.Stations[0].Prop : null;
             Sprite[] icons = { firstProp, catalog.IconCharm, catalog.IconQuest, catalog.Rabbit };
             for (int i = 0; i < TabCount; i++)
             {
                 int tab = i;
-                var rt = UiKit.Rect("Open " + TabNames[i], _tabBar).Place(0.5f, 0.5f, (i - 1.5f) * 178f, 18, 118, 118);
-                rt.AddShadow(14f, 10f, 0.32f);
-                ChunkyButton button = null;
-                button = UiKit.Chunky(rt, catalog.Round, () =>
+                var rt = UiKit.Rect("Open " + TabNames[i], _tabBar).Stretch(i / (float)TabCount, 0, (i + 1) / (float)TabCount, 1);
+                Image hit = rt.AddImage(null, new Color(0, 0, 0, 0));
+                hit.raycastTarget = true;
+                var button = rt.gameObject.AddComponent<Button>();
+                button.transition = Selectable.Transition.None;
+                button.targetGraphic = hit;
+                button.onClick.AddListener(() =>
                 {
-                    button.Press(Tweens);
+                    Tweens.Add(0.22f, t => _tabPop[tab] = 0.14f * Ease.Pop(t), Ease.Linear, 0f, () => _tabPop[tab] = 0f);
                     Sfx.Click();
                     if (SheetOpen && Tab == tab) CloseSheet();
                     else OpenSheet(tab);
                 });
-                button.Lip.type = Image.Type.Simple;
-                button.Face.type = Image.Type.Simple;
-                button.Lip.color = Palette.CardLip;
-                button.Face.color = Palette.Paper;
-                Transform shine = button.FaceRect.Find("Shine");
-                if (shine != null) shine.gameObject.SetActive(false); // the sliced gloss does not fit a circle
-                _openButtons[i] = button;
-                if (icons[i] != null)
-                    UiKit.Rect("Icon", button.FaceRect).Stretch(0, 0, 1, 1, 22, 22, 22, 14).AddImage(icons[i], Color.white).preserveAspect = true;
 
-                // The name sits on a small plate under the icon.
-                var plate = UiKit.Rect("Plate", rt).Place(0.5f, 0f, 0, -12, 150, 36);
-                plate.AddImage(catalog.Panel, Palette.Ink, true);
-                _openLabels[i] = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1)
-                    .AddText(L10n.T("tab." + i), 20, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+                // The raised disc under the chosen tab's icon; it pokes a little above the plate.
+                _tabLifts[i] = UiKit.Rect("Lift", rt).Place(0.5f, 0f, 0, 112, 136, 136);
+                _tabLifts[i].AddShadow(12f, 8f, 0.3f);
+                UiKit.Rect("Lip", _tabLifts[i]).Stretch(0, 0, 1, 1).AddImage(catalog.Round, Palette.CarrotLip);
+                UiKit.Rect("Face", _tabLifts[i]).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Round, Palette.Lantern);
+                _tabLiftGroups[i] = _tabLifts[i].gameObject.AddComponent<CanvasGroup>();
+                _tabLiftGroups[i].blocksRaycasts = false;
+
+                _tabIcons[i] = UiKit.Rect("Icon", rt).Place(0.5f, 0f, 0, 100, 84, 84).AddImage(icons[i], Color.white);
+                _tabIcons[i].preserveAspect = true;
+                _tabIcons[i].enabled = icons[i] != null;
+                _openLabels[i] = UiKit.Rect("Label", rt).Stretch(0, 0, 1, 0, 4, 18, 4, -62)
+                    .AddText(L10n.T("tab." + i), (int)TabLabelSize, Palette.InkSoft, TextAnchor.MiddleCenter);
+                _tabShown[i] = 0f;
+                _tabPop[i] = 0f;
             }
-            var badge = UiKit.Rect("Badge", _tabBar).Place(0.5f, 0.5f, 0.5f * 178f + 44f, 62, 44, 44);
-            badge.AddImage(catalog.Round, Palette.CarrotLip);
-            _barBadgeText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _barBadge = badge.gameObject;
+            _tabFade = 1f;
+
+            // The count of quest rewards waiting, on the corner of the quest tab's icon.
+            _barBadgeRect = UiKit.Rect("Badge", _tabBar).Place(2.5f / TabCount, 0f, 46, 140, 48, 48);
+            _barBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
+            _barBadgeText = UiKit.Rect("Text", _barBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _barBadge = _barBadgeRect.gameObject;
+            _shownClaimable = -1;
+            _safeBottom = -1f;
+            PlaceTabBar();
+            ShowTabBar(0f);
+        }
+
+        /// <summary>The part of the bottom edge the phone keeps for itself (home bar), in canvas units.</summary>
+        static float SafeBottom() => Screen.height > 0 ? Mathf.Max(0f, Screen.safeArea.yMin / Screen.height * ScreenH) : 0f;
+
+        /// <summary>Stands the tab bar just inside the safe area, and the sheet's lists just above the bar.</summary>
+        void PlaceTabBar()
+        {
+            float safe = SafeBottom();
+            if (Mathf.Approximately(safe, _safeBottom)) return;
+            _safeBottom = safe;
+            _tabBar.anchoredPosition = new Vector2(0f, safe + TabBarGap);
+            for (int i = 0; i < _lists.Length; i++)
+            {
+                if (_lists[i] == null) continue;
+                var list = (RectTransform)_lists[i].transform;
+                list.offsetMin = new Vector2(list.offsetMin.x, SheetFoot + safe);
+            }
+        }
+
+        /// <summary>Moves each tab towards its look: chosen ones grow onto their disc, the rest fade back a little.</summary>
+        void ShowTabBar(float dt)
+        {
+            bool any = false;
+            for (int i = 0; i < TabCount; i++) any |= SheetOpen && Tab == i;
+            _tabFade = Mathf.MoveTowards(_tabFade, any ? 0.55f : 1f, dt / 0.16f);
+            for (int i = 0; i < TabCount; i++)
+            {
+                bool on = SheetOpen && Tab == i;
+                _tabShown[i] = Mathf.MoveTowards(_tabShown[i], on ? 1f : 0f, dt / 0.16f);
+                float k = Mathf.SmoothStep(0f, 1f, _tabShown[i]);
+                float size = Mathf.Lerp(84f, 108f, k) * (1f + _tabPop[i]);
+                RectTransform icon = _tabIcons[i].rectTransform;
+                icon.sizeDelta = new Vector2(size, size);
+                icon.anchoredPosition = new Vector2(0f, Mathf.Lerp(100f, 122f, k));
+                _tabIcons[i].color = new Color(1f, 1f, 1f, Mathf.Lerp(_tabFade, 1f, k));
+                _tabLiftGroups[i].alpha = k;
+                _tabLifts[i].localScale = Vector3.one * Mathf.Lerp(0.7f, 1f, k);
+                _openLabels[i].color = Color.Lerp(Palette.InkSoft, Palette.Ink, k);
+                _openLabels[i].fontStyle = _tabShown[i] > 0.5f ? FontStyle.Bold : FontStyle.Normal;
+            }
+            _barBadgeRect.localScale = Vector3.one * (1f + _badgePop);
         }
 
         void BuildSheet(GameCatalog catalog)
@@ -1817,6 +1891,9 @@ namespace VuonTra.Game.UI
             int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s);
             _barBadge.SetActive(claimable > 0);
             _barBadgeText.text = claimable.ToString();
+            if (_shownClaimable >= 0 && claimable > _shownClaimable)
+                Tweens.Add(0.32f, t => _badgePop = 0.4f * Ease.Pop(t), Ease.Linear, 0f, () => _badgePop = 0f); // one more to collect
+            _shownClaimable = claimable;
             _clovers.text = L10n.T("quests.clovers", s.Clovers);
 
             foreach (KeyValuePair<int, Image> pair in _modeButtons)
@@ -1824,13 +1901,6 @@ namespace VuonTra.Game.UI
                 bool on = pair.Key == s.BuyMode;
                 pair.Value.color = on ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
                 _modeLabels[pair.Key].color = on ? Palette.Card : Palette.InkSoft;
-            }
-            for (int i = 0; i < TabCount; i++)
-            {
-                bool on = SheetOpen && Tab == i;
-                _openButtons[i].Lip.color = on ? Palette.CarrotLip : Palette.CardLip;
-                _openButtons[i].Face.color = on ? Palette.Lantern : Palette.Paper;
-                _openLabels[i].color = on ? Palette.Lantern : Palette.Paper;
             }
         }
 
