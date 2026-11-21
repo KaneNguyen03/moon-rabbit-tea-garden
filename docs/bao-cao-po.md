@@ -483,6 +483,25 @@ Sau khi sửa cả bốn xanh.
 - tồn đọng: vẽ `product_<id>.png` cho 7 trạm pha chế và khung khay, bỏ vào `Art/Final/`, seed.
 - tồn đọng: cách mở rộng khay lên 8 ô (bùa hoặc Tiệm, #44).
 
+## #18 — Chụp ảnh vườn, lát đầu (bản Mac)
+
+- Test: 369/369 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test core (`PhotosTests.cs`, file mới) và 2 test màn hình.
+- Commit `1830282`, đã push. Issue #18 để mở (còn khung ảnh, công tắc, album, nhiệm vụ, mobile), đã comment; #16 đã ghi chú.
+- File mới: `Assets/VuonTra/Core/Photos.cs`. Save thêm `photoDay`, `photosTaken` (vẫn v10). `Sfx.Shutter`, `FeelLayer.Flash(color)`. Bảng chuỗi seed lại (11 key `photo.*`).
+- Ảnh (docs/anh/po-18/): `18-chup-khung.png`, `18-chup-xem.png`.
+
+### Đã làm (đối chiếu với nguyên văn #18)
+- Nút máy ảnh trên HUD; `GardenScreen.EnterPhotoMode/ExitPhotoMode/Snap`; chụp bằng `Cam.Render` vào RenderTexture cỡ `Screen`, ghi PNG vào `~/Pictures/VuonTraTho/` (`PhotoFolder` cho test và preview trỏ chỗ khác).
+- Tấm xem lại với "Mở thư mục" (`open -R`), "Chép ảnh" (osascript, chép PNG vào clipboard), "Đóng".
+- Quà ngày: `Photos.Take(s, day)` dùng cùng số ngày `GameRunner.Today` với nhiệm vụ ngày.
+
+### Chưa đạt so với #18
+- Khung ảnh và hai công tắc (tên thỏ, đom đóm), album 12 ảnh, nhiệm vụ ăn theo, quà bằng cà rốt vàng (#44), phần mobile.
+- "Mở thư mục" và "Chép ảnh" chưa ai bấm thật trong bản Mac.
+
+### Tồn đọng
+- tồn đọng: phần còn lại của #18 như trên; trong batch render ảnh chụp ra khổ ngang vì `Screen` của Unity batch không phải cửa sổ game, trong bản Mac thật thì theo cửa sổ.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
