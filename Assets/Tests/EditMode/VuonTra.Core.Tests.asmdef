@@ -3,6 +3,7 @@
     "rootNamespace": "VuonTra.Core.Tests",
     "references": [
         "VuonTra.Core",
+        "VuonTra.Game",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
