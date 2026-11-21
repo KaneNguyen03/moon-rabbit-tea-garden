@@ -1,6 +1,6 @@
 # Issue trên GitHub (bản chép cho session code)
 
-Chép nguyên văn từ KaneNguyen03/moon-rabbit-tea-garden lúc 2026-11-22 04:09. Nguồn chính vẫn là GitHub; file này do session PO cập nhật.
+Chép nguyên văn từ KaneNguyen03/moon-rabbit-tea-garden lúc 2026-11-22 04:13. Nguồn chính vẫn là GitHub; file này do session PO cập nhật.
 
 ## #1 Mùa trăng mới: làm lại vườn để lấy hệ số vĩnh viễn
 
@@ -218,8 +218,9 @@ Theo dõi các việc trong hàng đợi của bản chơi thử đầu tiên. M
 - [x] Cấp vườn và mở rộng đất theo cấp và số thỏ (`feb6c8f`, `7406a41`)
 - [x] Sửa lỗi thỏ phình to khi bấm nhanh (#35, `7406a41`; chờ chủ project bấm thử)
 - [x] Huy hiệu cấp vườn, sương, hình bùa vẽ tay; bù chỗ nghỉ cho save cũ (`200ebe4`)
-- [x] Lượt UI thứ nhất, phần đã xong: nút và chữ (#24, `9b1f1b6`), tấm trượt (#22, `52be412`), thanh tab (#23, `a08ef1f`), chuyển động cơ bản (#28, `a011c73`). Mỗi issue còn mục tồn, xem bình luận trong issue.
-- [ ] Lượt UI thứ nhất, phần còn lại: tab Trạm (#25), tab Nhiệm vụ (#27), phản hồi khi chạm (#29)
+- [x] Lượt UI thứ nhất, phần đã xong: nút và chữ (#24, `9b1f1b6`), tấm trượt (#22, `52be412`), thanh tab (#23, `a08ef1f`), chuyển động cơ bản (#28, `a011c73`), phản hồi khi chạm (#29, `16b4867`). Mỗi issue còn mục tồn, xem bình luận trong issue.
+- [ ] Trạm trống không hiện thỏ, mỗi trạng thái một lời mời hành động (#43)
+- [ ] Lượt UI thứ nhất, phần còn lại: tab Trạm (#25), tab Nhiệm vụ (#27)
 - [ ] Nâng cấp nhanh: nâng tối đa, tới mốc, nâng tất cả (#36)
 - [ ] Cà rốt vàng và Tiệm (quầy tiệm trong vườn, quà mỗi ngày, gọi thỏ, thỏ ghé tiệm, đồ cho thỏ, nhuộm lông)
 - [ ] Khay sản phẩm: chạm món để nhận cà rốt (#37)
@@ -238,6 +239,8 @@ Theo dõi các việc trong hàng đợi của bản chơi thử đầu tiên. M
 **Lên cửa hàng (sau bản chơi thử):** #41 bản build iOS và Android → #38 lõi lưu mây → #39 Game Center và iCloud, #40 Play Games và Saved Games → #42 quyền riêng tư.
 
 **Cần chủ project:** #1, #4, #7, #9, #12, #15, #17 (liên kết Unity Cloud), #39 và #40 và #41 (tài khoản nhà phát triển Apple và Google), #42 (duyệt chính sách).
+
+
 
 
 
@@ -727,6 +730,49 @@ Cả App Store và Google Play đều yêu cầu những thứ này trước khi
 - [ ] Quyết định nhóm tuổi mục tiêu; ảnh hưởng tới đăng nhập, quảng cáo và việc gọi thỏ có yếu tố may rủi (#9).
 
 **Phụ thuộc:** #38, #39, #40.
+
+---
+
+## #43 Trạm trống hiện sẵn con thỏ, người chơi không hiểu phải làm gì
+
+Nhãn: enhancement
+
+**Chủ project báo:** trạm trống chưa làm gì mà vẫn hiện con thỏ, nhìn vào không biết cần làm gì.
+
+**Hiện trạng**
+- Ô đất chưa xây trạm hiện một con thỏ xám mờ đứng cạnh đạo cụ mờ, nhãn "Đất trống".
+- Trạm chưa mở hiện con thỏ mờ ngủ với nhãn "z z z", trông giống hệt một con thỏ đang ngủ gật vì hết trà lực.
+- Trạm đã mở nhưng chưa xếp thỏ sưu tầm nào vẫn hiện một con thỏ mặc định đang làm việc, nên người chơi tưởng trạm đã có thỏ và không biết mình có thể xếp thỏ vào để được thưởng nghề.
+
+Ba trạng thái khác nhau đang dùng chung một hình ảnh "có con thỏ đứng đó".
+
+**Nguyên tắc mới: chỉ hiện thỏ khi thật sự có một con thỏ của người chơi ở đó. Mỗi trạng thái có đúng một lời mời hành động.**
+
+| Trạng thái | Hiện gì | Lời mời |
+|---|---|---|
+| Đất chưa mở rộng | Chỉ có sương và cây | Thẻ "Mở rộng vườn" ghi ba điều kiện (đã có) |
+| Ô đất đã có, chưa xây trạm | Một nền đất có cọc biển, bóng mờ của đạo cụ sẽ xây. KHÔNG có thỏ | Biển giá nảy nhẹ: "Xây · 120"; đủ tiền thì sáng, thiếu thì ghi còn thiếu bao nhiêu |
+| Trạm đã xây, chưa có thỏ | Đạo cụ đầy đủ màu, tự chạy chậm (có hơi nước, thanh tiến độ). Chỗ đứng của thỏ là một tấm đệm trống có viền chấm và dấu "+" | Chạm tấm đệm: mở danh sách thỏ, thỏ đúng nghề đứng đầu và có dấu ×1,5 |
+| Trạm có thỏ đang làm | Con thỏ sưu tầm, nhãn tên, icon nghề | Chạm thỏ để làm nhanh hơn |
+| Thỏ ngủ gật vì hết trà lực | Con thỏ đó nhắm mắt, "z z" | Chạm để đánh thức |
+
+**Thay đổi cơ chế đi kèm**
+- Bỏ con thỏ mặc định của trạm khỏi vườn. Trạm không có thỏ vẫn sản xuất ở mức gốc như hiện nay (không đổi thu nhập), chỉ là không vẽ thỏ.
+- Để ấm trà không trống lúc bắt đầu: người chơi mới được tặng một con thỏ đầu tiên (Thỏ Bông) đã đứng sẵn ở ấm trà. Save cũ: trạm nào đang không có thỏ sưu tầm thì giữ nguyên là "chưa có thỏ", không tặng thêm.
+- Chạm vào đạo cụ của trạm chưa có thỏ vẫn làm nhanh hơn như chạm vào thỏ.
+- Hình thỏ theo nghề đã vẽ cho các trạm (và vòng khuấy trà của ấm trà) để dành cho hoạt ảnh làm việc theo nghề (#2), không xoá.
+- Ô "ai làm ở đây" trên tấm trạm (đã có) là nơi thứ hai để xếp thỏ.
+- Số trạm còn thiếu thỏ hiện thành huy hiệu trên tab Thỏ (#23).
+
+**Test**
+- Trạng thái hiển thị của từng ô theo dữ liệu: không có hình thỏ nào khi ô chưa xây hoặc trạm chưa có thỏ.
+- Thu nhập của trạm chưa có thỏ không đổi so với trước.
+- Người chơi mới có đúng một thỏ, đứng ở ấm trà; save cũ không được tặng thêm.
+- Chạm tấm đệm mở danh sách thỏ, xếp xong thì thỏ hiện ra.
+
+**Hình cần vẽ:** nền đất có cọc biển cho ô chưa xây, tấm đệm trống cho chỗ thỏ.
+
+**Liên quan:** #30 (hướng dẫn người mới dùng đúng các lời mời này), #2, #23, #25.
 
 ---
 
