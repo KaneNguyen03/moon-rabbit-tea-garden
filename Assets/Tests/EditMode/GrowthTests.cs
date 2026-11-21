@@ -39,28 +39,22 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void A_Station_Needs_A_Plot()
+        public void A_Station_Needs_A_Plot_And_Plots_Come_By_Widening_The_Garden()
         {
             s.Levels = new[] { 1, 1, 1, 1, 0, 0 };
             s.Coins = new BigNum(1e12);
             Assert.IsFalse(Economy.CanUnlock(s, 4));
             Assert.IsFalse(Simulation.TryBuy(defs, s, 4));
-            Assert.IsTrue(Plots.TryBuy(defs, s));
-            Assert.AreEqual(5, s.Plots);
-            Assert.IsTrue(Simulation.TryBuy(defs, s, 4));
-        }
+            Assert.IsFalse(Plots.TryBuy(defs, s), "carrots alone do not widen the garden");
 
-        [Test]
-        public void Plot_Costs_A_Quarter_Of_Its_Station_And_Stops_At_The_End()
-        {
-            Assert.AreEqual(100000 * 0.25, Plots.CostOfNext(defs, s).ToDouble(), 1e-6);
-            Assert.IsFalse(Plots.TryBuy(defs, s), "broke");
-            s.Coins = new BigNum(1e12);
+            s.GardenXp = Garden.XpForLevel(3);
+            Add(0); Add(0); Add(0);
+            Assert.AreEqual((1e5 + 1e6) * 0.25, Plots.CostOfNext(defs, s).ToDouble(), 1e-3, "both plots of the wave");
             Assert.IsTrue(Plots.TryBuy(defs, s));
-            Assert.IsTrue(Plots.TryBuy(defs, s));
-            Assert.IsFalse(Plots.CanBuy(defs, s));
+            Assert.AreEqual(6, s.Plots, "a wave opens two plots");
+            Assert.IsTrue(Simulation.TryBuy(defs, s, 4));
+            Assert.IsFalse(Plots.CanBuy(defs, s), "six stations, six plots: nothing left");
             Assert.IsFalse(Plots.TryBuy(defs, s));
-            Assert.AreEqual(6, s.Plots);
         }
 
         // ----- energy -----

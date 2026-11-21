@@ -25,7 +25,6 @@ namespace VuonTra.Game.UI
         readonly Action<int> _onMerge;
         readonly Action<long> _onOpen;
         readonly Action<string> _onKind;
-        readonly Action _onBuySpot;
         readonly Func<string, bool> _isFresh;
         readonly List<GameObject> _dynamic = new List<GameObject>();
         Text _count, _clovers, _summonLabel;
@@ -41,7 +40,6 @@ namespace VuonTra.Game.UI
             Action<long> onOpen, Action<string> onKind, Action onBuySpot, Func<string, bool> isFresh = null)
         {
             _isFresh = isFresh;
-            _onBuySpot = onBuySpot;
             _content = content;
             _catalog = catalog;
             _onSummon = onSummon;
@@ -143,7 +141,7 @@ namespace VuonTra.Game.UI
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             if (_isFresh != null && Album)
                 foreach (string seen in s.SeenKinds) if (_isFresh(seen)) sb.Append('*').Append(seen);
-            sb.Append('|').Append(s.SeenKinds.Count).Append('|').Append(s.RestSpots).Append(s.Coins >= RestSpots.CostOfNext(s) ? '+' : '-');
+            sb.Append('|').Append(s.SeenKinds.Count).Append('|').Append(s.RestSpots);
             return sb.ToString();
         }
 
@@ -216,27 +214,19 @@ namespace VuonTra.Game.UI
             _dynamic.Add(root.gameObject);
         }
 
-        /// <summary>How many resting rabbits can sit out in the garden, and the way to make room for one more.</summary>
+        /// <summary>How many resting rabbits can sit out in the garden. More places come with widening the garden.</summary>
         void AddRest(GameState s)
         {
             var root = UiKit.Rect("Rest", _content);
             root.AddImage(_catalog.Panel, Palette.Track, true);
-            root.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
+            root.gameObject.AddComponent<LayoutElement>().preferredHeight = 60;
             int resting = 0;
             foreach (Rabbit r in s.Rabbits) if (r.Station < 0) resting++;
-            Text text = UiKit.Rect("Text", root).Stretch(0, 0, 1, 1, 24, 0, 330, 0)
+            Text text = UiKit.Rect("Text", root).Stretch(0, 0, 1, 1, 24, 0, 24, 0)
                 .AddText(L10n.T("rest.row", Mathf.Min(resting, s.RestSpots), s.RestSpots), 24, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             text.resizeTextForBestFit = true;
             text.resizeTextMinSize = 16;
             text.resizeTextMaxSize = 24;
-            bool more = RestSpots.CanBuy(s);
-            BigNum cost = RestSpots.CostOfNext(s);
-            bool afford = more && s.Coins >= cost;
-            var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -160, 2, 296, 60);
-            ChunkyButton chunky = UiKit.Chunky(button, _catalog.Panel, () => _onBuySpot());
-            chunky.SetEnabled(afford);
-            UiKit.Rect("Text", chunky.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0)
-                .AddText(more ? L10n.T("rest.buy", cost.Short()) : L10n.T("rest.full"), 24, afford ? Palette.Card : Palette.OffInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _dynamic.Add(root.gameObject);
         }
 

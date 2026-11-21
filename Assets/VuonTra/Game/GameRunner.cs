@@ -279,14 +279,6 @@ namespace VuonTra.Game
         }
 
         /// <summary>Buys the next garden plot, which lets the next station be opened.</summary>
-        /// <summary>Opens one more place for a resting rabbit to sit in the garden.</summary>
-        public bool BuyRestSpot()
-        {
-            bool ok = RestSpots.TryBuy(State);
-            if (ok) Changed();
-            return ok;
-        }
-
         public bool BuyPlot()
         {
             bool ok = Plots.TryBuy(Defs, State);

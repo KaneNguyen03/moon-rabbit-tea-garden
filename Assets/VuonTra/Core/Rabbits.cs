@@ -164,6 +164,7 @@ namespace VuonTra.Core
             var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = tier, Kind = RabbitKinds.Pick(tier, kindRoll), Name = name };
             rabbit.FirstOfKind = See(s, rabbit.Kind);
             s.Rabbits.Add(rabbit);
+            Garden.AddXp(s, Garden.XpSummon + (rabbit.FirstOfKind ? Garden.XpNewKind : 0));
             return rabbit;
         }
 
@@ -207,6 +208,7 @@ namespace VuonTra.Core
             var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Kind = RabbitKinds.Pick(tier + 1, kindRoll), Name = used[0].Name, Station = station, Level = level };
             merged.FirstOfKind = See(s, merged.Kind);
             s.Rabbits.Add(merged);
+            if (merged.FirstOfKind) Garden.AddXp(s, Garden.XpNewKind);
             // Items move to the new rabbit, first come first served per slot; the rest come off.
             foreach (Rabbit r in used)
                 for (int i = 0; i < s.Items.Count; i++)

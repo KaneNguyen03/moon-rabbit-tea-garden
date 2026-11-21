@@ -50,6 +50,8 @@ namespace VuonTra.Core
         public HashSet<string> SeenKinds = new HashSet<string>();
         /// <summary>How many places resting rabbits have to sit in the garden.</summary>
         public int RestSpots = VuonTra.Core.RestSpots.Starting;
+        /// <summary>The garden's experience; its level follows from this.</summary>
+        public double GardenXp;
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {

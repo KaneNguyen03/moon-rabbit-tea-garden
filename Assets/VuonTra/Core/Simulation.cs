@@ -72,6 +72,9 @@ namespace VuonTra.Core
             s.Coins -= cost;
             s.Levels[index] = level + count;
             s.LevelsBought += count;
+            // The garden grows with its stations: each level a little, opening one and passing a milestone more.
+            Garden.AddXp(s, (level == 0 ? Garden.XpStationOpened : count * Garden.XpPerLevelBought)
+                + Garden.MilestonesCrossed(level, level + count) * Garden.XpMilestone);
             if (level == 0) s.Progress[index] = 0d;
             return true;
         }

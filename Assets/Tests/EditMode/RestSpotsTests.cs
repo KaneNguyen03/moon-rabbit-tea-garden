@@ -56,40 +56,22 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Another_Place_Costs_Carrots_And_Each_One_Costs_More()
-        {
-            BigNum first = RestSpots.CostOfNext(s);
-            Assert.IsTrue(first > BigNum.Zero);
-            s.Coins = first - BigNum.One;
-            Assert.IsFalse(RestSpots.TryBuy(s), "one carrot short");
-            Assert.AreEqual(2, s.RestSpots);
-
-            s.Coins = first;
-            Assert.IsTrue(RestSpots.TryBuy(s));
-            Assert.AreEqual(3, s.RestSpots);
-            Assert.IsTrue(s.Coins.Equals(BigNum.Zero));
-            Assert.IsTrue(RestSpots.CostOfNext(s) > first);
-        }
-
-        [Test]
-        public void There_Is_A_Last_Place()
-        {
-            s.RestSpots = RestSpots.Max;
-            s.Coins = BigNum.FromParts(1, 50);
-            Assert.IsFalse(RestSpots.CanBuy(s));
-            Assert.IsFalse(RestSpots.TryBuy(s));
-            Assert.AreEqual(RestSpots.Max, s.RestSpots);
-            Assert.IsTrue(RestSpots.CostOfNext(s).Equals(BigNum.Zero));
-        }
-
-        [Test]
         public void Places_To_Rest_Never_Change_What_The_Garden_Earns()
         {
             Add(3, 0); Add(1);
             double before = Economy.IncomePerSecond(defs, s).ToDouble();
-            s.Coins = RestSpots.CostOfNext(s);
-            Assert.IsTrue(RestSpots.TryBuy(s));
+            s.RestSpots = RestSpots.Max;
             Assert.AreEqual(before, Economy.IncomePerSecond(defs, s).ToDouble(), 1e-12);
+        }
+
+        [Test]
+        public void More_Places_Than_The_Garden_Can_Hold_Are_Ignored()
+        {
+            for (int i = 0; i < 10; i++) Add(0);
+            s.RestSpots = 50;
+            Assert.AreEqual(RestSpots.Max, RestSpots.Seated(s).Count);
+            s.RestSpots = -3;
+            Assert.IsEmpty(RestSpots.Seated(s));
         }
 
         [Test]

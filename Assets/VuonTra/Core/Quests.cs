@@ -105,6 +105,7 @@ namespace VuonTra.Core
             s.Coins += paid;
             s.Clovers += q.RewardClovers;
             s.Claimed.Add(q.Id);
+            Garden.AddXp(s, Garden.XpQuest);
             return true;
         }
 

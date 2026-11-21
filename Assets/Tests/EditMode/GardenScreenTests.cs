@@ -271,7 +271,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(summon.interactable);
             summon.onClick.Invoke();
             Assert.AreEqual(1, runner.State.Rabbits.Count);
-            Assert.AreEqual(2, runner.State.Clovers);
+            Assert.AreEqual(3 - 1 + (Garden.Level(runner.State) - 1), runner.State.Clovers, "one spent, and one back for each garden level gained");
             screen.Refresh();
 
             Rabbit first = runner.State.Rabbits[0];
@@ -594,75 +594,6 @@ namespace VuonTra.Core.Tests
             int sat = GardenScreen.Strolling(1, 0f) ? 2 : 1;
             Find("Canvas/Garden/Content/Seat " + sat).onClick.Invoke();
             Assert.IsTrue(screen.Detail.IsOpen);
-        }
-
-        [Test]
-        public void A_Place_To_Rest_Is_Bought_From_The_Rabbit_Tab()
-        {
-            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "A" });
-            runner.State.NextRabbitId = 1;
-            runner.State.Coins = RestSpots.CostOfNext(runner.State);
-            screen.OpenSheet(3);
-            screen.Refresh();
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Rest/Button").onClick.Invoke();
-            Assert.AreEqual(3, runner.State.RestSpots);
-        }
-
-        [Test]
-        public void A_Called_Rabbit_Steps_Out_Of_The_Moon_Gate_And_A_New_Kind_Is_Marked()
-        {
-            runner.State.Clovers = 5;
-            screen.OpenSheet(3);
-            screen.Refresh();
-            Assert.IsFalse(screen.Arrival.IsOpen);
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Summon/Button").onClick.Invoke();
-            Rabbit first = runner.State.Rabbits[0];
-            Assert.IsTrue(screen.Arrival.IsOpen);
-            Assert.IsFalse(screen.Arrival.Revealed, "it starts as a shadow in the gate");
-            Assert.IsFalse(screen.Arrival.ShowsNew);
-            Assert.AreEqual("kind_" + first.Kind, root.transform.Find("Canvas/SummonMoment/Rabbit").GetComponent<Image>().sprite.name);
-
-            for (int i = 0; i < 40; i++) screen.Advance(0.1f);
-            Assert.IsTrue(screen.Arrival.Revealed);
-            Assert.IsTrue(screen.Arrival.ShowsNew, "the first of its kind");
-            Assert.AreEqual(first.Name, root.transform.Find("Canvas/SummonMoment/Texts/Name").GetComponent<Text>().text);
-            Assert.IsTrue(screen.IsFreshKind(first.Kind));
-
-            Find("Canvas/SummonMoment").onClick.Invoke();
-            Assert.IsFalse(screen.Arrival.IsOpen, "a tap after the reveal closes it");
-
-            // A tap during the show skips to the rabbit; the next one closes.
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Summon/Button").onClick.Invoke();
-            Find("Canvas/SummonMoment").onClick.Invoke();
-            Assert.IsTrue(screen.Arrival.IsOpen);
-            Assert.IsTrue(screen.Arrival.Revealed);
-            Find("Canvas/SummonMoment").onClick.Invoke();
-            Assert.IsFalse(screen.Arrival.IsOpen);
-
-            // The album marks the new kind until its page has been opened.
-            screen.ShowRabbitAlbum(true);
-            Transform content = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content");
-            Transform cell = null;
-            foreach (Transform row in content) { cell = row.Find("Kind " + first.Kind); if (cell != null) break; }
-            Assert.IsNotNull(cell.Find("Fresh"));
-            cell.GetComponent<Button>().onClick.Invoke();
-            Assert.IsFalse(screen.IsFreshKind(first.Kind));
-        }
-
-        [Test]
-        public void The_Same_Kind_A_Second_Time_Is_Not_Announced_As_New()
-        {
-            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "A" });
-            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-bong", Name = "B" });
-            runner.State.Rabbits.Add(new Rabbit { Id = 3, Tier = 0, Kind = "tho-bong", Name = "C" });
-            runner.State.NextRabbitId = 3;
-            foreach (RabbitKind kind in RabbitKinds.OfTier(1)) Rabbits.See(runner.State, kind.Id); // every green kind already met
-            screen.OpenSheet(3);
-            screen.Refresh();
-            Find("Canvas/Sheet/Panel/Rabbits/Content/Merge 0/Button").onClick.Invoke();
-            Assert.IsTrue(screen.Arrival.IsOpen, "a merged rabbit arrives through the gate too");
-            for (int i = 0; i < 40; i++) screen.Advance(0.1f);
-            Assert.IsFalse(screen.Arrival.ShowsNew);
         }
 
         [Test]

@@ -226,7 +226,13 @@ namespace VuonTra.Game.UI
         /// <summary>Far shows the whole garden top to bottom; near is for looking at one rabbit.</summary>
         public const float ZoomFar = ScreenH / WorldH, ZoomDefault = 1f, ZoomNear = 1.5f;
         float _zoom = 1f;
-        Text _zoomMark;
+        Text _zoomMark, _levelText;
+        Image _levelRing;
+        RectTransform _levelBadge;
+        int _shownGardenLevel = -1;
+        readonly List<Image> _fog = new List<Image>();
+        readonly List<GameObject> _fogTrees = new List<GameObject>();
+        int _fogPlots = -1;
         bool _wheelLatched;
         float _wheelQuiet;
         RectTransform _cardWorker;
@@ -706,6 +712,26 @@ namespace VuonTra.Game.UI
 
             // Everything that stands up is drawn back to front: the lower on screen, the nearer.
             var standing = new List<KeyValuePair<float, Transform>>();
+
+            // Land the garden has not grown into yet lies under mist with a few trees on it. The mist is on the
+            // ground, under everything that stands, so the outline of the next station still shows through.
+            _fog.Clear(); _fogTrees.Clear(); _fogPlots = -1;
+            Color mist = new Color(0.66f, 0.74f, 0.88f, 0.62f);
+            for (int i = 0; i < count; i++)
+            {
+                if (i < Plots.Starting) { _fog.Add(null); _fogTrees.Add(null); continue; }
+                Vector2 spot = StationSpot(i);
+                _fog.Add(UiKit.Rect("Mist " + i, _street).Place(0f, 0f, spot.x + 6f, spot.y - 10f, 620f, 470f).AddImage(catalog.Glow, mist));
+                var grove = UiKit.Rect("Grove " + i, _street).Place(0f, 0f, 0, 0, 0, 0);
+                if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
+                {
+                    Color dim = Palette.Mix(Color.white, Palette.Night, 0.3f);
+                    AddDecor(grove, catalog.Decor[0], spot.x - 150f, spot.y + 70f, 190f, dim);
+                    AddDecor(grove, catalog.Decor[0], spot.x + 170f, spot.y + 40f, 170f, dim);
+                }
+                _fogTrees.Add(grove.gameObject);
+                standing.Add(new KeyValuePair<float, Transform>(spot.y + 70f, grove));
+            }
             BuildDecor(catalog, count, standing);
 
             for (int i = 0; i < count; i++)
@@ -975,8 +1001,8 @@ namespace VuonTra.Game.UI
             if (needsPlot)
             {
                 cost = Plots.CostOfNext(defs, s);
-                can = s.Coins >= cost;
-                _cardInfo.text = L10n.T("plot.sub", L10n.Station(defs[i].Id));
+                can = Expansion.CanExpand(defs, s);
+                _cardInfo.text = ExpansionNeeds(defs, s);
                 _cardBuyTop.text = L10n.T("plot.buy");
             }
             else if (level <= 0)
@@ -1185,19 +1211,44 @@ namespace VuonTra.Game.UI
             _hud.sizeDelta = new Vector2(0, 150);
 
             // One row: carrots, tea power, zoom, settings. Everything below it is garden.
-            _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 204, -76, 360, 100);
+            // The garden's level: a number in a ring that fills towards the next one.
+            var badge = UiKit.Rect("Level", _hud).Place(0f, 1f, 70, -76, 96, 96);
+            badge.AddShadow(14f, 10f, 0.3f);
+            Image badgeBack = badge.AddImage(catalog.Round, Palette.CardLip);
+            badgeBack.raycastTarget = true;
+            var badgeButton = badge.gameObject.AddComponent<Button>();
+            badgeButton.transition = Selectable.Transition.None;
+            badgeButton.targetGraphic = badgeBack;
+            badgeButton.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                GameState now = Runner.State;
+                int level = Garden.Level(now);
+                Feel.Moment(L10n.T("garden.info.title", level),
+                    L10n.T("garden.info.sub", Mathf.CeilToInt((float)(Garden.XpForLevel(level + 1) - now.GardenXp))));
+            });
+            _levelRing = UiKit.Rect("Ring", badge).Stretch(0, 0, 1, 1, 3, 3, 3, 3).AddImage(catalog.Round, Palette.Lantern);
+            _levelRing.type = Image.Type.Filled;
+            _levelRing.fillMethod = Image.FillMethod.Radial360;
+            _levelRing.fillOrigin = (int)Image.Origin360.Top;
+            _levelRing.fillClockwise = true;
+            UiKit.Rect("Face", badge).Stretch(0, 0, 1, 1, 13, 13, 13, 13).AddImage(catalog.Round, Palette.Paper);
+            _levelText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("1", 40, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _levelBadge = badge;
+
+            _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _purse).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            _currency = UiKit.Rect("Currency", _purse).Place(0f, 0.5f, 52, 4, 68, 68);
+            _currency = UiKit.Rect("Currency", _purse).Place(0f, 0.5f, 44, 4, 60, 60);
             _currency.AddImage(catalog.Currency, Color.white).preserveAspect = true;
-            _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 92, 0, 14, 6)
-                .AddText("0", 40, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _perSecond = UiKit.Rect("PerSecond", _purse).Stretch(0, 0, 1, 0.46f, 92, 14, 14, 0)
+            _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 78, 0, 10, 6)
+                .AddText("0", 38, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _perSecond = UiKit.Rect("PerSecond", _purse).Stretch(0, 0, 1, 0.46f, 78, 14, 10, 0)
                 .AddText(L10n.T("persec", "0"), 22, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             // "Trà lực": the bar and the boost button are one control.
-            var energy = UiKit.Rect("Energy", _hud).Place(0f, 1f, 616, -76, 440, 100);
+            var energy = UiKit.Rect("Energy", _hud).Place(0f, 1f, 632, -76, 396, 100);
             energy.AddShadow();
             _energyButton = UiKit.Chunky(energy, catalog.Panel, OnBoost);
             _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.55f, 1, 22, 0, 0, 6)
@@ -1384,10 +1435,7 @@ namespace VuonTra.Game.UI
                 Sfx.Click();
                 _freshKinds.Remove(kindId); // looked at now
                 Detail.OpenKind(Runner.Defs, Runner.State, kindId);
-            }, () =>
-            {
-                if (Runner.BuyRestSpot()) Sfx.Sting();
-            }, IsFreshKind);
+            }, null, IsFreshKind);
 
             SetTab(0);
             _sheet.SetActive(false);
@@ -1609,6 +1657,20 @@ namespace VuonTra.Game.UI
         void RefreshEnergy(GameState s, bool boosting)
         {
             bool can = Energy.CanBoost(s);
+            int gardenLevel = Garden.Level(s);
+            _levelText.text = gardenLevel.ToString();
+            _levelRing.fillAmount = Mathf.Max(0.02f, (float)Garden.Progress(s));
+            if (_shownGardenLevel > 0 && gardenLevel > _shownGardenLevel && Shell.State != ShellState.Title)
+            {
+                // A new garden level: say so, and say what it brought.
+                Sfx.Sting();
+                Feel.Moment(L10n.T("moment.garden.title", gardenLevel), L10n.T("moment.garden.sub", (gardenLevel - _shownGardenLevel) * Garden.CloversPerLevel));
+                RectTransform badge = _levelBadge;
+                Tweens.Add(0.5f, t => { if (badge != null) badge.localScale = Vector3.one * (1f + 0.3f * Ease.Pop(t)); });
+            }
+            _shownGardenLevel = gardenLevel;
+            RefreshFog(s);
+
             _energyFill.anchorMax = new Vector2(Mathf.Clamp01((float)(s.Energy / Energy.Max)), 1f);
             _energyLabel.text = L10n.T("energy.label", Mathf.FloorToInt((float)s.Energy));
             _energyAction.text = boosting
@@ -1669,6 +1731,39 @@ namespace VuonTra.Game.UI
             RefreshSeats(s);
         }
 
+        /// <summary>The mist lies on every plot the garden does not have; when the garden widens it lifts.</summary>
+        void RefreshFog(GameState s)
+        {
+            if (s.Plots == _fogPlots) return;
+            bool lifting = _fogPlots >= 0 && s.Plots > _fogPlots;
+            for (int i = 0; i < _fog.Count; i++)
+            {
+                if (_fog[i] == null) continue;
+                bool misty = i >= s.Plots;
+                Image fog = _fog[i];
+                GameObject grove = _fogTrees[i];
+                if (misty)
+                {
+                    fog.gameObject.SetActive(true);
+                    grove.SetActive(true);
+                }
+                else if (lifting && fog.gameObject.activeSelf)
+                {
+                    // The trees step back and the mist thins away over a moment.
+                    grove.SetActive(false);
+                    Color from = fog.color;
+                    Tweens.Add(1.2f, t => { if (fog != null) fog.color = Palette.Alpha(from, from.a * (1f - t)); }, Ease.OutCubic, 0f,
+                        () => { if (fog != null) { fog.gameObject.SetActive(false); fog.color = from; } });
+                }
+                else
+                {
+                    fog.gameObject.SetActive(false);
+                    grove.SetActive(false);
+                }
+            }
+            _fogPlots = s.Plots;
+        }
+
         /// <summary>Resting rabbits that have a place sit in the garden as themselves; the rest are not out.</summary>
         void RefreshSeats(GameState s)
         {
@@ -1696,10 +1791,30 @@ namespace VuonTra.Game.UI
         /// <summary>True when the one thing the station's card offers (land, opening, or levels) can be paid for.</summary>
         static bool CanAfford(IReadOnlyList<StationDef> defs, GameState s, int i)
         {
-            if (i >= s.Plots) return s.Coins >= Plots.CostOfNext(defs, s);
+            if (i >= s.Plots) return Expansion.CanExpand(defs, s);
             int level = s.Levels[i];
             if (level <= 0) return Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1);
             return s.Coins >= Economy.CostOfNext(defs[i], level, Simulation.BuyCount(defs, s, i));
+        }
+
+        /// <summary>
+        /// What the next widening of the garden asks for, one condition after another, each in green once it
+        /// is met and in rust while it is not: "Cấp vườn 3 · 3 bé thỏ (đang 1) · 650K cà rốt".
+        /// </summary>
+        static string ExpansionNeeds(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            ExpansionWave wave = Expansion.Next(defs, s);
+            if (wave == null) return "";
+            string Mark(bool met, string text) => "<color=#" + (met ? "2E7D4F" : "B4532A") + ">" + text + "</color>";
+            int level = Garden.Level(s);
+            var parts = new List<string>();
+            parts.Add(Mark(level >= wave.NeedLevel, L10n.T("expand.level", wave.NeedLevel) + (level >= wave.NeedLevel ? "" : L10n.T("expand.have", level))));
+            if (wave.NeedRabbits > 0)
+                parts.Add(Mark(s.Rabbits.Count >= wave.NeedRabbits, L10n.T("expand.rabbits", wave.NeedRabbits) + (s.Rabbits.Count >= wave.NeedRabbits ? "" : L10n.T("expand.have", s.Rabbits.Count))));
+            if (wave.NeedKinds > 0)
+                parts.Add(Mark(s.SeenKinds.Count >= wave.NeedKinds, L10n.T("expand.kinds", wave.NeedKinds) + (s.SeenKinds.Count >= wave.NeedKinds ? "" : L10n.T("expand.have", s.SeenKinds.Count))));
+            parts.Add(Mark(Expansion.HasCarrots(defs, s), L10n.T("expand.carrots", Expansion.Cost(defs, s).Short())));
+            return string.Join(" · ", parts);
         }
 
         void RefreshPlotRow(IReadOnlyList<StationDef> defs, GameState s)
@@ -1709,9 +1824,9 @@ namespace VuonTra.Game.UI
             if (!more) return;
             if (_plotRow.GetSiblingIndex() != s.Plots) _plotRow.SetSiblingIndex(s.Plots);
             BigNum cost = Plots.CostOfNext(defs, s);
-            bool can = s.Coins >= cost;
-            _plotTitle.text = L10n.T("plot.title", s.Plots + 1);
-            _plotSub.text = L10n.T("plot.sub", L10n.Station(defs[s.Plots].Id));
+            bool can = Expansion.CanExpand(defs, s);
+            _plotTitle.text = L10n.T("plot.title", Expansion.NextIndex(defs, s) + 1);
+            _plotSub.text = ExpansionNeeds(defs, s);
             _plotCost.text = cost.Short();
             _plotCost.color = can ? Palette.Card : Palette.OffInk;
             _plotBuy.SetEnabled(can);
@@ -1818,10 +1933,14 @@ namespace VuonTra.Game.UI
 
         void OnBuyPlot()
         {
+            int before = Runner.State.Plots;
             if (!Runner.BuyPlot()) return;
             _plotBuy.Press(Tweens);
             Sfx.Sting();
-            Feel.Moment(L10n.T("moment.plot.title"), L10n.T("moment.plot.sub", L10n.Station(Runner.Defs[Runner.State.Plots - 1].Id)));
+            // Name what the new land is for.
+            var names = new List<string>();
+            for (int i = before; i < Runner.State.Plots && i < Runner.Defs.Count; i++) names.Add(L10n.Station(Runner.Defs[i].Id));
+            Feel.Moment(L10n.T("moment.plot.title"), L10n.T("moment.plot.sub", string.Join(", ", names)));
         }
 
         void OnSummon()

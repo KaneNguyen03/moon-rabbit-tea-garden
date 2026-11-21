@@ -91,7 +91,8 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, r.Tier);
             Assert.AreEqual("Bông", r.Name);
             Assert.AreEqual(-1, r.Station);
-            Assert.AreEqual(1, s.Clovers);
+            // One spent; any garden level the arrival brought would give one back.
+            Assert.AreEqual(2 - Rabbits.SummonCost + (Garden.Level(s) - 1) * Garden.CloversPerLevel, s.Clovers);
             Assert.AreEqual(1, s.Rabbits.Count);
             Rabbit second = Rabbits.Summon(s, 0.1, "Mây");
             Assert.AreNotEqual(r.Id, second.Id);

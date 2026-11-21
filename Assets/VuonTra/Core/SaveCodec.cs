@@ -29,8 +29,8 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest.</summary>
-        public const int CurrentVersion = 7;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience.</summary>
+        public const int CurrentVersion = 8;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -78,7 +78,8 @@ namespace VuonTra.Core
                 first = false;
                 WriteString(sb, id);
             }
-            sb.Append("],\"restSpots\":").Append(s.RestSpots.ToString(CultureInfo.InvariantCulture));
+            sb.Append("],\"gardenXp\":").Append(s.GardenXp.ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"restSpots\":").Append(s.RestSpots.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"seenKinds\":[");
             first = true;
             foreach (string id in s.SeenKinds)
@@ -306,6 +307,11 @@ namespace VuonTra.Core
             }
             long savedNextItem = ToLong(ReadNumber(root, "nextItemId"));
             if (savedNextItem > s.NextItemId) s.NextItemId = savedNextItem;
+
+            // Version 8: the garden's experience. An older save is given what its progress would have earned,
+            // and no garden is ever below the level its land already needs.
+            double xp = TryNumber(root, "gardenXp", out double savedXp) && savedXp >= 0d ? savedXp : Garden.BackfillXp(defs, s);
+            s.GardenXp = Math.Max(xp, Garden.XpForLevel(Expansion.LevelForPlots(defs, s.Plots)));
 
             result.Status = LoadStatus.Ok;
             return result;
