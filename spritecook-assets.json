@@ -7,6 +7,14 @@
     {
       "asset_id": "911c268b-461e-4742-adf5-ca47330d801a",
       "label": "nine job rabbits 3x3 sheet"
+    },
+    {
+      "asset_id": "4239b01f-e587-488a-8d79-1015a22beab0",
+      "label": "tea brewer rabbit (animation source)"
+    },
+    {
+      "asset_id": "a5fec80b-92bc-4345-8ce8-dad46bad6529",
+      "label": "tea brewer rabbit, 4 stirring frames 2x2"
     }
   ],
   "local_files": [
@@ -63,6 +71,30 @@
       "sha12": "a0289f0dc5d9",
       "label": "rabbit",
       "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_am-tra_f0.png",
+      "sha12": "d6d08abe62e0",
+      "label": "rabbit_am-tra_f0",
+      "sliced_from": "a5fec80b-92bc-4345-8ce8-dad46bad6529"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_am-tra_f1.png",
+      "sha12": "13312b53b350",
+      "label": "rabbit_am-tra_f1",
+      "sliced_from": "a5fec80b-92bc-4345-8ce8-dad46bad6529"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_am-tra_f2.png",
+      "sha12": "e21629850300",
+      "label": "rabbit_am-tra_f2",
+      "sliced_from": "a5fec80b-92bc-4345-8ce8-dad46bad6529"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_am-tra_f3.png",
+      "sha12": "b917344663c1",
+      "label": "rabbit_am-tra_f3",
+      "sliced_from": "a5fec80b-92bc-4345-8ce8-dad46bad6529"
     }
   ]
 }

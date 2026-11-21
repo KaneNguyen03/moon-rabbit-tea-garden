@@ -22,4 +22,9 @@ MonoBehaviour:
   Boosts: []
   Prop: {fileID: 21300000, guid: b37dadebf086a49f0b81e4f76faa1038, type: 3}
   Rabbit: {fileID: 21300000, guid: 9072d6d341a264cbd861fa0090875922, type: 3}
+  WorkFrames:
+  - {fileID: 21300000, guid: d86c540939b934718a4e4b80d8118700, type: 3}
+  - {fileID: 21300000, guid: d5f14068dca16463f9231610957e9ddc, type: 3}
+  - {fileID: 21300000, guid: f66fae10c97024981bebc8e7820d29c7, type: 3}
+  - {fileID: 21300000, guid: 178e288bebb924c78ac6c82c773c3f13, type: 3}
   Accent: {r: 0.43529412, g: 0.7176471, b: 0.6901961, a: 1}

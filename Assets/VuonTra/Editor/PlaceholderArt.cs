@@ -117,6 +117,7 @@ namespace VuonTra.EditorTools
             Shapes();
             Background();
             Props();
+            Decor();
             File.WriteAllText(Path.Combine(Folder, "CREDITS.md"),
                 "# Hình giữ chỗ\n\nMọi file ảnh trong thư mục này do `PlaceholderArt.cs` của dự án tự vẽ ra, " +
                 "không lấy từ nguồn ngoài. Chúng chỉ để game chạy được trước khi có hình thật. " +
@@ -381,6 +382,57 @@ namespace VuonTra.EditorTools
             p.Ellipse(98, 106, 5, 5, 0, Color.white);
             p.Ellipse(28, 108, 5, 5, 0, Hex("ffe9a8")); p.Ellipse(42, 94, 3, 3, 0, Hex("ffe9a8"));
             p.Save("prop_dai-sao");
+        }
+
+        /// <summary>Things that stand along the street between stations.</summary>
+        static void Decor()
+        {
+            Painter p;
+
+            p = new Painter(200, 240); // round storybook tree
+            p.Box(100, 46, 13, 46, 8, Hex("8a5a3a"));
+            p.Blob(64, 130, 50, 44, 0, Hex("3f8a6c")); p.Blob(138, 126, 50, 46, 0, Hex("3f8a6c"));
+            p.Blob(100, 176, 58, 50, 0, Hex("57a37f"));
+            p.Ellipse(82, 192, 24, 14, -20, Hex("7cc49a")); p.Ellipse(124, 150, 16, 9, 20, Hex("7cc49a"));
+            p.Ellipse(60, 120, 5, 5, 0, Hex("ffc866")); p.Ellipse(140, 108, 5, 5, 0, Hex("f3a6d6")); p.Ellipse(112, 198, 5, 5, 0, Hex("ffc866"));
+            p.Save("decor_tree");
+
+            p = new Painter(200, 120); // flowering bush
+            p.Blob(60, 44, 46, 36, 0, Hex("3f8a6c")); p.Blob(140, 42, 46, 34, 0, Hex("3f8a6c")); p.Blob(100, 60, 54, 44, 0, Hex("57a37f"));
+            p.Ellipse(86, 76, 20, 11, -15, Hex("7cc49a"));
+            foreach (var f in new[] { new Vector2(50, 56), new Vector2(104, 86), new Vector2(150, 54), new Vector2(124, 40), new Vector2(72, 30) })
+            {
+                p.Blob(f.x, f.y, 7, 7, 0, Hex("f3a6d6"), 2);
+                p.Ellipse(f.x, f.y, 2.5f, 2.5f, 0, Hex("fff3c8"));
+            }
+            p.Save("decor_bush");
+
+            p = new Painter(120, 240); // paper lantern on a post
+            p.Box(46, 100, 6, 100, 5, Hex("5a4660"));
+            p.Box(66, 196, 26, 5, 4, Hex("5a4660"));
+            p.Ellipse(86, 150, 40, 44, 0, Hex("ffc866", 0.28f));
+            p.Blob(86, 150, 22, 30, 0, Hex("ffd98a"));
+            p.Ellipse(86, 150, 22, 3, 0, Hex("e0a54a")); p.Ellipse(86, 164, 19, 3, 0, Hex("e0a54a")); p.Ellipse(86, 136, 19, 3, 0, Hex("e0a54a"));
+            p.Ellipse(80, 158, 6, 9, 0, Hex("fff8dc"));
+            p.Box(86, 184, 10, 4, 3, Hex("5a4660"), 3); p.Box(86, 117, 8, 4, 3, Hex("5a4660"), 3);
+            p.Save("decor_lantern");
+
+            p = new Painter(240, 110); // low picket fence
+            for (int k = 0; k < 5; k++) p.Box(30 + k * 45, 48, 11, 40, 9, Hex("e6d2a8"));
+            p.Box(120, 62, 112, 6, 5, Hex("d3b98a")); p.Box(120, 30, 112, 6, 5, Hex("d3b98a"));
+            p.Save("decor_fence");
+
+            p = new Painter(150, 120); // mushroom cluster
+            p.Box(52, 30, 11, 26, 9, Hex("fff1d2")); p.Blob(52, 62, 40, 26, 0, Hex("f27d6b"));
+            p.Ellipse(38, 68, 7, 6, 0, Hex("fff1d2")); p.Ellipse(62, 74, 6, 5, 0, Hex("fff1d2")); p.Ellipse(72, 58, 5, 4, 0, Hex("fff1d2"));
+            p.Box(108, 20, 8, 17, 7, Hex("fff1d2")); p.Blob(108, 42, 26, 17, 0, Hex("c58be0"));
+            p.Ellipse(100, 46, 5, 4, 0, Hex("fff1d2")); p.Ellipse(116, 44, 4, 3, 0, Hex("fff1d2"));
+            p.Save("decor_mushrooms");
+
+            p = new Painter(160, 90); // mossy stones
+            p.Blob(58, 32, 44, 26, 0, Hex("8a93b8")); p.Blob(112, 24, 30, 18, 0, Hex("7880a8"));
+            p.Ellipse(46, 44, 18, 8, -10, Hex("a9b2d4")); p.Ellipse(62, 54, 22, 6, 0, Hex("6fbf8a"));
+            p.Save("decor_stones");
         }
     }
 }

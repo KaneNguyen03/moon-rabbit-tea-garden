@@ -52,6 +52,7 @@ namespace VuonTra.Game.UI
 
         RectTransform _canvas, _street, _hud, _purse, _currency, _panel, _tabBar, _energyFill, _plotRow;
         RawImage _hills, _trees, _ground;
+        RectTransform _decorFront;
         CanvasGroup _sheetGroup;
         Text _coins, _perSecond, _awayAmount, _awayTime, _badgeText, _barBadgeText, _clovers, _energyLabel, _energyAction;
         Text _plotTitle, _plotSub, _plotCost;
@@ -118,6 +119,8 @@ namespace VuonTra.Game.UI
             _hills.uvRect = new Rect(x * 0.10f / 1920f, 0, 1, 1);
             _trees.uvRect = new Rect(x * 0.28f / 1920f, 0, 1.5f, 1);
             _ground.uvRect = new Rect(x / 960f, 0, 2, 1);
+            // Things nearest the viewer slide faster than the street.
+            if (_decorFront != null) _decorFront.anchoredPosition = new Vector2(-x * 1.3f, 0);
         }
 
         /// <summary>
@@ -217,6 +220,8 @@ namespace VuonTra.Game.UI
             _trees = AddLayer("Trees", catalog.BgTrees, 0.50f, 0.74f);
             _ground = AddLayer("Ground", catalog.BgGround, 0, 0.565f);
             if (catalog.BgGround == null) _ground.color = Palette.Grass;
+            // A band of mist where the ground meets the trees softens the horizon.
+            UiKit.Rect("Mist", _canvas).Stretch(-0.1f, 0.47f, 1.1f, 0.66f).AddImage(catalog.Glow, Palette.Alpha(Palette.Paper, 0.16f));
         }
 
         void BuildStreet(GameCatalog catalog)
@@ -238,6 +243,7 @@ namespace VuonTra.Game.UI
             scroll.viewport = view;
 
             int count = catalog.Stations.Length;
+            BuildDecor(catalog, count);
             for (int i = 0; i < count; i++)
             {
                 bool front = i % 2 == 1;
@@ -268,6 +274,71 @@ namespace VuonTra.Game.UI
             hint.AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Text", hint).Stretch(0, 0, 1, 1).AddText(L10n.T("hint"), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _hint = hint.gameObject;
+        }
+
+        static float Hash(float n)
+        {
+            float v = Mathf.Sin(n * 12.9898f) * 43758.5453f;
+            return v - Mathf.Floor(v);
+        }
+
+        Image AddDecor(Transform parent, Sprite sprite, float x, float y, float height, Color tint)
+        {
+            if (sprite == null) return null;
+            float width = height * sprite.rect.width / sprite.rect.height;
+            var rt = UiKit.Rect("Decor", parent).Place(0f, 0f, x, y + height / 2f, width, height);
+            return rt.AddImage(sprite, tint);
+        }
+
+        /// <summary>
+        /// Dresses the street so it is not bare grass: trees and fences behind the back lane,
+        /// lanterns, mushrooms and stones between the stations, and bushes right at the viewer's
+        /// feet. Placement is fixed (not random each run) so the street always looks the same.
+        /// </summary>
+        void BuildDecor(GameCatalog catalog, int stations)
+        {
+            Sprite[] d = catalog.Decor;
+            if (d == null || d.Length < 6) return;
+            const int Tree = 0, Bush = 1, Lantern = 2, Fence = 3, Mushrooms = 4, Stones = 5;
+            float length = FirstStationX + stations * StationSpacing + StreetEndPadding;
+            // Far things are a little bluer and dimmer, which reads as distance at night.
+            Color far = Palette.Mix(Color.white, Palette.Night, 0.38f), mid = Palette.Mix(Color.white, Palette.Night, 0.12f);
+
+            for (float x = 40f; x < length; x += 230f)
+            {
+                float h = Hash(x);
+                float px = x + (h - 0.5f) * 110f;
+                if (h < 0.55f) AddDecor(_street, d[Tree], px, 548f + Hash(x + 3) * 26f, 250f + Hash(x + 7) * 90f, far);
+                else if (h < 0.8f) AddDecor(_street, d[Fence], px, 540f, 78f, far);
+                else AddDecor(_street, d[Bush], px, 546f, 96f, far);
+            }
+
+            // Between each pair of stations, on the strip of grass between the two lanes.
+            for (int i = 0; i < stations; i++)
+            {
+                float x = FirstStationX + (i + 0.5f) * StationSpacing;
+                bool betweenBackAndFront = i % 2 == 0;
+                float y = betweenBackAndFront ? 430f : 250f;
+                int pick = i % 3;
+                if (pick == 0)
+                {
+                    var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, x + 14f, y + 150f, 330f, 330f);
+                    glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.42f));
+                    AddDecor(_street, d[Lantern], x, y, 226f, Color.white);
+                }
+                else if (pick == 1) AddDecor(_street, d[Mushrooms], x + 10f, y + 6f, 84f, mid);
+                else AddDecor(_street, d[Stones], x, y + 4f, 62f, mid);
+            }
+
+            _decorFront = UiKit.Rect("DecorFront", _canvas);
+            _decorFront.anchorMin = _decorFront.anchorMax = _decorFront.pivot = Vector2.zero;
+            _decorFront.sizeDelta = Vector2.zero;
+            Color near = Palette.Mix(Color.white, Palette.Night, 0.55f);
+            for (float x = 120f; x < length * 1.3f; x += 610f)
+            {
+                float h = Hash(x + 50);
+                AddDecor(_decorFront, d[h < 0.6f ? Bush : Mushrooms], x + h * 200f, -70f, h < 0.6f ? 116f : 92f, near); // low enough to clear the buy buttons
+            }
         }
 
         void BuildHud(GameCatalog catalog)

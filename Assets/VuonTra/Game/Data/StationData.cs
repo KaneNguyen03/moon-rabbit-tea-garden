@@ -19,6 +19,8 @@ namespace VuonTra.Game
         public Sprite Prop;
         [Tooltip("This station's own rabbit, already dressed. Empty: the shared rabbit with a scarf in the accent colour.")]
         public Sprite Rabbit;
+        [Tooltip("Optional: frames of this rabbit at work, played in a loop. Empty: the still rabbit.")]
+        public Sprite[] WorkFrames = new Sprite[0];
         public Color Accent = Color.white;
 
         public StationDef ToDef()

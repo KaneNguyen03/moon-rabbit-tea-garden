@@ -22,4 +22,5 @@ MonoBehaviour:
   Boosts: []
   Prop: {fileID: 21300000, guid: 648a2b299c8c3446d9d60be5aa1c9263, type: 3}
   Rabbit: {fileID: 21300000, guid: 8b7c69f3b9b7649c1b1230a943ea40d3, type: 3}
+  WorkFrames: []
   Accent: {r: 0.7254902, g: 0.5411765, b: 0.36862746, a: 1}

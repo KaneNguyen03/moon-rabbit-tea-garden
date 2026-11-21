@@ -113,6 +113,28 @@ namespace VuonTra.EditorTools
             }
             catalog.Items = itemAssets.ToArray();
 
+            // Work-loop frames: Art/Final/rabbit_<station>_f0.png, _f1.png, … when they exist.
+            foreach (StationData station in catalog.Stations)
+            {
+                var frames = new List<Sprite>();
+                for (int f = 0; f < 12; f++)
+                {
+                    var frame = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/rabbit_" + station.Id + "_f" + f + ".png");
+                    if (frame == null) break;
+                    frames.Add(frame);
+                }
+                station.WorkFrames = frames.ToArray();
+                EditorUtility.SetDirty(station);
+            }
+
+            var decor = new List<Sprite>();
+            foreach (string name in new[] { "decor_tree", "decor_bush", "decor_lantern", "decor_fence", "decor_mushrooms", "decor_stones" })
+            {
+                var drawn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/" + name + ".png");
+                decor.Add(drawn != null ? drawn : PlaceholderArt.Load(name));
+            }
+            catalog.Decor = decor.ToArray();
+
             catalog.BgSky = StreetArt.Load("bg_sky");
             catalog.BgHills = StreetArt.Load("bg_hills");
             catalog.BgTrees = StreetArt.Load("bg_trees");

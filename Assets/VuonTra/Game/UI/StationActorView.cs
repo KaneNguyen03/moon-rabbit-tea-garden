@@ -17,6 +17,9 @@ namespace VuonTra.Game.UI
         float _squish, _shownProgress, _propPop, _hop;
         bool _locked;
         Vector2 _rabbitHome;
+        Sprite _stillRabbit;
+        Sprite[] _workFrames;
+        int _frame = -1;
         Color _accent;
 
         public StationActorView(int index)
@@ -55,6 +58,8 @@ namespace VuonTra.Game.UI
             _rabbitHome = _rabbit.anchoredPosition;
             _rabbitImage = _rabbit.AddImage(ownRabbit ? data.Rabbit : catalog.Rabbit, Color.white);
             _rabbitImage.preserveAspect = true;
+            _stillRabbit = _rabbitImage.sprite;
+            _workFrames = data.WorkFrames;
             _scarfImage = UiKit.Rect("Scarf", _rabbit).Stretch(0, 0, 1, 1).AddImage(catalog.Scarf, data.Accent);
             _scarfImage.preserveAspect = true;
             // A dressed rabbit needs no scarf, and an Image without a sprite would draw a solid box.
@@ -116,6 +121,17 @@ namespace VuonTra.Game.UI
             _propPop = Mathf.Max(0f, _propPop - deltaTime * 4f);
             _hop = Mathf.Max(0f, _hop - deltaTime * 2.6f);
             float tempo = boosting ? 2f : 1f;
+
+            // A rabbit with drawn work frames plays them while its station is open; asleep it holds still.
+            if (_workFrames != null && _workFrames.Length > 0)
+            {
+                int frame = _locked ? -1 : (int)(time * 5f * tempo + _index) % _workFrames.Length;
+                if (frame != _frame)
+                {
+                    _frame = frame;
+                    _rabbitImage.sprite = frame < 0 ? _stillRabbit : _workFrames[frame];
+                }
+            }
             float breathe = _locked ? Mathf.Sin(time * 1.2f + _index) * 0.012f : Mathf.Sin(time * 3f * tempo + _index * 1.7f) * 0.03f;
             // Landing squash at the end of a jump, stretch on the way up.
             float air = Mathf.Sin((1f - _hop) * Mathf.PI) * (_hop > 0f ? 1f : 0f);
