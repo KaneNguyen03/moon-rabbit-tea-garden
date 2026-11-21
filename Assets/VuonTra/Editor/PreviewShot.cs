@@ -123,6 +123,12 @@ namespace VuonTra.EditorTools
             }
             Step(screen, 0.5f);
             Capture(screen, "5-stations");
+            // Upgrading everything: the summary with the share to spend and what each station gains.
+            screen.UpgradeAll.Open(runner.Defs, state);
+            Step(screen, 0.4f);
+            Capture(screen, "36-nang-tat-ca");
+            screen.UpgradeAll.Close();
+            Step(screen, 0.1f);
             // Touching a row brings that station into the strip of garden above the sheet.
             Press(screen, "Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[3].Id);
             Step(screen, 0.5f);

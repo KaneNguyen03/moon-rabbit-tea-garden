@@ -17,7 +17,7 @@ namespace VuonTra.Game.UI
         readonly RectTransform _card, _body;
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
-        readonly Action<long> _onLevelUp, _onRename, _onRest;
+        readonly Action<long> _onLevelUp, _onLevelMax, _onRename, _onRest;
         readonly Action<long, ItemSlot> _onSlot;
         readonly Action<long, int> _onAssign;
         long _rabbitId;
@@ -26,12 +26,13 @@ namespace VuonTra.Game.UI
         public bool IsOpen => _root.activeSelf;
         public long RabbitId => _rabbitId;
 
-        public RabbitDetailView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long> onLevelUp, Action<long> onRename,
+        public RabbitDetailView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long> onLevelUp, Action<long> onLevelMax, Action<long> onRename,
             Action<long, ItemSlot> onSlot, Action<long, int> onAssign, Action<long> onRest)
         {
             _catalog = catalog;
             _tweens = tweens;
             _onLevelUp = onLevelUp;
+            _onLevelMax = onLevelMax;
             _onRename = onRename;
             _onSlot = onSlot;
             _onAssign = onAssign;
@@ -126,6 +127,7 @@ namespace VuonTra.Game.UI
         {
             var sb = new StringBuilder();
             sb.Append(r.Id).Append(r.Tier).Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(L10n.Code);
+            sb.Append(':').Append(Rabbits.LevelsAffordable(r, Simulation.Budget(s), out _)); // the max button's count
             sb.Append(s.Coins >= Rabbits.LevelCost(r) ? '+' : '-');
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             // Who stands where, and which stations are open, decide the list of places.
@@ -212,14 +214,29 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Fill", track).Stretch(0, 0, Mathf.Clamp01(r.Level / (float)cap), 1).AddImage(_catalog.Panel, tier, true);
             BigNum cost = Rabbits.LevelCost(r);
             bool afford = !maxed && s.Coins >= cost;
-            var up = UiKit.Rect("LevelUp", _body).Place(1f, 1f, -264, -530, 440, 96);
+            var up = UiKit.Rect("LevelUp", _body).Place(1f, 1f, -344, -530, 280, 96);
             ChunkyButton upButton = UiKit.Chunky(up, _catalog.Panel, () => _onLevelUp(id));
             upButton.SetEnabled(afford);
             Color ink = ChunkyButton.InkFor(afford);
-            UiKit.Rect("Top", upButton.FaceRect).Stretch(0, 0, 0.55f, 1, 22, 0, 0, 0)
-                .AddText(maxed ? L10n.T("rabbits.maxlevel") : (afford ? L10n.T("rabbits.levelup") : L10n.T("need.more")), UiKit.TextBody, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            UiKit.Rect("Cost", upButton.FaceRect).Stretch(0.45f, 0, 1, 1, 0, 0, 22, 0)
+            UiKit.Rect("Top", upButton.FaceRect).Stretch(0, 0, 0.5f, 1, 18, 0, 0, 0)
+                .AddText(maxed ? L10n.T("rabbits.maxlevel") : (afford ? L10n.T("rabbits.levelup") : L10n.T("need.more")), UiKit.TextSmall, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UiKit.Rect("Cost", upButton.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 18, 0)
                 .AddText(maxed ? "" : (afford ? cost.Short() : (cost - s.Coins).Short()), UiKit.TextBody, ink, TextAnchor.MiddleRight, FontStyle.Bold);
+
+            // As many levels as the purse (its spendable share) allows, stopping at the tier's cap.
+            BigNum manyCost = BigNum.Zero;
+            int many = maxed ? 0 : Rabbits.LevelsAffordable(r, Simulation.Budget(s), out manyCost);
+            var max = UiKit.Rect("LevelMax", _body).Place(1f, 1f, -120, -530, 160, 96);
+            ChunkyButton maxButton = UiKit.Chunky(max, _catalog.Panel, () => _onLevelMax(id));
+            maxButton.SetEnabled(many > 1);
+            Color maxInk = ChunkyButton.InkFor(many > 1);
+            UiKit.Rect("Top", maxButton.FaceRect).Stretch(0, 0.5f, 1, 1, 8, 0, 8, 6)
+                .AddText(L10n.T("mode.max"), UiKit.TextBody, maxInk, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Text maxSub = UiKit.Rect("Sub", maxButton.FaceRect).Stretch(0, 0, 1, 0.5f, 6, 8, 6, 0)
+                .AddText(many > 1 ? L10n.T("rabbits.levelmax", many, manyCost.Short()) : "", 18, maxInk, TextAnchor.MiddleCenter, FontStyle.Bold);
+            maxSub.resizeTextForBestFit = true;
+            maxSub.resizeTextMinSize = 12;
+            maxSub.resizeTextMaxSize = 18;
 
             // Where it works: every open station, its own trade first, and a way to rest.
             bool working = r.Station >= 0 && r.Station < defs.Count;

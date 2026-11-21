@@ -1203,6 +1203,46 @@ MonoBehaviour:
     m_Key: quests.claimall
     m_Metadata:
       m_Items: []
+  - m_Id: 75920051265536
+    m_Key: mode.milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654144
+    m_Key: upgradeall.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654145
+    m_Key: upgradeall.row
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654146
+    m_Key: upgradeall.levels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654147
+    m_Key: upgradeall.total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654148
+    m_Key: upgradeall.keep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654149
+    m_Key: upgradeall.confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654150
+    m_Key: upgradeall.cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654151
+    m_Key: upgradeall.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654152
+    m_Key: rabbits.levelmax
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

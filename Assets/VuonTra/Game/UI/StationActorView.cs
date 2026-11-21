@@ -41,6 +41,8 @@ namespace VuonTra.Game.UI
         GameObject _upArrow, _dozeBubble, _halo;
         Image _hatImage, _charmImage;
         bool _guest, _haloWanted, _signBob;
+        int _level = -1;
+        float _shownLevel, _levelRun;
         RectTransform _upArrowRect;
 
         /// <summary>The rabbit has nodded off at its post; a tap wakes it.</summary>
@@ -159,6 +161,7 @@ namespace VuonTra.Game.UI
         /// <summary>Switches the station between land, an unbuilt plot and a working station.</summary>
         public void SetLook(StationLook look, int level, bool isBrew)
         {
+            StationLook was = _look;
             _look = look;
             bool open = look == StationLook.Open;
             _ground.SetActive(!open);
@@ -171,11 +174,19 @@ namespace VuonTra.Game.UI
             _bar.SetActive(open && isBrew);
             if (open)
             {
-                _label.text = L10n.T("station.level", level);
+                // The number runs up to a new level over a fixed time; the first showing, and a drop, just land.
+                if (_level < 0 || level < _level || was != look)
+                {
+                    _shownLevel = level;
+                    _label.text = L10n.T("station.level", level);
+                }
+                else if (level != _level) _levelRun = (level - _shownLevel) / Motion.Time(Motion.Panel);
+                _level = level;
                 _label.color = Palette.Ink;
                 _chip.color = Palette.Paper;
                 _signBob = false;
             }
+            else _level = -1;
             ShowWho();
         }
 
@@ -305,6 +316,11 @@ namespace VuonTra.Game.UI
                 // A working rabbit sways as it works; a sleeping one nods slowly.
                 float lean = Dozing ? Mathf.Sin(time * 0.9f + _index) * 2.2f - 9f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
                 _rabbit.localRotation = Quaternion.Euler(0, 0, lean * (1f - air));
+            }
+            if (open && _shownLevel < _level)
+            {
+                _shownLevel = Mathf.Min(_level, _shownLevel + _levelRun * deltaTime);
+                _label.text = L10n.T("station.level", Mathf.FloorToInt(_shownLevel));
             }
             // The empty pad breathes a little, so it reads as something waiting rather than part of the ground.
             if (_pad.gameObject.activeSelf) _pad.localScale = Vector3.one * (1f + 0.03f * Mathf.Sin(time * 2.2f + _index));

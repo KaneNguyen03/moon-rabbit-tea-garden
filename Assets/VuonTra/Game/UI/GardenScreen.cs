@@ -36,8 +36,12 @@ namespace VuonTra.Game.UI
         readonly List<StationRowView> _rows = new List<StationRowView>();
         readonly List<UpgradeRowView> _upgradeRows = new List<UpgradeRowView>();
         readonly List<QuestRowView> _questRows = new List<QuestRowView>();
-        readonly Dictionary<int, Image> _modeButtons = new Dictionary<int, Image>();
-        readonly Dictionary<int, Text> _modeLabels = new Dictionary<int, Text>();
+        /// <summary>Every buy-mode button on the screen (the sheet's bar and the card's), by mode.</summary>
+        readonly List<KeyValuePair<int, Image>> _modeButtons = new List<KeyValuePair<int, Image>>();
+        readonly List<KeyValuePair<int, Text>> _modeLabels = new List<KeyValuePair<int, Text>>();
+        /// <summary>The summary before upgrading everything.</summary>
+        public UpgradeAllView UpgradeAll { get; private set; }
+        RectTransform _upgradeAllRow;
         readonly GameObject[] _lists = new GameObject[TabCount];
         readonly Text[] _openLabels = new Text[TabCount];
         readonly Image[] _tabIcons = new Image[TabCount];
@@ -137,7 +141,7 @@ namespace VuonTra.Game.UI
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
         Text _coins, _perSecond, _awayAmount, _awayTime, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
-        RectTransform _questReady;
+        RectTransform _questReady, _cardModes;
         ChunkyButton _claimAll;
         Text _plotTitle, _plotSub, _plotCost;
         ChunkyButton _plotBuy, _energyButton;
@@ -248,7 +252,7 @@ namespace VuonTra.Game.UI
         const float WheelScroll = 60f;
         /// <summary>The strip at the top of the sheet: the page name, the buy modes, the close button.</summary>
         const float HeaderHeight = 148f;
-        const float HudCover = 160f, TabCover = 250f, CardHeight = 280f;
+        const float HudCover = 160f, TabCover = 250f, CardHeight = 340f;
 
         public enum ZoomLevel { Far, Default, Near }
 
@@ -645,6 +649,7 @@ namespace VuonTra.Game.UI
 
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
+            UpgradeAll = null;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
@@ -705,7 +710,7 @@ namespace VuonTra.Game.UI
             BuildSheet(catalog);
             Feel = new FeelLayer(_canvas, catalog, Tweens);
             Arrival = new SummonMomentView(_canvas, catalog);
-            Detail = new RabbitDetailView(_canvas, catalog, Tweens, OnLevelUp,
+            Detail = new RabbitDetailView(_canvas, catalog, Tweens, OnLevelUp, OnLevelMax,
                 rabbitId => { Sfx.Click(); Rename.Open(Runner.State, rabbitId); },
                 (rabbitId, slot) => { Sfx.Click(); Picker.Open(Runner.State, rabbitId, slot); },
                 (rabbitId, station) => { Sfx.Blip(); Runner.AssignRabbit(rabbitId, station); },
@@ -715,6 +720,7 @@ namespace VuonTra.Game.UI
                 itemId => { Sfx.Click(); Runner.UnequipItem(itemId); });
             Rename = new RenameView(_canvas, catalog, Tweens, (rabbitId, name) => { Sfx.Blip(); Runner.RenameRabbit(rabbitId, name); });
             Workers = new WorkerPickerView(_canvas, catalog, Tweens, (rabbitId, station) => { Sfx.Blip(); Runner.AssignRabbit(rabbitId, station); });
+            UpgradeAll = new UpgradeAllView(_canvas, catalog, Tweens, share => Runner.SetSpendShare(share), OnUpgradeAll);
             BuildAwayPopup(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame());
             Shell.Changed += OnShellChanged;
@@ -977,6 +983,9 @@ namespace VuonTra.Game.UI
             _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _cardInfo = UiKit.Rect("Info", _card).Stretch(0, 1, 1, 1, 32, -138, 32, 74)
                 .AddText("", 24, Palette.InkSoft, TextAnchor.UpperLeft);
+            // The same buy modes as the Stations tab; one choice, remembered in both places.
+            _cardModes = UiKit.Rect("Modes", _card).Stretch(0, 1, 1, 1, 0, -202, 0, 142);
+            BuildModeBar(_cardModes, catalog, -32, 0, 60);
 
             // Who works here: the rabbit's face, its name, and its kind and trade.
             _cardWorker = UiKit.Rect("Worker", _card).Place(0f, 0f, 262, 74, 460, 96);
@@ -1002,6 +1011,12 @@ namespace VuonTra.Game.UI
             var buy = UiKit.Rect("Buy", _card).Place(1f, 0f, -272, 74, 480, 96);
             _cardBuy = UiKit.Chunky(buy, catalog.Panel, () => OnQuick(Selected));
             _cardBuy.Dip.Denied = () => Deny(_cardBuy, true);
+            // Held down on an open station, the button keeps upgrading; land and opening are one press each.
+            _cardBuy.Dip.Repeat = () =>
+            {
+                GameState s = Runner.State;
+                if (Selected >= 0 && Selected < s.Plots && s.Levels[Selected] > 0) OnBuy(Selected);
+            };
             _cardBuyTop = UiKit.Rect("Top", _cardBuy.FaceRect).Stretch(0, 0, 0.5f, 1, 24, 0, 0, 0)
                 .AddText("", 28, Palette.Card, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardBuyCost = UiKit.Rect("Cost", _cardBuy.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 64, 0)
@@ -1041,7 +1056,8 @@ namespace VuonTra.Game.UI
                 var move = new Vector2(Mathf.Clamp(x, 290f, ScreenW - 290f) - x, 0f);
                 if (bottom < floor) move.y = floor - bottom;
                 else if (top > ScreenH - HudCover) move.y = ScreenH - HudCover - top;
-                Vector2 target = ClampView(from + move, _zoom);
+                // The garden may rise past its own foot, as far as the card covers, so the lowest station clears the card too.
+                Vector2 target = ClampView(from + move, _zoom, floor);
                 if (_scroll != null) _scroll.StopMovement();
                 _glideRun++;
                 Tweens.Add(Motion.Time(Motion.Panel), t => { if (_street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, target, t); }, Ease.InOutCubic);
@@ -1060,9 +1076,10 @@ namespace VuonTra.Game.UI
             // Green would read as "all good"; a station that is not open yet is a quiet grey-purple.
             _cardLevelChip.color = level <= 0 || needsPlot ? Palette.Mix(Palette.Night, Palette.Paper, 0.45f) : Palette.Moss;
 
-            // Who works here. Nobody can work at a station that is not open.
+            // Who works here, and how many levels a press buys: neither means anything before the station is open.
             bool open = level > 0 && !needsPlot;
             if (_cardWorker.gameObject.activeSelf != open) _cardWorker.gameObject.SetActive(open);
+            if (_cardModes.gameObject.activeSelf != open) _cardModes.gameObject.SetActive(open);
             if (open)
             {
                 Rabbit worker = Rabbits.AtStation(s, i);
@@ -1564,15 +1581,12 @@ namespace VuonTra.Game.UI
             AddDrag(grab, EventTriggerType.EndDrag, _ => ReleaseSheet(_sheetDragSpeed));
 
             // The tab bar along the bottom already switches pages; up here there is only the page's name.
-            _sheetTitle = UiKit.Rect("Title", bar).Stretch(0, 0, 1, 1, 40, 0, 520, 34)
+            _sheetTitle = UiKit.Rect("Title", bar).Stretch(0, 0, 1, 1, 40, 0, 600, 34)
                 .AddText("", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             var modes = UiKit.Rect("Modes", bar).Stretch(0, 0, 1, 1);
             _modes = modes.gameObject;
-            UiKit.Rect("Track", modes).Place(1f, 0.5f, -312, -18, 368, 76).AddImage(catalog.Panel, Palette.Track, true);
-            AddModeButton(modes, catalog, 1, "×1", -444);
-            AddModeButton(modes, catalog, 10, "×10", -346);
-            AddModeButton(modes, catalog, 0, "Tối đa", -216);
+            BuildModeBar(modes, catalog, -110, -18, 76);
 
             var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, -18, 80, 80);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
@@ -1584,6 +1598,18 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Text", close).Stretch(0, 0, 1, 1).AddText("×", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             RectTransform stations = AddList("Scroll", 0);
+            _upgradeAllRow = UiKit.Rect("UpgradeAll", stations);
+            _upgradeAllRow.AddImage(catalog.Panel, Palette.CardLip, true);
+            _upgradeAllRow.gameObject.AddComponent<LayoutElement>().preferredHeight = 118;
+            UiKit.Rect("Card", _upgradeAllRow).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Mix(Palette.Lantern, Palette.Paper, 0.7f), true);
+            Text upgradeAllNote = UiKit.Rect("Sub", _upgradeAllRow).Stretch(0, 0, 1, 1, 36, 8, 330, 0)
+                .AddText(L10n.T("upgradeall.row"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft);
+            upgradeAllNote.resizeTextForBestFit = true;
+            upgradeAllNote.resizeTextMinSize = 16;
+            upgradeAllNote.resizeTextMaxSize = UiKit.TextBody;
+            var upgradeAllButton = UiKit.Rect("Button", _upgradeAllRow).Place(1f, 0.5f, -166, 4, 284, 84);
+            ChunkyButton upgradeAllChunky = UiKit.Chunky(upgradeAllButton, catalog.Panel, () => { Sfx.Click(); UpgradeAll.Open(Runner.Defs, Runner.State); });
+            UiKit.Rect("Text", upgradeAllChunky.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("upgradeall.title"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             for (int i = 0; i < catalog.Stations.Length; i++)
             {
                 int index = i;
@@ -1707,21 +1733,39 @@ namespace VuonTra.Game.UI
                 TextAnchor.MiddleLeft, heading ? FontStyle.Bold : FontStyle.Normal);
         }
 
-        void AddModeButton(RectTransform bar, GameCatalog catalog, int mode, string label, float x)
+        /// <summary>
+        /// The four buy modes in one plate, its right edge at <paramref name="right"/> of the parent: ×1, ×10,
+        /// to the next milestone, and as many as the purse allows. The same plate is on the sheet and the card.
+        /// </summary>
+        void BuildModeBar(RectTransform parent, GameCatalog catalog, float right, float y, float height)
         {
-            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -18, mode == 0 ? 152 : 92, 60);
-            Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
-            img.raycastTarget = true;
-            var button = rt.gameObject.AddComponent<Button>();
-            button.transition = Selectable.Transition.None;
-            button.targetGraphic = img;
-            button.onClick.AddListener(() =>
+            const float Pad = 8f, Gap = 6f;
+            int[] modes = { Simulation.BuyOne, Simulation.BuyTen, Simulation.BuyToMilestone, Simulation.BuyMax };
+            string[] labels = { "×1", "×10", L10n.T("mode.milestone"), L10n.T("mode.max") };
+            float[] widths = { 84f, 92f, 118f, 140f };
+            float width = Pad * 2f + Gap * (modes.Length - 1);
+            foreach (float w in widths) width += w;
+            var track = UiKit.Rect("Track", parent).Place(1f, 0.5f, right - width / 2f, y, width, height);
+            track.AddImage(catalog.Panel, Palette.Track, true);
+            float x = right - width + Pad;
+            for (int i = 0; i < modes.Length; i++)
             {
-                Sfx.Click();
-                Runner.SetBuyMode(mode);
-            });
-            _modeLabels[mode] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(mode == 0 ? L10n.T("mode.max") : label, 28, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _modeButtons[mode] = img;
+                int mode = modes[i];
+                var rt = UiKit.Rect("Mode " + labels[i], parent).Place(1f, 0.5f, x + widths[i] / 2f, y, widths[i], height - 16f);
+                Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
+                img.raycastTarget = true;
+                var button = rt.gameObject.AddComponent<Button>();
+                button.transition = Selectable.Transition.None;
+                button.targetGraphic = img;
+                button.onClick.AddListener(() =>
+                {
+                    Sfx.Click();
+                    Runner.SetBuyMode(mode);
+                });
+                _modeLabels.Add(new KeyValuePair<int, Text>(mode, UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(labels[i], 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)));
+                _modeButtons.Add(new KeyValuePair<int, Image>(mode, img));
+                x += widths[i] + Gap;
+            }
         }
 
         public void SetTab(int tab)
@@ -1981,12 +2025,13 @@ namespace VuonTra.Game.UI
             _rabbitBadgeText.text = missing.ToString();
             _clovers.text = L10n.T("quests.clovers", s.Clovers);
 
-            foreach (KeyValuePair<int, Image> pair in _modeButtons)
+            for (int i = 0; i < _modeButtons.Count; i++)
             {
-                bool on = pair.Key == s.BuyMode;
-                pair.Value.color = on ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
-                _modeLabels[pair.Key].color = on ? Palette.Card : Palette.InkSoft;
+                bool on = _modeButtons[i].Key == s.BuyMode;
+                _modeButtons[i].Value.color = on ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
+                _modeLabels[i].Value.color = on ? Palette.Card : Palette.InkSoft;
             }
+            UpgradeAll.Refresh(defs, s);
         }
 
         void RefreshEnergy(GameState s, bool boosting)
@@ -2179,7 +2224,7 @@ namespace VuonTra.Game.UI
             bool more = Plots.CanBuy(defs, s);
             if (_plotRow.gameObject.activeSelf != more) _plotRow.gameObject.SetActive(more);
             if (!more) return;
-            if (_plotRow.GetSiblingIndex() != s.Plots) _plotRow.SetSiblingIndex(s.Plots);
+            if (_plotRow.GetSiblingIndex() != s.Plots + 1) _plotRow.SetSiblingIndex(s.Plots + 1); // after the upgrade-all row and the owned plots
             BigNum cost = Plots.CostOfNext(defs, s);
             bool can = Expansion.CanExpand(defs, s);
             _plotTitle.text = L10n.T("plot.title", Expansion.NextIndex(defs, s) + 1);
@@ -2350,6 +2395,29 @@ namespace VuonTra.Game.UI
         void OnLevelUp(long rabbitId)
         {
             if (!Runner.LevelUpRabbit(rabbitId)) return;
+            Sfx.Upgrade();
+            Haptics.Light();
+            Rabbit r = Rabbits.Find(Runner.State, rabbitId);
+            Feel.FloatText(new Vector2(-110, 300), L10n.T("float.levelup", r.Name, r.Level), Palette.Lantern, 44);
+        }
+
+        /// <summary>Every station in the plan rises at once: one bump each, one sound, the numbers run up.</summary>
+        void OnUpgradeAll()
+        {
+            List<UpgradeStep> plan = Runner.UpgradeAll();
+            UpgradeAll.Close();
+            if (plan == null) return;
+            Sfx.Upgrade();
+            Haptics.Light();
+            foreach (UpgradeStep step in plan)
+                if (step.Station < _actors.Count) _actors[step.Station].Bump();
+        }
+
+        /// <summary>A rabbit levels up as far as the purse allows, never past its cap.</summary>
+        void OnLevelMax(long rabbitId)
+        {
+            int n = Runner.LevelUpRabbitMax(rabbitId);
+            if (n <= 0) return;
             Sfx.Upgrade();
             Haptics.Light();
             Rabbit r = Rabbits.Find(Runner.State, rabbitId);

@@ -311,7 +311,7 @@ namespace VuonTra.Core.Tests
             Button openFifth = Find("Canvas/Sheet/Panel/Scroll/Content/Row lo-banh/Buy");
             Assert.IsFalse(openFifth.interactable, "no plot yet");
             Transform plot = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Plot");
-            Assert.AreEqual(4, plot.GetSiblingIndex(), "right after the fourth station");
+            Assert.AreEqual(5, plot.GetSiblingIndex(), "right after the fourth station (the upgrade-all row comes first)");
             Button widen = Find("Canvas/Sheet/Panel/Scroll/Content/Plot/Buy");
             Assert.IsFalse(widen.interactable, "carrots alone are not enough");
             StringAssert.Contains("B4532A", plot.Find("Sub").GetComponent<Text>().text, "an unmet condition is marked");
@@ -328,7 +328,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(3, runner.State.RestSpots, "and one more place to rest");
             screen.Refresh();
             Assert.IsTrue(openFifth.interactable);
-            Assert.AreEqual(6, plot.GetSiblingIndex());
+            Assert.AreEqual(7, plot.GetSiblingIndex());
 
             runner.State.Plots = runner.Defs.Count;
             screen.Refresh();
@@ -1566,9 +1566,10 @@ namespace VuonTra.Core.Tests
             runner.State.Coins = new BigNum(1e9);
             screen.Refresh();
             Transform content = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content");
-            Assert.AreEqual("Row am-tra", content.GetChild(0).name);
-            Assert.AreEqual("Row gio-la", content.GetChild(1).name);
-            Assert.AreEqual("Row noi-mut", content.GetChild(2).name, "the next one to open comes right after the open ones");
+            Assert.AreEqual("UpgradeAll", content.GetChild(0).name);
+            Assert.AreEqual("Row am-tra", content.GetChild(1).name);
+            Assert.AreEqual("Row gio-la", content.GetChild(2).name);
+            Assert.AreEqual("Row noi-mut", content.GetChild(3).name, "the next one to open comes right after the open ones");
             Color next = content.Find("Row noi-mut/Card").GetComponent<Image>().color;
             Color later = content.Find("Row coi-hoa/Card").GetComponent<Image>().color;
             Color open = content.Find("Row gio-la/Card").GetComponent<Image>().color;
@@ -1698,6 +1699,124 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, screen.Feel.Flying, "all landed within two seconds");
             Assert.IsNull(root.transform.Find("Canvas/Feel/Fly"));
             Assert.AreEqual(Vector3.one, purse.localScale, "the purse swelled and is back to its size");
+        }
+
+        // ----- #36: quick upgrades -----
+
+        [Test]
+        public void The_Station_Card_Has_The_Same_Buy_Modes_As_The_Tab_And_They_Remember_Each_Other()
+        {
+            runner.State.Coins = new BigNum(1e9);
+            screen.SelectStation(0);
+            Find("Canvas/Card/Modes/Mode Tới mốc").onClick.Invoke();
+            Assert.AreEqual(Simulation.BuyToMilestone, runner.State.BuyMode);
+            screen.Refresh();
+            Assert.AreEqual("Nâng +9", root.transform.Find("Canvas/Card/Buy/Face/Top").GetComponent<Text>().text, "level 1 to the ×2 at 10");
+            Assert.AreEqual(Palette.Carrot, root.transform.Find("Canvas/Sheet/Panel/Bar/Modes/Mode Tới mốc").GetComponent<Image>().color, "the tab shows the same choice");
+            Assert.AreEqual("Nâng +9", root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy/Face/Top").GetComponent<Text>().text);
+
+            Find("Canvas/Sheet/Panel/Bar/Modes/Mode ×10").onClick.Invoke();
+            screen.Refresh();
+            Assert.AreEqual("Nâng +10", root.transform.Find("Canvas/Card/Buy/Face/Top").GetComponent<Text>().text, "and the card follows the tab");
+            Find("Canvas/Card/Buy").onClick.Invoke();
+            Assert.AreEqual(11, runner.State.Levels[0]);
+        }
+
+        [Test]
+        public void Holding_The_Card_Button_Keeps_Upgrading_Too()
+        {
+            runner.State.Coins = new BigNum(1e12);
+            screen.SelectStation(0);
+            var dip = root.transform.Find("Canvas/Card/Buy").GetComponent<PressDip>();
+            dip.Hold();
+            for (int i = 0; i < 15; i++) dip.Step(0.1f);
+            Assert.Greater(runner.State.Levels[0], 3);
+            dip.Release();
+            dip.Click();
+            int after = runner.State.Levels[0];
+            for (int i = 0; i < 12; i++) dip.Step(1f / 30f);
+            Assert.AreEqual(after, runner.State.Levels[0], "the release bought nothing more");
+        }
+
+        [Test]
+        public void A_Big_Upgrade_Bumps_Once_And_The_Level_Number_Runs_Up()
+        {
+            screen.Shell.StartGame();
+            runner.State.Coins = new BigNum(1e12);
+            runner.SetBuyMode(Simulation.BuyMax);
+            screen.Refresh();
+            Text chip = root.transform.Find("Canvas/Garden/Content/Station am-tra/Level/Text").GetComponent<Text>();
+            Assert.AreEqual("Cấp 1", chip.text);
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
+            int level = runner.State.Levels[0];
+            Assert.Greater(level, 100);
+            screen.Refresh();
+            Assert.AreEqual("Cấp 1", chip.text, "the number has not jumped");
+            screen.Advance(0.1f);
+            string midway = chip.text;
+            Assert.AreNotEqual("Cấp 1", midway);
+            Assert.AreNotEqual("Cấp " + level, midway, "it is on its way");
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual("Cấp " + level, chip.text);
+        }
+
+        [Test]
+        public void Upgrade_All_Shows_A_Summary_First_And_Spends_Only_The_Share_You_Chose()
+        {
+            runner.State.Levels[1] = 1;
+            runner.State.Coins = new BigNum(1e6);
+            screen.Refresh();
+            Transform overlay = root.transform.Find("Canvas/UpgradeAll");
+            Assert.IsFalse(overlay.gameObject.activeSelf);
+            Find("Canvas/Sheet/Panel/Scroll/Content/UpgradeAll/Button").onClick.Invoke();
+            Assert.IsTrue(overlay.gameObject.activeSelf);
+            Assert.AreEqual(1, runner.State.Levels[0], "nothing bought yet: this is a summary");
+            Transform content = overlay.Find("Card/Scroll/Content");
+            Assert.Greater(content.childCount, 0);
+            Assert.IsNotNull(content.Find("Step am-tra"));
+            StringAssert.StartsWith("+", content.Find("Step am-tra/Levels").GetComponent<Text>().text);
+            StringAssert.StartsWith("Tổng", overlay.Find("Card/Total").GetComponent<Text>().text);
+
+            Find("Canvas/UpgradeAll/Card/Shares/Share 0.5").onClick.Invoke();
+            Assert.AreEqual(0.5, runner.State.SpendShare);
+            screen.Refresh();
+            double total = UpgradePlan.Total(screen.UpgradeAll.Plan).ToDouble();
+            Assert.LessOrEqual(total, 5e5 + 1e-6, "half is kept back");
+            Assert.Greater(total, 1e5);
+
+            Find("Canvas/UpgradeAll/Card/Confirm").onClick.Invoke();
+            Assert.IsFalse(overlay.gameObject.activeSelf);
+            Assert.Greater(runner.State.Levels[0], 1);
+            Assert.GreaterOrEqual(runner.State.Coins.ToDouble(), 5e5 - 1e-6);
+            Assert.AreEqual(Simulation.BuyOne, runner.State.BuyMode, "the buy mode is untouched");
+        }
+
+        [Test]
+        public void Upgrade_All_With_Nothing_Affordable_Offers_Nothing()
+        {
+            Find("Canvas/Sheet/Panel/Scroll/Content/UpgradeAll/Button").onClick.Invoke();
+            Transform overlay = root.transform.Find("Canvas/UpgradeAll");
+            Assert.IsNotNull(overlay.Find("Card/Scroll/Content/Empty"));
+            Assert.IsFalse(overlay.Find("Card/Confirm").GetComponent<Button>().interactable);
+            Find("Canvas/UpgradeAll/Card/Cancel").onClick.Invoke();
+            Assert.IsFalse(overlay.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void A_Rabbit_Levels_Up_To_Its_Cap_With_One_Press()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Level = 1 });
+            runner.State.NextRabbitId = 1;
+            runner.State.Coins = new BigNum(1e9);
+            screen.Refresh();
+            screen.Detail.Open(runner.Defs, runner.State, 1);
+            Button max = Find("Canvas/RabbitSheet/Card/Body/LevelMax");
+            Assert.IsTrue(max.interactable);
+            StringAssert.StartsWith("+9 cấp", root.transform.Find("Canvas/RabbitSheet/Card/Body/LevelMax/Face/Sub").GetComponent<Text>().text);
+            max.onClick.Invoke();
+            Assert.AreEqual(10, runner.State.Rabbits[0].Level, "silver stops at 10");
+            screen.Refresh();
+            Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/LevelMax").interactable, "nothing left to buy");
         }
 
         [Test]

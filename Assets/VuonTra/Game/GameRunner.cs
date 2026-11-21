@@ -271,8 +271,32 @@ namespace VuonTra.Game
 
         public void SetBuyMode(int mode)
         {
-            State.BuyMode = mode == 0 ? 0 : (mode == 10 ? 10 : 1);
+            State.BuyMode = mode == Simulation.BuyMax || mode == Simulation.BuyTen || mode == Simulation.BuyToMilestone ? mode : Simulation.BuyOne;
             StateChanged?.Invoke();
+        }
+
+        /// <summary>How much of the purse a quick upgrade may spend: 1, 0.5 or 0.25.</summary>
+        public void SetSpendShare(double share)
+        {
+            State.SpendShare = share == 0.5d || share == 0.25d ? share : 1d;
+            StateChanged?.Invoke();
+        }
+
+        /// <summary>Upgrades every open station as far as the budget goes, where the carrots earn most. Null when nothing could be bought.</summary>
+        public List<UpgradeStep> UpgradeAll()
+        {
+            List<UpgradeStep> plan = UpgradePlan.Plan(Defs, State, Simulation.Budget(State));
+            if (!UpgradePlan.Apply(Defs, State, plan)) return null;
+            Changed();
+            return plan;
+        }
+
+        /// <summary>Levels a rabbit up as far as the budget goes, never past its cap. Returns how many levels.</summary>
+        public int LevelUpRabbitMax(long id)
+        {
+            int n = Rabbits.LevelUpMax(State, id, Simulation.Budget(State));
+            if (n > 0) Changed();
+            return n;
         }
 
         /// <summary>Throws the progress away and starts a new garden.</summary>

@@ -1210,6 +1210,46 @@ MonoBehaviour:
     m_Localized: Claim all
     m_Metadata:
       m_Items: []
+  - m_Id: 75920051265536
+    m_Localized: "To \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654144
+    m_Localized: Upgrade everything
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654145
+    m_Localized: Spend what you have across every station at once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654146
+    m_Localized: +{0} levels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654147
+    m_Localized: "Total {0} \xB7 {1} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654148
+    m_Localized: Spend at most
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654149
+    m_Localized: Upgrade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654150
+    m_Localized: Not now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654151
+    m_Localized: Not enough carrots to raise any station.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 75920059654152
+    m_Localized: "+{0} levels \xB7 {1}"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
