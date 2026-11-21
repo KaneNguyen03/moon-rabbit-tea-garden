@@ -502,6 +502,26 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: phần còn lại của #18 như trên; trong batch render ảnh chụp ra khổ ngang vì `Screen` của Unity batch không phải cửa sổ game, trong bản Mac thật thì theo cửa sổ.
 
+## #17 — Hồ sơ người chơi và lớp giao tiếp tài khoản (phần làm được ngay)
+
+- Test: 385/385 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 11 test core (`ProfileTests.cs`, file mới) và 1 test màn hình.
+- Commit `691d3fa`, đã push. Issue #17 để mở (phần cần Unity Cloud / tài khoản nhà phát triển), đã comment, nhãn chờ-PO-duyệt.
+- File mới: `Assets/VuonTra/Core/Profile.cs` (hồ sơ, mã người chơi, `IAccountService` + `LocalOnlyAccount`), `Assets/VuonTra/Game/UI/ProfileView.cs`. Save lên v11 (`profile`: name, avatar, code); save cũ đọc được, được cấp mã khi chưa có. Bảng chuỗi seed lại (16 key `profile.*`, `backup.*`, `pause.profile`).
+- Ảnh (docs/anh/po-17/): `17-truoc-10-pause.png`, `17-sau-10-pause.png`, `17-sau-profile.png`, `17-sau-profile-en.png`.
+
+### Đã làm (đối chiếu với nguyên văn #17, phần "làm được ngay")
+- Hồ sơ lưu trên máy: tên vườn (tối đa 16 ký tự, làm sạch như tên thỏ), thỏ đại diện (chọn trong thỏ đang có; thỏ bị ghép mất thì rơi về con đầu), mã người chơi `THO-` + 6 ký tự không nhầm lẫn (bỏ 0/O/1/I), cấp vườn tính từ `GardenXp`.
+- Màn hồ sơ: hàng đầu tấm Tạm nghỉ (thỏ, tên vườn, mã) chạm mở; trong đó chạm hình để đổi thỏ, bút để đặt tên (dùng chung tấm đặt tên với thỏ, tiêu đề đổi theo), nút Chép mã (clipboard, đổi chữ "Đã chép" 1,5 giây), dòng cấp vườn · số thỏ · số trạm.
+- Lớp giao tiếp tài khoản: `IAccountService` (Provider, State, CanLink, LinkedName, Link, Unlink, Changed) với bản `LocalOnlyAccount`; màn hồ sơ hiện "Sao lưu: Chỉ trên máy này", nút Liên kết tài khoản tắt kèm dòng "Sắp có". Game Center / Play Games (#39, #40) và lõi đồng bộ (#38) cắm vào đây.
+
+### Chưa đạt so với #17
+- Tài khoản khách tự tạo "không hỏi gì": chưa có gì để đăng ký nên chưa làm; mã người chơi đóng vai định danh trên máy.
+- Thưởng một lần khi liên kết: chưa có nhà cung cấp nào để liên kết, để cùng #38.
+- Đồng bộ và hỏi giữ bản nào khi lệch: thuộc #38.
+
+### Tồn đọng
+- tồn đọng: phần cần chủ project trong #17 (liên kết Unity Cloud hoặc đi theo hướng #39/#40); Chép mã chưa ai bấm thật trong bản Mac.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
