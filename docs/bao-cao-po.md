@@ -417,6 +417,28 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: cảm nhịp giữ nút trên máy thật, chỉnh bốn hằng trong `PressDip` nếu quá nhanh hoặc quá chậm.
 
+## #27 — Tab Nhiệm vụ: thứ nhận được lên đầu, thưởng bay về ví
+
+- Test: 334/334 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 5 test.
+- Commit `1307309`, đã push. Issue #27 đã đóng, #16 đã tick (cả dòng #25/#27).
+- Hình mới: `Art/Placeholder/icon_clover.png` (giữ chỗ, vẽ trong `PlaceholderArt`), catalog thêm `Clover`. Bảng chuỗi seed lại (3 key: `quests.today.refresh`, `quests.ready`, `quests.claimall`).
+- Ảnh (docs/anh/po-27/): `27-truoc-7-quests.png`, `27-sau-7-quests.png`, `27-bay-1..3.png` (cà rốt bay lên ví, cỏ bay tới tab Thỏ).
+
+### Đã làm (đối chiếu với nguyên văn #27)
+- Nhóm "Nhận được" ở đầu danh sách với nút "Nhận tất cả" (`GardenScreen.OnClaimAll` gọi `OnClaim` cho từng nhiệm vụ xong). Dòng nhận được nền vàng. `OrderQuestRows` sắp lại thứ tự con mỗi lần refresh, chỉ dời dòng nào lệch chỗ.
+- `QuestRowView` làm lại: chưa xong thì chỉ thanh + số (nút ẩn hẳn); xong thì nút "Nhận" và ẩn thanh; đã nhận (nhiệm vụ ngày) thì tấm "Đã nhận" phẳng và dòng mờ.
+- Thưởng là hai chip có hình: cà rốt và cỏ bốn lá. Chip cỏ ẩn khi thưởng không có cỏ.
+- "Hôm nay · làm mới sau N giờ M phút": `GardenScreen.SecondsToNextDay(DateTimeOffset)` tính tới nửa đêm giờ máy; `Span()` dùng chung với bảng "lúc bạn đi vắng".
+- `FeelLayer.Fly(from, to, sprite, ...)`: vài bản sao bay theo cung bezier, mỗi cái trễ 0,05 giây, cái cuối hạ cánh thì gọi `onArrive`. Cà rốt → ví (ví phồng + "+N" + vụn cà rốt), cỏ → icon tab Thỏ (`_tabPop[3]`). Điểm xuất phát đọc trước khi claim vì claim làm dòng dời chỗ hoặc ẩn.
+
+### Chưa đạt so với #27
+- Không có chip cà rốt vàng: game chưa có cà rốt vàng (#9, mục Cà rốt vàng và Tiệm trong #16).
+- Cỏ bốn lá bay tới tab Thỏ chứ không tới "ô trên HUD", vì HUD không có ô cỏ.
+- Hình cỏ bốn lá là giữ chỗ.
+
+### Tồn đọng
+- tồn đọng: khi làm Cà rốt vàng và Tiệm, thêm chip cà rốt vàng vào `QuestRowView` và đích bay cho nó.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
