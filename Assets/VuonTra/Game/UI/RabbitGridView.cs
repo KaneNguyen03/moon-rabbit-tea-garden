@@ -265,7 +265,7 @@ namespace VuonTra.Game.UI
             name.resizeTextMinSize = 18;
             name.resizeTextMaxSize = 28;
             UiKit.Rect("Level", cell).Place(0.5f, 0f, 0, 28, CellW - 24f, 30)
-                .AddText(L10n.T("station.level", r.Level), UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("station.level", r.Level) + L10n.LevelStars(r), UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>

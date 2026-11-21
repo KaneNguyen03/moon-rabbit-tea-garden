@@ -208,7 +208,7 @@ namespace VuonTra.Game.UI
             // Levelling, the full width of the sheet.
             bool maxed = Rabbits.IsMaxLevel(r);
             int cap = Rabbits.LevelCaps[r.Tier];
-            Line("Level", 492, 40, L10n.T("detail.level", r.Level, cap), 30, Palette.Ink, FontStyle.Bold, 44, 520);
+            Line("Level", 492, 40, L10n.T("detail.level", r.Level, cap) + L10n.LevelStars(r), 30, Palette.Ink, FontStyle.Bold, 44, 520);
             var track = UiKit.Rect("LevelBar", _body).Stretch(0, 1, 1, 1, 44, -564, 520, 544);
             track.AddImage(_catalog.Panel, Palette.Track, true);
             UiKit.Rect("Fill", track).Stretch(0, 0, Mathf.Clamp01(r.Level / (float)cap), 1).AddImage(_catalog.Panel, tier, true);

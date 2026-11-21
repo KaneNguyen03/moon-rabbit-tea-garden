@@ -75,6 +75,12 @@ namespace VuonTra.Game
         public static string Rarity(int tier) => Tier(tier) + " " + VuonTra.Core.Rarity.Marks(tier);
         public static string Trade(RabbitTrade trade) => T("trade." + trade);
         public static string Kind(Rabbit rabbit) => T("kind." + Rabbits.KindOf(rabbit));
+        /// <summary>The rabbit's level stars (hollow, one per ten levels) with a leading space, or nothing while it has none.</summary>
+        public static string LevelStars(Rabbit rabbit)
+        {
+            int n = Rabbits.Stars(rabbit);
+            return n == 0 ? "" : " " + new string('☆', n);
+        }
         public static string ItemName(Item item) => T("item." + item.DefId);
     }
 }

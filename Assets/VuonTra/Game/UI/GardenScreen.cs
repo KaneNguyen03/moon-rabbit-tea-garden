@@ -2315,7 +2315,7 @@ namespace VuonTra.Game.UI
                 if (chip.activeSelf != named) chip.SetActive(named);
                 if (!named) continue;
                 _tierChips[i].color = Palette.Tiers[worker.Tier];
-                _tierLabels[i].text = worker.Name;
+                _tierLabels[i].text = worker.Name + L10n.LevelStars(worker);
                 bool inTrade = Rabbits.InTrade(defs, worker);
                 _tierTradeIcons[i].sprite = catalog.TradeIcon(Rabbits.TradeOf(worker));
                 _tierTradeBadges[i].color = inTrade ? Palette.Lantern : Palette.Mix(Palette.Ink, Palette.Paper, 0.6f);
@@ -2597,11 +2597,21 @@ namespace VuonTra.Game.UI
 
         void OnLevelUp(long rabbitId)
         {
+            Rabbit r = Rabbits.Find(Runner.State, rabbitId);
+            int before = r != null ? r.Level : 0;
             if (!Runner.LevelUpRabbit(rabbitId)) return;
             Sfx.Upgrade();
             Haptics.Light();
-            Rabbit r = Rabbits.Find(Runner.State, rabbitId);
             Feel.FloatText(new Vector2(-110, 300), L10n.T("float.levelup", r.Name, r.Level), Palette.Lantern, 44);
+            StarMoment(r, before);
+        }
+
+        /// <summary>A climb that passed a ten-level mark is a small occasion: the banner names the star.</summary>
+        void StarMoment(Rabbit r, int before)
+        {
+            if (Rabbits.StarsEarned(before, r.Level) <= 0) return;
+            Sfx.Sting();
+            Feel.Moment(L10n.T("moment.star.title", r.Name, Rabbits.Stars(r)), L10n.T("moment.star.sub", r.Level));
         }
 
         /// <summary>Every station in the plan rises at once: one bump each, one sound, the numbers run up.</summary>
@@ -2619,12 +2629,14 @@ namespace VuonTra.Game.UI
         /// <summary>A rabbit levels up as far as the purse allows, never past its cap.</summary>
         void OnLevelMax(long rabbitId)
         {
+            Rabbit r = Rabbits.Find(Runner.State, rabbitId);
+            int before = r != null ? r.Level : 0;
             int n = Runner.LevelUpRabbitMax(rabbitId);
             if (n <= 0) return;
             Sfx.Upgrade();
             Haptics.Light();
-            Rabbit r = Rabbits.Find(Runner.State, rabbitId);
             Feel.FloatText(new Vector2(-110, 300), L10n.T("float.levelup", r.Name, r.Level), Palette.Lantern, 44);
+            StarMoment(r, before);
         }
 
         void OnBuyUpgrade(int index)

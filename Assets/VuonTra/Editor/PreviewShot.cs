@@ -194,7 +194,18 @@ namespace VuonTra.EditorTools
             screen.Detail.Open(runner.Defs, state, state.Rabbits[4].Id);
             Step(screen, 0.5f);
             Capture(screen, "8b-detail-2");
+            // A rabbit past twenty levels wears its level stars on its sheet and in the grid.
+            screen.Detail.Open(runner.Defs, state, state.Rabbits[11].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "48-detail-stars");
             screen.Detail.Close();
+            var gridScroll = GameObject.Find("Canvas/Sheet/Panel/Rabbits").GetComponent<UnityEngine.UI.ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            gridScroll.verticalNormalizedPosition = 0f;
+            Step(screen, 0.6f);
+            Capture(screen, "48-grid-stars");
+            gridScroll.verticalNormalizedPosition = 1f;
+            Step(screen, 0.2f);
             screen.ShowRabbitAlbum(true);
             Step(screen, 0.3f);
             Capture(screen, "8c-album-top");

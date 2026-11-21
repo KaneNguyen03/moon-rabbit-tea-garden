@@ -113,6 +113,8 @@ namespace VuonTra.EditorTools
             { "moment.gift.title", "Quà: {0}", "Gift: {0}" },
             { "moment.gift.sub", "Bậc {0} · {1} · gắn ở tab Thỏ", "{0} tier · {1} · equip it in the Rabbits tab" },
             { "float.levelup", "{0} lên cấp {1}", "{0} reached level {1}" },
+            { "moment.star.title", "Bé {0} được sao thứ {1}!", "{0} earns star {1}!" },
+            { "moment.star.sub", "Cấp {0} · mỗi 10 cấp một sao", "Level {0} · a star every 10 levels" },
 
             // ----- away popup -----
             { "away.title", "Mừng bạn quay lại", "Welcome back" },

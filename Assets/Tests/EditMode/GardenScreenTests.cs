@@ -2113,5 +2113,33 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("row.maxlevel"), T("Canvas/Card/Buy/Face/Top").text);
             Assert.AreEqual(L10n.T("station.level", Economy.MaxLevel), T("Canvas/Card/Level/Text").text);
         }
+
+        [Test]
+        public void A_Rabbit_Wears_A_Hollow_Star_For_Every_Ten_Levels_And_Passing_A_Mark_Is_A_Moment()
+        {
+            string blue = RabbitKinds.OfTier(2)[0].Id;
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 2, Kind = blue, Name = "Mây", Level = 23, Station = 0 });
+            runner.State.NextRabbitId = 1;
+            runner.State.Coins = new BigNum(1e12);
+            screen.Shell.StartGame();
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+
+            Assert.AreEqual("Cấp 23 ☆☆", T("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Level").text, "the grid cell");
+            Assert.AreEqual("Mây ☆☆", T("Canvas/Garden/Content/Station am-tra/Tier/Text").text, "the name plate in the garden");
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1").onClick.Invoke();
+            Assert.AreEqual("Cấp 23/30 ☆☆", T("Canvas/RabbitSheet/Card/Body/Level").text, "the rabbit's own sheet");
+
+            runner.State.Rabbits[0].Level = 29;
+            screen.Refresh();
+            Find("Canvas/RabbitSheet/Card/Body/LevelUp").onClick.Invoke();
+            Assert.AreEqual(30, runner.State.Rabbits[0].Level);
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            Assert.IsTrue(screen.Feel.BannerVisible, "the third star is an occasion");
+            StringAssert.Contains("Mây", root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+            screen.Refresh();
+            Assert.AreEqual("Cấp 30/30 ☆☆☆", T("Canvas/RabbitSheet/Card/Body/Level").text);
+        }
     }
 }

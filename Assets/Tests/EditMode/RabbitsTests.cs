@@ -450,6 +450,28 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, r.Rabbits.Count, "the gift is for a new garden, not an old one");
         }
 
+        [TestCase(1, 0)]
+        [TestCase(9, 0)]
+        [TestCase(10, 1)]
+        [TestCase(23, 2)]
+        [TestCase(60, 6)]
+        public void A_Rabbit_Earns_A_Star_Every_Ten_Levels(int level, int stars)
+        {
+            Assert.AreEqual(stars, Rabbits.Stars(level));
+            Assert.AreEqual(stars, Rabbits.Stars(new Rabbit { Level = level }));
+        }
+
+        [Test]
+        public void Stars_Stop_At_The_Tier_Cap_And_A_Climb_Counts_The_Marks_It_Passes()
+        {
+            Assert.AreEqual(1, Rabbits.Stars(Rabbits.LevelCaps[0]), "silver caps at ten: one star at most");
+            Assert.AreEqual(6, Rabbits.Stars(Rabbits.LevelCaps[5]), "red caps at sixty: six");
+            Assert.AreEqual(2, Rabbits.StarsEarned(1, 23));
+            Assert.AreEqual(0, Rabbits.StarsEarned(10, 19));
+            Assert.AreEqual(1, Rabbits.StarsEarned(9, 10));
+            Assert.AreEqual(0, Rabbits.StarsEarned(30, 20), "never negative");
+        }
+
         [Test]
         public void Load_Repairs_Bad_Rabbit_Data()
         {

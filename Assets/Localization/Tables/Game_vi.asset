@@ -1354,6 +1354,14 @@ MonoBehaviour:
     m_Localized: "C\u1EA5p t\u1ED1i \u0111a"
     m_Metadata:
       m_Items: []
+  - m_Id: 89813255446528
+    m_Localized: "B\xE9 {0} \u0111\u01B0\u1EE3c sao th\u1EE9 {1}!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 89813263835136
+    m_Localized: "C\u1EA5p {0} \xB7 m\u1ED7i 10 c\u1EA5p m\u1ED9t sao"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

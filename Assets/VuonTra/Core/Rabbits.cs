@@ -122,6 +122,13 @@ namespace VuonTra.Core
 
         public static bool IsMaxLevel(Rabbit r) => r.Level >= LevelCaps[ClampTier(r.Tier)];
 
+        /// <summary>Every ten levels a rabbit earns a star: a mark of how far it has come, nothing more.</summary>
+        public const int LevelsPerStar = 10;
+        public static int Stars(int level) => Math.Max(0, level) / LevelsPerStar;
+        public static int Stars(Rabbit r) => Stars(r.Level);
+        /// <summary>How many stars a climb from one level to another earns; never negative.</summary>
+        public static int StarsEarned(int before, int after) => Math.Max(0, Stars(after) - Stars(before));
+
         public static BigNum LevelCost(Rabbit r)
         {
             return new BigNum(1.3).Pow(Math.Max(1, r.Level) - 1) * (100d * Math.Pow(2d, ClampTier(r.Tier)));
