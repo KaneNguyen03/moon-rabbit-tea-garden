@@ -439,6 +439,28 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: khi làm Cà rốt vàng và Tiệm, thêm chip cà rốt vàng vào `QuestRowView` và đích bay cho nó.
 
+## #36 — Nâng cấp nhanh: Tới mốc, Nâng tất cả, giữ lại một phần, thỏ Tối đa
+
+- Test: 350/350 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 10 test core (`UpgradePlanTests.cs`, file mới) và 6 test màn hình.
+- Commit `d7e6324` (Core, save lên v9: `buyMode` nhận thêm -1, thêm `spendShare`) và `6591a5b` (giao diện), đã push. Issue #36 đã đóng, #16 đã tick.
+- File mới: `Assets/VuonTra/Core/UpgradePlan.cs`, `Assets/VuonTra/Game/UI/UpgradeAllView.cs` (+ .meta). Bảng chuỗi seed lại (11 key: `mode.milestone`, `upgradeall.*`, `rabbits.levelmax`).
+- Ảnh (docs/anh/po-36/): `36-truoc-*.png`, `36-sau-5-stations.png` (dòng Nâng tất cả, công tắc bốn mức), `36-sau-nang-tat-ca.png` (bảng tóm tắt), `36-sau-the-tram-mo.png` (tấm trạm có công tắc), `36-sau-8b-detail.png` (nút Tối đa của thỏ).
+
+### Đã làm (đối chiếu với nguyên văn #36)
+- `Simulation.BuyToMilestone` (-1): vừa đủ tới mốc kế; `Simulation.Budget(s)` = ví × `SpendShare` dùng cho Tối đa, Tới mốc, Nâng tất cả và Tối đa của thỏ.
+- `UpgradePlan.Plan/Apply/Total`: tham lam theo (Δ thu nhập mỗi giây) / (cà rốt), cụm tới mốc kế tối đa 10 cấp, trên bản nháp của `Levels`; `Apply` mua lại theo giá lúc bấm xác nhận, từ chối nếu không đủ. Test chứng minh giống hệt bấm +1 từng lần.
+- `Rabbits.LevelsAffordable/LevelUpMax`: tới trần của bậc, trong ngân sách.
+- `GardenScreen.BuildModeBar` dựng cùng một công tắc bốn mức cho thanh tab và tấm trạm (`_modeButtons` giờ là danh sách, hai bộ nút cùng đọc `BuyMode`). Tấm trạm cao 340 (trước 280); `SelectStation` cho vườn trượt quá chân một đoạn bằng tấm để trạm thấp nhất vẫn ló lên trên tấm.
+- Dòng "Nâng tất cả" đứng đầu tab Trạm (dòng Plot lùi một chỉ số, test đã chỉnh), mở `UpgradeAllView`.
+- `StationActorView`: số cấp chạy lên tới cấp mới trong `Motion.Panel`; giảm cấp hoặc đổi trạng thái thì nhảy thẳng.
+
+### Chưa đạt so với #36
+- Trạm chưa có trần cấp để "không vượt trần" (mục "Trần cấp trạm 500" trong #16 chưa làm); thỏ thì có.
+- Chưa ai bấm tay bảng Nâng tất cả và công tắc trên tấm trạm.
+
+### Tồn đọng
+- tồn đọng: khi làm "Trần cấp trạm 500", `Simulation.BuyCount`, `Economy.MaxAffordable` và `UpgradePlan.Plan` cần chặn ở trần (hiện không có trần).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
