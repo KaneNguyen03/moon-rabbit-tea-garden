@@ -1,6 +1,6 @@
 # Issue trên GitHub (bản chép cho session code)
 
-Chép nguyên văn từ KaneNguyen03/moon-rabbit-tea-garden lúc 2026-11-22 03:48. Nguồn chính vẫn là GitHub; file này do session PO cập nhật.
+Chép nguyên văn từ KaneNguyen03/moon-rabbit-tea-garden lúc 2026-11-22 04:09. Nguồn chính vẫn là GitHub; file này do session PO cập nhật.
 
 ## #1 Mùa trăng mới: làm lại vườn để lấy hệ số vĩnh viễn
 
@@ -218,7 +218,8 @@ Theo dõi các việc trong hàng đợi của bản chơi thử đầu tiên. M
 - [x] Cấp vườn và mở rộng đất theo cấp và số thỏ (`feb6c8f`, `7406a41`)
 - [x] Sửa lỗi thỏ phình to khi bấm nhanh (#35, `7406a41`; chờ chủ project bấm thử)
 - [x] Huy hiệu cấp vườn, sương, hình bùa vẽ tay; bù chỗ nghỉ cho save cũ (`200ebe4`)
-- [ ] Lượt làm UI thứ nhất: tấm trượt (#22), thanh tab (#23), nút và chữ (#24), chuyển động cơ bản (#28), phản hồi khi chạm (#29)
+- [x] Lượt UI thứ nhất, phần đã xong: nút và chữ (#24, `9b1f1b6`), tấm trượt (#22, `52be412`), thanh tab (#23, `a08ef1f`), chuyển động cơ bản (#28, `a011c73`). Mỗi issue còn mục tồn, xem bình luận trong issue.
+- [ ] Lượt UI thứ nhất, phần còn lại: tab Trạm (#25), tab Nhiệm vụ (#27), phản hồi khi chạm (#29)
 - [ ] Nâng cấp nhanh: nâng tối đa, tới mốc, nâng tất cả (#36)
 - [ ] Cà rốt vàng và Tiệm (quầy tiệm trong vườn, quà mỗi ngày, gọi thỏ, thỏ ghé tiệm, đồ cho thỏ, nhuộm lông)
 - [ ] Khay sản phẩm: chạm món để nhận cà rốt (#37)
@@ -230,11 +231,15 @@ Theo dõi các việc trong hàng đợi của bản chơi thử đầu tiên. M
 - [ ] Sao của thỏ mỗi 10 cấp
 - [ ] Trần cấp trạm 500
 - [ ] Màn "lúc bạn đi vắng"
-- [ ] Lượt làm UI thứ hai: tab Trạm (#25), tab Bùa (#26), tab Nhiệm vụ (#27), di chuyển trong vườn (#31), HUD (#32)
+- [ ] Lượt làm UI thứ hai: tab Bùa (#26), di chuyển trong vườn (#31), HUD (#32), phần còn lại của #22, #23, #24, #28
 - [ ] Hướng dẫn 60 giây đầu (#30)
 
 **Để sau, có issue riêng:** #1, #2, #3, #6, #7, #8, #9, #10, #11, #19, #20, #21, #33, #34.
-**Cần chủ project:** #1, #4, #7, #9, #12, #15, #17 (liên kết Unity Cloud).
+**Lên cửa hàng (sau bản chơi thử):** #41 bản build iOS và Android → #38 lõi lưu mây → #39 Game Center và iCloud, #40 Play Games và Saved Games → #42 quyền riêng tư.
+
+**Cần chủ project:** #1, #4, #7, #9, #12, #15, #17 (liên kết Unity Cloud), #39 và #40 và #41 (tài khoản nhà phát triển Apple và Google), #42 (duyệt chính sách).
+
+
 
 
 
@@ -614,6 +619,114 @@ Hiện cà rốt tự cộng vào ví, người chơi không có gì để "nh�
 **Hình cần vẽ:** một món cho mỗi trạm làm ra sản phẩm (7 trạm), và khung khay.
 
 **Luật** nằm trong Core, có test: sức chứa, xếp chồng, bán, làm đầy lúc vắng mặt, trần ngày của món vàng.
+
+---
+
+## #38 Lưu mây: lõi đồng bộ save, không phụ thuộc nhà cung cấp
+
+Nhãn: enhancement
+
+Người chơi hiện chỉ có save trên máy: xoá game hoặc đổi máy là mất vườn. Đây là phần lõi dùng chung cho iOS (#39) và Android (#40).
+
+**Cần làm**
+- Lớp giao tiếp `ICloudSave` (đã lên kế hoạch ở #17, việc R10): tải lên, tải xuống, hỏi thông tin bản trên mây (thời điểm lưu, cấp vườn, số thỏ, số loài, tổng thời gian chơi).
+- **Khi nào đồng bộ:** lúc mở game, lúc game ra nền, sau các mốc lớn (mở rộng đất, gọi được thỏ bậc Vàng trở lên, mua ở Tiệm), và tối đa vài phút một lần. Không đồng bộ mỗi lần nâng cấp.
+- **Khi hai bản lệch nhau:** không tự ghi đè. Hiện một tấm so hai bản (trên máy và trên mây) với cấp vườn, số thỏ, số loài, lần chơi cuối, rồi để người chơi chọn. Gợi ý sẵn bản tiến xa hơn.
+- **Không bao giờ mất save trên máy:** trước khi thay bằng bản trên mây, giữ một bản sao lưu cũ trên máy, khôi phục được trong Cài đặt.
+- **Không có mạng:** game chạy bình thường bằng save trên máy, đồng bộ khi có mạng lại.
+- **Chống gian lận nhẹ:** bản trên mây mang phiên bản save và một mã kiểm, bản hỏng thì bỏ qua và báo.
+- Trong Cài đặt: trạng thái "Đã lưu lên mây lúc …", nút "Lưu ngay", nút "Khôi phục từ mây".
+
+**Test (Core):** chọn bản khi lệch, khứ hồi qua bản cài đặt giả, bản hỏng, save cũ phiên bản thấp, mất mạng giữa chừng.
+
+**Phụ thuộc:** #17 (hồ sơ người chơi), #41 (bản build mobile).
+
+---
+
+## #39 iOS: tự đăng nhập bằng Game Center và lưu vườn lên iCloud
+
+Nhãn: enhancement, question
+
+Trên iPhone và iPad, người chơi mong mở game là được nhận ra ngay và vườn tự theo họ sang máy mới, không phải tạo tài khoản.
+
+**Thiết kế**
+- Mở game: tự đăng nhập Game Center, không hỏi gì. Người chơi đã tắt Game Center thì chơi như khách, có lời mời nhẹ trong Cài đặt.
+- **Nhớ đăng nhập:** lần sau mở game tự vào lại, không hiện màn đăng nhập.
+- Save lưu lên iCloud của chính người chơi, theo luật đồng bộ ở #38.
+- Tên và ảnh Game Center dùng làm tên vườn mặc định (sửa được).
+- Về sau: bảng xếp hạng và thành tựu Game Center nối với nhiệm vụ đang có.
+
+**Cần chủ project**
+- Tài khoản Apple Developer (có phí hằng năm), tạo App ID, bật Game Center và iCloud cho app.
+- Chọn cách lưu: iCloud key-value (đơn giản, giới hạn 1 MB, đủ cho save hiện tại) hay CloudKit.
+- Unity không có sẵn cầu nối iCloud; cần một plugin gốc nhỏ tự viết hoặc một gói bên thứ ba. Chọn gói nào cần chủ project đồng ý.
+
+**Yêu cầu của App Store cần nhớ**
+- Có trang chính sách quyền riêng tư và khai báo dữ liệu thu thập.
+- Nếu game cho tạo tài khoản riêng thì phải có nút xoá tài khoản trong game (xem #42). Chỉ dùng Game Center và iCloud thì không tạo tài khoản riêng.
+
+**Phụ thuộc:** #38, #41.
+
+---
+
+## #40 Android: tự đăng nhập bằng Google Play Games và lưu vườn lên Saved Games
+
+Nhãn: enhancement, question
+
+Trên Android (CH Play), người chơi mong mở game là tự đăng nhập bằng tài khoản Google Play Games và vườn tự theo họ sang máy mới.
+
+**Thiết kế**
+- Mở game: tự đăng nhập Play Games, không hỏi gì. Thất bại hoặc người chơi từ chối thì chơi như khách, có nút đăng nhập trong Cài đặt.
+- **Nhớ đăng nhập:** lần sau mở game tự vào lại.
+- Save lưu vào Saved Games (snapshot) của Play Games, kèm ảnh bìa là ảnh chụp vườn và mô tả "Cấp vườn N · M thỏ", theo luật đồng bộ ở #38.
+- Về sau: thành tựu và bảng xếp hạng Play Games nối với nhiệm vụ đang có.
+
+**Cần chủ project**
+- Tài khoản Google Play Console (phí một lần), tạo app, bật Play Games Services và Saved Games, tạo OAuth client và khai báo chữ ký SHA-1 của bản build.
+- Thêm gói Google Play Games Plugin for Unity vào project (gói bên thứ ba của Google): cần chủ project đồng ý.
+- `BillingMode.json` trong project đã đặt GooglePlay, nên hướng Android đã được tính từ trước.
+
+**Yêu cầu của Google Play cần nhớ**
+- Trang chính sách quyền riêng tư và mục An toàn dữ liệu.
+- Khai báo nhóm tuổi; nếu nhắm cả trẻ em thì có thêm ràng buộc về đăng nhập và quảng cáo.
+
+**Phụ thuộc:** #38, #41.
+
+---
+
+## #41 Bản build iOS và Android
+
+Nhãn: enhancement, question
+
+Game hiện chỉ có bản Mac để thử (`Build/Mac/VuonTraTho.app`). Mọi việc về đăng nhập cửa hàng (#39, #40), chia sẻ ảnh gốc (#18), rung (#29), mua bằng tiền thật (#9) đều cần bản mobile trước.
+
+**Cần làm**
+- [ ] Thêm đích build iOS và Android trong `BuildScript`, kèm lệnh build từ dòng lệnh như bản Mac.
+- [ ] Bundle id cho từng nền tảng (hiện `com.vuontratho.game` cho Standalone), phiên bản và số build.
+- [ ] Icon app và màn hình chờ theo art bible.
+- [ ] Khoá hướng dọc, vùng an toàn cho máy có tai thỏ và thanh điều hướng (#23, #33).
+- [ ] Kiểm thao tác chạm thật: chụm để zoom, kéo, vuốt đóng tấm, giữ để nâng liên tục.
+- [ ] Đo hiệu năng trên một máy tầm trung: 72 loài thỏ, sương, đom đóm; giữ 60 khung hình hoặc hạ hiệu ứng.
+- [ ] Dung lượng bản cài: nén hình, bỏ ảnh tài liệu khỏi bản build.
+- [ ] Bản thử nội bộ: TestFlight cho iOS, Internal testing cho Android.
+
+**Cần chủ project:** tài khoản Apple Developer và Google Play Console, máy thật để thử, và Xcode cùng Android SDK cài trên máy build.
+
+---
+
+## #42 Quyền riêng tư: chính sách, xoá dữ liệu và xuất dữ liệu người chơi
+
+Nhãn: enhancement, question
+
+Cả App Store và Google Play đều yêu cầu những thứ này trước khi lên cửa hàng, nhất là khi game có đăng nhập và lưu mây.
+
+- [ ] Trang chính sách quyền riêng tư bằng tiếng Việt và tiếng Anh, có đường dẫn trong Cài đặt và trên trang cửa hàng. Nội dung cần chủ project duyệt.
+- [ ] Trong Cài đặt: "Xoá dữ liệu của tôi" xoá save trên máy và trên mây, có bước xác nhận hai lần. Bắt buộc nếu game có tài khoản riêng.
+- [ ] Trong Cài đặt: "Sao chép mã người chơi" và cách liên hệ hỗ trợ.
+- [ ] Khai báo dữ liệu thu thập cho hai cửa hàng (hiện game không gọi mạng và không thu thập gì; cập nhật khi thêm đăng nhập, lưu mây, phân tích).
+- [ ] Quyết định nhóm tuổi mục tiêu; ảnh hưởng tới đăng nhập, quảng cáo và việc gọi thỏ có yếu tố may rủi (#9).
+
+**Phụ thuộc:** #38, #39, #40.
 
 ---
 
