@@ -113,6 +113,16 @@ namespace VuonTra.EditorTools
             screen.SetTab(3);
             Step(screen, 0.2f);
             Capture(screen, "8-rabbits");
+            // Calling a rabbit: the moon gate, the shadow, the reveal.
+            Press(screen, "Canvas/Sheet/Panel/Rabbits/Content/Summon/Button");
+            Step(screen, 0.85f);
+            Capture(screen, "18a-gate");
+            Step(screen, 0.75f);
+            Capture(screen, "18b-shadow");
+            Step(screen, 1.6f);
+            Capture(screen, "18c-arrived");
+            screen.Arrival.Close();
+            Step(screen, 0.2f);
             screen.Detail.Open(runner.Defs, state, state.Rabbits[0].Id);
             Step(screen, 0.5f);
             Capture(screen, "8b-detail");

@@ -1078,6 +1078,18 @@ MonoBehaviour:
     m_Localized: All open
     m_Metadata:
       m_Items: []
+  - m_Id: 48129947721728
+    m_Localized: New!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48129960304640
+    m_Localized: Tap to continue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48129960304641
+    m_Localized: New
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

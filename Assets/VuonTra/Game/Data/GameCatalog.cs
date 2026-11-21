@@ -51,6 +51,9 @@ namespace VuonTra.Game
             return defs;
         }
 
+        [Tooltip("The moon gate a called rabbit steps out of.")]
+        public Sprite MoonGate;
+
         [Tooltip("Furniture for the places to rest, indexed by seat; null where the seat is a stump that is already in the garden.")]
         public Sprite[] RestProps = new Sprite[0];
 

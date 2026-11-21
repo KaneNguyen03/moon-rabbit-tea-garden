@@ -1071,6 +1071,18 @@ MonoBehaviour:
     m_Key: rest.full
     m_Metadata:
       m_Items: []
+  - m_Id: 48129947721728
+    m_Key: summon.new
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48129960304640
+    m_Key: summon.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 48129960304641
+    m_Key: album.fresh
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

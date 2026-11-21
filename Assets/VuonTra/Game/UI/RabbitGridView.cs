@@ -26,6 +26,7 @@ namespace VuonTra.Game.UI
         readonly Action<long> _onOpen;
         readonly Action<string> _onKind;
         readonly Action _onBuySpot;
+        readonly Func<string, bool> _isFresh;
         readonly List<GameObject> _dynamic = new List<GameObject>();
         Text _count, _clovers, _summonLabel;
         Image _mineTab, _albumTab;
@@ -37,8 +38,9 @@ namespace VuonTra.Game.UI
         public bool Album { get; private set; }
 
         public RabbitGridView(RectTransform content, GameCatalog catalog, Action onSummon, Action onAuto, Action<int> onMerge,
-            Action<long> onOpen, Action<string> onKind, Action onBuySpot)
+            Action<long> onOpen, Action<string> onKind, Action onBuySpot, Func<string, bool> isFresh = null)
         {
+            _isFresh = isFresh;
             _onBuySpot = onBuySpot;
             _content = content;
             _catalog = catalog;
@@ -139,6 +141,8 @@ namespace VuonTra.Game.UI
                 sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(';');
             sb.Append('|');
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
+            if (_isFresh != null && Album)
+                foreach (string seen in s.SeenKinds) if (_isFresh(seen)) sb.Append('*').Append(seen);
             sb.Append('|').Append(s.SeenKinds.Count).Append('|').Append(s.RestSpots).Append(s.Coins >= RestSpots.CostOfNext(s) ? '+' : '-');
             return sb.ToString();
         }
@@ -349,6 +353,16 @@ namespace VuonTra.Game.UI
             name.resizeTextForBestFit = true;
             name.resizeTextMinSize = 15;
             name.resizeTextMaxSize = 24;
+
+            // A kind just met for the first time is lit until its page has been opened.
+            if (met && _isFresh != null && _isFresh(kind.Id))
+            {
+                tile.GetComponent<Image>().color = Palette.Lantern;
+                var fresh = UiKit.Rect("Fresh", cell).Place(1f, 1f, -52, -28, 92, 40);
+                fresh.localRotation = Quaternion.Euler(0, 0, -8);
+                fresh.AddImage(_catalog.Panel, Palette.Lantern, true);
+                UiKit.Rect("Text", fresh).Stretch(0, 0, 1, 1).AddText(L10n.T("album.fresh"), 22, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            }
         }
     }
 }

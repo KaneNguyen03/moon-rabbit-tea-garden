@@ -59,7 +59,10 @@ namespace VuonTra.Game.UI
         };
         /// <summary>For the places that bring their own furniture: how tall it is drawn, and how far the rabbit sits above its foot.</summary>
         static readonly float[] SeatPropHeight = { 0, 0, 104, 124, 150, 196 };
-        static readonly Vector2[] SeatPropLift = { default, default, new Vector2(0, 26), new Vector2(-38, 56), new Vector2(-4, 46), new Vector2(0, 44) };
+        static readonly Vector2[] SeatPropLift = { default, default, new Vector2(0, 26), new Vector2(-38, 56), new Vector2(-4, 46), new Vector2(2, 60) };
+        /// <summary>The rabbit on the swing is drawn a little smaller so it fits between the posts.</summary>
+        static readonly float[] SeatScale = { 1f, 1f, 1f, 1f, 1f, 0.82f };
+        readonly List<GameObject> _seatNaps = new List<GameObject>();
         readonly List<RectTransform> _seats = new List<RectTransform>();
         readonly List<Image> _seatArt = new List<Image>();
         readonly List<GameObject> _seatCushions = new List<GameObject>();
@@ -90,6 +93,11 @@ namespace VuonTra.Game.UI
         public ItemPickerView Picker { get; private set; }
         public RenameView Rename { get; private set; }
         public RabbitDetailView Detail { get; private set; }
+        /// <summary>The moon gate a newly called or merged rabbit steps out of.</summary>
+        public SummonMomentView Arrival { get; private set; }
+        /// <summary>Kinds met for the first time and not yet looked at in the album: their cells are marked.</summary>
+        readonly HashSet<string> _freshKinds = new HashSet<string>();
+        public bool IsFreshKind(string kindId) => _freshKinds.Contains(kindId);
         /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests, 3 = rabbits.</summary>
         public int Tab { get; private set; }
         public bool SheetOpen => _sheet != null && _sheet.activeSelf;
@@ -148,6 +156,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
 
             Tweens.Update(dt);
+            if (Arrival != null) Arrival.Update(dt);
             Feel.Update(dt);
             Shell.Update(_clock);
             UpdateWorld(dt);
@@ -394,6 +403,14 @@ namespace VuonTra.Game.UI
             Vector2 offset = -_street.anchoredPosition / _zoom;
             _groundTile.uvRect = new Rect(offset.x / 512f, offset.y / 512f, ScreenW / 512f / _zoom, ScreenH / 512f / _zoom);
 
+            for (int k = 0; k < _seats.Count; k++)
+            {
+                if (!_seats[k].gameObject.activeSelf) continue;
+                _seats[k].localRotation = Quaternion.Euler(0, 0, Mathf.Sin(_clock * 0.8f + k * 1.9f) * 3.2f);
+                bool dozing = Mathf.Repeat(_clock / 11f + k * 0.29f, 1f) < 0.3f;
+                if (_seatNaps[k].activeSelf != dozing) _seatNaps[k].SetActive(dozing);
+            }
+
             for (int i = 0; i < _walkers.Count; i++)
             {
                 Walker w = _walkers[i];
@@ -565,7 +582,7 @@ namespace VuonTra.Game.UI
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
-            _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
+            _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
             // The old helpers belong to the destroyed canvas; Build makes new ones.
@@ -573,6 +590,7 @@ namespace VuonTra.Game.UI
             Picker = null;
             Rename = null;
             Detail = null;
+            Arrival = null;
             Shell = null;
 
             Build();
@@ -618,6 +636,7 @@ namespace VuonTra.Game.UI
             BuildTabBar(catalog);
             BuildSheet(catalog);
             Feel = new FeelLayer(_canvas, catalog, Tweens);
+            Arrival = new SummonMomentView(_canvas, catalog);
             Detail = new RabbitDetailView(_canvas, catalog, Tweens, OnLevelUp,
                 rabbitId => { Sfx.Click(); Rename.Open(Runner.State, rabbitId); },
                 (rabbitId, slot) => { Sfx.Click(); Picker.Open(Runner.State, rabbitId, slot); },
@@ -763,10 +782,17 @@ namespace VuonTra.Game.UI
                 UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 4, 84, 20).AddImage(catalog.Round, shade);
                 Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
                 art.preserveAspect = true;
+                rt.localScale = Vector3.one * SeatScale[k];
+                // Resting looks different from working: a slow sway, and now and then a doze.
+                var nap = UiKit.Rect("Nap", rt).Place(1f, 1f, 6, -6, 60, 34);
+                nap.AddImage(catalog.Panel, Palette.Paper, true);
+                UiKit.Rect("Text", nap).Stretch(0, 0, 1, 1).AddText("z z", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                nap.gameObject.SetActive(false);
+                _seatNaps.Add(nap.gameObject);
                 _seats.Add(rt);
                 _seatArt.Add(art);
                 rt.gameObject.SetActive(false);
-                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y + 6f, cushion));
+                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y + 60f, cushion)); // the furniture is always behind whoever sits on it
                 standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y, rt));
             }
 
@@ -1356,11 +1382,12 @@ namespace VuonTra.Game.UI
             }, kindId =>
             {
                 Sfx.Click();
+                _freshKinds.Remove(kindId); // looked at now
                 Detail.OpenKind(Runner.Defs, Runner.State, kindId);
             }, () =>
             {
                 if (Runner.BuyRestSpot()) Sfx.Sting();
-            });
+            }, IsFreshKind);
 
             SetTab(0);
             _sheet.SetActive(false);
@@ -1803,7 +1830,7 @@ namespace VuonTra.Game.UI
             if (rabbit == null) return;
             _rabbitList.Summon.Press(Tweens);
             Sfx.Sting();
-            Feel.Moment(L10n.T("moment.summon.title", rabbit.Name), L10n.T("moment.summon.sub", L10n.Tier(rabbit.Tier), UiKit.Times(Rabbits.Multipliers[rabbit.Tier])));
+            Welcome(rabbit);
         }
 
         void OnMerge(int tier)
@@ -1811,7 +1838,15 @@ namespace VuonTra.Game.UI
             Rabbit merged = Runner.MergeRabbits(tier);
             if (merged == null) return;
             Sfx.Sting();
-            Feel.Moment(L10n.T("moment.merge.title", merged.Name, L10n.Tier(merged.Tier)), L10n.T("moment.merge.sub", UiKit.Times(Rabbits.Multipliers[merged.Tier])));
+            Welcome(merged);
+        }
+
+        /// <summary>A rabbit has just arrived, called or merged: it steps out of the moon gate.</summary>
+        void Welcome(Rabbit rabbit)
+        {
+            if (rabbit.FirstOfKind) _freshKinds.Add(Rabbits.KindOf(rabbit));
+            Arrival.Show(Runner.Catalog.RabbitArt(rabbit), rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Tier(rabbit.Tier)),
+                Palette.Tiers[rabbit.Tier], rabbit.FirstOfKind, L10n.T("summon.new"), L10n.T("summon.hint"));
         }
 
         void OnLevelUp(long rabbitId)
