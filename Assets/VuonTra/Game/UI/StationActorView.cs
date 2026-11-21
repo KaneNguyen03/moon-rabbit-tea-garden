@@ -1,21 +1,20 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>One station in the garden: a rabbit, its prop, a cycle bar and a level label.</summary>
+    /// <summary>One station in the garden: a rabbit, its prop, a cycle bar and a level chip.</summary>
     public sealed class StationActorView
     {
         public RectTransform Root { get; private set; }
 
         readonly int _index;
-        RectTransform _rabbit, _fill, _glow;
-        Image _rabbitImage, _scarfImage, _propImage;
+        RectTransform _rabbit, _fill, _prop;
+        Image _rabbitImage, _scarfImage, _propImage, _chip;
         Text _label;
-        GameObject _bar;
-        float _squish;
+        GameObject _bar, _glow;
+        float _squish, _shownProgress, _propPop;
         bool _locked;
         Color _accent;
 
@@ -29,23 +28,22 @@ namespace VuonTra.Game.UI
             _accent = data.Accent;
             Root = UiKit.Rect("Station " + data.Id, parent);
 
-            var hit = Root.AddImage(null, new Color(0, 0, 0, 0));
+            Image hit = Root.AddImage(null, new Color(0, 0, 0, 0));
             hit.raycastTarget = true;
             var button = Root.gameObject.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
-            button.onClick.AddListener(() =>
-            {
-                _squish = 1f;
-                onTap(_index);
-            });
+            button.onClick.AddListener(() => onTap(_index));
 
-            _glow = UiKit.Rect("Glow", Root).Place(0.5f, 0.5f, 10, -20, 560, 470);
-            _glow.AddImage(catalog.Glow != null ? catalog.Glow : catalog.Round, new Color(1f, 0.8f, 0.45f, catalog.Glow != null ? 0.55f : 0.08f));
+            var glow = UiKit.Rect("Glow", Root).Place(0.5f, 0.5f, 10, -20, 560, 470);
+            glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
+            _glow = glow.gameObject;
 
             UiKit.Rect("Shadow", Root).Place(0.5f, 0.5f, 10, -112, 330, 62)
-                .AddImage(catalog.Round, new Color(0.03f, 0.05f, 0.14f, 0.38f));
+                .AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.4f));
 
-            _propImage = UiKit.Rect("Prop", Root).Place(0.5f, 0.5f, 112, -38, 168, 168).AddImage(data.Prop, Color.white);
+            _prop = UiKit.Rect("Prop", Root).Place(0.5f, 0.5f, 112, -122, 168, 168);
+            _prop.pivot = new Vector2(0.5f, 0f);
+            _propImage = _prop.AddImage(data.Prop, Color.white);
             _propImage.preserveAspect = true;
 
             _rabbit = UiKit.Rect("Rabbit", Root).Place(0.5f, 0.5f, -72, -112, 236, 236);
@@ -55,44 +53,61 @@ namespace VuonTra.Game.UI
             _scarfImage = UiKit.Rect("Scarf", _rabbit).Stretch(0, 0, 1, 1).AddImage(catalog.Scarf, data.Accent);
             _scarfImage.preserveAspect = true;
 
-            var barBg = UiKit.Rect("Bar", Root).Place(0.5f, 0.5f, 10, -140, 250, 22);
-            barBg.AddImage(catalog.Panel, new Color(0.06f, 0.08f, 0.19f, 0.85f), true);
+            var barBg = UiKit.Rect("Bar", Root).Place(0.5f, 0.5f, -74, -144, 170, 24);
+            barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.75f), true);
             _bar = barBg.gameObject;
-            _fill = UiKit.Rect("Fill", barBg).Stretch(0, 0, 0, 1, 3, 3, 3, 3);
-            _fill.AddImage(catalog.Panel, UiKit.Lantern, true);
+            _fill = UiKit.Rect("Fill", barBg).Stretch(0, 0, 0, 1, 4, 4, 4, 4);
+            _fill.AddImage(catalog.Panel, Palette.Carrot, true);
 
-            _label = UiKit.Rect("Level", Root).Place(0.5f, 0.5f, 10, -176, 320, 44)
-                .AddText("", 30, UiKit.Cream, TextAnchor.MiddleCenter, FontStyle.Bold);
-            var outline = _label.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0.06f, 0.08f, 0.19f, 0.9f);
-            outline.effectDistance = new Vector2(2, -2);
+            var chip = UiKit.Rect("Level", Root).Place(0.5f, 0.5f, 112, -144, 150, 46);
+            _chip = chip.AddImage(catalog.Panel, Palette.Paper, true);
+            _label = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1)
+                .AddText("", 27, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>Switches between the working look and the asleep look.</summary>
         public void SetLevel(int level, bool isBrew)
         {
             _locked = level <= 0;
-            _label.text = _locked ? "Đang ngủ… z z" : "Cấp " + level;
-            _label.color = _locked ? UiKit.Muted : UiKit.Cream;
-            _rabbitImage.color = _locked ? new Color(0.45f, 0.5f, 0.75f, 0.75f) : Color.white;
-            _scarfImage.color = _locked ? new Color(0.35f, 0.4f, 0.65f, 0.75f) : _accent;
-            _propImage.color = _locked ? new Color(0.35f, 0.4f, 0.65f, 0.55f) : Color.white;
-            _glow.gameObject.SetActive(!_locked);
+            _label.text = _locked ? "z z z" : "Cấp " + level;
+            _label.color = _locked ? Palette.Mix(Palette.Paper, Palette.Night, 0.25f) : Palette.Ink;
+            _chip.color = _locked ? Palette.Alpha(Palette.Mix(Palette.Night, Palette.Paper, 0.2f), 0.85f) : Palette.Paper;
+            _rabbitImage.color = _locked ? Palette.Asleep : Color.white;
+            _scarfImage.color = _locked ? Palette.Asleep : _accent;
+            _propImage.color = _locked ? Palette.Alpha(Palette.Asleep, 0.55f) : Color.white;
+            _glow.SetActive(!_locked);
             _bar.SetActive(!_locked && isBrew);
         }
 
-        /// <summary>Per-frame: cycle bar, idle bob, tap squish.</summary>
+        /// <summary>A tap landed: squash the rabbit.</summary>
+        public void Squish()
+        {
+            _squish = 1f;
+        }
+
+        /// <summary>A cycle finished: the prop hops.</summary>
+        public void PopProp()
+        {
+            _propPop = 1f;
+        }
+
+        /// <summary>Per-frame: cycle bar, idle breathing, tap squish, payout hop.</summary>
         public void Animate(double progress, float time, float deltaTime)
         {
             if (!_locked)
             {
-                float p = Mathf.Clamp01((float)progress);
-                _fill.anchorMax = new Vector2(Mathf.Max(0.06f, p), 1f);
+                float target = Mathf.Clamp01((float)progress);
+                // Ease towards the real value; a finished cycle snaps back to the start.
+                _shownProgress = target < _shownProgress ? target : Mathf.Lerp(_shownProgress, target, Mathf.Clamp01(deltaTime * 14f));
+                _fill.anchorMax = new Vector2(Mathf.Max(0.08f, _shownProgress), 1f);
             }
 
             _squish = Mathf.Max(0f, _squish - deltaTime * 5f);
-            float bob = _locked ? 0f : Mathf.Sin(time * 3f + _index * 1.7f) * 0.025f;
-            _rabbit.localScale = new Vector3(1f + _squish * 0.12f - bob * 0.5f, 1f - _squish * 0.18f + bob, 1f);
+            _propPop = Mathf.Max(0f, _propPop - deltaTime * 4f);
+            float breathe = _locked ? Mathf.Sin(time * 1.2f + _index) * 0.012f : Mathf.Sin(time * 3f + _index * 1.7f) * 0.025f;
+            _rabbit.localScale = new Vector3(1f + _squish * 0.12f - breathe * 0.5f, 1f - _squish * 0.18f + breathe, 1f);
+            float hop = Ease.Pop(1f - _propPop) * (_propPop > 0f ? 1f : 0f);
+            _prop.localScale = new Vector3(1f - hop * 0.08f, 1f + hop * 0.14f, 1f);
         }
     }
 }

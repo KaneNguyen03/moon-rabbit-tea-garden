@@ -65,10 +65,18 @@ namespace VuonTra.Game
             _pendingAway = BigNum.Zero;
         }
 
+        /// <summary>While true, no time passes for the stations (the pause screen is open).</summary>
+        public bool Paused;
+
         void Update()
         {
             float dt = Time.unscaledDeltaTime;
-            if (dt > LongFrameSeconds)
+            if (Paused)
+            {
+                // Paused time is not time away: keep the stamp fresh so it never gets paid out.
+                State.LastSeenUnixSeconds = Now;
+            }
+            else if (dt > LongFrameSeconds)
             {
                 // The app was suspended: pay the gap as time away instead of simulating it.
                 BigNum paid = Simulation.ClaimAway(Defs, State, Now, out double counted);
@@ -104,6 +112,18 @@ namespace VuonTra.Game
         {
             State.BuyMode = mode == 0 ? 0 : (mode == 10 ? 10 : 1);
             StateChanged?.Invoke();
+        }
+
+        /// <summary>Throws the progress away and starts a new garden.</summary>
+        public void ResetGame()
+        {
+            int buyMode = State.BuyMode;
+            State = GameState.NewGame(Defs);
+            State.BuyMode = buyMode;
+            State.HintSeen = true;
+            State.LastSeenUnixSeconds = Now;
+            StateChanged?.Invoke();
+            Save();
         }
 
         public void Save()

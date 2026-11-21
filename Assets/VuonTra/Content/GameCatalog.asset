@@ -27,4 +27,5 @@ MonoBehaviour:
   Round: {fileID: 21300000, guid: 5786fc2d93ebf482088d94fe45ed18fd, type: 3}
   Glow: {fileID: 21300000, guid: ea3a57f1a56de4ef1ab9e2a8c7281559, type: 3}
   Currency: {fileID: 21300000, guid: 6f4283db3d99c43e9931c494afccb3bd, type: 3}
+  Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Background: {fileID: 21300000, guid: bc2b457d3e4834eca89c9e67325cd14a, type: 3}

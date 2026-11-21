@@ -211,6 +211,16 @@ namespace VuonTra.EditorTools
             carrot.Ellipse(62, 44, 9, 2.5f, -52, Hex("e07a2c"));
             carrot.Ellipse(50, 30, 7, 2.2f, -52, Hex("e07a2c"));
             carrot.Save("carrot");
+
+            // White so it can be tinted: a ring of teeth around a hub.
+            var gear = new Painter(128, 128);
+            for (int k = 0; k < 8; k++)
+            {
+                float a = k * Mathf.PI / 4f;
+                gear.Ellipse(64 + Mathf.Cos(a) * 46, 64 + Mathf.Sin(a) * 46, 12, 12, 0, Color.white);
+            }
+            gear.Ellipse(64, 64, 44, 44, 0, Color.white);
+            gear.Save("gear");
         }
 
         static float Hash(float n)

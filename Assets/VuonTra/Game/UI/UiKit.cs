@@ -1,28 +1,22 @@
+using System;
 using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>Small helpers for building the uGUI tree in code, plus the game's palette.</summary>
+    /// <summary>Helpers for building the uGUI tree in code: rects, images, text, chunky buttons, sliders.</summary>
     public static class UiKit
     {
-        public static readonly Color Night = new Color32(0x16, 0x1a, 0x3a, 0xff);
-        public static readonly Color Panel = new Color32(0x20, 0x25, 0x4f, 0xff);
-        public static readonly Color Panel2 = new Color32(0x2b, 0x31, 0x66, 0xff);
-        public static readonly Color Line = new Color32(0x3d, 0x44, 0x80, 0xff);
-        public static readonly Color Lantern = new Color32(0xff, 0xc8, 0x66, 0xff);
-        public static readonly Color Cream = new Color32(0xff, 0xf1, 0xd2, 0xff);
-        public static readonly Color Muted = new Color32(0xaa, 0xb0, 0xda, 0xff);
-        public static readonly Color Ink = new Color32(0x2a, 0x21, 0x40, 0xff);
-        public static readonly Color Moss = new Color32(0x3f, 0x8a, 0x6c, 0xff);
-
         const int UiLayer = 5;
+        /// <summary>How far a chunky button's face sits above its lip.</summary>
+        public const float LipHeight = 10f;
+
         static Font _font;
 
         /// <summary>
-        /// A system font that has Vietnamese glyphs. Temporary: a bundled font replaces this
-        /// in the art milestone so every device shows the same letters.
+        /// A system font that has Vietnamese glyphs. Temporary: a bundled rounded font replaces
+        /// this in the art milestone so every device shows the same letters.
         /// </summary>
         public static Font Font
         {
@@ -65,6 +59,16 @@ namespace VuonTra.Game.UI
             return rt;
         }
 
+        /// <summary>Full width minus insets, a fixed height, measured up from the parent's bottom edge.</summary>
+        public static RectTransform Band(this RectTransform rt, float left, float right, float bottom, float height)
+        {
+            rt.anchorMin = new Vector2(0, 0);
+            rt.anchorMax = new Vector2(1, 0);
+            rt.offsetMin = new Vector2(left, bottom);
+            rt.offsetMax = new Vector2(-right, bottom + height);
+            return rt;
+        }
+
         public static Image AddImage(this RectTransform rt, Sprite sprite, Color color, bool sliced = false)
         {
             var img = rt.gameObject.AddComponent<Image>();
@@ -91,6 +95,64 @@ namespace VuonTra.Game.UI
             return t;
         }
 
+        /// <summary>A soft drop shadow in the bible's ink, so text reads on any backdrop.</summary>
+        public static void AddShadow(this Text text, float alpha = 0.55f, float distance = 3f)
+        {
+            var shadow = text.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = Palette.Alpha(Palette.Ink, alpha);
+            shadow.effectDistance = new Vector2(0, -distance);
+        }
+
+        /// <summary>
+        /// A candy-style button: a darker lip with a raised face on top. The returned view lets the
+        /// caller restyle it (enabled / disabled) and pop it on press.
+        /// </summary>
+        public static ChunkyButton Chunky(RectTransform root, Sprite panel, Action onClick)
+        {
+            var view = new ChunkyButton { Root = root };
+            view.Lip = root.AddImage(panel, Palette.CarrotLip, true);
+            view.Lip.raycastTarget = true;
+            view.Button = root.gameObject.AddComponent<Button>();
+            view.Button.transition = Selectable.Transition.None;
+            view.Button.targetGraphic = view.Lip;
+            view.FaceRect = Rect("Face", root).Stretch(0, 0, 1, 1, 0, LipHeight, 0, 0);
+            view.Face = view.FaceRect.AddImage(panel, Palette.Carrot, true);
+            view.Button.onClick.AddListener(() => onClick());
+            return view;
+        }
+
+        /// <summary>A horizontal 0–1 slider in the game's style.</summary>
+        public static Slider AddSlider(RectTransform root, Sprite panel, Sprite round, float value, Action<float> onChange)
+        {
+            var slider = root.gameObject.AddComponent<Slider>();
+            var track = Rect("Track", root).Stretch(0, 0.5f, 1, 0.5f, 0, -9, 0, -9);
+            track.AddImage(panel, Palette.Track, true).raycastTarget = true;
+
+            var fillArea = Rect("Fill Area", root).Stretch(0, 0.5f, 1, 0.5f, 0, -9, 0, -9);
+            var fill = Rect("Fill", fillArea).Stretch(0, 0, 0, 1);
+            fill.AddImage(panel, Palette.Carrot, true);
+
+            var handleArea = Rect("Handle Area", root).Stretch(0, 0.5f, 1, 0.5f, 26, -26, 26, -26);
+            var handle = Rect("Handle", handleArea);
+            handle.anchorMin = new Vector2(0, 0.5f);
+            handle.anchorMax = new Vector2(0, 0.5f);
+            handle.sizeDelta = new Vector2(52, 52);
+            Image knob = handle.AddImage(round, Palette.Card);
+            knob.raycastTarget = true;
+            knob.preserveAspect = true;
+            Rect("Dot", handle).Place(0.5f, 0.5f, 0, 0, 24, 24).AddImage(round, Palette.Carrot);
+
+            slider.fillRect = fill;
+            slider.handleRect = handle;
+            slider.targetGraphic = knob;
+            slider.direction = Slider.Direction.LeftToRight;
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.value = value;
+            slider.onValueChanged.AddListener(v => onChange(v));
+            return slider;
+        }
+
         public static string Seconds(double value)
         {
             return value.ToString("0.0", CultureInfo.InvariantCulture).Replace('.', ',');
@@ -99,6 +161,34 @@ namespace VuonTra.Game.UI
         public static string Times(double value)
         {
             return value.ToString(value >= 100 ? "0" : "0.0", CultureInfo.InvariantCulture).Replace('.', ',');
+        }
+    }
+
+    public sealed class ChunkyButton
+    {
+        public RectTransform Root, FaceRect;
+        public Image Lip, Face;
+        public Button Button;
+
+        /// <summary>Carrot when it can be pressed, washed-out paper when it cannot.</summary>
+        public void SetEnabled(bool on)
+        {
+            Button.interactable = on;
+            Lip.color = on ? Palette.CarrotLip : Palette.OffLip;
+            Face.color = on ? Palette.Carrot : Palette.Off;
+        }
+
+        /// <summary>The face dips onto the lip and springs back.</summary>
+        public void Press(Tweens tweens)
+        {
+            RectTransform face = FaceRect;
+            tweens.Add(0.16f, t =>
+            {
+                if (face == null) return;
+                float dip = Ease.Pop(t) * UiKit.LipHeight * 0.8f;
+                face.offsetMin = new Vector2(0, UiKit.LipHeight - dip);
+                face.offsetMax = new Vector2(0, -dip);
+            }, Ease.Linear);
         }
     }
 }

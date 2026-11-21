@@ -17,6 +17,7 @@ namespace VuonTra.Game
         public Sprite Round;
         public Sprite Glow;
         public Sprite Currency;
+        public Sprite Gear;
         public Sprite Background;
 
         public List<StationDef> BuildDefs()

@@ -106,6 +106,82 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Title_Hides_The_Hud_Until_Play_Starts()
+        {
+            Transform hud = root.transform.Find("Canvas/Hud");
+            Assert.AreEqual(ShellState.Title, screen.Shell.State);
+            Assert.IsFalse(hud.gameObject.activeSelf);
+
+            Find("Canvas/Title").onClick.Invoke();
+            for (int i = 0; i < 60; i++) screen.Advance(1f / 30f);
+
+            Assert.AreEqual(ShellState.Playing, screen.Shell.State);
+            Assert.IsTrue(hud.gameObject.activeSelf);
+            Assert.IsFalse(root.transform.Find("Canvas/Title").gameObject.activeSelf);
+            Assert.AreEqual(0f, ((RectTransform)root.transform.Find("Canvas/Panel")).anchoredPosition.y, 0.01f);
+        }
+
+        [Test]
+        public void Pause_Stops_The_Garden_And_Resume_Restarts_It()
+        {
+            screen.Shell.StartGame();
+            Find("Canvas/Hud/Settings").onClick.Invoke();
+            Assert.AreEqual(ShellState.Paused, screen.Shell.State);
+            Assert.IsTrue(runner.Paused);
+            Assert.IsTrue(root.transform.Find("Canvas/Pause").gameObject.activeSelf);
+
+            Find("Canvas/Pause/Card/Resume").onClick.Invoke();
+            Assert.AreEqual(ShellState.Playing, screen.Shell.State);
+            Assert.IsFalse(runner.Paused);
+        }
+
+        [Test]
+        public void Reset_Needs_Two_Presses()
+        {
+            runner.State.Coins = new BigNum(1000);
+            runner.State.Levels[0] = 30;
+            screen.Shell.StartGame();
+            screen.Shell.OpenPause();
+
+            Button reset = Find("Canvas/Pause/Card/Reset");
+            reset.onClick.Invoke();
+            Assert.AreEqual(30, runner.State.Levels[0], "one press must not wipe progress");
+            reset.onClick.Invoke();
+            Assert.AreEqual(1, runner.State.Levels[0]);
+            Assert.IsTrue(runner.State.Coins.Equals(BigNum.Zero));
+        }
+
+        [Test]
+        public void Unlocking_A_Station_Plays_The_Moment()
+        {
+            screen.Shell.StartGame();
+            runner.State.Coins = new BigNum(120);
+            screen.Refresh();
+            Find("Canvas/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+
+            Assert.IsTrue(screen.Feel.BannerVisible);
+            Assert.Greater(screen.Feel.ParticleCount, 10);
+            StringAssert.Contains("Giỏ lá trà", root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
+
+            for (int i = 0; i < 90; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(screen.Feel.BannerVisible, "the banner must leave on its own");
+            Assert.AreEqual(0, screen.Feel.ParticleCount);
+        }
+
+        [Test]
+        public void Coin_Counter_Counts_Up_Instead_Of_Snapping()
+        {
+            screen.Shell.StartGame();
+            Text coins = root.transform.Find("Canvas/Hud/Purse/Coins").GetComponent<Text>();
+            runner.State.Coins = new BigNum(900);
+            screen.Advance(1f / 30f);
+            Assert.AreNotEqual("900", coins.text);
+            for (int i = 0; i < 90; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual("900", coins.text);
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");

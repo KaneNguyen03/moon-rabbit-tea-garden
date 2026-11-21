@@ -95,6 +95,7 @@ namespace VuonTra.EditorTools
             catalog.Round = PlaceholderArt.Load("round");
             catalog.Glow = PlaceholderArt.Load("glow");
             catalog.Currency = PlaceholderArt.Load("carrot");
+            catalog.Gear = PlaceholderArt.Load("gear");
             catalog.Background = PlaceholderArt.Load("background");
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
@@ -114,7 +115,7 @@ namespace VuonTra.EditorTools
             cam.orthographic = true;
             cam.orthographicSize = 5f;
             cam.clearFlags = CameraClearFlags.SolidColor;
-            cam.backgroundColor = UiKit.Night;
+            cam.backgroundColor = Palette.Night;
             camGo.transform.position = new Vector3(0, 0, -10);
 
             var game = new GameObject("Game");
