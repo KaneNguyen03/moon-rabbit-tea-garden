@@ -161,3 +161,41 @@ Kết luận: đạt cả hai mốc PO nêu (cấp 5 quanh phút thứ 10, cấp
 - tồn đọng: quyết định giữ hay bỏ quà 1 cỏ mỗi cấp vườn.
 - tồn đọng: bù chỗ nghỉ cho save cũ theo số ô đất đang có.
 - tồn đọng: hình sương riêng và huy hiệu cấp vườn vẽ tay.
+
+## Lỗi #35 — Thỏ phình to khi bấm nhanh
+
+- Test: 293/293 EditMode qua, chạy SAU lần build và sau lần sửa file cuối trong Assets. Trạng thái này cũng là trạng thái hoàn tất phần R6 bước 2 nằm dở trong feb6c8f: toàn bộ test qua trên nó.
+- Thông điệp commit đề xuất: `Fast taps no longer swell a station: pops start from a fixed size; double-tap zoom moves to open ground`
+  - Thân: completes the half-landed step 2 of R6 from feb6c8f (level badge, expansion conditions, mist).
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Bản Mac: `Build/Mac/VuonTraTho.app`, build thành công, đang mở, Player.log không có exception. Gồm R6 và bản sửa này.
+
+### Test đỏ trước khi sửa (chạy trên code chưa sửa, cả bốn đều đỏ)
+- `Upgrading_A_Station_Fast_Leaves_It_The_Size_It_Was`: nâng 30 lần cách nhau 0,05 giây, tỉ lệ trạm còn lại 1,099 thay vì 1,0.
+- `Tapping_A_Rabbit_Fast_Neither_Zooms_Nor_Swells_It`: ngay lần chạm thứ hai mức zoom nhảy sang Gần.
+- `Taps_And_Upgrades_Mixed_Together_Fast_Leave_Everything_As_It_Was`: mức zoom nhảy sang Gần.
+- `A_Double_Tap_On_A_Station_Does_Not_Zoom_But_One_On_Open_Ground_Does` (thay test chạm đúp cũ): chạm đúp trạm vẫn zoom.
+Sau khi sửa cả bốn xanh.
+
+### Sửa
+1. Tỉ lệ gốc cố định: `StationActorView.BaseScale` được đặt một lần lúc dựng (= `StationSize(i)`). Hiệu ứng phồng khi nâng cấp là `Bump()`, được tính mỗi khung hình từ `BaseScale`; lần bấm mới chỉ khởi động lại hiệu ứng đang chạy. `GardenScreen.OnBuy` không còn đọc `localScale` hiện tại.
+2. Chạm đúp vào thỏ hoặc trạm không zoom nữa. Chạm đúp vào khoảng đất trống thì zoom vào chỗ đó, chạm đúp lần nữa thì ra. Zoom còn lại: nút kính lúp, Cmd/Ctrl + cuộn, chụm hai ngón.
+
+### Kết quả rà các hiệu ứng nảy khác (nguyên tắc: không hiệu ứng nào lấy trạng thái đang chuyển động làm gốc)
+- Nút bấm (`ChunkyButton.Press`): đặt offset tuyệt đối theo `LipHeight`. Đạt.
+- Ô cà rốt phồng khi nhận tiền: `Vector3.one × (1 + 0,25 × pop)`. Đạt.
+- Huy hiệu cấp vườn khi lên cấp: `Vector3.one × …`. Đạt.
+- Đạo cụ và thỏ ở trạm (`StationActorView.Animate`): tính lại mỗi khung hình từ các bộ đếm, không cộng dồn. Đạt.
+- Tấm trạm, tấm sheet, bảng chọn đồ, bảng đổi tên, thẻ tạm nghỉ: tween từ một số cố định (0,8–0,92) về 1. Đạt.
+- Băng thông báo (`FeelLayer.Moment`): từ 0 tới 1, có token chống chồng. Đạt.
+- Thỏ ở chỗ nghỉ: góc lắc tính từ đồng hồ. Đạt.
+- Màn cổng trăng: mọi thứ tính từ thời gian `_t`. Đạt.
+- Thỏ đi dạo: `localScale` chỉ là ±1 theo hướng đi. Đạt.
+- Chỗ duy nhất vi phạm là `OnBuy`, đã sửa.
+
+### Chưa đạt
+- Bản Mac chưa ai bấm thử; test mô phỏng bấm nhanh bằng cách gọi nút và đẩy thời gian, không phải chuột thật.
+- Chạm đúp đất trống lấy vị trí con trỏ; trong test không có con trỏ nên zoom quanh giữa màn hình.
+
+### Tồn đọng
+- tồn đọng: không đọc được issue trên GitHub từ phiên này. `gh issue view` với đăng nhập mặc định báo không thấy repo (tài khoản mặc định là tài khoản công việc). Mình không tự đổi sang token của tài khoản khác khi chủ project chưa bảo. Nhờ PO chép nội dung các issue cần làm (#24, #22, #23, #28, #29) vào một file trong docs/, hoặc để chủ project cho phép.
