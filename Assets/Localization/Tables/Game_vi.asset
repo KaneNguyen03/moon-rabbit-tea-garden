@@ -351,11 +351,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236370
-    m_Localized: "C\u1EA5p {0}/{1} \xB7 {3}{4}\n\u1EDF {2}"
+    m_Localized: "C\u1EA5p {0}/{1} \xB7 {2}"
     m_Metadata:
       m_Items: []
   - m_Id: 372236371
-    m_Localized: "C\u1EA5p {0}/{1} \xB7 {2}\n\u0111ang ngh\u1EC9"
+    m_Localized: "C\u1EA5p {0}/{1} \xB7 \u0111ang ngh\u1EC9"
     m_Metadata:
       m_Items: []
   - m_Id: 372236372
@@ -724,6 +724,22 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 33869528031236
     m_Localized: " \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084732911616
+    m_Localized: "H\u1EE3p v\u1EDBi: {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300224
+    m_Localized: "{0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300225
+    m_Localized: "Ch\u01B0a c\xF3 th\u1ECF l\xE0m \u1EDF \u0111\xE2y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300226
+    m_Localized: "H\u1EE3p ngh\u1EC1: {0}"
     m_Metadata:
       m_Items: []
   references:

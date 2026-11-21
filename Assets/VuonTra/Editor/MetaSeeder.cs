@@ -96,7 +96,7 @@ namespace VuonTra.EditorTools
             // One drawing per kind: Art/Final/kind_<id>.png. A missing one falls back at run time.
             var kindSprites = new Sprite[RabbitKinds.All.Count];
             for (int k = 0; k < kindSprites.Length; k++)
-                kindSprites[k] = FinalArt.Find("kind_" + RabbitKinds.All[k].Id);
+                kindSprites[k] = FinalArt.Kind(RabbitKinds.All[k].Id);
             catalog.KindArt = kindSprites;
 
             var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount)[]
@@ -144,6 +144,10 @@ namespace VuonTra.EditorTools
 
             catalog.Shadow = PlaceholderArt.Load("shadow");
             catalog.IconUp = PlaceholderArt.Load("icon_up");
+            var tradeIcons = new Sprite[System.Enum.GetValues(typeof(RabbitTrade)).Length];
+            foreach (RabbitTrade trade in System.Enum.GetValues(typeof(RabbitTrade)))
+                tradeIcons[(int)trade] = trade == RabbitTrade.None ? null : PlaceholderArt.Load("icon_trade_" + trade);
+            catalog.TradeIcons = tradeIcons;
             catalog.IconCharm = PlaceholderArt.Load("icon_charm");
             catalog.IconQuest = PlaceholderArt.Load("icon_quest");
 

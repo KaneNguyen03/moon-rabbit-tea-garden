@@ -77,7 +77,7 @@ namespace VuonTra.EditorTools
             screen.FocusStation(5);
             Step(screen, 0.4f);
             Capture(screen, "2b-card");
-            Press(screen, "Canvas/Garden/Content/Card/Buy");
+            Press(screen, "Canvas/Card/Buy");
             Step(screen, 0.45f);
             Capture(screen, "3-moment");
             Step(screen, 2.5f);

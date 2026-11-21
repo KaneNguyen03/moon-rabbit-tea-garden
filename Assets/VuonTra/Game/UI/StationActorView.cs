@@ -20,7 +20,10 @@ namespace VuonTra.Game.UI
         Sprite _stillRabbit;
         Sprite[] _workFrames;
         int _frame = -1;
-        GameObject _upArrow, _dozeBubble;
+        GameObject _upArrow, _dozeBubble, _halo;
+        Image _hatImage, _charmImage;
+        bool _guest, _scarfByDefault;
+        float _homeBox;
         RectTransform _upArrowRect;
 
         /// <summary>The rabbit has nodded off at its post; a tap wakes it.</summary>
@@ -55,6 +58,12 @@ namespace VuonTra.Game.UI
             _propImage = _prop.AddImage(data.Prop, Color.white);
             _propImage.preserveAspect = true;
 
+            // A warm light behind a gold or red rabbit, so a dark coat does not sink into the night grass.
+            var halo = UiKit.Rect("Halo", Root).Place(0.5f, 0.5f, -76, 16, 330, 330);
+            halo.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.8f));
+            _halo = halo.gameObject;
+            _halo.SetActive(false);
+
             bool ownRabbit = data.Rabbit != null;
             // Dressed rabbits are taller than wide (ears, hats), so they get a taller box to read at the same size.
             float box = ownRabbit ? 256 : 236;
@@ -68,7 +77,19 @@ namespace VuonTra.Game.UI
             _scarfImage = UiKit.Rect("Scarf", _rabbit).Stretch(0, 0, 1, 1).AddImage(catalog.Scarf, data.Accent);
             _scarfImage.preserveAspect = true;
             // A dressed rabbit needs no scarf, and an Image without a sprite would draw a solid box.
-            _scarfImage.gameObject.SetActive(!ownRabbit && catalog.Scarf != null);
+            _scarfByDefault = !ownRabbit && catalog.Scarf != null;
+            _scarfImage.gameObject.SetActive(_scarfByDefault);
+            _homeBox = box;
+
+            // What a collected rabbit wears. Both hang from the rabbit, so they squash and hop with it;
+            // the hat sits on the top of the head, wherever the ears go.
+            float across = (GameCatalog.KindHeadX - 0.5f) * GuestBox * GameCatalog.KindAspect;
+            _hatImage = UiKit.Rect("HatOn", _rabbit).Place(0.5f, 0f, across, GameCatalog.KindHeadTop * GuestBox + 30f, 112, 112).AddImage(null, Color.white);
+            _hatImage.preserveAspect = true;
+            _hatImage.gameObject.SetActive(false);
+            _charmImage = UiKit.Rect("CharmOn", _rabbit).Place(0.5f, 0f, across + 2f, GuestBox * 0.37f, 48, 48).AddImage(null, Color.white);
+            _charmImage.preserveAspect = true;
+            _charmImage.gameObject.SetActive(false);
 
             // Shown only while the station can be afforded: the one hint on the scene that says "tap me".
             _upArrowRect = UiKit.Rect("CanUp", Root).Place(0.5f, 0.5f, 150, -118, 56, 56);
@@ -107,6 +128,40 @@ namespace VuonTra.Game.UI
             _propImage.color = _locked ? Palette.Alpha(Palette.Asleep, 0.55f) : Color.white;
             _glow.SetActive(!_locked);
             _bar.SetActive(!_locked && isBrew);
+        }
+
+        /// <summary>The box a collected rabbit is drawn in: as tall as the station's own rabbit.</summary>
+        const float GuestBox = 256f;
+
+        /// <summary>
+        /// Puts a collected rabbit at this station, with what it wears, or with <paramref name="art"/> null
+        /// gives the station back its own rabbit. A collected rabbit has no drawn work frames, so it bobs.
+        /// </summary>
+        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo)
+        {
+            bool guest = art != null;
+            if (guest != _guest || (guest && _rabbitImage.sprite != art))
+            {
+                _guest = guest;
+                _frame = -1;
+                _rabbitImage.sprite = guest ? art : _stillRabbit;
+                float box = guest ? GuestBox : _homeBox;
+                _rabbit.sizeDelta = new Vector2(box, box);
+                _scarfImage.gameObject.SetActive(!guest && _scarfByDefault);
+            }
+            Show(_hatImage, guest ? hat : null);
+            Show(_charmImage, guest ? charm : null);
+            bool lit = guest && halo && !_locked;
+            if (_halo.activeSelf != lit) _halo.SetActive(lit);
+        }
+
+        /// <summary>True while a collected rabbit stands here instead of the station's own.</summary>
+        public bool HasGuest => _guest;
+
+        static void Show(Image slot, Sprite sprite)
+        {
+            if (slot.gameObject.activeSelf != (sprite != null)) slot.gameObject.SetActive(sprite != null);
+            if (sprite != null) slot.sprite = sprite;
         }
 
         public void SetCanUpgrade(bool can)
@@ -157,7 +212,7 @@ namespace VuonTra.Game.UI
             float tempo = boosting ? 2f : 1f;
 
             // A rabbit with drawn work frames plays them while its station is open; asleep it holds still.
-            if (_workFrames != null && _workFrames.Length > 0)
+            if (!_guest && _workFrames != null && _workFrames.Length > 0)
             {
                 int frame = _locked || Dozing ? -1 : (int)(time * 5f * tempo + _index) % _workFrames.Length;
                 if (frame != _frame)

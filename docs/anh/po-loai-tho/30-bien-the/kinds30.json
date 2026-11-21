@@ -1,0 +1,242 @@
+[
+ {
+  "id": "tho-dau-do",
+  "vi": "Thỏ Đậu Đỏ",
+  "en": "Red Bean Rabbit",
+  "tier": 0,
+  "trade": "Baker",
+  "base": "tho-bong"
+ },
+ {
+  "id": "tho-ca-phe",
+  "vi": "Thỏ Cà Phê",
+  "en": "Coffee Rabbit",
+  "tier": 0,
+  "trade": "Brewer",
+  "base": "tho-bong"
+ },
+ {
+  "id": "tho-tro",
+  "vi": "Thỏ Tro",
+  "en": "Ash Rabbit",
+  "tier": 0,
+  "trade": "Gatherer",
+  "base": "tho-me"
+ },
+ {
+  "id": "tho-cat",
+  "vi": "Thỏ Cát",
+  "en": "Sand Rabbit",
+  "tier": 0,
+  "trade": "Stargazer",
+  "base": "tho-me"
+ },
+ {
+  "id": "tho-bap",
+  "vi": "Thỏ Bắp",
+  "en": "Corn Rabbit",
+  "tier": 0,
+  "trade": "Baker",
+  "base": "tho-bong"
+ },
+ {
+  "id": "tho-khoi",
+  "vi": "Thỏ Khói",
+  "en": "Smoke Rabbit",
+  "tier": 0,
+  "trade": "Stargazer",
+  "base": "tho-bong"
+ },
+ {
+  "id": "tho-hong-phan",
+  "vi": "Thỏ Hồng Phấn",
+  "en": "Blush Rabbit",
+  "tier": 0,
+  "trade": "Brewer",
+  "base": "tho-bong"
+ },
+ {
+  "id": "tho-ca-cao",
+  "vi": "Thỏ Ca Cao",
+  "en": "Cocoa Rabbit",
+  "tier": 0,
+  "trade": "Baker",
+  "base": "tho-me"
+ },
+ {
+  "id": "tho-cup-kem",
+  "vi": "Thỏ Cụp Kem",
+  "en": "Cream Lop",
+  "tier": 1,
+  "trade": "Gatherer",
+  "base": "tho-cup"
+ },
+ {
+  "id": "tho-cup-socola",
+  "vi": "Thỏ Cụp Sô Cô La",
+  "en": "Chocolate Lop",
+  "tier": 1,
+  "trade": "Baker",
+  "base": "tho-cup"
+ },
+ {
+  "id": "tho-bac-ha",
+  "vi": "Thỏ Bạc Hà",
+  "en": "Mint Rabbit",
+  "tier": 1,
+  "trade": "Brewer",
+  "base": "tho-bong"
+ },
+ {
+  "id": "tho-chanh",
+  "vi": "Thỏ Chanh",
+  "en": "Lemon Rabbit",
+  "tier": 1,
+  "trade": "Brewer",
+  "base": "tho-matcha"
+ },
+ {
+  "id": "tho-cup-suong",
+  "vi": "Thỏ Cụp Sương",
+  "en": "Misty Lop",
+  "tier": 1,
+  "trade": "Stargazer",
+  "base": "tho-cup"
+ },
+ {
+  "id": "tho-la-phong",
+  "vi": "Thỏ Lá Phong",
+  "en": "Maple Rabbit",
+  "tier": 1,
+  "trade": "Gatherer",
+  "base": "tho-matcha"
+ },
+ {
+  "id": "tho-dao",
+  "vi": "Thỏ Đào",
+  "en": "Peach Lop",
+  "tier": 1,
+  "trade": "Baker",
+  "base": "tho-cup"
+ },
+ {
+  "id": "tho-tuyet-hong",
+  "vi": "Thỏ Tuyết Hồng",
+  "en": "Rose Snow Rabbit",
+  "tier": 2,
+  "trade": "Brewer",
+  "base": "tho-suong"
+ },
+ {
+  "id": "tho-bao",
+  "vi": "Thỏ Bão",
+  "en": "Storm Rabbit",
+  "tier": 2,
+  "trade": "Stargazer",
+  "base": "tho-suong"
+ },
+ {
+  "id": "tho-tra-sua",
+  "vi": "Thỏ Trà Sữa",
+  "en": "Milk Tea Rabbit",
+  "tier": 2,
+  "trade": "Brewer",
+  "base": "tho-o-long"
+ },
+ {
+  "id": "tho-muc",
+  "vi": "Thỏ Mực",
+  "en": "Ink Rabbit",
+  "tier": 2,
+  "trade": "Gatherer",
+  "base": "tho-o-long"
+ },
+ {
+  "id": "tho-cam",
+  "vi": "Thỏ Cam",
+  "en": "Tangerine Rabbit",
+  "tier": 2,
+  "trade": "Baker",
+  "base": "tho-o-long"
+ },
+ {
+  "id": "tho-bang",
+  "vi": "Thỏ Băng",
+  "en": "Ice Rabbit",
+  "tier": 2,
+  "trade": "Stargazer",
+  "base": "tho-suong"
+ },
+ {
+  "id": "tho-anh-dao",
+  "vi": "Thỏ Anh Đào",
+  "en": "Cherry Blossom Rabbit",
+  "tier": 3,
+  "trade": "Gatherer",
+  "base": "tho-oai-huong"
+ },
+ {
+  "id": "tho-luu-ly",
+  "vi": "Thỏ Lưu Ly",
+  "en": "Forget-me-not Rabbit",
+  "tier": 3,
+  "trade": "Gatherer",
+  "base": "tho-oai-huong"
+ },
+ {
+  "id": "tho-viet-quat",
+  "vi": "Thỏ Việt Quất",
+  "en": "Blueberry Lop",
+  "tier": 3,
+  "trade": "Baker",
+  "base": "tho-khoai-mon"
+ },
+ {
+  "id": "tho-dau-tay",
+  "vi": "Thỏ Dâu Tây",
+  "en": "Strawberry Lop",
+  "tier": 3,
+  "trade": "Baker",
+  "base": "tho-khoai-mon"
+ },
+ {
+  "id": "tho-hoa-nhai",
+  "vi": "Thỏ Hoa Nhài",
+  "en": "Jasmine Rabbit",
+  "tier": 3,
+  "trade": "Brewer",
+  "base": "tho-oai-huong"
+ },
+ {
+  "id": "tho-ho-phach",
+  "vi": "Thỏ Hổ Phách",
+  "en": "Amber Rabbit",
+  "tier": 4,
+  "trade": "Baker",
+  "base": "tho-mat-ong"
+ },
+ {
+  "id": "tho-ngan-ha",
+  "vi": "Thỏ Ngân Hà",
+  "en": "Galaxy Rabbit",
+  "tier": 4,
+  "trade": "Stargazer",
+  "base": "tho-sao"
+ },
+ {
+  "id": "tho-bach-kim",
+  "vi": "Thỏ Bạch Kim",
+  "en": "Platinum Rabbit",
+  "tier": 4,
+  "trade": "Brewer",
+  "base": "tho-mat-ong"
+ },
+ {
+  "id": "tho-nguyet-thuc",
+  "vi": "Thỏ Nguyệt Thực",
+  "en": "Eclipse Rabbit",
+  "tier": 5,
+  "trade": "Stargazer",
+  "base": "tho-trang"
+ }
+]

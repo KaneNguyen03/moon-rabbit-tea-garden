@@ -59,6 +59,15 @@ namespace VuonTra.Core
             return trade != RabbitTrade.None && trade == TradeOf(r);
         }
 
+        /// <summary>The open stations of this rabbit's trade, in the order they open.</summary>
+        public static List<int> SuitedStations(IReadOnlyList<StationDef> defs, GameState s, Rabbit r)
+        {
+            var list = new List<int>();
+            for (int i = 0; i < defs.Count; i++)
+                if (s.Levels[i] > 0 && Suits(defs, r, i)) list.Add(i);
+            return list;
+        }
+
         /// <summary>What the rabbit would be worth at a station: its own multiplier, half again in its trade.</summary>
         public static double MultiplierAt(IReadOnlyList<StationDef> defs, GameState s, Rabbit r, int station)
         {

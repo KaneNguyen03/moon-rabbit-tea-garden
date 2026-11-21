@@ -340,14 +340,14 @@ namespace VuonTra.Core.Tests
         public void Tapping_A_Station_Opens_Its_Card_And_The_Card_Buys()
         {
             Assert.AreEqual(-1, screen.Selected);
-            Transform card = root.transform.Find("Canvas/Garden/Content/Card");
+            Transform card = root.transform.Find("Canvas/Card");
             Assert.IsFalse(card.gameObject.activeSelf, "no card until a station is tapped");
 
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             Assert.AreEqual(0, screen.Selected);
             Assert.IsTrue(card.gameObject.activeSelf);
             Assert.AreEqual("Ấm trà sương", card.Find("Name").GetComponent<Text>().text);
-            Button buy = Find("Canvas/Garden/Content/Card/Buy");
+            Button buy = Find("Canvas/Card/Buy");
             Assert.IsFalse(buy.interactable, "broke");
 
             runner.State.Coins = new BigNum(1e12);
@@ -375,13 +375,13 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station to-mat").gameObject.activeSelf);
 
             Find("Canvas/Garden/Content/Station lo-banh").onClick.Invoke();
-            Transform card = root.transform.Find("Canvas/Garden/Content/Card");
+            Transform card = root.transform.Find("Canvas/Card");
             Assert.AreEqual("Mua đất", card.Find("Buy/Face/Top").GetComponent<Text>().text);
-            Find("Canvas/Garden/Content/Card/Buy").onClick.Invoke();
+            Find("Canvas/Card/Buy").onClick.Invoke();
             Assert.AreEqual(5, runner.State.Plots);
             screen.Refresh();
             Assert.AreEqual("Mở trạm", card.Find("Buy/Face/Top").GetComponent<Text>().text);
-            Find("Canvas/Garden/Content/Card/Buy").onClick.Invoke();
+            Find("Canvas/Card/Buy").onClick.Invoke();
             Assert.AreEqual(1, runner.State.Levels[4]);
             Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Station to-mat").gameObject.activeSelf);
         }
@@ -459,20 +459,47 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void A_Station_Card_Does_Not_Cover_A_Neighbour_When_A_Side_Is_Free()
+        public void The_Station_Card_Is_Docked_And_The_Station_Scrolls_Clear_Of_It()
         {
             for (int i = 0; i < runner.Defs.Count; i++) if (runner.State.Levels[i] <= 0) runner.State.Levels[i] = 1;
             runner.State.Plots = runner.Defs.Count;
             screen.Refresh();
-            var card = (RectTransform)root.transform.Find("Canvas/Garden/Content/Card");
-            int last = runner.Defs.Count - 1; // the observatory: its card used to sit on the flower mortar
-            screen.SelectStation(last);
-            var rect = new Rect(card.anchoredPosition.x - 262f, card.anchoredPosition.y, 524f, 270f);
-            for (int j = 0; j < last; j++)
+            var card = (RectTransform)root.transform.Find("Canvas/Card");
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Assert.AreEqual(root.transform.Find("Canvas"), card.parent, "the card does not move with the garden");
+            float cardTop = card.anchoredPosition.y + card.sizeDelta.y / 2f;
+            for (int i = 0; i < runner.Defs.Count; i++)
             {
-                Vector2 p = GardenScreen.StationSpot(j);
-                Assert.IsFalse(rect.Contains(p), "the card covers station " + j);
+                screen.SelectStation(-1);
+                screen.SelectStation(i);
+                screen.Advance(1f); // let the slide finish
+                float feet = (GardenScreen.StationSpot(i).y - 150f) * world.localScale.y + world.anchoredPosition.y;
+                Assert.GreaterOrEqual(feet, cardTop - 1f, "station " + i + " stands above the card");
             }
+        }
+
+        [Test]
+        public void A_Collected_Rabbit_Stands_At_Its_Station_Wearing_Its_Hat()
+        {
+            Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
+            Sprite own = rabbit.GetComponent<Image>().sprite;
+            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
+
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 4, Kind = "tho-sao", Name = "Sao", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
+            runner.EquipItem(hat.Id, 1);
+            screen.Refresh();
+            Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the collected rabbit, not the station's own");
+            Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
+            Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Station am-tra/Halo").gameObject.activeSelf, "gold and red rabbits get a warm light");
+            for (int i = 0; i < 40; i++) screen.Advance(0.1f);
+            Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the station's work frames do not take over");
+
+            runner.ToggleRabbitWork(1); // off to rest
+            screen.Refresh();
+            Assert.AreEqual(own, rabbit.GetComponent<Image>().sprite, "the station's own rabbit is back");
+            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
         }
 
         [Test]
@@ -716,31 +743,29 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Worn_Items_Show_On_The_Rabbit_And_Beside_Its_Name_In_The_Garden()
+        public void Worn_Items_Show_On_The_Rabbit_In_The_Garden_And_In_The_List()
         {
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "Bông", Station = 0 });
             runner.State.NextRabbitId = 1;
             Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);    // straw hat
             Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);  // silver bell
             screen.Refresh();
-            Transform chip = root.transform.Find("Canvas/Garden/Content/Station am-tra/Tier");
-            Assert.IsFalse(chip.Find("Hat").gameObject.activeSelf);
+            Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
+            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
             Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Tile/HatOn"));
 
             runner.EquipItem(hat.Id, 1);
             runner.EquipItem(charm.Id, 1);
             screen.Refresh();
-            Assert.IsFalse(chip.Find("Hat").gameObject.activeSelf, "at the usual zoom the plate shows the name only");
-            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            Assert.IsTrue(chip.Find("Hat").gameObject.activeSelf);
-            Assert.IsTrue(chip.Find("Charm").gameObject.activeSelf);
-            Assert.AreEqual("item_mu-rom", chip.Find("Hat").GetComponent<Image>().sprite.name);
+            Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
+            Assert.IsTrue(rabbit.Find("CharmOn").gameObject.activeSelf);
+            Assert.AreEqual("item_mu-rom", rabbit.Find("HatOn").GetComponent<Image>().sprite.name);
             Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Tile/HatOn"));
             Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Hat/Icon"), "the slot shows the item's picture");
 
             runner.UnequipItem(hat.Id);
             screen.Refresh();
-            Assert.IsFalse(chip.Find("Hat").gameObject.activeSelf);
+            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
         }
 
         [Test]

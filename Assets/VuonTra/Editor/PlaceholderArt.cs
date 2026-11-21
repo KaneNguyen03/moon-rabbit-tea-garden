@@ -265,6 +265,23 @@ namespace VuonTra.EditorTools
             up.Box(48, 40, 10, 24, 7, Hex("6fbf8a"), 0);
             up.Save("icon_up");
 
+            // One white picture per trade; the game tints them (gold in the right place, grey elsewhere).
+            Color white = Color.white;
+            var cup = new Painter(96, 96, 2); // brewing: a cup with steam
+            cup.Box(42, 38, 24, 20, 9, white, 0); cup.Ellipse(72, 40, 9, 11, 0, white);
+            cup.Ellipse(34, 76, 3.5f, 9, 18, white); cup.Ellipse(50, 78, 3.5f, 10, -14, white);
+            cup.Save("icon_trade_Brewer");
+            var bun = new Painter(96, 96, 2); // baking: a little cake
+            bun.Box(48, 30, 21, 15, 5, white, 0); bun.Ellipse(48, 56, 32, 19, 0, white); bun.Ellipse(48, 80, 5, 5, 0, white);
+            bun.Save("icon_trade_Baker");
+            var leaf = new Painter(96, 96, 2); // gathering: a leaf
+            leaf.Ellipse(52, 52, 15, 34, -38, white); leaf.Ellipse(24, 20, 3.5f, 11, -38, white);
+            leaf.Save("icon_trade_Gatherer");
+            var star = new Painter(96, 96, 2); // stargazing: a twinkle
+            star.Ellipse(44, 46, 8, 38, 0, white); star.Ellipse(44, 46, 38, 8, 0, white); star.Ellipse(44, 46, 14, 14, 0, white);
+            star.Ellipse(78, 78, 3.5f, 11, 0, white); star.Ellipse(78, 78, 11, 3.5f, 0, white);
+            star.Save("icon_trade_Stargazer");
+
             var charm = new Painter(128, 128, 2); // charms: a moon with a star
             charm.Blob(60, 64, 44, 44, 0, Hex("ffd98a"));
             charm.Ellipse(80, 76, 36, 36, 0, Hex("fff4e0"));

@@ -115,16 +115,22 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 27149f17be2474be7a116941399c7a67, type: 3}
   - {fileID: 21300000, guid: c510f0af0723e469e96b9433cfa96033, type: 3}
   - {fileID: 21300000, guid: 961e35711080f480f9cd64d611af2547, type: 3}
+  TradeIcons:
+  - {fileID: 0}
+  - {fileID: 21300000, guid: a91fc265c1d934c9a9ed33a3d3b1494c, type: 3}
+  - {fileID: 21300000, guid: 65b37ef9873704cb086fce3dbd7ae4de, type: 3}
+  - {fileID: 21300000, guid: 77f29f3e97ab34e2bbc34d410738b3f5, type: 3}
+  - {fileID: 21300000, guid: a55f2459dc0ce4bfc8d863e44f17d299, type: 3}
   KindArt:
-  - {fileID: 21300000, guid: d7279e3d441f1463db163ebabb9b76a4, type: 3}
-  - {fileID: 21300000, guid: 48492fc58b220472cbc9f5c8340365b1, type: 3}
-  - {fileID: 21300000, guid: dff90f55d50424f91a1903e2254f0f39, type: 3}
-  - {fileID: 21300000, guid: 4959e7b1242a74d6ca7aed7c2f56650e, type: 3}
-  - {fileID: 21300000, guid: 96120e8253ec3435e87974dfaa68fab1, type: 3}
-  - {fileID: 21300000, guid: f548d4f1f17c844c6ab83dc334501577, type: 3}
-  - {fileID: 21300000, guid: 4c08644770fc74654a73adaf679862f0, type: 3}
-  - {fileID: 21300000, guid: 890b9b7c61bbc46bc8aed61e2a2b445a, type: 3}
-  - {fileID: 21300000, guid: 8f8345a17caf4442599eaaa5b6eaffc0, type: 3}
-  - {fileID: 21300000, guid: 2e400d0a760df49dfaf20530c76b431a, type: 3}
-  - {fileID: 21300000, guid: 68e9d8103dd404da19190f5b430664af, type: 3}
-  - {fileID: 21300000, guid: fa9cb6a9b550142d596aa374abfda604, type: 3}
+  - {fileID: 21300000, guid: fecea4092207e4455b4b03b866d5382f, type: 3}
+  - {fileID: 21300000, guid: 92049d21a06c8400d9670a60856fd1bf, type: 3}
+  - {fileID: 21300000, guid: 3b2870c9d03184c78bfe4ee8db3a0803, type: 3}
+  - {fileID: 21300000, guid: 20cfbfe11d6854df59d7dd5dd0c84113, type: 3}
+  - {fileID: 21300000, guid: 2080674a61a394221adfaead7b83c8a0, type: 3}
+  - {fileID: 21300000, guid: c5e164b5992504ecb8e6263dd4cff422, type: 3}
+  - {fileID: 21300000, guid: 5d95fd0935a134370af5b39cb01c2de1, type: 3}
+  - {fileID: 21300000, guid: 6b2f26bdbc06c4871bc619c3fbdd10d0, type: 3}
+  - {fileID: 21300000, guid: 619d5cf4fe4f04980bfcfe0beb77ea75, type: 3}
+  - {fileID: 21300000, guid: 8c4f0e8c0f41a443d9b4ec08fa1cce43, type: 3}
+  - {fileID: 21300000, guid: 9a96fe110a33c4a56afbc51bd4152789, type: 3}
+  - {fileID: 21300000, guid: e24588453d73548ea92d64010efedc9f, type: 3}

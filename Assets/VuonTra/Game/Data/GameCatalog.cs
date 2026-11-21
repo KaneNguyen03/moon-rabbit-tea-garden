@@ -51,6 +51,23 @@ namespace VuonTra.Game
             return defs;
         }
 
+        [Tooltip("A white picture for each trade, indexed by RabbitTrade; tinted where it is shown.")]
+        public Sprite[] TradeIcons = new Sprite[0];
+
+        public Sprite TradeIcon(RabbitTrade trade)
+        {
+            int i = (int)trade;
+            return TradeIcons != null && i >= 0 && i < TradeIcons.Length ? TradeIcons[i] : null;
+        }
+
+        /// <summary>
+        /// Where the top of the head is in every kind drawing, as a share of the picture's height from the feet,
+        /// and where its middle is across. Ears rise above this; hats sit on it.
+        /// </summary>
+        public const float KindHeadTop = 0.755f, KindHeadX = 150.5f / 320f;
+        /// <summary>The kind drawings are this much wider than tall.</summary>
+        public const float KindAspect = 320f / 343f;
+
         [Tooltip("One drawing per rabbit kind, in the order of RabbitKinds.All.")]
         public Sprite[] KindArt = new Sprite[0];
 

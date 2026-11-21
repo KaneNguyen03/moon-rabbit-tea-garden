@@ -24,7 +24,7 @@ namespace VuonTra.Game.UI
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
         // The garden is as wide as the screen and only scrolls up and down.
-        const float WorldW = 1080f, WorldH = 2900f; // 200 more than the stations need, so the top station's card clears the HUD
+        const float WorldW = 1080f, WorldH = 2970f; // room below the last station, so it can scroll clear of the docked card
         /// <summary>Stations are drawn at this size so four or five fit on one screen.</summary>
         const float StationScale = 0.7f;
         const float DecorScale = 0.7f;
@@ -45,9 +45,8 @@ namespace VuonTra.Game.UI
         readonly Text[] _openLabels = new Text[TabCount];
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
-        readonly List<Image> _tierHats = new List<Image>();
-        readonly List<Image> _tierCharms = new List<Image>();
-        readonly List<GameObject> _tierMatches = new List<GameObject>();
+        readonly List<Image> _tierTradeBadges = new List<Image>();
+        readonly List<Image> _tierTradeIcons = new List<Image>();
         // Life in the world: rabbits out for a walk, and ingredients carried between stations.
         sealed class Walker { public RectTransform Rect; public float X0, X1, Y, Speed, Phase; }
         sealed class Courier { public RectTransform Rect; public Vector2 From, To; public float T, Duration; public int Target; }
@@ -148,7 +147,7 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>The teapot stands here, in the middle of the garden; everything else is placed around it.</summary>
-        static readonly Vector2 Heart = new Vector2(540f, 1350f);
+        static readonly Vector2 Heart = new Vector2(540f, 1620f);
 
         /// <summary>
         /// Where each station stands, as an offset from the teapot, in the order they open. Placed by hand:
@@ -191,7 +190,7 @@ namespace VuonTra.Game.UI
 
         /// <summary>How much of the screen the HUD covers at the top and the tab bar at the bottom, and how tall the card stands.</summary>
         const float WheelScroll = 60f;
-        const float HudCover = 160f, TabCover = 250f, CardHeight = 270f;
+        const float HudCover = 160f, TabCover = 250f, CardHeight = 280f;
 
         public enum ZoomLevel { Far, Default, Near }
 
@@ -201,8 +200,9 @@ namespace VuonTra.Game.UI
         Text _zoomMark;
         bool _wheelLatched;
         float _wheelQuiet;
-        RectTransform _cardTail;
-        float _cardPop = 1f;
+        RectTransform _cardWorker;
+        Image _cardLevelChip, _cardWorkerArt, _cardWorkerFrame;
+        Text _cardWorkerName, _cardWorkerSub;
         ScrollRect _scroll;
         ZoomLevel _shownZoom = ZoomLevel.Default;
         int _lastTapIndex = -1;
@@ -242,7 +242,6 @@ namespace VuonTra.Game.UI
             _street.localScale = new Vector3(_zoom, _zoom, 1f);
             _street.anchoredPosition = ClampView(atView - world * _zoom, _zoom);
             if (_scroll != null) _scroll.horizontal = WorldW * _zoom > ScreenW + 1f;
-            if (_card != null) _card.localScale = Vector3.one * (_cardPop / _zoom); // the card stays readable at every zoom
             if (Zoom != _shownZoom) ShowZoomDetail();
         }
 
@@ -533,7 +532,7 @@ namespace VuonTra.Game.UI
 
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
-            _tierChips.Clear(); _tierLabels.Clear(); _tierHats.Clear(); _tierCharms.Clear(); _tierMatches.Clear();
+            _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _walkers.Clear(); _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
@@ -580,6 +579,7 @@ namespace VuonTra.Game.UI
             BuildBackdrop(catalog);
             BuildWorld(catalog);
             BuildAtmosphere(catalog);
+            BuildStationCard(catalog);
             BuildEvents(catalog);
             BuildHud(catalog);
             BuildTabBar(catalog);
@@ -668,19 +668,13 @@ namespace VuonTra.Game.UI
                 var chip = UiKit.Rect("Tier", actor.Root).Place(0.5f, 0.5f, -72, 122 + 40f / StationSize(i), 200, 44);
                 chip.localScale = Vector3.one * (0.78f / StationSize(i));
                 _tierChips.Add(chip.AddImage(catalog.Panel, Palette.Paper, true));
-                _tierLabels.Add(UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold));
-                // What the worker wears shows at the two ends of its name plate.
-                Image hatOn = UiKit.Rect("Hat", chip).Place(0f, 0.5f, -6, 8, 60, 60).AddImage(null, Color.white);
-                hatOn.preserveAspect = true;
-                _tierHats.Add(hatOn);
-                Image charmOn = UiKit.Rect("Charm", chip).Place(1f, 0.5f, 8, 0, 50, 50).AddImage(null, Color.white);
-                charmOn.preserveAspect = true;
-                _tierCharms.Add(charmOn);
-                // A small gold mark on the plate says the rabbit here is in its own trade.
-                var match = UiKit.Rect("Match", chip).Place(1f, 1f, -8, -4, 26, 26);
-                match.AddImage(catalog.Round, Palette.Ink);
-                UiKit.Rect("Dot", match).Place(0.5f, 0.5f, 0, 0, 18, 18).AddImage(catalog.Round, Palette.Lantern);
-                _tierMatches.Add(match.gameObject);
+                _tierLabels.Add(UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 34, 0, 6, 0).AddText("", 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold));
+                // The rabbit's trade, at the head of its name: gold when this is a station of that trade, grey when not.
+                var badge = UiKit.Rect("Trade", chip).Place(0f, 0.5f, 4, 0, 50, 50);
+                _tierTradeBadges.Add(badge.AddImage(catalog.Round, Palette.Lantern));
+                Image tradeIcon = UiKit.Rect("Icon", badge).Stretch(0, 0, 1, 1, 9, 9, 9, 9).AddImage(null, Palette.Ink);
+                tradeIcon.preserveAspect = true;
+                _tierTradeIcons.Add(tradeIcon);
                 chip.gameObject.SetActive(false);
 
                 // Where this station's ingredients go, for the couriers.
@@ -711,7 +705,6 @@ namespace VuonTra.Game.UI
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
 
             BuildFireflies(catalog);
-            BuildStationCard(catalog);
             CenterOn(StationSpot(0));
 
             var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -196, 940, 60);
@@ -736,48 +729,6 @@ namespace VuonTra.Game.UI
             return Rect.MinMaxRect(spot.x - 160f * size, spot.y - 215f * size, spot.x + 178f * size, spot.y + 196f * size);
         }
 
-        /// <summary>
-        /// Where the card of a station goes, in garden units: on whichever side (above, below, right, left)
-        /// covers the least of the neighbouring stations. It only overlaps one when no side is free.
-        /// </summary>
-        Rect PlaceCard(int index)
-        {
-            float w = 524f / _zoom, h = CardHeight / _zoom, gap = 6f / _zoom;
-            Rect me = StationBox(index);
-            float midX = WorldW > w ? Mathf.Clamp(me.center.x, w / 2f, WorldW - w / 2f) : WorldW / 2f;
-            var sides = new[]
-            {
-                new Rect(midX - w / 2f, me.yMax, w, h),
-                new Rect(midX - w / 2f, me.yMin - gap - h, w, h),
-                new Rect(me.xMax + gap, me.center.y - h / 2f, w, h),
-                new Rect(me.xMin - gap - w, me.center.y - h / 2f, w, h),
-            };
-            int best = 0;
-            float bestCost = float.MaxValue;
-            for (int k = 0; k < sides.Length; k++)
-            {
-                Rect r = sides[k];
-                float cost = 0f;
-                // Off the garden, or where the HUD or the tab bar would always cover it, is worse than any overlap.
-                if (r.xMin < -4f || r.xMax > WorldW + 4f) cost += 1e9f;
-                if (r.yMax > WorldH - HudCover / _zoom || r.yMin < TabCover / _zoom) cost += 1e9f;
-                for (int j = 0; j < _actors.Count; j++)
-                {
-                    if (j == index || !_actors[j].Root.gameObject.activeSelf) continue;
-                    Rect other = StationBox(j);
-                    float ox = Mathf.Min(r.xMax, other.xMax) - Mathf.Max(r.xMin, other.xMin), oy = Mathf.Min(r.yMax, other.yMax) - Mathf.Max(r.yMin, other.yMin);
-                    if (ox > 0f && oy > 0f) cost += ox * oy;
-                }
-                if (cost < bestCost - 1f) { bestCost = cost; best = k; }
-            }
-            CardSide = best;
-            if (_cardTail != null) _cardTail.gameObject.SetActive(best == 0); // the tail only points down
-            return sides[best];
-        }
-
-        /// <summary>Which side of its station the card is on: 0 above, 1 below, 2 right, 3 left.</summary>
-        public int CardSide { get; private set; }
-
         /// <summary>The hint is for the very first moments only: it fades at the first tap or drag and never returns.</summary>
         public void DismissHint()
         {
@@ -788,30 +739,44 @@ namespace VuonTra.Game.UI
                 Ease.OutCubic, 0f, () => { if (_hint != null) _hint.SetActive(false); _hintFading = false; if (_hintGroup != null) _hintGroup.alpha = 1f; });
         }
 
-        /// <summary>The small card over a tapped station: what it is, what it earns, and the one button to grow it.</summary>
+        /// <summary>
+        /// The card of the tapped station. It is docked just above the tab bar, nearly as wide as the screen, and the
+        /// garden scrolls so the station stands above it: it can never land on a neighbouring station.
+        /// </summary>
         void BuildStationCard(GameCatalog catalog)
         {
-            _card = UiKit.Rect("Card", _street).Place(0f, 0f, 0, 0, 520, 250);
-            _card.pivot = new Vector2(0.5f, 0f);
+            _card = UiKit.Rect("Card", _canvas).Place(0.5f, 0f, 0, TabCover + CardHeight / 2f, 1040, CardHeight);
             _card.AddShadow(18f, 10f, 0.4f);
-            var tail = UiKit.Rect("Tail", _card).Place(0.5f, 0f, 0, 8, 40, 40);
-            _cardTail = tail;
-            tail.localRotation = Quaternion.Euler(0, 0, 45);
-            tail.AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             Image face = UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             face.raycastTarget = true; // a tap on the card is not a tap on the ground behind it
 
-            _cardName = UiKit.Rect("Name", _card).Stretch(0, 1, 1, 1, 28, -66, 170, 14)
-                .AddText("", 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _cardName = UiKit.Rect("Name", _card).Stretch(0, 1, 1, 1, 32, -70, 200, 14)
+                .AddText("", 36, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardName.horizontalOverflow = HorizontalWrapMode.Overflow;
-            var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -92, -40, 140, 44);
-            chip.AddImage(catalog.Panel, Palette.Moss, true);
+            var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -104, -42, 160, 46);
+            _cardLevelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
             _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _cardInfo = UiKit.Rect("Info", _card).Stretch(0, 1, 1, 1, 28, -128, 28, 70)
+            _cardInfo = UiKit.Rect("Info", _card).Stretch(0, 1, 1, 1, 32, -138, 32, 74)
                 .AddText("", 24, Palette.InkSoft, TextAnchor.UpperLeft);
 
-            var buy = UiKit.Rect("Buy", _card).Place(0.5f, 0f, 0, 72, 464, 92);
+            // Who works here: the rabbit's face, its name, and its kind and trade.
+            _cardWorker = UiKit.Rect("Worker", _card).Place(0f, 0f, 262, 74, 460, 96);
+            _cardWorker.AddImage(catalog.Panel, Palette.Track, true);
+            var portrait = UiKit.Rect("Portrait", _cardWorker).Place(0f, 0.5f, 50, 0, 80, 80);
+            _cardWorkerFrame = portrait.AddImage(catalog.Round, Palette.Paper);
+            _cardWorkerArt = UiKit.Rect("Art", portrait).Stretch(0, 0, 1, 1, 6, 6, 6, 6).AddImage(null, Color.white);
+            _cardWorkerArt.preserveAspect = true;
+            _cardWorkerName = UiKit.Rect("Name", _cardWorker).Stretch(0, 0.5f, 1, 1, 104, 2, 12, 8)
+                .AddText("", 26, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+            _cardWorkerName.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _cardWorkerSub = UiKit.Rect("Sub", _cardWorker).Stretch(0, 0, 1, 0.5f, 104, 10, 12, 4)
+                .AddText("", 20, Palette.InkSoft, TextAnchor.UpperLeft);
+            _cardWorkerSub.resizeTextForBestFit = true;
+            _cardWorkerSub.resizeTextMinSize = 13;
+            _cardWorkerSub.resizeTextMaxSize = 20;
+
+            var buy = UiKit.Rect("Buy", _card).Place(1f, 0f, -272, 74, 480, 96);
             _cardBuy = UiKit.Chunky(buy, catalog.Panel, () => OnQuick(Selected));
             _cardBuyTop = UiKit.Rect("Top", _cardBuy.FaceRect).Stretch(0, 0, 0.5f, 1, 24, 0, 0, 0)
                 .AddText("", 28, Palette.Card, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -842,31 +807,20 @@ namespace VuonTra.Game.UI
             bool changed = Selected != index;
             Selected = index;
             _card.gameObject.SetActive(true);
-            _card.SetAsLastSibling();
-            Rect card = PlaceCard(index);
-            _card.anchoredPosition = new Vector2(card.center.x, card.yMin);
-            _card.localScale = Vector3.one * (_cardPop / _zoom);
             if (changed)
             {
-                // Slide the garden just enough that the station and its card are both clear of the HUD and the tab bar.
+                // Slide the garden so the station stands in the open strip between the HUD and the card.
                 Rect station = StationBox(index);
                 Vector2 from = _street.anchoredPosition;
-                float top = Mathf.Max(station.yMax, card.yMax) * _zoom + from.y, bottom = Mathf.Min(station.yMin, card.yMin) * _zoom + from.y;
-                float left = Mathf.Min(station.xMin, card.xMin) * _zoom + from.x, right = Mathf.Max(station.xMax, card.xMax) * _zoom + from.x;
-                Vector2 move = Vector2.zero;
-                if (top > ScreenH - HudCover) move.y = ScreenH - HudCover - top;
-                else if (bottom < TabCover) move.y = TabCover - bottom;
-                if (right > ScreenW - 6f) move.x = ScreenW - 6f - right;
-                else if (left < 6f) move.x = 6f - left;
+                float top = station.yMax * _zoom + from.y, bottom = station.yMin * _zoom + from.y;
+                float x = StationSpot(index).x * _zoom + from.x, floor = TabCover + CardHeight + 14f;
+                var move = new Vector2(Mathf.Clamp(x, 290f, ScreenW - 290f) - x, 0f);
+                if (bottom < floor) move.y = floor - bottom;
+                else if (top > ScreenH - HudCover) move.y = ScreenH - HudCover - top;
                 Vector2 target = ClampView(from + move, _zoom);
                 if (_scroll != null) _scroll.StopMovement();
                 Tweens.Add(0.25f, t => { if (_street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, target, t); }, Ease.OutCubic);
-
-                Tweens.Add(0.22f, t =>
-                {
-                    _cardPop = Mathf.LerpUnclamped(0.8f, 1f, t);
-                    if (_card != null) _card.localScale = Vector3.one * (_cardPop / _zoom);
-                }, Ease.OutBack);
+                Tweens.Add(0.22f, t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.92f, 1f, t); }, Ease.OutBack);
             }
             RefreshCard(Runner.Defs, Runner.State, Runner.Mods);
         }
@@ -878,6 +832,33 @@ namespace VuonTra.Game.UI
             bool needsPlot = i >= s.Plots;
             _cardName.text = L10n.Station(defs[i].Id);
             _cardLevel.text = needsPlot ? L10n.T("station.empty") : (level <= 0 ? L10n.T("row.locked") : L10n.T("station.level", level));
+            // Green would read as "all good"; a station that is not open yet is a quiet grey-purple.
+            _cardLevelChip.color = level <= 0 || needsPlot ? Palette.Mix(Palette.Night, Palette.Paper, 0.45f) : Palette.Moss;
+
+            // Who works here. Nobody can work at a station that is not open.
+            bool open = level > 0 && !needsPlot;
+            if (_cardWorker.gameObject.activeSelf != open) _cardWorker.gameObject.SetActive(open);
+            if (open)
+            {
+                Rabbit worker = Rabbits.AtStation(s, i);
+                _cardWorkerFrame.gameObject.SetActive(worker != null);
+                if (worker == null)
+                {
+                    _cardWorkerName.text = L10n.T("card.noworker");
+                    _cardWorkerSub.color = Palette.InkSoft;
+                    _cardWorkerSub.text = L10n.T("card.noworker.sub", L10n.Trade(defs[i].Trade));
+                }
+                else
+                {
+                    bool inTrade = Rabbits.InTrade(defs, worker);
+                    _cardWorkerArt.sprite = Runner.Catalog.RabbitArt(worker);
+                    _cardWorkerFrame.color = Palette.Tiers[worker.Tier];
+                    _cardWorkerName.text = worker.Name;
+                    _cardWorkerSub.text = L10n.T("card.worker", L10n.Kind(worker), L10n.Trade(Rabbits.TradeOf(worker)))
+                        + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "");
+                    _cardWorkerSub.color = inTrade ? Palette.Mix(Palette.Moss, Palette.Ink, 0.45f) : Palette.InkSoft;
+                }
+            }
 
             BigNum cost;
             bool can;
@@ -1021,9 +1002,9 @@ namespace VuonTra.Game.UI
             _glowSpots.Add(pondAt + new Vector2(14, 28));
 
             // Places to sit, in the corners the stations leave free.
-            Put(TeaTable, Heart.x + 90f, Heart.y - 1100f, 170f, Color.white);
-            Put(Stump, Heart.x + 246f, Heart.y - 1090f, 110f, Color.white);
-            Put(Stump, Heart.x - 60f, Heart.y - 1120f, 96f, Color.white);
+            Put(TeaTable, Heart.x + 90f, Heart.y - 1240f, 170f, Color.white);
+            Put(Stump, Heart.x + 246f, Heart.y - 1230f, 110f, Color.white);
+            Put(Stump, Heart.x - 60f, Heart.y - 1260f, 96f, Color.white);
 
             // A lantern beside each path, halfway along.
             for (int n = 0; n < Paths.Length; n++)
@@ -1566,6 +1547,17 @@ namespace VuonTra.Game.UI
                 _actors[i].SetCanUpgrade(CanAfford(defs, s, i));
 
                 Rabbit worker = Rabbits.AtStation(s, i);
+                GameCatalog catalog = Runner.Catalog;
+                if (worker == null) _actors[i].SetWorker(null, null, null, false);
+                else
+                {
+                    // The collected rabbit itself stands at the station, wearing what it wears.
+                    Item hat = Items.Worn(s, worker.Id, ItemSlot.Hat), charm = Items.Worn(s, worker.Id, ItemSlot.Charm);
+                    _actors[i].SetWorker(catalog.RabbitArt(worker),
+                        hat != null ? catalog.ItemIcon(hat.DefId) : null, charm != null ? catalog.ItemIcon(charm.DefId) : null,
+                        worker.Tier >= 4);
+                }
+
                 GameObject chip = _tierChips[i].gameObject;
                 bool named = worker != null && Zoom != ZoomLevel.Far;
                 if (chip.activeSelf != named) chip.SetActive(named);
@@ -1573,24 +1565,11 @@ namespace VuonTra.Game.UI
                 _tierChips[i].color = Palette.Tiers[worker.Tier];
                 _tierLabels[i].text = worker.Name;
                 bool inTrade = Rabbits.InTrade(defs, worker);
-                if (_tierMatches[i].activeSelf != inTrade) _tierMatches[i].SetActive(inTrade);
-                ShowWorn(_tierHats[i], Items.Worn(s, worker.Id, ItemSlot.Hat));
-                ShowWorn(_tierCharms[i], Items.Worn(s, worker.Id, ItemSlot.Charm));
-                if (Zoom != ZoomLevel.Near)
-                {
-                    // What a rabbit wears is a detail for when you look closely.
-                    _tierHats[i].gameObject.SetActive(false);
-                    _tierCharms[i].gameObject.SetActive(false);
-                }
+                _tierTradeIcons[i].sprite = catalog.TradeIcon(Rabbits.TradeOf(worker));
+                _tierTradeBadges[i].color = inTrade ? Palette.Lantern : Palette.Mix(Palette.Ink, Palette.Paper, 0.6f);
+                _tierTradeIcons[i].color = inTrade ? Palette.Ink : Palette.Paper;
             }
             RefreshCard(defs, s, Runner.Mods);
-        }
-
-        void ShowWorn(Image slot, Item item)
-        {
-            Sprite icon = item != null ? Runner.Catalog.ItemIcon(item.DefId) : null;
-            if (slot.gameObject.activeSelf != (icon != null)) slot.gameObject.SetActive(icon != null);
-            if (icon != null) slot.sprite = icon;
         }
 
         /// <summary>True when the one thing the station's card offers (land, opening, or levels) can be paid for.</summary>

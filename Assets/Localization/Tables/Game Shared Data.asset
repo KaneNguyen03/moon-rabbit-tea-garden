@@ -723,6 +723,22 @@ MonoBehaviour:
     m_Key: rabbits.intrade
     m_Metadata:
       m_Items: []
+  - m_Id: 36084732911616
+    m_Key: rabbits.suits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300224
+    m_Key: card.worker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300225
+    m_Key: card.noworker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300226
+    m_Key: card.noworker.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

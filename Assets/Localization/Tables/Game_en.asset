@@ -353,11 +353,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236370
-    m_Localized: "Lv {0}/{1} \xB7 {3}{4}\nat {2}"
+    m_Localized: "Lv {0}/{1} \xB7 {2}"
     m_Metadata:
       m_Items: []
   - m_Id: 372236371
-    m_Localized: "Lv {0}/{1} \xB7 {2}\nresting"
+    m_Localized: "Lv {0}/{1} \xB7 resting"
     m_Metadata:
       m_Items: []
   - m_Id: 372236372
@@ -726,6 +726,22 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 33869528031236
     m_Localized: " \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084732911616
+    m_Localized: 'Best at: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300224
+    m_Localized: "{0} \xB7 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300225
+    m_Localized: No rabbit works here yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 36084741300226
+    m_Localized: 'Suits: {0}'
     m_Metadata:
       m_Items: []
   references:

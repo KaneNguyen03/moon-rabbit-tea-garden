@@ -189,10 +189,13 @@ namespace VuonTra.Game.UI
             // What it wears shows on it: the hat between the ears, the charm at the neck.
             Item hat = Items.Worn(s, r.Id, ItemSlot.Hat), charm = Items.Worn(s, r.Id, ItemSlot.Charm);
             Sprite hatIcon = hat != null ? _catalog.ItemIcon(hat.DefId) : null, charmIcon = charm != null ? _catalog.ItemIcon(charm.DefId) : null;
+            // The same anchor as in the garden: the hat sits on the top of the head, whatever the ears do.
+            const float art = 140f;
+            float across = (GameCatalog.KindHeadX - 0.5f) * art * GameCatalog.KindAspect;
             if (hatIcon != null)
-                UiKit.Rect("HatOn", tile).Place(0.5f, 1f, 0, -30, 80, 80).AddImage(hatIcon, Color.white).preserveAspect = true;
+                UiKit.Rect("HatOn", tile).Place(0.5f, 0f, across, 8f + GameCatalog.KindHeadTop * art + 17f, 62, 62).AddImage(hatIcon, Color.white).preserveAspect = true;
             if (charmIcon != null)
-                UiKit.Rect("CharmOn", tile).Place(0.5f, 0.5f, 2, -22, 44, 44).AddImage(charmIcon, Color.white).preserveAspect = true;
+                UiKit.Rect("CharmOn", tile).Place(0.5f, 0f, across + 1f, 8f + art * 0.37f, 28, 28).AddImage(charmIcon, Color.white).preserveAspect = true;
 
             var rename = UiKit.Rect("Rename", root).Place(0f, 0.5f, 108, -66, 132, 38); // on the foot of the portrait, clear of the name
             Image renameImage = rename.AddImage(_catalog.Panel, Palette.Track, true);
@@ -203,26 +206,53 @@ namespace VuonTra.Game.UI
             renameButton.onClick.AddListener(() => _onRename(id));
             UiKit.Rect("Text", rename).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.button"), 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            Text name = UiKit.Rect("Name", root).Stretch(0, 0.64f, 1, 1, 208, 0, 560, 26)
-                .AddText(r.Name, 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+            Text name = UiKit.Rect("Name", root).Stretch(0, 0.71f, 1, 1, 208, 0, 560, 22)
+                .AddText(r.Name, 33, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             name.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-            // The plate is the tier's colour and names the kind: "Thỏ Sao ×3".
-            var chip = UiKit.Rect("Tier", root).Place(0f, 0.5f, 334, -6, 252, 44);
+            // Fixed rows, top to bottom: name, kind plate, level and workplace, trade, and a hint when it is out of its trade.
+            var chip = UiKit.Rect("Tier", root).Place(0f, 0.5f, 334, 20, 252, 38);
             chip.AddImage(_catalog.Panel, tier, true);
             UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.tier", L10n.Kind(r), UiKit.Times(Rabbits.WorkMultiplier(defs, s, r))),
                 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             bool working = r.Station >= 0 && r.Station < defs.Count;
-            // Its trade, and whether it is at a station where the trade counts.
-            string trade = L10n.Trade(Rabbits.TradeOf(r));
             bool inTrade = Rabbits.InTrade(defs, r);
-            Text where = UiKit.Rect("Where", root).Band(208, 548, 22, 56)
-                .AddText(working
-                        ? L10n.T("rabbits.where.working", r.Level, Rabbits.LevelCaps[r.Tier], L10n.Station(defs[r.Station].Id), trade, inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "")
-                        : L10n.T("rabbits.where.resting", r.Level, Rabbits.LevelCaps[r.Tier], trade),
-                    20, inTrade ? Palette.Mix(Palette.Moss, Palette.Ink, 0.45f) : Palette.InkSoft, TextAnchor.MiddleLeft);
-            where.horizontalOverflow = HorizontalWrapMode.Overflow; // the two lines are set by hand; never a third
+            RabbitTrade trade = Rabbits.TradeOf(r);
+            Text where = UiKit.Rect("Where", root).Place(0f, 0.5f, 334, -15, 252, 26)
+                .AddText(working ? L10n.T("rabbits.where.working", r.Level, Rabbits.LevelCaps[r.Tier], L10n.Station(defs[r.Station].Id)) : L10n.T("rabbits.where.resting", r.Level, Rabbits.LevelCaps[r.Tier]),
+                    20, Palette.InkSoft, TextAnchor.MiddleLeft);
+            where.resizeTextForBestFit = true; // one line, however long the station's name
+            where.resizeTextMinSize = 13;
+            where.resizeTextMaxSize = 20;
+            where.horizontalOverflow = HorizontalWrapMode.Wrap;
+            where.verticalOverflow = VerticalWrapMode.Truncate;
+
+            // The trade: its picture and name, gold with the bonus when the rabbit is where its trade counts.
+            var tradeChip = UiKit.Rect("Trade", root).Place(0f, 0.5f, 312, -48, 208, 32);
+            tradeChip.AddImage(_catalog.Panel, inTrade ? Palette.Lantern : Palette.Track, true);
+            Image tradeIcon = UiKit.Rect("Icon", tradeChip).Place(0f, 0.5f, 22, 0, 26, 26).AddImage(_catalog.TradeIcon(trade), inTrade ? Palette.Ink : Palette.InkSoft);
+            tradeIcon.preserveAspect = true;
+            UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 40, 0, 8, 0)
+                .AddText(L10n.Trade(trade) + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : ""),
+                    19, inTrade ? Palette.Ink : Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
+
+            if (!inTrade)
+            {
+                // Out of its trade (or resting): say where it would do best, among the stations that are open.
+                List<int> suited = Rabbits.SuitedStations(defs, s, r);
+                if (suited.Count > 0)
+                {
+                    var names = new StringBuilder();
+                    for (int k = 0; k < suited.Count && k < 2; k++)
+                        names.Append(k > 0 ? ", " : "").Append(L10n.Station(defs[suited[k]].Id));
+                    Text hint = UiKit.Rect("Suits", root).Place(0f, 0.5f, 454, -80, 492, 22)
+                        .AddText(L10n.T("rabbits.suits", names.ToString()), 17, Palette.InkSoft, TextAnchor.MiddleLeft);
+                    hint.resizeTextForBestFit = true;
+                    hint.resizeTextMinSize = 12;
+                    hint.resizeTextMaxSize = 17;
+                }
+            }
 
             // What the rabbit wears: tap a slot to choose.
             AddSlot(root, s, r, ItemSlot.Hat, -492);
