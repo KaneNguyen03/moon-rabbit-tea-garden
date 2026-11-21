@@ -135,11 +135,17 @@ namespace VuonTra.EditorTools
             }
             catalog.Decor = decor.ToArray();
 
+            catalog.Shadow = PlaceholderArt.Load("shadow");
+            catalog.IconUp = PlaceholderArt.Load("icon_up");
+            catalog.IconCharm = PlaceholderArt.Load("icon_charm");
+            catalog.IconQuest = PlaceholderArt.Load("icon_quest");
+
             catalog.BgSky = StreetArt.Load("bg_sky");
             catalog.BgHills = StreetArt.Load("bg_hills");
             catalog.BgTrees = StreetArt.Load("bg_trees");
             catalog.BgGround = StreetArt.Load("bg_ground");
             catalog.BgVignette = StreetArt.Load("bg_vignette");
+            catalog.BgGrass = StreetArt.Load("bg_grass");
 
             catalog.Upgrades = upgrades.ToArray();
             catalog.Quests = quests.ToArray();

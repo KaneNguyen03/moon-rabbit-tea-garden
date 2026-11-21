@@ -25,6 +25,10 @@ namespace VuonTra.Game
         public Sprite Glow;
         public Sprite Currency;
         public Sprite Gear;
+        public Sprite Shadow;
+        public Sprite IconUp;
+        public Sprite IconCharm;
+        public Sprite IconQuest;
         public Sprite Background;
 
         [Header("Street backdrop layers (hills, trees and ground tile sideways)")]
@@ -33,6 +37,8 @@ namespace VuonTra.Game
         public Texture2D BgTrees;
         public Texture2D BgGround;
         public Texture2D BgVignette;
+        [Tooltip("Grass seen from above; tiles in both directions under the draggable world.")]
+        public Texture2D BgGrass;
 
         [Tooltip("Street dressing, in this order: tree, bush, lantern, fence, mushrooms, stones.")]
         public Sprite[] Decor = new Sprite[0];

@@ -110,6 +110,34 @@ namespace VuonTra.EditorTools
                 return c;
             });
 
+            // Grass seen from above, tiling in both directions, for the draggable world.
+            Write("bg_grass", 512, 512, (u, v) =>
+            {
+                // large soft patches; whole numbers of waves so the tile has no seam
+                float patch = 0.5f + 0.25f * Mathf.Sin(u * Mathf.PI * 2f + Mathf.Sin(v * Mathf.PI * 4f) * 1.3f)
+                                   + 0.25f * Mathf.Sin(v * Mathf.PI * 4f + Mathf.Sin(u * Mathf.PI * 6f) * 0.9f);
+                Color c = Color.Lerp(Hex("2a6658"), Hex("3c8a6c"), patch);
+                // grass tufts
+                float gx = Mathf.Floor(u * 64f), gy = Mathf.Floor(v * 64f);
+                if (Hash(gx + 11, gy + 5) > 0.7f)
+                {
+                    float tx = (u * 64f - gx) - 0.5f, ty = (v * 64f - gy) - 0.25f;
+                    float blade = Mathf.Clamp01(1f - Mathf.Abs(tx) * 4.5f - Mathf.Abs(ty) * 1.5f);
+                    c = Color.Lerp(c, Hash(gx, gy) > 0.5f ? Hex("62b98a") : Hex("23564e"), blade * 0.55f);
+                }
+                // small flowers, one in some cells
+                float cx = Mathf.Floor(u * 8f), cy = Mathf.Floor(v * 8f);
+                if (Hash(cx + 40, cy) > 0.45f)
+                {
+                    float fx = (u * 8f - cx) - 0.2f - 0.6f * Hash(cx, cy + 20), fy = (v * 8f - cy) - 0.2f - 0.6f * Hash(cx + 30, cy);
+                    float d = Mathf.Sqrt(fx * fx + fy * fy);
+                    Color f = flowers[(int)(Hash(cx + 3, cy + 7) * 2.999f)];
+                    c = Color.Lerp(c, f, Mathf.Clamp01(1f - d / 0.12f) * 0.25f);
+                    if (d < 0.04f) c = f;
+                }
+                return c;
+            });
+
             // Darkened corners pull the eye to the lit middle of the street.
             Color edge = Hex("0b0f2a");
             Write("bg_vignette", 256, 144, (u, v) =>
@@ -121,7 +149,7 @@ namespace VuonTra.EditorTools
             });
 
             AssetDatabase.Refresh();
-            foreach (string name in new[] { "bg_sky", "bg_hills", "bg_trees", "bg_ground", "bg_vignette" })
+            foreach (string name in new[] { "bg_sky", "bg_hills", "bg_trees", "bg_ground", "bg_grass", "bg_vignette" })
             {
                 var importer = (TextureImporter)AssetImporter.GetAtPath(Folder + "/" + name + ".png");
                 importer.textureType = TextureImporterType.Default;

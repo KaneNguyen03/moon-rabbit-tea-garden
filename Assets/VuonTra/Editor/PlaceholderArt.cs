@@ -163,7 +163,8 @@ namespace VuonTra.EditorTools
                 importer.alphaIsTransparency = true;
                 importer.mipmapEnabled = false;
                 importer.spritePixelsPerUnit = 100;
-                importer.spriteBorder = Path.GetFileNameWithoutExtension(path) == "panel" ? new Vector4(28, 28, 28, 28) : Vector4.zero;
+                string file = Path.GetFileNameWithoutExtension(path);
+                importer.spriteBorder = file == "panel" ? new Vector4(28, 28, 28, 28) : (file == "shadow" ? new Vector4(40, 40, 40, 40) : Vector4.zero);
                 importer.SaveAndReimport();
             }
         }
@@ -243,6 +244,45 @@ namespace VuonTra.EditorTools
             carrot.Ellipse(62, 44, 9, 2.5f, -52, Hex("e07a2c"));
             carrot.Ellipse(50, 30, 7, 2.2f, -52, Hex("e07a2c"));
             carrot.Save("carrot");
+
+            // Soft drop shadow for panels and buttons: a blurred rounded rectangle, 9-sliced.
+            var shadow = new Painter(96, 96);
+            shadow.Fill((u, v) =>
+            {
+                float qx = Mathf.Abs(u - 0.5f) * 96f - 20f, qy = Mathf.Abs(v - 0.5f) * 96f - 20f;
+                float dist = new Vector2(Mathf.Max(qx, 0f), Mathf.Max(qy, 0f)).magnitude + Mathf.Min(Mathf.Max(qx, qy), 0f) - 10f;
+                float a = Mathf.SmoothStep(1f, 0f, Mathf.Clamp01((dist + 6f) / 22f));
+                return new Color(1f, 1f, 1f, a);
+            });
+            shadow.Save("shadow");
+
+            var up = new Painter(96, 96, 2); // "upgrade" arrow
+            up.Box(48, 30, 11, 22, 8, Hex("6fbf8a"));
+            up.Blob(48, 62, 30, 9, 0, Hex("6fbf8a"), 0);
+            up.Box(34, 58, 6, 20, 6, Hex("6fbf8a")); up.Box(62, 58, 6, 20, 6, Hex("6fbf8a"));
+            up.Blob(48, 70, 24, 20, 0, Hex("6fbf8a"));
+            up.Box(48, 40, 10, 24, 7, Hex("6fbf8a"), 0);
+            up.Save("icon_up");
+
+            var charm = new Painter(128, 128, 2); // charms: a moon with a star
+            charm.Blob(60, 64, 44, 44, 0, Hex("ffd98a"));
+            charm.Ellipse(80, 76, 36, 36, 0, Hex("fff4e0"));
+            charm.Ellipse(80, 76, 33, 33, 0, new Color(0, 0, 0, 0));
+            charm.Blob(92, 84, 13, 5, 0, Hex("b48be8"), 2.6f); charm.Blob(92, 84, 5, 13, 0, Hex("b48be8"), 0);
+            charm.Blob(92, 84, 9, 4, 45, Hex("b48be8"), 0); charm.Blob(92, 84, 9, 4, -45, Hex("b48be8"), 0);
+            charm.Ellipse(92, 84, 4, 4, 0, Color.white);
+            charm.Save("icon_charm");
+
+            var quest = new Painter(128, 128, 2); // quests: a note with ticks
+            quest.Box(64, 62, 36, 46, 12, Hex("fff4e0"));
+            quest.Box(64, 104, 20, 8, 6, Hex("f27d6b"));
+            for (int k = 0; k < 3; k++)
+            {
+                float y = 82 - k * 24;
+                quest.Blob(44, y, 7, 7, 0, k < 2 ? Hex("6fbf8a") : Hex("d9cdb4"), 2.4f);
+                quest.Box(74, y, 18, 4, 3, Hex("c9b99a"), 0);
+            }
+            quest.Save("icon_quest");
 
             // White so it can be tinted: a ring of teeth around a hub.
             var gear = new Painter(128, 128);

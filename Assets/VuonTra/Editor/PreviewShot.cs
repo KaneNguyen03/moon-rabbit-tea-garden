@@ -53,10 +53,13 @@ namespace VuonTra.EditorTools
 
             screen.Shell.StartGame();
             Step(screen, 1.2f);
-            Capture(screen, "2-street");
+            Capture(screen, "2-garden");
 
             // Busy frame: open the next station so the milestone moment is on screen.
-            Press(screen, "Canvas/Garden/Content/Station to-mat/Quick");
+            screen.FocusStation(5);
+            Step(screen, 0.4f);
+            Capture(screen, "2b-card");
+            Press(screen, "Canvas/Garden/Content/Card/Buy");
             Step(screen, 0.45f);
             Capture(screen, "3-moment");
             Step(screen, 2.5f);
@@ -108,7 +111,7 @@ namespace VuonTra.EditorTools
             L10n.SetLocale("en");
             screen.RebuildUi();
             Step(screen, 0.8f);
-            Capture(screen, "11-street-en");
+            Capture(screen, "11-garden-en");
             screen.OpenSheet(3);
             Step(screen, 0.5f);
             Capture(screen, "12-rabbits-en");

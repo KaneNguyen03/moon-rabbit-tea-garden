@@ -98,6 +98,12 @@ namespace VuonTra.Game.UI
             _squish = 1f;
         }
 
+        /// <summary>An ingredient arrived: the prop gives a little pop.</summary>
+        public void PopProp()
+        {
+            _propPop = 1f;
+        }
+
         /// <summary>A cycle finished: the prop pops and the rabbit jumps for joy.</summary>
         public void Hop()
         {

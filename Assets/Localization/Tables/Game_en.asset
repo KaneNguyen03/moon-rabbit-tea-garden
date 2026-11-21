@@ -83,7 +83,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236303
-    m_Localized: "Tap a rabbit to speed it up \xB7 drag sideways to walk the street"
+    m_Localized: "Tap a rabbit to speed it up \xB7 drag to look around the garden"
     m_Metadata:
       m_Items: []
   - m_Id: 372236304
@@ -612,6 +612,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 372236435
     m_Localized: Earn 1 billion carrots in total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9605726855168
+    m_Localized: Land
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9605739438080
+    m_Localized: Open
     m_Metadata:
       m_Items: []
   references:

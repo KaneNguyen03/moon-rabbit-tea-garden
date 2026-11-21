@@ -337,40 +337,82 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Quick_Button_Buys_At_The_Station_And_Sells_The_Next_Plot()
+        public void Tapping_A_Station_Opens_Its_Card_And_The_Card_Buys()
         {
-            Button quick = Find("Canvas/Garden/Content/Station am-tra/Quick");
-            Assert.IsFalse(quick.interactable);
+            Assert.AreEqual(-1, screen.Selected);
+            Transform card = root.transform.Find("Canvas/Garden/Content/Card");
+            Assert.IsFalse(card.gameObject.activeSelf, "no card until a station is tapped");
+
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(0, screen.Selected);
+            Assert.IsTrue(card.gameObject.activeSelf);
+            Assert.AreEqual("Ấm trà sương", card.Find("Name").GetComponent<Text>().text);
+            Button buy = Find("Canvas/Garden/Content/Card/Buy");
+            Assert.IsFalse(buy.interactable, "broke");
+
             runner.State.Coins = new BigNum(1e12);
             screen.Refresh();
-            Assert.IsTrue(quick.interactable);
-            quick.onClick.Invoke();
+            Assert.IsTrue(buy.interactable);
+            buy.onClick.Invoke();
             Assert.AreEqual(2, runner.State.Levels[0]);
 
-            for (int i = 1; i < 4; i++) Find("Canvas/Garden/Content/Station " + runner.Defs[i].Id + "/Quick").onClick.Invoke();
-            Assert.AreEqual(1, runner.State.Levels[3]);
+            // Tapping the empty ground closes it.
+            Find("Canvas/Garden").onClick.Invoke();
+            Assert.AreEqual(-1, screen.Selected);
+            Assert.IsFalse(card.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void The_Card_Opens_A_Sleeping_Station_And_Sells_The_Next_Plot()
+        {
+            for (int i = 0; i < 4; i++) runner.State.Levels[i] = 1;
+            runner.State.Coins = new BigNum(1e12);
             screen.Refresh();
 
-            // The fifth station stands on the street as empty land, and its button sells the plot.
+            // The fifth station stands in the garden as empty land; the one after it is not there yet.
             Transform fifth = root.transform.Find("Canvas/Garden/Content/Station lo-banh");
             Assert.IsTrue(fifth.gameObject.activeSelf);
-            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station to-mat").gameObject.activeSelf, "beyond the next plot stays hidden");
-            StringAssert.StartsWith("Mua đất", fifth.Find("Quick/Face/Text").GetComponent<Text>().text);
-            Find("Canvas/Garden/Content/Station lo-banh/Quick").onClick.Invoke();
+            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station to-mat").gameObject.activeSelf);
+
+            Find("Canvas/Garden/Content/Station lo-banh").onClick.Invoke();
+            Transform card = root.transform.Find("Canvas/Garden/Content/Card");
+            Assert.AreEqual("Mua đất", card.Find("Buy/Face/Top").GetComponent<Text>().text);
+            Find("Canvas/Garden/Content/Card/Buy").onClick.Invoke();
             Assert.AreEqual(5, runner.State.Plots);
             screen.Refresh();
-            StringAssert.StartsWith("Mở", fifth.Find("Quick/Face/Text").GetComponent<Text>().text);
+            Assert.AreEqual("Mở trạm", card.Find("Buy/Face/Top").GetComponent<Text>().text);
+            Find("Canvas/Garden/Content/Card/Buy").onClick.Invoke();
+            Assert.AreEqual(1, runner.State.Levels[4]);
             Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Station to-mat").gameObject.activeSelf);
         }
 
         [Test]
-        public void Street_Gets_Longer_As_Plots_Are_Bought()
+        public void The_World_Is_Bigger_Than_The_Screen_And_Stations_Do_Not_Overlap()
         {
-            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            float before = street.sizeDelta.x;
-            runner.State.Plots = 9;
-            screen.Refresh();
-            Assert.Greater(street.sizeDelta.x, before + 1000f);
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Assert.Greater(world.sizeDelta.x, 1920f * 1.5f);
+            Assert.Greater(world.sizeDelta.y, 1080f * 1.5f);
+            for (int a = 0; a < runner.Defs.Count; a++)
+            {
+                Vector2 p = GardenScreen.StationSpot(a);
+                Assert.IsTrue(p.x > 200 && p.x < world.sizeDelta.x - 200 && p.y > 200 && p.y < world.sizeDelta.y - 200, "station " + a + " is inside the world");
+                for (int b = a + 1; b < runner.Defs.Count; b++)
+                    Assert.Greater(Vector2.Distance(p, GardenScreen.StationSpot(b)), 480f, a + " and " + b);
+            }
+        }
+
+        [Test]
+        public void Ingredients_Travel_To_The_Stations_That_Use_Them()
+        {
+            screen.Shell.StartGame();
+            runner.State.Levels[1] = 3; // the leaf basket supplies the teapot
+            var world = root.transform.Find("Canvas/Garden/Content");
+            for (int i = 0; i < 60; i++) screen.Advance(1f / 30f);
+            Assert.IsNotNull(world.Find("Courier"), "a courier sets off once both ends are open");
+            for (int i = 0; i < 600; i++) screen.Advance(1f / 30f);
+            int couriers = 0;
+            foreach (Transform child in world) if (child.name == "Courier" && child.gameObject.activeSelf) couriers++;
+            Assert.LessOrEqual(couriers, 8, "they arrive and leave; they do not pile up");
         }
 
         [Test]

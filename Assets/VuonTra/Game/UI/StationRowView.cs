@@ -77,7 +77,7 @@ namespace VuonTra.Game.UI
                 BigNum cost = Economy.CostOfNext(d, 0, 1);
                 _level.text = L10n.T("row.locked");
                 _levelChip.color = Palette.OffLip;
-                _sub.text = previousOpen ? Describe(defs, s, d, 1, m) : (_index >= s.Plots ? L10n.T("row.needplot") : L10n.T("row.needprev"));
+                _sub.text = previousOpen ? Describe(defs, s, _index, 1, m) : (_index >= s.Plots ? L10n.T("row.needplot") : L10n.T("row.needprev"));
                 _buyTop.text = L10n.T("row.open");
                 _buyCost.text = cost.Short();
                 canAfford = previousOpen && s.Coins >= cost;
@@ -91,7 +91,7 @@ namespace VuonTra.Game.UI
                 int prev = Economy.PreviousMilestone(level);
                 _level.text = L10n.T("station.level", level);
                 _levelChip.color = Palette.Moss;
-                _sub.text = Describe(defs, s, d, level, m) + (next > 0 ? L10n.T("row.milestone", next) : "");
+                _sub.text = Describe(defs, s, _index, level, m) + (next > 0 ? L10n.T("row.milestone", next) : "");
                 _buyTop.text = L10n.T("row.upgrade", count);
                 _buyCost.text = cost.Short();
                 canAfford = s.Coins >= cost;
@@ -109,12 +109,14 @@ namespace VuonTra.Game.UI
             _milestoneFill.anchorMax = new Vector2(Mathf.Clamp01(_shownMilestone), 1f);
         }
 
-        string Describe(IReadOnlyList<StationDef> defs, GameState s, StationDef d, int level, Modifiers m)
+        /// <summary>One line on what a station does at a level: what it earns, or whose prices it raises.</summary>
+        public static string Describe(IReadOnlyList<StationDef> defs, GameState s, int index, int level, Modifiers m)
         {
+            StationDef d = defs[index];
             if (d.Kind == StationKind.Brew)
             {
-                BigNum income = s.Levels[_index] > 0
-                    ? Economy.IncomePerCycle(defs, s, _index)
+                BigNum income = s.Levels[index] > 0
+                    ? Economy.IncomePerCycle(defs, s, index)
                     : new BigNum(d.BaseIncome);
                 return L10n.T("row.income", (income * m.IncomeMultiplier).Short(), UiKit.Seconds(d.CycleSeconds / m.SpeedMultiplier));
             }

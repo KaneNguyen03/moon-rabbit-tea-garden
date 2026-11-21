@@ -83,7 +83,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236303
-    m_Localized: "Ch\u1EA1m v\xE0o b\xE9 th\u1ECF \u0111\u1EC3 l\xE0m nhanh h\u01A1n \xB7 k\xE9o ngang \u0111\u1EC3 \u0111i d\u1ECDc con ph\u1ED1"
+    m_Localized: "Ch\u1EA1m v\xE0o b\xE9 th\u1ECF \u0111\u1EC3 l\xE0m nhanh h\u01A1n \xB7 k\xE9o \u0111\u1EC3 \u0111i quanh khu v\u01B0\u1EDDn"
     m_Metadata:
       m_Items: []
   - m_Id: 372236304
@@ -612,6 +612,14 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 372236435
     m_Localized: "Thu t\u1ED5ng c\u1ED9ng 1 t\u1EC9 c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9605726855168
+    m_Localized: "Mua \u0111\u1EA5t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 9605739438080
+    m_Localized: "M\u1EDF"
     m_Metadata:
       m_Items: []
   references:

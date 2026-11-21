@@ -103,6 +103,21 @@ namespace VuonTra.Game.UI
             shadow.effectDistance = new Vector2(0, -distance);
         }
 
+        /// <summary>The sprite used for soft drop shadows; set once by the screen when it builds.</summary>
+        public static Sprite ShadowSprite;
+
+        /// <summary>
+        /// A soft shadow under a panel or button, which is what lifts it off the scene. It is the
+        /// first child, so it draws behind everything else the caller adds afterwards.
+        /// </summary>
+        public static void AddShadow(this RectTransform rt, float spread = 18f, float drop = 12f, float alpha = 0.34f)
+        {
+            if (ShadowSprite == null) return;
+            var shadow = Rect("Shadow", rt).Stretch(0, 0, 1, 1, -spread, -spread - drop, -spread, -spread + drop);
+            shadow.AddImage(ShadowSprite, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), alpha), true);
+            shadow.SetAsFirstSibling();
+        }
+
         /// <summary>
         /// A candy-style button: a darker lip with a raised face on top. The returned view lets the
         /// caller restyle it (enabled / disabled) and pop it on press.
@@ -117,6 +132,9 @@ namespace VuonTra.Game.UI
             view.Button.targetGraphic = view.Lip;
             view.FaceRect = Rect("Face", root).Stretch(0, 0, 1, 1, 0, LipHeight, 0, 0);
             view.Face = view.FaceRect.AddImage(panel, Palette.Carrot, true);
+            // A lighter band across the top half reads as gloss.
+            Rect("Shine", view.FaceRect).Stretch(0, 0.5f, 1, 1, 5, 0, 5, 5)
+                .AddImage(panel, new Color(1f, 1f, 1f, 0.2f), true);
             view.Button.onClick.AddListener(() => onClick());
             return view;
         }

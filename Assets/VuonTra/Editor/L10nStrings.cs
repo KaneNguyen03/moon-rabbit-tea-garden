@@ -28,7 +28,7 @@ namespace VuonTra.EditorTools
             { "tab.1", "Bùa", "Charms" },
             { "tab.2", "Nhiệm vụ", "Quests" },
             { "tab.3", "Thỏ", "Rabbits" },
-            { "hint", "Chạm vào bé thỏ để làm nhanh hơn · kéo ngang để đi dọc con phố", "Tap a rabbit to speed it up · drag sideways to walk the street" },
+            { "hint", "Chạm vào bé thỏ để làm nhanh hơn · kéo để đi quanh khu vườn", "Tap a rabbit to speed it up · drag to look around the garden" },
             { "persec", "+{0}/giây", "+{0}/s" },
             { "mode.max", "Tối đa", "Max" },
             { "energy.label", "Trà lực {0}", "Tea power {0}" },
@@ -38,6 +38,8 @@ namespace VuonTra.EditorTools
             { "quick.plot", "Mua đất · {0}", "Land · {0}" },
             { "quick.open", "Mở · {0}", "Open · {0}" },
             { "quick.upgrade", "Nâng +{0} · {1}", "Up +{0} · {1}" },
+            { "quick.plot.short", "Mua đất", "Land" },
+            { "quick.open.short", "Mở", "Open" },
             { "station.level", "Cấp {0}", "Lv {0}" },
             { "station.empty", "Đất trống", "Empty land" },
 
