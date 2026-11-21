@@ -23,6 +23,39 @@ namespace VuonTra.Core.Tests
             return r;
         }
 
+        [TestCase("Bông", "Bông")]
+        [TestCase("  Mây  ", "Mây")]
+        [TestCase("Bánh\nTrôi", "Bánh Trôi")]
+        [TestCase("a   b", "a b")]
+        [TestCase("Một cái tên rất là dài", "Một cái tên")]
+        [TestCase("\"quoted\"", "\"quoted\"")]
+        public void CleanName_Tidies(string raw, string expected)
+        {
+            Assert.AreEqual(expected, Rabbits.CleanName(raw));
+        }
+
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase("   ")]
+        [TestCase("\n\t")]
+        public void CleanName_Refuses_Empty(string raw)
+        {
+            Assert.IsNull(Rabbits.CleanName(raw));
+        }
+
+        [Test]
+        public void Rename_Keeps_The_Old_Name_When_The_New_One_Is_Empty()
+        {
+            Rabbit r = Add(0);
+            r.Name = "Bông";
+            Assert.IsFalse(Rabbits.Rename(s, r.Id, "   "));
+            Assert.AreEqual("Bông", r.Name);
+            Assert.IsTrue(Rabbits.Rename(s, r.Id, " Mochi "));
+            Assert.AreEqual("Mochi", r.Name);
+            Assert.IsFalse(Rabbits.Rename(s, 999, "X"));
+            Assert.AreEqual("Mochi", SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State.Rabbits[0].Name);
+        }
+
         [Test]
         public void Odds_Add_Up_To_One()
         {

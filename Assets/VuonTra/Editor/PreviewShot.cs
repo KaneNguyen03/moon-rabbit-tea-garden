@@ -99,7 +99,16 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             Capture(screen, "9-items");
             screen.Picker.Close();
+            screen.Rename.Open(state, state.Rabbits[0].Id);
+            Step(screen, 0.4f);
+            Capture(screen, "9b-rename");
+            screen.Rename.Close();
             screen.CloseSheet();
+            Step(screen, 0.3f);
+            screen.FocusStation(4);
+            Step(screen, 0.4f);
+            Capture(screen, "9c-worn");
+            screen.SelectStation(-1);
 
             screen.Shell.OpenPause();
             Step(screen, 0.6f);

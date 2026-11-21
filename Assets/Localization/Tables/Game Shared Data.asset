@@ -631,6 +631,26 @@ MonoBehaviour:
     m_Key: gold.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 13359226281984
+    m_Key: rename.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670592
+    m_Key: rename.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670593
+    m_Key: rename.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670594
+    m_Key: rename.save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670595
+    m_Key: rename.cancel
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

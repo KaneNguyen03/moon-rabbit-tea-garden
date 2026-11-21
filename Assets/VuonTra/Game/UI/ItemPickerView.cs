@@ -158,7 +158,9 @@ namespace VuonTra.Game.UI
 
             var tile = UiKit.Rect("Tile", root).Place(0f, 0.5f, 86, 4, 108, 108);
             tile.AddImage(_catalog.Round, Palette.Mix(tier, Palette.Paper, 0.3f));
-            UiKit.Rect("Glyph", tile).Stretch(0, 0, 1, 1).AddText(Glyph(item), 46, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Sprite icon = _catalog.ItemIcon(item.DefId);
+            if (icon != null) UiKit.Rect("Icon", tile).Stretch(0, 0, 1, 1, 14, 14, 14, 14).AddImage(icon, Color.white).preserveAspect = true;
+            else UiKit.Rect("Glyph", tile).Stretch(0, 0, 1, 1).AddText(Glyph(item), 46, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             UiKit.Rect("Name", root).Stretch(0, 0.5f, 1, 1, 164, 0, 290, 22)
                 .AddText(L10n.T("picker.name", L10n.ItemName(item), L10n.Tier(item.Tier)), 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);

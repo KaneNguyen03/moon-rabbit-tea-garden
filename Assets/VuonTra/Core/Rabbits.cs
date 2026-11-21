@@ -41,6 +41,34 @@ namespace VuonTra.Core
             return fromLevel * (1d + Items.StationBonus(s, r.Id));
         }
 
+        public const int MaxNameLength = 12;
+
+        /// <summary>
+        /// Tidies a name the player typed: no line breaks or control characters, no leading or
+        /// trailing spaces, at most MaxNameLength characters. Returns null when nothing is left.
+        /// </summary>
+        public static string CleanName(string raw)
+        {
+            if (raw == null) return null;
+            var sb = new System.Text.StringBuilder(raw.Length);
+            foreach (char c in raw)
+                sb.Append(char.IsControl(c) ? ' ' : c);
+            string name = sb.ToString().Trim();
+            while (name.Contains("  ")) name = name.Replace("  ", " ");
+            if (name.Length > MaxNameLength) name = name.Substring(0, MaxNameLength).TrimEnd();
+            return name.Length == 0 ? null : name;
+        }
+
+        /// <summary>Renames a rabbit. An empty or all-space name is refused and the old one stays.</summary>
+        public static bool Rename(GameState s, long id, string raw)
+        {
+            Rabbit r = Find(s, id);
+            string name = CleanName(raw);
+            if (r == null || name == null) return false;
+            r.Name = name;
+            return true;
+        }
+
         public static bool IsMaxLevel(Rabbit r) => r.Level >= LevelCaps[ClampTier(r.Tier)];
 
         public static BigNum LevelCost(Rabbit r)

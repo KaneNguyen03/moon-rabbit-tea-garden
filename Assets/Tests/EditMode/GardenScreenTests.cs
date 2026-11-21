@@ -563,6 +563,63 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Rabbit_Can_Be_Renamed_From_Its_Card()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
+
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Rename").onClick.Invoke();
+            Assert.IsTrue(screen.Rename.IsOpen);
+            var input = root.transform.Find("Canvas/Rename/Card/Input").GetComponent<InputField>();
+            Assert.AreEqual("Bông", input.text, "starts from the current name");
+
+            input.text = "   ";
+            Find("Canvas/Rename/Card/Save").onClick.Invoke();
+            Assert.IsTrue(screen.Rename.IsOpen, "an empty name is not accepted");
+            Assert.AreEqual("Bông", runner.State.Rabbits[0].Name);
+
+            input.text = "  Bánh Trôi  ";
+            Find("Canvas/Rename/Card/Save").onClick.Invoke();
+            Assert.IsFalse(screen.Rename.IsOpen);
+            Assert.AreEqual("Bánh Trôi", runner.State.Rabbits[0].Name);
+            screen.Refresh();
+            Assert.AreEqual("Bánh Trôi", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Name").GetComponent<Text>().text);
+            Assert.AreEqual("Bánh Trôi", root.transform.Find("Canvas/Garden/Content/Station am-tra/Tier/Text").GetComponent<Text>().text);
+
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Rename").onClick.Invoke();
+            Find("Canvas/Rename/Card/Cancel").onClick.Invoke();
+            Assert.IsFalse(screen.Rename.IsOpen);
+            Assert.AreEqual("Bánh Trôi", runner.State.Rabbits[0].Name);
+        }
+
+        [Test]
+        public void Worn_Items_Show_On_The_Rabbit_And_Beside_Its_Name_In_The_Garden()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);    // straw hat
+            Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);  // silver bell
+            screen.Refresh();
+            Transform chip = root.transform.Find("Canvas/Garden/Content/Station am-tra/Tier");
+            Assert.IsFalse(chip.Find("Hat").gameObject.activeSelf);
+            Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Tile/HatOn"));
+
+            runner.EquipItem(hat.Id, 1);
+            runner.EquipItem(charm.Id, 1);
+            screen.Refresh();
+            Assert.IsTrue(chip.Find("Hat").gameObject.activeSelf);
+            Assert.IsTrue(chip.Find("Charm").gameObject.activeSelf);
+            Assert.AreEqual("item_mu-rom", chip.Find("Hat").GetComponent<Image>().sprite.name);
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Tile/HatOn"));
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Rabbit 1/Hat/Icon"), "the slot shows the item's picture");
+
+            runner.UnequipItem(hat.Id);
+            screen.Refresh();
+            Assert.IsFalse(chip.Find("Hat").gameObject.activeSelf);
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");

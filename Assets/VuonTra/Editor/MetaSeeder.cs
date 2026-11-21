@@ -108,6 +108,8 @@ namespace VuonTra.EditorTools
             {
                 ItemData data = LoadOrCreate<ItemData>(ItemFolder + "/" + row.Id + ".asset");
                 data.Id = row.Id; data.DisplayName = row.Name; data.Slot = row.Slot; data.Effect = row.Effect; data.BaseAmount = row.Amount;
+                var drawnIcon = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/item_" + row.Id + ".png");
+                data.Icon = drawnIcon != null ? drawnIcon : PlaceholderArt.Load("item_" + row.Id);
                 EditorUtility.SetDirty(data);
                 itemAssets.Add(data);
             }

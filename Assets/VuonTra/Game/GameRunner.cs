@@ -195,6 +195,13 @@ namespace VuonTra.Game
             return ok;
         }
 
+        public bool RenameRabbit(long id, string name)
+        {
+            bool ok = Rabbits.Rename(State, id, name);
+            if (ok) Changed();
+            return ok;
+        }
+
         public bool EquipItem(long itemId, long rabbitId)
         {
             bool ok = Items.Equip(State, itemId, rabbitId);

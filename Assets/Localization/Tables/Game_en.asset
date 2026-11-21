@@ -636,6 +636,26 @@ MonoBehaviour:
     m_Localized: +{0} carrots
     m_Metadata:
       m_Items: []
+  - m_Id: 13359226281984
+    m_Localized: Name your rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670592
+    m_Localized: Rename
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670593
+    m_Localized: Up to {0} characters
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670594
+    m_Localized: Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 13359234670595
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

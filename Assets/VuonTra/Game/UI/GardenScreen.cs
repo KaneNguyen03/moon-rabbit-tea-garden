@@ -42,6 +42,8 @@ namespace VuonTra.Game.UI
         readonly Text[] _openLabels = new Text[TabCount];
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
+        readonly List<Image> _tierHats = new List<Image>();
+        readonly List<Image> _tierCharms = new List<Image>();
         // Life in the world: rabbits out for a walk, and ingredients carried between stations.
         sealed class Walker { public RectTransform Rect; public float X0, X1, Y, Speed, Phase; }
         sealed class Courier { public RectTransform Rect; public Vector2 From, To; public float T, Duration; public int Target; }
@@ -67,6 +69,7 @@ namespace VuonTra.Game.UI
         public FeelLayer Feel { get; private set; }
         public ShellView Shell { get; private set; }
         public ItemPickerView Picker { get; private set; }
+        public RenameView Rename { get; private set; }
         /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests, 3 = rabbits.</summary>
         public int Tab { get; private set; }
         public bool SheetOpen => _sheet != null && _sheet.activeSelf;
@@ -316,13 +319,14 @@ namespace VuonTra.Game.UI
 
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
-            _tierChips.Clear(); _tierLabels.Clear();
+            _tierChips.Clear(); _tierLabels.Clear(); _tierHats.Clear(); _tierCharms.Clear();
             _walkers.Clear(); _couriers.Clear(); _supplyRoutes.Clear();
             Selected = -1;
             _shownStations = -1;
             // The old helpers belong to the destroyed canvas; Build makes new ones.
             Feel = null;
             Picker = null;
+            Rename = null;
             Shell = null;
 
             Build();
@@ -369,6 +373,7 @@ namespace VuonTra.Game.UI
             Picker = new ItemPickerView(_canvas, catalog, Tweens,
                 (itemId, rabbitId) => { Sfx.Blip(); Runner.EquipItem(itemId, rabbitId); },
                 itemId => { Sfx.Click(); Runner.UnequipItem(itemId); });
+            Rename = new RenameView(_canvas, catalog, Tweens, (rabbitId, name) => { Sfx.Blip(); Runner.RenameRabbit(rabbitId, name); });
             BuildAwayPopup(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame());
             Shell.Changed += OnShellChanged;
@@ -439,6 +444,13 @@ namespace VuonTra.Game.UI
                 var chip = UiKit.Rect("Tier", actor.Root).Place(0.5f, 0.5f, -72, 176, 200, 44);
                 _tierChips.Add(chip.AddImage(catalog.Panel, Palette.Paper, true));
                 _tierLabels.Add(UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold));
+                // What the worker wears shows at the two ends of its name plate.
+                Image hatOn = UiKit.Rect("Hat", chip).Place(0f, 0.5f, -6, 8, 60, 60).AddImage(null, Color.white);
+                hatOn.preserveAspect = true;
+                _tierHats.Add(hatOn);
+                Image charmOn = UiKit.Rect("Charm", chip).Place(1f, 0.5f, 8, 0, 50, 50).AddImage(null, Color.white);
+                charmOn.preserveAspect = true;
+                _tierCharms.Add(charmOn);
                 chip.gameObject.SetActive(false);
 
                 // Where this station's ingredients go, for the couriers.
@@ -888,6 +900,10 @@ namespace VuonTra.Game.UI
             {
                 Sfx.Click();
                 Picker.Open(Runner.State, rabbitId, slot);
+            }, rabbitId =>
+            {
+                Sfx.Click();
+                Rename.Open(Runner.State, rabbitId);
             });
 
             SetTab(0);
@@ -1155,8 +1171,17 @@ namespace VuonTra.Game.UI
                 if (worker == null) continue;
                 _tierChips[i].color = Palette.Tiers[worker.Tier];
                 _tierLabels[i].text = worker.Name;
+                ShowWorn(_tierHats[i], Items.Worn(s, worker.Id, ItemSlot.Hat));
+                ShowWorn(_tierCharms[i], Items.Worn(s, worker.Id, ItemSlot.Charm));
             }
             RefreshCard(defs, s, Runner.Mods);
+        }
+
+        void ShowWorn(Image slot, Item item)
+        {
+            Sprite icon = item != null ? Runner.Catalog.ItemIcon(item.DefId) : null;
+            if (slot.gameObject.activeSelf != (icon != null)) slot.gameObject.SetActive(icon != null);
+            if (icon != null) slot.sprite = icon;
         }
 
         /// <summary>True when the one thing the station's card offers (land, opening, or levels) can be paid for.</summary>

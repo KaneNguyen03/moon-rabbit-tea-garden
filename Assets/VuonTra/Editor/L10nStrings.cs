@@ -126,6 +126,11 @@ namespace VuonTra.EditorTools
             { "tier.5", "Đỏ", "Red" },
 
             // ----- items -----
+            { "rename.title", "Đặt tên cho bé", "Name your rabbit" },
+            { "rename.button", "Đổi tên", "Rename" },
+            { "rename.hint", "Tối đa {0} ký tự", "Up to {0} characters" },
+            { "rename.save", "Lưu", "Save" },
+            { "rename.cancel", "Thôi", "Cancel" },
             { "slot.hat", "mũ", "hat" },
             { "slot.charm", "phụ kiện", "charm" },
             { "picker.title", "Chọn {0} cho {1}", "Choose a {0} for {1}" },

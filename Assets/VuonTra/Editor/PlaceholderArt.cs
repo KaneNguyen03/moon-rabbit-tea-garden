@@ -149,6 +149,7 @@ namespace VuonTra.EditorTools
             Background();
             Props();
             Decor();
+            ItemIcons();
             File.WriteAllText(Path.Combine(Folder, "CREDITS.md"),
                 "# Hình giữ chỗ\n\nMọi file ảnh trong thư mục này do `PlaceholderArt.cs` của dự án tự vẽ ra, " +
                 "không lấy từ nguồn ngoài. Chúng chỉ để game chạy được trước khi có hình thật. " +
@@ -453,6 +454,63 @@ namespace VuonTra.EditorTools
             p.Ellipse(98, 106, 5, 5, 0, Color.white);
             p.Ellipse(28, 108, 5, 5, 0, Hex("ffe9a8")); p.Ellipse(42, 94, 3, 3, 0, Hex("ffe9a8"));
             p.Save("prop_dai-sao");
+        }
+
+        /// <summary>
+        /// The wearable items. Hats are drawn low in the frame with a flat underside so they sit
+        /// on a rabbit's head; charms are centred.
+        /// </summary>
+        static void ItemIcons()
+        {
+            Painter p;
+
+            p = new Painter(128, 128, 2); // straw hat
+            p.Blob(64, 34, 58, 16, 0, Hex("e3b765"));
+            p.Blob(64, 58, 34, 30, 0, Hex("f0cb80"));
+            p.Box(64, 44, 34, 6, 5, Hex("f27d6b"), 2.4f);
+            p.Ellipse(50, 70, 10, 6, -20, Hex("fbe2a8"));
+            p.Save("item_mu-rom");
+
+            p = new Painter(128, 128, 2); // chef hat
+            p.Blob(40, 78, 24, 24, 0, Hex("fffdf8")); p.Blob(88, 78, 24, 24, 0, Hex("fffdf8")); p.Blob(64, 90, 28, 26, 0, Hex("fffdf8"));
+            p.Box(64, 44, 34, 20, 8, Hex("fffdf8"));
+            p.Box(64, 30, 36, 7, 5, Hex("e6dccb"), 2.4f);
+            p.Save("item_mu-bep");
+
+            p = new Painter(128, 128, 2); // flower crown
+            p.Blob(64, 46, 50, 16, 0, Hex("6fbf8a"));
+            p.Ellipse(64, 46, 38, 7, 0, new Color(0, 0, 0, 0));
+            foreach (var f in new[] { new Vector3(22, 50, 0), new Vector3(44, 62, 1), new Vector3(66, 66, 2), new Vector3(88, 60, 0), new Vector3(106, 48, 1) })
+            {
+                Color petal = f.z == 0 ? Hex("f3a6d6") : (f.z == 1 ? Hex("ffd98a") : Hex("c8b4f0"));
+                p.Blob(f.x, f.y, 13, 13, 0, petal, 2.6f);
+                p.Ellipse(f.x, f.y, 5, 5, 0, Hex("fff3c8"));
+            }
+            p.Save("item_vong-hoa");
+
+            p = new Painter(128, 128, 2); // silver bell
+            p.Blob(64, 100, 12, 10, 0, Hex("f27d6b"), 2.6f); p.Blob(50, 104, 12, 7, 25, Hex("f27d6b"), 2.6f); p.Blob(78, 104, 12, 7, -25, Hex("f27d6b"), 2.6f);
+            p.Blob(64, 60, 36, 34, 0, Hex("cfd6e6"));
+            p.Box(64, 30, 42, 8, 7, Hex("b9c2d6"));
+            p.Blob(64, 18, 9, 9, 0, Hex("8f98b4"), 2.6f);
+            p.Ellipse(50, 72, 9, 12, -20, Hex("f4f7ff"));
+            p.Save("item_chuong");
+
+            p = new Painter(128, 128, 2); // lucky clover
+            p.Blob(76, 34, 5, 30, -24, Hex("4f9d70"), 2.6f);
+            p.Blob(46, 82, 22, 22, 0, Hex("6fbf8a")); p.Blob(82, 82, 22, 22, 0, Hex("6fbf8a"));
+            p.Blob(46, 52, 22, 22, 0, Hex("6fbf8a")); p.Blob(82, 52, 22, 22, 0, Hex("6fbf8a"));
+            p.Ellipse(64, 67, 9, 9, 0, Hex("9fe0b4"));
+            p.Save("item_co-may");
+
+            p = new Painter(128, 128, 2); // little lantern
+            p.Ellipse(64, 60, 56, 56, 0, Hex("ffc866", 0.25f));
+            p.Box(64, 106, 12, 5, 4, Hex("5a4660"), 2.6f);
+            p.Blob(64, 62, 30, 38, 0, Hex("ffd98a"));
+            p.Ellipse(64, 62, 30, 3.5f, 0, Hex("e0a54a")); p.Ellipse(64, 80, 26, 3.5f, 0, Hex("e0a54a")); p.Ellipse(64, 44, 26, 3.5f, 0, Hex("e0a54a"));
+            p.Ellipse(56, 70, 8, 12, 0, Hex("fff8dc"));
+            p.Box(64, 20, 14, 5, 4, Hex("5a4660"), 2.6f);
+            p.Save("item_long-den");
         }
 
         /// <summary>Things that stand along the street between stations.</summary>

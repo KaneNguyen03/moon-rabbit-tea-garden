@@ -57,6 +57,14 @@ namespace VuonTra.Game
             return Rabbit;
         }
 
+        /// <summary>The picture for an item kind, or null when it has none.</summary>
+        public Sprite ItemIcon(string defId)
+        {
+            foreach (ItemData item in Items)
+                if (item != null && item.Id == defId) return item.Icon;
+            return null;
+        }
+
         public List<ItemDef> BuildItems()
         {
             var defs = new List<ItemDef>(Items.Length);

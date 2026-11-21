@@ -17,3 +17,4 @@ MonoBehaviour:
   Slot: 0
   Effect: 1
   BaseAmount: 0.03
+  Icon: {fileID: 21300000, guid: 4e5999ff106654e48ad9e0da453d82fd, type: 3}

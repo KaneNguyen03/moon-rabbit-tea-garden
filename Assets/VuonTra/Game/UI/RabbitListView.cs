@@ -24,7 +24,7 @@ namespace VuonTra.Game.UI
         readonly GameCatalog _catalog;
         readonly Action _onSummon, _onAuto;
         readonly Action<int> _onMerge;
-        readonly Action<long> _onToggle, _onLevelUp;
+        readonly Action<long> _onToggle, _onLevelUp, _onRename;
         readonly Action<long, ItemSlot> _onSlot;
         readonly List<GameObject> _dynamic = new List<GameObject>();
         readonly List<Card> _cards = new List<Card>();
@@ -34,8 +34,9 @@ namespace VuonTra.Game.UI
         public ChunkyButton Summon { get; private set; }
 
         public RabbitListView(RectTransform content, GameCatalog catalog, Action onSummon, Action onAuto, Action<int> onMerge,
-            Action<long> onToggle, Action<long> onLevelUp, Action<long, ItemSlot> onSlot)
+            Action<long> onToggle, Action<long> onLevelUp, Action<long, ItemSlot> onSlot, Action<long> onRename)
         {
+            _onRename = onRename;
             _content = content;
             _catalog = catalog;
             _onSummon = onSummon;
@@ -100,7 +101,7 @@ namespace VuonTra.Game.UI
         {
             var sb = new StringBuilder();
             foreach (Rabbit r in s.Rabbits)
-                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(';');
+                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(';');
             sb.Append('|');
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             return sb.ToString();
@@ -183,6 +184,22 @@ namespace VuonTra.Game.UI
             var tile = UiKit.Rect("Tile", root).Place(0f, 0.5f, 108, 4, 156, 156);
             tile.AddImage(_catalog.Panel, Palette.Mix(tier, Palette.Paper, 0.35f), true);
             UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(_catalog.RabbitFor(r.Tier), Color.white).preserveAspect = true;
+            // What it wears shows on it: the hat between the ears, the charm at the neck.
+            Item hat = Items.Worn(s, r.Id, ItemSlot.Hat), charm = Items.Worn(s, r.Id, ItemSlot.Charm);
+            Sprite hatIcon = hat != null ? _catalog.ItemIcon(hat.DefId) : null, charmIcon = charm != null ? _catalog.ItemIcon(charm.DefId) : null;
+            if (hatIcon != null)
+                UiKit.Rect("HatOn", tile).Place(0.5f, 1f, 0, -30, 80, 80).AddImage(hatIcon, Color.white).preserveAspect = true;
+            if (charmIcon != null)
+                UiKit.Rect("CharmOn", tile).Place(0.5f, 0.5f, 2, -22, 44, 44).AddImage(charmIcon, Color.white).preserveAspect = true;
+
+            var rename = UiKit.Rect("Rename", root).Place(0f, 0.5f, 108, -66, 132, 38); // on the foot of the portrait, clear of the name
+            Image renameImage = rename.AddImage(_catalog.Panel, Palette.Track, true);
+            renameImage.raycastTarget = true;
+            var renameButton = rename.gameObject.AddComponent<Button>();
+            renameButton.transition = Selectable.Transition.None;
+            renameButton.targetGraphic = renameImage;
+            renameButton.onClick.AddListener(() => _onRename(id));
+            UiKit.Rect("Text", rename).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.button"), 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             Text name = UiKit.Rect("Name", root).Stretch(0, 0.64f, 1, 1, 208, 0, 560, 26)
                 .AddText(r.Name, 36, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
@@ -238,8 +255,12 @@ namespace VuonTra.Game.UI
             button.transition = Selectable.Transition.None;
             button.targetGraphic = img;
             button.onClick.AddListener(() => _onSlot(id, slot));
-            UiKit.Rect("Glyph", rt).Stretch(0, 0, 1, 1).AddText(worn != null ? ItemPickerView.Glyph(worn) : "+",
-                worn != null ? 40 : 46, worn != null ? Palette.Ink : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Sprite icon = worn != null ? _catalog.ItemIcon(worn.DefId) : null;
+            if (icon != null)
+                UiKit.Rect("Icon", rt).Stretch(0, 0, 1, 1, 14, 14, 14, 14).AddImage(icon, Color.white).preserveAspect = true;
+            else
+                UiKit.Rect("Glyph", rt).Stretch(0, 0, 1, 1).AddText(worn != null ? ItemPickerView.Glyph(worn) : "+",
+                    worn != null ? 40 : 46, worn != null ? Palette.Ink : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
             UiKit.Rect("Label", rt).Place(0.5f, 0f, 0, -16, 120, 30)
                 .AddText(ItemPickerView.SlotName(slot), 19, Palette.InkSoft, TextAnchor.MiddleCenter);
         }
