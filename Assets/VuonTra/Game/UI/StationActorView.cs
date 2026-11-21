@@ -14,7 +14,13 @@ namespace VuonTra.Game.UI
         Image _rabbitImage, _scarfImage, _propImage, _chip;
         Text _label;
         GameObject _bar, _glow;
-        float _squish, _shownProgress, _propPop, _hop;
+        float _squish, _shownProgress, _propPop, _hop, _bump;
+
+        /// <summary>
+        /// The size this station is drawn at when nothing is moving. Every pop is worked out from this fixed
+        /// number, never from the size the station happens to be at the moment, so fast taps cannot add up.
+        /// </summary>
+        public float BaseScale = 1f;
         bool _locked;
         Vector2 _rabbitHome;
         Sprite _stillRabbit;
@@ -179,6 +185,12 @@ namespace VuonTra.Game.UI
             if (_dozeBubble.activeSelf != Dozing) _dozeBubble.SetActive(Dozing);
         }
 
+        /// <summary>The station was upgraded: the whole of it swells for a moment and settles back.</summary>
+        public void Bump()
+        {
+            _bump = 1f; // a new bump simply restarts the one in progress
+        }
+
         /// <summary>A tap landed: squash the rabbit.</summary>
         public void Squish()
         {
@@ -210,6 +222,8 @@ namespace VuonTra.Game.UI
                 _fill.anchorMax = new Vector2(Mathf.Max(0.05f, _shownProgress), 1f);
             }
 
+            _bump = Mathf.Max(0f, _bump - deltaTime * 5f); // 0.2 s
+            Root.localScale = Vector3.one * (BaseScale * (1f + 0.14f * Ease.Pop(1f - _bump) * (_bump > 0f ? 1f : 0f)));
             _squish = Mathf.Max(0f, _squish - deltaTime * 5f);
             _propPop = Mathf.Max(0f, _propPop - deltaTime * 4f);
             _hop = Mathf.Max(0f, _hop - deltaTime * 2.6f);

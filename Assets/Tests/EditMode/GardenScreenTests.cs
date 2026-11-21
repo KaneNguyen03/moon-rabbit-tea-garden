@@ -299,7 +299,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Fifth_Station_Needs_A_Plot_Bought_From_Its_Card()
+        public void The_Fifth_Station_Waits_For_The_Garden_To_Widen()
         {
             for (int i = 0; i < 4; i++) runner.State.Levels[i] = 1;
             runner.State.Coins = new BigNum(1e12);
@@ -308,16 +308,52 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(openFifth.interactable, "no plot yet");
             Transform plot = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Plot");
             Assert.AreEqual(4, plot.GetSiblingIndex(), "right after the fourth station");
+            Button widen = Find("Canvas/Sheet/Panel/Scroll/Content/Plot/Buy");
+            Assert.IsFalse(widen.interactable, "carrots alone are not enough");
+            StringAssert.Contains("B4532A", plot.Find("Sub").GetComponent<Text>().text, "an unmet condition is marked");
 
-            Find("Canvas/Sheet/Panel/Scroll/Content/Plot/Buy").onClick.Invoke();
-            Assert.AreEqual(5, runner.State.Plots);
+            // The garden reaches level 3 and has three rabbits: now it can widen.
+            runner.State.GardenXp = Garden.XpForLevel(3);
+            for (int i = 1; i <= 3; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 0, Name = "R" + i });
+            runner.State.NextRabbitId = 3;
+            screen.Refresh();
+            Assert.IsTrue(widen.interactable);
+            StringAssert.DoesNotContain("B4532A", plot.Find("Sub").GetComponent<Text>().text, "every condition met");
+            widen.onClick.Invoke();
+            Assert.AreEqual(6, runner.State.Plots, "two plots at once");
+            Assert.AreEqual(3, runner.State.RestSpots, "and one more place to rest");
             screen.Refresh();
             Assert.IsTrue(openFifth.interactable);
-            Assert.AreEqual(5, plot.GetSiblingIndex());
+            Assert.AreEqual(6, plot.GetSiblingIndex());
 
             runner.State.Plots = runner.Defs.Count;
             screen.Refresh();
-            Assert.IsFalse(plot.gameObject.activeSelf, "nothing left to sell");
+            Assert.IsFalse(plot.gameObject.activeSelf, "nothing left to open");
+        }
+
+        [Test]
+        public void The_Hud_Shows_The_Garden_Level_And_Mist_Lies_On_Land_Not_Yet_Opened()
+        {
+            Transform hud = root.transform.Find("Canvas/Hud");
+            Assert.AreEqual("1", hud.Find("Level/Text").GetComponent<Text>().text);
+            runner.State.GardenXp = Garden.XpForLevel(4) + Garden.XpToNext(4) / 2;
+            screen.Refresh();
+            Assert.AreEqual("4", hud.Find("Level/Text").GetComponent<Text>().text);
+            Assert.AreEqual(0.5f, hud.Find("Level/Ring").GetComponent<Image>().fillAmount, 0.01f);
+
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Assert.IsNull(world.Find("Mist 3"), "the first four plots are the garden's own");
+            Assert.IsTrue(world.Find("Mist 4").gameObject.activeSelf);
+            Assert.IsTrue(world.Find("Mist 11").gameObject.activeSelf);
+            Assert.IsTrue(world.Find("Grove 5").gameObject.activeSelf, "trees stand where no station is drawn yet");
+            for (int i = 0; i < 5; i++) runner.State.Levels[i] = 1;
+            runner.State.Plots = 6;
+            screen.Refresh();
+            for (int i = 0; i < 40; i++) screen.Advance(0.1f); // the mist takes a moment to lift
+            Assert.IsFalse(world.Find("Mist 4").gameObject.activeSelf);
+            Assert.IsFalse(world.Find("Grove 5").gameObject.activeSelf, "the sixth station is drawn now, so its trees are gone");
+            Assert.IsTrue(world.Find("Mist 6").gameObject.activeSelf);
+            Assert.IsTrue(world.Find("Grove 8").gameObject.activeSelf);
         }
 
         [Test]
@@ -365,10 +401,13 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Card_Opens_A_Sleeping_Station_And_Sells_The_Next_Plot()
+        public void The_Card_Of_Empty_Land_Widens_The_Garden_And_Then_Opens_The_Station()
         {
             for (int i = 0; i < 4; i++) runner.State.Levels[i] = 1;
             runner.State.Coins = new BigNum(1e12);
+            runner.State.GardenXp = Garden.XpForLevel(3);
+            for (int i = 1; i <= 3; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 0, Name = "R" + i });
+            runner.State.NextRabbitId = 3;
             screen.Refresh();
 
             // The fifth station stands in the garden as empty land; the one after it is not there yet.
@@ -378,9 +417,9 @@ namespace VuonTra.Core.Tests
 
             Find("Canvas/Garden/Content/Station lo-banh").onClick.Invoke();
             Transform card = root.transform.Find("Canvas/Card");
-            Assert.AreEqual("Mua đất", card.Find("Buy/Face/Top").GetComponent<Text>().text);
+            Assert.AreEqual("Mở rộng", card.Find("Buy/Face/Top").GetComponent<Text>().text);
             Find("Canvas/Card/Buy").onClick.Invoke();
-            Assert.AreEqual(5, runner.State.Plots);
+            Assert.AreEqual(6, runner.State.Plots);
             screen.Refresh();
             Assert.AreEqual("Mở trạm", card.Find("Buy/Face/Top").GetComponent<Text>().text);
             Find("Canvas/Card/Buy").onClick.Invoke();
@@ -621,13 +660,91 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void A_Double_Tap_On_A_Station_Flies_In_Close()
+        public void A_Double_Tap_On_A_Station_Does_Not_Zoom_But_One_On_Open_Ground_Does()
         {
             var station = Find("Canvas/Garden/Content/Station am-tra");
             station.onClick.Invoke();
             station.onClick.Invoke();
-            screen.Advance(1f); // let the flight finish
+            screen.Advance(1f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "tapping a rabbit fast is how you speed it up, not how you zoom");
+
+            var ground = Find("Canvas/Garden");
+            ground.onClick.Invoke();
+            ground.onClick.Invoke();
+            screen.Advance(1f); // let the zoom settle
             Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
+            ground.onClick.Invoke();
+            ground.onClick.Invoke();
+            screen.Advance(1f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "and again comes back out");
+        }
+
+        // ----- issue 35: fast taps must never leave anything bigger than it started -----
+
+        [Test]
+        public void Upgrading_A_Station_Fast_Leaves_It_The_Size_It_Was()
+        {
+            runner.State.Coins = BigNum.FromParts(1, 30);
+            screen.Refresh();
+            Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra");
+            float home = GardenScreen.StationSize(0);
+            Assert.AreEqual(home, station.localScale.x, 1e-4f);
+            Button buy = Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy");
+            float biggest = 0f;
+            for (int i = 0; i < 30; i++)
+            {
+                buy.onClick.Invoke();
+                screen.Advance(0.05f); // well inside the 0.2 s pop of the press before
+                biggest = Mathf.Max(biggest, station.localScale.x);
+            }
+            for (int i = 0; i < 30; i++) screen.Advance(0.05f);
+            Assert.AreEqual(31, runner.State.Levels[0]);
+            Assert.AreEqual(home, station.localScale.x, 1e-4f, "back to the size it started at");
+            Assert.AreEqual(home, station.localScale.y, 1e-4f);
+            Assert.LessOrEqual(biggest, home * 1.2f, "and never much bigger on the way");
+        }
+
+        [Test]
+        public void Tapping_A_Rabbit_Fast_Neither_Zooms_Nor_Swells_It()
+        {
+            var station = Find("Canvas/Garden/Content/Station am-tra");
+            Transform actor = station.transform, rabbit = actor.Find("Rabbit");
+            float home = GardenScreen.StationSize(0), biggest = 0f;
+            for (int i = 0; i < 30; i++)
+            {
+                station.onClick.Invoke();
+                screen.Advance(0.1f);
+                Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "tap " + i);
+                biggest = Mathf.Max(biggest, Mathf.Max(rabbit.localScale.x, rabbit.localScale.y));
+                Assert.AreEqual(home, actor.localScale.x, home * 0.2f);
+            }
+            Assert.LessOrEqual(biggest, 1.2f, "the squish stays a squish");
+            for (int i = 0; i < 30; i++) screen.Advance(0.1f);
+            Assert.AreEqual(home, actor.localScale.x, 1e-4f);
+            Assert.AreEqual(1f, rabbit.localScale.x, 0.06f, "only breathing is left");
+            Assert.AreEqual(1f, rabbit.localScale.y, 0.06f);
+        }
+
+        [Test]
+        public void Taps_And_Upgrades_Mixed_Together_Fast_Leave_Everything_As_It_Was()
+        {
+            runner.State.Coins = BigNum.FromParts(1, 30);
+            screen.Refresh();
+            var station = Find("Canvas/Garden/Content/Station am-tra");
+            Button buy = Find("Canvas/Card/Buy");
+            float home = GardenScreen.StationSize(0), biggest = 0f;
+            for (int i = 0; i < 40; i++)
+            {
+                if (i % 2 == 0) station.onClick.Invoke(); else buy.onClick.Invoke();
+                screen.Advance(0.04f);
+                biggest = Mathf.Max(biggest, station.transform.localScale.x);
+            }
+            for (int i = 0; i < 40; i++) screen.Advance(0.05f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
+            Assert.AreEqual(home, station.transform.localScale.x, 1e-4f);
+            Assert.LessOrEqual(biggest, home * 1.2f);
+            var card = (RectTransform)root.transform.Find("Canvas/Card");
+            Assert.AreEqual(1f, card.localScale.x, 1e-3f, "the card is its own size too");
         }
 
         [Test]

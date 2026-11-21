@@ -127,3 +127,37 @@ Kết luận: đạt cả hai mốc PO nêu (cấp 5 quanh phút thứ 10, cấp
 ### Hình cần vẽ cho bước 2 của R6
 - Huy hiệu cấp vườn (một hình tròn hoặc lá có chỗ cho con số); nếu không có mình vẽ bằng code.
 - Sương hoặc mây che vùng đất chưa mở (một mảng mềm, lặp lại được); nếu không có mình dùng lớp sương vẽ bằng code và cây sẵn có.
+
+## R6 bước 2 — Giao diện cấp vườn, mở đất theo đợt, sương che đất chưa mở
+
+- Test: 290/290 EditMode qua (chạy sau lần sửa file cuối cùng trong Assets). Số test giảm từ 294 vì bỏ các test mua từng ô đất và mua chỗ nghỉ bằng cà rốt, thay bằng test theo đợt.
+- Thông điệp commit đề xuất: `The garden widens in waves: level badge, three conditions, mist over land not yet opened`
+  - Thân: buying land and rest places now go through Expansion; the HUD shows the garden level in a ring; a level gained is announced; resting places come with each wave.
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Ảnh (docs/anh/po-r6/): `2c-top.png` (huy hiệu cấp 5 trên HUD; sương và cụm cây trên đất chưa mở ở đầu vườn; trạm kế tiếp hiện bóng trong sương), `z2-default.png`, `9c-worn.png` (HUD + tấm trạm), `5-stations.png`, `8-rabbits.png` (dòng chỗ nghỉ không còn nút mua), `15-all-far.png`.
+
+### Đã làm
+- Mua đất: `Plots.CanBuy/CostOfNext/TryBuy` giờ đi qua `Expansion` (đợt 2 ô, cần đủ cấp vườn, thỏ hoặc loài, và cà rốt). Thẻ "Mở rộng vườn · đợt N" trong tấm Trạm và tấm trạm của ô "Đất trống" ghi ba điều kiện trên một dòng; điều kiện đạt màu xanh, chưa đạt màu nâu đỏ kèm "(đang N)". Nút chỉ sáng khi đủ cả ba.
+- Chỗ nghỉ: bỏ mua bằng cà rốt (`RestSpots.TryBuy` và nút trong tab Thỏ đã xoá); mỗi đợt mở đất mở thêm một chỗ. Dòng trong tab Thỏ chỉ còn thông tin.
+- HUD: huy hiệu cấp vườn ở bên trái ô cà rốt, vẫn một hàng (ô cà rốt và thanh Trà lực hẹp lại một chút). Vòng quanh con số đầy dần tới cấp kế. Chạm huy hiệu hiện "Cấp vườn N · còn X điểm nữa lên cấp" (R10 sẽ thay bằng màn hồ sơ).
+- Lên cấp vườn: băng thông báo "Vườn lên cấp N! Tặng 1 cỏ bốn lá", huy hiệu nảy lên.
+- Sương: mỗi ô đất chưa mở có một mảng sương trên mặt đất; ô nào chưa có trạm nào được vẽ thì có thêm hai cây đứng trên chính ô đó. Trạm kế tiếp vẫn hiện bóng xám trong sương. Khi mở rộng, sương của hai ô tan dần trong 1,2 giây.
+
+### Test mới và sửa
+- Trạm thứ năm chờ vườn mở rộng: chỉ có cà rốt thì nút tắt và điều kiện chưa đạt được đánh dấu; đủ cấp 3 và 3 thỏ thì mở được, ra 6 ô và 3 chỗ nghỉ.
+- Tấm trạm của ô đất trống: nút "Mở rộng", rồi "Mở trạm".
+- HUD hiện đúng cấp và vòng tiến độ; sương nằm trên ô chưa mở và tan sau khi mở rộng.
+- Mô phỏng `GardenPacingTests` vẫn qua với luật mở đất mới (cấp 5 ở phút 10, cấp 10 cuối ngày 1, không kẹt vì thỏ).
+
+### Chưa đạt
+- Chưa có ảnh chụp riêng của thẻ mở rộng với ba điều kiện (chỉ có test); ảnh `5-stations.png` cắt ngay trên thẻ đó.
+- "Cây lùi ra" khi mở rộng hiện là cây biến mất tức thì, chỉ sương là tan dần.
+- Sương và cây dùng hình sẵn có (quầng sáng và cây trang trí tô tối), chưa có hình sương riêng.
+- Save cũ có nhiều chỗ nghỉ hơn số đợt cho phép thì giữ nguyên; save cũ có ít hơn thì KHÔNG được bù chỗ nghỉ theo số ô đất đang có (chỉ bù cấp vườn).
+- Chưa build lại bản Mac sau R6.
+
+### Tồn đọng
+- tồn đọng: cân lại tốc độ nền kinh tế (thưởng nhiệm vụ tính theo giây thu nhập) — xem đoạn "R6 bước 1".
+- tồn đọng: quyết định giữ hay bỏ quà 1 cỏ mỗi cấp vườn.
+- tồn đọng: bù chỗ nghỉ cho save cũ theo số ô đất đang có.
+- tồn đọng: hình sương riêng và huy hiệu cấp vườn vẽ tay.

@@ -39,6 +39,7 @@ namespace VuonTra.EditorTools
                 state.Progress[i] = progress[i];
             }
             state.Plots = 6;
+            state.GardenXp = Garden.XpForLevel(5) + 90;
             state.HintSeen = true; // the first-run hint would cover the garden in every frame
             state.Coins = new BigNum(5.2e6);
             state.Energy = 73;

@@ -240,8 +240,7 @@ namespace VuonTra.Game.UI
         Text _cardWorkerName, _cardWorkerSub;
         ScrollRect _scroll;
         ZoomLevel _shownZoom = ZoomLevel.Default;
-        int _lastTapIndex = -1;
-        float _lastTapAt = -10f;
+        float _lastGroundTapAt = -10f;
         bool _pinching;
         float _pinchStartDistance, _pinchStartZoom, _wheelWait;
         Vector2 _pinchAt;
@@ -309,6 +308,25 @@ namespace VuonTra.Game.UI
         {
             SelectStation(-1);
             SetZoom((ZoomLevel)(((int)Zoom + 1) % 3));
+            DismissHint();
+        }
+
+        /// <summary>
+        /// A tap on open ground closes the card. Two in quick succession zoom in on that spot, or back out.
+        /// (Stations do not zoom on a double tap: tapping a rabbit fast is how you speed it up.)
+        /// </summary>
+        void OnGroundTap()
+        {
+            SelectStation(-1);
+            bool second = _clock - _lastGroundTapAt < 0.35f;
+            _lastGroundTapAt = second ? -10f : _clock;
+            if (!second) return;
+            Vector2 at = new Vector2(ScreenW / 2f, ScreenH / 2f);
+            var mouse = UnityEngine.InputSystem.Mouse.current;
+            var touch = UnityEngine.InputSystem.Touchscreen.current;
+            if (touch != null && touch.primaryTouch.press.wasReleasedThisFrame) at = ScreenToView(touch.primaryTouch.position.ReadValue());
+            else if (mouse != null && Application.isPlaying) at = ScreenToView(mouse.position.ReadValue());
+            SetZoom(Zoom == ZoomLevel.Near ? ZoomLevel.Default : ZoomLevel.Near, true, at);
             DismissHint();
         }
 
@@ -678,7 +696,7 @@ namespace VuonTra.Game.UI
             view.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true; // gives the scroll something to drag
             var ground = view.gameObject.AddComponent<Button>();
             ground.transition = Selectable.Transition.None;
-            ground.onClick.AddListener(() => SelectStation(-1)); // tapping empty ground closes the card
+            ground.onClick.AddListener(OnGroundTap);
             var scroll = view.gameObject.AddComponent<ScrollRect>();
             scroll.vertical = true;
             scroll.horizontal = false;
@@ -726,11 +744,12 @@ namespace VuonTra.Game.UI
                 if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
                 {
                     Color dim = Palette.Mix(Color.white, Palette.Night, 0.3f);
-                    AddDecor(grove, catalog.Decor[0], spot.x - 150f, spot.y + 70f, 190f, dim);
-                    AddDecor(grove, catalog.Decor[0], spot.x + 170f, spot.y + 40f, 170f, dim);
+                    // The trees stand on the station's own ground, so they never reach into a neighbour that is open.
+                    AddDecor(grove, catalog.Decor[0], spot.x - 66f, spot.y - 40f, 190f, dim);
+                    AddDecor(grove, catalog.Decor[0], spot.x + 84f, spot.y - 70f, 165f, dim);
                 }
                 _fogTrees.Add(grove.gameObject);
-                standing.Add(new KeyValuePair<float, Transform>(spot.y + 70f, grove));
+                standing.Add(new KeyValuePair<float, Transform>(spot.y - 40f, grove));
             }
             BuildDecor(catalog, count, standing);
 
@@ -740,6 +759,7 @@ namespace VuonTra.Game.UI
                 var actor = new StationActorView(i);
                 actor.Build(_street, catalog, catalog.Stations[i], OnTap);
                 actor.Root.Place(0f, 0f, spot.x, spot.y, 440, 360);
+                actor.BaseScale = StationSize(i);
                 actor.Root.localScale = Vector3.one * StationSize(i);
                 var plate = (RectTransform)actor.Root.Find("Level");
                 plate.localScale = Vector3.one * (0.78f / StationSize(i)); // every station's level reads at the same size
@@ -1734,34 +1754,31 @@ namespace VuonTra.Game.UI
         /// <summary>The mist lies on every plot the garden does not have; when the garden widens it lifts.</summary>
         void RefreshFog(GameState s)
         {
-            if (s.Plots == _fogPlots) return;
-            bool lifting = _fogPlots >= 0 && s.Plots > _fogPlots;
+            // Trees grow only where no station is drawn at all; the next station's outline stands in mist alone.
+            int open = 0;
+            for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] > 0) open = i + 1;
+            int drawn = Mathf.Min(s.Levels.Length, Mathf.Min(s.Plots + 1, open + 2));
+            int key = s.Plots * 100 + drawn;
+            if (key == _fogPlots) return;
+            bool lifting = _fogPlots >= 0 && s.Plots > _fogPlots / 100;
             for (int i = 0; i < _fog.Count; i++)
             {
                 if (_fog[i] == null) continue;
                 bool misty = i >= s.Plots;
                 Image fog = _fog[i];
                 GameObject grove = _fogTrees[i];
-                if (misty)
-                {
-                    fog.gameObject.SetActive(true);
-                    grove.SetActive(true);
-                }
+                if (grove.activeSelf != (i >= drawn)) grove.SetActive(i >= drawn);
+                if (misty) fog.gameObject.SetActive(true);
                 else if (lifting && fog.gameObject.activeSelf)
                 {
-                    // The trees step back and the mist thins away over a moment.
-                    grove.SetActive(false);
+                    // The mist thins away over a moment.
                     Color from = fog.color;
                     Tweens.Add(1.2f, t => { if (fog != null) fog.color = Palette.Alpha(from, from.a * (1f - t)); }, Ease.OutCubic, 0f,
                         () => { if (fog != null) { fog.gameObject.SetActive(false); fog.color = from; } });
                 }
-                else
-                {
-                    fog.gameObject.SetActive(false);
-                    grove.SetActive(false);
-                }
+                else fog.gameObject.SetActive(false);
             }
-            _fogPlots = s.Plots;
+            _fogPlots = key;
         }
 
         /// <summary>Resting rabbits that have a place sit in the garden as themselves; the rest are not out.</summary>
@@ -1860,9 +1877,6 @@ namespace VuonTra.Game.UI
                 PlaceView(StationSpot(index), new Vector2(ScreenW / 2f, ScreenH * 0.6f), ZoomDefault);
             }
             SelectStation(index); // a tap always shows the station's card, asleep or not
-            if (index == _lastTapIndex && _clock - _lastTapAt < 0.35f && Zoom != ZoomLevel.Near) ZoomToStation(index);
-            _lastTapIndex = index;
-            _lastTapAt = _clock;
             if (Runner.State.Levels[index] <= 0) return;
             if (_actors[index].Dozing)
             {
@@ -1903,14 +1917,7 @@ namespace VuonTra.Game.UI
             if (Selected == index) _cardBuy.Press(Tweens);
             Sfx.Blip();
             RectTransform actor = _actors[index].Root;
-            Vector3 home = actor.localScale;
-            Tweens.Add(0.2f, t =>
-            {
-                if (actor != null) actor.localScale = home * (1f + 0.14f * Ease.Pop(t));
-            }, Ease.Linear, done: () =>
-            {
-                if (actor != null) actor.localScale = home;
-            });
+            _actors[index].Bump(); // from the station's fixed size: presses in quick succession do not add up
 
             GameCatalog catalog = Runner.Catalog;
             int after = s.Levels[index];
