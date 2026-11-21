@@ -522,6 +522,25 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: phần cần chủ project trong #17 (liên kết Unity Cloud hoặc đi theo hướng #39/#40); Chép mã chưa ai bấm thật trong bản Mac.
 
+## #46 — Thang độ hiếm chung: 6 bậc, mỗi bậc có số sao
+
+- Test: 392/392 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test core (`RarityTests.cs`, file mới) và 1 test màn hình.
+- Commit `7bb0528`, đã push. Issue #46 (mới tạo cho mục "Thang độ hiếm chung" trong #16) đã comment, nhãn chờ-PO-duyệt.
+- File mới: `Assets/VuonTra/Core/Rarity.cs` (6 bậc, số sao = bậc + 1). `Rabbits.TierCount` đọc từ đó. `L10n.Rarity(tier)` = tên bậc + sao; `UiKit.Stars` = dải sao trên nền giấy. Không đổi save, không thêm chuỗi.
+- Ảnh (docs/anh/po-46/): `46-truoc-chon-tho.png`, `46-truoc-9-items.png`, `46-sau-8b-detail.png`, `46-sau-8c-album.png`, `46-sau-9-items.png`, `46-sau-43-chon-tho.png`, `46-sau-18c-arrived.png`.
+
+### Đã làm (đối chiếu với #46)
+- Thang chung trong Core; thỏ và vật phẩm cùng 6 bậc (test).
+- Mọi dòng ghi bậc có sao: tấm thỏ ("Thỏ Chòm Sao · bậc Đỏ ★★★★★★"), trang loài, dòng ghép, tiêu đề nhóm trong sổ ("Bạc ★ · 4/14"), danh sách bùa (dòng dưới tên: "Vàng ★★★★★ · +45%…"), khoảnh khắc gọi thỏ, quà.
+- Dải sao trên mọi khung theo bậc: ô thỏ trong lưới, tấm thỏ, ô loài trong sổ (kể cả loài chưa gặp), ô bùa, hàng chọn thỏ cho trạm.
+
+### Chưa đạt
+- Tên bậc trong danh sách bùa chuyển xuống dòng dưới tên (tên + bậc một dòng bị tràn ở "Mũ đầu bếp · Xanh dương ★★★").
+- Chưa có khung vẽ riêng cho từng bậc (#33 nêu "sao hoặc khung"); chọn sao vì rẻ và đọc được ở mọi cỡ.
+
+### Tồn đọng
+- tồn đọng: nhãn tên thỏ trên vườn (chip màu bậc) chưa có sao; để lượt UI 2 nếu PO muốn.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
