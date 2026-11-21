@@ -136,9 +136,10 @@ namespace VuonTra.Game.UI
                 int prev = Economy.PreviousMilestone(level);
                 _level.text = L10n.T("station.level", level);
                 _levelChip.color = Palette.Moss;
-                canAfford = s.Coins >= cost;
-                _buyTop.text = canAfford ? L10n.T("row.upgrade", count) : L10n.T("need.more");
-                _buyCost.text = canAfford ? cost.Short() : (cost - s.Coins).Short();
+                bool capped = count <= 0; // level 500: nothing left to buy
+                canAfford = !capped && s.Coins >= cost;
+                _buyTop.text = capped ? L10n.T("row.maxlevel") : (canAfford ? L10n.T("row.upgrade", count) : L10n.T("need.more"));
+                _buyCost.text = capped ? "" : (canAfford ? cost.Short() : (cost - s.Coins).Short());
                 milestone = toNext > 0 ? (level - prev) / (float)(toNext - prev) : 1f;
                 _milestoneText.text = toNext > 0 ? L10n.T("row.tonext", toNext - level) : L10n.T("row.topmilestone");
             }

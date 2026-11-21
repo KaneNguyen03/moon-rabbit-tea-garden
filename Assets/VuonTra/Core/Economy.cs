@@ -7,6 +7,11 @@ namespace VuonTra.Core
     public static class Economy
     {
         public static readonly int[] Milestones = { 10, 25, 50, 100, 150, 200, 300, 400, 500 };
+        /// <summary>A station goes no higher than its last milestone.</summary>
+        public const int MaxLevel = 500;
+
+        /// <summary>How many levels a station can still gain; never negative.</summary>
+        public static int LevelsLeft(int level) => Math.Max(0, MaxLevel - level);
 
         const int MaxBuyCount = 1_000_000;
 
@@ -53,7 +58,8 @@ namespace VuonTra.Core
         /// <summary>The most levels these coins can buy from this level.</summary>
         public static int MaxAffordable(StationDef d, int level, BigNum coins)
         {
-            if (coins.IsZero) return 0;
+            int left = LevelsLeft(level);
+            if (coins.IsZero || left == 0) return 0;
             BigNum first = CostOfNext(d, level, 1);
             if (coins < first) return 0;
 
@@ -64,7 +70,7 @@ namespace VuonTra.Core
             // The closed form can be off by one from rounding; settle it against the real price.
             while (n > 1 && CostOfNext(d, level, n) > coins) n--;
             while (n < MaxBuyCount && CostOfNext(d, level, n + 1) <= coins) n++;
-            return n;
+            return Math.Min(n, left);
         }
 
         /// <summary>Price multiplier an Ingredient station gives the Brew stations it supplies.</summary>

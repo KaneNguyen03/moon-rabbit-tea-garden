@@ -321,6 +321,20 @@ namespace VuonTra.EditorTools
             Step(screen, 0.3f);
             Capture(screen, "17-rest-top");
 
+            // The teapot at its cap: the card and the row say "max level" and offer nothing.
+            state.Levels[0] = Economy.MaxLevel;
+            state.Coins = new BigNum(1e30);
+            screen.Refresh();
+            screen.FocusStation(0);
+            Step(screen, 0.4f);
+            Capture(screen, "47-cap-card");
+            screen.SelectStation(-1);
+            screen.OpenSheet(0);
+            Step(screen, 0.6f);
+            Capture(screen, "47-cap-row");
+            screen.CloseSheet();
+            Step(screen, 0.4f);
+
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

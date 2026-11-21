@@ -129,6 +129,7 @@ namespace VuonTra.EditorTools
             { "row.needprev", "Mở trạm phía trên trước", "Open the station above first" },
             { "row.open", "Mở trạm", "Open" },
             { "row.upgrade", "Nâng +{0}", "Upgrade +{0}" },
+            { "row.maxlevel", "Cấp tối đa", "Max level" },
             { "need.more", "Còn thiếu", "Still need" },
             { "need.clover", "Cần {0} cỏ", "Need {0}" },
             { "row.income", "{0} cà rốt / {1} giây", "{0} carrots / {1} s" },

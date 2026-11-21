@@ -1138,7 +1138,7 @@ namespace VuonTra.Game.UI
             }
 
             BigNum cost;
-            bool can;
+            bool can, capped = false;
             if (needsPlot)
             {
                 cost = Plots.CostOfNext(defs, s);
@@ -1158,15 +1158,16 @@ namespace VuonTra.Game.UI
             {
                 int count = Simulation.BuyCount(defs, s, i);
                 cost = Economy.CostOfNext(defs[i], level, count);
-                can = s.Coins >= cost;
+                capped = count <= 0; // level 500: nothing left to buy
+                can = !capped && s.Coins >= cost;
                 int next = Economy.NextMilestone(level);
                 _cardInfo.text = StationRowView.Describe(defs, s, i, level, m) + (next > 0 ? L10n.T("row.milestone", next) : "");
-                _cardBuyTop.text = L10n.T("row.upgrade", count);
+                _cardBuyTop.text = capped ? L10n.T("row.maxlevel") : L10n.T("row.upgrade", count);
             }
             // Short of carrots and nothing else: the plate says how many are missing.
-            bool shortOnly = !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
+            bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
             if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
-            _cardBuyCost.text = shortOnly ? (cost - s.Coins).Short() : cost.Short();
+            _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
             Color ink = ChunkyButton.InkFor(can);
             _cardBuyTop.color = ink;
             _cardBuyCost.color = ink;
@@ -2397,7 +2398,8 @@ namespace VuonTra.Game.UI
             if (i >= s.Plots) return Expansion.CanExpand(defs, s);
             int level = s.Levels[i];
             if (level <= 0) return Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1);
-            return s.Coins >= Economy.CostOfNext(defs[i], level, Simulation.BuyCount(defs, s, i));
+            int count = Simulation.BuyCount(defs, s, i);
+            return count > 0 && s.Coins >= Economy.CostOfNext(defs[i], level, count);
         }
 
         /// <summary>

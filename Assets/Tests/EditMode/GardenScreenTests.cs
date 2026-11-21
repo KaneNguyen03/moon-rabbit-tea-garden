@@ -2090,5 +2090,28 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(redCell);
             Assert.AreEqual("★★★★★★", redCell.Find("Tile/Stars/Text").GetComponent<Text>().text, "a kind not met yet still shows how rare it is");
         }
+
+        [Test]
+        public void A_Station_At_Level_500_Says_So_And_Offers_No_More_Levels()
+        {
+            runner.State.Levels[0] = Economy.MaxLevel;
+            runner.State.Coins = new BigNum(1e300);
+            screen.Shell.StartGame();
+            screen.OpenSheet(0);
+            screen.Refresh();
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+
+            Assert.IsFalse(Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").interactable);
+            Assert.AreEqual(L10n.T("row.maxlevel"), T("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy/Face/Top").text);
+            Assert.AreEqual("", T("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy/Face/Cost").text);
+            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station am-tra/CanUp").gameObject.activeSelf, "no 'tap me' arrow at the cap");
+
+            screen.CloseSheet();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Assert.IsFalse(Find("Canvas/Card/Buy").interactable);
+            Assert.AreEqual(L10n.T("row.maxlevel"), T("Canvas/Card/Buy/Face/Top").text);
+            Assert.AreEqual(L10n.T("station.level", Economy.MaxLevel), T("Canvas/Card/Level/Text").text);
+        }
     }
 }

@@ -59,11 +59,17 @@ namespace VuonTra.Core
         /// <summary>What a quick upgrade may spend: the share of the purse the player chose to put at risk.</summary>
         public static BigNum Budget(GameState s) => s.Coins * Math.Max(0.05d, Math.Min(1d, s.SpendShare));
 
-        /// <summary>How many levels the buy button would purchase right now. Always at least one.</summary>
+        /// <summary>How many levels the buy button would purchase right now: at least one, except at the cap, where it is none.</summary>
         public static int BuyCount(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
             int level = s.Levels[index];
             if (level == 0) return 1;
+            return Math.Min(Economy.LevelsLeft(level), BuyCountUncapped(defs, s, index));
+        }
+
+        static int BuyCountUncapped(IReadOnlyList<StationDef> defs, GameState s, int index)
+        {
+            int level = s.Levels[index];
             switch (s.BuyMode)
             {
                 case BuyMax:
@@ -90,6 +96,7 @@ namespace VuonTra.Core
             if (level == 0 && !Economy.CanUnlock(s, index)) return false;
 
             int count = BuyCount(defs, s, index);
+            if (count <= 0) return false; // at the cap
             BigNum cost = Economy.CostOfNext(defs[index], level, count);
             if (s.Coins < cost) return false;
 

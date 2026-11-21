@@ -1350,6 +1350,10 @@ MonoBehaviour:
     m_Localized: "S\u1EAFp c\xF3: Game Center tr\xEAn iPhone, Google Play tr\xEAn Android"
     m_Metadata:
       m_Items: []
+  - m_Id: 88309668765696
+    m_Localized: "C\u1EA5p t\u1ED1i \u0111a"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -1354,6 +1354,10 @@ MonoBehaviour:
     m_Localized: 'Coming soon: Game Center on iPhone, Google Play on Android'
     m_Metadata:
       m_Items: []
+  - m_Id: 88309668765696
+    m_Localized: Max level
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
