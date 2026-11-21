@@ -1134,6 +1134,18 @@ MonoBehaviour:
     m_Localized: Need {0}
     m_Metadata:
       m_Items: []
+  - m_Id: 58665879986176
+    m_Localized: Reduce motion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58665888374784
+    m_Localized: On
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58665888374785
+    m_Localized: Off
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

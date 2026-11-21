@@ -119,7 +119,9 @@ namespace VuonTra.Game.UI
         const float SheetLeast = 260f, SheetSink = 90f, SheetFling = 1100f, SheetFoot = 196f;
         /// <summary>How far the garden's bottom edge may rise while a sheet is open, so the lowest stations can come above it.</summary>
         const float SheetLift = SheetHalf - TabCover;
-        int _sheetRun;
+        /// <summary>The moon pond at the top of the garden, where the camera starts from.</summary>
+        public static Vector2 PondSpot => Heart + new Vector2(330f, 900f);
+        int _sheetRun, _glideRun;
         float _sheetDragSpeed;
 
         RectTransform _canvas, _street, _hud, _purse, _currency, _panel, _tabBar, _energyFill, _plotRow;
@@ -294,6 +296,7 @@ namespace VuonTra.Game.UI
         /// <summary>Scales the garden and puts a garden point at a screen point, as far as the edges allow.</summary>
         void PlaceView(Vector2 world, Vector2 atView, float zoom)
         {
+            _glideRun++; // the view was put somewhere on purpose: the opening glide lets go
             _zoom = Mathf.Clamp(zoom, ZoomFar, ZoomNear);
             _street.localScale = new Vector3(_zoom, _zoom, 1f);
             _street.anchoredPosition = ClampView(atView - world * _zoom, _zoom);
@@ -322,7 +325,7 @@ namespace VuonTra.Game.UI
             if (_scroll != null) _scroll.StopMovement();
             if (!animate) { ApplyZoom(to, pivot); return; }
             Vector2 world = (pivot - _street.anchoredPosition) / _zoom;
-            Tweens.Add(0.28f, t => { if (_street != null) PlaceView(world, pivot, Mathf.LerpUnclamped(from, to, t)); }, Ease.OutCubic);
+            Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(world, pivot, Mathf.LerpUnclamped(from, to, t)); }, Ease.InOutCubic);
         }
 
         /// <summary>The zoom button: far, usual, near, and round again.</summary>
@@ -361,7 +364,7 @@ namespace VuonTra.Game.UI
             float from = _zoom;
             if (_scroll != null) _scroll.StopMovement();
             if (!animate) { PlaceView(world, to, ZoomNear); return; }
-            Tweens.Add(0.35f, t => { if (_street != null) PlaceView(world, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.OutCubic);
+            Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(world, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.InOutCubic);
         }
 
         /// <summary>Pinch on a phone, wheel on a desktop. Both land on one of the three levels.</summary>
@@ -440,6 +443,7 @@ namespace VuonTra.Game.UI
         /// <summary>Moves the view so a garden point sits a little above the middle of the screen, clear of the tab bar.</summary>
         void CenterOn(Vector2 point)
         {
+            _glideRun++;
             _street.anchoredPosition = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - point * _zoom, _zoom);
         }
 
@@ -642,6 +646,7 @@ namespace VuonTra.Game.UI
             Build();
             if (before != ShellState.Title) Shell.SkipTitle();
             Refresh(-1f);
+            _glideRun++; // a rebuilt screen keeps the view it had
             _street.anchoredPosition = ClampView(streetAt, _zoom);
             ShowZoomDetail();
             if (sheetWasOpen) OpenSheet(tab);
@@ -674,6 +679,7 @@ namespace VuonTra.Game.UI
             _canvas = (RectTransform)canvasGo.transform;
 
             BuildBackdrop(catalog);
+            Motion.Load();
             BuildWorld(catalog);
             BuildAtmosphere(catalog);
             BuildStationCard(catalog);
@@ -900,6 +906,8 @@ namespace VuonTra.Game.UI
 
             BuildFireflies(catalog);
             CenterOn(StationSpot(0));
+            // Behind the title the garden shows its moon pond; starting the game glides down from there.
+            _street.anchoredPosition = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.5f) - PondSpot * _zoom, _zoom);
 
             var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -196, 940, 60);
             hint.AddShadow(14f, 8f, 0.28f);
@@ -911,7 +919,7 @@ namespace VuonTra.Game.UI
             // The first drag also counts as having understood.
             var drag = view.gameObject.AddComponent<UnityEngine.EventSystems.EventTrigger>();
             var entry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.BeginDrag };
-            entry.callback.AddListener(_ => DismissHint());
+            entry.callback.AddListener(_ => { _glideRun++; DismissHint(); });
             drag.triggers.Add(entry);
         }
 
@@ -1013,7 +1021,8 @@ namespace VuonTra.Game.UI
                 else if (top > ScreenH - HudCover) move.y = ScreenH - HudCover - top;
                 Vector2 target = ClampView(from + move, _zoom);
                 if (_scroll != null) _scroll.StopMovement();
-                Tweens.Add(0.25f, t => { if (_street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, target, t); }, Ease.OutCubic);
+                _glideRun++;
+                Tweens.Add(Motion.Time(Motion.Panel), t => { if (_street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, target, t); }, Ease.InOutCubic);
                 Tweens.Add(0.22f, t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.92f, 1f, t); }, Ease.OutBack);
             }
             RefreshCard(Runner.Defs, Runner.State, Runner.Mods);
@@ -1163,7 +1172,7 @@ namespace VuonTra.Game.UI
             Color soft = Palette.Mix(Color.white, Palette.Night, 0.12f);
 
             // The pond lies in the top corner, where the moonlight comes in.
-            var pondAt = Heart + new Vector2(330f, 900f);
+            Vector2 pondAt = PondSpot;
 
             void Put(int kind, float x, float y, float height, Color tint)
             {
@@ -1461,11 +1470,11 @@ namespace VuonTra.Game.UI
         {
             bool any = false;
             for (int i = 0; i < TabCount; i++) any |= SheetOpen && Tab == i;
-            _tabFade = Mathf.MoveTowards(_tabFade, any ? 0.55f : 1f, dt / 0.16f);
+            _tabFade = Mathf.MoveTowards(_tabFade, any ? 0.55f : 1f, dt / Motion.Quick);
             for (int i = 0; i < TabCount; i++)
             {
                 bool on = SheetOpen && Tab == i;
-                _tabShown[i] = Mathf.MoveTowards(_tabShown[i], on ? 1f : 0f, dt / 0.16f);
+                _tabShown[i] = Mathf.MoveTowards(_tabShown[i], on ? 1f : 0f, dt / Motion.Quick);
                 float k = Mathf.SmoothStep(0f, 1f, _tabShown[i]);
                 float size = Mathf.Lerp(84f, 108f, k) * (1f + _tabPop[i]);
                 RectTransform icon = _tabIcons[i].rectTransform;
@@ -1681,6 +1690,7 @@ namespace VuonTra.Game.UI
 
         public void SetTab(int tab)
         {
+            bool turned = SheetOpen && Tab != Mathf.Clamp(tab, 0, TabCount - 1);
             Tab = Mathf.Clamp(tab, 0, TabCount - 1);
             for (int i = 0; i < TabCount; i++)
             {
@@ -1688,6 +1698,7 @@ namespace VuonTra.Game.UI
             }
             _modes.SetActive(Tab == 0);
             if (_sheetTitle != null) _sheetTitle.text = L10n.T("sheet.title." + Tab);
+            if (turned) StaggerRows();
             if (_built && Feel != null) Refresh(-1f);
         }
 
@@ -1712,7 +1723,9 @@ namespace VuonTra.Game.UI
             }
             _sheetGroup.blocksRaycasts = true;
             if (_scroll != null) { _scroll.StopMovement(); _scroll.enabled = false; } // the garden is moved by the sheet for now
-            SlideSheet(0f, 0.25f, Ease.OutBackLight, null);
+            _glideRun++;
+            SlideSheet(0f, Motion.Time(Motion.Panel), Motion.Curve(Ease.OutBackLight), null);
+            StaggerRows();
             Refresh(-1f);
         }
 
@@ -1721,13 +1734,35 @@ namespace VuonTra.Game.UI
             if (!SheetOpen) return;
             SheetOpen = false;
             _sheetGroup.blocksRaycasts = false;
-            SlideSheet(-SheetHeight - 60f, 0.2f, Ease.InCubic, () => _sheet.SetActive(false));
+            SlideSheet(-SheetHeight - 60f, Motion.Time(Motion.PanelOut), Ease.InCubic, () => _sheet.SetActive(false));
 
             // The garden may have been lifted to show a low station: let it settle back inside its edges.
             Vector2 from = _street.anchoredPosition, home = ClampView(from, _zoom);
-            Tweens.Add(0.25f, t => { if (_street != null && !SheetOpen) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); },
-                Ease.OutCubic, 0f, () => { if (_scroll != null && !SheetOpen) _scroll.enabled = true; });
+            Tweens.Add(Motion.Time(Motion.Panel), t => { if (_street != null && !SheetOpen) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); },
+                Ease.InOutCubic, 0f, () => { if (_scroll != null && !SheetOpen) _scroll.enabled = true; });
             Refresh(-1f);
+        }
+
+        /// <summary>The rows in view arrive one after another, a few hundredths of a second apart.</summary>
+        void StaggerRows()
+        {
+            if (Motion.Reduced || _lists[Tab] == null) return;
+            Transform content = _lists[Tab].transform.Find("Content");
+            int shown = 0;
+            for (int i = 0; i < content.childCount && shown < 8; i++)
+            {
+                Transform row = content.GetChild(i);
+                if (!row.gameObject.activeSelf) continue;
+                if (!row.TryGetComponent(out CanvasGroup group)) group = row.gameObject.AddComponent<CanvasGroup>();
+                group.alpha = 0f;
+                Tweens.Add(Motion.Quick, t =>
+                {
+                    if (group == null) return;
+                    group.alpha = t;
+                    row.localScale = Vector3.one * Mathf.Lerp(0.95f, 1f, t);
+                }, Ease.OutCubic, shown * Motion.Stagger);
+                shown++;
+            }
         }
 
         void SetSheetHeight(float height)
@@ -1750,13 +1785,13 @@ namespace VuonTra.Game.UI
         {
             int run = ++_sheetRun;
             float from = SheetHeight, fromY = _panel.anchoredPosition.y;
-            Tweens.Add(0.25f, t =>
+            Tweens.Add(Motion.Time(Motion.Panel), t =>
             {
                 if (run != _sheetRun || _panel == null) return;
                 SheetHeight = Mathf.LerpUnclamped(from, height, t);
                 _panel.sizeDelta = new Vector2(0, SheetHeight);
                 _panel.anchoredPosition = new Vector2(0, Mathf.LerpUnclamped(fromY, 0f, Mathf.Clamp01(t)));
-            }, Ease.OutBackLight, 0f, () => { if (run == _sheetRun) SetSheetHeight(height); });
+            }, Motion.Curve(Ease.OutBackLight), 0f, () => { if (run == _sheetRun) SetSheetHeight(height); });
         }
 
         /// <summary>The grab handle moved by this much (canvas units, up is positive).</summary>
@@ -1791,14 +1826,15 @@ namespace VuonTra.Game.UI
             float zoom = Zoom == ZoomLevel.Far ? ZoomDefault : _zoom, fromZoom = _zoom;
             var open = new Vector2(ScreenW / 2f, (SheetHalf + ScreenH - HudCover) / 2f);
             Vector2 spot = StationSpot(index), from = _street.anchoredPosition, to = ClampView(open - spot * zoom, zoom, SheetLift);
-            Tweens.Add(0.3f, t =>
+            _glideRun++;
+            Tweens.Add(Motion.Time(Motion.Travel), t =>
             {
                 if (_street == null || !SheetOpen) return;
                 _zoom = Mathf.LerpUnclamped(fromZoom, zoom, t);
                 _street.localScale = new Vector3(_zoom, _zoom, 1f);
                 _street.anchoredPosition = Vector2.LerpUnclamped(from, to, t);
                 if (Zoom != _shownZoom) ShowZoomDetail();
-            }, Ease.OutCubic);
+            }, Ease.InOutCubic);
             if (_actors[index].Root.gameObject.activeSelf) _actors[index].Bump();
         }
 
@@ -1851,8 +1887,13 @@ namespace VuonTra.Game.UI
             _hud.gameObject.SetActive(true);
             _tabBar.gameObject.SetActive(true);
             Vector2 hudHome = _hud.anchoredPosition, barHome = _tabBar.anchoredPosition;
-            Tweens.Add(0.45f, t => _hud.anchoredPosition = hudHome + new Vector2(0, (1f - t) * 340f), Ease.OutBack);
-            Tweens.Add(0.5f, t => _tabBar.anchoredPosition = barHome + new Vector2(0, -(1f - t) * 320f), Ease.OutCubic);
+            Tweens.Add(Motion.Time(0.45f), t => _hud.anchoredPosition = hudHome + new Vector2(0, (1f - t) * 340f), Motion.Curve(Ease.OutBack));
+            Tweens.Add(Motion.Time(0.5f), t => _tabBar.anchoredPosition = barHome + new Vector2(0, -(1f - t) * 320f), Ease.OutCubic);
+
+            // The camera glides from the moon pond down to the teapot. It never blocks: any touch on the garden takes over.
+            int run = ++_glideRun;
+            Vector2 from = _street.anchoredPosition, home = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - StationSpot(0) * _zoom, _zoom);
+            Tweens.Add(Motion.Time(Motion.Glide), t => { if (run == _glideRun && _street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); }, Ease.InOutCubic);
             Refresh(-1f);
         }
 

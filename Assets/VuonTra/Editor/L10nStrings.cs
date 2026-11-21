@@ -20,6 +20,9 @@ namespace VuonTra.EditorTools
             { "pause.resume", "Chơi tiếp", "Resume" },
             { "pause.reset", "Chơi lại từ đầu", "Start over" },
             { "pause.reset.confirm", "Chạm lần nữa để xóa toàn bộ tiến trình", "Tap again to erase all progress" },
+            { "pause.motion", "Giảm chuyển động", "Reduce motion" },
+            { "toggle.on", "Bật", "On" },
+            { "toggle.off", "Tắt", "Off" },
             { "lang.vi", "Tiếng Việt", "Tiếng Việt" },
             { "lang.en", "English", "English" },
 

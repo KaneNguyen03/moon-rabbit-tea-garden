@@ -203,6 +203,9 @@ namespace VuonTra.Game.UI
             view.Shine = Rect("Shine", view.FaceRect).Stretch(0, 0.5f, 1, 1, 5, 0, 5, 5)
                 .AddImage(panel, new Color(1f, 1f, 1f, 0.2f), true).gameObject;
             view.Button.onClick.AddListener(() => onClick());
+            view.Dip = root.gameObject.AddComponent<PressDip>();
+            view.Dip.Face = view.FaceRect;
+            view.Dip.Button = view.Button;
             return view;
         }
 
@@ -255,6 +258,7 @@ namespace VuonTra.Game.UI
         public Image Lip, Face;
         public Button Button;
         public GameObject Shine;
+        public PressDip Dip;
 
         /// <summary>Carrot when it can be pressed, washed-out paper when it cannot.</summary>
         /// <summary>The colour for words on this button: cream on the orange button, ink on the flat plate.</summary>
@@ -272,8 +276,9 @@ namespace VuonTra.Game.UI
         /// <summary>The face dips onto the lip and springs back.</summary>
         public void Press(Tweens tweens)
         {
+            if (Dip != null && Dip.Busy) return; // a real finger already sank it; it springs back by itself
             RectTransform face = FaceRect;
-            tweens.Add(0.16f, t =>
+            tweens.Add(Motion.Tap, t =>
             {
                 if (face == null) return;
                 float dip = Ease.Pop(t) * UiKit.LipHeight * 0.8f;

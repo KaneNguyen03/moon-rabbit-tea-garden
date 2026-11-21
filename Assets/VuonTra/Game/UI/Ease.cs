@@ -32,6 +32,9 @@ namespace VuonTra.Game.UI
 
         public static float InCubic(float t) => t * t * t;
 
+        /// <summary>Gathers speed, then slows to a stop: for the camera and anything that travels a distance.</summary>
+        public static float InOutCubic(float t) => t < 0.5f ? 4f * t * t * t : 1f - Mathf.Pow(-2f * t + 2f, 3f) / 2f;
+
         public static float OutElastic(float t)
         {
             if (t <= 0f) return 0f;
@@ -41,6 +44,47 @@ namespace VuonTra.Game.UI
 
         /// <summary>0 → 1 → 0 over the tween, for pops that return to rest.</summary>
         public static float Pop(float t) => Mathf.Sin(t * Mathf.PI);
+    }
+
+    /// <summary>
+    /// The one table of how long things take, so the whole game moves to the same beat.
+    /// Nothing here is longer than 0.3 s unless the player can act while it plays (the opening glide).
+    /// </summary>
+    public static class Motion
+    {
+        /// <summary>A colour or size settling: tab highlights, a row appearing.</summary>
+        public const float Quick = 0.16f;
+        /// <summary>A button springing back, a small pop.</summary>
+        public const float Tap = 0.18f;
+        /// <summary>A sheet or card sliding in.</summary>
+        public const float Panel = 0.25f;
+        /// <summary>A sheet or card leaving: a little faster than it came.</summary>
+        public const float PanelOut = 0.2f;
+        /// <summary>The camera changing zoom or flying to a station.</summary>
+        public const float Travel = 0.3f;
+        /// <summary>The camera's glide from the moon pond to the teapot when the game opens. Touching the garden stops it.</summary>
+        public const float Glide = 1f;
+        /// <summary>The gap between one list row appearing and the next.</summary>
+        public const float Stagger = 0.035f;
+
+        const string ReducedKey = "motion.reduced";
+
+        /// <summary>The player asked for less movement: slides, glides and bounces are skipped, things simply arrive.</summary>
+        public static bool Reduced;
+
+        public static void Load() => Reduced = PlayerPrefs.GetInt(ReducedKey, 0) == 1;
+
+        public static void SetReduced(bool on)
+        {
+            Reduced = on;
+            PlayerPrefs.SetInt(ReducedKey, on ? 1 : 0);
+        }
+
+        /// <summary>The time a movement takes: as given, or next to nothing when movement is reduced.</summary>
+        public static float Time(float seconds) => Reduced ? 0.0001f : seconds;
+
+        /// <summary>The curve a movement follows: as given, or a plain one without overshoot when movement is reduced.</summary>
+        public static Func<float, float> Curve(Func<float, float> curve) => Reduced ? Ease.OutCubic : curve;
     }
 
     /// <summary>

@@ -315,3 +315,34 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: huy hiệu cho tab Thỏ (đủ cỏ gọi thỏ, có bộ ghép được).
 - tồn đọng: giảm `TabCover` cho khớp thanh mới và kiểm lại vị trí tấm trạm.
+
+## U1 — #28 Chuyển động (phần cơ bản)
+
+- Test: 311/311 EditMode qua (chạy sau lần sửa file cuối cùng trong Assets). Thêm 6 test mới.
+- Thông điệp commit đề xuất: `Shared motion table; buttons sink under the finger; list rows arrive one by one; the camera glides from the moon pond on start; a Reduce motion setting`
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Ảnh (docs/anh/po-u1/):
+  - Camera lướt lúc mở game, 5 khung cách nhau 0,2 giây: `28-luot-khung-1.png` … `28-luot-khung-5.png` (màn tiêu đề trước và sau: `28-truoc-1-title.png`, `28-sau-1-title.png`).
+  - Dòng hiện lần lượt khi mở tấm, 5 khung cách nhau 0,06 giây: `28-dong-hien-khung-1.png` … `28-dong-hien-khung-5.png`.
+  - Cài đặt có nút mới: `28-truoc-10-pause.png`, `28-sau-10-pause.png`.
+  - Nút lún khi chạm: KHÔNG có ảnh (cần ngón tay hoặc chuột thật); chỉ có test.
+
+### Phần mình chọn làm trong "cơ bản" (đối chiếu với nguyên văn #28)
+- Ràng buộc: bảng thời lượng dùng chung là lớp `Motion` trong `Ease.cs` (Quick 0,16 · Tap 0,18 · Panel 0,25 · PanelOut 0,2 · Travel 0,3 · Glide 1,0 · Stagger 0,035), thêm đường cong `InOutCubic` và `OutBackLight`. Có test bảo đảm không thời lượng nào vượt 0,3 giây trừ cú lướt mở game (cú lướt không chặn thao tác).
+- Ràng buộc: nút "Giảm chuyển động" trong Cài đặt, lưu trong máy. Bật lên thì tấm, camera, HUD tới nơi ngay, không nảy, dòng không hiện lần lượt, không có cú lướt mở game.
+- Camera: đổi zoom, bay tới trạm, trượt tới trạm khi chọn đều tăng tốc rồi giảm tốc (`InOutCubic`), 0,25–0,3 giây. Mở game: sau màn tiêu đề vườn đứng ở ao trăng, bấm bắt đầu thì lướt xuống ấm trà trong 1 giây; kéo vườn, bấm zoom, chọn trạm hay mở tấm đều lập tức ngắt cú lướt.
+- Kéo có quán tính và nảy ở biên: đã có từ trước (ScrollRect kiểu đàn hồi), không sửa.
+- Giao diện: nút nổi (cam) lún xuống ngay khi ngón tay chạm và nảy lại khi nhả (`PressDip`), luôn đi giữa hai vị trí cố định. Tấm trượt vào (#22). Danh sách: tối đa 8 dòng đầu hiện lần lượt, cách nhau 0,035 giây, khi mở tấm hoặc đổi tab.
+- Con số cà rốt chạy số: đã có từ trước, không sửa.
+
+### Chưa làm (để cho phần còn lại của #28 ở U2)
+- Thỏ: thở, chớp mắt, vẫy tai; trái tim hoặc nốt nhạc khi chạm; đi dạo theo lối mòn; đi từ chỗ nghỉ tới trạm.
+- Phần thưởng: cà rốt nảy khỏi trạm bay về HUD và ô cà rốt phồng lên; loé sáng khi nâng cấp; vòng sao khi qua mốc.
+- Cảnh nền: tán cây đung đưa, đèn lồng lắc, mặt ao gợn, đom đóm bay theo đàn.
+- Nút cấp phụ (viền mực, phẳng) và các ô tab chưa có phản hồi lún; chỉ nút nổi có.
+- Các bảng giữa màn hình (chi tiết thỏ, chọn đồ, đổi tên, tạm nghỉ) vẫn dùng thời lượng riêng, chưa chuyển sang bảng `Motion`.
+- "Giảm chuyển động" chưa tắt các chuyển động trong vườn (trạm nhún, thỏ dạo, đom đóm).
+
+### Tồn đọng
+- tồn đọng: chuyển mọi thời lượng còn viết số trực tiếp (FeelLayer, ShellView, RabbitDetailView, ItemPickerView, RenameView, SummonMomentView) sang bảng `Motion`.
+- tồn đọng: "Giảm chuyển động" áp cho chuyển động trong vườn.

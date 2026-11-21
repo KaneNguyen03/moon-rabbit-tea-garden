@@ -64,7 +64,7 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 860);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 970);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
@@ -83,6 +83,30 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Language Track", _pauseCard).Place(0.5f, 1f, 130, -450, 440, 76).AddImage(catalog.Panel, Palette.Track, true);
             AddLanguageButton(catalog, "vi", 22);
             AddLanguageButton(catalog, "en", 238);
+
+            // For players who get dizzy: slides, glides and bounces are skipped.
+            UiKit.Rect("Motion Label", _pauseCard).Place(0.5f, 1f, -120, -560, 460, 60)
+                .AddText(L10n.T("pause.motion"), 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var motion = UiKit.Rect("Motion", _pauseCard).Place(0.5f, 1f, 262, -560, 176, 68);
+            Image motionPlate = motion.AddImage(catalog.Panel, Palette.Track, true);
+            motionPlate.raycastTarget = true;
+            Text motionText = UiKit.Rect("Text", motion).Stretch(0, 0, 1, 1).AddText("", 28, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Action showMotion = () =>
+            {
+                motionPlate.color = Motion.Reduced ? Palette.Carrot : Palette.Track;
+                motionText.color = Motion.Reduced ? Palette.Card : Palette.InkSoft;
+                motionText.text = L10n.T(Motion.Reduced ? "toggle.on" : "toggle.off");
+            };
+            showMotion();
+            var motionButton = motion.gameObject.AddComponent<Button>();
+            motionButton.transition = Selectable.Transition.None;
+            motionButton.targetGraphic = motionPlate;
+            motionButton.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                Motion.SetReduced(!Motion.Reduced);
+                showMotion();
+            });
 
             var resume = UiKit.Rect("Resume", _pauseCard).Place(0.5f, 0f, 0, 260, 620, 130);
             ChunkyButton resumeButton = null;

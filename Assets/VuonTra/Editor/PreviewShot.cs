@@ -53,8 +53,14 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             Capture(screen, "1-title");
 
+            // The opening glide from the moon pond to the teapot, five frames 0.2 s apart.
             screen.Shell.StartGame();
-            Step(screen, 1.2f);
+            for (int f = 1; f <= 5; f++)
+            {
+                Step(screen, 0.2f);
+                Capture(screen, "28-glide-" + f);
+            }
+            Step(screen, 0.4f);
             Capture(screen, "2-garden");
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Step(screen, 0.2f);
@@ -107,7 +113,7 @@ namespace VuonTra.EditorTools
             screen.OpenSheet(0);
             for (int f = 1; f <= 5; f++)
             {
-                Step(screen, f == 5 ? 0.14f : 0.06f);
+                Step(screen, 0.06f);
                 Capture(screen, "22-open-" + f);
             }
             Step(screen, 0.5f);

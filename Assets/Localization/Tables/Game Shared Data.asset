@@ -1127,6 +1127,18 @@ MonoBehaviour:
     m_Key: need.clover
     m_Metadata:
       m_Items: []
+  - m_Id: 58665879986176
+    m_Key: pause.motion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58665888374784
+    m_Key: toggle.on
+    m_Metadata:
+      m_Items: []
+  - m_Id: 58665888374785
+    m_Key: toggle.off
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

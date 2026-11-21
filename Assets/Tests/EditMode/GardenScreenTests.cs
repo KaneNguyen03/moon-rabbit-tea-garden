@@ -5,6 +5,7 @@ using UnityEngine.UI;
 using VuonTra.Game;
 using VuonTra.Game.UI;
 using L10n = VuonTra.Game.L10n;
+using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
@@ -37,6 +38,7 @@ namespace VuonTra.Core.Tests
         public void TearDown()
         {
             Object.DestroyImmediate(root);
+            Motion.SetReduced(false);
             L10n.SetLocale("vi");
         }
 
@@ -533,6 +535,97 @@ namespace VuonTra.Core.Tests
             Assert.Greater(badge.localScale.x, 1.1f, "it bounces when the number goes up");
             for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(1f, badge.localScale.x, 0.001f, "and comes back to its own size exactly");
+        }
+
+        [Test]
+        public void No_Shared_Duration_Holds_The_Player_Longer_Than_Three_Tenths_Of_A_Second()
+        {
+            foreach (float seconds in new[] { Motion.Quick, Motion.Tap, Motion.Panel, Motion.PanelOut, Motion.Travel })
+                Assert.LessOrEqual(seconds, 0.3f);
+            Assert.AreEqual(1f, Motion.Glide, 0.25f, "the opening glide takes about a second (and can be interrupted)");
+        }
+
+        [Test]
+        public void Opening_The_Game_Glides_From_The_Moon_Pond_Down_To_The_Teapot()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            float PondY() => GardenScreen.PondSpot.y * world.localScale.y + world.anchoredPosition.y;
+            float PotY() => GardenScreen.StationSpot(0).y * world.localScale.y + world.anchoredPosition.y;
+            Assert.That(PondY(), Is.InRange(300f, 1700f), "behind the title the pond is in view");
+
+            screen.Shell.StartGame();
+            for (int i = 0; i < 15; i++) screen.Advance(1f / 30f);
+            float midway = world.anchoredPosition.y;
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            Assert.AreNotEqual(midway, world.anchoredPosition.y, "half a second in it is still travelling");
+            Assert.AreEqual(1920f * 0.6f, PotY(), 1f, "after about a second the teapot stands where it always does");
+        }
+
+        [Test]
+        public void Looking_Somewhere_Else_Takes_Over_From_The_Opening_Glide()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            screen.Shell.StartGame();
+            for (int i = 0; i < 6; i++) screen.Advance(1f / 30f);
+            screen.LookAt(GardenScreen.StationSpot(2));
+            Vector2 chosen = world.anchoredPosition;
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(chosen, world.anchoredPosition, "the glide does not drag the view back");
+        }
+
+        [Test]
+        public void Reduce_Motion_Is_A_Setting_And_Things_Then_Simply_Arrive()
+        {
+            screen.Shell.StartGame();
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
+            screen.Shell.OpenPause();
+            Text label = root.transform.Find("Canvas/Pause/Card/Motion/Text").GetComponent<Text>();
+            Assert.AreEqual("Tắt", label.text);
+            Find("Canvas/Pause/Card/Motion").onClick.Invoke();
+            Assert.IsTrue(Motion.Reduced);
+            Assert.AreEqual("Bật", label.text);
+            Find("Canvas/Pause/Card/Resume").onClick.Invoke();
+
+            screen.OpenSheet(0);
+            screen.Advance(1f / 30f);
+            var panel = (RectTransform)root.transform.Find("Canvas/Sheet/Panel");
+            Assert.AreEqual(0f, panel.anchoredPosition.y, 0.5f, "no slide: the sheet is there on the next frame");
+            Transform row = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra");
+            Assert.IsTrue(row.GetComponent<CanvasGroup>() == null || row.GetComponent<CanvasGroup>().alpha == 1f, "rows do not fade in one by one");
+        }
+
+        [Test]
+        public void List_Rows_Arrive_One_After_Another()
+        {
+            screen.Shell.StartGame();
+            screen.OpenSheet(0);
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content");
+            CanvasGroup first = content.GetChild(0).GetComponent<CanvasGroup>(), third = content.GetChild(2).GetComponent<CanvasGroup>();
+            Assert.AreEqual(0f, first.alpha);
+            for (int i = 0; i < 2; i++) screen.Advance(1f / 30f);
+            Assert.Greater(first.alpha, third.alpha, "the top row is ahead of the third");
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(1f, first.alpha);
+            Assert.AreEqual(1f, third.alpha);
+            Assert.AreEqual(Vector3.one, content.GetChild(2).localScale);
+        }
+
+        [Test]
+        public void A_Raised_Button_Sinks_Under_The_Finger_And_Springs_Back_To_Rest()
+        {
+            var buy = (RectTransform)root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy");
+            runner.State.Coins = new BigNum(1e9);
+            screen.Refresh();
+            var dip = buy.GetComponent<PressDip>();
+            var face = (RectTransform)buy.Find("Face");
+            Vector2 restMin = face.offsetMin, restMax = face.offsetMax;
+            dip.Hold();
+            Assert.Less(face.offsetMax.y, restMax.y - 4f, "the face goes down while held");
+            dip.Release();
+            for (int i = 0; i < 12; i++) dip.Step(1f / 30f);
+            Assert.AreEqual(restMin, face.offsetMin);
+            Assert.AreEqual(restMax, face.offsetMax);
+            Assert.IsFalse(dip.Busy);
         }
 
         [Test]
