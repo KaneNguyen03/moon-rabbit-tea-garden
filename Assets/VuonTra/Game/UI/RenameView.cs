@@ -40,7 +40,7 @@ namespace VuonTra.Game.UI
                 .AddText("", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             text.supportRichText = false; // a typed "<b>" is just text
             Text hint = UiKit.Rect("Hint", field).Stretch(0, 0, 1, 1, 32, 0, 32, 0)
-                .AddText(L10n.T("rename.hint", Rabbits.MaxNameLength), 30, Palette.OffInk, TextAnchor.MiddleLeft);
+                .AddText(L10n.T("rename.hint", Rabbits.MaxNameLength), UiKit.TextBody, Palette.OffInk, TextAnchor.MiddleLeft);
             _input = field.gameObject.AddComponent<InputField>();
             _input.targetGraphic = fieldImage;
             _input.textComponent = text;
@@ -56,13 +56,13 @@ namespace VuonTra.Game.UI
                 saveButton.Press(_tweens);
                 Save();
             });
-            UiKit.Rect("Text", saveButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.save"), 40, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", saveButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.save"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var cancel = UiKit.Rect("Cancel", _card).Place(0.5f, 0f, -230, 110, 300, 120);
             ChunkyButton cancelButton = UiKit.Chunky(cancel, catalog.Panel, Close);
             cancelButton.Lip.color = Palette.OffLip;
             cancelButton.Face.color = Palette.Track;
-            UiKit.Rect("Text", cancelButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.cancel"), 36, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", cancelButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.cancel"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             _root.SetActive(false);
         }

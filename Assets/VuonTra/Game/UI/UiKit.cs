@@ -122,6 +122,52 @@ namespace VuonTra.Game.UI
         /// A candy-style button: a darker lip with a raised face on top. The returned view lets the
         /// caller restyle it (enabled / disabled) and pop it on press.
         /// </summary>
+        // ----- the shared rules -----
+        // Type: three sizes for everything inside cards and sheets. Bigger sizes are for display only
+        // (the carrot count, a rabbit's name on its own sheet, the title screen).
+        /// <summary>Labels, chips, the second line of a card.</summary>
+        public const int TextSmall = 22;
+        /// <summary>What a card says: descriptions, button labels.</summary>
+        public const int TextBody = 26;
+        /// <summary>What a card is: its name, and the number that matters most on it.</summary>
+        public const int TextTitle = 36;
+        /// <summary>Corners and gaps every card shares.</summary>
+        public const float CardGap = 18f, CardPad = 28f;
+
+        // Buttons: three ranks.
+        //   Primary  (Chunky)    the one thing this card is for. Orange, raised. One per card.
+        //   Secondary            something else you can do here. Cream with an ink outline, flat.
+        //   Text                 a small aside. Just words.
+        // A primary button that cannot be used yet is not dimmed: it lies flat and says what is missing.
+
+        /// <summary>A secondary button: cream, outlined in ink, flat.</summary>
+        public static Button Secondary(RectTransform root, Sprite panel, string label, Action onClick, int size = TextBody)
+        {
+            Image edge = root.AddImage(panel, Palette.Mix(Palette.Ink, Palette.Paper, 0.25f), true);
+            edge.raycastTarget = true;
+            var button = root.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = edge;
+            button.onClick.AddListener(() => onClick());
+            Rect("Face", root).Stretch(0, 0, 1, 1, 3, 3, 3, 3).AddImage(panel, Palette.Card, true);
+            Rect("Text", root).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(label, size, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            return button;
+        }
+
+        /// <summary>A text button: words only, for the least of the three ranks.</summary>
+        public static Button TextButton(RectTransform root, string label, Action onClick, int size = TextSmall)
+        {
+            Image hit = root.AddImage(null, new Color(0, 0, 0, 0));
+            hit.raycastTarget = true;
+            var button = root.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = hit;
+            button.onClick.AddListener(() => onClick());
+            Rect("Text", root).Stretch(0, 0, 1, 1).AddText(label, size, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Rect("Rule", root).Band(10, 10, 4, 2).AddImage(null, Palette.Alpha(Palette.Ink, 0.55f));
+            return button;
+        }
+
         public static ChunkyButton Chunky(RectTransform root, Sprite panel, Action onClick)
         {
             var view = new ChunkyButton { Root = root };
@@ -133,8 +179,8 @@ namespace VuonTra.Game.UI
             view.FaceRect = Rect("Face", root).Stretch(0, 0, 1, 1, 0, LipHeight, 0, 0);
             view.Face = view.FaceRect.AddImage(panel, Palette.Carrot, true);
             // A lighter band across the top half reads as gloss.
-            Rect("Shine", view.FaceRect).Stretch(0, 0.5f, 1, 1, 5, 0, 5, 5)
-                .AddImage(panel, new Color(1f, 1f, 1f, 0.2f), true);
+            view.Shine = Rect("Shine", view.FaceRect).Stretch(0, 0.5f, 1, 1, 5, 0, 5, 5)
+                .AddImage(panel, new Color(1f, 1f, 1f, 0.2f), true).gameObject;
             view.Button.onClick.AddListener(() => onClick());
             return view;
         }
@@ -187,13 +233,19 @@ namespace VuonTra.Game.UI
         public RectTransform Root, FaceRect;
         public Image Lip, Face;
         public Button Button;
+        public GameObject Shine;
 
         /// <summary>Carrot when it can be pressed, washed-out paper when it cannot.</summary>
+        /// <summary>The colour for words on this button: cream on the orange button, ink on the flat plate.</summary>
+        public static Color InkFor(bool on) => on ? Palette.Card : Palette.Ink;
+
         public void SetEnabled(bool on)
         {
+            // Not usable yet: no dimmed button, but a flat plate that the caller fills with what is missing.
             Button.interactable = on;
-            Lip.color = on ? Palette.CarrotLip : Palette.OffLip;
-            Face.color = on ? Palette.Carrot : Palette.Off;
+            Lip.color = on ? Palette.CarrotLip : new Color(0, 0, 0, 0);
+            Face.color = on ? Palette.Carrot : Palette.Track;
+            if (Shine != null && Shine.activeSelf != on) Shine.SetActive(on);
         }
 
         /// <summary>The face dips onto the lip and springs back.</summary>

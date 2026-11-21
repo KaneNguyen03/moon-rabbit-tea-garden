@@ -1,6 +1,6 @@
 # Issue trên GitHub (bản chép cho session code)
 
-Chép nguyên văn từ KaneNguyen03/moon-rabbit-tea-garden lúc 2026-11-22 03:42. Nguồn chính vẫn là GitHub; file này do session PO cập nhật.
+Chép nguyên văn từ KaneNguyen03/moon-rabbit-tea-garden lúc 2026-11-22 03:48. Nguồn chính vẫn là GitHub; file này do session PO cập nhật.
 
 ## #1 Mùa trăng mới: làm lại vườn để lấy hệ số vĩnh viễn
 
@@ -216,9 +216,12 @@ Theo dõi các việc trong hàng đợi của bản chơi thử đầu tiên. M
 
 **Đang làm và sắp làm, theo thứ tự**
 - [x] Cấp vườn và mở rộng đất theo cấp và số thỏ (`feb6c8f`, `7406a41`)
-- [ ] Sửa lỗi thỏ phình to khi bấm nhanh (#35)
+- [x] Sửa lỗi thỏ phình to khi bấm nhanh (#35, `7406a41`; chờ chủ project bấm thử)
+- [x] Huy hiệu cấp vườn, sương, hình bùa vẽ tay; bù chỗ nghỉ cho save cũ (`200ebe4`)
 - [ ] Lượt làm UI thứ nhất: tấm trượt (#22), thanh tab (#23), nút và chữ (#24), chuyển động cơ bản (#28), phản hồi khi chạm (#29)
+- [ ] Nâng cấp nhanh: nâng tối đa, tới mốc, nâng tất cả (#36)
 - [ ] Cà rốt vàng và Tiệm (quầy tiệm trong vườn, quà mỗi ngày, gọi thỏ, thỏ ghé tiệm, đồ cho thỏ, nhuộm lông)
+- [ ] Khay sản phẩm: chạm món để nhận cà rốt (#37)
 - [ ] Trò chơi nhỏ đầu tiên: Giã bánh trăng
 - [ ] Chế độ chụp ảnh vườn và quà chụp ảnh mỗi ngày (#18, phần bản Mac)
 - [ ] Hồ sơ người chơi và lớp giao tiếp tài khoản, chưa nối dịch vụ (#17, phần làm được ngay)
@@ -232,6 +235,7 @@ Theo dõi các việc trong hàng đợi của bản chơi thử đầu tiên. M
 
 **Để sau, có issue riêng:** #1, #2, #3, #6, #7, #8, #9, #10, #11, #19, #20, #21, #33, #34.
 **Cần chủ project:** #1, #4, #7, #9, #12, #15, #17 (liên kết Unity Cloud).
+
 
 
 
@@ -557,6 +561,59 @@ Nhãn: bug
 - Chạm xen kẽ thỏ và nút nâng thật nhanh: như trên.
 
 **Xong khi:** các test trên qua, và thử tay trên bản Mac bấm liên tục 10 giây không thấy gì to ra.
+
+---
+
+## #36 Nâng cấp nhanh: nâng tối đa theo số cà rốt đang có
+
+Nhãn: enhancement
+
+Nâng từng cấp một rất chậm tay khi cà rốt đã nhiều. Tab Trạm đã có công tắc ×1 / ×10 / Tối đa, nhưng tấm trạm trong vườn chỉ có nút +1, và không có cách nâng nhiều trạm một lúc.
+
+**Cần có**
+- **Trên tấm trạm trong vườn:** cùng công tắc ×1 / ×10 / Tối đa như tab Trạm, nhớ lựa chọn giữa hai nơi. Nút ghi rõ sẽ nâng bao nhiêu cấp và tốn bao nhiêu, ví dụ "Nâng +37 · 1,2M".
+- **Thêm mức "Tới mốc":** nâng vừa đủ tới mốc ×2 kế tiếp (10, 25, 50, 100…), nếu đủ tiền.
+- **Giữ tay để nâng liên tục,** nhanh dần, thả ra thì dừng.
+- **Nút "Nâng tất cả" ở đầu tab Trạm:** dùng số cà rốt đang có để nâng nhiều trạm một lượt, ưu tiên trạm cho thêm thu nhập nhiều nhất trên mỗi cà rốt bỏ ra. Trước khi làm thì hiện tóm tắt (trạm nào lên bao nhiêu cấp, tổng tốn bao nhiêu) và một nút xác nhận.
+- **Giữ lại một phần:** tuỳ chọn không tiêu quá 100% / 50% / 25% số cà rốt, để người chơi còn tiền mở trạm mới.
+- **Thỏ cũng vậy:** nút lên cấp thỏ có mức Tối đa, dừng ở trần cấp của bậc.
+
+**Luật**
+- Phần tính "nâng được tối đa bao nhiêu cấp" và "phân bổ cho nhiều trạm" nằm trong Core, có test: không bao giờ tiêu quá số đang có, không vượt trần cấp, kết quả giống hệt việc bấm +1 từng lần theo cùng thứ tự.
+- Hiệu ứng: một lần nâng nhiều cấp chỉ nảy một lần (xem #35), con số cấp chạy lên.
+
+**Liên quan:** #25 (làm lại tab Trạm), #24 (quy tắc nút).
+
+---
+
+## #37 Khay sản phẩm: thỏ làm ra món, hiện ở thanh ngắn phía dưới, chạm để nhận cà rốt
+
+Nhãn: enhancement
+
+Hiện cà rốt tự cộng vào ví, người chơi không có gì để "nhặt". Ý của chủ project: thỏ làm ra sản phẩm, sản phẩm hiện thành một dãy ngắn ở thanh phía dưới, chạm vào thì nhận cà rốt.
+
+**Thiết kế đề xuất**
+- Một **khay ngắn** nằm ngay trên thanh tab, chứa 5 ô (mở rộng được tới 8).
+- Mỗi trạm, sau một số mẻ thường, làm ra một **mẻ đặc biệt**: một món có hình riêng (tách trà, hũ mứt, bánh, trà sữa…) bay từ trạm xuống khay.
+- **Chạm một món** để bán: cà rốt bung ra bay về ví, giá bằng một khoảng thu nhập của trạm đó (ví dụ 60 giây), nhân với hệ số của thỏ đang làm ở trạm.
+- **Vuốt ngang qua khay** để nhận hết một lượt.
+- **Khay đầy** thì món mới không mất mà xếp chồng lên món cùng loại tới một giới hạn; vượt giới hạn thì trạm ngừng làm mẻ đặc biệt cho tới khi có chỗ. Khay có dấu báo khi đầy.
+- **Thu nhập tự động vẫn giữ nguyên.** Khay là phần thưởng thêm cho người đang mở game, không thay cho thu nhập nền, để game vẫn là idle.
+- **Lúc vắng mặt:** khay được làm đầy tới sức chứa, không hơn.
+- Thỉnh thoảng có **món vàng** hiếm, bán được cà rốt vàng hoặc cỏ bốn lá, có trần mỗi ngày.
+
+**Mở rộng về sau**
+- Khách ghé (#20) đặt đúng các món trong khay.
+- Bùa hoặc món ở Tiệm tăng sức chứa khay và tốc độ ra mẻ đặc biệt.
+- Thỏ đúng nghề làm ra món đặc biệt nhanh hơn.
+
+**Cần quyết khi làm**
+- Giá một món bằng bao nhiêu giây thu nhập, và bao lâu ra một món, sao cho người chăm nhặt được thêm khoảng 15–25% so với người không nhặt.
+- Vị trí khay khi có tấm trượt (#22) đang mở.
+
+**Hình cần vẽ:** một món cho mỗi trạm làm ra sản phẩm (7 trạm), và khung khay.
+
+**Luật** nằm trong Core, có test: sức chứa, xếp chồng, bán, làm đầy lúc vắng mặt, trần ngày của món vàng.
 
 ---
 

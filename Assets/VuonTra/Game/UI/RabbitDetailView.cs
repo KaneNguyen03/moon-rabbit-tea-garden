@@ -177,7 +177,7 @@ namespace VuonTra.Game.UI
             var plate = UiKit.Rect("Kind", _body).Place(0f, 1f, 420 + 210, -150, 420, 46);
             plate.AddImage(_catalog.Panel, tier, true);
             Text plateText = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 12, 0, 12, 0)
-                .AddText(L10n.T("detail.kind", L10n.Kind(r), L10n.Tier(r.Tier)), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("detail.kind", L10n.Kind(r), L10n.Tier(r.Tier)), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             plateText.resizeTextForBestFit = true;
             plateText.resizeTextMinSize = 15;
             plateText.resizeTextMaxSize = 24;
@@ -189,7 +189,7 @@ namespace VuonTra.Game.UI
             Image tradeIcon = UiKit.Rect("Icon", tradeChip).Place(0f, 0.5f, 28, 0, 30, 30).AddImage(_catalog.TradeIcon(trade), Palette.Ink);
             tradeIcon.preserveAspect = true;
             UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 52, 0, 10, 0)
-                .AddText(L10n.Trade(trade) + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : ""), 24, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(L10n.Trade(trade) + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : ""), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             List<int> suited = Rabbits.SuitedStations(defs, s, r);
             if (suited.Count > 0)
@@ -215,11 +215,11 @@ namespace VuonTra.Game.UI
             var up = UiKit.Rect("LevelUp", _body).Place(1f, 1f, -264, -530, 440, 96);
             ChunkyButton upButton = UiKit.Chunky(up, _catalog.Panel, () => _onLevelUp(id));
             upButton.SetEnabled(afford);
-            Color ink = afford ? Palette.Card : Palette.OffInk;
+            Color ink = ChunkyButton.InkFor(afford);
             UiKit.Rect("Top", upButton.FaceRect).Stretch(0, 0, 0.55f, 1, 22, 0, 0, 0)
-                .AddText(maxed ? L10n.T("rabbits.maxlevel") : L10n.T("rabbits.levelup"), 28, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(maxed ? L10n.T("rabbits.maxlevel") : (afford ? L10n.T("rabbits.levelup") : L10n.T("need.more")), UiKit.TextBody, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             UiKit.Rect("Cost", upButton.FaceRect).Stretch(0.45f, 0, 1, 1, 0, 0, 22, 0)
-                .AddText(maxed ? "" : cost.Short(), 30, ink, TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText(maxed ? "" : (afford ? cost.Short() : (cost - s.Coins).Short()), UiKit.TextBody, ink, TextAnchor.MiddleRight, FontStyle.Bold);
 
             // Where it works: every open station, its own trade first, and a way to rest.
             bool working = r.Station >= 0 && r.Station < defs.Count;
@@ -227,13 +227,7 @@ namespace VuonTra.Game.UI
             if (working)
             {
                 var rest = UiKit.Rect("Rest", _body).Place(1f, 1f, -174, -644, 260, 68);
-                Image restImage = rest.AddImage(_catalog.Panel, Palette.Track, true);
-                restImage.raycastTarget = true;
-                var restButton = rest.gameObject.AddComponent<Button>();
-                restButton.transition = Selectable.Transition.None;
-                restButton.targetGraphic = restImage;
-                restButton.onClick.AddListener(() => _onRest(id));
-                UiKit.Rect("Text", rest).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.rest"), 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                UiKit.Secondary(rest, _catalog.Panel, L10n.T("rabbits.rest"), () => _onRest(id));
             }
 
             var scrollRt = UiKit.Rect("Stations", _body).Stretch(0, 0, 1, 1, 0, 30, 0, 694);
@@ -275,7 +269,7 @@ namespace VuonTra.Game.UI
                 if (_catalog.Stations[station].Prop != null)
                     UiKit.Rect("Icon", row).Place(0f, 0.5f, 52, 0, 64, 64).AddImage(_catalog.Stations[station].Prop, Color.white).preserveAspect = true;
                 Text rowName = UiKit.Rect("Name", row).Stretch(0, 0, 0.56f, 1, 100, 0, 0, 0)
-                    .AddText(L10n.Station(defs[station].Id), 26, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                    .AddText(L10n.Station(defs[station].Id), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
                 rowName.resizeTextForBestFit = true;
                 rowName.resizeTextMinSize = 16;
                 rowName.resizeTextMaxSize = 26;
@@ -283,7 +277,7 @@ namespace VuonTra.Game.UI
                     : (suits ? L10n.T("detail.suits", UiKit.Times(Rabbits.TradeBonus)) + (there != null ? " · " + there.Name : "")
                              : (there != null ? L10n.T("detail.taken", there.Name) : L10n.T("detail.free")));
                 Text rowNote = UiKit.Rect("Note", row).Stretch(0.56f, 0, 1, 1, 8, 0, 20, 0)
-                    .AddText(note, 22, suits || here ? Palette.Ink : RabbitGridView.Quiet, TextAnchor.MiddleRight, suits ? FontStyle.Bold : FontStyle.Normal);
+                    .AddText(note, UiKit.TextSmall, suits || here ? Palette.Ink : RabbitGridView.Quiet, TextAnchor.MiddleRight, suits ? FontStyle.Bold : FontStyle.Normal);
                 rowNote.resizeTextForBestFit = true;
                 rowNote.resizeTextMinSize = 14;
                 rowNote.resizeTextMaxSize = 22;
@@ -304,7 +298,7 @@ namespace VuonTra.Game.UI
             Sprite icon = worn != null ? _catalog.ItemIcon(worn.DefId) : null;
             if (icon != null) UiKit.Rect("Icon", rt).Stretch(0, 0, 1, 1, 13, 13, 13, 13).AddImage(icon, Color.white).preserveAspect = true;
             else UiKit.Rect("Plus", rt).Stretch(0, 0, 1, 1).AddText("+", 46, RabbitGridView.Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
-            UiKit.Rect("Label", rt).Place(0.5f, 0f, 0, -15, 150, 26).AddText(ItemPickerView.SlotName(slot), 20, RabbitGridView.Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Label", rt).Place(0.5f, 0f, 0, -15, 150, 26).AddText(ItemPickerView.SlotName(slot), UiKit.TextSmall, RabbitGridView.Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         void BuildKind(IReadOnlyList<StationDef> defs, RabbitKind kind)
@@ -321,20 +315,20 @@ namespace VuonTra.Game.UI
             name.resizeTextMaxSize = 48;
             var plate = UiKit.Rect("Tier", _body).Place(0.5f, 1f, 0, -700, 360, 50);
             plate.AddImage(_catalog.Panel, Palette.Tiers[kind.Tier], true);
-            UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1).AddText(L10n.T("album.kind.tier", L10n.Tier(kind.Tier), UiKit.Times(Rabbits.Multipliers[kind.Tier])), 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1).AddText(L10n.T("album.kind.tier", L10n.Tier(kind.Tier), UiKit.Times(Rabbits.Multipliers[kind.Tier])), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var tradeChip = UiKit.Rect("Trade", _body).Place(0.5f, 1f, 0, -776, 360, 50);
             tradeChip.AddImage(_catalog.Panel, Palette.Lantern, true);
             Image tradeIcon = UiKit.Rect("Icon", tradeChip).Place(0f, 0.5f, 34, 0, 32, 32).AddImage(_catalog.TradeIcon(kind.Trade), Palette.Ink);
             tradeIcon.preserveAspect = true;
-            UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 60, 0, 12, 0).AddText(L10n.Trade(kind.Trade), 26, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 60, 0, 12, 0).AddText(L10n.Trade(kind.Trade), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             // Its short description: where a rabbit of this kind earns its bonus.
             var names = new StringBuilder();
             for (int i = 0; i < defs.Count; i++)
                 if (defs[i].Trade == kind.Trade) names.Append(names.Length > 0 ? ", " : "").Append(L10n.Station(defs[i].Id));
             Text about = UiKit.Rect("About", _body).Stretch(0, 1, 1, 1, 70, -1000, 70, 830)
-                .AddText(L10n.T("album.kind.about", UiKit.Times(Rabbits.TradeBonus), names.ToString()), 28, RabbitGridView.Quiet, TextAnchor.UpperCenter);
+                .AddText(L10n.T("album.kind.about", UiKit.Times(Rabbits.TradeBonus), names.ToString()), UiKit.TextBody, RabbitGridView.Quiet, TextAnchor.UpperCenter);
             about.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
     }

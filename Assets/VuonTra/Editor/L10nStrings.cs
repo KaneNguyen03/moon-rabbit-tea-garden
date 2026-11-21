@@ -78,6 +78,8 @@ namespace VuonTra.EditorTools
             { "row.needprev", "Mở trạm phía trên trước", "Open the station above first" },
             { "row.open", "Mở trạm", "Open" },
             { "row.upgrade", "Nâng +{0}", "Upgrade +{0}" },
+            { "need.more", "Còn thiếu", "Still need" },
+            { "need.clover", "Cần {0} cỏ", "Need {0}" },
             { "row.income", "{0} cà rốt / {1} giây", "{0} carrots / {1} s" },
             { "row.milestone", " · ×2 ở cấp {0}", " · ×2 at level {0}" },
             { "row.boost", "Tăng giá ×{0} cho {1}", "Raises prices ×{0} for {1}" },

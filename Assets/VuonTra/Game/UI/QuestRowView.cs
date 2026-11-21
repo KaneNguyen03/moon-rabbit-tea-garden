@@ -35,7 +35,7 @@ namespace VuonTra.Game.UI
             _face = UiKit.Rect("Card", root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Card, true);
 
             Text title = UiKit.Rect("Title", root).Stretch(0, 0.60f, 1, 1, 36, 6, 290, 16)
-                .AddText(L10n.T("quest." + data.Id), 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.T("quest." + data.Id), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             title.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             var track = UiKit.Rect("Track", root).Band(36, 420, 72, 14);
@@ -43,16 +43,16 @@ namespace VuonTra.Game.UI
             _fill = UiKit.Rect("Fill", track).Stretch(0, 0, 0, 1);
             _fill.AddImage(catalog.Panel, Palette.Moss, true);
             _count = UiKit.Rect("Count", root).Band(0, 290, 55, 48)
-                .AddText("", 24, Palette.InkSoft, TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleRight, FontStyle.Bold);
 
             UiKit.Rect("Carrot", root).Place(0f, 0f, 54, 44, 40, 40).AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _reward = UiKit.Rect("Reward", root).Band(84, 290, 22, 44)
-                .AddText("", 25, Palette.InkSoft, TextAnchor.MiddleLeft);
+                .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
 
             var claim = UiKit.Rect("Claim", root).Place(1f, 0.5f, -146, 4, 236, 116);
             Claim = UiKit.Chunky(claim, catalog.Panel, () => onClaim(_index));
             _claimLabel = UiKit.Rect("Text", Claim.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText("", 34, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <param name="dt">Seconds since the last refresh; negative jumps the bar straight to its value.</param>
@@ -80,9 +80,10 @@ namespace VuonTra.Game.UI
 
             bool canClaim = complete && !claimed;
             Claim.SetEnabled(canClaim);
-            _claimLabel.text = claimed ? L10n.T("quest.claimed") : (complete ? L10n.T("quest.claim") : L10n.T("quest.notyet"));
-            _claimLabel.fontSize = canClaim ? 38 : 26;
-            _claimLabel.color = canClaim ? Palette.Card : Palette.OffInk;
+            // Not finished: the plate shows how far along it is, not a button that cannot be pressed.
+            _claimLabel.text = claimed ? L10n.T("quest.claimed") : (complete ? L10n.T("quest.claim") : Mathf.FloorToInt(fraction * 100f) + "%");
+            _claimLabel.fontSize = canClaim ? UiKit.TextTitle : UiKit.TextBody;
+            _claimLabel.color = ChunkyButton.InkFor(canClaim);
             _face.color = claimed ? Palette.Mix(Palette.Card, Palette.CardLip, 0.45f) : Palette.Card;
         }
     }

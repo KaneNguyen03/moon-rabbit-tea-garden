@@ -27,7 +27,8 @@ namespace VuonTra.Game.UI
         public static readonly Color Card = Mix(Paper, Color.white, 0.7f);
         public static readonly Color CardLip = Mix(Paper, Ink, 0.2f);
         public static readonly Color Track = Mix(Paper, Ink, 0.14f);
-        public static readonly Color InkSoft = Mix(Ink, Paper, 0.42f);
+        /// <summary>Secondary text. Never paler than this: 64% ink reads on cream, 58% did not.</summary>
+        public static readonly Color InkSoft = Mix(Ink, Paper, 0.36f);
         public static readonly Color CarrotLip = Mix(Carrot, Ink, 0.3f);
         public static readonly Color Off = Mix(Paper, Ink, 0.2f);
         public static readonly Color OffLip = Mix(Paper, Ink, 0.36f);

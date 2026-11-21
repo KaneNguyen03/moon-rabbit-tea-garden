@@ -56,7 +56,7 @@ namespace VuonTra.Game.UI
             var top = UiKit.Rect("Count", _content);
             top.gameObject.AddComponent<LayoutElement>().preferredHeight = 64;
             _count = UiKit.Rect("Text", top).Stretch(0, 0, 1, 1, 8, 0, 90, 0)
-                .AddText("", 28, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var auto = UiKit.Rect("Auto", top).Place(1f, 0.5f, -36, 0, 64, 64);
             Image autoImage = auto.AddImage(_catalog.Round, Palette.Track);
             autoImage.raycastTarget = true;
@@ -83,14 +83,14 @@ namespace VuonTra.Game.UI
             shade.preserveAspect = true;
             UiKit.Rect("Mark", root).Place(0f, 0.5f, 68, 8, 60, 60).AddText("?", 44, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _clovers = UiKit.Rect("Clovers", root).Stretch(0, 0, 1, 1, 130, 8, 330, 0)
-                .AddText("", 26, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _clovers.resizeTextForBestFit = true;
             _clovers.resizeTextMinSize = 18;
             _clovers.resizeTextMaxSize = 26;
             var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -164, 4, 290, 92);
             Summon = UiKit.Chunky(button, _catalog.Panel, () => _onSummon());
             _summonLabel = UiKit.Rect("Text", Summon.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText("", 30, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         Image AddSubTab(RectTransform tabs, string name, float from, string label, bool album, out Text text)
@@ -102,7 +102,7 @@ namespace VuonTra.Game.UI
             b.transition = Selectable.Transition.None;
             b.targetGraphic = img;
             b.onClick.AddListener(() => ShowAlbum(album));
-            text = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(label, 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            text = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(label, UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             return img;
         }
 
@@ -118,8 +118,8 @@ namespace VuonTra.Game.UI
             bool can = s.Clovers >= Rabbits.SummonCost;
             _count.text = L10n.T("rabbits.count", s.Rabbits.Count, s.SeenKinds.Count, RabbitKinds.All.Count);
             _clovers.text = L10n.T("rabbits.clovers.short", s.Clovers);
-            _summonLabel.text = L10n.T("rabbits.summon.button", Rabbits.SummonCost);
-            _summonLabel.color = can ? Palette.Card : Palette.OffInk;
+            _summonLabel.text = can ? L10n.T("rabbits.summon.button", Rabbits.SummonCost) : L10n.T("need.clover", Rabbits.SummonCost - s.Clovers);
+            _summonLabel.color = ChunkyButton.InkFor(can);
             Summon.SetEnabled(can);
             _mineTab.color = Album ? Palette.Alpha(Palette.Carrot, 0f) : Palette.Carrot;
             _albumTab.color = Album ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
@@ -172,7 +172,7 @@ namespace VuonTra.Game.UI
             {
                 var note = UiKit.Rect("Empty", _content);
                 note.gameObject.AddComponent<LayoutElement>().preferredHeight = 120;
-                note.AddText(L10n.T("rabbits.empty"), 26, Quiet, TextAnchor.MiddleLeft);
+                note.AddText(L10n.T("rabbits.empty"), UiKit.TextBody, Quiet, TextAnchor.MiddleLeft);
                 _dynamic.Add(note.gameObject);
                 return;
             }
@@ -204,13 +204,13 @@ namespace VuonTra.Game.UI
             root.AddImage(_catalog.Panel, Palette.Mix(Palette.Tiers[tier + 1], Palette.Paper, 0.5f), true);
             root.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
             Text text = UiKit.Rect("Text", root).Stretch(0, 0, 1, 1, 24, 0, 220, 0)
-                .AddText(L10n.T("rabbits.merge", L10n.Tier(tier), L10n.Tier(tier + 1), count), 24, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(L10n.T("rabbits.merge", L10n.Tier(tier), L10n.Tier(tier + 1), count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             text.resizeTextForBestFit = true;
             text.resizeTextMinSize = 16;
             text.resizeTextMaxSize = 24;
             var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -108, 2, 190, 60);
-            ChunkyButton chunky = UiKit.Chunky(button, _catalog.Panel, () => _onMerge(tier));
-            UiKit.Rect("Text", chunky.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rabbits.merge.button"), 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            // Merging is a second thing you can do here; calling a rabbit is the first.
+            UiKit.Secondary(button, _catalog.Panel, L10n.T("rabbits.merge.button"), () => _onMerge(tier));
             _dynamic.Add(root.gameObject);
         }
 
@@ -223,7 +223,7 @@ namespace VuonTra.Game.UI
             int resting = 0;
             foreach (Rabbit r in s.Rabbits) if (r.Station < 0) resting++;
             Text text = UiKit.Rect("Text", root).Stretch(0, 0, 1, 1, 24, 0, 24, 0)
-                .AddText(L10n.T("rest.row", Mathf.Min(resting, s.RestSpots), s.RestSpots), 24, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(L10n.T("rest.row", Mathf.Min(resting, s.RestSpots), s.RestSpots), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             text.resizeTextForBestFit = true;
             text.resizeTextMinSize = 16;
             text.resizeTextMaxSize = 24;
@@ -257,15 +257,15 @@ namespace VuonTra.Game.UI
             if (working && _catalog.Stations[r.Station].Prop != null)
                 UiKit.Rect("Icon", status).Stretch(0, 0, 1, 1, 7, 7, 7, 7).AddImage(_catalog.Stations[r.Station].Prop, Color.white).preserveAspect = true;
             else
-                UiKit.Rect("Nap", status).Stretch(0, 0, 1, 1).AddText("zz", 22, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+                UiKit.Rect("Nap", status).Stretch(0, 0, 1, 1).AddText("zz", UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             Text name = UiKit.Rect("Name", cell).Place(0.5f, 0f, 0, 62, CellW - 24f, 38)
-                .AddText(r.Name, 28, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(r.Name, UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             name.resizeTextForBestFit = true;
             name.resizeTextMinSize = 18;
             name.resizeTextMaxSize = 28;
             UiKit.Rect("Level", cell).Place(0.5f, 0f, 0, 28, CellW - 24f, 30)
-                .AddText(L10n.T("station.level", r.Level), 23, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("station.level", r.Level), UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>
@@ -307,7 +307,7 @@ namespace VuonTra.Game.UI
                 head.gameObject.AddComponent<LayoutElement>().preferredHeight = 58;
                 head.AddImage(_catalog.Panel, Palette.Mix(Palette.Tiers[tier], Palette.Paper, 0.25f), true);
                 UiKit.Rect("Text", head).Stretch(0, 0, 1, 1, 22, 0, 22, 0)
-                    .AddText(L10n.T("album.tier", L10n.Tier(tier), met, kinds.Count), 26, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                    .AddText(L10n.T("album.tier", L10n.Tier(tier), met, kinds.Count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
                 _dynamic.Add(head.gameObject);
 
                 RectTransform row = null;
@@ -339,7 +339,7 @@ namespace VuonTra.Game.UI
             Image art = UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 12, 10, 12, 10).AddImage(_catalog.KindSprite(kind.Id), met ? Color.white : Palette.Alpha(Color.black, 0.78f));
             art.preserveAspect = true;
             Text name = UiKit.Rect("Name", cell).Place(0.5f, 0f, 0, 30, CellW - 20f, 40)
-                .AddText(met ? L10n.T("kind." + kind.Id) : "???", 24, met ? Palette.Ink : Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(met ? L10n.T("kind." + kind.Id) : "???", UiKit.TextBody, met ? Palette.Ink : Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
             name.resizeTextForBestFit = true;
             name.resizeTextMinSize = 15;
             name.resizeTextMaxSize = 24;
@@ -351,7 +351,7 @@ namespace VuonTra.Game.UI
                 var fresh = UiKit.Rect("Fresh", cell).Place(1f, 1f, -52, -28, 92, 40);
                 fresh.localRotation = Quaternion.Euler(0, 0, -8);
                 fresh.AddImage(_catalog.Panel, Palette.Lantern, true);
-                UiKit.Rect("Text", fresh).Stretch(0, 0, 1, 1).AddText(L10n.T("album.fresh"), 22, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                UiKit.Rect("Text", fresh).Stretch(0, 0, 1, 1).AddText(L10n.T("album.fresh"), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
         }
     }

@@ -1058,8 +1058,11 @@ namespace VuonTra.Game.UI
                 _cardInfo.text = StationRowView.Describe(defs, s, i, level, m) + (next > 0 ? L10n.T("row.milestone", next) : "");
                 _cardBuyTop.text = L10n.T("row.upgrade", count);
             }
-            _cardBuyCost.text = cost.Short();
-            Color ink = can ? Palette.Card : Palette.OffInk;
+            // Short of carrots and nothing else: the plate says how many are missing.
+            bool shortOnly = !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
+            if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
+            _cardBuyCost.text = shortOnly ? (cost - s.Coins).Short() : cost.Short();
+            Color ink = ChunkyButton.InkFor(can);
             _cardBuyTop.color = ink;
             _cardBuyCost.color = ink;
             _cardBuy.SetEnabled(can);
@@ -1887,7 +1890,7 @@ namespace VuonTra.Game.UI
             _plotTitle.text = L10n.T("plot.title", Expansion.NextIndex(defs, s) + 1);
             _plotSub.text = ExpansionNeeds(defs, s);
             _plotCost.text = cost.Short();
-            _plotCost.color = can ? Palette.Card : Palette.OffInk;
+            _plotCost.color = ChunkyButton.InkFor(can);
             _plotBuy.SetEnabled(can);
         }
 

@@ -140,7 +140,7 @@ namespace VuonTra.Game.UI
             {
                 var note = UiKit.Rect("Empty", _content);
                 note.gameObject.AddComponent<LayoutElement>().preferredHeight = 120;
-                note.AddText(L10n.T("picker.empty"), 28, Palette.InkSoft, TextAnchor.MiddleLeft);
+                note.AddText(L10n.T("picker.empty"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
                 _rows.Add(note.gameObject);
                 return;
             }
@@ -163,11 +163,11 @@ namespace VuonTra.Game.UI
             else UiKit.Rect("Glyph", tile).Stretch(0, 0, 1, 1).AddText(Glyph(item), 46, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             UiKit.Rect("Name", root).Stretch(0, 0.5f, 1, 1, 164, 0, 290, 22)
-                .AddText(L10n.T("picker.name", L10n.ItemName(item), L10n.Tier(item.Tier)), 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText(L10n.T("picker.name", L10n.ItemName(item), L10n.Tier(item.Tier)), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             Rabbit wearer = item.WornBy > 0 ? Rabbits.Find(s, item.WornBy) : null;
             string where = wornHere ? L10n.T("picker.worn.here") : (wearer != null ? L10n.T("picker.worn.other", wearer.Name) : "");
             UiKit.Rect("Sub", root).Stretch(0, 0.12f, 1, 0.5f, 164, 0, 290, 4)
-                .AddText(Describe(item) + where, 25, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText(Describe(item) + where, UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
 
             long itemId = item.Id;
             var button = UiKit.Rect("Use", root).Place(1f, 0.5f, -140, 4, 230, 100);
@@ -177,7 +177,7 @@ namespace VuonTra.Game.UI
                 else _onEquip(itemId, _rabbitId);
             });
             Text label = UiKit.Rect("Text", chunky.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(wornHere ? L10n.T("picker.remove") : L10n.T("picker.wear"), 34, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(wornHere ? L10n.T("picker.remove") : L10n.T("picker.wear"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             if (wornHere)
             {
                 chunky.Lip.color = Palette.OffLip;

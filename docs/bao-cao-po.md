@@ -225,3 +225,35 @@ Sau khi sửa cả bốn xanh.
 
 ### Tồn đọng
 - tồn đọng: vẫn chưa đọc được issue trên GitHub từ phiên này (xem đoạn "Lỗi #35"); cần nguyên văn #24, #22, #23, #28, #29 trong một file để làm U1 đúng tiêu chí.
+
+## U1 — #24 Quy tắc nút và chữ dùng chung
+
+- Test: 298/298 EditMode qua (chạy sau lần sửa file cuối cùng trong Assets; sau đó chỉ chụp ảnh).
+- Thông điệp commit đề xuất: `Shared button ranks and a three-size type scale; a button you cannot use yet says what is missing`
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- Ba việc nhỏ PO nhắc lại (huy hiệu + sương, hình bùa, bù chỗ nghỉ cho save cũ) ĐÃ có trong cây làm việc từ bước trước, xem đoạn "Sau #35"; chúng sẽ lên cùng commit kế tiếp.
+- Ảnh trước và sau (docs/anh/po-u1/): `24-truoc-*.png` và `24-sau-*.png` cho 5-stations, 6-upgrades, 7-quests, 8-rabbits, 8b-detail, 9c-worn.
+
+### Đã làm (đối chiếu với nguyên văn #24 trong docs/issues-po.md)
+- Ba cấp nút, đặt trong `UiKit`: chính = `Chunky` (cam, nổi); phụ = `UiKit.Secondary` (kem, viền mực, phẳng); chữ = `UiKit.TextButton` (chỉ chữ, có gạch chân). Đã chuyển nút Ghép và nút Cho nghỉ sang cấp phụ.
+- Việc chưa làm được không còn là nút mờ: `ChunkyButton.SetEnabled(false)` làm nút nằm phẳng thành một tấm màu be, bỏ viền nổi và bóng, và nơi gọi điền thứ còn thiếu:
+  - Trạm, Bùa, tấm trạm, Lên cấp thỏ: "Còn thiếu" + số cà rốt còn thiếu (giá trừ số đang có).
+  - Nhiệm vụ: phần trăm đã xong ("74%") thay cho "Chưa xong".
+  - Gọi thỏ: "Cần 1 cỏ".
+  - Mở rộng vườn: ba điều kiện đã có từ R6.
+- Thang chữ ba cỡ trong `UiKit`: `TextSmall` 22, `TextBody` 26, `TextTitle` 36. Đã áp cho 46 chỗ trong các thẻ và tấm (Trạm, Bùa, Nhiệm vụ, lưới thỏ, tấm chi tiết thỏ, bảng chọn đồ, bảng đổi tên): cỡ 19–23 về 22, 24–30 về 26, 32–40 về 36. Cỡ lớn hơn 40 giữ làm cỡ trưng bày (số cà rốt, tên trên tấm chi tiết, màn tiêu đề, cổng trăng).
+- Chữ phụ: `Palette.InkSoft` đổi từ 58% mực sang 64% mực, đạt ngưỡng "không nhạt hơn 60% mực tím" ở mọi nơi dùng nó.
+- Khoảng cách và bo góc: thêm hằng số `UiKit.CardGap` 18 và `UiKit.CardPad` 28 làm chuẩn.
+
+### Chưa đạt so với #24
+- "Mỗi dòng một ý chính; số quan trọng nhất to và đậm, phần còn lại thành chip nhỏ": CHƯA làm. Dòng phụ của trạm vẫn nhồi ba thông tin ("3,20K cà rốt / 1,5 giây · ×2 ở cấp 50"). Việc này trùng với #25 (tab Trạm) nên mình để cho U2.
+- Thang chữ chưa áp cho `GardenScreen` (HUD, nhãn trong vườn, tấm trạm, thanh tab) và các màn Shell, Feel; các chỗ đó vẫn dùng số cỡ riêng.
+- `CardGap` và `CardPad` mới là hằng số; các thẻ hiện có chưa được sửa để dùng chúng (khoảng cách hiện đã gần bằng nhau nhưng chưa thống nhất bằng code).
+- Nút cấp "chữ" đã có nhưng chưa có chỗ nào dùng.
+- Ảnh "sau" của tab Trạm không có ví dụ "Còn thiếu" vì vườn trong ảnh mẫu đang thừa cà rốt; phần đó mới được kiểm qua code, chưa có ảnh.
+- Chưa kiểm tràn chữ với chuỗi dài nhất ở tiếng Anh sau khi đổi cỡ chữ (chỉ soi ảnh tiếng Việt).
+
+### Tồn đọng
+- tồn đọng: áp thang chữ ba cỡ cho GardenScreen, Shell và Feel.
+- tồn đọng: tách dòng phụ của trạm thành số chính + chip (làm cùng #25).
+- tồn đọng: tuỳ chọn chữ to và kiểm tràn chữ tiếng Anh sau khi đổi cỡ (thuộc #33).

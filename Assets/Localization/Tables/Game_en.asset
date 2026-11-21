@@ -1126,6 +1126,14 @@ MonoBehaviour:
     m_Localized: '{0} more to the next level'
     m_Metadata:
       m_Items: []
+  - m_Id: 54971167924224
+    m_Localized: Still need
+    m_Metadata:
+      m_Items: []
+  - m_Id: 54971176312832
+    m_Localized: Need {0}
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
