@@ -562,6 +562,35 @@ namespace VuonTra.EditorTools
             p.Blob(58, 32, 44, 26, 0, Hex("8a93b8")); p.Blob(112, 24, 30, 18, 0, Hex("7880a8"));
             p.Ellipse(46, 44, 18, 8, -10, Hex("a9b2d4")); p.Ellipse(62, 54, 22, 6, 0, Hex("6fbf8a"));
             p.Save("decor_stones");
+
+            p = new Painter(240, 150, 2); // pond with the moon in it
+            p.Blob(120, 74, 108, 58, 0, Hex("7880a8"));
+            p.Ellipse(120, 76, 98, 50, 0, Hex("24407a"));
+            p.Ellipse(120, 84, 84, 36, 0, Hex("2f5596"));
+            p.Ellipse(142, 78, 34, 22, 0, Hex("fff3c8", 0.22f));
+            p.Ellipse(142, 78, 21, 14, 0, Hex("fff3c8"));
+            p.Ellipse(136, 81, 6, 4, 0, Hex("ecd193"));
+            p.Ellipse(96, 60, 30, 3, 0, Hex("9fc4ff", 0.6f)); p.Ellipse(150, 52, 24, 2.5f, 0, Hex("9fc4ff", 0.5f)); p.Ellipse(84, 96, 22, 2.5f, 0, Hex("9fc4ff", 0.5f));
+            p.Blob(62, 84, 15, 9, 0, Hex("6fbf8a"), 2.4f); p.Blob(176, 100, 12, 7, 0, Hex("6fbf8a"), 2.4f);
+            p.Blob(66, 87, 4, 4, 0, Hex("f3a6d6"), 2f);
+            p.Save("decor_pond");
+
+            p = new Painter(220, 150, 2); // a place to sit: a mat, a low table, tea for two
+            p.Blob(110, 34, 100, 28, 0, Hex("e6cfa0"));
+            p.Ellipse(110, 34, 84, 20, 0, Hex("d8bb86"));
+            p.Box(74, 50, 5, 14, 3, Hex("8a5a3a")); p.Box(146, 50, 5, 14, 3, Hex("8a5a3a"));
+            p.Box(110, 68, 52, 8, 6, Hex("b97a45"));
+            p.Blob(110, 92, 17, 14, 0, Hex("6fb7b0")); p.Blob(130, 94, 8, 4, 30, Hex("6fb7b0"), 2.4f); p.Blob(110, 108, 5, 4, 0, Hex("4f9790"), 2.4f);
+            p.Box(78, 84, 8, 7, 4, Hex("fff4e0"), 2.4f); p.Box(144, 84, 8, 7, 4, Hex("fff4e0"), 2.4f);
+            p.Ellipse(78, 100, 4, 6, 0, new Color(1, 1, 1, 0.45f)); p.Ellipse(144, 102, 4, 6, 0, new Color(1, 1, 1, 0.45f));
+            p.Save("decor_teatable");
+
+            p = new Painter(150, 120, 2); // a stump to sit on
+            p.Box(75, 40, 44, 34, 14, Hex("8a5a3a"));
+            p.Blob(75, 72, 46, 17, 0, Hex("d9b98a"));
+            p.Ellipse(75, 72, 30, 10, 0, Hex("c9a674")); p.Ellipse(75, 72, 14, 5, 0, Hex("d9b98a"));
+            p.Blob(118, 30, 12, 6, -30, Hex("6fbf8a"), 2.4f); p.Blob(32, 22, 10, 5, 25, Hex("6fbf8a"), 2.4f);
+            p.Save("decor_stump");
         }
     }
 }

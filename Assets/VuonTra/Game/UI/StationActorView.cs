@@ -71,7 +71,7 @@ namespace VuonTra.Game.UI
             _scarfImage.gameObject.SetActive(!ownRabbit && catalog.Scarf != null);
 
             // Shown only while the station can be afforded: the one hint on the scene that says "tap me".
-            _upArrowRect = UiKit.Rect("CanUp", Root).Place(0.5f, 0.5f, 168, 44, 58, 58);
+            _upArrowRect = UiKit.Rect("CanUp", Root).Place(0.5f, 0.5f, 150, -118, 56, 56);
             _upArrowRect.AddImage(catalog.IconUp, Color.white).preserveAspect = true;
             _upArrow = _upArrowRect.gameObject;
             _upArrow.SetActive(false);
@@ -82,15 +82,15 @@ namespace VuonTra.Game.UI
             _dozeBubble = doze.gameObject;
             _dozeBubble.SetActive(false);
 
-            var barBg = UiKit.Rect("Bar", Root).Place(0.5f, 0.5f, -74, -144, 170, 24);
-            barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.75f), true);
-            _bar = barBg.gameObject;
-            _fill = UiKit.Rect("Fill", barBg).Stretch(0, 0, 0, 1, 4, 4, 4, 4);
-            _fill.AddImage(catalog.Panel, Palette.Carrot, true);
-
-            var chip = UiKit.Rect("Level", Root).Place(0.5f, 0.5f, 112, -144, 150, 46);
+            // Level and cycle progress share one plate, centred under the station.
+            var chip = UiKit.Rect("Level", Root).Place(0.5f, 0.5f, 16, -152, 236, 58);
             _chip = chip.AddImage(catalog.Panel, Palette.Paper, true);
-            _label = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1)
+            var barBg = UiKit.Rect("Bar", chip).Band(18, 18, 9, 10);
+            barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.28f), true);
+            _bar = barBg.gameObject;
+            _fill = UiKit.Rect("Fill", barBg).Stretch(0, 0, 0, 1);
+            _fill.AddImage(catalog.Panel, Palette.Carrot, true);
+            _label = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 0, 14, 0, 0)
                 .AddText("", 27, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
@@ -148,7 +148,7 @@ namespace VuonTra.Game.UI
                 float target = Mathf.Clamp01((float)progress);
                 // Ease towards the real value; a finished cycle snaps back to the start.
                 _shownProgress = target < _shownProgress ? target : Mathf.Lerp(_shownProgress, target, Mathf.Clamp01(deltaTime * 14f));
-                _fill.anchorMax = new Vector2(Mathf.Max(0.08f, _shownProgress), 1f);
+                _fill.anchorMax = new Vector2(Mathf.Max(0.05f, _shownProgress), 1f);
             }
 
             _squish = Mathf.Max(0f, _squish - deltaTime * 5f);
@@ -176,7 +176,7 @@ namespace VuonTra.Game.UI
             _rabbit.anchoredPosition = _rabbitHome + new Vector2(0, air * 46f);
             // A working rabbit sways as it works; a sleeping one nods slowly.
             float lean = _locked || Dozing ? Mathf.Sin(time * 0.9f + _index) * 2.2f - (Dozing ? 9f : 4f) : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
-            if (_upArrow.activeSelf) _upArrowRect.anchoredPosition = new Vector2(168, 44 + Mathf.Abs(Mathf.Sin(time * 4f + _index)) * 14f);
+            if (_upArrow.activeSelf) _upArrowRect.anchoredPosition = new Vector2(150, -118 + Mathf.Abs(Mathf.Sin(time * 4f + _index)) * 16f); // bounces on the end of the plate
             _rabbit.localRotation = Quaternion.Euler(0, 0, lean * (1f - air));
             float hop = Ease.Pop(1f - _propPop) * (_propPop > 0f ? 1f : 0f);
             _prop.localScale = new Vector3(1f - hop * 0.08f, 1f + hop * 0.14f, 1f);

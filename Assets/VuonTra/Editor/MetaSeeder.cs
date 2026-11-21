@@ -130,7 +130,7 @@ namespace VuonTra.EditorTools
             }
 
             var decor = new List<Sprite>();
-            foreach (string name in new[] { "decor_tree", "decor_bush", "decor_lantern", "decor_fence", "decor_mushrooms", "decor_stones" })
+            foreach (string name in new[] { "decor_tree", "decor_bush", "decor_lantern", "decor_fence", "decor_mushrooms", "decor_stones", "decor_pond", "decor_teatable", "decor_stump" })
             {
                 var drawn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/" + name + ".png");
                 decor.Add(drawn != null ? drawn : PlaceholderArt.Load(name));
@@ -148,6 +148,7 @@ namespace VuonTra.EditorTools
             catalog.BgGround = StreetArt.Load("bg_ground");
             catalog.BgVignette = StreetArt.Load("bg_vignette");
             catalog.BgGrass = StreetArt.Load("bg_grass");
+            catalog.BgMoonbeam = StreetArt.Load("bg_moonbeam");
 
             catalog.Upgrades = upgrades.ToArray();
             catalog.Quests = quests.ToArray();

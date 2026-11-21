@@ -77,6 +77,8 @@ namespace VuonTra.Game.UI
         RectTransform _canvas, _street, _hud, _purse, _currency, _panel, _tabBar, _energyFill, _plotRow;
         RawImage _groundTile;
         readonly List<RectTransform> _fireflies = new List<RectTransform>();
+        readonly List<Vector2> _glowSpots = new List<Vector2>(); // lanterns and other lights the fireflies gather round
+        RawImage _moonbeams;
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
         Text _coins, _perSecond, _awayAmount, _awayTime, _badgeText, _barBadgeText, _clovers, _energyLabel, _energyAction;
@@ -148,6 +150,9 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>Moves the view so a world point sits near the middle of the screen.</summary>
+        /// <summary>Moves the view to a point in the garden (used by the preview shots).</summary>
+        public void LookAt(Vector2 point) => CenterOn(point);
+
         void CenterOn(Vector2 point)
         {
             _street.anchoredPosition = new Vector2(
@@ -160,6 +165,8 @@ namespace VuonTra.Game.UI
         {
             Vector2 offset = -_street.anchoredPosition;
             _groundTile.uvRect = new Rect(offset.x / 512f, offset.y / 512f, ScreenW / 512f, ScreenH / 512f);
+            // The shafts of moonlight drift a little as the view moves, so they feel like they come from above.
+            if (_moonbeams != null) _moonbeams.uvRect = new Rect(offset.x / 2600f, 0f, 1.2f, 1f);
 
             foreach (Walker w in _walkers)
             {
@@ -320,7 +327,7 @@ namespace VuonTra.Game.UI
             _actors.Clear(); _rows.Clear(); _upgradeRows.Clear(); _questRows.Clear();
             _modeButtons.Clear(); _modeLabels.Clear();
             _tierChips.Clear(); _tierLabels.Clear(); _tierHats.Clear(); _tierCharms.Clear();
-            _walkers.Clear(); _couriers.Clear(); _supplyRoutes.Clear();
+            _walkers.Clear(); _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
             // The old helpers belong to the destroyed canvas; Build makes new ones.
@@ -478,6 +485,7 @@ namespace VuonTra.Game.UI
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
 
+            BuildFireflies(catalog);
             BuildStationCard(catalog);
             CenterOn(StationSpot(0));
 
@@ -604,18 +612,18 @@ namespace VuonTra.Game.UI
             _cardBuy.SetEnabled(can);
         }
 
-        /// <summary>Fireflies drifting over the street and darkened corners, above the stations and below the HUD.</summary>
+        /// <summary>Moonlight and darkened corners over the garden, under the HUD.</summary>
         void BuildAtmosphere(GameCatalog catalog)
         {
-            _fireflies.Clear();
-            _fireflyImages.Clear();
-            var layer = UiKit.Rect("Fireflies", _canvas).Stretch(0, 0, 1, 1);
-            for (int i = 0; i < 16; i++)
+            // The moon itself is above the canopy; its glow spills in at the top corner.
+            UiKit.Rect("MoonGlow", _canvas).Place(1f, 1f, -140, -200, 1300, 1300)
+                .AddImage(catalog.Glow, new Color(0.80f, 0.90f, 1f, 0.26f));
+            if (catalog.BgMoonbeam != null)
             {
-                var rt = UiKit.Rect("Firefly", layer).Place(0f, 0f, 0, 0, 34, 34);
-                _fireflyImages.Add(rt.AddImage(catalog.Glow, Palette.Lantern));
-                UiKit.Rect("Core", rt).Place(0.5f, 0.5f, 0, 0, 7, 7).AddImage(catalog.Round, Palette.Mix(Palette.Lantern, Color.white, 0.6f));
-                _fireflies.Add(rt);
+                var beams = UiKit.Rect("Moonbeams", _canvas).Stretch(0, 0, 1, 1);
+                _moonbeams = beams.gameObject.AddComponent<RawImage>();
+                _moonbeams.texture = catalog.BgMoonbeam;
+                _moonbeams.raycastTarget = false;
             }
             if (catalog.BgVignette != null)
             {
@@ -626,18 +634,33 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>Each firefly wanders on its own slow loop and pulses; they drift a little with the street.</summary>
+        /// <summary>A few warm fireflies that live in the garden itself, each circling a lantern or a station.</summary>
+        void BuildFireflies(GameCatalog catalog)
+        {
+            _fireflies.Clear();
+            _fireflyImages.Clear();
+            if (_glowSpots.Count == 0) return;
+            var layer = UiKit.Rect("Fireflies", _street).Stretch(0, 0, 0, 0);
+            for (int i = 0; i < 22; i++)
+            {
+                var rt = UiKit.Rect("Firefly", layer).Place(0f, 0f, 0, 0, 30, 30);
+                _fireflyImages.Add(rt.AddImage(catalog.Glow, Palette.Lantern));
+                UiKit.Rect("Core", rt).Place(0.5f, 0.5f, 0, 0, 6, 6).AddImage(catalog.Round, Palette.Mix(Palette.Lantern, Color.white, 0.6f));
+                _fireflies.Add(rt);
+            }
+        }
+
+        /// <summary>Each firefly loops slowly around its light and pulses.</summary>
         void UpdateFireflies()
         {
-            float drift = -_street.anchoredPosition.x * 0.6f, lift = -_street.anchoredPosition.y * 0.6f;
             for (int i = 0; i < _fireflies.Count; i++)
             {
                 float seed = i * 7.31f;
-                float x = Mathf.Repeat(Hash(seed) * (ScreenW + 280f) + Mathf.Sin(_clock * 0.23f + seed) * 140f - drift, ScreenW + 280f) - 140f;
-                float y = Mathf.Repeat(Hash(seed + 3f) * (ScreenH + 120f) + Mathf.Sin(_clock * 0.31f + seed * 1.7f) * 46f - lift, ScreenH + 120f) - 60f;
-                _fireflies[i].anchoredPosition = new Vector2(x, y);
+                Vector2 home = _glowSpots[i % _glowSpots.Count];
+                float angle = _clock * (0.35f + Hash(seed) * 0.4f) + seed, reach = 70f + Hash(seed + 2f) * 110f;
+                _fireflies[i].anchoredPosition = home + new Vector2(Mathf.Cos(angle) * reach, Mathf.Sin(angle * 1.3f) * reach * 0.6f);
                 float pulse = 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
-                _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.15f + 0.6f * pulse);
+                _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.2f + 0.6f * pulse);
                 _fireflies[i].localScale = Vector3.one * (0.7f + 0.5f * pulse);
             }
         }
@@ -657,60 +680,100 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>
-        /// Dresses the clearing: a ring of trees around its edge, and trees, bushes, lanterns,
-        /// mushrooms and stones scattered between the stations. Placement is fixed (not random each
-        /// run) so the garden always looks the same.
+        /// Dresses the clearing: a canopy that frames it on every side, lanterns along the path,
+        /// a pond that holds the moon, places to sit, and a scatter of smaller things. Placement
+        /// is fixed (not random each run) so the garden always looks the same.
         /// </summary>
         void BuildDecor(GameCatalog catalog, int stations, List<KeyValuePair<float, Transform>> standing)
         {
             Sprite[] d = catalog.Decor;
-            if (d == null || d.Length < 6) return;
-            const int Tree = 0, Bush = 1, Lantern = 2, Mushrooms = 4, Stones = 5;
+            if (d == null || d.Length < 9) return;
+            const int Tree = 0, Bush = 1, Lantern = 2, Mushrooms = 4, Stones = 5, Pond = 6, TeaTable = 7, Stump = 8;
             Color soft = Palette.Mix(Color.white, Palette.Night, 0.12f);
+
+            var pondAt = new Vector2(WorldW - 370f, WorldH - 640f);
 
             void Put(int kind, float x, float y, float height, Color tint)
             {
+                // Nothing tall may stand in front of the pond: the moon in it has to stay in view.
+                if (kind == Tree && x < WorldW - 110f && Mathf.Abs(x - pondAt.x) < 250f && y > pondAt.y - 440f && y < pondAt.y + 40f) return;
                 if (kind == Lantern)
                 {
-                    var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, x + 14f, y + 150f, 380f, 380f);
+                    var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, x + 14f, y + 150f, 420f, 420f);
                     glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.6f));
                     standing.Add(new KeyValuePair<float, Transform>(y + 0.5f, glow));
+                    _glowSpots.Add(new Vector2(x + 14f, y + 150f));
                 }
                 Image img = AddDecor(_street, d[kind], x, y, height, tint);
                 if (img != null) standing.Add(new KeyValuePair<float, Transform>(y, img.transform));
             }
 
-            // The wood around the clearing.
-            for (float x = 60f; x < WorldW; x += 230f)
+            bool Free(float x, float y, float clearX, float below, float above)
             {
-                Put(Tree, x + Hash(x) * 80f, WorldH - 200f + Hash(x + 5) * 90f, 300f + Hash(x + 9) * 110f, soft);
-                Put(Hash(x + 2) < 0.5f ? Tree : Bush, x + Hash(x + 3) * 90f, 20f + Hash(x + 7) * 50f, Hash(x + 2) < 0.5f ? 300f : 120f, soft);
-            }
-            for (float y = 220f; y < WorldH - 260f; y += 250f)
-            {
-                Put(Tree, 40f + Hash(y) * 70f, y, 300f + Hash(y + 4) * 90f, soft);
-                Put(Tree, WorldW - 110f + Hash(y + 2) * 70f, y + 60f, 300f + Hash(y + 6) * 90f, soft);
-            }
-
-            // Inside: wherever there is room that is not a station.
-            for (int n = 0; n < 70; n++)
-            {
-                float x = 260f + Hash(n * 3.1f + 1f) * (WorldW - 520f), y = 200f + Hash(n * 5.7f + 2f) * (WorldH - 560f);
-                float pick = Hash(n * 9.3f);
-                bool tall = pick < 0.22f || pick >= 0.82f; // trees and lanterns reach up over whatever is behind them
-                bool free = true;
-                for (int i = 0; i < stations && free; i++)
+                for (int i = 0; i < stations; i++)
                 {
                     Vector2 spot = StationSpot(i);
-                    if (Mathf.Abs(spot.x - x) < 360f && y > spot.y - (tall ? 620f : 240f) && y < spot.y + 250f) free = false;
+                    if (Mathf.Abs(spot.x - x) < clearX && y > spot.y - below && y < spot.y + above) return false;
                 }
-                if (!free) continue;
-                if (pick < 0.22f) Put(Tree, x, y, 270f + Hash(n + 40f) * 90f, soft);
-                else if (pick < 0.47f) Put(Bush, x, y, 104f, soft);
-                else if (pick < 0.67f) Put(Mushrooms, x, y, 84f, soft);
-                else if (pick < 0.82f) Put(Stones, x, y, 62f, soft);
-                else Put(Lantern, x, y, 226f, Color.white);
+                return true;
             }
+
+            // The pond lies flat, so it goes down before anything that stands. It holds the moon.
+            AddDecor(_street, d[Pond], pondAt.x, pondAt.y - 120f, 250f, Color.white);
+            UiKit.Rect("PondGlow", _street).Place(0f, 0f, pondAt.x + 30f, pondAt.y + 10f, 520f, 380f)
+                .AddImage(catalog.Glow, new Color(0.80f, 0.90f, 1f, 0.3f));
+            _glowSpots.Add(pondAt + new Vector2(20, 40));
+
+            // Places to sit, in the corners the stations leave free.
+            Put(TeaTable, 300f, WorldH - 1180f, 170f, Color.white);
+            Put(Stump, WorldW - 300f, WorldH - 1760f, 110f, Color.white);
+            Put(Stump, WorldW - 440f, WorldH - 1700f, 96f, Color.white);
+            Put(TeaTable, 330f, 420f, 170f, Color.white);
+
+            // Lanterns walk the path with you: one beside every stretch between two stations.
+            for (int i = 0; i + 1 < stations; i++)
+            {
+                Vector2 a = StationSpot(i), b = StationSpot(i + 1);
+                Vector2 mid = (a + b) / 2f + new Vector2(0, -150f);
+                Vector2 side = new Vector2(-(b - a).y, (b - a).x).normalized * 96f;
+                if (side.y < 0f) side = -side; // on the far side of the path, so the post does not hide the stones
+                Vector2 at = mid + side;
+                if (Free(at.x, at.y, 300f, 600f, 240f)) Put(Lantern, at.x, at.y, 226f, Color.white);
+            }
+
+            // The wood around the clearing: two staggered rows on every side, so the canopy closes over the edge.
+            for (float x = -40f; x < WorldW + 60f; x += 190f)
+            {
+                float jitter = Hash(x) * 60f;
+                Put(Tree, x + jitter, WorldH - 470f + Hash(x + 5) * 50f, 380f + Hash(x + 9) * 70f, soft);
+                Put(Tree, x + 95f - jitter, WorldH - 380f + Hash(x + 6) * 40f, 360f + Hash(x + 4) * 60f, soft);
+                Put(Tree, x + jitter, -40f + Hash(x + 7) * 40f, 330f + Hash(x + 2) * 70f, soft);
+                Put(Bush, x + 95f - jitter, 30f + Hash(x + 3) * 40f, 130f, soft);
+            }
+            for (float y = 240f; y < WorldH - 520f; y += 200f)
+            {
+                Put(Tree, -30f + Hash(y) * 60f, y, 340f + Hash(y + 4) * 80f, soft);
+                Put(Tree, 70f + Hash(y + 1) * 50f, y + 100f, 300f + Hash(y + 5) * 60f, soft);
+                Put(Tree, WorldW - 40f + Hash(y + 2) * 60f, y + 50f, 340f + Hash(y + 6) * 80f, soft);
+                Put(Tree, WorldW - 150f + Hash(y + 3) * 50f, y + 150f, 300f + Hash(y + 7) * 60f, soft);
+            }
+
+            // Inside: small things wherever there is room that is not a station, a seat or the pond.
+            for (int n = 0; n < 46; n++)
+            {
+                float x = 300f + Hash(n * 3.1f + 1f) * (WorldW - 600f), y = 260f + Hash(n * 5.7f + 2f) * (WorldH - 820f);
+                float pick = Hash(n * 9.3f);
+                bool tall = pick < 0.16f;
+                if (!Free(x, y, 360f, tall ? 620f : 240f, 250f)) continue;
+                if (Vector2.Distance(new Vector2(x, y), pondAt) < 330f) continue;
+                if (tall) Put(Tree, x, y, 270f + Hash(n + 40f) * 90f, soft);
+                else if (pick < 0.50f) Put(Bush, x, y, 104f, soft);
+                else if (pick < 0.78f) Put(Mushrooms, x, y, 84f, soft);
+                else Put(Stones, x, y, 62f, soft);
+            }
+
+            // Stations glow too, and draw their own few fireflies.
+            for (int i = 0; i < stations; i += 2) _glowSpots.Add(StationSpot(i) + new Vector2(0, 40));
         }
 
         void BuildHud(GameCatalog catalog)
@@ -1144,8 +1207,10 @@ namespace VuonTra.Game.UI
                 ? L10n.T("energy.boosting", Mathf.CeilToInt((float)s.BoostSecondsLeft))
                 : (can ? L10n.T("energy.ready") : L10n.T("energy.need", (int)Energy.BoostCost));
             _energyButton.Button.interactable = can;
-            _energyButton.Lip.color = boosting ? Palette.Mix(Palette.Moss, Palette.Ink, 0.3f) : (can ? Palette.CarrotLip : Palette.CardLip);
-            _energyButton.Face.color = boosting ? Palette.Mix(Palette.Moss, Palette.Paper, 0.45f) : (can ? Palette.Lantern : Palette.Paper);
+            // Cream like the purse, so it never outshines the garden; only the word lights up when it is ready.
+            _energyButton.Lip.color = boosting ? Palette.Mix(Palette.Moss, Palette.Ink, 0.3f) : Palette.CardLip;
+            _energyButton.Face.color = boosting ? Palette.Mix(Palette.Moss, Palette.Paper, 0.6f) : Palette.Paper;
+            _energyAction.color = boosting ? Palette.Ink : (can ? Palette.CarrotLip : Palette.InkSoft);
         }
 
         /// <summary>Which stations stand in the garden, who works at each, and the open station card.</summary>

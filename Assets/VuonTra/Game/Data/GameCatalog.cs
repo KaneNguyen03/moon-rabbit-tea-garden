@@ -39,8 +39,9 @@ namespace VuonTra.Game
         public Texture2D BgVignette;
         [Tooltip("Grass seen from above; tiles in both directions under the draggable world.")]
         public Texture2D BgGrass;
+        public Texture2D BgMoonbeam;
 
-        [Tooltip("Street dressing, in this order: tree, bush, lantern, fence, mushrooms, stones.")]
+        [Tooltip("Garden dressing, in this order: tree, bush, lantern, fence, mushrooms, stones, pond, tea table, stump.")]
         public Sprite[] Decor = new Sprite[0];
 
         public List<StationDef> BuildDefs()

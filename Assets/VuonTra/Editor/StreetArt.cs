@@ -116,26 +116,33 @@ namespace VuonTra.EditorTools
                 // large soft patches; whole numbers of waves so the tile has no seam
                 float patch = 0.5f + 0.25f * Mathf.Sin(u * Mathf.PI * 2f + Mathf.Sin(v * Mathf.PI * 4f) * 1.3f)
                                    + 0.25f * Mathf.Sin(v * Mathf.PI * 4f + Mathf.Sin(u * Mathf.PI * 6f) * 0.9f);
-                Color c = Color.Lerp(Hex("2a6658"), Hex("3c8a6c"), patch);
-                // grass tufts
+                // Big soft areas of lighter and darker grass do the work; the small detail stays quiet.
+                Color c = Color.Lerp(Hex("1f5249"), Hex("3f9070"), Mathf.SmoothStep(0f, 1f, patch));
                 float gx = Mathf.Floor(u * 64f), gy = Mathf.Floor(v * 64f);
-                if (Hash(gx + 11, gy + 5) > 0.7f)
+                if (Hash(gx + 11, gy + 5) > 0.74f)
                 {
                     float tx = (u * 64f - gx) - 0.5f, ty = (v * 64f - gy) - 0.25f;
                     float blade = Mathf.Clamp01(1f - Mathf.Abs(tx) * 4.5f - Mathf.Abs(ty) * 1.5f);
-                    c = Color.Lerp(c, Hash(gx, gy) > 0.5f ? Hex("62b98a") : Hex("23564e"), blade * 0.55f);
+                    c = Color.Lerp(c, Hash(gx, gy) > 0.5f ? Hex("56a882") : Hex("1c4a44"), blade * 0.4f);
                 }
-                // small flowers, one in some cells
-                float cx = Mathf.Floor(u * 8f), cy = Mathf.Floor(v * 8f);
-                if (Hash(cx + 40, cy) > 0.45f)
+                // a rare small pale flower, nothing brighter
+                float cx = Mathf.Floor(u * 6f), cy = Mathf.Floor(v * 6f);
+                if (Hash(cx + 40, cy) > 0.7f)
                 {
-                    float fx = (u * 8f - cx) - 0.2f - 0.6f * Hash(cx, cy + 20), fy = (v * 8f - cy) - 0.2f - 0.6f * Hash(cx + 30, cy);
-                    float d = Mathf.Sqrt(fx * fx + fy * fy);
-                    Color f = flowers[(int)(Hash(cx + 3, cy + 7) * 2.999f)];
-                    c = Color.Lerp(c, f, Mathf.Clamp01(1f - d / 0.12f) * 0.25f);
-                    if (d < 0.04f) c = f;
+                    float fx = (u * 6f - cx) - 0.2f - 0.6f * Hash(cx, cy + 20), fy = (v * 6f - cy) - 0.2f - 0.6f * Hash(cx + 30, cy);
+                    if (Mathf.Sqrt(fx * fx + fy * fy) < 0.022f) c = Color.Lerp(c, Hex("e9f2d8"), 0.7f);
                 }
                 return c;
+            });
+
+            // Moonlight coming down through the canopy: soft slanted shafts, tiling sideways.
+            Write("bg_moonbeam", 512, 512, (u, v) =>
+            {
+                float across = u + v * 0.35f; // slanted
+                float shafts = Mathf.Pow(Mathf.Max(0f, Mathf.Sin(across * Mathf.PI * 4f)), 6f) * 0.6f
+                             + Mathf.Pow(Mathf.Max(0f, Mathf.Sin(across * Mathf.PI * 6f + 1.7f)), 10f) * 0.4f;
+                float fade = Mathf.SmoothStep(0f, 1f, v) * 0.85f + 0.15f; // strongest near the top, where the light comes in
+                return new Color(0.80f, 0.90f, 1f, shafts * fade * 0.5f);
             });
 
             // Darkened corners pull the eye to the lit middle of the street.
@@ -149,7 +156,7 @@ namespace VuonTra.EditorTools
             });
 
             AssetDatabase.Refresh();
-            foreach (string name in new[] { "bg_sky", "bg_hills", "bg_trees", "bg_ground", "bg_grass", "bg_vignette" })
+            foreach (string name in new[] { "bg_sky", "bg_hills", "bg_trees", "bg_ground", "bg_grass", "bg_moonbeam", "bg_vignette" })
             {
                 var importer = (TextureImporter)AssetImporter.GetAtPath(Folder + "/" + name + ".png");
                 importer.textureType = TextureImporterType.Default;

@@ -54,6 +54,9 @@ namespace VuonTra.EditorTools
             screen.Shell.StartGame();
             Step(screen, 1.2f);
             Capture(screen, "2-garden");
+            screen.LookAt(new Vector2(1920f, 1860f)); // the pond corner
+            Step(screen, 0.2f);
+            Capture(screen, "2c-pond");
 
             // Busy frame: open the next station so the milestone moment is on screen.
             screen.FocusStation(5);
