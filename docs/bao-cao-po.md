@@ -541,6 +541,20 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: nhãn tên thỏ trên vườn (chip màu bậc) chưa có sao; để lượt UI 2 nếu PO muốn.
 
+## #47 — Trần cấp trạm 500
+
+- Test: 403/403 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 5 test core (`StationCapTests.cs`, file mới) và 1 test màn hình.
+- Commit `283c820`, đã push. Issue #47 (mới tạo cho mục "Trần cấp trạm 500" trong #16) đã comment, nhãn chờ-PO-duyệt.
+- `Economy.MaxLevel = 500`, `Economy.LevelsLeft`; `Simulation.BuyCount` kẹp theo đó (0 ở trần) và `TryBuy` từ chối; `MaxAffordable` không vượt trần nên Nâng tất cả cũng dừng. Chuỗi mới `row.maxlevel` (seed lại). Không đổi save.
+- Ảnh (docs/anh/po-47/): `47-sau-tab-tram.png`, `47-sau-tam-tram.png`.
+
+### Đã làm (đối chiếu với #47)
+- Mọi chế độ nâng dừng ở 500; không tiêu tiền ở trần (test core).
+- Nút nâng ở tab Trạm và tấm trạm ghi "Cấp tối đa" và tắt; mũi tên trong vườn tắt (test màn hình).
+
+### Tồn đọng
+- tồn đọng: chưa có "khoảnh khắc" khi chạm trần (một dòng chúc mừng); save cũ có trạm quá 500 (không thể xảy ra với bản này) chỉ bị khoá nâng, không bị hạ cấp.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
