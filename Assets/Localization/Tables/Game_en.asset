@@ -1198,6 +1198,18 @@ MonoBehaviour:
     m_Localized: Feeds
     m_Metadata:
       m_Items: []
+  - m_Id: 73313580736512
+    m_Localized: "Today \xB7 resets in {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73313589125120
+    m_Localized: Ready to claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73313589125121
+    m_Localized: Claim all
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

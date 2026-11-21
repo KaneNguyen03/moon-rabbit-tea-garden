@@ -24,6 +24,8 @@ namespace VuonTra.Game
         public Sprite Round;
         public Sprite Glow;
         public Sprite Currency;
+        [Tooltip("The four-leaf clover: the rare currency quests pay in.")]
+        public Sprite Clover;
         public Sprite Gear;
         public Sprite Shadow;
         public Sprite IconUp;

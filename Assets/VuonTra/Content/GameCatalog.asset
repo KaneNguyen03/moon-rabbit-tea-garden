@@ -92,6 +92,7 @@ MonoBehaviour:
   Round: {fileID: 21300000, guid: 5786fc2d93ebf482088d94fe45ed18fd, type: 3}
   Glow: {fileID: 21300000, guid: ea3a57f1a56de4ef1ab9e2a8c7281559, type: 3}
   Currency: {fileID: 21300000, guid: fb571cae86e654db8acbea625933a94d, type: 3}
+  Clover: {fileID: 21300000, guid: 18a371d3f9b11408899105bcdf27f585, type: 3}
   Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Shadow: {fileID: 21300000, guid: 4621549ce2eb646a7ace069e96763f27, type: 3}
   IconUp: {fileID: 21300000, guid: e227213dacd474a26ad7da377889306b, type: 3}

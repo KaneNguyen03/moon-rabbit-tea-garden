@@ -1603,6 +1603,103 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(dip.Busy);
         }
 
+        // ----- #27: the quests tab puts what you can collect first -----
+
+        [Test]
+        public void Finished_Quests_Rise_To_The_Top_Under_One_Claim_All_Button()
+        {
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Quests/Content");
+            Transform ready = content.Find("Ready");
+            Assert.IsFalse(ready.gameObject.activeSelf, "nothing to collect yet");
+            Assert.AreEqual(0, ready.GetSiblingIndex());
+
+            runner.State.Coins = new BigNum(120);
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke(); // finishes "wake the second rabbit"
+            for (int i = 0; i < 50; i++) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke(); // and today's taps
+            screen.Refresh();
+            Assert.IsTrue(ready.gameObject.activeSelf);
+            Assert.AreEqual("Ready", content.GetChild(0).name);
+            Assert.AreEqual("Quest ngay-cham", content.GetChild(1).name, "today's finished quest");
+            Assert.AreEqual("Quest mo-2", content.GetChild(2).name, "and the finished achievement, both above the headings");
+            Color lit = content.Find("Quest mo-2/Card").GetComponent<Image>().color;
+            Color plain = content.Find("Quest ngay-nang/Card").GetComponent<Image>().color;
+            Assert.AreNotEqual(plain, lit, "a finished quest has a brighter card");
+
+            Find("Canvas/Sheet/Panel/Quests/Content/Ready/ClaimAll").onClick.Invoke();
+            Assert.IsTrue(runner.State.Claimed.Contains("mo-2"));
+            Assert.IsTrue(runner.State.Claimed.Contains("ngay-cham"));
+            Assert.AreEqual(1, runner.State.Clovers);
+            screen.Refresh();
+            Assert.IsFalse(ready.gameObject.activeSelf);
+            Assert.IsFalse(content.Find("Quest mo-2").gameObject.activeSelf, "a collected achievement leaves");
+            Assert.Greater(content.Find("Quest ngay-cham").GetSiblingIndex(), content.Find("Heading").GetSiblingIndex(), "a collected daily goes back under Today");
+        }
+
+        [Test]
+        public void An_Unfinished_Quest_Has_No_Button_Only_A_Bar_And_A_Count()
+        {
+            Transform row = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-nang");
+            Assert.IsFalse(row.Find("Claim").gameObject.activeSelf);
+            Assert.IsTrue(row.Find("Track").gameObject.activeSelf);
+            Assert.AreEqual("0 / 20", row.Find("Count").GetComponent<Text>().text);
+            Assert.IsFalse(row.Find("Done").gameObject.activeSelf);
+
+            for (int i = 0; i < 50; i++) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            screen.Refresh();
+            Transform done = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham");
+            Assert.IsTrue(done.Find("Claim").gameObject.activeSelf, "finished: the button");
+            Assert.IsFalse(done.Find("Track").gameObject.activeSelf, "and nothing left to measure");
+            done.Find("Claim").GetComponent<Button>().onClick.Invoke();
+            screen.Refresh();
+            Assert.IsFalse(done.Find("Claim").gameObject.activeSelf);
+            Assert.IsTrue(done.Find("Done").gameObject.activeSelf, "collected: a note, no button");
+            Assert.AreEqual("Xong", done.Find("Count").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void Rewards_Are_Chips_With_Pictures()
+        {
+            Transform row = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham");
+            Assert.AreEqual(runner.Catalog.Currency, row.Find("Carrots/Icon").GetComponent<Image>().sprite);
+            StringAssert.StartsWith("+", row.Find("Carrots/Text").GetComponent<Text>().text);
+            Assert.IsTrue(row.Find("Clovers").gameObject.activeSelf);
+            Assert.IsNotNull(runner.Catalog.Clover, "the clover has a picture of its own");
+            Assert.AreEqual(runner.Catalog.Clover, row.Find("Clovers/Icon").GetComponent<Image>().sprite);
+            Assert.AreEqual("+1", row.Find("Clovers/Text").GetComponent<Text>().text);
+            Assert.GreaterOrEqual(row.Find("Carrots/Text").GetComponent<Text>().fontSize, UiKit.TextBody, "big enough to read");
+            Assert.IsFalse(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Clovers").gameObject.activeSelf, "no clover chip on a quest that pays none");
+        }
+
+        [Test]
+        public void Today_Says_When_It_Comes_Back()
+        {
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Quests/Content");
+            StringAssert.StartsWith("Hôm nay · làm mới sau", content.Find("Heading").GetComponent<Text>().text);
+            var offset = System.TimeSpan.FromHours(7);
+            Assert.AreEqual(30 * 60, GardenScreen.SecondsToNextDay(new System.DateTimeOffset(2026, 11, 22, 23, 30, 0, offset)), 1e-6);
+            Assert.AreEqual(24 * 3600, GardenScreen.SecondsToNextDay(new System.DateTimeOffset(2026, 11, 22, 0, 0, 0, offset)), 1e-6);
+            Assert.AreEqual(5 * 3600 + 12 * 60, GardenScreen.SecondsToNextDay(new System.DateTimeOffset(2026, 11, 22, 18, 48, 0, offset)), 1e-6);
+        }
+
+        [Test]
+        public void A_Collected_Reward_Flies_From_Its_Row_To_The_Purse()
+        {
+            screen.Shell.StartGame();
+            for (int i = 0; i < 50; i++) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            screen.Refresh();
+            Transform purse = root.transform.Find("Canvas/Hud/Purse");
+            Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim").onClick.Invoke();
+            Assert.Greater(screen.Feel.Flying, 0, "carrots and a clover are on their way");
+            Transform fly = root.transform.Find("Canvas/Feel/Fly");
+            Assert.IsNotNull(fly);
+            screen.Advance(0.2f);
+            Assert.Greater(screen.Feel.Flying, 0, "still flying after a fifth of a second");
+            for (int i = 0; i < 60; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(0, screen.Feel.Flying, "all landed within two seconds");
+            Assert.IsNull(root.transform.Find("Canvas/Feel/Fly"));
+            Assert.AreEqual(Vector3.one, purse.localScale, "the purse swelled and is back to its size");
+        }
+
         [Test]
         public void Away_Popup_Shows_And_Closes()
         {

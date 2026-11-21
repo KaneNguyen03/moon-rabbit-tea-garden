@@ -141,6 +141,14 @@ namespace VuonTra.EditorTools
             screen.SetTab(2);
             Step(screen, 0.2f);
             Capture(screen, "7-quests");
+            // Collecting a quest: the carrots fly from the row to the purse, three frames 0.15 s apart.
+            Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest mo-4/Claim");
+            for (int f = 1; f <= 3; f++)
+            {
+                Step(screen, 0.15f);
+                Capture(screen, "27-bay-" + f);
+            }
+            Step(screen, 1.5f);
             screen.SetTab(3);
             Step(screen, 0.2f);
             Capture(screen, "8-rabbits");

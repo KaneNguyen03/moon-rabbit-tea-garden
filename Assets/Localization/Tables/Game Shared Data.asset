@@ -1191,6 +1191,18 @@ MonoBehaviour:
     m_Key: row.feeds
     m_Metadata:
       m_Items: []
+  - m_Id: 73313580736512
+    m_Key: quests.today.refresh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73313589125120
+    m_Key: quests.ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73313589125121
+    m_Key: quests.claimall
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

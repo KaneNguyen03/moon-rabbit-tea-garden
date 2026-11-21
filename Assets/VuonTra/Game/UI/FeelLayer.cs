@@ -30,6 +30,10 @@ namespace VuonTra.Game.UI
         int _bannerToken;
 
         public int ParticleCount => _particles.Count;
+        /// <summary>How many things are on their way somewhere right now.</summary>
+        public int Flying { get; private set; }
+        /// <summary>How long a thing takes to fly from where it was earned to where it is kept.</summary>
+        public const float FlyTime = 0.55f;
         public bool BannerVisible => _banner.gameObject.activeSelf;
 
         public FeelLayer(RectTransform canvas, GameCatalog catalog, Tweens tweens)
@@ -70,6 +74,38 @@ namespace VuonTra.Game.UI
                 Rect = rt, Graphic = label, Velocity = new Vector2(0, 150f),
                 Life = 0.75f, Gravity = -90f, StartScale = 1f
             });
+        }
+
+        /// <summary>
+        /// A few copies of a sprite arc from one place to another, one after the other, and vanish on
+        /// arrival; <paramref name="onArrive"/> runs when the last one lands. Both ends are fixed when the
+        /// flight starts, so nothing that moves meanwhile can bend it.
+        /// </summary>
+        public void Fly(Vector2 from, Vector2 to, Sprite sprite, Color color, int count, float size, System.Action onArrive = null)
+        {
+            count = Mathf.Clamp(count, 1, 12);
+            for (int i = 0; i < count; i++)
+            {
+                RectTransform rt = UiKit.Rect("Fly", _root).Place(0.5f, 0.5f, from.x, from.y, size, size);
+                Image img = rt.AddImage(sprite, color);
+                img.preserveAspect = true;
+                Vector2 start = from + new Vector2(Random.Range(-30f, 30f), Random.Range(-14f, 14f));
+                Vector2 mid = (start + to) * 0.5f + new Vector2(Random.Range(-60f, 60f), 150f + Random.Range(0f, 90f));
+                bool last = i == count - 1;
+                Flying++;
+                _tweens.Add(Motion.Time(FlyTime), t =>
+                {
+                    if (rt == null) return;
+                    float u = 1f - t;
+                    rt.anchoredPosition = u * u * start + 2f * u * t * mid + t * t * to;
+                    rt.localScale = Vector3.one * (1f + 0.35f * Mathf.Sin(t * Mathf.PI));
+                }, Ease.InOutCubic, Motion.Time(i * 0.05f), () =>
+                {
+                    if (rt != null) Destroy(rt.gameObject);
+                    Flying--;
+                    if (last) onArrive?.Invoke();
+                });
+            }
         }
 
         /// <summary>A handful of sprites thrown up and out.</summary>

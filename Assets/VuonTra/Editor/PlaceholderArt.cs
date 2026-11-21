@@ -638,6 +638,13 @@ namespace VuonTra.EditorTools
             p.Box(120, 72, 22, 5, 3, Hex("3a2a4d", 0.7f), 0f);
             p.Box(120, 72, 5, 22, 3, Hex("3a2a4d", 0.7f), 0f);
             p.Save("pad");
+
+            p = new Painter(64, 64, 2); // a four-leaf clover, the rare currency
+            p.Box(32, 18, 2.5f, 10, 2, Hex("4f9a6a"), 2.2f);
+            foreach (var leaf in new[] { new Vector2(22, 40), new Vector2(42, 40), new Vector2(22, 24), new Vector2(42, 24) })
+                p.Blob(leaf.x, leaf.y, 11, 10, 0, Hex("6fbf8a"), 2.4f);
+            p.Ellipse(26, 44, 4, 3, -30, Hex("a8e0bd"));
+            p.Save("icon_clover");
         }
     }
 }

@@ -136,7 +136,9 @@ namespace VuonTra.Game.UI
         bool _hintFading;
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
-        Text _coins, _perSecond, _awayAmount, _awayTime, _barBadgeText, _clovers, _energyLabel, _energyAction;
+        Text _coins, _perSecond, _awayAmount, _awayTime, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
+        RectTransform _questReady;
+        ChunkyButton _claimAll;
         Text _plotTitle, _plotSub, _plotCost;
         ChunkyButton _plotBuy, _energyButton;
         GameObject _hint, _away, _sheet, _modes, _barBadge;
@@ -1604,11 +1606,19 @@ namespace VuonTra.Game.UI
             }
 
             RectTransform quests = AddList("Quests", 2);
+            // Finished quests gather up here, under one button that collects them all.
+            _questReady = UiKit.Rect("Ready", quests);
+            _questReady.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
+            UiKit.Rect("Text", _questReady).Stretch(0, 0, 0.5f, 1).AddText(L10n.T("quests.ready"), 30, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var claimAll = UiKit.Rect("ClaimAll", _questReady).Place(1f, 0.5f, -130, 0, 260, 68);
+            _claimAll = UiKit.Chunky(claimAll, catalog.Panel, OnClaimAll);
+            UiKit.Rect("Text", _claimAll.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("quests.claimall"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _questReady.gameObject.SetActive(false);
             _clovers = AddNote(quests, "");
-            AddNote(quests, L10n.T("quests.today"), true);
+            _questToday = AddNote(quests, L10n.T("quests.today"), true);
             for (int pass = 0; pass < 2; pass++)
             {
-                if (pass == 1) AddNote(quests, L10n.T("quests.achievements"), true);
+                if (pass == 1) _questAchievements = AddNote(quests, L10n.T("quests.achievements"), true);
                 for (int i = 0; i < catalog.Quests.Length; i++)
                 {
                     if (catalog.Quests[i].Daily != (pass == 0)) continue;
@@ -1952,6 +1962,8 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _rows.Count; i++) _rows[i].Refresh(defs, s, m, dt);
             for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
             for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
+            _questToday.text = L10n.T("quests.today.refresh", Span(SecondsToNextDay(System.DateTimeOffset.Now)));
+            OrderQuestRows();
             RefreshPlotRow(defs, s);
             _rabbitList.Refresh(defs, s);
             Detail.Refresh(defs, s);
@@ -2180,8 +2192,7 @@ namespace VuonTra.Game.UI
         public void ShowAway(BigNum amount, double seconds)
         {
             _awayAmount.text = "+" + amount.Short();
-            int minutes = Mathf.Max(1, (int)(seconds / 60d));
-            string span = minutes >= 60 ? L10n.T("away.hours", minutes / 60, minutes % 60) : L10n.T("away.minutes", minutes);
+            string span = Span(seconds);
             bool capped = seconds >= Runner.Mods.AwayCapSeconds;
             _awayTime.text = L10n.T(capped ? "away.time.capped" : "away.time", span);
             _away.SetActive(true);
@@ -2357,14 +2368,74 @@ namespace VuonTra.Game.UI
         void OnClaim(int index)
         {
             QuestRowView row = RowOfQuest(index);
+            // Where the reward starts from is read before the claim, which reorders and may hide the row.
+            Vector2 carrotsFrom = Feel.PointOf(row != null ? row.CarrotChip : _purse), cloversFrom = Feel.PointOf(row != null ? row.CloverChip : _purse);
             if (!Runner.ClaimQuest(index, out BigNum paid)) return;
             if (row != null) row.Claim.Press(Tweens);
             Sfx.Reward();
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), "+" + paid.Short(), Palette.Lantern, 46);
-            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 12, 520f, 46f);
+            GameCatalog catalog = Runner.Catalog;
+            string gained = "+" + paid.Short();
+            // The carrots fly from the row up to the purse, which swells as they land.
+            Feel.Fly(carrotsFrom, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            {
+                if (_purse == null) return;
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
+                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 8, 460f, 40f);
+                Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
+            });
+            // Clovers fly to the rabbits tab, where they are spent.
+            int clovers = Runner.QuestDefs[index].RewardClovers;
+            if (clovers > 0)
+            {
+                Feel.Fly(cloversFrom, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
+                    () => Tweens.Add(0.22f, t => _tabPop[3] = 0.14f * Ease.Pop(t), Ease.Linear, 0f, () => _tabPop[3] = 0f));
+            }
             Item gift = Runner.LastQuestItem;
             if (gift != null)
                 Feel.Moment(L10n.T("moment.gift.title", L10n.ItemName(gift)), L10n.T("moment.gift.sub", L10n.Tier(gift.Tier), ItemPickerView.Describe(gift)));
+        }
+
+        /// <summary>Collects every finished quest at once.</summary>
+        void OnClaimAll()
+        {
+            _claimAll.Press(Tweens);
+            for (int i = 0; i < Runner.QuestDefs.Count; i++)
+                if (Quests.CanClaim(Runner.QuestDefs[i], Runner.Defs, Runner.State)) OnClaim(i);
+        }
+
+        /// <summary>
+        /// Finished quests first, under the Ready heading; then today's, then the achievements. Only
+        /// rows whose place has changed are moved.
+        /// </summary>
+        void OrderQuestRows()
+        {
+            var order = new List<Transform>();
+            bool any = false;
+            foreach (QuestRowView row in _questRows) any |= row.Visible && row.CanClaim;
+            if (_questReady.gameObject.activeSelf != any) _questReady.gameObject.SetActive(any);
+            order.Add(_questReady);
+            foreach (QuestRowView row in _questRows) if (row.CanClaim) order.Add(row.Root);
+            order.Add(_clovers.rectTransform);
+            order.Add(_questToday.rectTransform);
+            foreach (QuestRowView row in _questRows) if (row.Daily && !row.CanClaim) order.Add(row.Root);
+            order.Add(_questAchievements.rectTransform);
+            foreach (QuestRowView row in _questRows) if (!row.Daily && !row.CanClaim) order.Add(row.Root);
+            for (int k = 0; k < order.Count; k++)
+                if (order[k].GetSiblingIndex() != k) order[k].SetSiblingIndex(k);
+        }
+
+        /// <summary>Seconds until the player's local midnight, when the daily quests come back.</summary>
+        public static double SecondsToNextDay(System.DateTimeOffset now)
+        {
+            var midnight = new System.DateTimeOffset(now.Year, now.Month, now.Day, 0, 0, 0, now.Offset).AddDays(1);
+            return (midnight - now).TotalSeconds;
+        }
+
+        /// <summary>A span in the player's words: "5 giờ 12 phút", never less than a minute.</summary>
+        static string Span(double seconds)
+        {
+            int minutes = Mathf.Max(1, Mathf.CeilToInt((float)(seconds / 60d)));
+            return minutes >= 60 ? L10n.T("away.hours", minutes / 60, minutes % 60) : L10n.T("away.minutes", minutes);
         }
 
         QuestRowView RowOfQuest(int questIndex)

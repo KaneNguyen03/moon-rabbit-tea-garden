@@ -120,6 +120,9 @@ namespace VuonTra.EditorTools
 
             // ----- quests -----
             { "quests.today", "Hôm nay", "Today" },
+            { "quests.today.refresh", "Hôm nay · làm mới sau {0}", "Today · resets in {0}" },
+            { "quests.ready", "Nhận được", "Ready to claim" },
+            { "quests.claimall", "Nhận tất cả", "Claim all" },
             { "quests.achievements", "Thành tựu", "Achievements" },
             { "quests.clovers", "Cỏ bốn lá: {0} · dùng để gọi thỏ ở tab Thỏ", "Clovers: {0} · spend them in the Rabbits tab" },
             { "quest.done", "Xong", "Done" },

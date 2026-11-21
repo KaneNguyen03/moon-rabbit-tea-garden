@@ -1194,6 +1194,18 @@ MonoBehaviour:
     m_Localized: "Ti\u1EBFp s\u1EE9c cho"
     m_Metadata:
       m_Items: []
+  - m_Id: 73313580736512
+    m_Localized: "H\xF4m nay \xB7 l\xE0m m\u1EDBi sau {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73313589125120
+    m_Localized: "Nh\u1EADn \u0111\u01B0\u1EE3c"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 73313589125121
+    m_Localized: "Nh\u1EADn t\u1EA5t c\u1EA3"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

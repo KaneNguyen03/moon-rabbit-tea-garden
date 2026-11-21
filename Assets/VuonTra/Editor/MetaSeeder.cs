@@ -166,6 +166,7 @@ namespace VuonTra.EditorTools
             catalog.LevelBadge = FinalArt.Find("icon_cap-vuon");
             catalog.Mist = FinalArt.Find("decor_suong");
             catalog.PlotSign = FinalArt.Load("plot_sign");
+            catalog.Clover = FinalArt.Load("icon_clover");
             catalog.Pad = FinalArt.Load("pad");
             // Seats 0 and 1 are the stumps; the rest bring a rug, stools, a hammock and a swing.
             catalog.RestProps = new[] { null, null, FinalArt.Find("decor_tham-picnic"), FinalArt.Find("decor_ghe-nam"), FinalArt.Find("decor_vong"), FinalArt.Find("decor_xich-du") };
