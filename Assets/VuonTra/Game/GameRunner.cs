@@ -165,6 +165,21 @@ namespace VuonTra.Game
         /// <summary>The item the most recent quest claim gave, if any.</summary>
         public Item LastQuestItem { get; private set; }
 
+        /// <summary>A gift of carrots (a caught firefly, a visitor). Counts as earned.</summary>
+        public void Grant(BigNum carrots)
+        {
+            State.Coins += carrots;
+            State.TotalEarned += carrots;
+            Changed();
+        }
+
+        /// <summary>Tops the tea power bar up a little, never past full.</summary>
+        public void AddEnergy(double amount)
+        {
+            State.Energy = Math.Min(Energy.Max, State.Energy + amount);
+            StateChanged?.Invoke();
+        }
+
         /// <summary>Spends "trà lực" on a burst of double speed.</summary>
         public bool Boost()
         {

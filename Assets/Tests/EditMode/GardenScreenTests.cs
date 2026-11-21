@@ -390,8 +390,8 @@ namespace VuonTra.Core.Tests
         public void The_World_Is_Bigger_Than_The_Screen_And_Stations_Do_Not_Overlap()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            Assert.Greater(world.sizeDelta.x, 1920f * 1.5f);
-            Assert.Greater(world.sizeDelta.y, 1080f * 1.5f);
+            Assert.Greater(world.sizeDelta.x, 1080f * 1.5f, "wider than the portrait screen");
+            Assert.Greater(world.sizeDelta.y, 1920f * 1.2f, "taller than the portrait screen");
             for (int a = 0; a < runner.Defs.Count; a++)
             {
                 Vector2 p = GardenScreen.StationSpot(a);
@@ -507,6 +507,59 @@ namespace VuonTra.Core.Tests
             screen.Shell.OpenPause();
             Find("Canvas/Pause/Card/Language en").onClick.Invoke();
             Assert.AreEqual("en", L10n.Code);
+        }
+
+        [Test]
+        public void An_Arrow_Marks_Stations_That_Can_Be_Afforded()
+        {
+            GameObject arrow = root.transform.Find("Canvas/Garden/Content/Station am-tra/CanUp").gameObject;
+            screen.Refresh();
+            Assert.IsFalse(arrow.activeSelf, "broke");
+            runner.State.Coins = new BigNum(50);
+            screen.Refresh();
+            Assert.IsTrue(arrow.activeSelf);
+            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station gio-la/CanUp").gameObject.activeSelf, "120 to open, only 50 in hand");
+        }
+
+        [Test]
+        public void Catching_The_Golden_Firefly_Pays()
+        {
+            screen.Shell.StartGame();
+            Transform gold = root.transform.Find("Canvas/GoldFirefly");
+            Assert.IsFalse(gold.gameObject.activeSelf);
+            screen.SpawnGoldFirefly();
+            Assert.IsTrue(gold.gameObject.activeSelf);
+            gold.GetComponent<Button>().onClick.Invoke();
+            Assert.IsFalse(gold.gameObject.activeSelf);
+            Assert.AreEqual(30, runner.State.Coins.ToDouble(), 1e-6, "45 seconds of the starting income");
+            gold.GetComponent<Button>().onClick.Invoke();
+            Assert.AreEqual(30, runner.State.Coins.ToDouble(), 1e-6, "one catch, one prize");
+        }
+
+        [Test]
+        public void An_Uncaught_Firefly_Leaves_On_Its_Own()
+        {
+            screen.Shell.StartGame();
+            screen.SpawnGoldFirefly();
+            for (int i = 0; i < 30 * 13; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(root.transform.Find("Canvas/GoldFirefly").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Rabbits_Doze_And_Waking_One_Gives_Tea_Power()
+        {
+            screen.Shell.StartGame();
+            runner.State.Energy = 10;
+            Transform bubble = root.transform.Find("Canvas/Garden/Content/Station am-tra/Doze");
+            Assert.IsFalse(bubble.gameObject.activeSelf);
+            for (int i = 0; i < 30 * 20; i++) screen.Advance(1f / 30f); // the first nap comes within 20 seconds
+            Assert.IsTrue(bubble.gameObject.activeSelf, "the only open station is the one that dozes");
+
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.IsFalse(bubble.gameObject.activeSelf);
+            Assert.AreEqual(18, runner.State.Energy, 1e-6);
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(18, runner.State.Energy, 1e-6, "no reward for tapping an awake rabbit");
         }
 
         [Test]

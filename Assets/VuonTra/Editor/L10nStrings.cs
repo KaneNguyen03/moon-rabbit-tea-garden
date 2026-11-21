@@ -10,7 +10,7 @@ namespace VuonTra.EditorTools
         public static readonly string[,] All =
         {
             // ----- title, pause -----
-            { "title.name", "Vườn Trà Thỏ Trăng", "Moon Rabbit Tea Garden" },
+            { "title.name", "Vườn Trà\nThỏ Trăng", "Moon Rabbit\nTea Garden" },
             { "title.tagline", "Tiệm trà nhỏ của những bé thỏ dưới trăng", "A little tea shop run by rabbits under the moon" },
             { "title.prompt", "C H Ạ M   Đ Ể   B Ắ T   Đ Ầ U", "T A P   T O   S T A R T" },
             { "pause.title", "Tạm nghỉ", "Paused" },
@@ -42,6 +42,9 @@ namespace VuonTra.EditorTools
             { "quick.open.short", "Mở", "Open" },
             { "station.level", "Cấp {0}", "Lv {0}" },
             { "station.empty", "Đất trống", "Empty land" },
+            { "doze.reward", "+{0} trà lực", "+{0} tea power" },
+            { "gold.title", "Đom đóm vàng!", "Golden firefly!" },
+            { "gold.sub", "+{0} cà rốt", "+{0} carrots" },
 
             // ----- moments -----
             { "moment.boost.title", "Tăng tốc!", "Boost!" },

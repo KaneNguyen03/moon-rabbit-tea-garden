@@ -112,7 +112,9 @@ Mỗi mốc kết thúc bằng một bản bạn chơi thử được.
 
 Các quyết định bạn đưa ra trong lúc làm, ghi lại để bản thiết kế khớp với game:
 
-- **Màn hình ngang**, không phải dọc: khu vườn là một con phố cuộn trái phải, hai làn trước sau để có chiều sâu, nền nhiều lớp trượt khác tốc độ. Các danh sách nằm trong một bảng nổi mở từ cột nút bên phải.
+- **Màn hình dọc** (đã thử màn ngang ngày 22/11 rồi quay lại dọc theo yêu cầu). Khu vườn là một bãi đất 2.5D nhìn chếch từ trên xuống, rộng hơn màn hình, kéo được mọi hướng; trạm xếp 3 cột. Chạm vào trạm mở thẻ nâng cấp; các danh sách nằm trong bảng nổi mở từ hàng nút tròn ở mép dưới.
+- **Hai ngôn ngữ:** tiếng Việt và tiếng Anh, qua gói Localization của Unity.
+- **Sự sống trong vườn:** nguyên liệu chạy từ trạm nguyên liệu sang trạm pha chế, thỏ đi dạo, thỏ ngủ gật (chạm để đánh thức, được trà lực), đom đóm vàng (chạm để nhận cà rốt).
 - **Tiền tệ là cà rốt.** Cỏ bốn lá là tiền hiếm, dùng để gọi thỏ.
 - **Thỏ sáu bậc:** bạc, xanh lá, xanh dương, tím, vàng, đỏ. Gọi ngẫu nhiên bằng cỏ bốn lá, ghép 3 bé cùng bậc lên bậc trên. Mỗi bé có cấp riêng (trần cấp theo bậc) và 2 ô đồ: mũ và phụ kiện.
 - **Ô đất:** trạm thứ 5 trở đi cần mua đất. Hiện có 12 trạm.

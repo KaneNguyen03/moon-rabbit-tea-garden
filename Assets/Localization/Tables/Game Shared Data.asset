@@ -619,6 +619,18 @@ MonoBehaviour:
     m_Key: quick.open.short
     m_Metadata:
       m_Items: []
+  - m_Id: 12222754447360
+    m_Key: doze.reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12222762835968
+    m_Key: gold.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12222762835969
+    m_Key: gold.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

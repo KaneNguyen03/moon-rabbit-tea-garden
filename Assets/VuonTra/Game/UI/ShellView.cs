@@ -43,18 +43,18 @@ namespace VuonTra.Game.UI
             Image hit = title.AddImage(null, new Color(0, 0, 0, 0));
             hit.raycastTarget = true;
             // A soft dusk over the open ground where the drawer will rise, so the name reads.
-            UiKit.Rect("Dusk", title).Stretch(0.12f, 0.50f, 0.88f, 1.08f).AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.4f), 0.85f));
+            UiKit.Rect("Dusk", title).Stretch(-0.3f, 0.72f, 1.3f, 1.06f).AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.4f), 0.85f));
             var start = _title.AddComponent<Button>();
             start.transition = Selectable.Transition.None;
             start.onClick.AddListener(StartGame);
 
-            Text name = UiKit.Rect("Name", title).Place(0.5f, 0.80f, 0, 0, 1600, 190)
-                .AddText(L10n.T("title.name"), 118, Palette.Lantern, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Text name = UiKit.Rect("Name", title).Place(0.5f, 0.895f, 0, 0, 980, 280)
+                .AddText(L10n.T("title.name"), 100, Palette.Lantern, TextAnchor.MiddleCenter, FontStyle.Bold);
             name.lineSpacing = 0.9f;
             name.AddShadow(0.85f, 8f);
-            UiKit.Rect("Tagline", title).Place(0.5f, 0.80f, 0, -112, 1200, 60)
+            UiKit.Rect("Tagline", title).Place(0.5f, 0.895f, 0, -168, 1000, 60)
                 .AddText(L10n.T("title.tagline"), 34, Palette.Alpha(Palette.Paper, 0.9f)).AddShadow();
-            _prompt = UiKit.Rect("Prompt", title).Place(0.5f, 0.61f, 0, 0, 900, 60)
+            _prompt = UiKit.Rect("Prompt", title).Place(0.5f, 0.17f, 0, 0, 900, 60)
                 .AddText(L10n.T("title.prompt"), 32, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             _prompt.AddShadow();
 

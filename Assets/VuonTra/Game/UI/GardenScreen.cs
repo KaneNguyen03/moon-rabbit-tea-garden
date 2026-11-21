@@ -21,9 +21,11 @@ namespace VuonTra.Game.UI
         const float RefreshInterval = 1f / 10f;
         const int TabCount = 4;
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
-        // around in every direction. Sizes are in reference pixels (1920 × 1080).
-        const float WorldW = 3260f, WorldH = 1960f;
-        const int PerRow = 4;
+        // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
+        const float ScreenW = 1080f, ScreenH = 1920f;
+        const float WorldW = 2480f, WorldH = 2760f;
+        const int PerRow = 3;
+        const float DozeEnergy = 8f;
 
         static readonly string[] TabNames = { "Trạm", "Bùa", "Nhiệm vụ", "Thỏ" };
 
@@ -53,6 +55,11 @@ namespace VuonTra.Game.UI
         RectTransform _card;
         Text _cardName, _cardLevel, _cardInfo, _cardBuyTop, _cardBuyCost;
         ChunkyButton _cardBuy;
+        // Small events: a golden firefly to catch, and rabbits that nod off.
+        RectTransform _gold;
+        float _goldTimer = 25f, _goldAge, _dozeTimer = 18f;
+        const float GoldSeconds = 12f;
+
         /// <summary>Index of the station whose card is open, or -1.</summary>
         public int Selected { get; private set; } = -1;
 
@@ -134,22 +141,22 @@ namespace VuonTra.Game.UI
             int row = i / PerRow, col = i % PerRow;
             bool reversed = row % 2 == 1;
             if (reversed) col = PerRow - 1 - col;
-            return new Vector2(540f + col * 640f + (reversed ? 260f : 0f), WorldH - 520f - row * 500f);
+            return new Vector2(520f + col * 620f + (reversed ? 200f : 0f), WorldH - 560f - row * 560f);
         }
 
         /// <summary>Moves the view so a world point sits near the middle of the screen.</summary>
         void CenterOn(Vector2 point)
         {
             _street.anchoredPosition = new Vector2(
-                Mathf.Clamp(960f - point.x, 1920f - WorldW, 0f),
-                Mathf.Clamp(600f - point.y, 1080f - WorldH, 0f));
+                Mathf.Clamp(ScreenW / 2f - point.x, ScreenW - WorldW, 0f),
+                Mathf.Clamp(ScreenH * 0.5f - point.y, ScreenH - WorldH, 0f));
         }
 
         /// <summary>The grass follows the drag, the walkers walk, and ingredients travel to where they are used.</summary>
         void UpdateWorld(float dt)
         {
             Vector2 offset = -_street.anchoredPosition;
-            _groundTile.uvRect = new Rect(offset.x / 512f, offset.y / 512f, 1920f / 512f, 1080f / 512f);
+            _groundTile.uvRect = new Rect(offset.x / 512f, offset.y / 512f, ScreenW / 512f, ScreenH / 512f);
 
             foreach (Walker w in _walkers)
             {
@@ -169,6 +176,7 @@ namespace VuonTra.Game.UI
                     SendCourier();
                 }
             }
+            UpdateEvents(dt);
             for (int i = _couriers.Count - 1; i >= 0; i--)
             {
                 Courier c = _couriers[i];
@@ -206,6 +214,78 @@ namespace VuonTra.Game.UI
                 _couriers.Add(new Courier { Rect = rt, From = from, To = to, Target = route.y, Duration = Mathf.Max(1.2f, Vector2.Distance(from, to) / 380f) });
                 return;
             }
+        }
+
+        /// <summary>Now and then a golden firefly crosses the screen, and a working rabbit nods off.</summary>
+        void UpdateEvents(float dt)
+        {
+            if (Shell.State != ShellState.Playing) return;
+
+            if (_gold.gameObject.activeSelf)
+            {
+                _goldAge += dt;
+                float k = _goldAge / GoldSeconds;
+                _gold.anchoredPosition = new Vector2(-80f + k * (ScreenW + 160f), ScreenH * 0.55f + Mathf.Sin(k * 9f) * 160f);
+                _gold.localScale = Vector3.one * (1f + 0.15f * Mathf.Sin(_clock * 6f));
+                if (k >= 1f) _gold.gameObject.SetActive(false);
+            }
+            else
+            {
+                _goldTimer -= dt;
+                if (_goldTimer <= 0f) SpawnGoldFirefly();
+            }
+
+            _dozeTimer -= dt;
+            if (_dozeTimer <= 0f)
+            {
+                _dozeTimer = 22f + Hash(_clock) * 16f;
+                GameState s = Runner.State;
+                // One open station at a time, picked from wherever the clock happens to point.
+                int start = Mathf.FloorToInt(Hash(_clock + 3f) * _actors.Count);
+                for (int n = 0; n < _actors.Count; n++)
+                {
+                    int i = (start + n) % _actors.Count;
+                    if (s.Levels[i] > 0 && !_actors[i].Dozing && _actors[i].Root.gameObject.activeSelf)
+                    {
+                        _actors[i].SetDozing(true);
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>Sends a golden firefly across the screen. Catching it pays about 45 seconds of income.</summary>
+        public void SpawnGoldFirefly()
+        {
+            _goldTimer = 45f + Hash(_clock + 11f) * 35f;
+            _goldAge = 0f;
+            _gold.gameObject.SetActive(true);
+            _gold.anchoredPosition = new Vector2(-80f, ScreenH * 0.55f);
+        }
+
+        void OnCatchGold()
+        {
+            if (!_gold.gameObject.activeSelf) return;
+            _gold.gameObject.SetActive(false);
+            Modifiers m = Runner.Mods;
+            BigNum perSecond = Economy.IncomePerSecond(Runner.Defs, Runner.State) * (m.IncomeMultiplier * m.SpeedMultiplier);
+            BigNum prize = perSecond * 45d;
+            if (prize < new BigNum(20)) prize = new BigNum(20);
+            Runner.Grant(prize);
+            Sfx.Sting();
+            Feel.Moment(L10n.T("gold.title"), L10n.T("gold.sub", prize.Short()));
+        }
+
+        void BuildEvents(GameCatalog catalog)
+        {
+            _gold = UiKit.Rect("GoldFirefly", _canvas).Place(0f, 0f, -80, 0, 150, 150);
+            Image halo = _gold.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.9f));
+            halo.raycastTarget = true; // generous: the whole glow is the target
+            var button = _gold.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.onClick.AddListener(OnCatchGold);
+            UiKit.Rect("Core", _gold).Place(0.5f, 0.5f, 0, 0, 34, 34).AddImage(catalog.Round, Palette.Mix(Palette.Lantern, Color.white, 0.7f));
+            _gold.gameObject.SetActive(false);
         }
 
         static void Discard(GameObject go)
@@ -274,13 +354,14 @@ namespace VuonTra.Game.UI
             canvas.planeDistance = 5f;
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1920, 1080);
+            scaler.referenceResolution = new Vector2(ScreenW, ScreenH);
             scaler.matchWidthOrHeight = 0.5f;
             _canvas = (RectTransform)canvasGo.transform;
 
             BuildBackdrop(catalog);
             BuildWorld(catalog);
             BuildAtmosphere(catalog);
+            BuildEvents(catalog);
             BuildHud(catalog);
             BuildTabBar(catalog);
             BuildSheet(catalog);
@@ -371,7 +452,7 @@ namespace VuonTra.Game.UI
             }
 
             // Rabbits out for a walk along the grass between the rows.
-            float[] lanes = { WorldH - 770f, WorldH - 1270f, 200f };
+            float[] lanes = { WorldH - 850f, WorldH - 1410f, WorldH - 1970f, 210f };
             for (int i = 0; i < lanes.Length && catalog.Rabbit != null; i++)
             {
                 var rt = UiKit.Rect("Walker", _street).Place(0f, 0f, 400, lanes[i], 130, 130);
@@ -388,7 +469,7 @@ namespace VuonTra.Game.UI
             BuildStationCard(catalog);
             CenterOn(StationSpot(0));
 
-            var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -196, 900, 60);
+            var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -318, 940, 60);
             hint.AddShadow(14f, 8f, 0.28f);
             UiKit.Rect("Body", hint).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Text", hint).Stretch(0, 0, 1, 1).AddText(L10n.T("hint"), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -456,10 +537,10 @@ namespace VuonTra.Game.UI
                 Vector2 spot = StationSpot(index), from = _street.anchoredPosition;
                 Vector2 onScreen = spot + from;
                 var target = new Vector2(
-                    from.x + Mathf.Clamp(onScreen.x, 340f, 1580f) - onScreen.x,
-                    from.y + Mathf.Clamp(onScreen.y, 330f, 440f) - onScreen.y);
-                target.x = Mathf.Clamp(target.x, 1920f - WorldW, 0f);
-                target.y = Mathf.Clamp(target.y, 1080f - WorldH, 0f);
+                    from.x + Mathf.Clamp(onScreen.x, 290f, ScreenW - 290f) - onScreen.x,
+                    from.y + Mathf.Clamp(onScreen.y, 520f, 1080f) - onScreen.y);
+                target.x = Mathf.Clamp(target.x, ScreenW - WorldW, 0f);
+                target.y = Mathf.Clamp(target.y, ScreenH - WorldH, 0f);
                 var scroll = _street.parent.GetComponent<ScrollRect>();
                 if (scroll != null) scroll.StopMovement();
                 Tweens.Add(0.25f, t => { if (_street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, target, t); }, Ease.OutCubic);
@@ -540,8 +621,8 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _fireflies.Count; i++)
             {
                 float seed = i * 7.31f;
-                float x = Mathf.Repeat(Hash(seed) * 2200f + Mathf.Sin(_clock * 0.23f + seed) * 140f - drift, 2200f) - 140f;
-                float y = Mathf.Repeat(Hash(seed + 3f) * 1200f + Mathf.Sin(_clock * 0.31f + seed * 1.7f) * 46f - lift, 1200f) - 60f;
+                float x = Mathf.Repeat(Hash(seed) * (ScreenW + 280f) + Mathf.Sin(_clock * 0.23f + seed) * 140f - drift, ScreenW + 280f) - 140f;
+                float y = Mathf.Repeat(Hash(seed + 3f) * (ScreenH + 120f) + Mathf.Sin(_clock * 0.31f + seed * 1.7f) * 46f - lift, ScreenH + 120f) - 60f;
                 _fireflies[i].anchoredPosition = new Vector2(x, y);
                 float pulse = 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
                 _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.15f + 0.6f * pulse);
@@ -624,7 +705,7 @@ namespace VuonTra.Game.UI
         {
             _hud = UiKit.Rect("Hud", _canvas).Stretch(0, 1, 1, 1);
             _hud.pivot = new Vector2(0.5f, 1f);
-            _hud.sizeDelta = new Vector2(0, 150);
+            _hud.sizeDelta = new Vector2(0, 270);
 
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 260, -78, 440, 104);
             _purse.AddShadow();
@@ -638,7 +719,7 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("persec", "0"), 24, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             // "Trà lực": the bar and the boost button are one control.
-            var energy = UiKit.Rect("Energy", _hud).Place(0.5f, 1f, 0, -78, 520, 104);
+            var energy = UiKit.Rect("Energy", _hud).Place(0.5f, 1f, 0, -204, 640, 104);
             energy.AddShadow();
             _energyButton = UiKit.Chunky(energy, catalog.Panel, OnBoost);
             _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.6f, 1, 28, 0, 0, 6)
@@ -718,7 +799,7 @@ namespace VuonTra.Game.UI
             scrimButton.transition = Selectable.Transition.None;
             scrimButton.onClick.AddListener(CloseSheet);
 
-            _panel = UiKit.Rect("Panel", sheet).Place(0.5f, 0.5f, 0, 20, 1120, 900);
+            _panel = UiKit.Rect("Panel", sheet).Place(0.5f, 0.5f, 0, 10, 1040, 1480);
             _panel.AddShadow(30f, 18f, 0.45f);
             UiKit.Rect("Lip", _panel).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true).pixelsPerUnitMultiplier = 0.6f;
             Image body = UiKit.Rect("Face", _panel).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
@@ -727,28 +808,28 @@ namespace VuonTra.Game.UI
 
             var bar = UiKit.Rect("Bar", _panel).Stretch(0, 1, 1, 1);
             bar.pivot = new Vector2(0.5f, 1f);
-            bar.sizeDelta = new Vector2(0, 128);
+            bar.sizeDelta = new Vector2(0, 230);
 
-            UiKit.Rect("Tabs", bar).Place(0f, 0.5f, 318, -9, 580, 80).AddImage(catalog.Panel, Palette.Track, true);
+            UiKit.Rect("Tabs", bar).Place(0f, 0.5f, 318, 46, 580, 80).AddImage(catalog.Panel, Palette.Track, true);
             // Equal widths so every language's labels fit.
             AddTabButton(bar, catalog, 0, 102, 140);
             AddTabButton(bar, catalog, 1, 246, 140);
             AddTabButton(bar, catalog, 2, 390, 140);
             AddTabButton(bar, catalog, 3, 534, 140);
 
-            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 454, 26, 40, 40);
+            var badge = UiKit.Rect("Badge", bar).Place(0f, 0.5f, 454, 81, 40, 40);
             badge.AddImage(catalog.Round, Palette.CarrotLip);
             _badgeText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _badge = badge.gameObject;
 
             var modes = UiKit.Rect("Modes", bar).Stretch(0, 0, 1, 1);
             _modes = modes.gameObject;
-            UiKit.Rect("Track", modes).Place(1f, 0.5f, -306, -9, 368, 80).AddImage(catalog.Panel, Palette.Track, true);
-            AddModeButton(modes, catalog, 1, "×1", -438);
-            AddModeButton(modes, catalog, 10, "×10", -340);
-            AddModeButton(modes, catalog, 0, "Tối đa", -210);
+            UiKit.Rect("Track", modes).Place(1f, 0.5f, -212, -56, 368, 80).AddImage(catalog.Panel, Palette.Track, true);
+            AddModeButton(modes, catalog, 1, "×1", -344);
+            AddModeButton(modes, catalog, 10, "×10", -246);
+            AddModeButton(modes, catalog, 0, "Tối đa", -116);
 
-            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, -9, 80, 80);
+            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, 46, 80, 80);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();
@@ -837,7 +918,7 @@ namespace VuonTra.Game.UI
         /// <summary>A scrolling column of cards under the sheet's header; returns where the cards go.</summary>
         RectTransform AddList(string name, int tab)
         {
-            var scrollRt = UiKit.Rect(name, _panel).Stretch(0, 0, 1, 1, 0, 24, 0, 128);
+            var scrollRt = UiKit.Rect(name, _panel).Stretch(0, 0, 1, 1, 0, 24, 0, 230);
             scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
@@ -872,7 +953,7 @@ namespace VuonTra.Game.UI
 
         void AddTabButton(RectTransform bar, GameCatalog catalog, int tab, float x, float width)
         {
-            var rt = UiKit.Rect("Tab " + TabNames[tab], bar).Place(0f, 0.5f, x, -9, width, 64);
+            var rt = UiKit.Rect("Tab " + TabNames[tab], bar).Place(0f, 0.5f, x, 46, width, 64);
             Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -889,7 +970,7 @@ namespace VuonTra.Game.UI
 
         void AddModeButton(RectTransform bar, GameCatalog catalog, int mode, string label, float x)
         {
-            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -9, mode == 0 ? 152 : 92, 64);
+            var rt = UiKit.Rect("Mode " + label, bar).Place(1f, 0.5f, x, -56, mode == 0 ? 152 : 92, 64);
             Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -980,7 +1061,7 @@ namespace VuonTra.Game.UI
             _hud.gameObject.SetActive(true);
             _tabBar.gameObject.SetActive(true);
             Vector2 hudHome = _hud.anchoredPosition, barHome = _tabBar.anchoredPosition;
-            Tweens.Add(0.45f, t => _hud.anchoredPosition = hudHome + new Vector2(0, (1f - t) * 240f), Ease.OutBack);
+            Tweens.Add(0.45f, t => _hud.anchoredPosition = hudHome + new Vector2(0, (1f - t) * 340f), Ease.OutBack);
             Tweens.Add(0.5f, t => _tabBar.anchoredPosition = barHome + new Vector2(0, -(1f - t) * 320f), Ease.OutCubic);
             Refresh(-1f);
         }
@@ -1066,6 +1147,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < shown; i++)
             {
                 _actors[i].SetLevel(s.Levels[i], defs[i].Kind == StationKind.Brew, i >= s.Plots);
+                _actors[i].SetCanUpgrade(CanAfford(defs, s, i));
 
                 Rabbit worker = Rabbits.AtStation(s, i);
                 GameObject chip = _tierChips[i].gameObject;
@@ -1075,6 +1157,15 @@ namespace VuonTra.Game.UI
                 _tierLabels[i].text = worker.Name;
             }
             RefreshCard(defs, s, Runner.Mods);
+        }
+
+        /// <summary>True when the one thing the station's card offers (land, opening, or levels) can be paid for.</summary>
+        static bool CanAfford(IReadOnlyList<StationDef> defs, GameState s, int i)
+        {
+            if (i >= s.Plots) return s.Coins >= Plots.CostOfNext(defs, s);
+            int level = s.Levels[i];
+            if (level <= 0) return Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1);
+            return s.Coins >= Economy.CostOfNext(defs[i], level, Simulation.BuyCount(defs, s, i));
         }
 
         void RefreshPlotRow(IReadOnlyList<StationDef> defs, GameState s)
@@ -1109,13 +1200,20 @@ namespace VuonTra.Game.UI
         bool OnScreen(RectTransform actor)
         {
             Vector2 at = Feel.PointOf(actor);
-            return at.x > -1100f && at.x < 1100f && at.y > -640f && at.y < 640f;
+            return Mathf.Abs(at.x) < ScreenW / 2f + 160f && Mathf.Abs(at.y) < ScreenH / 2f + 160f;
         }
 
         void OnTap(int index)
         {
             SelectStation(index); // a tap always shows the station's card, asleep or not
             if (Runner.State.Levels[index] <= 0) return;
+            if (_actors[index].Dozing)
+            {
+                // Waking a dozing rabbit is a small kindness, repaid in tea power.
+                _actors[index].SetDozing(false);
+                Runner.AddEnergy(DozeEnergy);
+                Feel.FloatText(Feel.PointOf(_actors[index].Root, new Vector2(-70, 190)), L10n.T("doze.reward", (int)DozeEnergy), Palette.Lantern, 38);
+            }
             Runner.Tap(index);
             _actors[index].Squish();
             Sfx.Blip();

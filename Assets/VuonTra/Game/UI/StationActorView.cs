@@ -20,6 +20,11 @@ namespace VuonTra.Game.UI
         Sprite _stillRabbit;
         Sprite[] _workFrames;
         int _frame = -1;
+        GameObject _upArrow, _dozeBubble;
+        RectTransform _upArrowRect;
+
+        /// <summary>The rabbit has nodded off at its post; a tap wakes it.</summary>
+        public bool Dozing { get; private set; }
         Color _accent;
 
         public StationActorView(int index)
@@ -65,6 +70,18 @@ namespace VuonTra.Game.UI
             // A dressed rabbit needs no scarf, and an Image without a sprite would draw a solid box.
             _scarfImage.gameObject.SetActive(!ownRabbit && catalog.Scarf != null);
 
+            // Shown only while the station can be afforded: the one hint on the scene that says "tap me".
+            _upArrowRect = UiKit.Rect("CanUp", Root).Place(0.5f, 0.5f, 168, 44, 58, 58);
+            _upArrowRect.AddImage(catalog.IconUp, Color.white).preserveAspect = true;
+            _upArrow = _upArrowRect.gameObject;
+            _upArrow.SetActive(false);
+
+            var doze = UiKit.Rect("Doze", Root).Place(0.5f, 0.5f, -150, 120, 110, 54);
+            doze.AddImage(catalog.Panel, Palette.Paper, true);
+            UiKit.Rect("Text", doze).Stretch(0, 0, 1, 1).AddText("z z z", 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _dozeBubble = doze.gameObject;
+            _dozeBubble.SetActive(false);
+
             var barBg = UiKit.Rect("Bar", Root).Place(0.5f, 0.5f, -74, -144, 170, 24);
             barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.75f), true);
             _bar = barBg.gameObject;
@@ -90,6 +107,17 @@ namespace VuonTra.Game.UI
             _propImage.color = _locked ? Palette.Alpha(Palette.Asleep, 0.55f) : Color.white;
             _glow.SetActive(!_locked);
             _bar.SetActive(!_locked && isBrew);
+        }
+
+        public void SetCanUpgrade(bool can)
+        {
+            if (_upArrow.activeSelf != can) _upArrow.SetActive(can);
+        }
+
+        public void SetDozing(bool dozing)
+        {
+            Dozing = dozing && !_locked;
+            if (_dozeBubble.activeSelf != Dozing) _dozeBubble.SetActive(Dozing);
         }
 
         /// <summary>A tap landed: squash the rabbit.</summary>
@@ -131,7 +159,7 @@ namespace VuonTra.Game.UI
             // A rabbit with drawn work frames plays them while its station is open; asleep it holds still.
             if (_workFrames != null && _workFrames.Length > 0)
             {
-                int frame = _locked ? -1 : (int)(time * 5f * tempo + _index) % _workFrames.Length;
+                int frame = _locked || Dozing ? -1 : (int)(time * 5f * tempo + _index) % _workFrames.Length;
                 if (frame != _frame)
                 {
                     _frame = frame;
@@ -147,7 +175,8 @@ namespace VuonTra.Game.UI
                 1f - _squish * 0.18f + breathe + air * 0.10f - land, 1f);
             _rabbit.anchoredPosition = _rabbitHome + new Vector2(0, air * 46f);
             // A working rabbit sways as it works; a sleeping one nods slowly.
-            float lean = _locked ? Mathf.Sin(time * 0.9f + _index) * 2.2f - 4f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
+            float lean = _locked || Dozing ? Mathf.Sin(time * 0.9f + _index) * 2.2f - (Dozing ? 9f : 4f) : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
+            if (_upArrow.activeSelf) _upArrowRect.anchoredPosition = new Vector2(168, 44 + Mathf.Abs(Mathf.Sin(time * 4f + _index)) * 14f);
             _rabbit.localRotation = Quaternion.Euler(0, 0, lean * (1f - air));
             float hop = Ease.Pop(1f - _propPop) * (_propPop > 0f ? 1f : 0f);
             _prop.localScale = new Vector3(1f - hop * 0.08f, 1f + hop * 0.14f, 1f);

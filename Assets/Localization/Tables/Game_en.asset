@@ -19,7 +19,9 @@ MonoBehaviour:
     m_Items: []
   m_TableData:
   - m_Id: 359653376
-    m_Localized: Moon Rabbit Tea Garden
+    m_Localized: 'Moon Rabbit
+
+      Tea Garden'
     m_Metadata:
       m_Items: []
   - m_Id: 372236288
@@ -620,6 +622,18 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 9605739438080
     m_Localized: Open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12222754447360
+    m_Localized: +{0} tea power
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12222762835968
+    m_Localized: Golden firefly!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12222762835969
+    m_Localized: +{0} carrots
     m_Metadata:
       m_Items: []
   references:

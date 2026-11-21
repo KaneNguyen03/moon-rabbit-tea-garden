@@ -18,7 +18,7 @@ namespace VuonTra.EditorTools
     public static class PreviewShot
     {
         public const string Folder = "Logs/preview";
-        const int Width = 1920, Height = 1080;
+        const int Width = 1080, Height = 1920;
 
         [MenuItem("VuonTra/Render Preview")]
         public static void Render()
