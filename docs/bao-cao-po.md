@@ -615,3 +615,36 @@ Sau khi sửa cả bốn xanh.
 - `docs/issues-po.md` là bản chép do session PO giữ, đêm nay không sửa; GitHub là nguồn đúng (đóng 25, 27, 36, 43; mới 44, 45).
 - Lệnh test/seed/chụp/build như mục Bàn giao trước.
 
+## Bàn giao (22/11 ~06:30, phiên code thứ hai dừng tại đây)
+
+### Trạng thái
+- main = origin/main (tới commit này), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
+- `tools/verify.sh --build` xanh: seed, 71 ảnh preview, biên dịch, 403/403 EditMode, build Mac mở chạy 8 giây không exception (mốc đầu phiên 369/369).
+- Hai session code chạy cùng lúc trong đêm: session "Issue GitHub còn mở" làm #43, #25, #27, #36, #37 (một phần), #18 (một phần) và tạo #44, #45 (mục Bàn giao 05:40 ngay trên); session này dựng `tools/verify.sh`, chờ session kia dừng, rồi làm tiếp. Từ giờ chỉ còn một session.
+
+### Việc session này làm (sau mục 05:40)
+- `tools/verify.sh` (`822a8e9`): một lệnh kiểm hết; `--build` thêm bản Mac và đọc Player.log; đỏ là thoát khác 0.
+- Mở lại #43, #25, #27, #36 (session kia đã đóng) và gắn nhãn `chờ-PO-duyệt`: theo quy trình PO là bên đóng. Tạo hai nhãn `chờ-PO-duyệt`, `cần-chủ-project`.
+- #17 phần làm được ngay (`691d3fa`): hồ sơ người chơi (tên vườn, thỏ đại diện, mã `THO-XXXXXX`), màn hồ sơ sau hàng đầu tấm Tạm nghỉ, lớp `IAccountService` + `LocalOnlyAccount`. Save v11.
+- #46 Thang độ hiếm chung (`7bb0528`, issue mới): `Rarity` 6 bậc, mỗi bậc một số sao; tên bậc kèm sao ở mọi chỗ; dải sao trên mọi khung theo bậc.
+- #47 Trần cấp trạm 500 (`283c820`, issue mới): mọi chế độ nâng và Nâng tất cả dừng ở 500; nút ghi "Cấp tối đa".
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`; #16 đã tick.
+
+### Chưa đụng tới (theo thứ tự trong #16)
+- Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
+- Sao của thỏ mỗi 10 cấp (chưa có issue).
+- Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
+- Lượt UI 2 (#26, #31, #32, phần còn lại của #22, #23, #24, #28), hướng dẫn 60 giây (#30).
+- Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
+
+### Cần chủ project thử tay hoặc quyết
+- Thử trong bản Mac: hàng Hồ sơ trên tấm Tạm nghỉ, nút Chép mã (clipboard), chạm hình đổi thỏ đại diện, đặt tên vườn (#17); đọc sao trên ô thỏ và danh sách bùa ở cỡ điện thoại (#46); giữ tay nâng sát cấp 500 (#47, cần save cao cấp hoặc đặt `Levels` bằng tay).
+- Quyết: #44, #45 (như mục 05:40); #17 phần Unity Cloud hay đi theo #39/#40; có muốn sao trên nhãn tên thỏ trong vườn không (#46, lệch nhỏ); "Mốc trạm 25/100/300" muốn thấy gì (đổi hình đạo cụ, băng cờ, hay chỉ huy hiệu).
+
+### Lưu ý kỹ thuật mới
+- Trước khi sửa file: xem `mcp list_sessions`/`git status` để chắc không có session khác đang viết cùng thư mục; không chạy hai Unity batch cùng lúc (khoá `Temp/UnityLockfile`).
+- `UiKit.AddText` để chữ tràn dọc (`VerticalWrapMode.Overflow`); muốn best-fit co theo chiều cao thì đặt `verticalOverflow = Truncate` (xem `ItemPickerView` dòng bậc).
+- Không gắn `Text` lên cùng GameObject với `Image`: Unity trả null; luôn tạo con "Text" (xem `UiKit.Stars`).
+- Trong `GardenScreen` có thuộc tính `Profile` nên gọi lớp tĩnh phải viết `VuonTra.Core.Profile`.
+- Kịch bản `PreviewShot` đổi về `vi` cuối phần tiếng Anh nhưng không dựng lại tấm, nên vài khung cuối trộn hai ngôn ngữ trong tấm trượt; không ảnh hưởng game.
+- Lệnh test/seed/chụp/build như các mục Bàn giao trước; `tools/verify.sh` gom tất cả.
