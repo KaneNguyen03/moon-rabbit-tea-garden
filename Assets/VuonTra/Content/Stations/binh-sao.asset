@@ -21,4 +21,5 @@ MonoBehaviour:
   CycleSeconds: 32
   Boosts: []
   Prop: {fileID: 21300000, guid: 49688fbde2a6c403a8f896ca70416690, type: 3}
+  Rabbit: {fileID: 21300000, guid: 5f8ed333818ef426388d6629939140a1, type: 3}
   Accent: {r: 1, g: 0.8509804, b: 0.5411765, a: 1}

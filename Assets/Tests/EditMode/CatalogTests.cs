@@ -68,7 +68,9 @@ namespace VuonTra.Core.Tests
         {
             foreach (StationData s in catalog.Stations) Assert.IsNotNull(s.Prop, s.Id);
             Assert.IsNotNull(catalog.Rabbit);
-            Assert.IsNotNull(catalog.Scarf);
+            // A station either has its own dressed rabbit or wears the shared tinted scarf.
+            foreach (StationData s in catalog.Stations)
+                if (s.Rabbit == null) Assert.IsNotNull(catalog.Scarf, s.Id + " has neither its own rabbit nor a scarf");
             Assert.IsNotNull(catalog.Panel);
             Assert.IsNotNull(catalog.Round);
             Assert.IsNotNull(catalog.Background);

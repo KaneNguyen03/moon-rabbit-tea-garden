@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &27390151
+--- !u!1 &838852446
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,9 +127,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 27390154}
-  - component: {fileID: 27390153}
-  - component: {fileID: 27390152}
+  - component: {fileID: 838852449}
+  - component: {fileID: 838852448}
+  - component: {fileID: 838852447}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -137,27 +137,27 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &27390152
+--- !u!114 &838852447
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 27390151}
+  m_GameObject: {fileID: 838852446}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b0dcd5fe14d2042f7b0a8ab051a3b7c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.UI.GardenScreen
-  Runner: {fileID: 27390153}
-  Cam: {fileID: 451243636}
---- !u!114 &27390153
+  Runner: {fileID: 838852448}
+  Cam: {fileID: 2011058599}
+--- !u!114 &838852448
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 27390151}
+  m_GameObject: {fileID: 838852446}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8efcfe3fd326f4a05928210228429292, type: 3}
@@ -165,13 +165,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.GameRunner
   Catalog: {fileID: 11400000, guid: 6721a829d346b49768b2d33f07279af0, type: 2}
   Paused: 0
---- !u!4 &27390154
+--- !u!4 &838852449
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 27390151}
+  m_GameObject: {fileID: 838852446}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -180,7 +180,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &451243635
+--- !u!1 &2011058598
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -188,9 +188,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 451243638}
-  - component: {fileID: 451243636}
-  - component: {fileID: 451243637}
+  - component: {fileID: 2011058601}
+  - component: {fileID: 2011058599}
+  - component: {fileID: 2011058600}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -198,13 +198,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &451243636
+--- !u!20 &2011058599
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 451243635}
+  m_GameObject: {fileID: 2011058598}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -249,21 +249,21 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &451243637
+--- !u!81 &2011058600
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 451243635}
+  m_GameObject: {fileID: 2011058598}
   m_Enabled: 1
---- !u!4 &451243638
+--- !u!4 &2011058601
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 451243635}
+  m_GameObject: {fileID: 2011058598}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
@@ -276,5 +276,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 451243638}
-  - {fileID: 27390154}
+  - {fileID: 2011058601}
+  - {fileID: 838852449}

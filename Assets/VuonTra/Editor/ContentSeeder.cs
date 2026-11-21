@@ -45,6 +45,7 @@ namespace VuonTra.EditorTools
         public static void Seed()
         {
             PlaceholderArt.Generate();
+            FinalArt.Import(); // real art in Art/Final wins over a placeholder of the same name
             Directory.CreateDirectory(StationFolder);
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             AssetDatabase.Refresh();
@@ -68,7 +69,8 @@ namespace VuonTra.EditorTools
                 data.BaseIncome = row.Income;
                 data.CycleSeconds = row.Cycle;
                 data.Accent = PlaceholderArt.Hex(row.Accent);
-                data.Prop = PlaceholderArt.Load("prop_" + row.Id);
+                data.Prop = FinalArt.Load("prop_" + row.Id);
+                data.Rabbit = FinalArt.Find("rabbit_" + row.Id); // null: the shared rabbit plus a tinted scarf
                 EditorUtility.SetDirty(data);
                 byId[row.Id] = data;
                 ordered.Add(data);
@@ -89,14 +91,15 @@ namespace VuonTra.EditorTools
                 AssetDatabase.CreateAsset(catalog, CatalogPath);
             }
             catalog.Stations = ordered.ToArray();
-            catalog.Rabbit = PlaceholderArt.Load("rabbit");
-            catalog.Scarf = PlaceholderArt.Load("scarf");
-            catalog.Panel = PlaceholderArt.Load("panel");
-            catalog.Round = PlaceholderArt.Load("round");
-            catalog.Glow = PlaceholderArt.Load("glow");
-            catalog.Currency = PlaceholderArt.Load("carrot");
-            catalog.Gear = PlaceholderArt.Load("gear");
-            catalog.Background = PlaceholderArt.Load("background");
+            catalog.Rabbit = FinalArt.Load("rabbit");
+            // The placeholder scarf only lines up with the placeholder rabbit.
+            catalog.Scarf = FinalArt.Find("rabbit") != null ? FinalArt.Find("scarf") : PlaceholderArt.Load("scarf");
+            catalog.Panel = FinalArt.Load("panel");
+            catalog.Round = FinalArt.Load("round");
+            catalog.Glow = FinalArt.Load("glow");
+            catalog.Currency = FinalArt.Load("carrot");
+            catalog.Gear = FinalArt.Load("gear");
+            catalog.Background = FinalArt.Load("background");
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
 

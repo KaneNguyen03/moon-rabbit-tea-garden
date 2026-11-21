@@ -46,12 +46,17 @@ namespace VuonTra.Game.UI
             _propImage = _prop.AddImage(data.Prop, Color.white);
             _propImage.preserveAspect = true;
 
-            _rabbit = UiKit.Rect("Rabbit", Root).Place(0.5f, 0.5f, -72, -112, 236, 236);
+            bool ownRabbit = data.Rabbit != null;
+            // Dressed rabbits are taller than wide (ears, hats), so they get a taller box to read at the same size.
+            float box = ownRabbit ? 256 : 236;
+            _rabbit = UiKit.Rect("Rabbit", Root).Place(0.5f, 0.5f, -72, -112, box, box);
             _rabbit.pivot = new Vector2(0.5f, 0f); // squash from the feet
-            _rabbitImage = _rabbit.AddImage(catalog.Rabbit, Color.white);
+            _rabbitImage = _rabbit.AddImage(ownRabbit ? data.Rabbit : catalog.Rabbit, Color.white);
             _rabbitImage.preserveAspect = true;
             _scarfImage = UiKit.Rect("Scarf", _rabbit).Stretch(0, 0, 1, 1).AddImage(catalog.Scarf, data.Accent);
             _scarfImage.preserveAspect = true;
+            // A dressed rabbit needs no scarf, and an Image without a sprite would draw a solid box.
+            _scarfImage.gameObject.SetActive(!ownRabbit && catalog.Scarf != null);
 
             var barBg = UiKit.Rect("Bar", Root).Place(0.5f, 0.5f, -74, -144, 170, 24);
             barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.75f), true);

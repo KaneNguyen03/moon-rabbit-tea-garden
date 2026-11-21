@@ -23,4 +23,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 73d97d3febd0944eabfe1797453c3405, type: 2}
   - {fileID: 11400000, guid: a7b23d6be200a47f69223853d32a1198, type: 2}
   Prop: {fileID: 21300000, guid: 698f0a836f1ef484bbb7bf855edb5877, type: 3}
+  Rabbit: {fileID: 21300000, guid: 857f2ecc2fafd400d8401e98b0c73597, type: 3}
   Accent: {r: 0.77254903, g: 0.54509807, b: 0.8784314, a: 1}

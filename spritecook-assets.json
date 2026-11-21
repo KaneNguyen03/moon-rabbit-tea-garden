@@ -1,0 +1,68 @@
+{
+  "assets": [
+    {
+      "asset_id": "7d016cfa-0082-4f58-96bc-cf4f24ae35eb",
+      "label": "moon rabbit, plain (style reference)"
+    },
+    {
+      "asset_id": "911c268b-461e-4742-adf5-ca47330d801a",
+      "label": "nine job rabbits 3x3 sheet"
+    }
+  ],
+  "local_files": [
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_am-tra.png",
+      "sha12": "f0e567429a59",
+      "label": "rabbit_am-tra",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_gio-la.png",
+      "sha12": "ce734a8f63b6",
+      "label": "rabbit_gio-la",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_noi-mut.png",
+      "sha12": "176fcd6fc141",
+      "label": "rabbit_noi-mut",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_coi-hoa.png",
+      "sha12": "4773346de860",
+      "label": "rabbit_coi-hoa",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_lo-banh.png",
+      "sha12": "eb19564075ac",
+      "label": "rabbit_lo-banh",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_to-mat.png",
+      "sha12": "d36e9dd28daa",
+      "label": "rabbit_to-mat",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_tra-sua.png",
+      "sha12": "c75ee4dcd2a5",
+      "label": "rabbit_tra-sua",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit_binh-sao.png",
+      "sha12": "39e0bb5928fd",
+      "label": "rabbit_binh-sao",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    },
+    {
+      "file": "Assets/VuonTra/Art/Final/rabbit.png",
+      "sha12": "a0289f0dc5d9",
+      "label": "rabbit",
+      "sliced_from": "911c268b-461e-4742-adf5-ca47330d801a"
+    }
+  ]
+}

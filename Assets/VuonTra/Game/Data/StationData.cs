@@ -17,6 +17,8 @@ namespace VuonTra.Game
         [Tooltip("Ingredient only: the Brew stations this one makes more valuable.")]
         public StationData[] Boosts = new StationData[0];
         public Sprite Prop;
+        [Tooltip("This station's own rabbit, already dressed. Empty: the shared rabbit with a scarf in the accent colour.")]
+        public Sprite Rabbit;
         public Color Accent = Color.white;
 
         public StationDef ToDef()
