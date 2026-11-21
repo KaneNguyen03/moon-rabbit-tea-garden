@@ -397,6 +397,26 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: vẽ tay nền đất có cọc biển và tấm đệm trống.
 
+## #25 — Tab Trạm: thu nhập mỗi giây là con số chính, giữ tay để nâng liên tục
+
+- Test: 329/329 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 4 test.
+- Commit `9bdf90f`, đã push. Issue #25 đã đóng, #16 đã ghi.
+- Bảng chuỗi seed lại (3 key mới: `row.tonext`, `row.topmilestone`, `row.feeds`).
+- Ảnh (docs/anh/po-25/): `25-truoc-5-stations.png`, `25-sau-5-stations.png`, `25-sau-22-full.png` (tấm kéo hết cỡ, sáu dòng).
+
+### Đã làm (đối chiếu với nguyên văn #25)
+- `StationRowView` làm lại: hình 164, con số chính "+2,13K/giây" (cỡ tiêu đề, màu cam), tên trạm cỡ thân, dòng nhỏ "3,20K cà rốt / 1,5 giây", thanh mốc có chữ "Còn 23 cấp tới ×2" (hoặc "Đã qua mọi mốc"), chỉ hiện ở trạm đã mở.
+- Trạm nguyên liệu: con số chính "×3,4", dòng "Tiếp sức cho" kèm hình nhỏ các trạm nó tiếp sức.
+- Giữ tay nâng liên tục, nhanh dần: `PressDip.Repeat` (0,4 giây chờ, 0,26 giây rồi nhanh thêm 18% mỗi lần, tối thiểu 0,07 giây). Mỗi lần lặp lấy mốc từ lần trước, không từ thời điểm hiện tại. Thả tay sau khi đã lặp thì cú chạm kết thúc bị nuốt, không mua thêm. Mọi nút chunky giờ đi qua `PressDip.Fire` (nút `Button.onClick` → `Dip.Fire` → `Pressed`), nên test gọi `onClick.Invoke()` vẫn chạy như cũ.
+- Trạm kế tiếp để mở có nền vàng và nút "Mở trạm"; trạm sau nó nền xám. Trạm chưa mở vốn đã nằm cuối vì mở theo thứ tự.
+- Chạm dòng cuộn vườn tới trạm: có sẵn từ #22.
+
+### Chưa đạt so với #25
+- Chưa ai giữ tay thật để cảm nhịp lặp; các con số nhịp nằm trong `PressDip` (hằng `HoldDelay`, `FirstInterval`, `LeastInterval`, `QuickerBy`), chỉnh một chỗ.
+
+### Tồn đọng
+- tồn đọng: cảm nhịp giữ nút trên máy thật, chỉnh bốn hằng trong `PressDip` nếu quá nhanh hoặc quá chậm.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
