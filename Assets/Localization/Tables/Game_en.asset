@@ -1366,6 +1366,30 @@ MonoBehaviour:
     m_Localized: "Level {0} \xB7 a star every 10 levels"
     m_Metadata:
       m_Items: []
+  - m_Id: 91019415642112
+    m_Localized: +{0} s per tap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030720
+    m_Localized: +{0}% speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030721
+    m_Localized: "\xD7{0} carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030722
+    m_Localized: +{0} h away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030723
+    m_Localized: "{0} \u2192 {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030724
+    m_Localized: "{0} \xB7 maxed"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

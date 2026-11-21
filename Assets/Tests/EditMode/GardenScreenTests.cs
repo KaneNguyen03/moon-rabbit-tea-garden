@@ -2141,5 +2141,35 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.AreEqual("Cấp 30/30 ☆☆☆", T("Canvas/RabbitSheet/Card/Body/Level").text);
         }
+
+        [Test]
+        public void A_Charm_Card_Says_Its_Effect_Now_And_After_One_More_Level_And_Counts_Levels_In_Dots()
+        {
+            runner.State.UpgradeLevels[0] = 1; // warm hands
+            runner.State.UpgradeLevels[3] = 5; // long sleep, at its cap
+            screen.OpenSheet(1);
+            screen.Refresh();
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+            string list = "Canvas/Sheet/Panel/Upgrades/Content/";
+
+            Assert.AreEqual("+0,2 giây mỗi chạm → +0,4 giây mỗi chạm", T(list + "Upgrade tay-am/Effect").text);
+            Assert.AreEqual("×1 cà rốt → ×2 cà rốt", T(list + "Upgrade trang-ram/Effect").text, "not learnt yet: the base game first");
+            Assert.AreEqual("+10 giờ vắng mặt · đã đầy", T(list + "Upgrade giac-ngu/Effect").text);
+            Assert.IsNull(root.transform.Find(list + "Upgrade tay-am/Level"), "the level chip is gone");
+
+            Transform dots = root.transform.Find(list + "Upgrade tay-am/Dots");
+            Assert.AreEqual(10, dots.childCount, "one dot per level the charm can reach");
+            Assert.AreEqual(Palette.Carrot, dots.GetChild(0).GetComponent<Image>().color, "the first is lit");
+            Assert.AreEqual(Palette.Track, dots.GetChild(1).GetComponent<Image>().color);
+            Transform sleepDots = root.transform.Find(list + "Upgrade giac-ngu/Dots");
+            Assert.AreEqual(5, sleepDots.childCount);
+            for (int i = 0; i < 5; i++) Assert.AreEqual(Palette.Carrot, sleepDots.GetChild(i).GetComponent<Image>().color);
+
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            screen.OpenSheet(1);
+            screen.Refresh();
+            Assert.AreEqual("+0.2 s per tap → +0.4 s per tap", T(list + "Upgrade tay-am/Effect").text);
+        }
     }
 }

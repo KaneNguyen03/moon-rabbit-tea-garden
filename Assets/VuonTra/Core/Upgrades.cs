@@ -78,6 +78,20 @@ namespace VuonTra.Core
 
         public static bool IsMaxed(UpgradeDef u, int level) => level >= u.MaxLevel;
 
+        /// <summary>
+        /// What the charm does at a level, as the number its effect is measured in: seconds per tap, the share
+        /// of extra speed, the income multiplier, or hours of away time. Level 0 is the base game (0, 0, 1, 0).
+        /// </summary>
+        public static double EffectAt(UpgradeDef u, int level)
+        {
+            int n = Math.Max(0, level);
+            switch (u.Effect)
+            {
+                case UpgradeEffect.IncomeMultiplier: return Math.Pow(u.Amount, n);
+                default: return u.Amount * n;
+            }
+        }
+
         /// <summary>Buys one level. Leaves the state untouched when maxed or too expensive.</summary>
         public static bool TryBuy(IReadOnlyList<UpgradeDef> upgrades, GameState s, int index)
         {

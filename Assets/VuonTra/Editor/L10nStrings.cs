@@ -158,6 +158,12 @@ namespace VuonTra.EditorTools
             { "upgrade.level", "Cấp {0}/{1}", "Lv {0}/{1}" },
             { "upgrade.maxed", "Đã đầy", "Maxed" },
             { "upgrade.learn", "Học bùa", "Learn" },
+            { "upgrade.effect.tap", "+{0} giây mỗi chạm", "+{0} s per tap" },
+            { "upgrade.effect.speed", "+{0}% tốc độ", "+{0}% speed" },
+            { "upgrade.effect.income", "×{0} cà rốt", "×{0} carrots" },
+            { "upgrade.effect.away", "+{0} giờ vắng mặt", "+{0} h away" },
+            { "upgrade.next", "{0} → {1}", "{0} → {1}" },
+            { "upgrade.full", "{0} · đã đầy", "{0} · maxed" },
 
             // ----- quests -----
             { "quests.today", "Hôm nay", "Today" },

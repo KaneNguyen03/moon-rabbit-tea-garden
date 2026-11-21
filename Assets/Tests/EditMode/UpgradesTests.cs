@@ -24,6 +24,22 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Each_Charm_Says_What_It_Does_At_A_Level()
+        {
+            var tap = new UpgradeDef { Effect = UpgradeEffect.TapSeconds, Amount = 0.2 };
+            var speed = new UpgradeDef { Effect = UpgradeEffect.Speed, Amount = 0.1 };
+            var income = new UpgradeDef { Effect = UpgradeEffect.IncomeMultiplier, Amount = 2 };
+            var away = new UpgradeDef { Effect = UpgradeEffect.AwayHours, Amount = 2 };
+            Assert.AreEqual(0d, Upgrades.EffectAt(tap, 0), 1e-9);
+            Assert.AreEqual(0.6, Upgrades.EffectAt(tap, 3), 1e-9);
+            Assert.AreEqual(0.2, Upgrades.EffectAt(speed, 2), 1e-9);
+            Assert.AreEqual(1d, Upgrades.EffectAt(income, 0), 1e-9, "no charm: income as it is");
+            Assert.AreEqual(8d, Upgrades.EffectAt(income, 3), 1e-9);
+            Assert.AreEqual(4d, Upgrades.EffectAt(away, 2), 1e-9);
+            Assert.AreEqual(0d, Upgrades.EffectAt(away, -5), 1e-9, "never below the base game");
+        }
+
+        [Test]
         public void No_Upgrades_Is_The_Base_Game()
         {
             Modifiers m = Modifiers.From(ups, s);

@@ -1359,6 +1359,30 @@ MonoBehaviour:
     m_Key: moment.star.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 91019415642112
+    m_Key: upgrade.effect.tap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030720
+    m_Key: upgrade.effect.speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030721
+    m_Key: upgrade.effect.income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030722
+    m_Key: upgrade.effect.away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030723
+    m_Key: upgrade.next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 91019424030724
+    m_Key: upgrade.full
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
