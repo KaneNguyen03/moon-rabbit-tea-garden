@@ -603,6 +603,23 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: các ý trên; bảng thu nhập chưa ghi mốc ×2 đang áp dụng cho từng trạm (đã nằm trong số).
 
+## #31 — Di chuyển trong vườn: mũi tên mép màn hình và nút về ấm trà (hai ý)
+
+- Test: 417/417 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 1 test màn hình.
+- Commit `ceca860`, đã push. Issue #31 để mở (còn: vuốt trái/phải trên tấm trạm; chạm vùng ở zoom xa; nhớ vị trí và zoom), đã comment, nhãn chờ-PO-duyệt.
+- `GardenScreen.BuildEdges/UpdateEdges/FlyTo`; `StationActorView.CanUpgradeShown`. Không chuỗi mới, không đổi save.
+- Ảnh (docs/anh/po-31/): `31-sau-mui-ten.png` (viên "▲ 2" dưới HUD khi nhìn chân vườn với ví đầy), `31-sau-ve-am-tra.png` (zoom gần ở chân vườn: "▲ 7" và nút ấm trà góc phải).
+
+### Đã làm (đối chiếu với nguyên văn #31)
+- Mũi tên ở mép trên và mép dưới khi ngoài tầm nhìn có trạm nâng được hoặc thỏ ngủ gật: viên "▲ N" dưới HUD và "▼ N" trên khay; chạm thì bay tới trạm gần nhất phía đó (test). "Thưởng đang chờ" chưa tính (chưa có nguồn thưởng ngoài màn hình ngoài khay, mà khay luôn ở dưới).
+- Nút "về ấm trà": nút tròn hình ấm trà ở góc phải trên khay, hiện khi ấm trà ngoài tầm nhìn, chạm thì bay về (test). Ẩn khi tấm trượt mở.
+
+### Chưa đạt so với #31
+- Vuốt trái/phải trên tấm trạm để nhảy trạm kế; chạm một vùng ở zoom xa để phóng vào; nhớ vị trí và mức zoom lần trước.
+
+### Tồn đọng
+- tồn đọng: ba ý trên; mũi tên chưa tính thỏ ngủ gật ở chỗ nghỉ (chỉ thỏ đang làm ở trạm).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -679,12 +696,13 @@ Sau khi sửa cả bốn xanh.
 - #48 Sao của thỏ mỗi 10 cấp (`6b7b075`, issue mới): sao rỗng ☆ sau cấp ở ô lưới, tấm thỏ, nhãn trong vườn; băng rôn khi qua mốc.
 - #26 phần còn lại (`a754d5f`): thẻ bùa ghi hiệu lực hiện tại → sau một cấp; thanh cấp bằng chấm.
 - #32 hai ý đầu (`386be8e`): chạm ví mở bảng "Cà rốt đến từ đâu"; thanh Trà lực nói còn bao lâu và thở khi đủ.
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`; #16 đã tick.
+- #31 hai ý (`ceca860`): viên ▲/▼ ở mép đếm trạm nâng được hoặc thỏ ngủ gật ngoài tầm nhìn, chạm bay tới; nút ấm trà về tâm vườn.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (#31, phần còn lại của #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (phần còn lại của #31, #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
