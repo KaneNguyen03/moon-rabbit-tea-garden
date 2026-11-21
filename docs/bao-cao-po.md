@@ -586,6 +586,23 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: dòng mô tả cũ ("Mỗi lần chạm làm nhanh thêm 0,2 giây") vẫn giữ phía trên dòng hiệu lực; nếu PO thấy thừa thì bỏ.
 
+## #32 — HUD: ô cà rốt và thanh Trà lực (hai ý đầu)
+
+- Test: 416/416 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test core (`EconomyTests.cs`) và 2 test màn hình.
+- Commit `386be8e`, đã push. Issue #32 để mở (còn hai ý: cách viết số lớn + chạm giữ xem số đầy đủ; gom cụm nút góc phải), đã comment, nhãn chờ-PO-duyệt.
+- File mới: `Assets/VuonTra/Game/UI/IncomeView.cs`. `Economy.StationIncomePerSecond(defs, s, i, out thỏ, out nguyên liệu)`, `Energy.SecondsUntilBoost`. 9 chuỗi `income.*`, `energy.wait` (seed lại). Không đổi save.
+- Ảnh (docs/anh/po-32/): `32-truoc-4-boost.png`, `32-sau-32-income.png`.
+
+### Đã làm (đối chiếu với nguyên văn #32)
+- Ô cà rốt: chạm mở bảng "Cà rốt đến từ đâu": một dòng mỗi trạm pha đang mở (hình, tên, +N/giây, "thỏ ×a · nguyên liệu ×b"), rồi Bùa ×, Tốc độ cả vườn ×, Đang tăng tốc ×2 (khi có), Tổng cộng (test màn hình + test core cho phép tính).
+- Thanh Trà lực: chưa đủ thì chạm hiện dòng nổi "Còn N phút nữa là đủ tăng tốc" và không tiêu gì; đủ thì nút thở nhẹ (±2,5%) cho tới khi bấm (test màn hình). Trong lúc tăng tốc thỏ đã làm nhanh gấp đôi từ trước; chưa thêm viền sáng.
+
+### Chưa đạt so với #32
+- Viền sáng cả vườn khi tăng tốc; một cách viết số lớn thống nhất + chạm giữ xem số đầy đủ; gom cụm nút góc phải.
+
+### Tồn đọng
+- tồn đọng: các ý trên; bảng thu nhập chưa ghi mốc ×2 đang áp dụng cho từng trạm (đã nằm trong số).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -661,12 +678,13 @@ Sau khi sửa cả bốn xanh.
 - #47 Trần cấp trạm 500 (`283c820`, issue mới): mọi chế độ nâng và Nâng tất cả dừng ở 500; nút ghi "Cấp tối đa".
 - #48 Sao của thỏ mỗi 10 cấp (`6b7b075`, issue mới): sao rỗng ☆ sau cấp ở ô lưới, tấm thỏ, nhãn trong vườn; băng rôn khi qua mốc.
 - #26 phần còn lại (`a754d5f`): thẻ bùa ghi hiệu lực hiện tại → sau một cấp; thanh cấp bằng chấm.
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`; #16 đã tick.
+- #32 hai ý đầu (`386be8e`): chạm ví mở bảng "Cà rốt đến từ đâu"; thanh Trà lực nói còn bao lâu và thở khi đủ.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (#31, #32, phần còn lại của #22, #23, #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (#31, phần còn lại của #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
