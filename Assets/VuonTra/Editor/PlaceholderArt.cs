@@ -201,6 +201,16 @@ namespace VuonTra.EditorTools
                 return new Color(1f, 1f, 1f, a);
             });
             glow.Save("glow");
+
+            var carrot = new Painter(128, 128);
+            carrot.Blob(88, 100, 7, 20, -20, Hex("6fcf8a"), 4);
+            carrot.Blob(72, 106, 7, 20, 12, Hex("8adf9c"), 4);
+            carrot.Blob(102, 88, 7, 18, -52, Hex("6fcf8a"), 4);
+            carrot.Blob(56, 52, 22, 46, 38, Hex("ff9b4a"), 5);
+            carrot.Ellipse(48, 62, 6, 16, 38, Hex("ffc38a"));
+            carrot.Ellipse(62, 44, 9, 2.5f, -52, Hex("e07a2c"));
+            carrot.Ellipse(50, 30, 7, 2.2f, -52, Hex("e07a2c"));
+            carrot.Save("carrot");
         }
 
         static float Hash(float n)

@@ -94,6 +94,7 @@ namespace VuonTra.EditorTools
             catalog.Panel = PlaceholderArt.Load("panel");
             catalog.Round = PlaceholderArt.Load("round");
             catalog.Glow = PlaceholderArt.Load("glow");
+            catalog.Currency = PlaceholderArt.Load("carrot");
             catalog.Background = PlaceholderArt.Load("background");
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
@@ -137,6 +138,8 @@ namespace VuonTra.EditorTools
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = true;
+            // Fixes where saves live on desktop; changing it later would orphan existing saves.
+            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Standalone, "com.vuontratho.game");
         }
     }
 }

@@ -17,7 +17,7 @@
 - The game must progress without tapping; tapping is only a small speed-up.
 - Stations, and later sprites, events and quests, are data assets. Adding one must not require a code change.
 - Save file carries a version number; loading an older version must not lose progress.
-- All player-facing text is Vietnamese. Currency is "sương".
+- All player-facing text is Vietnamese. Currency is "cà rốt" (changed from "sương" at the user's request on 2026-11-21).
 - Art is replaceable by swapping sprite files; no code refers to a specific image.
 - Theme and art are original. Nothing from Cats & Soup (name, characters, art, layout) is copied.
 - Unity binary: `/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity` (called `$UNITY` below).

@@ -13,7 +13,7 @@ Những gì bạn đã nói: gameplay giống Cats & Soup; đồ họa và nội
 **Mục tiêu**
 
 - Chơi được trên điện thoại ở màn hình dọc, mỗi lần mở vài phút là thấy tiến triển.
-- Có đủ lý do để quay lại mỗi ngày: thu sương lúc vắng mặt, điểm danh, sự kiện.
+- Có đủ lý do để quay lại mỗi ngày: thu cà rốt lúc vắng mặt, điểm danh, sự kiện.
 - Thêm sự kiện mới, trạm mới, bé thỏ mới mà không phải sửa code (chỉ thêm file dữ liệu).
 
 **Không làm ở bản đầu**
@@ -30,16 +30,16 @@ Những gì bạn đã nói: gameplay giống Cats & Soup; đồ họa và nội
 
 ### 1. Vòng chơi chính
 
-Các trạm tự làm ra đồ uống, đồ uống tự bán lấy **sương**, dùng sương nâng cấp trạm và mở trạm mới. Có hai loại trạm:
+Các trạm tự làm ra đồ uống, đồ uống tự bán lấy **cà rốt**, dùng cà rốt nâng cấp trạm và mở trạm mới. Có hai loại trạm:
 
 - **Trạm pha chế** (ấm trà, nồi mứt, quầy trà sữa…): làm ra món để bán.
 - **Trạm nguyên liệu** (hái lá, giã hoa, lấy mật…): không bán gì, nhưng làm tăng giá các món của trạm pha chế. Đây là lớp chiến thuật: nâng cái nào trước thì lời hơn.
 
-Mốc cấp 10, 25, 50, 100… cho thưởng nhân đôi. Vắng mặt vẫn thu sương, có giới hạn số giờ.
+Mốc cấp 10, 25, 50, 100… cho thưởng nhân đôi. Vắng mặt vẫn thu cà rốt, có giới hạn số giờ.
 
 ### 2. Các bé thỏ
 
-Mỗi bé thỏ là một nhân vật để sưu tầm, có độ hiếm và một kỹ năng riêng (ví dụ: làm nhanh hơn 20% ở trạm pha chế, hoặc tăng giá mứt). Bạn xếp bé nào vào trạm nào. Bé mới tìm đến vườn nhờ **cà rốt trăng**, kiếm được qua nhiệm vụ và sự kiện. Nơ, mũ và phụ kiện để thay cho vui, có cộng thưởng nhỏ.
+Mỗi bé thỏ là một nhân vật để sưu tầm, có độ hiếm và một kỹ năng riêng (ví dụ: làm nhanh hơn 20% ở trạm pha chế, hoặc tăng giá mứt). Bạn xếp bé nào vào trạm nào. Bé mới tìm đến vườn nhờ **cỏ bốn lá**, kiếm được qua nhiệm vụ và sự kiện. Nơ, mũ và phụ kiện để thay cho vui, có cộng thưởng nhỏ.
 
 ### 3. Sự kiện
 
@@ -53,7 +53,7 @@ Mỗi sự kiện là một file dữ liệu có ngày bắt đầu và kết th
 
 ### 4. Lý do chơi lâu dài
 
-- **Nhiệm vụ hằng ngày và thành tựu**, thưởng ngọc trăng (tiền hiếm) và cà rốt trăng.
+- **Nhiệm vụ hằng ngày và thành tựu**, thưởng ngọc trăng (tiền hiếm) và cỏ bốn lá.
 - **Mùa trăng mới:** khi đã đi xa, bạn có thể bắt đầu lại từ đầu để đổi lấy hệ số thưởng vĩnh viễn, lần sau đi nhanh hơn và xa hơn.
 - **Trang trí khu vườn:** đặt đèn lồng, ghế, hồ nước; mỗi món cộng một chút vào thu nhập.
 
@@ -97,7 +97,7 @@ Mỗi mốc kết thúc bằng một bản bạn chơi thử được.
 |---|---|---|
 | 0. Dựng nền | Tạo dự án Unity, cài plugin, Git, một màn hình trống chạy được | Mở Unity bấm Play thấy khu vườn trống |
 | 1. Vòng chơi chính | Trạm pha chế và nguyên liệu, nâng cấp, mốc thưởng, thu lúc vắng mặt, lưu game | Chơi được như bản web, nhưng trong Unity và có lớp nguyên liệu |
-| 2. Các bé thỏ | Sưu tầm, độ hiếm, kỹ năng, xếp vào trạm, cà rốt trăng | Mở được bé mới và thấy khác biệt khi xếp |
+| 2. Các bé thỏ | Sưu tầm, độ hiếm, kỹ năng, xếp vào trạm, cỏ bốn lá | Mở được bé mới và thấy khác biệt khi xếp |
 | 3. Sự kiện | Chuyện trong ngày, điểm danh 7 ngày, Lễ hội Trăng Rằm | Chơi trọn một sự kiện từ đầu tới phần thưởng cuối |
 | 4. Chơi lâu dài | Nhiệm vụ, thành tựu, Mùa trăng mới, trang trí | Có lý do để quay lại sau một tuần |
 | 5. Hình và cảm giác | Hình riêng, chuyển động, âm thanh, bản Android | File cài lên điện thoại Android |

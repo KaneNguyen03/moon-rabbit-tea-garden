@@ -150,7 +150,7 @@ namespace VuonTra.Game.UI
 
             var purse = UiKit.Rect("Purse", hud).Place(1f, 0.5f, -230, 0, 400, 92);
             purse.AddImage(catalog.Panel, new Color(UiKit.Panel.r, UiKit.Panel.g, UiKit.Panel.b, 0.92f), true);
-            UiKit.Rect("Drop", purse).Place(0f, 0.5f, 52, 0, 44, 44).AddImage(catalog.Round, new Color(0.62f, 0.83f, 1f, 1f));
+            UiKit.Rect("Currency", purse).Place(0f, 0.5f, 50, 0, 64, 64).AddImage(catalog.Currency != null ? catalog.Currency : catalog.Round, Color.white).preserveAspect = true;
             _coins = UiKit.Rect("Coins", purse).Stretch(0, 0.4f, 1, 1, 90, 0, 20, 4)
                 .AddText("0", 40, UiKit.Cream, TextAnchor.MiddleLeft, FontStyle.Bold);
             _perSecond = UiKit.Rect("PerSecond", purse).Stretch(0, 0, 1, 0.45f, 90, 6, 20, 0)
@@ -235,7 +235,7 @@ namespace VuonTra.Game.UI
             var button = ok.gameObject.AddComponent<Button>();
             button.targetGraphic = okImage;
             button.onClick.AddListener(() => _away.SetActive(false));
-            UiKit.Rect("Text", ok).Stretch(0, 0, 1, 1).AddText("Nhận sương", 36, UiKit.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", ok).Stretch(0, 0, 1, 1).AddText("Nhận cà rốt", 36, UiKit.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             _away.SetActive(false);
         }

@@ -111,7 +111,7 @@ namespace VuonTra.Game.UI
                 BigNum income = s.Levels[_index] > 0
                     ? Economy.IncomePerCycle(defs, s, _index)
                     : new BigNum(d.BaseIncome);
-                return income.ToShortString() + " sương / " + UiKit.Seconds(d.CycleSeconds) + " giây";
+                return income.ToShortString() + " cà rốt / " + UiKit.Seconds(d.CycleSeconds) + " giây";
             }
 
             var names = new StringBuilder();
