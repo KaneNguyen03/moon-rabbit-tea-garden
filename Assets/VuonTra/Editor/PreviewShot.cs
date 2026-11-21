@@ -186,6 +186,21 @@ namespace VuonTra.EditorTools
             Capture(screen, "9c-worn");
             screen.SelectStation(-1);
 
+            // Not enough carrots: the button shakes and the purse flashes red (three frames).
+            var purseBefore = state.Coins;
+            state.Coins = VuonTra.Core.BigNum.Zero;
+            screen.OpenSheet(0);
+            Step(screen, 0.6f);
+            GameObject.Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[0].Id + "/Buy").GetComponent<PressDip>().Click();
+            for (int f = 1; f <= 3; f++)
+            {
+                Step(screen, 0.07f);
+                Capture(screen, "29-deny-" + f);
+            }
+            state.Coins = purseBefore;
+            screen.CloseSheet();
+            Step(screen, 0.6f);
+
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "10-pause");

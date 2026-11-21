@@ -64,7 +64,7 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 970);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1070);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
@@ -85,28 +85,9 @@ namespace VuonTra.Game.UI
             AddLanguageButton(catalog, "en", 238);
 
             // For players who get dizzy: slides, glides and bounces are skipped.
-            UiKit.Rect("Motion Label", _pauseCard).Place(0.5f, 1f, -120, -560, 460, 60)
-                .AddText(L10n.T("pause.motion"), 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            var motion = UiKit.Rect("Motion", _pauseCard).Place(0.5f, 1f, 262, -560, 176, 68);
-            Image motionPlate = motion.AddImage(catalog.Panel, Palette.Track, true);
-            motionPlate.raycastTarget = true;
-            Text motionText = UiKit.Rect("Text", motion).Stretch(0, 0, 1, 1).AddText("", 28, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
-            Action showMotion = () =>
-            {
-                motionPlate.color = Motion.Reduced ? Palette.Carrot : Palette.Track;
-                motionText.color = Motion.Reduced ? Palette.Card : Palette.InkSoft;
-                motionText.text = L10n.T(Motion.Reduced ? "toggle.on" : "toggle.off");
-            };
-            showMotion();
-            var motionButton = motion.gameObject.AddComponent<Button>();
-            motionButton.transition = Selectable.Transition.None;
-            motionButton.targetGraphic = motionPlate;
-            motionButton.onClick.AddListener(() =>
-            {
-                Sfx.Click();
-                Motion.SetReduced(!Motion.Reduced);
-                showMotion();
-            });
+            AddToggleRow(catalog, "Motion", L10n.T("pause.motion"), -560, () => Motion.Reduced, Motion.SetReduced);
+            // Short buzzes on a phone for upgrades, milestones and new rabbits.
+            AddToggleRow(catalog, "Haptics", L10n.T("pause.haptics"), -660, () => Haptics.On, Haptics.SetOn);
 
             var resume = UiKit.Rect("Resume", _pauseCard).Place(0.5f, 0f, 0, 260, 620, 130);
             ChunkyButton resumeButton = null;
@@ -127,6 +108,34 @@ namespace VuonTra.Game.UI
             _resetLabel = UiKit.Rect("Text", reset).Stretch(0, 0, 1, 1).AddText(L10n.T("pause.reset"), 30, Palette.InkSoft);
 
             _pause.SetActive(false);
+        }
+
+        /// <summary>A setting that is either on or off: its name on the left, a pill that says which on the right.</summary>
+        void AddToggleRow(GameCatalog catalog, string id, string label, float y, Func<bool> get, Action<bool> set)
+        {
+            UiKit.Rect(id + " Label", _pauseCard).Place(0.5f, 1f, -120, y, 460, 60)
+                .AddText(label, 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var pill = UiKit.Rect(id, _pauseCard).Place(0.5f, 1f, 262, y, 176, 68);
+            Image plate = pill.AddImage(catalog.Panel, Palette.Track, true);
+            plate.raycastTarget = true;
+            Text text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1).AddText("", 28, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Action show = () =>
+            {
+                bool on = get();
+                plate.color = on ? Palette.Carrot : Palette.Track;
+                text.color = on ? Palette.Card : Palette.InkSoft;
+                text.text = L10n.T(on ? "toggle.on" : "toggle.off");
+            };
+            show();
+            var button = pill.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = plate;
+            button.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                set(!get());
+                show();
+            });
         }
 
         void AddLanguageButton(GameCatalog catalog, string code, float x)

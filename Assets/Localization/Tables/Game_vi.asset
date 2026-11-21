@@ -1142,6 +1142,10 @@ MonoBehaviour:
     m_Localized: "T\u1EAFt"
     m_Metadata:
       m_Items: []
+  - m_Id: 59731413557248
+    m_Localized: "Rung khi ch\u1EA1m"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

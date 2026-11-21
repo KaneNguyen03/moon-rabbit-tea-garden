@@ -1139,6 +1139,10 @@ MonoBehaviour:
     m_Key: toggle.off
     m_Metadata:
       m_Items: []
+  - m_Id: 59731413557248
+    m_Key: pause.haptics
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -346,3 +346,53 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: chuyển mọi thời lượng còn viết số trực tiếp (FeelLayer, ShellView, RabbitDetailView, ItemPickerView, RenameView, SummonMomentView) sang bảng `Motion`.
 - tồn đọng: "Giảm chuyển động" áp cho chuyển động trong vườn.
+
+## U1 — #29 Phản hồi khi chạm + build bản Mac
+
+- Test: 314/314 EditMode qua (chạy sau lần sửa file cuối cùng trong Assets và sau khi build). Thêm 3 test mới.
+- Bản Mac: đã build lại (`Build/Mac/VuonTraTho.app`, 133,6 MB), gồm toàn bộ U1 (#24, #22, #23, #28 cơ bản, #29). Mở lên chạy được, Player.log không có exception. Mình CHƯA tự bấm thử trong bản Mac (không điều khiển được chuột trong app), nên kéo tay nắm, nút lún và tiếng động chưa có ai nghe và thử bằng tay.
+- Thông điệp commit đề xuất: `A sound for each kind of touch; a button you cannot afford shakes and the purse flashes red; haptics with a switch in Settings`
+  - Kết thúc: `Co-Authored-By: Claude Fable 5.2 <noreply@anthropic.com>`
+- File mới: `Assets/VuonTra/Game/Audio/Haptics.cs` (+ .meta). Bảng chuỗi đã seed lại (thêm `pause.haptics`).
+- Ảnh (docs/anh/po-u1/): thiếu tiền, 3 khung cách nhau 0,07 giây `29-thieu-tien-khung-1..3.png` (số cà rốt đỏ, tấm "Còn thiếu" lệch ngang; đây cũng là ảnh "Còn thiếu" còn nợ từ #24); Cài đặt `29-truoc-10-pause.png`, `29-sau-10-pause.png`, `29-sau-14-pause-en.png`.
+
+### Đã làm (đối chiếu với nguyên văn #29)
+- Tiếng riêng, đều tổng hợp bằng code: chạm thỏ (hai tiếng chíp), nâng cấp (blip), qua mốc (bốn chuông đi lên), mở trạm hoặc mở đất (ba nốt), nhận thưởng nhiệm vụ và quà vắng mặt (hai tiếng xu), mở tấm và đóng tấm (tiếng gió lên, xuống), thiếu tiền (hai nốt trầm đi xuống). Có test kiểm đúng tiếng cho từng thao tác.
+- Thiếu tiền: chạm nút "Còn thiếu" thì mặt nút lắc ngang 0,28 giây, số cà rốt trên HUD nháy đỏ hai nhịp và ô cà rốt phồng nhẹ, kèm tiếng. Áp cho nút Nâng ở tab Trạm, tấm trạm trong vườn, nút Học bùa, nút Mở rộng vườn (chỉ nháy đỏ khi thứ thiếu là cà rốt).
+- Rung: lớp `Haptics` với hai mức (nhẹ 12 ms cho nâng cấp trạm và lên cấp thỏ; vừa 28 ms cho qua mốc và gọi thỏ). Công tắc "Rung khi chạm" trong Cài đặt, lưu trong máy.
+- Thanh âm lượng riêng cho nhạc và hiệu ứng: đã có từ trước.
+
+### Chưa đạt so với #29
+- Rung CHƯA chạy trên máy nào: Android có code gọi bộ rung nhưng chưa build và chưa thử, có thể còn thiếu quyền VIBRATE trong manifest; iPhone chưa có gì (cần một cầu nối native nhỏ). Trên Mac không có rung.
+- Các tiếng mới chưa ai nghe: mình không nghe được âm thanh, chỉ kiểm rằng đúng tiếng được gọi. Cần chủ project nghe trong bản Mac và nói tiếng nào chói hoặc dở.
+- Nút Lên cấp thỏ và nút Gọi thỏ khi thiếu chưa lắc (chưa nối).
+- Ghép thỏ, học bùa, bắt sao vàng, tăng tốc vẫn dùng chung tiếng ba nốt với mở trạm.
+
+### Tồn đọng
+- tồn đọng: rung trên iPhone (cầu nối native) và quyền rung trên Android, làm khi build cho điện thoại.
+- tồn đọng: lắc khi thiếu cho nút Lên cấp thỏ và Gọi thỏ.
+- tồn đọng: tiếng riêng cho ghép thỏ và học bùa.
+
+## Bàn giao (22/11, phiên code dừng tại đây)
+
+### Trạng thái
+- Đã commit và push (PO làm): tới a011c73, gồm #24, #22 + hình bùa, #23, #28 phần cơ bản.
+- CHƯA commit nhưng ĐÃ XONG và test xanh: #29 (mục "U1 — #29" ngay phía trên). 314/314 EditMode, chạy sau lần sửa cuối trong Assets. Mình không gỡ phần này vì nó hoàn chỉnh, không dở dang; PO commit nó là cây làm việc sạch. File của #29: `Assets/VuonTra/Game/Audio/Haptics.cs` (+ .meta, mới), `Sfx.cs`, `PressDip.cs`, `UiKit.cs`, `ShellView.cs`, `GardenScreen.cs`, `L10nStrings.cs` + bảng chuỗi đã seed, `PreviewShot.cs`, `GardenScreenTests.cs`.
+- Bản Mac `Build/Mac/VuonTraTho.app` đã build từ cây làm việc này (gồm cả #29). Mở chạy được, không exception. Chưa ai bấm thử hay nghe tiếng.
+- Không có việc nào đang làm dở. #25 và #27 mới chỉ đọc đề, chưa sửa dòng code nào.
+
+### Chưa đụng tới
+- #25 (tab Trạm), #27 (tab Nhiệm vụ).
+- Phần còn lại của #22 (vuốt xuống ở đâu cũng đóng; kéo/chạm vườn khi tấm mở; các bảng giữa màn chuyển sang tấm trượt), #23 (tab không chọn bớt nhạt; hạ tấm trạm sát thanh tab bằng cách giảm `TabCover`; huy hiệu cho tab Thỏ và Trạm), #24 (thang chữ cho GardenScreen/Shell/Feel; số chính + chip), #28 (thỏ, phần thưởng bay về HUD, cảnh nền), #29 (rung trên máy thật; lắc cho nút Lên cấp thỏ và Gọi thỏ).
+- #36, R7, #37, R8, R9, R10, B1–B5, U2 (#26, #31, #32), U3 (#30).
+
+### Lưu ý cho người làm tiếp
+- UNITY=`/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity`. Đóng Unity Editor trước khi chạy lệnh batch.
+- Test: `"$UNITY" -batchmode -projectPath . -runTests -testPlatform EditMode -testResults "$PWD/TestResults.xml" -logFile "$PWD/Logs/test.log"` (không thêm `-quit`). Lỗi biên dịch: `grep "error CS" Logs/test.log`. Test luôn là việc cuối cùng đụng tới Assets.
+- Seed nội dung và bảng chuỗi (bắt buộc sau khi sửa `L10nStrings.cs` hoặc dữ liệu): `"$UNITY" -batchmode -projectPath . -executeMethod VuonTra.EditorTools.ContentSeeder.Seed -quit -logFile "$PWD/Logs/seed.log"`.
+- Chụp ảnh: `-executeMethod VuonTra.EditorTools.PreviewShot.Render -quit` → `Logs/preview/*.png`; chuyển động thì chụp nhiều khung liên tiếp bằng `Step` + `Capture` trong `PreviewShot.cs`.
+- Build Mac: `pkill -f "VuonTraTho.app/Contents/MacOS"` rồi `-executeMethod VuonTra.EditorTools.BuildScript.BuildMac -quit`.
+- Không commit `Assets/AddressableAssetsData/*`, `.agent/`, `.agents/`, `.github/`, `skills-lock.json`, `Build/`.
+- Trong test, `Motion` phải viết alias `using Motion = VuonTra.Game.UI.Motion;` vì trùng tên `UnityEngine.Motion`.
+- Nguyên tắc từ #35: mọi chuyển động đi giữa các giá trị cố định, không lấy trạng thái đang động làm gốc.
+- Player.log của bản Mac có một dòng "Curl error 35" lúc khởi động; chưa rõ nguồn, code game không gọi mạng.

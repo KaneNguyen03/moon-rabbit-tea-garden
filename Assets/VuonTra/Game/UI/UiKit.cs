@@ -273,6 +273,24 @@ namespace VuonTra.Game.UI
             if (Shine != null && Shine.activeSelf != on) Shine.SetActive(on);
         }
 
+        /// <summary>A quick sideways shake that says "not yet". The face always ends back in the middle.</summary>
+        public void Shake(Tweens tweens)
+        {
+            RectTransform face = FaceRect;
+            tweens.Add(0.28f, t =>
+            {
+                if (face == null) return;
+                float x = Mathf.Sin(t * Mathf.PI * 5f) * (1f - t) * 12f;
+                face.offsetMin = new Vector2(x, face.offsetMin.y);
+                face.offsetMax = new Vector2(x, face.offsetMax.y);
+            }, Ease.Linear, 0f, () =>
+            {
+                if (face == null) return;
+                face.offsetMin = new Vector2(0f, face.offsetMin.y);
+                face.offsetMax = new Vector2(0f, face.offsetMax.y);
+            });
+        }
+
         /// <summary>The face dips onto the lip and springs back.</summary>
         public void Press(Tweens tweens)
         {

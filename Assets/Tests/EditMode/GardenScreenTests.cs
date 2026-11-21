@@ -39,6 +39,7 @@ namespace VuonTra.Core.Tests
         {
             Object.DestroyImmediate(root);
             Motion.SetReduced(false);
+            Haptics.SetOn(true);
             L10n.SetLocale("vi");
         }
 
@@ -626,6 +627,89 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(restMin, face.offsetMin);
             Assert.AreEqual(restMax, face.offsetMax);
             Assert.IsFalse(dip.Busy);
+        }
+
+        [Test]
+        public void Each_Kind_Of_Touch_Has_Its_Own_Sound()
+        {
+            screen.Shell.StartGame();
+            runner.State.Coins = new BigNum(1e12);
+            screen.Refresh();
+
+            screen.OpenSheet(0);
+            Assert.AreEqual("sheet-up", Sfx.Last);
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
+            Assert.AreEqual("upgrade", Sfx.Last);
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
+            Assert.AreEqual("unlock", Sfx.Last, "opening a station");
+            runner.State.Levels[0] = 9;
+            screen.Refresh();
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
+            Assert.AreEqual("milestone", Sfx.Last, "level 10 is a milestone");
+            screen.SetTab(2);
+            Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Claim").onClick.Invoke();
+            Assert.AreEqual("reward", Sfx.Last);
+            screen.CloseSheet();
+            Assert.AreEqual("sheet-down", Sfx.Last);
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual("pet", Sfx.Last, "patting a rabbit");
+        }
+
+        [Test]
+        public void A_Buy_Button_You_Cannot_Afford_Shakes_And_The_Purse_Flashes_Red()
+        {
+            screen.Shell.StartGame();
+            runner.State.Coins = BigNum.Zero;
+            screen.OpenSheet(0);
+            screen.Refresh();
+            var buy = (RectTransform)root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy");
+            Assert.IsFalse(buy.GetComponent<Button>().interactable);
+            var face = (RectTransform)buy.Find("Face");
+            Text coins = root.transform.Find("Canvas/Hud/Purse/Coins").GetComponent<Text>();
+            Color ink = coins.color;
+            int level = runner.State.Levels[0];
+
+            buy.GetComponent<PressDip>().Click();
+            Assert.AreEqual("deny", Sfx.Last);
+            Assert.AreEqual(level, runner.State.Levels[0], "nothing was bought");
+            for (int i = 0; i < 2; i++) screen.Advance(1f / 30f);
+            Assert.AreNotEqual(0f, face.offsetMin.x, "the button is shaking");
+            Assert.Greater(coins.color.r - coins.color.b, ink.r - ink.b + 0.1f, "the carrot count has turned towards red");
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(0f, face.offsetMin.x, "and comes to rest exactly where it was");
+            Assert.AreEqual(ink, coins.color);
+            Assert.AreEqual(Vector3.one, root.transform.Find("Canvas/Hud/Purse").localScale);
+
+            runner.State.Coins = new BigNum(1e9);
+            screen.Refresh();
+            Sfx.Click();
+            buy.GetComponent<PressDip>().Click();
+            Assert.AreNotEqual("deny", Sfx.Last, "a button that works never says no");
+        }
+
+        [Test]
+        public void Haptics_Fire_For_Upgrades_And_Milestones_And_Can_Be_Switched_Off()
+        {
+            screen.Shell.StartGame();
+            runner.State.Coins = new BigNum(1e12);
+            screen.Refresh();
+            int before = Haptics.Count;
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
+            Assert.AreEqual(before + 1, Haptics.Count);
+            int light = Haptics.LastMilliseconds;
+            runner.State.Levels[0] = 9;
+            screen.Refresh();
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
+            Assert.Greater(Haptics.LastMilliseconds, light, "a milestone is felt more than a plain upgrade");
+
+            screen.Shell.OpenPause();
+            Assert.AreEqual("Bật", root.transform.Find("Canvas/Pause/Card/Haptics/Text").GetComponent<Text>().text);
+            Find("Canvas/Pause/Card/Haptics").onClick.Invoke();
+            Assert.IsFalse(Haptics.On);
+            Find("Canvas/Pause/Card/Resume").onClick.Invoke();
+            int quiet = Haptics.Count;
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
+            Assert.AreEqual(quiet, Haptics.Count, "switched off: nothing buzzes");
         }
 
         [Test]

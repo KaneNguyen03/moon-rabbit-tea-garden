@@ -1146,6 +1146,10 @@ MonoBehaviour:
     m_Localized: Off
     m_Metadata:
       m_Items: []
+  - m_Id: 59731413557248
+    m_Localized: Vibration
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

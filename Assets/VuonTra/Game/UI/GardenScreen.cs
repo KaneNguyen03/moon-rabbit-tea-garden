@@ -680,6 +680,7 @@ namespace VuonTra.Game.UI
 
             BuildBackdrop(catalog);
             Motion.Load();
+            Haptics.Load();
             BuildWorld(catalog);
             BuildAtmosphere(catalog);
             BuildStationCard(catalog);
@@ -980,6 +981,7 @@ namespace VuonTra.Game.UI
 
             var buy = UiKit.Rect("Buy", _card).Place(1f, 0f, -272, 74, 480, 96);
             _cardBuy = UiKit.Chunky(buy, catalog.Panel, () => OnQuick(Selected));
+            _cardBuy.Dip.Denied = () => Deny(_cardBuy, true);
             _cardBuyTop = UiKit.Rect("Top", _cardBuy.FaceRect).Stretch(0, 0, 0.5f, 1, 24, 0, 0, 0)
                 .AddText("", 28, Palette.Card, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardBuyCost = UiKit.Rect("Cost", _cardBuy.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 64, 0)
@@ -1413,7 +1415,7 @@ namespace VuonTra.Game.UI
                 button.onClick.AddListener(() =>
                 {
                     Tweens.Add(0.22f, t => _tabPop[tab] = 0.14f * Ease.Pop(t), Ease.Linear, 0f, () => _tabPop[tab] = 0f);
-                    Sfx.Click();
+                    if (SheetOpen && Tab != tab) Sfx.Click(); // turning a page; opening and closing have their own sounds
                     if (SheetOpen && Tab == tab) CloseSheet();
                     else OpenSheet(tab);
                 });
@@ -1553,11 +1555,7 @@ namespace VuonTra.Game.UI
             var closeButton = close.gameObject.AddComponent<Button>();
             closeButton.transition = Selectable.Transition.None;
             closeButton.targetGraphic = closeImage;
-            closeButton.onClick.AddListener(() =>
-            {
-                Sfx.Click();
-                CloseSheet();
-            });
+            closeButton.onClick.AddListener(CloseSheet);
             UiKit.Rect("Text", close).Stretch(0, 0, 1, 1).AddText("×", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             RectTransform stations = AddList("Scroll", 0);
@@ -1565,6 +1563,7 @@ namespace VuonTra.Game.UI
             {
                 var row = new StationRowView(i);
                 row.Build(stations, catalog, catalog.Stations[i], OnBuy, index => { Sfx.Click(); ShowStationAboveSheet(index); });
+                row.Buy.Dip.Denied = () => Deny(row.Buy, true);
                 _rows.Add(row);
             }
             BuildPlotRow(stations, catalog);
@@ -1575,6 +1574,7 @@ namespace VuonTra.Game.UI
             {
                 var row = new UpgradeRowView(i);
                 row.Build(upgrades, catalog, catalog.Upgrades[i], OnBuyUpgrade);
+                row.Buy.Dip.Denied = () => Deny(row.Buy, true);
                 _upgradeRows.Add(row);
             }
 
@@ -1628,6 +1628,7 @@ namespace VuonTra.Game.UI
                 .AddText("", 25, Palette.InkSoft, TextAnchor.UpperLeft);
             var buy = UiKit.Rect("Buy", _plotRow).Place(1f, 0.5f, -166, 4, 284, 120);
             _plotBuy = UiKit.Chunky(buy, catalog.Panel, OnBuyPlot);
+            _plotBuy.Dip.Denied = () => Deny(_plotBuy, !Expansion.HasCarrots(Runner.Defs, Runner.State));
             UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 10)
                 .AddText(L10n.T("plot.buy"), 23, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _plotCost = UiKit.Rect("Cost", _plotBuy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 10, 8, 0)
@@ -1714,6 +1715,7 @@ namespace VuonTra.Game.UI
             SetTab(tab);
             if (SheetOpen) return;
             SheetOpen = true;
+            Sfx.SheetUp();
             SelectStation(-1); // the station card and a sheet never share the bottom of the screen
             SetSheetHeight(SheetHalf); // it always opens at the same fixed height
             if (!_sheet.activeSelf)
@@ -1733,6 +1735,7 @@ namespace VuonTra.Game.UI
         {
             if (!SheetOpen) return;
             SheetOpen = false;
+            Sfx.SheetDown();
             _sheetGroup.blocksRaycasts = false;
             SlideSheet(-SheetHeight - 60f, Motion.Time(Motion.PanelOut), Ease.InCubic, () => _sheet.SetActive(false));
 
@@ -1869,7 +1872,7 @@ namespace VuonTra.Game.UI
             okButton = UiKit.Chunky(ok, catalog.Panel, () =>
             {
                 okButton.Press(Tweens);
-                Sfx.Blip();
+                Sfx.Reward();
                 Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
                 _away.SetActive(false);
             });
@@ -2171,7 +2174,7 @@ namespace VuonTra.Game.UI
             }
             Runner.Tap(index);
             _actors[index].Squish();
-            Sfx.Blip();
+            Sfx.Pet();
             DismissHint();
         }
 
@@ -2199,7 +2202,8 @@ namespace VuonTra.Game.UI
 
             _rows[index].Buy.Press(Tweens);
             if (Selected == index) _cardBuy.Press(Tweens);
-            Sfx.Blip();
+            Sfx.Upgrade();
+            Haptics.Light();
             RectTransform actor = _actors[index].Root;
             _actors[index].Bump(); // from the station's fixed size: presses in quick succession do not add up
 
@@ -2207,12 +2211,13 @@ namespace VuonTra.Game.UI
             int after = s.Levels[index];
             if (before == 0)
             {
-                Sfx.Sting();
+                Sfx.Unlock();
                 Feel.Moment(L10n.T("moment.unlock"), L10n.Station(catalog.Stations[index].Id));
             }
             else if (Economy.MilestoneMultiplier(after) > multiplierBefore)
             {
-                Sfx.Sting();
+                Sfx.Milestone();
+                Haptics.Medium();
                 Feel.Moment(L10n.T("moment.milestone.title", Economy.PreviousMilestone(after)), L10n.T("moment.milestone.sub", L10n.Station(catalog.Stations[index].Id)));
             }
             else if (OnScreen(actor))
@@ -2222,12 +2227,33 @@ namespace VuonTra.Game.UI
             }
         }
 
+        /// <summary>A button that cannot be used yet was touched: it shakes, and if carrots are what is missing the purse flashes red.</summary>
+        void Deny(ChunkyButton button, bool carrots)
+        {
+            button.Shake(Tweens);
+            Sfx.Deny();
+            if (!carrots) return;
+            Color alarm = Palette.Tiers[5];
+            Tweens.Add(0.45f, t =>
+            {
+                if (_coins == null) return;
+                float k = Mathf.Abs(Mathf.Sin(t * Mathf.PI * 2f)) * (1f - t);
+                _coins.color = Color.Lerp(Palette.Ink, alarm, k);
+                _purse.localScale = Vector3.one * (1f + 0.06f * k);
+            }, Ease.Linear, 0f, () =>
+            {
+                if (_coins == null) return;
+                _coins.color = Palette.Ink;
+                _purse.localScale = Vector3.one;
+            });
+        }
+
         void OnBuyPlot()
         {
             int before = Runner.State.Plots;
             if (!Runner.BuyPlot()) return;
             _plotBuy.Press(Tweens);
-            Sfx.Sting();
+            Sfx.Unlock();
             // Name what the new land is for.
             var names = new List<string>();
             for (int i = before; i < Runner.State.Plots && i < Runner.Defs.Count; i++) names.Add(L10n.Station(Runner.Defs[i].Id));
@@ -2240,6 +2266,7 @@ namespace VuonTra.Game.UI
             if (rabbit == null) return;
             _rabbitList.Summon.Press(Tweens);
             Sfx.Sting();
+            Haptics.Medium();
             Welcome(rabbit);
         }
 
@@ -2262,7 +2289,8 @@ namespace VuonTra.Game.UI
         void OnLevelUp(long rabbitId)
         {
             if (!Runner.LevelUpRabbit(rabbitId)) return;
-            Sfx.Blip();
+            Sfx.Upgrade();
+            Haptics.Light();
             Rabbit r = Rabbits.Find(Runner.State, rabbitId);
             Feel.FloatText(new Vector2(-110, 300), L10n.T("float.levelup", r.Name, r.Level), Palette.Lantern, 44);
         }
@@ -2281,7 +2309,7 @@ namespace VuonTra.Game.UI
             QuestRowView row = RowOfQuest(index);
             if (!Runner.ClaimQuest(index, out BigNum paid)) return;
             if (row != null) row.Claim.Press(Tweens);
-            Sfx.Sting();
+            Sfx.Reward();
             Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), "+" + paid.Short(), Palette.Lantern, 46);
             Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 12, 520f, 46f);
             Item gift = Runner.LastQuestItem;

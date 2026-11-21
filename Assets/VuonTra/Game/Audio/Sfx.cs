@@ -18,7 +18,10 @@ namespace VuonTra.Game
         public static float SfxGain { get; private set; } = 0.8f;
 
         static AudioSource _oneShots, _bed, _music;
-        static AudioClip _blip, _click, _sting, _tick, _ambient, _melody;
+        static AudioClip _blip, _click, _sting, _tick, _ambient, _melody, _pet, _milestone, _reward, _sheetUp, _sheetDown, _deny;
+
+        /// <summary>The name of the last sound asked for, whether or not it could be heard (for tests).</summary>
+        public static string Last { get; private set; } = "";
         static float _lastTick;
 
         /// <summary>Adds the two audio sources to <paramref name="host"/> and starts the ambient bed.</summary>
@@ -64,22 +67,40 @@ namespace VuonTra.Game
             PlayerPrefs.SetFloat(SfxKey, SfxGain);
         }
 
-        /// <summary>A tap or purchase landed.</summary>
-        public static void Blip() => Play(_blip ?? (_blip = MakeBlip()), 0.55f, 0.08f);
-        public static void Click() => Play(_click ?? (_click = MakeClick()), 0.5f, 0.05f);
-        /// <summary>Something worth celebrating: a new station, a milestone.</summary>
-        public static void Sting() => Play(_sting ?? (_sting = MakeSting()), 0.6f, 0f);
+        /// <summary>A small confirmation: something was chosen or put in place.</summary>
+        public static void Blip() => Play("blip", _blip ?? (_blip = MakeBlip()), 0.55f, 0.08f);
+        public static void Click() => Play("click", _click ?? (_click = MakeClick()), 0.5f, 0.05f);
+        /// <summary>Something worth celebrating: a new station, a new rabbit.</summary>
+        public static void Sting() => Play("sting", _sting ?? (_sting = MakeSting()), 0.6f, 0f);
+
+        // ----- one sound for each kind of touch -----
+        /// <summary>A rabbit was patted: two quick soft chirps.</summary>
+        public static void Pet() => Play("pet", _pet ?? (_pet = MakePet()), 0.5f, 0.1f);
+        /// <summary>A level was bought.</summary>
+        public static void Upgrade() => Play("upgrade", _blip ?? (_blip = MakeBlip()), 0.55f, 0.08f);
+        /// <summary>A station crossed a milestone: four rising bells.</summary>
+        public static void Milestone() => Play("milestone", _milestone ?? (_milestone = MakeMilestone()), 0.6f, 0f);
+        /// <summary>A station or a plot was opened.</summary>
+        public static void Unlock() => Play("unlock", _sting ?? (_sting = MakeSting()), 0.6f, 0f);
+        /// <summary>A reward was collected: two bright coins.</summary>
+        public static void Reward() => Play("reward", _reward ?? (_reward = MakeReward()), 0.55f, 0.03f);
+        /// <summary>A sheet slid up, or back down.</summary>
+        public static void SheetUp() => Play("sheet-up", _sheetUp ?? (_sheetUp = MakeSwish(true)), 0.4f, 0.04f);
+        public static void SheetDown() => Play("sheet-down", _sheetDown ?? (_sheetDown = MakeSwish(false)), 0.34f, 0.04f);
+        /// <summary>Not enough to buy this: two low soft notes going down.</summary>
+        public static void Deny() => Play("deny", _deny ?? (_deny = MakeDeny()), 0.5f, 0f);
 
         /// <summary>A station paid out. Quiet and rate-limited so a busy garden never chatters.</summary>
         public static void Tick()
         {
             if (Time.unscaledTime - _lastTick < 0.35f) return;
             _lastTick = Time.unscaledTime;
-            Play(_tick ?? (_tick = MakeTick()), 0.22f, 0.1f);
+            Play("tick", _tick ?? (_tick = MakeTick()), 0.22f, 0.1f);
         }
 
-        static void Play(AudioClip clip, float volume, float pitchSpread)
+        static void Play(string name, AudioClip clip, float volume, float pitchSpread)
         {
+            Last = name;
             if (_oneShots == null || !Application.isPlaying || SfxGain <= 0f) return;
             _oneShots.pitch = 1f + UnityEngine.Random.Range(-pitchSpread, pitchSpread);
             _oneShots.PlayOneShot(clip, volume * SfxGain);
@@ -109,6 +130,79 @@ namespace VuonTra.Game
                 float freq = Mathf.Lerp(880f, 1320f, Mathf.Clamp01(t / 0.09f));
                 phase += 2f * Mathf.PI * freq / Rate;
                 return Mathf.Sin(phase) * Mathf.Exp(-t * 26f) * 0.8f;
+            });
+        }
+
+        static AudioClip MakePet()
+        {
+            float phase = 0f;
+            return Make("pet", 0.16f, t =>
+            {
+                float local = t < 0.07f ? t : t - 0.07f;
+                float freq = (t < 0.07f ? 1250f : 1560f) + local * 2400f;
+                phase += 2f * Mathf.PI * freq / Rate;
+                return Mathf.Sin(phase) * Mathf.Min(1f, local / 0.006f) * Mathf.Exp(-local * 42f) * 0.6f;
+            });
+        }
+
+        static AudioClip MakeMilestone()
+        {
+            float[] notes = { 523.25f, 659.25f, 783.99f, 1046.5f };
+            return Make("milestone", 0.85f, t =>
+            {
+                float sum = 0f;
+                for (int k = 0; k < notes.Length; k++)
+                {
+                    float local = t - k * 0.09f;
+                    if (local < 0f) continue;
+                    float env = Mathf.Min(1f, local / 0.006f) * Mathf.Exp(-local * (k == notes.Length - 1 ? 4f : 8f));
+                    float w = 2f * Mathf.PI * notes[k] * local;
+                    sum += (Mathf.Sin(w) + 0.3f * Mathf.Sin(2f * w) + 0.12f * Mathf.Sin(3f * w)) * env;
+                }
+                return sum * 0.28f;
+            });
+        }
+
+        static AudioClip MakeReward()
+        {
+            float[] notes = { 987.77f, 1318.5f };
+            return Make("reward", 0.3f, t =>
+            {
+                float sum = 0f;
+                for (int k = 0; k < notes.Length; k++)
+                {
+                    float local = t - k * 0.075f;
+                    if (local < 0f) continue;
+                    float w = 2f * Mathf.PI * notes[k] * local;
+                    sum += (Mathf.Sin(w) + 0.2f * Mathf.Sin(2.76f * w)) * Mathf.Min(1f, local / 0.004f) * Mathf.Exp(-local * 16f);
+                }
+                return sum * 0.4f;
+            });
+        }
+
+        /// <summary>Soft air: filtered noise whose brightness rises (a sheet coming up) or falls (going down).</summary>
+        static AudioClip MakeSwish(bool up)
+        {
+            var rng = new System.Random(up ? 11 : 13);
+            float low = 0f;
+            const float length = 0.16f;
+            return Make(up ? "sheet-up" : "sheet-down", length, t =>
+            {
+                float k = Mathf.Clamp01(t / length);
+                float open = Mathf.Lerp(0.04f, 0.3f, up ? k : 1f - k);
+                low += ((float)rng.NextDouble() * 2f - 1f - low) * open;
+                return low * Mathf.Sin(k * Mathf.PI) * 0.9f;
+            });
+        }
+
+        static AudioClip MakeDeny()
+        {
+            return Make("deny", 0.22f, t =>
+            {
+                float local = t < 0.09f ? t : t - 0.09f;
+                float freq = t < 0.09f ? 233.08f : 174.61f;
+                float w = 2f * Mathf.PI * freq * local;
+                return (Mathf.Sin(w) + 0.35f * Mathf.Sin(3f * w)) * Mathf.Min(1f, local / 0.005f) * Mathf.Exp(-local * 18f) * 0.55f;
             });
         }
 

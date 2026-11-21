@@ -8,10 +8,12 @@ namespace VuonTra.Game.UI
     /// A raised button sinks onto its lip while a finger is on it and springs back when the finger lifts.
     /// The face always moves between two fixed places (resting and sunk), whatever was happening before.
     /// </summary>
-    public sealed class PressDip : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
+    public sealed class PressDip : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
     {
         public RectTransform Face;
         public Button Button;
+        /// <summary>Called when the button is touched while it cannot be used (not enough carrots, say).</summary>
+        public System.Action Denied;
 
         bool _held;
         float _sinceRelease = -1f;
@@ -21,6 +23,13 @@ namespace VuonTra.Game.UI
 
         public void OnPointerDown(PointerEventData e) => Hold();
         public void OnPointerUp(PointerEventData e) => Release();
+        public void OnPointerClick(PointerEventData e) => Click();
+
+        /// <summary>A finished touch. A usable button handles it by itself; an unusable one says no.</summary>
+        public void Click()
+        {
+            if (Button != null && !Button.interactable) Denied?.Invoke();
+        }
 
         public void Hold()
         {
