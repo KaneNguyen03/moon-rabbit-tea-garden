@@ -1615,6 +1615,32 @@ Sau khi sửa cả bốn xanh.
 - Nhãn tên thỏ trên trạm vẫn thuộc trạm; đèn đá cao đặt ô bên trái trạm có thể chạm mép nhãn (chưa đo).
 - #80: thời gian vắng qua nửa đêm tính trọn cho ngày mới, không chia; khách đang chờ ở quầy lúc rời game không tính riêng.
 
+## #58b — Tấm câu cá ở ao, nút Cho ăn, 10 tim (agent song song, nhánh agent-58b)
+
+
+- **Test:** 1086/1087 xanh (tools/verify.sh RESULT GREEN; 194 khung ảnh). Mới: 9 test `PondScreenTests` (mở tấm, câu trúng rồi cá bay vào giỏ, chạm sớm, mất mồi, hết mồi và đếm ngược, giảm chuyển động, không mở khi Bố trí, ao nằm dưới Thỏ Ếch và hũ đom đóm, cho ăn tăng điểm và tim, 10 tim có băng rôn + 3 cà rốt vàng + huy hiệu, vuốt tới 10 tim) và 1 test chữ/nút ở `AccessibilityTests` (vi/en × chữ lớn). Tấm câu cá cũng được thêm vào các lần đo nút và chữ có sẵn.
+- **Commit:** 16e0513, merge a901c01. Main sau gộp: 1112/1113.
+
+Đã làm:
+- Chạm mặt ao trăng mở tấm "Câu cá ở ao trăng" trượt từ dưới lên: 5 chấm mồi, số mồi, đếm ngược mồi tiếp theo, mặt nước có trăng, phao (vẽ bằng code) nhấp nhô 2–6 giây rồi chìm 0,5 giây. Chạm mặt nước lúc phao chìm thì được cá: hình cá thật hiện lên rồi bay vào giỏ, số cá trong giỏ chờ cá bay tới mới tăng. Chạm sớm thì phao nổi lại; không chạm thì mất mồi. Đóng tấm giữa chừng thì phao đứng yên, mồi còn nguyên.
+- Bảng "Câu cá N/5" trên bờ ao. Ao nằm dưới mọi thứ đứng cạnh nó nên Thỏ Ếch và hũ đom đóm vẫn chạm được riêng; khi đang Bố trí thì ao không mở.
+- Tấm thỏ có nút "Cho ăn" (300×100): cho con cá điểm cao nhất, ghi số điểm và tên cá ×số còn lại; cá bay tới hàng tim, "+N điểm thân thiết" bay lên, tim và thanh tới tim kế cập nhật ngay. Giỏ trống hoặc đủ 10 tim thì nút nằm phẳng và ghi lý do.
+- Đủ 10 tim (do cho ăn hoặc vuốt): băng rôn có sẵn, 3 cà rốt vàng bay về ô của nó, ô thỏ trong tab Thỏ đeo huy hiệu "♥10".
+- Giảm chuyển động: phao không nhấp nhô, khi chìm thì đổi màu vàng và nhỏ lại, luật thời gian giữ nguyên.
+- Hình cá 1–6 và giỏ cá từ docs/anh/po-58 đã chép vào Art/Final và nối vào GameCatalog (thiếu hình thì hiện vòng tròn tô màu).
+- Không đổi kinh tế hay phần thưởng.
+
+
+- **Ảnh:** docs/anh/po-58/58-ao-vuon.png, 58-ao-cho.png, 58-phao-chim.png, 58-ca-bay.png, 58-ca-trong-gio.png, 58-cho-an.png, 58-cho-an-sau.png, 58-tim-10-bang.png, 58-tim-10-o.png
+
+### Chưa đạt / cần PO quyết
+- Cho ăn luôn dùng con cá điểm cao nhất; có cần bảng chọn từng loại cá không?
+- Phao, mặt nước và trăng trong tấm đang vẽ bằng code; có cần vẽ tay không?
+- Bảng "Câu cá N/5" nằm trên bờ trái ao, gần hũ đom đóm (chỗ trống duy nhất không đụng tiệm trà, cổng Thỏ Ếch và hàng cây); PO xem ảnh 58-ao-vuon.
+- Đóng tấm khi phao còn ngoài nước thì không mất mồi; PO có muốn mất mồi không?
+- 10 tim cần 18.880 điểm (mốc do 58a đặt), nên cảnh 10 tim rất hiếm khi chơi thật.
+- Chưa có tiếng riêng cho câu cá; chưa chạy bản build trên máy thật.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
