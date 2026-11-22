@@ -23,7 +23,9 @@ namespace VuonTra.Game.UI
         long _rabbitId;
         string _kindId, _signature;
 
-        public bool IsOpen => _root.activeSelf;
+        public bool IsOpen => Sheet.IsOpen;
+        /// <summary>The sliding card this view lives on.</summary>
+        public BottomSheet Sheet { get; private set; }
         public long RabbitId => _rabbitId;
 
         public RabbitDetailView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long> onLevelUp, Action<long> onLevelMax, Action<long> onRename,
@@ -38,19 +40,9 @@ namespace VuonTra.Game.UI
             _onAssign = onAssign;
             _onRest = onRest;
 
-            var overlay = UiKit.Rect("RabbitSheet", canvas).Stretch(0, 0, 1, 1);
-            _root = overlay.gameObject;
-            overlay.AddImage(null, Palette.Scrim).raycastTarget = true;
-            var scrimButton = _root.AddComponent<Button>();
-            scrimButton.transition = Selectable.Transition.None;
-            scrimButton.onClick.AddListener(Close);
-
-            _card = UiKit.Rect("Card", overlay).Place(0.5f, 0f, 0, 720, 1040, 1400);
-            UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true).pixelsPerUnitMultiplier = 0.6f;
-            Image face = UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            face.pixelsPerUnitMultiplier = 0.6f;
-            face.raycastTarget = true;
-
+            Sheet = new BottomSheet(canvas, "RabbitSheet", catalog, tweens, 1400f, OnClosed, 0.6f);
+            _root = Sheet.Root;
+            _card = Sheet.Card;
             var close = UiKit.Rect("Close", _card).Place(1f, 1f, -66, -66, 80, 80);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
@@ -84,17 +76,15 @@ namespace VuonTra.Game.UI
         void Show(IReadOnlyList<StationDef> defs, GameState s)
         {
             _signature = null;
-            _root.SetActive(true);
+            Sheet.Open();
             _root.transform.SetAsLastSibling();
             Refresh(defs, s);
-            Vector2 home = new Vector2(0, 720);
-            _card.anchoredPosition = home + new Vector2(0, -260);
-            _tweens.Add(0.26f, t => { if (_card != null) _card.anchoredPosition = home + new Vector2(0, -260f * (1f - t)); }, Ease.OutCubic);
         }
 
-        public void Close()
+        public void Close() => Sheet.Close();
+
+        void OnClosed()
         {
-            _root.SetActive(false);
             _rabbitId = 0;
             _kindId = null;
         }

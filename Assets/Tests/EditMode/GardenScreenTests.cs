@@ -1430,7 +1430,9 @@ namespace VuonTra.Core.Tests
 
             Find("Canvas/WorkerPicker/Card/Scroll/Content/Rabbit 2/Put").onClick.Invoke();
             Assert.AreEqual(0, Rabbits.Find(runner.State, 2).Station);
-            Assert.IsFalse(picker.gameObject.activeSelf, "done: the list closes");
+            Assert.IsFalse(screen.Workers.IsOpen, "done: the list closes");
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(picker.gameObject.activeSelf, "and is gone once it has slid away");
             screen.Refresh();
             Assert.IsTrue(Station("am-tra").Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Station("am-tra").Find("Pad").gameObject.activeSelf);
@@ -1444,6 +1446,8 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(picker.gameObject.activeSelf);
             Assert.IsNotNull(picker.Find("Card/Scroll/Content/Empty"));
             Find("Canvas/WorkerPicker/Card/Close").onClick.Invoke();
+            Assert.IsFalse(screen.Workers.IsOpen);
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(picker.gameObject.activeSelf);
         }
 
@@ -2846,6 +2850,48 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(screen.Feel.ParticleCount - before, 14, "a ring of stars on top of the banner's confetti");
             for (int i = 0; i < 20; i++) screen.Advance(0.1f);
             Assert.AreEqual(1f, glow.localScale.x, 1e-3f, "and settles back exactly");
+        }
+
+        [Test]
+        public void The_Rabbit_Sheet_And_The_Pickers_Slide_Up_From_The_Bottom_And_Pull_Down_To_Close()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Shell.StartGame();
+            screen.Refresh();
+
+            screen.Detail.Open(runner.Defs, runner.State, 1);
+            var card = (RectTransform)root.transform.Find("Canvas/RabbitSheet/Card");
+            Assert.IsTrue(screen.Detail.IsOpen);
+            Assert.AreEqual(0f, card.pivot.y, "anchored to the bottom edge");
+            Assert.Less(card.anchoredPosition.y, -600f, "it starts below the screen");
+            Assert.IsNotNull(root.transform.Find("Canvas/RabbitSheet/Card/Handle/Bar"), "with a grab handle");
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(0f, card.anchoredPosition.y, 1f, "and stands on the edge after the slide");
+
+            screen.Detail.Sheet.Drag(-100f);
+            screen.Detail.Sheet.Release();
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            Assert.IsTrue(screen.Detail.IsOpen, "a short pull springs back");
+            Assert.AreEqual(0f, card.anchoredPosition.y, 1f);
+
+            screen.Detail.Sheet.Drag(-500f);
+            screen.Detail.Sheet.Release();
+            Assert.IsFalse(screen.Detail.IsOpen, "pulled well down, it closes");
+            for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(root.transform.Find("Canvas/RabbitSheet").gameObject.activeSelf, "and is gone after the slide");
+
+            screen.Picker.Open(runner.State, 1, ItemSlot.Hat);
+            Assert.IsTrue(screen.Picker.IsOpen);
+            Assert.AreEqual(0f, ((RectTransform)root.transform.Find("Canvas/Picker/Card")).pivot.y);
+            Find("Canvas/Picker").onClick.Invoke(); // a touch outside
+            Assert.IsFalse(screen.Picker.IsOpen);
+
+            screen.Workers.Open(runner.Defs, runner.State, 0);
+            Assert.IsTrue(screen.Workers.IsOpen);
+            screen.Workers.Sheet.Drag(-20f);
+            screen.Workers.Sheet.Release(-2000f);
+            Assert.IsFalse(screen.Workers.IsOpen, "a flick down closes it too");
         }
     }
 }

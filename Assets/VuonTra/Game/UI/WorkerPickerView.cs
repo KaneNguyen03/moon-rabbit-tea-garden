@@ -19,7 +19,9 @@ namespace VuonTra.Game.UI
         int _station = -1;
         string _signature;
 
-        public bool IsOpen => _root.activeSelf;
+        public bool IsOpen => Sheet.IsOpen;
+        /// <summary>The sliding card this view lives on.</summary>
+        public BottomSheet Sheet { get; private set; }
 
         public WorkerPickerView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long, int> onAssign)
         {
@@ -27,16 +29,9 @@ namespace VuonTra.Game.UI
             _tweens = tweens;
             _onAssign = onAssign;
 
-            var overlay = UiKit.Rect("WorkerPicker", canvas).Stretch(0, 0, 1, 1);
-            _root = overlay.gameObject;
-            overlay.AddImage(null, Palette.Scrim).raycastTarget = true;
-            var scrimButton = _root.AddComponent<Button>();
-            scrimButton.transition = Selectable.Transition.None;
-            scrimButton.onClick.AddListener(Close);
-
-            _card = UiKit.Rect("Card", overlay).Place(0.5f, 0.5f, 0, 0, 980, 900);
-            UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
-            UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
+            Sheet = new BottomSheet(canvas, "WorkerPicker", catalog, tweens, 900f, OnClosed);
+            _root = Sheet.Root;
+            _card = Sheet.Card;
             _title = UiKit.Rect("Title", _card).Stretch(0, 1, 1, 1, 40, -120, 130, 20)
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _title.resizeTextForBestFit = true;
@@ -79,16 +74,13 @@ namespace VuonTra.Game.UI
             _station = station;
             _signature = null;
             _title.text = L10n.T("worker.title", L10n.Station(defs[station].Id));
-            _root.SetActive(true);
-            _card.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(Motion.Panel), t => _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t), Ease.OutBack);
+            Sheet.Open();
             Refresh(defs, s);
         }
 
-        public void Close()
-        {
-            _root.SetActive(false);
-        }
+        public void Close() => Sheet.Close();
+
+        void OnClosed() { }
 
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s)
         {
