@@ -2054,6 +2054,14 @@ MonoBehaviour:
     m_Localized: Deliver 20 tea orders
     m_Metadata:
       m_Items: []
+  - m_Id: 219281773027328
+    m_Localized: Station rank {0}!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 219281785610240
+    m_Localized: "{0} \xB7 level {1}, now earns double"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
