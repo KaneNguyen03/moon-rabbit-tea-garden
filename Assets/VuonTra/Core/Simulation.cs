@@ -94,7 +94,7 @@ namespace VuonTra.Core
         {
             if (index < 0 || index >= defs.Count) return false;
             int level = s.Levels[index];
-            if (level == 0 && !Economy.CanUnlock(s, index)) return false;
+            if (level == 0 && !Economy.CanUnlock(defs, s, index)) return false;
 
             int count = BuyCount(defs, s, index);
             if (count <= 0) return false; // at the cap

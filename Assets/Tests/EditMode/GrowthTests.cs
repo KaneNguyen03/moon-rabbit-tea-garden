@@ -43,7 +43,7 @@ namespace VuonTra.Core.Tests
         {
             s.Levels = new[] { 1, 1, 1, 1, 0, 0 };
             s.Coins = new BigNum(1e12);
-            Assert.IsFalse(Economy.CanUnlock(s, 4));
+            Assert.IsFalse(Economy.CanUnlock(defs, s, 4));
             Assert.IsFalse(Simulation.TryBuy(defs, s, 4));
             Assert.IsFalse(Plots.TryBuy(defs, s), "carrots alone do not widen the garden");
 

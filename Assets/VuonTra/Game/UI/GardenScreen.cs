@@ -1214,8 +1214,8 @@ namespace VuonTra.Game.UI
             _canopy.sizeDelta = _street.sizeDelta;
             _canopy.localScale = _street.localScale;
 
-            int count = catalog.Stations.Length;
-            BuildGroundLayers(catalog, count);
+            int count = catalog.Stations.Length, landed = StationsOnLand(count);
+            BuildGroundLayers(catalog, landed);
 
             // A few worn paths lead out from the teapot; they lie flat on the grass, under everything.
             Color stone = Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Grass, 0.5f), 0.6f);
@@ -1238,13 +1238,13 @@ namespace VuonTra.Game.UI
             // the forest rim at the lawn's edge is what is not opened. When the land is bought the ring goes and fresh grass
             // and flowers come up on it. Both lie flat on the ground, under everything that stands.
             _landRings.Clear(); _landBlooms.Clear(); _rim.Clear(); _rimKeepOff.Clear(); _landPlots = -1;
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < landed; i++)
             {
                 if (i < Plots.Starting) { _landRings.Add(null); _landBlooms.Add(null); continue; }
                 _landBlooms.Add(BuildBloom(catalog, i));
                 _landRings.Add(BuildRing(catalog, i));
             }
-            BuildDecor(catalog, count, standing);
+            BuildDecor(catalog, landed, standing);
 
             for (int i = 0; i < count; i++)
             {
@@ -1664,9 +1664,9 @@ namespace VuonTra.Game.UI
             else if (level <= 0)
             {
                 cost = Economy.CostOfNext(defs[i], 0, 1);
-                bool previousOpen = Economy.CanUnlock(s, i);
+                bool previousOpen = Economy.CanUnlock(defs, s, i);
                 can = previousOpen && s.Coins >= cost;
-                _cardInfo.text = previousOpen ? StationRowView.Describe(defs, s, i, 1, m) : L10n.T("row.needprev");
+                _cardInfo.text = previousOpen ? StationRowView.Describe(defs, s, i, 1, m) : StationRowView.LockedReason(defs, s, i);
                 _cardBuyTop.text = L10n.T("row.open");
             }
             else
@@ -1680,7 +1680,7 @@ namespace VuonTra.Game.UI
                 _cardBuyTop.text = capped ? L10n.T("row.maxlevel") : L10n.T("row.upgrade", count);
             }
             // Short of carrots and nothing else: the plate says how many are missing.
-            bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
+            bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(defs, s, i)));
             if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
             _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
             if (_cardBuyCarrot.activeSelf == capped) _cardBuyCarrot.SetActive(!capped); // at the cap nothing is paid, so no carrot (#74)
@@ -3715,7 +3715,7 @@ namespace VuonTra.Game.UI
             // The stations tab counts the stations that could be opened for what is in the purse.
             int openable = 0;
             for (int i = 0; i < defs.Count; i++)
-                if (s.Levels[i] <= 0 && Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1)) openable++;
+                if (s.Levels[i] <= 0 && Economy.CanUnlock(defs, s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1)) openable++;
             if (_stationBadgeRect.gameObject.activeSelf != (openable > 0)) _stationBadgeRect.gameObject.SetActive(openable > 0);
             _stationBadgeText.text = openable.ToString();
             _clovers.text = L10n.T("quests.clovers", s.Clovers);
@@ -3784,7 +3784,7 @@ namespace VuonTra.Game.UI
             // Open stations, plus the grey outline of the next two at most: the garden grows as you do.
             int open = 0;
             for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0) open = i + 1;
-            int shown = Mathf.Min(defs.Count, Mathf.Min(s.Plots + 1, open + 2));
+            int shown = Mathf.Min(StationsOnLand(defs.Count), Mathf.Min(s.Plots + 1, open + 2));
             if (shown != _shownStations)
             {
                 _shownStations = shown;
@@ -3805,7 +3805,7 @@ namespace VuonTra.Game.UI
                 {
                     // The price sign: what it costs to build, or how many carrots are still missing for the next one.
                     BigNum cost = Economy.CostOfNext(defs[i], 0, 1);
-                    bool next = Economy.CanUnlock(s, i), can = next && s.Coins >= cost;
+                    bool next = Economy.CanUnlock(defs, s, i), can = next && s.Coins >= cost;
                     _actors[i].SetSign(next && !can ? L10n.T("plot.short", (cost - s.Coins).Short()) : L10n.T("plot.build", cost.Short()), can);
                 }
                 _actors[i].SetCanUpgrade(CanAfford(defs, s, i));
@@ -3969,7 +3969,7 @@ namespace VuonTra.Game.UI
         {
             if (i >= s.Plots) return Expansion.CanExpand(defs, s);
             int level = s.Levels[i];
-            if (level <= 0) return Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1);
+            if (level <= 0) return Economy.CanUnlock(defs, s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1);
             int count = Simulation.BuyCount(defs, s, i);
             return count > 0 && s.Coins >= Economy.CostOfNext(defs[i], level, count);
         }
@@ -5708,6 +5708,17 @@ namespace VuonTra.Game.UI
             if (clovers > 0) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -150)), L10n.T("mail.clovers", clovers), Palette.Lantern, 34);
             if (hat != null) Feel.FloatText(new Vector2(0, 420), L10n.T("float.hat", L10n.ItemName(hat)), Palette.Lantern, 40);
         }
+
+        #endregion
+
+        #region Four new stations (#67a)
+
+        /// <summary>
+        /// How many of the stations the garden's land can hold: the land waves end at twelve plots, so the four stations after
+        /// the star observatory (#67) are listed and priced in the Stations tab but have no plot, ring or sign in the garden
+        /// until the rings of land of #53 come (67b). The garden is drawn, dressed and shown for these stations only.
+        /// </summary>
+        static int StationsOnLand(int count) => Mathf.Min(count, Expansion.Waves[Expansion.Waves.Length - 1].PlotsAfter);
 
         #endregion
     }

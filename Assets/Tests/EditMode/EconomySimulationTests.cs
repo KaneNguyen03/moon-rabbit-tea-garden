@@ -185,7 +185,7 @@ namespace VuonTra.Core.Tests
             s.BuyMode = 1;
             for (int i = 0; i < defs.Count; i++)
             {
-                if (s.Levels[i] == 0 && !Economy.CanUnlock(s, i)) continue;
+                if (s.Levels[i] == 0 && !Economy.CanUnlock(defs, s, i)) continue;
                 if (Economy.LevelsLeft(s.Levels[i]) <= 0) continue;
                 BigNum cost = Economy.CostOfNext(defs[i], s.Levels[i], 1);
                 if (best < 0 || cost < bestCost) { best = i; bestCost = cost; bestIsUpgrade = false; }

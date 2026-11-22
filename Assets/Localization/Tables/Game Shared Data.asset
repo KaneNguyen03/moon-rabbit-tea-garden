@@ -3007,6 +3007,34 @@ MonoBehaviour:
     m_Key: mail.claimed
     m_Metadata:
       m_Items: []
+  - m_Id: 401943821279232
+    m_Key: station.ho-sen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667840
+    m_Key: station.lo-keo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667841
+    m_Key: station.ruong-nep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667842
+    m_Key: station.thuyen-tra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667843
+    m_Key: quest.mo-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667844
+    m_Key: quest.mo-16
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667845
+    m_Key: row.needlevel
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

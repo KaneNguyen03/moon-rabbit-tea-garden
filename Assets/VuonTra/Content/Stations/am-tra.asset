@@ -20,6 +20,7 @@ MonoBehaviour:
   CostGrowth: 1.09
   BaseIncome: 1
   CycleSeconds: 1.5
+  NeedGardenLevel: 0
   Boosts: []
   Prop: {fileID: 21300000, guid: 736fa73fc8a324434a6480143dcbadbe, type: 3}
   Product: {fileID: 21300000, guid: 7746969d52cf14a7bb42c2a6be7e41d4, type: 3}

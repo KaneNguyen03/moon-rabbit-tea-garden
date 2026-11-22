@@ -3018,6 +3018,34 @@ MonoBehaviour:
     m_Localized: Claimed {0}
     m_Metadata:
       m_Items: []
+  - m_Id: 401943821279232
+    m_Localized: Lotus Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667840
+    m_Localized: Malt Candy Kiln
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667841
+    m_Localized: Sticky Rice Paddy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667842
+    m_Localized: Night Tea Boat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667843
+    m_Localized: All 12 rabbits awake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667844
+    m_Localized: Have 16 stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401943829667845
+    m_Localized: Needs garden level {0}
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -680,6 +680,7 @@ namespace VuonTra.EditorTools
             RenderAlbumSets(runner, screen);
             RenderMoonJars(runner, screen);
             RenderGiftCodes(runner, screen);
+            RenderFourStations(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1096,6 +1097,55 @@ namespace VuonTra.EditorTools
             screen.Profile.Close();
             screen.Shell.Resume();
             Step(screen, 0.4f);
+        }
+    
+
+        /// <summary>
+        /// #67a: the Stations tab at its foot with the four stations after the star observatory, each saying what it waits for
+        /// (the garden level it asks for, or the land #53 brings); then, as 67b will have it, two of them open and the candy
+        /// kiln's own product in the tray. The land for them is set by hand here: the game has none for them yet.
+        /// </summary>
+        static void RenderFourStations(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            for (int i = 0; i < 12; i++) s.Levels[i] = 160 - 10 * i;
+            s.Plots = 12;
+            s.RestSpots = 6;
+            s.GardenXp = Garden.XpForLevel(defs[12].NeedGardenLevel) + 40;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(8.4e15);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            s.FreshKinds.Clear();
+            GardenGrid.Settle(defs, s);
+            runner.Init(s);
+            if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 2.2f); // past the garden level's banner
+            screen.OpenSheet(0);
+            Step(screen, 0.5f);
+            var list = GameObject.Find("Canvas/Sheet/Panel/Scroll").GetComponent<UnityEngine.UI.ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            list.verticalNormalizedPosition = 0f;
+            Step(screen, 0.3f);
+            Capture(screen, "67-tram-moi-cho");
+
+            // As 67b will have it: land for all sixteen, the lotus garden and the candy kiln open, the kiln's batch in the tray.
+            s.Plots = 16;
+            s.GardenXp = Garden.XpForLevel(defs[13].NeedGardenLevel) + 40;
+            s.Levels[12] = 14; s.Levels[13] = 9;
+            Tray.Add(s, 13, false); Tray.Add(s, 13, false); Tray.Add(s, 13, true); Tray.Add(s, 11, false);
+            screen.Refresh();
+            Canvas.ForceUpdateCanvases();
+            list.verticalNormalizedPosition = 0f;
+            Step(screen, 2.2f);
+            Capture(screen, "67-tram-moi-mo");
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+            Capture(screen, "67-khay-keo");
         }
     }
 }

@@ -56,6 +56,10 @@ namespace VuonTra.Core.Tests
             jarsHeld = jarsOpened = 0;
             earnedJars = BigNum.Zero;
             freeJars.Clear();
+            landForNewStations = false;
+            newStationOpenedOn.Clear();
+            newStationOpenedAt.Clear();
+            levelOnDay.Clear();
             Quests.RollDaily(quests, defs, s, 1, mods);
         }
 
@@ -108,6 +112,7 @@ namespace VuonTra.Core.Tests
 
             for (int buys = 0; buys < buysAtOnce && (int)clock % buyEvery == 0; buys++)
             {
+                if (landForNewStations && LandForANewStation()) continue;
                 if (Expansion.TryExpand(defs, s))
                 {
                     waveTakenAt[Expansion.WavesTaken(s.Plots) - 1] = clock;
@@ -121,7 +126,7 @@ namespace VuonTra.Core.Tests
                 s.BuyMode = 1;
                 for (int i = 0; i < defs.Count; i++)
                 {
-                    if (s.Levels[i] == 0 && !Economy.CanUnlock(s, i)) continue;
+                    if (s.Levels[i] == 0 && !Economy.CanUnlock(defs, s, i)) continue;
                     BigNum cost = Economy.CostOfNext(defs[i], s.Levels[i], 1);
                     if (best < 0 || cost < bestCost) { best = i; bestCost = cost; bestIsUpgrade = false; }
                 }
@@ -155,6 +160,7 @@ namespace VuonTra.Core.Tests
 
         void Note()
         {
+            NoteNewStations();
             int level = Garden.Level(s);
             for (int l = 2; l <= level; l++)
                 if (!levelAt.ContainsKey(l)) levelAt[l] = clock;
@@ -244,7 +250,7 @@ namespace VuonTra.Core.Tests
         /// The casual player's week: on the first day twenty minutes at the start, then four visits of five minutes, two
         /// hours apart; on days two to seven three visits of five minutes each, dailies renewed each morning.
         /// </summary>
-        void CasualWeek(System.Action endOfDayOne = null)
+        void CasualWeek(System.Action endOfDayOne = null, int lastDay = 7)
         {
             Play(20 * 60);
             for (int visit = 0; visit < 4; visit++)
@@ -253,7 +259,7 @@ namespace VuonTra.Core.Tests
                 Play(5 * 60);
             }
             endOfDayOne?.Invoke();
-            for (int day = 2; day <= 7; day++)
+            for (int day = 2; day <= lastDay; day++)
             {
                 Away(8 * 3600);
                 today = day;
@@ -344,5 +350,87 @@ namespace VuonTra.Core.Tests
             for (int visit = 0; visit < 4; visit++) { Away(2 * 3600); Play(5 * 60); }
             Assert.LessOrEqual(MostFreeJarsInADay(), MoonJars.FreePerDay, "the tireless player too\n" + JarLine());
         }
+            #region Four new stations (#67a)
+
+        /// <summary>
+        /// Sim-only, until #53 brings the rings of land: a plot for each station after the twelfth comes as soon as the garden
+        /// has the level that station asks for, at the plot rule's price (a quarter of the station's). Off, the game as it ships.
+        /// </summary>
+        bool landForNewStations;
+        /// <summary>The day each station after the twelfth was opened, by its index.</summary>
+        readonly Dictionary<int, long> newStationOpenedOn = new Dictionary<int, long>();
+        readonly Dictionary<int, double> newStationOpenedAt = new Dictionary<int, double>();
+        /// <summary>The garden level at the end of each day of play.</summary>
+        readonly SortedDictionary<long, int> levelOnDay = new SortedDictionary<long, int>();
+
+        bool LandForANewStation()
+        {
+            int next = s.Plots;
+            if (next < 12 || next >= defs.Count || !Economy.HasGardenLevel(defs, s, next)) return false;
+            var price = new BigNum(defs[next].BaseCost * Plots.CostShare);
+            if (s.Coins < price) return false;
+            s.Coins -= price;
+            s.Plots++;
+            GardenGrid.Settle(defs, s);
+            return true;
+        }
+
+        void NoteNewStations()
+        {
+            levelOnDay[today] = Garden.Level(s);
+            for (int i = 12; i < defs.Count; i++)
+                if (s.Levels[i] > 0 && !newStationOpenedOn.ContainsKey(i)) { newStationOpenedOn[i] = today; newStationOpenedAt[i] = clock; }
+        }
+
+        string NewStationLine(int i) => "  trạm " + (i + 1) + " (" + defs[i].Name + ", cấp vườn " + defs[i].NeedGardenLevel + "): "
+            + (newStationOpenedOn.ContainsKey(i) ? "mở ngày " + newStationOpenedOn[i] + " (" + Clock(newStationOpenedAt[i]) + " trên đồng hồ chơi)" : "chưa mở");
+
+        /// <summary>
+        /// The four stations after the star observatory (#67): the casual player of the week above, played on to day fourteen,
+        /// opens the thirteenth on day three to five and the sixteenth on day eight to twelve. The land is a sim-only
+        /// assumption (see <see cref="landForNewStations"/>) until #53; the garden level each station asks for is the pace.
+        /// </summary>
+        [Test]
+        public void A_Casual_Player_Opens_Station_Thirteen_On_Day_Three_To_Five_And_Sixteen_On_Day_Eight_To_Twelve()
+        {
+            Assert.AreEqual(16, defs.Count, "four stations after the star observatory");
+            landForNewStations = true;
+            CasualWeek(null, 14);
+            var report = new StringBuilder();
+            report.AppendLine("Bốn trạm mới (#67), người chơi thong thả như trên, chơi tới ngày 14; đất cho trạm 13–16 là giả định trong mô phỏng (chờ #53): có ngay khi đủ cấp vườn, giá một phần tư giá trạm.");
+            for (int i = 12; i < defs.Count; i++) report.AppendLine(NewStationLine(i));
+            foreach (int level in new[] { 10, 15, 16, 18, 20, 22, 23 })
+                report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt"));
+            var days = new List<string>();
+            foreach (KeyValuePair<long, int> d in levelOnDay) days.Add("ngày " + d.Key + ": " + d.Value);
+            report.AppendLine("  cấp vườn cuối mỗi ngày: " + string.Join(", ", days));
+            report.AppendLine("Cuối ngày 14: cấp " + Garden.Level(s) + ", thu/giây " + Economy.IncomePerSecond(defs, s).ToShortString() + ", " + s.Plots + " ô đất");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/garden-pacing-67.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            Assert.IsTrue(newStationOpenedOn.ContainsKey(12), "station 13 never opened\n" + report);
+            Assert.GreaterOrEqual(newStationOpenedOn[12], 3, "station 13 not before day three\n" + report);
+            Assert.LessOrEqual(newStationOpenedOn[12], 5, "station 13 by day five\n" + report);
+            Assert.IsTrue(newStationOpenedOn.ContainsKey(15), "station 16 never opened\n" + report);
+            Assert.GreaterOrEqual(newStationOpenedOn[15], 8, "station 16 not before day eight\n" + report);
+            Assert.LessOrEqual(newStationOpenedOn[15], 12, "station 16 by day twelve\n" + report);
+            for (int i = 13; i < defs.Count; i++)
+            {
+                Assert.IsTrue(newStationOpenedOn.ContainsKey(i), "station " + (i + 1) + " never opened\n" + report);
+                Assert.GreaterOrEqual(newStationOpenedOn[i], newStationOpenedOn[i - 1], "in order\n" + report);
+            }
+        }
+
+        /// <summary>As the game ships before #53, no plot exists past the twelfth: the four stations wait.</summary>
+        [Test]
+        public void Without_The_New_Land_The_Four_Stations_Wait()
+        {
+            CasualWeek(null, 9);
+            Assert.AreEqual(12, s.Plots, "the land waves end at twelve plots until #53");
+            for (int i = 12; i < defs.Count; i++) Assert.AreEqual(0, s.Levels[i], defs[i].Id);
+        }
+
+        #endregion
     }
 }

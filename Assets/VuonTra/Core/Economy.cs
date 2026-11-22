@@ -143,12 +143,19 @@ namespace VuonTra.Core
             return total;
         }
 
-        /// <summary>A station can be opened once the one before it is open.</summary>
-        public static bool CanUnlock(GameState s, int index)
+        /// <summary>A station can be opened once the one before it is open, on a plot of its own, in a garden grown to the level it asks for (#67).</summary>
+        public static bool CanUnlock(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
-            if (index < 0 || index >= s.Levels.Length) return false;
+            if (index < 0 || index >= s.Levels.Length || index >= defs.Count) return false;
             if (index >= s.Plots) return false; // no plot for it yet
+            if (!HasGardenLevel(defs, s, index)) return false;
             return index == 0 || s.Levels[index - 1] > 0;
+        }
+
+        /// <summary>Whether the garden is grown enough for this station (#67): true for a station that asks for no level.</summary>
+        public static bool HasGardenLevel(IReadOnlyList<StationDef> defs, GameState s, int index)
+        {
+            return index < 0 || index >= defs.Count || Garden.Level(s) >= defs[index].NeedGardenLevel;
         }
     }
 }
