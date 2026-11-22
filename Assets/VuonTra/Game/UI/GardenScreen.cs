@@ -3772,7 +3772,7 @@ namespace VuonTra.Game.UI
         /// <summary>The sheet for a plain amount and time, as older callers and the tests had it.</summary>
         public void ShowAway(BigNum amount, double seconds) => ShowAway(new AwayReport
         {
-            Paid = amount, Seconds = seconds, Capped = seconds >= Runner.Mods.AwayCapSeconds, SleepiestId = Away.Sleepiest(Runner.State)
+            Paid = amount, Seconds = seconds, Capped = seconds >= Runner.Mods.AwayCapSeconds, SleepiestId = VuonTra.Core.Away.Sleepiest(Runner.State)
         });
 
         /// <summary>
