@@ -3318,6 +3318,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Rabbits.AffectionGiftClovers, runner.State.Clovers, "the closest friend gives a clover");
             Assert.IsTrue(screen.Feel.BannerVisible, "and it is a moment");
             StringAssert.Contains("Bông", root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+        }
 
         static int CountNamed(Transform parent, string name)
         {
