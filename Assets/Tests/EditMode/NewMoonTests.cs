@@ -209,5 +209,26 @@ namespace VuonTra.Core.Tests
             NewMoon.Begin(defs, g, "Non", out _);
             Assert.IsFalse(NewMoon.Compare(defs, g).MoonRabbit);
         }
+
+        [Test]
+        public void A_Merge_Never_Uses_Up_The_Moon_Rabbit()
+        {
+            GameState g = GrownGarden();
+            NewMoon.Begin(defs, g, "Non", out Rabbit moon);
+            Assert.IsNotNull(moon);
+            int tier = moon.Tier;
+            // Two plain rabbits of the moon rabbit's tier: with the moon rabbit that would be three, but it does not count.
+            Rabbits.ArriveKind(g, RabbitKinds.OfTier(tier)[0].Id, "A");
+            Rabbits.ArriveKind(g, RabbitKinds.OfTier(tier)[0].Id, "B");
+            Assert.AreEqual(2, Rabbits.CountOfTier(g, tier), "the moon rabbit is not merge material");
+            Assert.IsFalse(Rabbits.CanMerge(g, tier));
+
+            Rabbits.ArriveKind(g, RabbitKinds.OfTier(tier)[0].Id, "C");
+            Assert.IsTrue(Rabbits.CanMerge(g, tier));
+            Rabbit merged = Rabbits.Merge(g, tier, 0.5);
+            Assert.IsNotNull(merged);
+            Assert.IsTrue(g.Rabbits.Contains(moon), "the one-time rabbit stays");
+            Assert.AreEqual(tier + 1, merged.Tier);
+        }
     }
 }
