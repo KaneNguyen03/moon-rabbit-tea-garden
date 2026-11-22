@@ -120,11 +120,15 @@ namespace VuonTra.Game
                     // A garden that starts from nothing starts with one rabbit; a save we could load keeps what it had.
                     Rabbits.GiftFirst(State, PickName());
                     State.LastSeenUnixSeconds = Now;
+                    // A save that could not be read: a make-up letter waits in the mailbox (#68).
+                    if (loaded.Status == LoadStatus.Corrupt) Mailbox.Compensate(State, TodayNumber);
                 }
                 Mods = Modifiers.From(UpgradeDefs, State);
             }
 
             Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
+            LoadGiftKey();
+            CheckMail();
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
             NoteAlbum(false);
@@ -174,6 +178,7 @@ namespace VuonTra.Game
             if (_sinceSave >= AutosaveSeconds)
             {
                 if (Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods)) StateChanged?.Invoke();
+                if (CheckMail()) StateChanged?.Invoke();
                 Save();
                 GreetSeason();
             }
@@ -1002,5 +1007,42 @@ namespace VuonTra.Game
 
         /// <summary>The device reminders (#65), planned again from the garden as it is left; an empty list while switched off.</summary>
         void PlanReminders() => Notifications.GoingAway(State, Mods, DateTimeOffset.Now);
+
+        #region Gift codes and mailbox (#68)
+
+        /// <summary>
+        /// The key signed gift codes are checked with, read once from Resources/keys.json (git ignores it; see
+        /// tools/make-code.sh). A build without it refuses every signed code; the public codes still work.
+        /// </summary>
+        static void LoadGiftKey()
+        {
+            if (GiftCodes.HasKey) return;
+            var file = Resources.Load<TextAsset>("keys");
+            if (file != null) GiftCodes.SetKey(GiftCodes.KeyFromJson(file.text));
+        }
+
+        /// <summary>Tries a gift code the player typed, on the clamped day. Saves when it paid.</summary>
+        public GiftCodes.Redeemed RedeemCode(string raw)
+        {
+            GiftCodes.Redeemed r = GiftCodes.Redeem(State, raw, TodayNumber, ItemDefs);
+            if (r.Result == GiftCodes.Result.Ok) Changed();
+            return r;
+        }
+
+        /// <summary>The letters that can be claimed today, oldest first.</summary>
+        public IReadOnlyList<Letter> Letters => Mailbox.Open(State, TodayNumber);
+
+        /// <summary>Claims one letter; null when it is gone.</summary>
+        public Letter ClaimLetter(string id)
+        {
+            Letter letter = Mailbox.Claim(State, id, TodayNumber);
+            if (letter != null) Changed();
+            return letter;
+        }
+
+        /// <summary>Looks for seasons missed since the box last looked; true when a letter came.</summary>
+        bool CheckMail() => Mailbox.Check(State, TodayNumber) > 0;
+
+        #endregion
     }
 }

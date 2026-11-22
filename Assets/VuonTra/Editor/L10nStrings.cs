@@ -710,6 +710,24 @@ namespace VuonTra.EditorTools
             { "tune.moon", "Đêm trăng", "Moonlit night" },
             { "tune.dawn", "Rạng sáng", "Daybreak" },
             { "tune.rain", "Mưa", "Rain" },
+            // ----- gift codes and mailbox (#68) -----
+            { "gift.hint", "Nhập mã quà", "Enter a gift code" },
+            { "gift.redeem", "Nhận quà", "Redeem" },
+            { "gift.invalid", "Mã này không đúng, bạn xem lại nhé", "That code isn't right. Check it and try again" },
+            { "gift.expired", "Mã này đã hết hạn", "This code has expired" },
+            { "gift.used", "Vườn đã nhận quà của mã này rồi", "This garden has already used this code" },
+            { "pause.mail", "Thư", "Mail" },
+            { "mail.title", "Hộp thư", "Mailbox" },
+            { "mail.empty", "Chưa có thư nào.\nQuà đền bù và quà mùa bạn lỡ sẽ đến đây.", "No letters yet.\nMake-up gifts and gifts for missed seasons arrive here." },
+            { "mail.rules", "Tối đa {0} thư, mỗi thư giữ {1} ngày", "Up to {0} letters, each kept {1} days" },
+            { "mail.makeup", "Quà xin lỗi: bản lưu cũ không đọc được", "Sorry gift: your old save could not be read" },
+            { "mail.season", "Quà mùa {0} bạn đã lỡ", "A gift for the {0} you missed" },
+            { "mail.golden", "+{0} cà rốt vàng", "+{0} golden carrots" },
+            { "mail.clovers", "+{0} cỏ bốn lá", "+{0} clovers" },
+            { "mail.days", "còn {0} ngày", "{0} days left" },
+            { "mail.lastday", "hôm nay là ngày cuối", "last day today" },
+            { "mail.claim", "Nhận", "Claim" },
+            { "mail.claimed", "Đã nhận {0}", "Claimed {0}" },
         };
     }
 }

@@ -2939,6 +2939,74 @@ MonoBehaviour:
     m_Key: tune.rain
     m_Metadata:
       m_Items: []
+  - m_Id: 396779362181120
+    m_Key: gift.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569728
+    m_Key: gift.redeem
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569729
+    m_Key: gift.invalid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569730
+    m_Key: gift.expired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569731
+    m_Key: gift.used
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569732
+    m_Key: pause.mail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569733
+    m_Key: mail.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569734
+    m_Key: mail.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569735
+    m_Key: mail.rules
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569736
+    m_Key: mail.makeup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569737
+    m_Key: mail.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569738
+    m_Key: mail.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569739
+    m_Key: mail.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569740
+    m_Key: mail.days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569741
+    m_Key: mail.lastday
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569742
+    m_Key: mail.claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569743
+    m_Key: mail.claimed
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

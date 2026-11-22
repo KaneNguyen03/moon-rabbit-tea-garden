@@ -1104,7 +1104,8 @@ namespace VuonTra.Game.UI
             DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus),
-                () => NewMoon.CanBegin(Runner.State), () => NewMoon.LevelNeeded(Runner.State.Season), () => NewMoonCard.Open(Runner.Defs, Runner.State), () => NewMoon.AtCap(Runner.State));
+                () => NewMoon.CanBegin(Runner.State), () => NewMoon.LevelNeeded(Runner.State.Season), () => NewMoonCard.Open(Runner.Defs, Runner.State), () => NewMoon.AtCap(Runner.State),
+                OpenMail, () => Runner.Letters.Count);
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
                 () => { Runner.NextAvatar(); Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus); },
@@ -1140,7 +1141,8 @@ namespace VuonTra.Game.UI
                     Shell.Resume();
                     Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
                     Refresh(-1f);
-                }));
+                }), OnRedeemCode);
+            BuildMail(catalog);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
             GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
@@ -5658,6 +5660,67 @@ namespace VuonTra.Game.UI
                 if (d < bestDistance) { bestDistance = d; best = i; }
             }
             return best >= 0 ? defs[best].Id : null;
+        }
+
+        #endregion
+
+        #region Gift codes and mailbox (#68)
+
+        /// <summary>The mailbox card, opened from the pause card's "Thư".</summary>
+        public MailView Mail { get; private set; }
+
+        /// <summary>Built after the profile, so it draws over the pause card it opens from.</summary>
+        void BuildMail(GameCatalog catalog)
+        {
+            Mail = new MailView(_canvas, catalog, Tweens, OnClaimLetter);
+        }
+
+        void OpenMail() => Mail.Open(Runner.Letters, Runner.TodayNumber);
+
+        /// <summary>
+        /// A gift code typed in the profile. When it pays, the profile and the pause card close so the gift is seen
+        /// flying to the purse; otherwise the profile shakes its field and says why.
+        /// </summary>
+        GiftCodes.Result OnRedeemCode(string typed)
+        {
+            GiftCodes.Redeemed r = Runner.RedeemCode(typed);
+            if (r.Result != GiftCodes.Result.Ok) return r.Result;
+            Vector2 from = Feel.PointOf(Profile.Root);
+            Profile.Close();
+            Shell.Resume();
+            Refresh(-1f);
+            GiftArrived(from, r.Golden, r.Clovers, r.Hat);
+            return r.Result;
+        }
+
+        /// <summary>A letter claimed in the mailbox: its gift is paid, the card says what came and the badge counts down.</summary>
+        void OnClaimLetter(string id)
+        {
+            Letter letter = Runner.ClaimLetter(id);
+            if (letter == null) return;
+            Sfx.Reward();
+            Haptics.Light();
+            Mail.ShowClaimed(L10n.T("mail.claimed", MailView.GiftOf(letter.Golden, letter.Clovers)));
+            Mail.Refresh(Runner.Letters, Runner.TodayNumber);
+            Shell.RefreshMail();
+            Refresh(-1f);
+        }
+
+        /// <summary>A gift from a code: golden carrots fly to their chip under the purse, clovers and a hat say so in words.</summary>
+        void GiftArrived(Vector2 from, int golden, int clovers, Item hat)
+        {
+            Sfx.Reward();
+            Haptics.Light();
+            GameCatalog catalog = Runner.Catalog;
+            if (golden > 0)
+            {
+                if (!_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
+                Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, Mathf.Min(golden, 5), 44f,
+                    () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+                Feel.FloatText(Feel.PointOf(_goldenChip, new Vector2(0, -70)), L10n.T("mail.golden", golden), Palette.Lantern, 34);
+            }
+            if (clovers > 0) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -150)), L10n.T("mail.clovers", clovers), Palette.Lantern, 34);
+            if (hat != null) Feel.FloatText(new Vector2(0, 420), L10n.T("float.hat", L10n.ItemName(hat)), Palette.Lantern, 40);
         }
 
         #endregion

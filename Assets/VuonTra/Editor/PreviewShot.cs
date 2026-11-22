@@ -679,6 +679,7 @@ namespace VuonTra.EditorTools
             RenderChatter(runner, screen);
             RenderAlbumSets(runner, screen);
             RenderMoonJars(runner, screen);
+            RenderGiftCodes(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1044,6 +1045,57 @@ namespace VuonTra.EditorTools
             File.WriteAllBytes(Path.Combine(Folder, name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             rt.Release();
+        }
+
+        /// <summary>
+        /// #68: the pause card with the mailbox's badge, the mailbox with a make-up letter and a missed season's letter,
+        /// the profile's gift-code field with a code typed, and the line a wrong code brings.
+        /// </summary>
+        static void RenderGiftCodes(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 30, 14, 8, 3 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 6;
+            s.GardenXp = Garden.XpForLevel(6);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(2.4e5);
+            s.GoldenCarrots = 6;
+            s.Profile.GardenName = "Vườn Mây";
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            long today = runner.TodayNumber;
+            Mailbox.Compensate(s, today);
+            s.Letters.Add(new Letter { Id = "season-MidAutumn-2026", Kind = LetterKind.Season, Season = Season.MidAutumn, Day = today - 12 });
+            if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
+            if (screen.Shell.State == ShellState.Paused) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.4f);
+            screen.Shell.OpenPause();
+            Step(screen, 0.5f);
+            Capture(screen, "68-tam-nghi-thu");
+            Press(screen, "Canvas/Pause/Card/Mail");
+            Step(screen, 0.4f);
+            Capture(screen, "68-hop-thu");
+            Press(screen, "Canvas/Mail/Card/Letter 0/Claim");
+            Step(screen, 0.3f);
+            Capture(screen, "68-hop-thu-da-nhan");
+            screen.Mail.Close();
+            Press(screen, "Canvas/Pause/Card/Profile");
+            Step(screen, 0.4f);
+            screen.Profile.GiftInput.text = "TRATHO-2026";
+            Step(screen, 0.1f);
+            Capture(screen, "68-ho-so-ma-qua");
+            screen.Profile.GiftInput.text = "TRATHO-2025";
+            screen.Profile.Redeem();
+            Step(screen, 0.1f);
+            Capture(screen, "68-ma-sai");
+            screen.Profile.Close();
+            screen.Shell.Resume();
+            Step(screen, 0.4f);
         }
     }
 }

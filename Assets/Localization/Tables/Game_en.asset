@@ -2948,6 +2948,76 @@ MonoBehaviour:
     m_Localized: Rain
     m_Metadata:
       m_Items: []
+  - m_Id: 396779362181120
+    m_Localized: Enter a gift code
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569728
+    m_Localized: Redeem
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569729
+    m_Localized: That code isn't right. Check it and try again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569730
+    m_Localized: This code has expired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569731
+    m_Localized: This garden has already used this code
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569732
+    m_Localized: Mail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569733
+    m_Localized: Mailbox
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569734
+    m_Localized: 'No letters yet.
+
+      Make-up gifts and gifts for missed seasons arrive here.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569735
+    m_Localized: Up to {0} letters, each kept {1} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569736
+    m_Localized: 'Sorry gift: your old save could not be read'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569737
+    m_Localized: A gift for the {0} you missed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569738
+    m_Localized: +{0} golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569739
+    m_Localized: +{0} clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569740
+    m_Localized: '{0} days left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569741
+    m_Localized: last day today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569742
+    m_Localized: Claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569743
+    m_Localized: Claimed {0}
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

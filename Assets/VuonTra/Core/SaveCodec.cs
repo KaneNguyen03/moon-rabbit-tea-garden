@@ -292,7 +292,33 @@ namespace VuonTra.Core
             sb.Append(",\"buyDay\":").Append(s.MoonJarBuyDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"bought\":").Append(s.MoonJarsBoughtToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"freeDay\":").Append(s.MoonJarFreeDay.ToString(CultureInfo.InvariantCulture));
-            sb.Append("}}");
+            sb.Append('}');
+            // Gift codes and the mailbox (#68), additive: the codes used, then the letters and the day the box last looked.
+            sb.Append(",\"codesUsed\":[");
+            first = true;
+            foreach (string code in s.CodesUsed)
+            {
+                if (!first) sb.Append(',');
+                first = false;
+                WriteString(sb, code);
+            }
+            sb.Append("],\"mail\":{\"day\":").Append(s.MailDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"letters\":[");
+            for (int i = 0; i < s.Letters.Count; i++)
+            {
+                Letter letter = s.Letters[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":");
+                WriteString(sb, letter.Id);
+                sb.Append(",\"kind\":").Append(((int)letter.Kind).ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"season\":").Append(((int)letter.Season).ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"day\":").Append(letter.Day.ToString(CultureInfo.InvariantCulture));
+                // What it pays, for a reader of the file; the game pays by the kind.
+                sb.Append(",\"golden\":").Append(letter.Golden.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
+                sb.Append('}');
+            }
+            sb.Append("]}}");
             return sb.ToString();
         }
 
@@ -671,6 +697,32 @@ namespace VuonTra.Core
                 s.MoonJarBuyDay = TryNumber(jars, "buyDay", out double jarBuyDay) ? ToLong(jarBuyDay) : -1;
                 s.MoonJarsBoughtToday = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "bought"), MoonJars.BuyPerDay));
                 s.MoonJarFreeDay = TryNumber(jars, "freeDay", out double jarFreeDay) ? ToLong(jarFreeDay) : -1;
+            }
+            // Gift codes and the mailbox (#68). A save from before them has used no code and holds no letter; its mailbox
+            // starts looking from the save's own last day, so a season missed since then still leaves its letter.
+            if (root.TryGetValue("codesUsed", out object codesObj) && codesObj is List<object> codes)
+                foreach (object item in codes)
+                    if (item is string code && code.Length > 0) s.CodesUsed.Add(code);
+            s.MailDay = s.MaxDaySeen;
+            if (root.TryGetValue("mail", out object mailObj) && mailObj is Dictionary<string, object> mail)
+            {
+                s.MailDay = TryNumber(mail, "day", out double mailDay) ? Math.Max(-1L, ToLong(mailDay)) : s.MaxDaySeen;
+                if (mail.TryGetValue("letters", out object lettersObj) && lettersObj is List<object> letters)
+                    foreach (object raw in letters)
+                    {
+                        if (!(raw is Dictionary<string, object> entry) || s.Letters.Count >= Mailbox.MaxLetters) continue;
+                        if (!(entry.TryGetValue("id", out object letterIdObj) && letterIdObj is string letterId && letterId.Length > 0)) continue;
+                        if (s.Letters.Exists(l => l.Id == letterId)) continue;
+                        double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season");
+                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season) continue;
+                        s.Letters.Add(new Letter
+                        {
+                            Id = letterId,
+                            Kind = (LetterKind)(int)letterKind,
+                            Season = letterSeason >= 0d && letterSeason <= (double)Season.Christmas && letterSeason == Math.Floor(letterSeason) ? (Season)(int)letterSeason : Season.None,
+                            Day = ToLong(ReadNumber(entry, "day")),
+                        });
+                    }
             }
 
             result.Status = LoadStatus.Ok;

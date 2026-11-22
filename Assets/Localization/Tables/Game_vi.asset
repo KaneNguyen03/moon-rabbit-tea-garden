@@ -2942,6 +2942,74 @@ MonoBehaviour:
     m_Localized: "M\u01B0a"
     m_Metadata:
       m_Items: []
+  - m_Id: 396779362181120
+    m_Localized: "Nh\u1EADp m\xE3 qu\xE0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569728
+    m_Localized: "Nh\u1EADn qu\xE0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569729
+    m_Localized: "M\xE3 n\xE0y kh\xF4ng \u0111\xFAng, b\u1EA1n xem l\u1EA1i nh\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569730
+    m_Localized: "M\xE3 n\xE0y \u0111\xE3 h\u1EBFt h\u1EA1n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569731
+    m_Localized: "V\u01B0\u1EDDn \u0111\xE3 nh\u1EADn qu\xE0 c\u1EE7a m\xE3 n\xE0y r\u1ED3i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569732
+    m_Localized: "Th\u01B0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569733
+    m_Localized: "H\u1ED9p th\u01B0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569734
+    m_Localized: "Ch\u01B0a c\xF3 th\u01B0 n\xE0o.\nQu\xE0 \u0111\u1EC1n b\xF9 v\xE0 qu\xE0 m\xF9a b\u1EA1n l\u1EE1 s\u1EBD \u0111\u1EBFn \u0111\xE2y."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569735
+    m_Localized: "T\u1ED1i \u0111a {0} th\u01B0, m\u1ED7i th\u01B0 gi\u1EEF {1} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569736
+    m_Localized: "Qu\xE0 xin l\u1ED7i: b\u1EA3n l\u01B0u c\u0169 kh\xF4ng \u0111\u1ECDc \u0111\u01B0\u1EE3c"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569737
+    m_Localized: "Qu\xE0 m\xF9a {0} b\u1EA1n \u0111\xE3 l\u1EE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569738
+    m_Localized: "+{0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569739
+    m_Localized: "+{0} c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569740
+    m_Localized: "c\xF2n {0} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569741
+    m_Localized: "h\xF4m nay l\xE0 ng\xE0y cu\u1ED1i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569742
+    m_Localized: "Nh\u1EADn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569743
+    m_Localized: "\u0110\xE3 nh\u1EADn {0}"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
