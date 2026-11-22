@@ -247,5 +247,36 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(Contrast(Palette.OnCarrot, Palette.Carrot), 4.5, "words on a primary button");
             Assert.AreEqual(Palette.OnCarrot, ChunkyButton.InkFor(true), "every raised button writes in it");
         }
+
+        // ----- the HUD's chips keep apart -----
+
+        static Rect WorldRect(RectTransform rt)
+        {
+            var c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            return Rect.MinMaxRect(c[0].x, c[0].y, c[2].x, c[2].y);
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Season_Chip_And_The_Golden_Chip_Do_Not_Overlap(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            runner.State.Season = 1;
+            runner.State.GoldenCarrots = 5;
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Layout();
+            var season = (RectTransform)root.transform.Find("Canvas/Hud/Season");
+            var golden = (RectTransform)root.transform.Find("Canvas/Hud/Golden");
+            Assert.IsTrue(season.gameObject.activeSelf && golden.gameObject.activeSelf, "both chips are up");
+            Rect a = WorldRect(season), b = WorldRect(golden);
+            Assert.IsFalse(a.Overlaps(b), "season " + a + " against golden " + b);
+        }
+
     }
 }

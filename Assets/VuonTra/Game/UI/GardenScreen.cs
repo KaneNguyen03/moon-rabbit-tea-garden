@@ -2734,7 +2734,7 @@ namespace VuonTra.Game.UI
             _seasonChip.gameObject.SetActive(false);
 
             // Golden carrots, under the purse, only once there is at least one: nothing strange for a new player.
-            _goldenChip = UiKit.Rect("Golden", _hud).Place(0f, 1f, 210, -154, 170, 52);
+            _goldenChip = UiKit.Rect("Golden", _hud).Place(0f, 1f, 240, -154, 170, 52); // clear of the season chip (#1) on its left
             _goldenChip.AddShadow(10f, 6f, 0.25f);
             _goldenChip.AddImage(catalog.Panel, Palette.Paper, true);
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", _goldenChip).Place(0f, 0.5f, 28, 0, 38, 38).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
