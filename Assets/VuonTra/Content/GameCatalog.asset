@@ -113,6 +113,13 @@ MonoBehaviour:
   Mortar: {fileID: 21300000, guid: a8282103e51d547919f3af4b49750b0f, type: 3}
   StoneLantern: {fileID: 21300000, guid: e02d778da5692454baef2db026aba016, type: 3}
   Planter: {fileID: 21300000, guid: ce8713973683243d9a5758b924e7f1f0, type: 3}
+  MortarEmpty: {fileID: 21300000, guid: d6dab776fae40406e9bc0fe9e853c822, type: 3}
+  Pestle: {fileID: 21300000, guid: 73280a7d7957b43fa9b5037589b2199e, type: 3}
+  Dough: {fileID: 21300000, guid: 22aaf00b996a444cd9fc85f2aca2c2dd, type: 3}
+  DoughPounded: {fileID: 21300000, guid: 26c048cb14fa743a89174c3141b3aea7, type: 3}
+  Cake: {fileID: 21300000, guid: 53488520985584b54bed48f0bce9b2a4, type: 3}
+  CakeDented: {fileID: 21300000, guid: 893c498021323457da58fe58118992c7, type: 3}
+  TrayWood: {fileID: 21300000, guid: f0b714f2b3a064edbb6c08e1a43c7b79, type: 3}
   GoldenCarrot: {fileID: 21300000, guid: 574b012909f2f4f5fb4499600cb84a82, type: 3}
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}

@@ -190,6 +190,13 @@ namespace VuonTra.EditorTools
             catalog.Clover = FinalArt.Load("icon_clover");
             catalog.Hand = FinalArt.Load("icon_hand");
             catalog.Mortar = FinalArt.Find("prop_coi-gia-banh");
+            catalog.MortarEmpty = FinalArt.Find("prop_coi-trong");
+            catalog.Pestle = FinalArt.Find("prop_chay");
+            catalog.Dough = FinalArt.Find("banh_bot");
+            catalog.DoughPounded = FinalArt.Find("banh_dang-gia");
+            catalog.Cake = FinalArt.Find("banh_xong");
+            catalog.CakeDented = FinalArt.Find("banh_meo");
+            catalog.TrayWood = FinalArt.Find("khay_go");
             catalog.StoneLantern = FinalArt.Find("decor_den-da");
             catalog.Planter = FinalArt.Find("decor_bon-hoa");
             catalog.GoldenCarrot = FinalArt.Find("icon_ca-rot-vang");
