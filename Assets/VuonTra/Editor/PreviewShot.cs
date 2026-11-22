@@ -686,6 +686,7 @@ namespace VuonTra.EditorTools
             RenderLayout(runner, screen);
             RenderPond(runner, screen); // #58b
             RenderQaNits2(); // #79–#82, on a freshly opened scene so the title shows again
+            RenderReservedProps(); // #54 follow-up
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1595,6 +1596,60 @@ namespace VuonTra.EditorTools
             screen.CloseSheet();
             screen.Raining = null;
             Step(screen, 0.4f);
+        }
+
+        /// <summary>
+        /// #54 follow-up: the arranging mode by the firefly jar, with the dashed rings on the free tiles beside it, a stone
+        /// lantern carried over the jar's tile, and the lantern let go there. Before the fix the jar's tile had a ring and the
+        /// lantern stood on the "Đom đóm · còn N lượt" plate; now the jar, the leaf basket and the plates keep their tiles.
+        /// </summary>
+        static void RenderReservedProps()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4, 6, 5, 3, 2 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = levels.Length;
+            GardenGrid.Settle(defs, s); // the lawn widens to five rings for the eight plots, out to the jar
+            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket and the jar are all out
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e6);
+            s.GoldenCarrots = 100;
+            Decor.Buy(s, "den-da");
+            Decor.Place(s, 7, "den-da"); // the spot by the tea shop, left of the jar
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            PlayerPrefs.SetInt(GardenScreen.LayoutHintKey, 1);
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            screen.Shell.StartGame();
+            Step(screen, 1.4f);
+            Hex lantern = s.Grid.TileOf(GardenGrid.DecorId(7)).Value, jar = GardenScreen.WorldToCell(GardenScreen.FireflyJarSpot);
+            screen.LookAt((GardenScreen.CellToWorld(lantern) + GardenScreen.CellToWorld(jar)) / 2f + new Vector2(0f, 60f));
+            Step(screen, 0.5f);
+            screen.EnterLayoutMode();
+            Step(screen, 0.3f);
+            Capture(screen, "54r-vong-canh-lo");
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(lantern));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            screen.SimulateLayoutDrag((screen.LayoutViewPoint(lantern) + screen.LayoutViewPoint(jar)) / 2f);
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(jar));
+            Step(screen, 0.1f);
+            Capture(screen, "54r-keo-len-lo");
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(jar));
+            Step(screen, 0.6f);
+            Capture(screen, "54r-tha-len-lo");
+            screen.ExitLayoutMode();
+            Step(screen, 0.5f);
+            Capture(screen, "54r-sau-xong");
+            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
     }
 }

@@ -28,11 +28,11 @@ namespace VuonTra.Core
             return g != null && g.StoredCount > 0 && defs != null && index >= 0 && index < defs.Count && g.IsStored(GardenGrid.StationId(defs[index]));
         }
 
-        /// <summary>A drop from one tile on another: a move onto an empty lawn tile, a swap with something movable, otherwise back.</summary>
+        /// <summary>A drop from one tile on another: a move onto an empty lawn tile, a swap with something movable, otherwise back (a tile kept for a prop included).</summary>
         public static LayoutDrop Drop(IReadOnlyList<StationDef> defs, GameState s, Hex from, Hex to)
         {
             GardenGrid g = s.Grid;
-            if (g == null || from == to) return LayoutDrop.Back;
+            if (g == null || from == to || GardenGrid.IsReserved(to)) return LayoutDrop.Back;
             if (g.OccupantAt(to.Q, to.R) == null) return g.Move(from, to) ? LayoutDrop.Placed : LayoutDrop.Back;
             return g.Swap(from, to) ? LayoutDrop.Swapped : LayoutDrop.Back;
         }

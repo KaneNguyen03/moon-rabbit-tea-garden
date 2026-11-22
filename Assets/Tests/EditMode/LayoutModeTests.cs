@@ -303,6 +303,47 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(root.transform.Find("Canvas (old)"), "the old canvas is gone");
         }
 
+        [Test]
+        public void A_Decoration_Cannot_Be_Dropped_By_The_Firefly_Jar_And_No_Ring_Is_Drawn_On_A_Reserved_Tile()
+        {
+            // #54 follow-up: the tile right of the jar had a ring, and a decoration dropped there stood on "Đom đóm · còn N lượt".
+            Motion.SetReduced(true);
+            S.Plots = 8;
+            GardenGrid.Settle(runner.Defs, S); // two land waves: the lawn reaches the jar
+            S.GardenXp = Garden.XpForLevel(9); // the jar, the basket and the mortar are out
+            S.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(S, "den-da") && Decor.Place(S, 7, "den-da"), "a stone lantern on the spot by the tea shop");
+            screen.RebuildUi();
+            screen.Refresh();
+            Hex jar = GardenScreen.WorldToCell(GardenScreen.FireflyJarSpot), lantern = TileOf(GardenGrid.DecorId(7));
+            Assert.AreEqual(new Hex(4, -3), jar, "the jar's tile, where the bug was found");
+            Assert.IsTrue(S.Grid.InLawn(jar) && S.Grid.OccupantAt(jar.Q, jar.R) == null, "on the lawn and empty");
+            screen.EnterLayoutMode();
+            screen.LookAt((GardenScreen.CellToWorld(lantern) + GardenScreen.CellToWorld(jar)) / 2f);
+            Step(0.1f);
+            Transform rings = root.transform.Find("Canvas/Garden/Content/LayoutRings");
+            List<Hex> offered = screen.LayoutEmptyTiles();
+            foreach (Hex h in GardenGrid.ReservedTiles)
+            {
+                Assert.IsFalse(offered.Contains(h), h + " is not offered");
+                Transform ring = rings.Find("Ring " + h.Q + "," + h.R);
+                Assert.IsTrue(ring == null || !ring.gameObject.activeSelf, "no dashed ring on " + h);
+            }
+            var spot = (RectTransform)root.transform.Find("Canvas/Garden/Content/Spot 7");
+            foreach (Hex kept in new[] { jar, new Hex(4, -4), new Hex(3, -1), new Hex(1, -2) }) // the jar, behind it, the basket, the mortar's plate
+            {
+                HoldDragDrop(lantern, screen.LayoutViewPoint(kept));
+                Assert.IsNull(screen.LayoutLifted);
+                Assert.AreEqual(lantern, TileOf(GardenGrid.DecorId(7)), "dropped on " + kept + ": back where it stood");
+                Near(GardenScreen.CellToWorld(lantern), spot.anchoredPosition, "and drawn there");
+            }
+            // A free tile beside the jar still takes it: only the kept ones refuse.
+            Hex beside = EmptyTileNear(jar);
+            Assert.AreEqual(1, GardenGrid.Distance(beside, jar));
+            HoldDragDrop(lantern, screen.LayoutViewPoint(beside));
+            Assert.AreEqual(beside, TileOf(GardenGrid.DecorId(7)), "a free tile beside the jar still takes it");
+        }
+
         /// <summary>Null when the label's words fit one line of its box at the size it is drawn, else what went wrong.</summary>
         static string OneLine(Text text)
         {
