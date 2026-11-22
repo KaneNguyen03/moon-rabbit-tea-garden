@@ -321,6 +321,29 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(wrong, string.Join("\n", wrong));
         }
 
+        [TestCase("Canvas/Fireflies", "Timer")]
+        [TestCase("Canvas/Leaves", "Timer")]
+        [TestCase("Canvas/Pound", "Beats")]
+        public void The_Minigame_Score_And_Count_Keep_24_From_The_Screen_Edges_And_Below_The_Notch(string game, string count)
+        {
+            GardenScreen.SafeInsets = () => new Vector2(90f, 120f); // a phone with a notch and a home bar
+            screen.Advance(0.1f);
+            Layout();
+            var overlay = (RectTransform)root.transform.Find(game);
+            Assert.IsNotNull(overlay, game);
+            Rect screenRect = overlay.rect;
+            float notch = GardenScreen.SafeInsets().y;
+            foreach (string name in new[] { "Score", count })
+            {
+                Rect r = RectIn((RectTransform)overlay.Find(name), overlay);
+                Assert.GreaterOrEqual(r.xMin, screenRect.xMin + 24f, game + "/" + name + " keeps off the left edge");
+                Assert.LessOrEqual(r.xMax, screenRect.xMax - 24f, game + "/" + name + " keeps off the right edge");
+                Assert.LessOrEqual(r.yMax, screenRect.yMax - notch, game + "/" + name + " sits below the notch");
+            }
+            Transform quit = overlay.Find("Quit");
+            if (quit != null) Assert.IsFalse(RectIn((RectTransform)quit, overlay).Overlaps(RectIn((RectTransform)overlay.Find(count), overlay)), "the count is clear of the quit button");
+        }
+
         // ----- contrast -----
 
         static double Luminance(Color c)
