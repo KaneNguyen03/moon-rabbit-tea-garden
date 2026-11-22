@@ -148,6 +148,14 @@ MonoBehaviour:
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}
   MoonJar: {fileID: 21300000, guid: 1aadbf024f880476abd8fee425b49775, type: 3}
+  Fish:
+  - {fileID: 21300000, guid: 7b77409eb478f4bd6942b8e795390cd1, type: 3}
+  - {fileID: 21300000, guid: b71fd794eed8c4dd18c9333f1ae255a4, type: 3}
+  - {fileID: 21300000, guid: edd46491663284c50bd91626b0ff1958, type: 3}
+  - {fileID: 21300000, guid: 885a94deb8e2f49bc96bca40db2b033a, type: 3}
+  - {fileID: 21300000, guid: ab48508a3e7b541baa8dbff259d996c8, type: 3}
+  - {fileID: 21300000, guid: 68a28226560c841c0a035fac8e10d474, type: 3}
+  FishBasket: {fileID: 21300000, guid: dea691aae7f2247138d5fa77a3c1c5cb, type: 3}
   Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Shadow: {fileID: 21300000, guid: 4621549ce2eb646a7ace069e96763f27, type: 3}
   IconUp: {fileID: 21300000, guid: e227213dacd474a26ad7da377889306b, type: 3}

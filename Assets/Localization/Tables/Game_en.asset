@@ -3198,6 +3198,70 @@ MonoBehaviour:
     m_Localized: "Best of friends \xB7 +{0} golden carrots"
     m_Metadata:
       m_Items: []
+  - m_Id: 420930927976448
+    m_Localized: Fishing {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559360
+    m_Localized: Fishing at the moon pond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559361
+    m_Localized: Cast
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559362
+    m_Localized: "Line's out\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559363
+    m_Localized: No bait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559364
+    m_Localized: Cast, wait for the float to sink, then tap the water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559365
+    m_Localized: "Wait for the float to sink\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559366
+    m_Localized: It's sinking! Tap now!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559367
+    m_Localized: Too soon, the float bobs back up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559368
+    m_Localized: The bait is gone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559369
+    m_Localized: 'Caught: {0}!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559370
+    m_Localized: Feed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559371
+    m_Localized: "{0} \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559372
+    m_Localized: "Basket empty \xB7 fish at the pond"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 420930940559373
+    m_Localized: All 10 hearts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 423164893978624
+    m_Localized: +{0} pts
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

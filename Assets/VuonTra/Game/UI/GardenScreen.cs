@@ -332,6 +332,7 @@ namespace VuonTra.Game.UI
             Pound.Update(dt);
             Basket.Update(dt);
             Jar.Update(dt);
+            FishingCard.Update(dt); // #58b
             if (_purseDown && !_purseHeld)
             {
                 _purseDownFor += dt;
@@ -1172,6 +1173,7 @@ namespace VuonTra.Game.UI
                 if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
                 Jar.ShowPaid(result);
             });
+            BuildPond(catalog); // the moon pond's card and the rabbit's Feed button (#58b)
             BuildAdSeams(catalog); // the three rewarded-ad places and the no-ads pass (#66)
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
@@ -3706,6 +3708,7 @@ namespace VuonTra.Game.UI
                 int left = Fireflies.PlaysLeft(s, Runner.TodayNumber);
                 _jarPlate.text = left > 0 ? L10n.T("jar.plays", left) : L10n.T("jar.tomorrow");
             }
+            RefreshPond(); // #58b
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
@@ -4761,6 +4764,7 @@ namespace VuonTra.Game.UI
                 Feel.Fly(at, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round,
                     catalog.Clover != null ? Color.white : Palette.Moss, Rabbits.AffectionGiftClovers, 38f);
             }
+            if (pet.TenHearts) TenHeartMoment(r, at); // #58b
         }
 
         /// <summary>A short line in a paper bubble over a rabbit in the garden; it springs in and leaves by itself.</summary>
@@ -6975,6 +6979,124 @@ namespace VuonTra.Game.UI
             {
                 for (int k = 0; k < parts.Length; k++) if (parts[k] != null) parts[k].anchoredPosition = to + offsets[k]; // exactly on the tile
             });
+        }
+
+        #endregion
+
+        #region The pond card and feeding (#58b)
+
+        /// <summary>The moon pond's card: the baits, the float on the water, the basket.</summary>
+        public FishingView FishingCard { get; private set; }
+        RectTransform _pondTap;
+        Text _pondPlate;
+        /// <summary>How many times the ten-heart moment has played (a banner and three golden carrots flying to their chip).</summary>
+        public int TenHeartMoments { get; private set; }
+
+        /// <summary>
+        /// The pond's water as something to touch, with its plate on the near bank. It lies under everything that stands by the
+        /// pond, so the Frog Rabbit waiting at the water, the firefly jar and a rabbit resting near it keep their own touch.
+        /// </summary>
+        void BuildPond(GameCatalog catalog)
+        {
+            FishingCard = new FishingView(_canvas, catalog, Tweens, Runner);
+            Detail.OnFeed = OnFeedRabbit;
+            _pondTap = UiKit.Rect("PondTap", _street).Place(0f, 0f, PondSpot.x + 15f, PondSpot.y + 5f, 380f, 210f);
+            Image hit = _pondTap.AddImage(null, new Color(0, 0, 0, 0));
+            hit.raycastTarget = true;
+            var button = _pondTap.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = hit;
+            button.onClick.AddListener(OpenFishing);
+            // The plate stands on the bank left of the water: clear of the jar's plate below and of the Frog Rabbit's place.
+            var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, -185f, -155f, 210f, 44f);
+            plate.AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
+            _pondPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _pondPlate.resizeTextForBestFit = true;
+            _pondPlate.resizeTextMinSize = 14;
+            _pondPlate.resizeTextMaxSize = 20;
+            _pondTap.SetSiblingIndex(_pondGlow != null ? _pondGlow.GetSiblingIndex() : 0);
+            RefreshPond();
+        }
+
+        /// <summary>The pond shows while it can be fished, its plate counting the baits on hand.</summary>
+        void RefreshPond()
+        {
+            if (_pondTap == null) return;
+            bool open = Runner.PondOpen;
+            if (_pondTap.gameObject.activeSelf != open) _pondTap.gameObject.SetActive(open);
+            if (open) _pondPlate.text = L10n.T("pond.plate", Runner.Baits, Fishing.BaitCap);
+        }
+
+        /// <summary>The pond was touched: its card slides up. Not while arranging the garden, nor over another game.</summary>
+        public void OpenFishing()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode || LayoutMode || !Runner.PondOpen) return;
+            if (FishingCard.IsOpen || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Sfx.Click();
+            FishingCard.Open();
+            Refresh(-1f);
+        }
+
+        /// <summary>
+        /// "Cho ăn" on a rabbit's sheet: the best fish in the basket flies from the button to its hearts, its points float up and
+        /// the sheet shows the new hearts at once; ten hearts brings the banner and the golden carrots.
+        /// </summary>
+        void OnFeedRabbit(long rabbitId)
+        {
+            Rabbit r = Rabbits.Find(Runner.State, rabbitId);
+            int fish = Fishing.BestInBasket(Runner.State);
+            Vector2 from = Detail.FeedButton != null ? Feel.PointOf(Detail.FeedButton) : Vector2.zero;
+            FeedResult fed = Runner.FeedBest(rabbitId);
+            if (r == null || !fed.Fed)
+            {
+                Sfx.Deny();
+                return;
+            }
+            Sfx.Pet();
+            Haptics.Light();
+            Detail.Refresh(Runner.Defs, Runner.State); // the hearts, their bar and the button, now
+            Feel.BringToFront(); // over the rabbit's sheet
+            Vector2 to = Detail.BondChip != null ? Feel.PointOf(Detail.BondChip) : from + new Vector2(0f, 200f);
+            GameCatalog catalog = Runner.Catalog;
+            Sprite art = catalog.FishSprite(fish);
+            Feel.Fly(from, to, art != null ? art : catalog.Round, art != null ? Color.white : Palette.Blush, 1, 72f, () =>
+            {
+                RectTransform chip = Detail != null ? Detail.BondChip : null;
+                if (chip == null) return;
+                Tweens.Add(Motion.Tap, t => { if (chip != null) chip.localScale = Vector3.one * (1f + 0.15f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                    () => { if (chip != null) chip.localScale = Vector3.one; });
+            });
+            if (!fed.Bond.TenHearts) // the banner says it all at ten
+            {
+                Feel.FloatText(to + new Vector2(0f, 30f), L10n.T("fish.points", fed.Points), Palette.CarrotLip, 34);
+                if (fed.HeartsAfter > fed.HeartsBefore) Feel.FloatText(to + new Vector2(130f, 10f), "♥", Palette.Blush, 54);
+            }
+            if (fed.Bond.GiftGiven)
+            {
+                Sfx.Sting();
+                Feel.Moment(L10n.T("bond.gift.title", r.Name), L10n.T("bond.gift.sub", Rabbits.AffectionGiftClovers));
+                Feel.Fly(to, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round,
+                    catalog.Clover != null ? Color.white : Palette.Moss, Rabbits.AffectionGiftClovers, 38f);
+            }
+            if (fed.Bond.TenHearts) TenHeartMoment(r, to);
+            Refresh(-1f);
+        }
+
+        /// <summary>A rabbit's bond reached ten hearts, fed or stroked: the banner, and its three golden carrots fly to their chip.</summary>
+        void TenHeartMoment(Rabbit r, Vector2 at)
+        {
+            TenHeartMoments++;
+            GameCatalog catalog = Runner.Catalog;
+            Sfx.Milestone();
+            Haptics.Medium();
+            Feel.BringToFront();
+            Feel.Moment(L10n.T("bond.ten.title", r.Name), L10n.T("bond.ten.sub", Rabbits.TenHeartGolden));
+            if (!_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
+            Feel.Fly(at, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, Rabbits.TenHeartGolden, 44f,
+                () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                    () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
         }
 
         #endregion

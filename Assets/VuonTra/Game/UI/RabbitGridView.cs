@@ -255,6 +255,7 @@ namespace VuonTra.Game.UI
             button.onClick.AddListener(() => _onOpen(id));
 
             RectTransform tile = Portrait(cell, _catalog, s, r, 0, 40, 214);
+            if (Rabbits.FullHearts(r)) TenHeartBadge(tile, _catalog); // #58b
 
             bool inTrade = Rabbits.InTrade(defs, r);
             var trade = UiKit.Rect("Trade", cell).Place(0f, 1f, 34, -34, 50, 50);
@@ -291,6 +292,18 @@ namespace VuonTra.Game.UI
             name.resizeTextMaxSize = 28;
             UiKit.Rect("Level", cell).Place(0.5f, 0f, 0, 28, CellW - 24f, 30)
                 .AddText(L10n.T("station.level", r.Level) + L10n.LevelStars(r) + L10n.Hearts(r), UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+        }
+
+        /// <summary>The heart badge a rabbit wears on its tile for good once its bond has all ten hearts (#58b), in the portrait's top-left corner.</summary>
+        public static RectTransform TenHeartBadge(RectTransform tile, GameCatalog catalog)
+        {
+            var badge = UiKit.Rect("TenHearts", tile).Place(0f, 1f, 40, -34, 68, 42);
+            badge.AddImage(catalog.Panel, Palette.Blush, true);
+            Text text = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1, 4, 0, 4, 0).AddText("♥10", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            text.resizeTextForBestFit = true;
+            text.resizeTextMinSize = 14;
+            text.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            return badge;
         }
 
         /// <summary>
