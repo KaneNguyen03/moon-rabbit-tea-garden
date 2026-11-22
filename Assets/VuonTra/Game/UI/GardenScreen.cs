@@ -1376,7 +1376,7 @@ namespace VuonTra.Game.UI
                 mortarButton.transition = Selectable.Transition.None;
                 mortarButton.targetGraphic = mortarImage;
                 mortarButton.onClick.AddListener(OpenPounding);
-                var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 1f, 0, 26, 250, 44);
+                var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 1f, -80, 26, 250, 44); // a little to the left: the "▲ N" pill at the top edge stays clear of it (#71)
                 plate.AddImage(catalog.Panel, Palette.Paper, true);
                 _mortarPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _mortarPlate.resizeTextForBestFit = true;
@@ -5017,9 +5017,9 @@ namespace VuonTra.Game.UI
         /// </summary>
         static readonly Vector2[] Lawn =
         {
-            new Vector2(750f, 380f), new Vector2(310f, 500f), new Vector2(550f, 820f), new Vector2(250f, 1020f),
-            new Vector2(770f, 1060f), new Vector2(750f, 1480f), new Vector2(370f, 1500f), new Vector2(690f, 1840f),
-            new Vector2(390f, 1860f), new Vector2(590f, 2080f), new Vector2(230f, 2260f),
+            new Vector2(780f, 320f), new Vector2(220f, 760f), new Vector2(620f, 800f), new Vector2(410f, 870f),
+            new Vector2(540f, 1390f), new Vector2(340f, 1420f), new Vector2(740f, 1420f), new Vector2(380f, 1790f),
+            new Vector2(620f, 1990f), new Vector2(460f, 2060f),
         };
         static readonly Vec2[] LawnCore = System.Array.ConvertAll(Lawn, v => new Vec2(v.x, v.y));
         public static IReadOnlyList<Vector2> LawnSpots => Lawn;
