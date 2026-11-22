@@ -1369,6 +1369,17 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Thẻ ở tab Thỏ chỉ có nhãn ngắn. Chưa thử tay.
 
+## #59 — Thỏ tự nói chuyện khi rảnh (agent song song, nhánh agent-59)
+
+- Test: 836/837 EditMode qua trên main sau khi gộp. Nhánh riêng 825/826: `ChatterTests.cs` (10), 6 test màn hình, 4 ca chữ vừa bong bóng trong `AccessibilityTests`.
+- Commit `fe37a8d` (nhánh agent-59), gộp vào main qua `cf91d4a` (ghép hai hàm khung preview của #59 và #60) + seed lại bảng chuỗi, đã push. Issue #59 đã comment (bảng 11 ý), nhãn chờ-PO-duyệt. Save không đổi.
+- Lõi `Core/Chatter.cs`: `KeysFor(nghề, đang nghỉ, pha ngày, mùa, được tiếp sức, diện đồ)`, `Pick`, `Wait` (40–70 giây), `BoosterOf`. 33 câu vi/en (4 × 4 nghề, 4 chung, 2 × 4 pha ngày, 3 mùa, tiếp sức, khoe đồ).
+- Màn hình: vùng mới cuối `GardenScreen` + một lời gọi trong `Advance`; bong bóng `ChatLine` 2,5 giây đi theo thỏ; ưu tiên thân thiết > khách > rảnh; thỏ ngủ gật và thỏ đang xin chụp ảnh không nói.
+- Ảnh (docs/anh/po-59/): `59-noi-ngay.png`, `59-noi-dem.png`.
+
+### Chưa đạt
+- Không có tiếng; thỏ ngủ gật không nói; câu rảnh có thể chờ tới 180 giây khi có khách; bong bóng chưa có đuôi. Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
