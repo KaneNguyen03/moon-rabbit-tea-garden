@@ -139,6 +139,8 @@ namespace VuonTra.Core
     {
         /// <summary>True when there is somewhere to push to and pull from.</summary>
         bool Available { get; }
+        /// <summary>The most bytes one copy may be up there, or 0 for no limit; the sync refuses a bigger one instead of trying (#39: iCloud's 1 MB).</summary>
+        int MaxBytes { get; }
         /// <summary>Sends the save text up; <paramref name="onDone"/> gets whether it arrived.</summary>
         void Push(string json, Action<bool> onDone);
         /// <summary>Fetches the save text kept up there; <paramref name="onDone"/> gets null when there is none.</summary>
@@ -151,6 +153,7 @@ namespace VuonTra.Core
     public sealed class LocalOnlyCloudSave : ICloudSave
     {
         public bool Available => false;
+        public int MaxBytes => 0;
 
         public void Push(string json, Action<bool> onDone) => onDone?.Invoke(false);
 

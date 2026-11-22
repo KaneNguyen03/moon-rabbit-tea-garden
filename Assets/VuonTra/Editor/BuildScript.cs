@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEditor.iOS.Xcode;
 using UnityEngine;
 
 namespace VuonTra.EditorTools
@@ -59,6 +60,34 @@ namespace VuonTra.EditorTools
             BuildReport report = BuildPipeline.BuildPlayer(options);
             Debug.Log("[VuonTra] Build " + target + " " + report.summary.result + ", " + report.summary.totalSize + " bytes");
             if (Application.isBatchMode && report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
+        }
+
+        /// <summary>The entitlements file the iOS post-process writes next to the Xcode project, relative to it.</summary>
+        public const string IOSEntitlements = "Unity-iPhone/VuonTraTho.entitlements";
+    }
+
+    /// <summary>
+    /// After an iOS build (#39): Game Center and the iCloud key-value store go into the Xcode project as capabilities,
+    /// with the entitlements file that carries com.apple.developer.game-center and
+    /// com.apple.developer.ubiquity-kvstore-identifier ($(TeamIdentifierPrefix)$(CFBundleIdentifier)). The App ID in
+    /// the developer account must have Game Center and iCloud turned on too; see docs/build-ios.md. Runs only for an
+    /// iOS build, so the Mac build here never touches it.
+    /// </summary>
+    public sealed class IOSCapabilities : IPostprocessBuildWithReport
+    {
+        public int callbackOrder => 100;
+
+        public void OnPostprocessBuild(BuildReport report)
+        {
+            if (report.summary.platform != BuildTarget.iOS) return;
+            string pbx = PBXProject.GetPBXProjectPath(report.summary.outputPath);
+            var project = new PBXProject();
+            project.ReadFromFile(pbx);
+            var capabilities = new ProjectCapabilityManager(pbx, BuildScript.IOSEntitlements, null, project.GetUnityMainTargetGuid());
+            capabilities.AddGameCenter();
+            capabilities.AddiCloud(true, false, null);
+            capabilities.WriteToFile();
+            Debug.Log("[VuonTra] Xcode: Game Center + iCloud key-value store added, entitlements at " + BuildScript.IOSEntitlements);
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using VuonTra.Core;
+using VuonTra.Game.Platform;
 
 namespace VuonTra.Game
 {
@@ -110,7 +111,12 @@ namespace VuonTra.Game
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
             _ready = true;
-            if (preset == null) SyncNow(SyncReason.Open);
+            if (preset == null)
+            {
+                // The real game on a real device: the platform's sign-in and cloud (#39) go in before the first sync.
+                PlatformServices.Install(this);
+                SyncNow(SyncReason.Open);
+            }
         }
 
         void Start()
@@ -141,6 +147,7 @@ namespace VuonTra.Game
             if (!Paused) State.PlaySeconds += dt;
             _sinceSync += dt;
             if (_sinceSync >= SyncTimerSeconds) SyncNow(SyncReason.Timer);
+            PlatformServices.Tick(this, dt);
             _sinceSave += dt;
             if (_sinceSave >= AutosaveSeconds)
             {
@@ -448,7 +455,8 @@ namespace VuonTra.Game
 
         public CloudStatus CloudStatus => new CloudStatus
         {
-            Available = Cloud.Available, LastPushedAt = Sync.LastPushedAt, Last = Sync.Last,
+            Available = Cloud.Available, SignedOut = Cloud is ICloudKvsCloudSave && !Cloud.Available,
+            LastPushedAt = Sync.LastPushedAt, Last = Sync.Last,
             HasLocalBackup = _store != null && _store.HasBackup, LocalBackupAt = _store != null ? _store.BackupUnixSeconds : -1
         };
 
@@ -565,6 +573,20 @@ namespace VuonTra.Game
             bool ok = Profile.Rename(State, name);
             if (ok) Changed();
             return ok;
+        }
+
+        /// <summary>
+        /// A garden with no name yet takes the name the linked account knows the player by (#39), once; a garden
+        /// the player named, or that took a name before, keeps it. True when the garden was named now.
+        /// </summary>
+        public bool AdoptLinkedName()
+        {
+            if (Account.State != BackupState.Linked) return false;
+            string name = GameCenterAccount.NameFor(State.Profile, Account.LinkedName);
+            if (name == null) return false;
+            State.Profile.GardenName = name;
+            Changed();
+            return true;
         }
 
         /// <summary>A kind's page in the album was opened: its "new" mark comes off and stays off.</summary>

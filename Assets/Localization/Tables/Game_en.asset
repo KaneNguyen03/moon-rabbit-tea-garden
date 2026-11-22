@@ -2362,6 +2362,38 @@ MonoBehaviour:
     m_Localized: '{0} visits the shop, answers golden calls and comes with the last day''s gift'
     m_Metadata:
       m_Items: []
+  - m_Id: 265567842852864
+    m_Localized: "Linking {0}\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824384
+    m_Localized: Could not link {0}; tap the button to try again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824385
+    m_Localized: Game Center
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824386
+    m_Localized: Google Play Games
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824387
+    m_Localized: Apple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824388
+    m_Localized: Google
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824389
+    m_Localized: Sign in to iCloud in the device's Settings to save to the cloud
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824390
+    m_Localized: The save is too large for iCloud; nothing was sent
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

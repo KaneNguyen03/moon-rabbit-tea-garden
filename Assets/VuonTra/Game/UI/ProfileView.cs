@@ -200,13 +200,39 @@ namespace VuonTra.Game.UI
             return DateTimeOffset.FromUnixTimeSeconds(unixSeconds).ToLocalTime().ToString("HH:mm dd/MM", System.Globalization.CultureInfo.InvariantCulture);
         }
 
+        /// <summary>The provider's name as the player reads it.</summary>
+        public static string ProviderName(AccountProvider provider)
+        {
+            switch (provider)
+            {
+                case AccountProvider.GameCenter: return L10n.T("provider.gamecenter");
+                case AccountProvider.PlayGames: return L10n.T("provider.playgames");
+                case AccountProvider.Apple: return L10n.T("provider.apple");
+                case AccountProvider.Google: return L10n.T("provider.google");
+                default: return "";
+            }
+        }
+
+        /// <summary>What the backup row says for an account: linked and to whom, signing in, refused, or only on this device.</summary>
+        public static string BackupLine(IAccountService account)
+        {
+            switch (account.State)
+            {
+                case BackupState.Linked: return L10n.T("backup.linked", account.LinkedName);
+                case BackupState.Linking: return L10n.T("backup.linking", ProviderName(account.Provider));
+                case BackupState.Failed: return L10n.T("backup.failed", ProviderName(account.Provider));
+                default: return L10n.T("backup.local");
+            }
+        }
+
         /// <summary>What the cloud row says for a status.</summary>
         public static string CloudLine(CloudStatus cloud)
         {
-            if (!cloud.Available) return L10n.T("cloud.status.off");
+            if (!cloud.Available) return L10n.T(cloud.SignedOut ? "cloud.status.signin" : "cloud.status.off");
             SyncOutcome? last = cloud.Last?.Outcome;
             if (last == SyncOutcome.NeedsChoice) return L10n.T("cloud.status.choice");
             if (last == SyncOutcome.Offline) return L10n.T("cloud.status.offline");
+            if (last == SyncOutcome.TooLarge) return L10n.T("cloud.status.toolarge");
             if (last == SyncOutcome.NewerVersion) return L10n.T("cloud.status.newer");
             if (cloud.Last != null && cloud.Last.RemoteWasCorrupt && cloud.LastPushedAt < 0) return L10n.T("cloud.status.corrupt");
             return cloud.LastPushedAt > 0 ? L10n.T("cloud.status.at", Clock(cloud.LastPushedAt)) : L10n.T("cloud.status.never");
@@ -262,7 +288,7 @@ namespace VuonTra.Game.UI
             }
 
             bool linked = account.State == BackupState.Linked;
-            _backup.text = linked ? L10n.T("backup.linked", account.LinkedName) : L10n.T("backup.local");
+            _backup.text = BackupLine(account);
             _link.SetEnabled(account.CanLink && !linked);
             _link.FaceRect.GetComponentInChildren<Text>().color = ChunkyButton.InkFor(account.CanLink && !linked);
             // What linking brings, until it has been brought; the honest "coming soon" above it while nothing can link.
