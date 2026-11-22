@@ -1157,3 +1157,14 @@ Sau khi sửa cả bốn xanh.
 - `StationActorView`: bậc trạm là `SetRank` (đổi kiểu hình ở một chỗ); thỏ đi tới trạm là `Traveler` trong `GardenScreen` (ẩn thỏ ở trạm tới 2,4 giây, test nào xếp thỏ rồi soi ngay cần `Advance` hoặc `Motion.SetReduced(true)`).
 - Mây: `GameRunner.Cloud` là seam (`ICloudSave`); `MemoryCloudSave` cho test/preview; không bao giờ thay save trên máy ngoài `ResolveSync`/`RestoreFromCloud`, và luôn `SaveStore.Backup()` trước.
 
+
+## Đề xuất #1 — Mùa trăng mới (22/11, chưa code, chờ chủ project duyệt)
+
+Bản đầy đủ: `docs/de-xuat-1.md`; đã đăng lên #1. Bốn điểm issue hỏi:
+
+1. **Điều kiện mở:** cấp vườn 30 (không đợi mọi trạm cấp 500); mỗi mùa sau thêm 5 cấp, trần mùa 7.
+2. **Giữ / mất:** giữ mọi thỏ, vật phẩm, cà rốt vàng, cỏ, thành tựu, album, hồ sơ; mất cà rốt, cấp trạm, ô đất (về 4), chỗ nghỉ (về 2), cấp vườn.
+3. **Phần thưởng:** +25 % thu nhập mỗi mùa, cộng dồn tuyến tính, nằm trong `Modifiers.IncomeMultiplier`; quà mùa mới 3 cỏ, 5 cà rốt vàng, lần đầu một Thỏ Trăng Non bậc Tím.
+4. **Save:** thêm `Season` (save cũ = 0), không tăng version; test đọc save cũ và mô phỏng mùa 1.
+
+Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu hình ứng viên trong `docs/anh/po-8/`.
