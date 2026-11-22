@@ -680,6 +680,22 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: ý trên.
 
+## #32 — Hai ý còn lại: chạm giữ xem số đầy đủ, gom cụm nút góc phải
+
+- Test: 442/442 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test core (`BigNumTests.cs`) và 1 test màn hình.
+- Commit `40443d7`, đã push. Issue #32 còn một ý (viền sáng cả vườn khi tăng tốc), đã comment, nhãn chờ-PO-duyệt.
+- `BigNum.ToFullString(group)`, `L10n.Full` (vi dùng dấu chấm, en dấu phẩy); chuỗi `purse.full` (seed lại). `GardenScreen.PursePointer` + đếm giữ trong `Advance`.
+
+### Đã làm (đối chiếu với nguyên văn #32)
+- Con số lớn dùng chung một cách viết: đã vậy từ trước (`Short()` ở mọi nơi). Chạm giữ ô cà rốt 0,45 giây thì số đầy đủ nổi lên ("13.912.345 cà rốt"); quá 15 chữ số thì vẫn dạng ngắn vì double không giữ được chữ số cuối; thả ra sau khi giữ không mở bảng thu nhập (test).
+- Cụm nút góc phải (máy ảnh, zoom, cài đặt) đứng trên một tấm nền chung, có chỗ cho nút thứ tư (test có tấm).
+
+### Chưa đạt so với #32
+- Viền sáng cả vườn trong lúc tăng tốc (thỏ đã làm nhanh gấp đôi từ trước).
+
+### Tồn đọng
+- tồn đọng: ý trên; giữ ngón thật trên bản Mac chưa ai thử.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -798,12 +814,13 @@ Sau khi sửa cả bốn xanh.
 - #31 ý cuối (`3567671`): vuốt trái/phải trên tấm trạm sang trạm kế. #31 đủ năm ý.
 - #22 hai ý còn lại (`1c59ccd`): vuốt xuống ở đâu trên tấm cũng kéo tấm khi danh sách ở đầu; vườn phía trên tấm chạm và kéo được. Còn các hộp giữa màn chưa thành tấm trượt.
 - #23 ba ý còn lại (`9cff4c9`): tab không chọn rõ hơn; tấm trạm sát thanh tab; huy hiệu tab Trạm và tab Thỏ. Còn vùng an toàn trên máy thật.
+- #32 hai ý còn lại (`40443d7`): chạm giữ ví xem số đầy đủ; cụm nút góc phải trên một tấm. Còn viền sáng khi tăng tốc.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (phần còn lại của #32, #22 (hộp giữa màn), #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (#22 (hộp giữa màn), #24, #28 phần còn lại); hướng dẫn 60 giây (#30) session kia đang lấy.
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
