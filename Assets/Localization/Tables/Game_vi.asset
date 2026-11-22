@@ -2882,6 +2882,42 @@ MonoBehaviour:
     m_Localized: "Khay \u0111\u1EA7y, qu\xE0 ng\xE0y, m\xF9a m\u1EDBi"
     m_Metadata:
       m_Items: []
+  - m_Id: 384746075971584
+    m_Localized: "M\u1EDF h\u0169 tr\u0103ng ({0})"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943104
+    m_Localized: "Ch\u01B0a c\xF3 h\u0169 tr\u0103ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943105
+    m_Localized: "1 h\u0169 = 1 gi\u1EDD thu nh\u1EADp: +{0} \xB7 tr\xEAn k\u1EC7 {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943106
+    m_Localized: "H\u0169 tr\u0103ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943107
+    m_Localized: "C\xF2n {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943108
+    m_Localized: "K\u1EC7 \u0111\u1EA7y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943109
+    m_Localized: "Mai mua ti\u1EBFp"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943110
+    m_Localized: "+1 h\u0169 tr\u0103ng \xB7 m\u1EDF \u1EDF v\xED c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943111
+    m_Localized: "+1 h\u0169 tr\u0103ng (3 sao)"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
