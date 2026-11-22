@@ -1358,6 +1358,17 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Mở máy ảnh bằng nút HUD lúc có lời mời thì không được thưởng. Chưa có tiếng riêng. Năm nhiệm vụ ngày (PO quyết có bỏ "Chạm bé thỏ 50 lần"). Chưa thử tay.
 
+## #60 — Thỏ nghỉ góp sức: mỗi bé ở chỗ nghỉ cộng 2–10 % thu nhập vườn (agent song song, nhánh agent-60)
+
+- Test: 816/817 EditMode qua trên main (gộp thẳng, cùng cây agent đã verify). 11 test mới (`RestSpotsTests` 7, `CatalogTests` 1, `GardenScreenTests` 3); hai test mùa trăng mới đổi kỳ vọng thành `1,25 × RestSpots.Multiplier`.
+- Commit `d10d0e8`, đã push. Issue #60 đã comment (bảng 9 ý + nhịp trước/sau), nhãn chờ-PO-duyệt.
+- `RestSpots`: `RestBonus = 0,02` × `TierScale` {1; 1,25; 1,5; 2; 3; 5} cho mỗi bé có ghế (`Seated`, cùng thứ tự màn hình vẽ); `Modifiers.From` nhân vào `IncomeMultiplier` nên mọi nguồn thu đều hưởng. `IncomeView` dòng "Thỏ đang nghỉ (N) +x %"; tấm thỏ "Đang nghỉ · +x % vườn"; tab Thỏ nhãn "+x % vườn". Thành tựu `nghi-6` (2 cỏ), `QuestMetric.RabbitsResting` cuối enum. Hai mô phỏng nhịp tính lại hệ số sau khi gọi thỏ hoặc mở rộng vườn.
+- Nhịp: cấp 5, cấp 10, 12 ô đất không đổi ở cả ba mô phỏng nên giữ 2 %; thu nhập thong thả hết ngày 7 cao hơn khoảng 19 % so với cùng lượt chạy không có phần thưởng.
+- Ảnh (docs/anh/po-60/): `60-thu-nhap.png`, `60-tho-nghi.png`, `60-tab-tho.png`.
+
+### Chưa đạt
+- Thẻ ở tab Thỏ chỉ có nhãn ngắn. Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
