@@ -3142,6 +3142,62 @@ MonoBehaviour:
     m_Localized: The garden has no empty tile
     m_Metadata:
       m_Items: []
+  - m_Id: 412723350331392
+    m_Localized: Catch 50 fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720000
+    m_Localized: A rabbit with all 10 hearts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720001
+    m_Localized: Little silverfish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720002
+    m_Localized: Orange goldfish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720003
+    m_Localized: Pink koi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720004
+    m_Localized: Crescent fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720005
+    m_Localized: Golden carp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720006
+    m_Localized: Starry night fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720007
+    m_Localized: +{0} bond points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720008
+    m_Localized: 'Bait: {0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720009
+    m_Localized: Next bait in {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720010
+    m_Localized: Out of bait, back soon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720011
+    m_Localized: '{0} has all 10 hearts!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720012
+    m_Localized: "Best of friends \xB7 +{0} golden carrots"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
