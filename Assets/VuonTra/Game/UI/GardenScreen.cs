@@ -129,6 +129,46 @@ namespace VuonTra.Game.UI
         /// <summary>The scenery that moves: trees lean from the root, lanterns swing from the hook and flicker, the pond shimmers.</summary>
         readonly List<RectTransform> _swayTrees = new List<RectTransform>(), _swayLanterns = new List<RectTransform>();
         readonly List<Image> _lanternGlows = new List<Image>(), _ripples = new List<Image>();
+        /// <summary>Every paper lantern's picture, for the colour the player hangs on them (#11), and the colour its glow takes.</summary>
+        readonly List<Image> _lanternArt = new List<Image>();
+        Color _lanternGlowColor = Palette.Lantern;
+
+        /// <summary>Decorating the garden (#11): one object per spot, showing a faint "+" while something waits in storage, or the piece standing there.</summary>
+        sealed class DecorSpotView { public RectTransform Root; public GameObject Plate; public Image Item; public string Shown; }
+        readonly List<DecorSpotView> _decorSpots = new List<DecorSpotView>();
+        /// <summary>The card for one decoration spot: what stands there, what waits in storage.</summary>
+        public DecorView DecorCard { get; private set; }
+        /// <summary>The spot whose card is open, or -1.</summary>
+        public int DecorSpotOpen => DecorCard != null && DecorCard.IsOpen ? DecorCard.Spot : -1;
+        /// <summary>How tall each kind of decoration stands, by its place in <see cref="Decor.Kinds"/>: lantern, planter, chair, mat.</summary>
+        static readonly float[] DecorHeights = { 132f, 92f, 110f, 84f };
+
+        /// <summary>
+        /// The eight places a decoration can stand, placed by hand where the garden has room: two in the resting corner at the
+        /// bottom, one between each pair of station clusters up the sides and the middle, and one by the tea shop near the pond.
+        /// Every one keeps 200 units from every station and from the props that come with the garden.
+        /// </summary>
+        static readonly Vector2[] DecorSpots =
+        {
+            new Vector2(610f, 290f),   // 0 resting corner, by the tea table
+            new Vector2(340f, 300f),   // 1 resting corner, left
+            new Vector2(400f, 910f),   // 2 between the jam pot and the flower spring, left of the flower mortar's level plate
+            new Vector2(930f, 992f),   // 3 between the star jar and the flower spring, under the star jar's level plate
+            new Vector2(560f, 1290f),  // 4 between the teapot and the flower mortar
+            new Vector2(130f, 1400f),  // 5 between the jam pot and the beehive, under the beehive's level plate
+            new Vector2(120f, 1830f),  // 6 between the beehive and the chestnut oven
+            new Vector2(390f, 2190f),  // 7 by the tea shop, on the way to the pond
+        };
+
+        /// <summary>Where decoration spot <paramref name="i"/> stands in the world: the feet of whatever is placed there.</summary>
+        public static Vector2 DecorSpotAt(int i) => i >= 0 && i < DecorSpots.Length ? DecorSpots[i] : DecorSpots[0];
+
+        /// <summary>The tint a paper lantern's picture takes for a lantern colour: none for paper, a wash of the colour for the rest.</summary>
+        public static Color LanternTint(int color)
+        {
+            if (color <= 0 || color >= Decor.LanternColors.Length) return Color.white;
+            return Palette.Mix(Color.white, Palette.Hex(Decor.LanternColors[color]), 0.7f);
+        }
         RectTransform _pondGlow;
         /// <summary>The wood around the clearing, on its own layer that slides a little slower than the ground.</summary>
         RectTransform _canopy;
@@ -694,7 +734,7 @@ namespace VuonTra.Game.UI
             {
                 _swayLanterns[i].localRotation = still ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Sin(_clock * 1.4f + i * 2.3f) * 3f);
                 float flicker = still ? 1f : 0.86f + 0.14f * Mathf.Sin(_clock * 9f + i * 3.1f) * Mathf.Sin(_clock * 2.3f + i);
-                if (i < _lanternGlows.Count) _lanternGlows[i].color = Palette.Alpha(Palette.Lantern, LanternGlowAlpha * flicker);
+                if (i < _lanternGlows.Count) _lanternGlows[i].color = Palette.Alpha(_lanternGlowColor, LanternGlowAlpha * flicker);
             }
             if (_moonbeam != null && _moonbeam.texture != null) _moonbeam.color = new Color(0.82f, 0.9f, 1f, MoonbeamAlpha + (still ? 0f : 0.1f * Mathf.Sin(_clock * 0.7f)));
             if (_moonPool != null) _moonPool.color = new Color(0.82f, 0.9f, 1f, MoonPoolAlpha + (still ? 0f : 0.05f * Mathf.Sin(_clock * 0.7f + 1f)));
@@ -906,6 +946,8 @@ namespace VuonTra.Game.UI
             Guide = null;
             _guideStep = -1;
             Shop = null;
+            DecorCard = null;
+            _decorSpots.Clear(); _lanternArt.Clear(); _lanternGlowColor = Palette.Lantern;
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
@@ -994,7 +1036,8 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor,
-                Runner.ItemDefs, OnBuyHat);
+                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor);
+            DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
@@ -1383,6 +1426,7 @@ namespace VuonTra.Game.UI
                 _jarProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(jarAt.y, _jarProp));
             }
+            BuildDecorSpots(catalog, standing);
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
 
@@ -2098,6 +2142,149 @@ namespace VuonTra.Game.UI
             return rt.AddImage(sprite, tint);
         }
 
+        /// <summary>True when a point lies on one of the player's decoration spots (#11): the garden's own dressing keeps off them.</summary>
+        static bool OnDecorSpot(float x, float y)
+        {
+            foreach (Vector2 spot in DecorSpots) if (Vector2.Distance(spot, new Vector2(x, y)) < 150f) return true;
+            return false;
+        }
+
+        /// <summary>
+        /// The eight decoration spots (#11): each an object at its feet that shows a faint "+" plate while something waits in
+        /// storage, or the piece the player stood there. A touch opens the spot's card. Hidden altogether while there is nothing
+        /// to show, so a newcomer's garden has no clutter.
+        /// </summary>
+        void BuildDecorSpots(GameCatalog catalog, List<KeyValuePair<float, Transform>> standing)
+        {
+            for (int i = 0; i < Decor.Spots; i++)
+            {
+                int spot = i;
+                Vector2 at = DecorSpotAt(i);
+                var root = UiKit.Rect("Spot " + i, _street).Place(0f, 0f, at.x, at.y, 140, 140);
+                root.pivot = new Vector2(0.5f, 0f);
+                root.anchoredPosition = at;
+                Image hit = root.AddImage(null, new Color(0, 0, 0, 0)); // the whole square answers to a touch, "+" or piece
+                hit.raycastTarget = true;
+                var button = root.gameObject.AddComponent<Button>();
+                button.transition = Selectable.Transition.None;
+                button.targetGraphic = hit;
+                button.onClick.AddListener(() => OpenDecorSpot(spot));
+                // The "+": a faint paper oval on the grass with a soft cross, the size of a small prop's foot.
+                var plate = UiKit.Rect("Plate", root).Place(0.5f, 0f, 0, 14, 96, 44);
+                plate.AddImage(catalog.Glow, Palette.Alpha(Palette.Paper, 0.55f));
+                UiKit.Rect("Oval", plate).Stretch(0, 0, 1, 1, 14, 6, 14, 6).AddImage(catalog.Round, Palette.Alpha(Palette.Paper, 0.5f));
+                UiKit.Rect("Text", plate).Place(0.5f, 0.5f, 0, 1, 60, 44).AddText("+", 32, Palette.Alpha(Palette.Ink, 0.55f), TextAnchor.MiddleCenter, FontStyle.Bold);
+                // The piece itself stands on its feet; its picture and size follow what is placed.
+                var item = UiKit.Rect("Item", root).Place(0.5f, 0f, 0, 0, 100, 100);
+                item.pivot = new Vector2(0.5f, 0f);
+                item.anchoredPosition = Vector2.zero;
+                Image art = item.AddImage(null, Color.white);
+                art.preserveAspect = true;
+                art.raycastTarget = false;
+                var shade = UiKit.Rect("Shade", root).Place(0.5f, 0f, 6, 4, 90, 30);
+                shade.AddImage(catalog.Glow, Palette.Alpha(Palette.Night, 0.28f));
+                shade.SetAsFirstSibling();
+                plate.gameObject.SetActive(false);
+                item.gameObject.SetActive(false);
+                root.gameObject.SetActive(false);
+                _decorSpots.Add(new DecorSpotView { Root = root, Plate = plate.gameObject, Item = art });
+                standing.Add(new KeyValuePair<float, Transform>(at.y, root));
+            }
+        }
+
+        /// <summary>What each spot shows now: nothing, a "+", or the piece standing there; and the colour of every paper lantern.</summary>
+        void RefreshDecor(GameState s)
+        {
+            bool empties = Decor.ShowEmptySpots(s);
+            for (int i = 0; i < _decorSpots.Count && i < s.DecorSpots.Length; i++)
+            {
+                DecorSpotView view = _decorSpots[i];
+                string kind = s.DecorSpots[i];
+                bool shown = kind != null || empties;
+                if (view.Root.gameObject.activeSelf != shown) view.Root.gameObject.SetActive(shown);
+                bool plate = kind == null && empties;
+                if (view.Plate.activeSelf != plate) view.Plate.SetActive(plate);
+                bool item = kind != null;
+                if (view.Item.gameObject.activeSelf != item) view.Item.gameObject.SetActive(item);
+                if (view.Shown != kind)
+                {
+                    view.Shown = kind;
+                    if (kind != null)
+                    {
+                        Sprite sprite = Runner.Catalog.DecorArt(kind);
+                        int k = Decor.IndexOf(kind);
+                        float height = k >= 0 && k < DecorHeights.Length ? DecorHeights[k] : 100f;
+                        float width = sprite != null ? height * sprite.rect.width / sprite.rect.height : height;
+                        view.Item.sprite = sprite != null ? sprite : Runner.Catalog.Round;
+                        view.Item.rectTransform.sizeDelta = new Vector2(width, height);
+                    }
+                }
+            }
+            Color tint = LanternTint(s.LanternColor);
+            foreach (Image lantern in _lanternArt) if (lantern != null && lantern.color != tint) lantern.color = tint;
+            _lanternGlowColor = s.LanternColor > 0 ? Palette.Mix(Palette.Lantern, Palette.Hex(Decor.LanternColors[s.LanternColor]), 0.5f) : Palette.Lantern;
+            if (DecorCard != null) DecorCard.Refresh(s);
+        }
+
+        /// <summary>A decoration spot was touched: its card opens, listing what waits in storage and what stands there.</summary>
+        public void OpenDecorSpot(int spot)
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Sfx.Click();
+            DecorCard.Open(Runner.State, spot);
+        }
+
+        /// <summary>A piece stood on a spot from its card, in place of whatever was there: a small burst where it lands.</summary>
+        void OnPlaceDecor(int spot, string kindId)
+        {
+            if (!Runner.PlaceDecor(spot, kindId)) return;
+            DecorCard.Close();
+            Sfx.Blip();
+            Haptics.Light();
+            DecorMoment(spot);
+        }
+
+        /// <summary>A spot's piece taken back into storage from its card.</summary>
+        void OnStoreDecor(int spot)
+        {
+            if (!Runner.StoreDecor(spot)) return;
+            DecorCard.Close();
+            Sfx.Blip();
+            Haptics.Light();
+            DecorMoment(spot);
+        }
+
+        /// <summary>A little paper and lantern-light burst at a spot, and the piece pops as it lands; still under reduced motion.</summary>
+        void DecorMoment(int spot)
+        {
+            if (spot < 0 || spot >= _decorSpots.Count) return;
+            RectTransform root = _decorSpots[spot].Root;
+            if (OnScreen(root)) Feel.Burst(Feel.PointOf(root, new Vector2(0, 50)), Runner.Catalog.Round, new[] { Palette.Lantern, Palette.Paper, Palette.Blush }, 12, 420f, 20f);
+            if (Motion.Reduced) return;
+            RectTransform item = _decorSpots[spot].Item.rectTransform;
+            Tweens.Add(Motion.Tap * 1.6f, t => { if (item != null) item.localScale = Vector3.one * (1f + 0.18f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (item != null) item.localScale = Vector3.one; });
+        }
+
+        /// <summary>A decoration bought at the shop (#11): it waits in storage; a word says where to put it.</summary>
+        void OnBuyDecor(string kindId)
+        {
+            if (!Runner.BuyDecor(kindId)) return;
+            Sfx.Reward();
+            Haptics.Light();
+            Feel.FloatText(new Vector2(0, 420), L10n.T("float.decor", L10n.T("decor." + kindId)), Palette.Lantern, 36);
+        }
+
+        /// <summary>A lantern colour hung from the shop: every paper lantern in the garden takes it at once.</summary>
+        void OnLanternColor(int color)
+        {
+            if (!Runner.SetLanternColor(color)) return;
+            Sfx.Blip();
+            Haptics.Light();
+            Feel.FloatText(new Vector2(0, 420), L10n.T("float.lantern", L10n.T("lantern." + Decor.LanternColorIds[color])), Palette.Hex(Decor.LanternColors[color]), 40);
+        }
+
         /// <summary>
         /// Dresses the clearing: a canopy that frames it on every side, lanterns along the path,
         /// a pond that holds the moon, places to sit, and a scatter of smaller things. Placement
@@ -2263,6 +2450,7 @@ namespace VuonTra.Game.UI
                     img.rectTransform.pivot = new Vector2(0.5f, 1f);
                     img.rectTransform.anchoredPosition = new Vector2(x, y + height);
                     _swayLanterns.Add(img.rectTransform);
+                    _lanternArt.Add(img);
                 }
             }
 
@@ -2337,6 +2525,7 @@ namespace VuonTra.Game.UI
                 if (x < 70f + halfWidth || x > WorldW - 70f - halfWidth || y < 160f || y > WorldH - 220f) return false;
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 250f) return false;
                 if (Vector2.Distance(new Vector2(x, y), MortarSpot) < 170f || Vector2.Distance(new Vector2(x, y), ShopSpot) < 220f) return false;
+                if (OnDecorSpot(x, y)) return false; // the player's own spots stay clear for what they buy (#11)
                 foreach (Vector2 seat in Seats)
                     if (Mathf.Abs(Heart.x + seat.x - x) < 170f && y > Heart.y + seat.y - 170f && y < Heart.y + seat.y + 200f) return false;
                 for (int j = 0; j < stations; j++)
@@ -2389,6 +2578,7 @@ namespace VuonTra.Game.UI
                 bool tall = pick < 0.10f;
                 if (!Free(x, y, 230f, tall ? 380f : 220f, 240f)) continue; // nothing may cover a level plate or a name
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 240f) continue;
+                if (OnDecorSpot(x, y)) continue;
                 // Keep the places to rest in the open: nothing grows on a seat or in front of the tea table.
                 bool onSeat = false;
                 foreach (Vector2 seat in Seats)
@@ -3253,6 +3443,7 @@ namespace VuonTra.Game.UI
             }
             UpgradeAll.Refresh(defs, s);
             Shop.Refresh(s);
+            RefreshDecor(s);
             RefreshOrders(s);
             bool anyGolden = s.GoldenCarrots > 0;
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);

@@ -34,14 +34,27 @@ namespace VuonTra.Game.UI
         public const float ConfirmSeconds = 2f;
         GameState _last;
 
+        /// <summary>One decoration on the shelf (#11): its tile, the price chip that doubles as the ask, and the "owned" badge.</summary>
+        sealed class DecorTile { public DecorKind Kind; public Button Button; public Image Plate, PriceChip; public Text Price, OwnedText; public GameObject Owned; }
+        readonly List<DecorTile> _decor = new List<DecorTile>();
+        readonly Action<string> _onBuyDecor;
+        readonly Action<int> _onLanternColor;
+        /// <summary>The lantern colour dots: each a button, each with a ring that shows when its colour is hung.</summary>
+        readonly List<Button> _lanternDots = new List<Button>();
+        readonly List<GameObject> _lanternRings = new List<GameObject>();
+        /// <summary>How tall the sheet stands: everything down to the note on where golden carrots come from, under the HUD.</summary>
+        public const float Height = 1770f;
+
         public ShopView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<long> today, Func<double> hoursLeft, Action onGift, Action onGoldenSummon, Action onBuyVisitor,
-            IReadOnlyList<ItemDef> items = null, Action<string> onBuyItem = null)
+            IReadOnlyList<ItemDef> items = null, Action<string> onBuyItem = null, Action<string> onBuyDecor = null, Action<int> onLanternColor = null)
         {
             _catalog = catalog;
             _today = today;
             _hoursLeft = hoursLeft;
             _onBuyItem = onBuyItem;
-            Sheet = new BottomSheet(canvas, "Shop", catalog, tweens, 1560f, null);
+            _onBuyDecor = onBuyDecor;
+            _onLanternColor = onLanternColor;
+            Sheet = new BottomSheet(canvas, "Shop", catalog, tweens, Height, null);
             RectTransform card = Sheet.Card;
             UiKit.Rect("Title", card).Stretch(0, 1, 1, 1, 40, -120, 40, 40)
                 .AddText(L10n.T("shop.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -168,7 +181,83 @@ namespace VuonTra.Game.UI
                     n++;
                 }
 
-            UiKit.Rect("Earn", card).Stretch(0, 1, 1, 1, 40, -1400, 40, 1320).AddText(L10n.T("shop.earn"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+            // Decorating the garden (#11): four things to stand in the garden, bought as often as there is room, and the
+            // lantern colour as a row of dots beside the heading. The same two-tap buy as the hats.
+            var decorPanel = UiKit.Rect("Decor", card).Stretch(0, 1, 1, 1, 40, -1620, 40, 1320);
+            decorPanel.AddImage(catalog.Panel, Palette.Card, true);
+            Text decorHeading = UiKit.Rect("Heading", decorPanel).Stretch(0, 1, 0, 1, 24, -72, -326, 8).AddText(L10n.T("shop.decor.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            decorHeading.resizeTextForBestFit = true;
+            decorHeading.resizeTextMinSize = 15;
+            decorHeading.resizeTextMaxSize = UiKit.TextBody;
+            Text lanternLabel = UiKit.Rect("LanternLabel", decorPanel).Place(1f, 1f, -24 - 352 - 12 - 95, -40, 190, 56).AddText(L10n.T("shop.lantern.title"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleRight, FontStyle.Bold);
+            lanternLabel.resizeTextForBestFit = true;
+            lanternLabel.resizeTextMinSize = 12;
+            lanternLabel.resizeTextMaxSize = UiKit.TextSmall;
+            var lanterns = UiKit.Rect("Lanterns", decorPanel).Place(1f, 1f, -24 - 176, -40, 352, 64);
+            for (int i = 0; i < Decor.LanternColors.Length; i++)
+            {
+                int color = i;
+                var dot = UiKit.Rect("Dot " + i, lanterns).Place(0f, 0.5f, 44 + i * 88, 0, 64, 64);
+                Image hit = dot.AddImage(null, new Color(0, 0, 0, 0));
+                hit.raycastTarget = true;
+                var dotButton = dot.gameObject.AddComponent<Button>();
+                dotButton.transition = Selectable.Transition.None;
+                dotButton.targetGraphic = hit;
+                dotButton.onClick.AddListener(() => { Sfx.Click(); if (_onLanternColor != null) _onLanternColor(color); });
+                UiKit.Touchable(dot, 64, 64);
+                var ring = UiKit.Rect("Ring", dot).Stretch(0, 0, 1, 1, -7, -7, -7, -7);
+                ring.AddImage(catalog.Round, Palette.Ink);
+                // A thin rim under every dot, so the paper one still reads on the cream panel.
+                UiKit.Rect("Rim", dot).Stretch(0, 0, 1, 1, -2, -2, -2, -2).AddImage(catalog.Round, Palette.Mix(Palette.Paper, Palette.Ink, 0.35f));
+                UiKit.Rect("Fill", dot).Stretch(0, 0, 1, 1).AddImage(catalog.Round, Palette.Hex(Decor.LanternColors[i]));
+                _lanternDots.Add(dotButton);
+                _lanternRings.Add(ring.gameObject);
+            }
+            var decorRow = UiKit.Rect("Row", decorPanel).Stretch(0, 0, 1, 1, 0, 10, 0, 80);
+            for (int i = 0; i < Decor.Kinds.Length; i++)
+            {
+                DecorKind kind = Decor.Kinds[i];
+                var tile = new DecorTile { Kind = kind };
+                var rt = UiKit.Rect("Decor " + kind.Id, decorRow).Place(0f, 0.5f, 15f + i * (tileW + gap) + tileW / 2f, 0, tileW, tileH);
+                tile.Plate = rt.AddImage(catalog.Panel, Palette.Mix(Palette.Paper, Color.white, 0.35f), true);
+                tile.Plate.raycastTarget = true;
+                tile.Button = rt.gameObject.AddComponent<Button>();
+                tile.Button.transition = Selectable.Transition.None;
+                tile.Button.targetGraphic = tile.Plate;
+                string kindId = kind.Id;
+                tile.Button.onClick.AddListener(() => OnDecorTap(kindId));
+                Image icon = UiKit.Rect("Icon", rt).Place(0.5f, 1f, 0, -64, 112, 108).AddImage(catalog.DecorArt(kind.Id), Color.white);
+                icon.preserveAspect = true;
+                Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -140, tileW - 12f, 44).AddText(L10n.T("decor." + kind.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                name.resizeTextForBestFit = true;
+                name.resizeTextMinSize = 11;
+                name.resizeTextMaxSize = UiKit.Scaled(18);
+                name.horizontalOverflow = HorizontalWrapMode.Wrap;
+                var price = UiKit.Rect("Price", rt).Place(0.5f, 0f, 0, 30, tileW - 24f, 40);
+                tile.PriceChip = price.AddImage(catalog.Panel, Palette.Lantern, true);
+                float priceInset = 8f;
+                if (catalog.GoldenCarrot != null)
+                {
+                    UiKit.Rect("Carrot", price).Place(0f, 0.5f, 20, 0, 26, 26).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
+                    priceInset = 34f;
+                }
+                tile.Price = UiKit.Rect("Text", price).Stretch(0, 0, 1, 1, priceInset, 0, 6, 0).AddText(kind.Price.ToString(), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                tile.Price.resizeTextForBestFit = true;
+                tile.Price.resizeTextMinSize = 11;
+                tile.Price.resizeTextMaxSize = UiKit.TextSmall;
+                // How many are owned already, as a small moss badge over the top corner: the price stays, since more can be bought.
+                var owned = UiKit.Rect("Owned", rt).Place(0f, 1f, 50, -22, 96, 32);
+                owned.AddImage(catalog.Panel, Palette.Moss, true);
+                tile.OwnedText = UiKit.Rect("Text", owned).Stretch(0, 0, 1, 1, 4, 0, 4, 0).AddText("", 16, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                tile.OwnedText.resizeTextForBestFit = true;
+                tile.OwnedText.resizeTextMinSize = 10;
+                tile.OwnedText.resizeTextMaxSize = UiKit.Scaled(16);
+                tile.Owned = owned.gameObject;
+                tile.Owned.SetActive(false);
+                _decor.Add(tile);
+            }
+
+            UiKit.Rect("Earn", card).Stretch(0, 1, 1, 1, 40, -1700, 40, 1620).AddText(L10n.T("shop.earn"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
         }
 
         /// <summary>A hat tile tapped: the first tap asks, a second on the same tile soon after buys.</summary>
@@ -180,6 +269,43 @@ namespace VuonTra.Game.UI
             Sfx.Click();
             if (confirmed) { if (_onBuyItem != null) _onBuyItem(defId); }
             else if (_last != null) RefreshHats(_last);
+        }
+
+        /// <summary>A decoration tile tapped: the same two taps as a hat. The hats and the shelf share the one asking tile.</summary>
+        void OnDecorTap(string kindId)
+        {
+            string key = "decor:" + kindId;
+            bool confirmed = _armed == key && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
+            _armed = confirmed ? null : key;
+            _armedAt = Time.realtimeSinceStartup;
+            Sfx.Click();
+            if (confirmed) { if (_onBuyDecor != null) _onBuyDecor(kindId); }
+            else if (_last != null) RefreshDecor(_last);
+        }
+
+        void RefreshDecor(GameState s)
+        {
+            _last = s;
+            bool full = Decor.TotalOwned(s) >= Decor.Spots;
+            foreach (DecorTile tile in _decor)
+            {
+                int owned = Decor.Owned(s, tile.Kind.Id);
+                bool affordable = !full && s.GoldenCarrots >= tile.Kind.Price;
+                bool armed = affordable && _armed == "decor:" + tile.Kind.Id && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
+                tile.Button.interactable = affordable;
+                if (tile.Owned.activeSelf != (owned > 0)) tile.Owned.SetActive(owned > 0);
+                tile.OwnedText.text = L10n.T("shop.decor.owned", owned);
+                tile.Price.text = full ? L10n.T("shop.decor.full") : (armed ? L10n.T("shop.hats.confirm") : tile.Kind.Price.ToString());
+                tile.PriceChip.color = armed ? Palette.Carrot : (affordable ? Palette.Lantern : Palette.Track);
+                tile.Plate.color = armed ? Palette.Mix(Palette.Paper, Palette.Lantern, 0.5f) : (owned > 0 ? Palette.Mix(Palette.Paper, Palette.Moss, 0.12f) : Palette.Mix(Palette.Paper, Color.white, 0.35f));
+            }
+            bool canHang = s.GoldenCarrots >= Decor.LanternColorCost;
+            for (int i = 0; i < _lanternDots.Count; i++)
+            {
+                bool hung = s.LanternColor == i;
+                _lanternDots[i].interactable = canHang && !hung;
+                if (_lanternRings[i].activeSelf != hung) _lanternRings[i].SetActive(hung);
+            }
         }
 
         void RefreshHats(GameState s)
@@ -264,6 +390,7 @@ namespace VuonTra.Game.UI
             _golden.SetEnabled(can);
             _odds.text = OddsText();
             RefreshHats(s);
+            RefreshDecor(s);
         }
     }
 }

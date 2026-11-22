@@ -4081,5 +4081,171 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(ShellState.Playing, screen.Shell.State);
             ProfileView.OpenUrl = url => Application.OpenURL(url);
         }
+
+        // ----- #11: decorating the garden -----
+
+        [Test]
+        public void Decoration_Spots_Stay_Hidden_Until_Something_Is_Owned_And_Stand_Clear_Of_Everything_Else()
+        {
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            for (int i = 0; i < Decor.Spots; i++)
+            {
+                Transform spot = world.Find("Spot " + i);
+                Assert.IsNotNull(spot, "spot " + i + " is built with the garden");
+                Assert.IsFalse(spot.gameObject.activeSelf, "a newcomer sees no spot " + i);
+                Vector2 at = GardenScreen.DecorSpotAt(i);
+                Assert.AreEqual(at, ((RectTransform)spot).anchoredPosition);
+                for (int j = 0; j < runner.Defs.Count; j++) Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.StationSpot(j)), 200f, "spot " + i + " clear of station " + j);
+                Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.PondSpot), 200f, "spot " + i + " clear of the pond");
+                for (int j = 0; j < i; j++) Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.DecorSpotAt(j)), 200f, "spots " + i + " and " + j + " apart");
+                Assert.That(at.x, Is.InRange(90f, GardenScreen.ReadableRight - 40f), "spot " + i + " inside the garden, short of the trees at the edge");
+            }
+            // No planter, mushrooms or stones has been dressed onto a spot: the ground there is kept for the player.
+            for (int k = 0; k < world.childCount; k++)
+            {
+                Transform child = world.GetChild(k);
+                if (child.name != "Planter" && child.name != "Mushrooms" && child.name != "Stones" && child.name != "Bush" && child.name != "Tree") continue;
+                var prop = (RectTransform)child;
+                Vector2 foot = prop.anchoredPosition - new Vector2(0f, prop.rect.height * prop.pivot.y); // where it stands, whatever it pivots on
+                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(foot, GardenScreen.DecorSpotAt(i)), 140f, child.name + " standing at " + foot + " is off spot " + i);
+            }
+
+            // Bought at the shop: a tap asks, a second buys; then the empty spots show their "+".
+            runner.State.GoldenCarrots = 15;
+            screen.OpenShop();
+            screen.Refresh();
+            Button tile = Find("Canvas/Shop/Card/Decor/Row/Decor den-da");
+            Assert.IsTrue(tile.interactable);
+            Assert.IsFalse(Find("Canvas/Shop/Card/Decor/Row/Decor bon-hoa").interactable, "twenty are needed");
+            Assert.IsFalse(root.transform.Find("Canvas/Shop/Card/Decor/Row/Decor den-da/Owned").gameObject.activeSelf);
+            tile.onClick.Invoke();
+            Assert.AreEqual(0, Decor.TotalOwned(runner.State), "the first tap only asks");
+            Assert.AreEqual(L10n.T("shop.hats.confirm"), root.transform.Find("Canvas/Shop/Card/Decor/Row/Decor den-da/Price/Text").GetComponent<Text>().text);
+            tile.onClick.Invoke();
+            Assert.AreEqual(1, Decor.Owned(runner.State, "den-da"));
+            Assert.AreEqual(0, runner.State.GoldenCarrots);
+            screen.Refresh();
+            Assert.IsTrue(root.transform.Find("Canvas/Shop/Card/Decor/Row/Decor den-da/Owned").gameObject.activeSelf);
+            Assert.AreEqual(L10n.T("shop.decor.owned", 1), root.transform.Find("Canvas/Shop/Card/Decor/Row/Decor den-da/Owned/Text").GetComponent<Text>().text);
+            Assert.AreEqual("15", root.transform.Find("Canvas/Shop/Card/Decor/Row/Decor den-da/Price/Text").GetComponent<Text>().text, "the price stays: it can be bought again");
+            screen.Shop.Close();
+            for (int i = 0; i < Decor.Spots; i++)
+            {
+                Transform spot = world.Find("Spot " + i);
+                Assert.IsTrue(spot.gameObject.activeSelf, "spot " + i + " shows now");
+                Assert.IsTrue(spot.Find("Plate").gameObject.activeSelf, "as a '+'");
+                Assert.IsFalse(spot.Find("Item").gameObject.activeSelf);
+            }
+            // Eight in all: the tiles say there is no room.
+            runner.State.GoldenCarrots = 1000;
+            for (int n = 1; n < Decor.Spots; n++) Decor.Buy(runner.State, "bon-hoa");
+            screen.OpenShop();
+            screen.Refresh();
+            Assert.IsFalse(Find("Canvas/Shop/Card/Decor/Row/Decor den-da").interactable);
+            Assert.AreEqual(L10n.T("shop.decor.full"), root.transform.Find("Canvas/Shop/Card/Decor/Row/Decor den-da/Price/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void Tapping_A_Spot_Opens_The_Card_Placing_Stands_The_Piece_There_Swapping_Changes_It_And_Storing_Takes_It_Back()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            runner.State.GoldenCarrots = 100;
+            Decor.Buy(runner.State, "den-da");
+            Decor.Buy(runner.State, "bon-hoa");
+            screen.Refresh();
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Transform spot = world.Find("Spot 2");
+            Assert.IsTrue(spot.Find("Plate").gameObject.activeSelf);
+
+            Find("Canvas/Garden/Content/Spot 2").onClick.Invoke();
+            Assert.IsTrue(screen.DecorCard.IsOpen, "the card lists what is in storage");
+            Assert.AreEqual(2, screen.DecorSpotOpen);
+            Assert.IsTrue(Find("Canvas/Decor/Card/Row den-da/Use").interactable);
+            Assert.IsTrue(Find("Canvas/Decor/Card/Row bon-hoa/Use").interactable);
+            Assert.IsFalse(Find("Canvas/Decor/Card/Row ghe-nam/Use").interactable, "none owned");
+            Assert.IsFalse(root.transform.Find("Canvas/Decor/Card/Store").gameObject.activeSelf, "nothing to put away on an empty spot");
+            Assert.AreEqual(L10n.T("decor.left", 1), root.transform.Find("Canvas/Decor/Card/Row den-da/Count").GetComponent<Text>().text);
+            Find("Canvas/Decor/Card/Row den-da/Use").onClick.Invoke();
+            Assert.AreEqual("den-da", runner.State.DecorSpots[2]);
+            Assert.IsFalse(screen.DecorCard.IsOpen, "placed: the card goes");
+            Assert.AreEqual("blip", Sfx.Last);
+            screen.Refresh();
+            Assert.IsFalse(spot.Find("Plate").gameObject.activeSelf, "the '+' is gone from this spot");
+            Assert.IsTrue(spot.Find("Item").gameObject.activeSelf);
+            Assert.AreEqual("decor_den-da", spot.Find("Item").GetComponent<Image>().sprite.name);
+            Assert.AreEqual(0f, ((RectTransform)spot.Find("Item")).pivot.y, "it stands on its feet");
+            Assert.IsTrue(world.Find("Spot 3/Plate").gameObject.activeSelf, "the planter still waits in storage: the other spots keep their '+'");
+
+            // The spot that is filled opens too: the lantern can be swapped for the planter, or put away.
+            Find("Canvas/Garden/Content/Spot 2").onClick.Invoke();
+            Assert.IsTrue(screen.DecorCard.IsOpen);
+            Assert.IsTrue(root.transform.Find("Canvas/Decor/Card/Store").gameObject.activeSelf);
+            Assert.IsFalse(Find("Canvas/Decor/Card/Row den-da/Use").interactable, "the one lantern is the one standing here");
+            Assert.IsTrue(Find("Canvas/Decor/Card/Row bon-hoa/Use").interactable);
+            Find("Canvas/Decor/Card/Row bon-hoa/Use").onClick.Invoke();
+            Assert.AreEqual("bon-hoa", runner.State.DecorSpots[2]);
+            Assert.AreEqual(1, Decor.Available(runner.State, "den-da"), "the lantern went back to storage");
+            screen.Refresh();
+            Assert.AreEqual("decor_bon-hoa", spot.Find("Item").GetComponent<Image>().sprite.name);
+            Assert.IsFalse(world.Find("Spot 3/Item").gameObject.activeSelf);
+
+            Find("Canvas/Garden/Content/Spot 2").onClick.Invoke();
+            Find("Canvas/Decor/Card/Store").onClick.Invoke();
+            Assert.IsNull(runner.State.DecorSpots[2]);
+            Assert.IsFalse(screen.DecorCard.IsOpen);
+            screen.Refresh();
+            Assert.IsFalse(spot.Find("Item").gameObject.activeSelf);
+            Assert.IsTrue(spot.Find("Plate").gameObject.activeSelf, "empty again, and there is something to place");
+            Assert.AreEqual(100 - 15 - 20, runner.State.GoldenCarrots, "placing, swapping and storing cost nothing");
+
+            // Everything placed: no '+' anywhere, but the filled spots still open.
+            Decor.Place(runner.State, 0, "den-da");
+            Decor.Place(runner.State, 1, "bon-hoa");
+            screen.Refresh();
+            Assert.IsFalse(spot.gameObject.activeSelf, "nothing left to place: the empty spot hides");
+            Assert.IsTrue(world.Find("Spot 0").gameObject.activeSelf);
+            Assert.IsFalse(world.Find("Spot 0/Plate").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void The_Lantern_Colour_Row_In_The_Shop_Tints_Every_Paper_Lantern_In_The_Garden()
+        {
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Image lantern = world.Find("Lantern").GetComponent<Image>();
+            Assert.AreEqual(Color.white, lantern.color, "paper to begin with");
+            screen.OpenShop();
+            screen.Refresh();
+            Assert.AreEqual(Decor.LanternColors.Length, root.transform.Find("Canvas/Shop/Card/Decor/Lanterns").childCount, "one dot per colour");
+            Assert.IsTrue(root.transform.Find("Canvas/Shop/Card/Decor/Lanterns/Dot 0/Ring").gameObject.activeSelf, "paper is ringed as the colour hung");
+            Assert.IsFalse(Find("Canvas/Shop/Card/Decor/Lanterns/Dot 2").interactable, "ten golden carrots are needed");
+            runner.State.GoldenCarrots = Decor.LanternColorCost;
+            screen.Refresh();
+            Assert.IsFalse(Find("Canvas/Shop/Card/Decor/Lanterns/Dot 0").interactable, "the colour already hung is not sold");
+            Button mint = Find("Canvas/Shop/Card/Decor/Lanterns/Dot 2");
+            Assert.IsTrue(mint.interactable);
+            mint.onClick.Invoke();
+            Assert.AreEqual(2, runner.State.LanternColor);
+            Assert.AreEqual(0, runner.State.GoldenCarrots);
+            screen.Refresh();
+            Assert.IsTrue(root.transform.Find("Canvas/Shop/Card/Decor/Lanterns/Dot 2/Ring").gameObject.activeSelf);
+            Assert.IsFalse(root.transform.Find("Canvas/Shop/Card/Decor/Lanterns/Dot 0/Ring").gameObject.activeSelf);
+            Color tint = GardenScreen.LanternTint(2);
+            Assert.AreNotEqual(Color.white, tint);
+            int lanterns = 0;
+            for (int k = 0; k < world.childCount; k++)
+            {
+                Transform child = world.GetChild(k);
+                if (child.name != "Lantern") continue;
+                Assert.AreEqual(tint, child.GetComponent<Image>().color, "every lantern wears the colour");
+                lanterns++;
+            }
+            Assert.GreaterOrEqual(lanterns, 2);
+            Assert.AreEqual(1f, lantern.color.a, "a tint, never a fade");
+        }
     }
 }

@@ -303,6 +303,38 @@ namespace VuonTra.Game
             return item;
         }
 
+        /// <summary>Buys one decoration for the garden (#11) into storage; false when it cannot be bought.</summary>
+        public bool BuyDecor(string kindId)
+        {
+            bool ok = Decor.Buy(State, kindId);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>Stands a decoration from storage on a spot, or in place of what stands there; false when nothing changes.</summary>
+        public bool PlaceDecor(int spot, string kindId)
+        {
+            bool ok = Decor.Swap(State, spot, kindId);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>Takes a spot's decoration back into storage; false when the spot is empty.</summary>
+        public bool StoreDecor(int spot)
+        {
+            bool ok = Decor.Store(State, spot);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>Hangs a colour on every paper lantern for golden carrots; false when it cannot be.</summary>
+        public bool SetLanternColor(int color)
+        {
+            bool ok = Decor.SetLanternColor(State, color);
+            if (ok) Changed();
+            return ok;
+        }
+
         /// <summary>Dyes a rabbit's fur one of the palette's colours for golden carrots.</summary>
         public bool DyeRabbit(long rabbitId, int dye)
         {

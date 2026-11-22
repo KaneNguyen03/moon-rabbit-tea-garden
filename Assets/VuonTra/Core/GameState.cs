@@ -114,6 +114,11 @@ namespace VuonTra.Core
         public long OrderDay = -1;
         public long OrdersDelivered, DailyOrdersBase, NextOrderId;
 
+        /// <summary>Decorating the garden (#11): how many of each kind are owned (indexed like <see cref="Decor.Kinds"/>), what stands on each of the eight spots (a kind id or null), and the colour hung on the paper lanterns (0 = paper).</summary>
+        public int[] DecorOwned = new int[Decor.Kinds.Length];
+        public string[] DecorSpots = new string[Decor.Spots];
+        public int LanternColor;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

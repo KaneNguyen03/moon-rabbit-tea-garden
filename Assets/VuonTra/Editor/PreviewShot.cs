@@ -562,6 +562,26 @@ namespace VuonTra.EditorTools
             Capture(screen, "44-nhuom");
             screen.Detail.Close();
             Step(screen, 0.3f);
+            // Decorating the garden (#11): four pieces standing, one more waiting in storage so the empty spots show their "+",
+            // and mint lanterns; then the shelf in the shop with the colour row.
+            state.GoldenCarrots = 200;
+            Decor.Buy(state, "den-da"); Decor.Buy(state, "bon-hoa"); Decor.Buy(state, "ghe-nam"); Decor.Buy(state, "tham-picnic"); Decor.Buy(state, "den-da");
+            Decor.Place(state, 2, "den-da"); Decor.Place(state, 3, "bon-hoa"); Decor.Place(state, 4, "ghe-nam"); Decor.Place(state, 5, "tham-picnic");
+            Decor.SetLanternColor(state, 2);
+            screen.Refresh();
+            screen.LookAt(new Vector2(540f, 1300f)); // the four pieces and, under the HUD, the "+" of the spot by the beehive
+            Step(screen, 0.5f);
+            Capture(screen, "11-trang-tri");
+            screen.OpenShop();
+            Step(screen, 0.4f);
+            Capture(screen, "11-ke-trang-tri");
+            screen.Shop.Close();
+            Step(screen, 0.3f);
+            // Back to a bare garden for the frames that follow.
+            for (int i = 0; i < Decor.Spots; i++) Decor.Store(state, i);
+            for (int i = 0; i < state.DecorOwned.Length; i++) state.DecorOwned[i] = 0;
+            state.LanternColor = 0;
+            screen.Refresh();
             // A guest at the counter with its order in a bubble (#20), then the order card. One may have come on its
             // own by now: the frames above step through more than the minute the first guest waits for.
             if (runner.State.Order == null) runner.PlaceOrder();
