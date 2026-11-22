@@ -50,7 +50,9 @@ namespace VuonTra.Core
         /// <summary>How many rabbits sit at the places to rest right now (#60).</summary>
         RabbitsResting,
         /// <summary>How many every-day kinds the album holds (#61): the album's milestones.</summary>
-        KindsMet
+        KindsMet,
+        /// <summary>Frog Rabbits greeted in the rain, in all (#62).</summary>
+        FrogsMet
     }
 
     /// <summary>
@@ -162,6 +164,8 @@ namespace VuonTra.Core
                     return RestSpots.Seated(s).Count;
                 case QuestMetric.KindsMet:
                     return AlbumSets.KindsMet(s);
+                case QuestMetric.FrogsMet:
+                    return s.FrogsMet;
                 case QuestMetric.OrdersDelivered:
                     return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:

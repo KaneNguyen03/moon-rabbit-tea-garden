@@ -292,6 +292,13 @@ namespace VuonTra.Core
             sb.Append(",\"buyDay\":").Append(s.MoonJarBuyDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"bought\":").Append(s.MoonJarsBoughtToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"freeDay\":").Append(s.MoonJarFreeDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            // The Frog Rabbit (#62), an additive block: the day counted, its showers' frogs, today's and all greetings, the one at the pond.
+            sb.Append(",\"frog\":{\"day\":").Append(s.FrogDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"showers\":").Append(s.FrogShowers.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"met\":").Append(s.FrogsMet.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"left\":").Append(Sane(s.FrogLeft).ToString("R", CultureInfo.InvariantCulture));
             sb.Append("}}");
             return sb.ToString();
         }
@@ -671,6 +678,15 @@ namespace VuonTra.Core
                 s.MoonJarBuyDay = TryNumber(jars, "buyDay", out double jarBuyDay) ? ToLong(jarBuyDay) : -1;
                 s.MoonJarsBoughtToday = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "bought"), MoonJars.BuyPerDay));
                 s.MoonJarFreeDay = TryNumber(jars, "freeDay", out double jarFreeDay) ? ToLong(jarFreeDay) : -1;
+            }
+            // The Frog Rabbit (#62). A save from before the rain has met none, and today's frogs are still to come.
+            if (root.TryGetValue("frog", out object frogObj) && frogObj is Dictionary<string, object> frog)
+            {
+                s.FrogDay = TryNumber(frog, "day", out double frogDay) ? ToLong(frogDay) : -1;
+                s.FrogShowers = (int)Math.Max(0d, Math.Min(ReadNumber(frog, "showers"), (1 << Weather.ShowersPerDay) - 1));
+                s.FrogsToday = (int)Math.Max(0d, Math.Min(ReadNumber(frog, "today"), FrogRabbit.PerDay));
+                s.FrogsMet = Math.Max(0L, ToLong(ReadNumber(frog, "met")));
+                s.FrogLeft = Math.Max(0d, Math.Min(FrogRabbit.StaySeconds, ReadNumber(frog, "left")));
             }
 
             result.Status = LoadStatus.Ok;

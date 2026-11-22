@@ -149,6 +149,12 @@ namespace VuonTra.Core
         public int MoonJarsBoughtToday;
         public long MoonJarFreeDay = -1;
 
+        /// <summary>The Frog Rabbit (#62): the day its counts are for, the showers of that day whose frog has come (one bit each), frogs greeted that day and in all, and the seconds the one at the pond has left (0 when none is here).</summary>
+        public long FrogDay = -1;
+        public int FrogShowers, FrogsToday;
+        public long FrogsMet;
+        public double FrogLeft;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

@@ -968,6 +968,27 @@ namespace VuonTra.Game
             return ok;
         }
 
+        // ----- rain and the Frog Rabbit (#62) -----
+
+        /// <summary>True while one of today's showers falls at <paramref name="hour"/>, by the clamped day.</summary>
+        public bool RainingAt(double hour) => Weather.IsRaining(TodayNumber, hour);
+
+        /// <summary>Counts open-play time for the Frog Rabbit at <paramref name="hour"/> of the clamped day; saves when it comes or goes.</summary>
+        public FrogEvent AdvanceFrog(double dt, double hour)
+        {
+            FrogEvent e = FrogRabbit.Advance(State, dt, TodayNumber, hour);
+            if (e != FrogEvent.None) Save();
+            return e;
+        }
+
+        /// <summary>The player taps the Frog Rabbit: ten minutes of income and, one time in four, a clover. False when none is here.</summary>
+        public bool GreetFrog(double hour, out BigNum paid, out int clovers)
+        {
+            bool ok = FrogRabbit.Greet(Defs, State, Mods, TodayNumber, hour, _rng.NextDouble(), out paid, out clovers);
+            if (ok) Changed();
+            return ok;
+        }
+
         /// <summary>For tests and previews: as if the player had just come back with this report.</summary>
         public void ShowAwayForTest(AwayReport away) => TellAway(away);
 

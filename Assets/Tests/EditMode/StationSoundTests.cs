@@ -41,6 +41,7 @@ namespace VuonTra.Core.Tests
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
+            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
             clockBefore = screen.ClockHours;
             screen.Build();
             Sfx.SetStation(0.7f);

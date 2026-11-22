@@ -2948,6 +2948,26 @@ MonoBehaviour:
     m_Localized: Rain
     m_Metadata:
       m_Items: []
+  - m_Id: 397638150119424
+    m_Localized: Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 397638166896640
+    m_Localized: The Frog Rabbit says hello!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 397638166896641
+    m_Localized: 'A rainy-day gift: {0} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 397638166896642
+    m_Localized: 'A rainy-day gift: {0} carrots and a clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 397638166896643
+    m_Localized: Meet the Frog Rabbit 5 times
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

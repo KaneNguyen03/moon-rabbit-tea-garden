@@ -393,6 +393,7 @@ namespace VuonTra.Game.UI
 
             _sinceRefresh += dt;
             if (_sinceRefresh >= RefreshInterval) Refresh(_sinceRefresh);
+            UpdateRain(dt); // last: over the lanterns' flicker and the seats' poses of this frame (#62)
         }
 
         /// <summary>The teapot stands here, in the middle of the garden; everything else is placed around it.</summary>
@@ -1073,6 +1074,7 @@ namespace VuonTra.Game.UI
             Haptics.Load();
             BuildWorld(catalog);
             BuildAtmosphere(catalog);
+            BuildRain(catalog); // the rain over the garden and the Frog Rabbit (#62)
             BuildStationCard(catalog);
             BuildEvents(catalog);
             BuildHud(catalog);
@@ -5658,6 +5660,310 @@ namespace VuonTra.Game.UI
                 if (d < bestDistance) { bestDistance = d; best = i; }
             }
             return best >= 0 ? defs[best].Id : null;
+        }
+
+        #endregion
+
+        #region Rain and the Frog Rabbit (#62)
+
+        /// <summary>Whether it rains now. Unset, the screen asks the clamped day at the garden's clock; tests and previews pin it.</summary>
+        public System.Func<bool> Raining;
+        /// <summary>How hard it rains on screen, 0 to 1: it comes on and goes over a second and a half, at once under reduced motion.</summary>
+        public float RainLevel { get; private set; }
+        /// <summary>True while the rain's streaks are drawn (never under reduced motion, which keeps only the colour).</summary>
+        public bool RainStreaksShown => _rainStreaks != null && _rainStreaks.gameObject.activeInHierarchy;
+        /// <summary>How strong the rain's colour lies over the garden now.</summary>
+        public float RainTintAlpha => _rainTint != null ? _rainTint.color.a : 0f;
+        /// <summary>The lanterns burn a fifth brighter in the rain.</summary>
+        public const float RainLanternBoost = 1.2f;
+        /// <summary>The resting places whose rabbits run under a tree when it rains: the picnic rug and the hammock.</summary>
+        public static readonly int[] RainShelterSeats = { 2, 4 };
+
+        RectTransform _rainLayer, _rainStreaks;
+        Image _rainTint;
+        readonly List<RectTransform> _streaks = new List<RectTransform>();
+        readonly List<Image> _streakImages = new List<Image>();
+        readonly List<Image> _rainRipples = new List<Image>();
+        readonly Vector2[] _seatHomes = new Vector2[RestSpots.Max];
+        bool _sheltered;
+
+        bool RainingNow() => Raining != null ? Raining() : Runner.RainingAt(ClockHours());
+
+        /// <summary>The rain's colour over the whole garden, its streaks, the drops on the pond, and the Frog Rabbit with its gate.</summary>
+        void BuildRain(GameCatalog catalog)
+        {
+            _streaks.Clear(); _streakImages.Clear(); _rainRipples.Clear();
+            RainLevel = 0f;
+            _sheltered = false;
+            _rainLayer = UiKit.Rect("Rain", _canvas).Stretch(0, 0, 1, 1);
+            _rainTint = UiKit.Rect("Tint", _rainLayer).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            // Faint slanting streaks, drawn by code like the mist: thin lines that fall and come round again.
+            _rainStreaks = UiKit.Rect("Streaks", _rainLayer).Stretch(0, 0, 1, 1);
+            for (int i = 0; i < 90; i++)
+            {
+                float length = 46f + Hash(i * 3.1f) * 40f;
+                var streak = UiKit.Rect("Streak", _rainStreaks).Place(0f, 0f, Hash(i * 7.3f) * ScreenW, Hash(i * 1.9f) * ScreenH, 3f, length);
+                streak.localRotation = Quaternion.Euler(0, 0, RainSlant);
+                _streakImages.Add(streak.AddImage(catalog.Round, new Color(0.86f, 0.92f, 1f, 0f)));
+                _streaks.Add(streak);
+            }
+            _rainLayer.gameObject.SetActive(false);
+            // Drops landing on the pond: small rings that widen and fade, here and there on the water.
+            for (int i = 0; i < 5; i++)
+            {
+                Image ring = UiKit.Rect("RainRipple", _street).Place(0f, 0f, PondSpot.x, PondSpot.y, 96f, 58f).AddImage(catalog.Glow, new Color(0.88f, 0.94f, 1f, 0f));
+                _rainRipples.Add(ring);
+            }
+            for (int k = 0; k < _seats.Count && k < _seatHomes.Length; k++) _seatHomes[k] = _seats[k].anchoredPosition;
+            BuildFrog(catalog);
+        }
+
+        /// <summary>How far the streaks lean from the upright, in degrees, and how fast they fall, in canvas units a second.</summary>
+        const float RainSlant = -12f, RainFall = 1500f;
+
+        /// <summary>The rain comes and goes with the showers: colour, streaks, drops on the pond, brighter lanterns, the patter, the resting rabbits under the trees, and the Frog Rabbit.</summary>
+        void UpdateRain(float dt)
+        {
+            if (_rainLayer == null) return;
+            bool raining = RainingNow();
+            float target = raining ? 1f : 0f;
+            RainLevel = Motion.Reduced ? target : Mathf.MoveTowards(RainLevel, target, dt / 1.5f);
+            Sfx.SetRain(raining);
+            bool shown = RainLevel > 0f;
+            if (_rainLayer.gameObject.activeSelf != shown) _rainLayer.gameObject.SetActive(shown);
+            if (shown)
+            {
+                // A grey-blue wash by day, a deeper blue at night, under the HUD.
+                float night = (float)Daylight.NightAt(ClockHours());
+                Color wash = Color.Lerp(new Color(0.46f, 0.56f, 0.68f), new Color(0.16f, 0.23f, 0.38f), night);
+                _rainTint.color = Palette.Alpha(wash, Mathf.Lerp(0.13f, 0.22f, night) * RainLevel);
+                bool streaks = !Motion.Reduced;
+                if (_rainStreaks.gameObject.activeSelf != streaks) _rainStreaks.gameObject.SetActive(streaks);
+                if (streaks)
+                {
+                    float lean = Mathf.Tan(-RainSlant * Mathf.Deg2Rad);
+                    for (int i = 0; i < _streaks.Count; i++)
+                    {
+                        float speed = RainFall * (0.8f + 0.4f * Hash(i * 5.7f));
+                        float fallen = Mathf.Repeat(Hash(i * 1.9f) * (ScreenH + 200f) + _clock * speed, ScreenH + 200f);
+                        float x = Mathf.Repeat(Hash(i * 7.3f) * ScreenW - fallen * lean, ScreenW + 80f) - 40f;
+                        _streaks[i].anchoredPosition = new Vector2(x, ScreenH + 100f - fallen);
+                        _streakImages[i].color = new Color(0.86f, 0.92f, 1f, (0.14f + 0.16f * Hash(i * 2.3f)) * RainLevel);
+                    }
+                }
+            }
+            // Drops on the pond; still water under reduced motion.
+            for (int i = 0; i < _rainRipples.Count; i++)
+            {
+                Image ring = _rainRipples[i];
+                if (!shown || Motion.Reduced) { if (ring.color.a != 0f) ring.color = new Color(0.88f, 0.94f, 1f, 0f); continue; }
+                float cycle = _clock / 1.1f + i * 0.21f;
+                float k = Mathf.Repeat(cycle, 1f), n = Mathf.Floor(cycle);
+                Vector2 at = PondSpot + new Vector2(20f + (Hash(n * 3.7f + i) - 0.5f) * 220f, 6f + (Hash(n * 5.3f + i) - 0.5f) * 110f);
+                ring.rectTransform.anchoredPosition = at;
+                ring.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.2f, 1f, k);
+                ring.color = new Color(0.88f, 0.94f, 1f, 0.4f * (1f - k) * RainLevel);
+            }
+            // The lanterns burn brighter in the rain (their flicker is set just before, every frame).
+            if (shown)
+                foreach (Image glow in _lanternGlows)
+                    if (glow != null) glow.color = Palette.Alpha(glow.color, glow.color.a * Mathf.Lerp(1f, RainLanternBoost, RainLevel));
+            ShelterSeats();
+            UpdateFrog(dt);
+        }
+
+        /// <summary>
+        /// The rabbits resting on the rug and in the hammock run under the trees at the wood's edge while it rains and
+        /// sit there upright, then go back. Only where they are drawn changes: the save, the seats and their gifts stay.
+        /// </summary>
+        void ShelterSeats()
+        {
+            bool any = RainLevel > 0f;
+            if (!any && !_sheltered) return;
+            GameState s = Runner.State;
+            foreach (int k in RainShelterSeats)
+            {
+                if (k >= _seats.Count) continue;
+                Vector2 home = _seatHomes[k];
+                _seats[k].anchoredPosition = Vector2.Lerp(home, ShelterOf(k), Ease.InOutCubic(RainLevel));
+                if (any && _seatIds[k] > 0)
+                {
+                    // Under a tree it sits up, whatever its place has it do.
+                    RectTransform art = _seatArt[k].rectTransform;
+                    art.localRotation = Quaternion.identity;
+                    art.localScale = new Vector3(1.06f, 0.86f, 1f);
+                    art.anchoredPosition = new Vector2(0f, -6f);
+                }
+            }
+            if (!any) RefreshSeats(s); // dry again: each sits as its place has it
+            _sheltered = any;
+        }
+
+        /// <summary>
+        /// Where a seat's rabbit sits out the rain: on open grass at the foot of the wood, under the trees nearest its
+        /// place (the rug's rabbit by the trees left of the shop, the hammock's by those beside the hammock), placed by hand.
+        /// </summary>
+        static Vector2 ShelterOf(int seat) => seat == 2 ? new Vector2(200f, 2460f) : new Vector2(110f, 450f);
+
+        // ----- the Frog Rabbit -----
+
+        RectTransform _frog, _frogArt, _frogGate;
+        Image _frogGateImage;
+        Text _frogName;
+        enum FrogPhase { Away, Coming, Waiting, Going }
+        FrogPhase _frogPhase;
+        /// <summary>0 at the moon gate, 1 at the pond.</summary>
+        float _frogT, _frogGateAlpha;
+        /// <summary>How long the walk from the gate to the pond takes.</summary>
+        public const float FrogWalkSeconds = 3f;
+        /// <summary>Where the small moon gate opens for it, on the grass past the pond's top left, and where it stands to wait, on the pond's near rim.</summary>
+        public static Vector2 FrogGateSpot => PondSpot + new Vector2(-190f, 150f);
+        public static Vector2 FrogPondSpot => PondSpot + new Vector2(-10f, -100f);
+        /// <summary>The green its borrowed wool hat is dyed to make a frog's.</summary>
+        public static readonly Color FrogGreen = new Color(0.52f, 0.82f, 0.42f);
+        /// <summary>True while the Frog Rabbit is in the garden: coming, waiting at the pond or going home.</summary>
+        public bool FrogShown => _frog != null && _frog.gameObject.activeSelf;
+        /// <summary>True once it stands at the pond.</summary>
+        public bool FrogWaiting => _frogPhase == FrogPhase.Waiting;
+        public RectTransform FrogRect => _frog;
+
+        /// <summary>A cotton rabbit in the wool hat dyed frog green with two eyes on top, its name under it, and the moon gate it steps out of.</summary>
+        void BuildFrog(GameCatalog catalog)
+        {
+            _frogPhase = FrogPhase.Away;
+            _frogT = _frogGateAlpha = 0f;
+            _frogGate = UiKit.Rect("FrogGate", _street).Place(0f, 0f, FrogGateSpot.x, FrogGateSpot.y, 150f, 170f);
+            _frogGate.pivot = new Vector2(0.5f, 0f);
+            _frogGateImage = _frogGate.AddImage(catalog.MoonGate != null ? catalog.MoonGate : catalog.Glow, new Color(1f, 1f, 1f, 0f));
+            _frogGateImage.preserveAspect = true;
+            _frogGate.gameObject.SetActive(false);
+
+            const float Box = 124f;
+            _frog = UiKit.Rect("Frog", _street).Place(0f, 0f, FrogGateSpot.x, FrogGateSpot.y, Box, 132f);
+            _frog.pivot = new Vector2(0.5f, 0f);
+            UiKit.Rect("Shadow", _frog).Place(0.5f, 0f, 0, 4, 84, 20).AddImage(catalog.Round, Palette.Alpha(Palette.Night, 0.35f));
+            _frogArt = UiKit.Rect("Art", _frog).Stretch(0, 0, 1, 1);
+            _frogArt.pivot = new Vector2(0.5f, 0f);
+            Image art = _frogArt.AddImage(catalog.KindSprite(FrogKind) ?? catalog.Rabbit, Color.white);
+            art.preserveAspect = true;
+            art.raycastTarget = true;
+            var button = _frog.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = art;
+            button.onClick.AddListener(OnFrogTap);
+            // The wool hat, dyed green, with two round eyes on its crown: a frog's hat, drawn by code until one is painted.
+            RabbitKind kind = RabbitKinds.Find(FrogKind);
+            Sprite hat = catalog.ItemIcon(FrogHat);
+            if (hat != null && kind != null)
+            {
+                var hatOn = UiKit.Rect("Hat", _frogArt);
+                Image hatImage = hatOn.AddImage(hat, FrogGreen);
+                hatImage.preserveAspect = true;
+                float across = (GameCatalog.KindHeadX - 0.5f + kind.HatX) * Box * GameCatalog.KindAspect;
+                RabbitGridView.PlaceHat(hatOn, hat, Box, across, (GameCatalog.KindHeadTop + kind.HatY) * Box, catalog.ItemHatLift(FrogHat));
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    var eye = UiKit.Rect(side < 0 ? "Eye L" : "Eye R", hatOn).Place(0.5f, 1f, side * hatOn.sizeDelta.x * 0.24f, -4f, 20f, 20f);
+                    eye.AddImage(catalog.Round, Palette.Paper);
+                    UiKit.Rect("Pupil", eye).Place(0.5f, 0.5f, side * 1.5f, -1f, 9f, 9f).AddImage(catalog.Round, Palette.Ink);
+                }
+            }
+            var plate = UiKit.Rect("Name", _frog).Place(0.5f, 0f, 0, -16, 150, 34);
+            plate.AddImage(catalog.Panel, Palette.Mix(Palette.Paper, FrogGreen, 0.25f), true);
+            _frogName = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(L10n.T("frog.name"), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _frogName.resizeTextForBestFit = true;
+            _frogName.resizeTextMinSize = 12;
+            _frogName.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _frog.gameObject.SetActive(false);
+        }
+
+        /// <summary>The first look of the Frog Rabbit: Thỏ Bông in the Mũ len, dyed green.</summary>
+        const string FrogKind = "tho-bong", FrogHat = "hat-mu-len";
+
+        /// <summary>Open-play time goes to the frog's clock; it walks from the gate to the pond, waits, and walks back.</summary>
+        void UpdateFrog(float dt)
+        {
+            if (_frog == null) return;
+            GameState s = Runner.State;
+            if (Shell.State == ShellState.Playing && !PhotoMode)
+            {
+                FrogEvent e = Runner.AdvanceFrog(dt, ClockHours());
+                if (e == FrogEvent.Arrived) Sfx.Blip();
+            }
+            bool here = FrogRabbit.Here(s);
+            if (here && (_frogPhase == FrogPhase.Away || _frogPhase == FrogPhase.Going))
+            {
+                // A frog has come (or one was here when the garden was saved, or the screen rebuilt): it walks in.
+                bool fresh = s.FrogLeft > FrogRabbit.StaySeconds - 1d;
+                if (_frogPhase == FrogPhase.Away) _frogT = fresh ? 0f : 1f;
+                _frogPhase = _frogT >= 1f ? FrogPhase.Waiting : FrogPhase.Coming;
+                _frog.gameObject.SetActive(true);
+                _frogName.text = L10n.T("frog.name"); // in the language of the moment it comes
+                _frogGate.gameObject.SetActive(true);
+                _frogGate.SetAsLastSibling();
+                _frog.SetAsLastSibling();
+            }
+            else if (!here && (_frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Waiting)) _frogPhase = FrogPhase.Going;
+
+            if (_frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Going)
+            {
+                float dir = _frogPhase == FrogPhase.Coming ? 1f : -1f;
+                _frogT = Mathf.Clamp01(_frogT + dir * dt / Motion.Time(FrogWalkSeconds));
+                if (_frogPhase == FrogPhase.Coming && _frogT >= 1f) _frogPhase = FrogPhase.Waiting;
+                else if (_frogPhase == FrogPhase.Going && _frogT <= 0f)
+                {
+                    _frogPhase = FrogPhase.Away;
+                    _frog.gameObject.SetActive(false);
+                }
+            }
+            if (_frogPhase != FrogPhase.Away) PlaceFrog();
+            // The gate shows while it is on its way in or out, and fades when it is not needed.
+            float gate = _frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Going || (_frogPhase == FrogPhase.Waiting && _frogT < 1f) ? 1f : 0f;
+            if (_frogPhase == FrogPhase.Waiting) gate = 0f;
+            _frogGateAlpha = Motion.Reduced ? gate : Mathf.MoveTowards(_frogGateAlpha, gate, dt / 0.5f);
+            _frogGateImage.color = new Color(1f, 1f, 1f, 0.85f * _frogGateAlpha);
+            bool gateShown = _frogGateAlpha > 0f;
+            if (_frogGate.gameObject.activeSelf != gateShown) _frogGate.gameObject.SetActive(gateShown);
+        }
+
+        void PlaceFrog()
+        {
+            Vector2 at = Vector2.Lerp(FrogGateSpot, FrogPondSpot, Ease.InOutCubic(_frogT));
+            bool walking = _frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Going;
+            if (walking && !Motion.Reduced) at.y += Mathf.Abs(Mathf.Sin(_frogT * Mathf.PI * 7f)) * 16f; // little frog hops
+            _frog.anchoredPosition = at;
+            _frogArt.localScale = new Vector3(_frogPhase == FrogPhase.Going ? -1f : 1f, 1f, 1f);
+            if (_frogPhase == FrogPhase.Waiting && !Motion.Reduced) _frogArt.localScale = new Vector3(1f, 1f + 0.025f * Mathf.Sin(_clock * 2.6f), 1f);
+        }
+
+        /// <summary>A touch greets it: ten minutes of income fly to the purse, a clover to the rabbits tab when one comes, and it hops home.</summary>
+        void OnFrogTap()
+        {
+            if (_frogPhase != FrogPhase.Coming && _frogPhase != FrogPhase.Waiting) return;
+            Vector2 from = Feel.PointOf(_frog, new Vector2(0, 90));
+            if (!Runner.GreetFrog(ClockHours(), out BigNum paid, out int clovers)) return;
+            GameCatalog catalog = Runner.Catalog;
+            Sfx.Reward();
+            Haptics.Light();
+            Feel.FloatText(from + new Vector2(50, 40), "♥", Palette.Blush, 50);
+            Feel.FloatText(from + new Vector2(-40, 70), "♥", Palette.Blush, 36);
+            string gained = "+" + paid.Short();
+            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            {
+                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+            });
+            if (clovers > 0)
+            {
+                RectTransform tab = _tabIcons[3].rectTransform;
+                Feel.Fly(from, Feel.PointOf(tab), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
+                    () => { if (tab != null) Feel.FloatText(Feel.PointOf(tab, new Vector2(0, 90)), "+" + clovers, Palette.Moss, 40); });
+            }
+            Feel.Moment(L10n.T("frog.title"), clovers > 0 ? L10n.T("frog.sub.clover", paid.Short()) : L10n.T("frog.sub", paid.Short()));
+            // A happy hop on the spot, then the walk home (the state already says it is going).
+            RectTransform artRect = _frogArt;
+            Tweens.Add(Motion.Time(0.4f), t => { if (artRect != null) artRect.anchoredPosition = new Vector2(0f, 40f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                () => { if (artRect != null) artRect.anchoredPosition = Vector2.zero; });
+            _frogPhase = FrogPhase.Going;
         }
 
         #endregion

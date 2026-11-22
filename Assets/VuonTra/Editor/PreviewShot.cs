@@ -1012,6 +1012,49 @@ namespace VuonTra.EditorTools
             Capture(screen, "9-da-mua");
             screen.GoldenPacks.Close();
             screen.Shop.Close();
+
+            // #62 Rain: the garden in a day shower and a night one, what reduced motion keeps, the resting rabbits under a
+            // tree, and the Frog Rabbit at the pond in today's first shower.
+            {
+                GameState wet = runner.State;
+                wet.TutorialStep = Tutorial.Steps;
+                wet.GardenXp = System.Math.Max(wet.GardenXp, Garden.XpForLevel(FrogRabbit.FromLevel));
+                wet.RestSpots = RestSpots.Max;
+                for (int i = 0; i < 5; i++) Rabbits.Arrive(wet, i % 3, "Mưa " + i, 0.13 * i);
+                screen.Refresh();
+                bool reduced = VuonTra.Game.UI.Motion.Reduced;
+                VuonTra.Game.UI.Motion.Reduced = false;
+                screen.Raining = () => true;
+                screen.ClockHours = () => 10.5;
+                screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+                Step(screen, 2f);
+                Capture(screen, "62-mua-ngay");
+                screen.ClockHours = () => 22.0;
+                Step(screen, 0.5f);
+                Capture(screen, "62-mua-dem");
+                VuonTra.Game.UI.Motion.Reduced = true;
+                Step(screen, 0.2f);
+                Capture(screen, "62-mua-giam-chuyen-dong");
+                VuonTra.Game.UI.Motion.Reduced = false;
+                screen.LookAt(GardenScreen.PondSpot + new Vector2(-150f, -150f));
+                Step(screen, 0.5f);
+                Capture(screen, "62-tho-tru-mua");
+                // The Frog Rabbit comes in a real shower: today's first, by the clamped day.
+                double shower = Weather.ShowerStarts(runner.TodayNumber)[0] + 1d / 60d;
+                screen.ClockHours = () => shower;
+                screen.Raining = null;
+                screen.LookAt(GardenScreen.FrogPondSpot + new Vector2(-200f, 0f));
+                Step(screen, 1.2f);
+                Capture(screen, "62-tho-ech-den");
+                Step(screen, GardenScreen.FrogWalkSeconds);
+                Capture(screen, "62-tho-ech");
+                wet.FrogLeft = 0d;
+                screen.ClockHours = () => 22.0;
+                screen.Raining = () => false;
+                Step(screen, 3.5f);
+                screen.Raining = null;
+                VuonTra.Game.UI.Motion.Reduced = reduced;
+            }
         }
 
         static void Press(GardenScreen screen, string path)

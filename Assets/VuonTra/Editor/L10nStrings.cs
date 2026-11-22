@@ -710,6 +710,12 @@ namespace VuonTra.EditorTools
             { "tune.moon", "Đêm trăng", "Moonlit night" },
             { "tune.dawn", "Rạng sáng", "Daybreak" },
             { "tune.rain", "Mưa", "Rain" },
+            // ----- rain and the Frog Rabbit (#62) -----
+            { "frog.name", "Thỏ Ếch", "Frog Rabbit" },
+            { "frog.title", "Thỏ Ếch ghé chơi!", "The Frog Rabbit says hello!" },
+            { "frog.sub", "Quà mưa: {0} cà rốt", "A rainy-day gift: {0} carrots" },
+            { "frog.sub.clover", "Quà mưa: {0} cà rốt và 1 cỏ", "A rainy-day gift: {0} carrots and a clover" },
+            { "quest.ech-5", "Gặp Thỏ Ếch 5 lần", "Meet the Frog Rabbit 5 times" },
         };
     }
 }
