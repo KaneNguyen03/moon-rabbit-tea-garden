@@ -2251,7 +2251,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320843
-    m_Localized: "Seasonal rabbits \xB7 {0}/{1}"
+    m_Localized: "Special rabbits \xB7 {0}/{1}"
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320844
@@ -2392,6 +2392,108 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 265567863824390
     m_Localized: The save is too large for iCloud; nothing was sent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018389467136
+    m_Localized: New moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827264
+    m_Localized: Ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827265
+    m_Localized: The new moon opens at garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827266
+    m_Localized: All seven moons have passed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827267
+    m_Localized: A new moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827268
+    m_Localized: The garden goes back to its first four plots. Rabbits and items stay, and income grows for good.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827269
+    m_Localized: Kept
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827270
+    m_Localized: '{0} rabbits, {1} items, {2} golden carrots, {3} clovers
+
+      Album, achievements, profile and settings'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827271
+    m_Localized: Back to the start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827272
+    m_Localized: "{0} carrots \xB7 {1} station levels at {2} stations\nPlots {3} \u2192 {4} \xB7 rest spots {5} \u2192 {6} \xB7 garden level {7} \u2192 1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827273
+    m_Localized: Gained
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827274
+    m_Localized: "Income +{0}% \u2192 +{1}% for good\n+{2} clovers \xB7 +{3} golden carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827275
+    m_Localized: " \xB7 the New Moon Rabbit"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827276
+    m_Localized: Hold 1.5 s to unlock
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827277
+    m_Localized: Press again to begin season {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827278
+    m_Localized: Not now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827279
+    m_Localized: Season {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827280
+    m_Localized: The moon sets and rises again over the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827281
+    m_Localized: Tap to skip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827282
+    m_Localized: Season {0} begins
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827283
+    m_Localized: "Income +{0}% for good \xB7 +{1} clovers \xB7 +{2} golden carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827284
+    m_Localized: Season {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827285
+    m_Localized: "Garden level {0} \xB7 {1} rabbits \xB7 {2} stations \xB7 Season {3}, income +{4}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827286
+    m_Localized: Only with a new moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018427215872
+    m_Localized: New Moon Rabbit
     m_Metadata:
       m_Items: []
   references:

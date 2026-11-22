@@ -2387,6 +2387,106 @@ MonoBehaviour:
     m_Key: cloud.status.toolarge
     m_Metadata:
       m_Items: []
+  - m_Id: 270018389467136
+    m_Key: pause.newmoon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827264
+    m_Key: pause.newmoon.ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827265
+    m_Key: pause.newmoon.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827266
+    m_Key: pause.newmoon.cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827267
+    m_Key: newmoon.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827268
+    m_Key: newmoon.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827269
+    m_Key: newmoon.keep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827270
+    m_Key: newmoon.keep.list
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827271
+    m_Key: newmoon.lose
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827272
+    m_Key: newmoon.lose.list
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827273
+    m_Key: newmoon.gain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827274
+    m_Key: newmoon.gain.list
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827275
+    m_Key: newmoon.gain.rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827276
+    m_Key: newmoon.hold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827277
+    m_Key: newmoon.armed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827278
+    m_Key: newmoon.cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827279
+    m_Key: newmoon.moment.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827280
+    m_Key: newmoon.moment.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827281
+    m_Key: newmoon.moment.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827282
+    m_Key: newmoon.done.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827283
+    m_Key: newmoon.done.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827284
+    m_Key: hud.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827285
+    m_Key: profile.stats.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018418827286
+    m_Key: album.newmoon.only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 270018427215872
+    m_Key: kind.tho-trang-non
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
