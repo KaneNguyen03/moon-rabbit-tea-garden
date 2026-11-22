@@ -2055,6 +2055,102 @@ MonoBehaviour:
     m_Key: moment.rank.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 224994255691776
+    m_Key: item.effect.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663296
+    m_Key: item.hat-non-la
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663297
+    m_Key: item.hat-vong-hoa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663298
+    m_Key: item.hat-mu-len
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663299
+    m_Key: item.hat-no-trang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663300
+    m_Key: item.hat-mu-sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663301
+    m_Key: item.hat-vuong-mien
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857600
+    m_Key: shop.hats.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857601
+    m_Key: shop.hats.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857602
+    m_Key: shop.hats.owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857603
+    m_Key: shop.hats.confirm
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857604
+    m_Key: float.hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857605
+    m_Key: detail.dye
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857606
+    m_Key: detail.dye.need
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857607
+    m_Key: detail.wash
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857608
+    m_Key: float.dye
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857609
+    m_Key: dye.hong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857610
+    m_Key: dye.dao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857611
+    m_Key: dye.vang-chanh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857612
+    m_Key: dye.bac-ha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857613
+    m_Key: dye.xanh-troi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857614
+    m_Key: dye.oai-huong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857615
+    m_Key: dye.kem
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857616
+    m_Key: dye.than
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

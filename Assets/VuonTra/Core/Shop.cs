@@ -127,6 +127,58 @@ namespace VuonTra.Core
             return Rabbits.ArriveKind(s, v.Kind, name);
         }
 
+        // ----- things for rabbits (#44 round 3): hats for looks, and fur dye -----
+
+        /// <summary>
+        /// Buys one item the shop sells, for golden carrots: it goes into the wardrobe, not on a head. One of each:
+        /// a kind the player already owns is not sold again. Null when the item is not for sale, already owned,
+        /// or the purse is short.
+        /// </summary>
+        public static Item BuyItem(GameState s, IReadOnlyList<ItemDef> defs, string defId)
+        {
+            ItemDef def = Items.DefOf(defs, defId);
+            if (def == null || def.Price <= 0 || Items.Owns(s, defId) || s.GoldenCarrots < def.Price) return null;
+            s.GoldenCarrots -= def.Price;
+            return Items.Grant(s, def, def.Tier);
+        }
+
+        /// <summary>One colour of the dye palette: its id (for its name) and its colour as six hex digits.</summary>
+        public struct Dye
+        {
+            public string Id;
+            public string Hex;
+            public Dye(string id, string hex) { Id = id; Hex = hex; }
+        }
+
+        /// <summary>What one dyeing costs, every time, in golden carrots.</summary>
+        public const int DyeCost = 8;
+
+        /// <summary>The eight colours a rabbit's fur can be dyed: pink, peach, lemon, mint, sky, lavender, cream, charcoal.</summary>
+        public static readonly Dye[] Dyes =
+        {
+            new Dye("hong", "F28BB5"), new Dye("dao", "FFB088"), new Dye("vang-chanh", "F5E36B"), new Dye("bac-ha", "7FD9B0"),
+            new Dye("xanh-troi", "7EC2F0"), new Dye("oai-huong", "B49BE0"), new Dye("kem", "FFF0C8"), new Dye("than", "6A6478")
+        };
+
+        /// <summary>Dyes one rabbit's fur a colour of the palette for <see cref="DyeCost"/>. False when the colour, the rabbit or the carrots are missing, or it already wears that colour.</summary>
+        public static bool DyeRabbit(GameState s, long rabbitId, int dye)
+        {
+            Rabbit r = Rabbits.Find(s, rabbitId);
+            if (r == null || dye < 0 || dye >= Dyes.Length || r.Dye == dye || s.GoldenCarrots < DyeCost) return false;
+            s.GoldenCarrots -= DyeCost;
+            r.Dye = dye;
+            return true;
+        }
+
+        /// <summary>Washes the dye out, for nothing. False when there was none.</summary>
+        public static bool Wash(GameState s, long rabbitId)
+        {
+            Rabbit r = Rabbits.Find(s, rabbitId);
+            if (r == null || r.Dye < 0) return false;
+            r.Dye = -1;
+            return true;
+        }
+
         /// <summary>Golden carrots the garden brings at every level that divides by five.</summary>
         public const int GoldenPerFifthLevel = 3;
         public static int GoldenForLevels(int from, int to)

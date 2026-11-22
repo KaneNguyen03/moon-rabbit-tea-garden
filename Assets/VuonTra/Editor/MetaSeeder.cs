@@ -134,21 +134,31 @@ namespace VuonTra.EditorTools
                 kindSprites[k] = FinalArt.Kind(RabbitKinds.All[k].Id);
             catalog.KindArt = kindSprites;
 
-            var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount)[]
+            // Quest items carry a bonus; the hats the shop sells (#44, "hat-…", Art/Final/hat_<name>.png) are for looks,
+            // priced in golden carrots, sold at a fixed tier, with a lift of their own so each sits right on the head.
+            var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount, int Price, int Tier, float Lift)[]
             {
-                ("mu-rom",    "Mũ rơm",        ItemSlot.Hat,   ItemEffect.StationIncome, 0.10),
-                ("mu-bep",    "Mũ đầu bếp",    ItemSlot.Hat,   ItemEffect.GardenSpeed,   0.03),
-                ("vong-hoa",  "Vòng hoa",      ItemSlot.Hat,   ItemEffect.AwayIncome,    0.10),
-                ("chuong",    "Chuông bạc",    ItemSlot.Charm, ItemEffect.StationIncome, 0.10),
-                ("co-may",    "Cỏ may mắn",    ItemSlot.Charm, ItemEffect.GardenSpeed,   0.03),
-                ("long-den",  "Lồng đèn nhỏ",  ItemSlot.Charm, ItemEffect.AwayIncome,    0.10),
+                ("mu-rom",    "Mũ rơm",        ItemSlot.Hat,   ItemEffect.StationIncome, 0.10, 0, 0, 0f),
+                ("mu-bep",    "Mũ đầu bếp",    ItemSlot.Hat,   ItemEffect.GardenSpeed,   0.03, 0, 0, 0f),
+                ("vong-hoa",  "Vòng hoa",      ItemSlot.Hat,   ItemEffect.AwayIncome,    0.10, 0, 0, 0f),
+                ("chuong",    "Chuông bạc",    ItemSlot.Charm, ItemEffect.StationIncome, 0.10, 0, 0, 0f),
+                ("co-may",    "Cỏ may mắn",    ItemSlot.Charm, ItemEffect.GardenSpeed,   0.03, 0, 0, 0f),
+                ("long-den",  "Lồng đèn nhỏ",  ItemSlot.Charm, ItemEffect.AwayIncome,    0.10, 0, 0, 0f),
+                ("hat-non-la",     "Nón lá",        ItemSlot.Hat, ItemEffect.None, 0, 20, 1, 0.00f),
+                ("hat-vong-hoa",   "Vòng hoa tươi", ItemSlot.Hat, ItemEffect.None, 0, 25, 1, 0.06f),
+                ("hat-mu-len",     "Mũ len",        ItemSlot.Hat, ItemEffect.None, 0, 30, 2, 0.00f),
+                ("hat-no-trang",   "Nơ trăng",      ItemSlot.Hat, ItemEffect.None, 0, 40, 2, 0.05f),
+                ("hat-mu-sao",     "Mũ sao",        ItemSlot.Hat, ItemEffect.None, 0, 50, 3, 0.02f),
+                ("hat-vuong-mien", "Vương miện",    ItemSlot.Hat, ItemEffect.None, 0, 60, 4, 0.04f),
             };
             var itemAssets = new List<ItemData>();
             foreach (var row in itemRows)
             {
                 ItemData data = LoadOrCreate<ItemData>(ItemFolder + "/" + row.Id + ".asset");
                 data.Id = row.Id; data.DisplayName = row.Name; data.Slot = row.Slot; data.Effect = row.Effect; data.BaseAmount = row.Amount;
-                var drawnIcon = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/item_" + row.Id + ".png");
+                data.Price = row.Price; data.Tier = row.Tier; data.HatLift = row.Lift;
+                string artName = row.Id.StartsWith("hat-") ? "hat_" + row.Id.Substring("hat-".Length) : "item_" + row.Id;
+                var drawnIcon = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/" + artName + ".png");
                 data.Icon = drawnIcon != null ? drawnIcon : PlaceholderArt.Load("item_" + row.Id);
                 EditorUtility.SetDirty(data);
                 itemAssets.Add(data);

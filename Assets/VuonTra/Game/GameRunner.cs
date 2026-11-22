@@ -185,9 +185,14 @@ namespace VuonTra.Game
             LastQuestItem = null;
             bool ok = Quests.TryClaim(quest, Defs, State, Mods, out paid);
             if (!ok) return false;
-            // Daily quests and the bigger achievements also hand out something to wear.
-            if ((quest.Daily || quest.RewardClovers >= 2) && ItemDefs.Count > 0)
-                LastQuestItem = Items.Grant(State, ItemDefs[_rng.Next(ItemDefs.Count)], Rabbits.RollTier(_rng.NextDouble()));
+            // Daily quests and the bigger achievements also hand out something to wear: one of the quest items,
+            // never a hat the shop sells (#44: those are bought, one of each).
+            if (quest.Daily || quest.RewardClovers >= 2)
+            {
+                var gifts = new System.Collections.Generic.List<ItemDef>();
+                foreach (ItemDef def in ItemDefs) if (def.Price <= 0) gifts.Add(def);
+                if (gifts.Count > 0) LastQuestItem = Items.Grant(State, gifts[_rng.Next(gifts.Count)], Rabbits.RollTier(_rng.NextDouble()));
+            }
             Changed();
             return true;
         }
@@ -283,6 +288,30 @@ namespace VuonTra.Game
             _shopBought = rabbit != null;
             if (rabbit != null) Changed();
             return rabbit;
+        }
+
+        /// <summary>Buys one of the things the shop sells for golden carrots (#44); null when it cannot be bought.</summary>
+        public Item BuyItem(string defId)
+        {
+            Item item = Shop.BuyItem(State, ItemDefs, defId);
+            if (item != null) Changed();
+            return item;
+        }
+
+        /// <summary>Dyes a rabbit's fur one of the palette's colours for golden carrots.</summary>
+        public bool DyeRabbit(long rabbitId, int dye)
+        {
+            bool ok = Shop.DyeRabbit(State, rabbitId, dye);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>Washes a rabbit's dye out, for nothing.</summary>
+        public bool WashRabbit(long rabbitId)
+        {
+            bool ok = Shop.Wash(State, rabbitId);
+            if (ok) Changed();
+            return ok;
         }
 
         /// <summary>A photo of the garden was taken. True when it brought today's gift.</summary>

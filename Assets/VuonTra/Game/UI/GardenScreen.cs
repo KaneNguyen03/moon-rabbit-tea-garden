@@ -724,7 +724,7 @@ namespace VuonTra.Game.UI
             var rt = UiKit.Rect("Traveler", _street).Place(0f, 0f, from.x, from.y, 104, 110);
             rt.pivot = new Vector2(0.5f, 0f);
             UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(Runner.Catalog.Round, Palette.Alpha(Palette.Night, 0.35f));
-            Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(Runner.Catalog.RabbitArt(worker), Color.white);
+            Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(Runner.Catalog.RabbitArt(worker), RabbitGridView.Fur(worker));
             art.preserveAspect = true;
             if (_walkers.Count > 0) rt.SetSiblingIndex(_walkers[0].Rect.GetSiblingIndex()); // drawn with the walkers, under every plate
             _actors[station].SetAway(true);
@@ -975,7 +975,8 @@ namespace VuonTra.Game.UI
                 rabbitId => { Sfx.Click(); Rename.Open(Runner.State, rabbitId); },
                 (rabbitId, slot) => { Sfx.Click(); Picker.Open(Runner.State, rabbitId, slot); },
                 (rabbitId, station) => { Sfx.Blip(); Runner.AssignRabbit(rabbitId, station); },
-                rabbitId => { Sfx.Click(); Runner.AssignRabbit(rabbitId, -1); });
+                rabbitId => { Sfx.Click(); Runner.AssignRabbit(rabbitId, -1); },
+                OnDye, rabbitId => { if (Runner.WashRabbit(rabbitId)) Sfx.Click(); });
             Picker = new ItemPickerView(_canvas, catalog, Tweens,
                 (itemId, rabbitId) => { Sfx.Blip(); Runner.EquipItem(itemId, rabbitId); },
                 itemId => { Sfx.Click(); Runner.UnequipItem(itemId); });
@@ -984,7 +985,8 @@ namespace VuonTra.Game.UI
             UpgradeAll = new UpgradeAllView(_canvas, catalog, Tweens, share => Runner.SetSpendShare(share), OnUpgradeAll);
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
-            Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor);
+            Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor,
+                Runner.ItemDefs, OnBuyHat);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
@@ -1535,6 +1537,7 @@ namespace VuonTra.Game.UI
                 {
                     bool inTrade = Rabbits.InTrade(defs, worker);
                     _cardWorkerArt.sprite = Runner.Catalog.RabbitArt(worker);
+                    _cardWorkerArt.color = RabbitGridView.Fur(worker);
                     _cardWorkerFrame.color = Palette.Tiers[worker.Tier];
                     _cardWorkerName.text = worker.Name;
                     _cardWorkerSub.text = L10n.T("card.worker", L10n.Kind(worker), L10n.Trade(Rabbits.TradeOf(worker)))
@@ -3301,7 +3304,8 @@ namespace VuonTra.Game.UI
                     RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(worker));
                     _actors[i].SetWorker(catalog.RabbitArt(worker),
                         hat != null && !kind.NoHat ? catalog.ItemIcon(hat.DefId) : null, charm != null ? catalog.ItemIcon(charm.DefId) : null,
-                        worker.Tier >= 4 && !kind.OwnGlow, new Vector2(kind.HatX, kind.HatY));
+                        worker.Tier >= 4 && !kind.OwnGlow, new Vector2(kind.HatX, kind.HatY),
+                        hat != null ? catalog.ItemHatLift(hat.DefId) : 0f, RabbitGridView.Fur(worker));
                 }
 
                 GameObject chip = _tierChips[i].gameObject;
@@ -3376,8 +3380,10 @@ namespace VuonTra.Game.UI
                 if (taken)
                 {
                     Sprite art = catalog.RabbitArt(seated[k]);
+                    Color fur = RabbitGridView.Fur(seated[k]);
                     _seatArt[k].sprite = art;
-                    if (k < _walkers.Count) _walkers[k].Art.sprite = art;
+                    _seatArt[k].color = fur;
+                    if (k < _walkers.Count) { _walkers[k].Art.sprite = art; _walkers[k].Art.color = fur; }
                 }
                 bool sitting = taken && !(k < _walkers.Count && Strolling(k, _clock));
                 if (_seats[k].gameObject.activeSelf != sitting) _seats[k].gameObject.SetActive(sitting);
@@ -3770,6 +3776,26 @@ namespace VuonTra.Game.UI
             Vector2 from = Feel.PointOf(Shop.Sheet.Card, new Vector2(0, 200));
             Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, Mathf.Min(gift, 5), 44f,
                 () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+        }
+
+        /// <summary>A hat for looks bought at the shop (#44): it goes to the wardrobe, where the rabbits' pickers find it.</summary>
+        void OnBuyHat(string defId)
+        {
+            Item item = Runner.BuyItem(defId);
+            if (item == null) return;
+            Sfx.Reward();
+            Haptics.Light();
+            Feel.FloatText(new Vector2(0, 420), L10n.T("float.hat", L10n.ItemName(item)), Palette.Lantern, 40);
+        }
+
+        /// <summary>A rabbit's fur dyed from its sheet (#44): a word in the colour it now wears.</summary>
+        void OnDye(long rabbitId, int dye)
+        {
+            if (!Runner.DyeRabbit(rabbitId, dye)) return;
+            Sfx.Blip();
+            Haptics.Light();
+            VuonTra.Core.Shop.Dye colour = VuonTra.Core.Shop.Dyes[dye]; // the Shop property here is the sheet
+            Feel.FloatText(new Vector2(0, 420), L10n.T("float.dye", L10n.T("dye." + colour.Id)), Palette.Hex(colour.Hex), 40);
         }
 
         void OnSummonGolden()

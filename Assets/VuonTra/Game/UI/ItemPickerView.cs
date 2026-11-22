@@ -76,6 +76,7 @@ namespace VuonTra.Game.UI
             {
                 case ItemEffect.GardenSpeed: return L10n.T("item.effect.speed", percent);
                 case ItemEffect.AwayIncome: return L10n.T("item.effect.away", percent);
+                case ItemEffect.None: return L10n.T("item.effect.none");
                 default: return L10n.T("item.effect.station", percent);
             }
         }

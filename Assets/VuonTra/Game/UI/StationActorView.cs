@@ -261,15 +261,18 @@ namespace VuonTra.Game.UI
         /// null leaves the place empty, which shows as the pad.
         /// </summary>
         /// <param name="hatNudge">This kind's own nudge for the hat, in shares of the drawing's height.</param>
-        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo, Vector2 hatNudge = default)
+        /// <param name="hatLift">The hat kind's own lift (#44), in shares of the drawing's height.</param>
+        /// <param name="fur">The tint of the rabbit's fur: white, or its dye (#44).</param>
+        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo, Vector2 hatNudge = default, float hatLift = 0f, Color? fur = null)
         {
             // The same numbers the rabbit list uses, so a hat sits the same on a rabbit wherever it is drawn.
             float across = (GameCatalog.KindHeadX - 0.5f + hatNudge.x) * GuestBox * GameCatalog.KindAspect;
-            ((RectTransform)_hatImage.transform).anchoredPosition = new Vector2(across, (GameCatalog.KindHeadTop + hatNudge.y + GameCatalog.HatLift) * GuestBox);
+            RabbitGridView.PlaceHat((RectTransform)_hatImage.transform, hat, GuestBox, across, (GameCatalog.KindHeadTop + hatNudge.y) * GuestBox, hatLift);
             ((RectTransform)_charmImage.transform).anchoredPosition = new Vector2(across, (GameCatalog.CharmHeight + hatNudge.y) * GuestBox);
             _guest = art != null;
             _haloWanted = halo;
             if (_guest) _rabbitImage.sprite = art;
+            _rabbitImage.color = fur ?? Color.white;
             Show(_hatImage, _guest ? hat : null);
             Show(_charmImage, _guest ? charm : null);
             ShowWho();

@@ -70,6 +70,12 @@ MonoBehaviour:
   - {fileID: 11400000, guid: c7bf35a073ad84ffaaa87291a3ca53b6, type: 2}
   - {fileID: 11400000, guid: c3117c2c3da5f49128180a107e3d7763, type: 2}
   - {fileID: 11400000, guid: 1c4e537d5f1ea4ac8bcc1dff56ab3eed, type: 2}
+  - {fileID: 11400000, guid: d1f9ee48c7c384de687a8f043b64c912, type: 2}
+  - {fileID: 11400000, guid: f12032cefc3ab49fc8d0c5ec3598180d, type: 2}
+  - {fileID: 11400000, guid: 856a552268baa40ea84ce1bf8997b249, type: 2}
+  - {fileID: 11400000, guid: d6a36b6db9f0547cb825ad8941fd6c29, type: 2}
+  - {fileID: 11400000, guid: 0cde3a765ec914543a2890126ef92a58, type: 2}
+  - {fileID: 11400000, guid: c9920a975791645d0a461ed087beaa44, type: 2}
   RabbitNames:
   - "B\xF4ng"
   - "M\xE2y"

@@ -159,7 +159,7 @@ namespace VuonTra.EditorTools
             state.Clovers = 4;
             Rabbits.AutoAssign(runner.Defs, state);
             var itemDefs = runner.Catalog.BuildItems();
-            for (int i = 0; i < itemDefs.Count; i++) Items.Grant(state, itemDefs[i], (i * 2) % Rabbits.TierCount);
+            for (int i = 0; i < itemDefs.Count; i++) if (itemDefs[i].Price <= 0) Items.Grant(state, itemDefs[i], (i * 2) % Rabbits.TierCount); // the shop's hats stay on sale
             Items.Equip(state, state.Items[0].Id, state.Rabbits[0].Id);
             Items.Equip(state, state.Items[3].Id, state.Rabbits[0].Id);
             state.TotalTaps = 37;
@@ -534,7 +534,23 @@ namespace VuonTra.EditorTools
             screen.OpenShop();
             Step(screen, 0.4f);
             Capture(screen, "44-tiem");
+            // Things for rabbits (#44 round 3): the crown bought and owned, the conical hat still affordable, the rest not.
+            state.GoldenCarrots = 75;
+            Item crown = Shop.BuyItem(state, itemDefs, "hat-vuong-mien");
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Capture(screen, "44-do-cho-tho");
             screen.Shop.Close();
+            Step(screen, 0.3f);
+            // A rabbit dyed pink wearing the crown, on its own sheet with the dye row.
+            if (crown != null) Items.Equip(state, crown.Id, state.Rabbits[0].Id);
+            state.GoldenCarrots = 20;
+            Shop.DyeRabbit(state, state.Rabbits[0].Id, 0);
+            screen.Refresh();
+            screen.Detail.Open(runner.Defs, state, state.Rabbits[0].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "44-nhuom");
+            screen.Detail.Close();
             Step(screen, 0.3f);
             // A guest at the counter with its order in a bubble (#20), then the order card. One may have come on its
             // own by now: the frames above step through more than the minute the first guest waits for.

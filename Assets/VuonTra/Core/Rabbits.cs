@@ -21,6 +21,8 @@ namespace VuonTra.Core
         public int Affection;
         /// <summary>The day it was last stroked (see <see cref="Rabbits.Pet"/>), or -1 when never.</summary>
         public long PetDay = -1;
+        /// <summary>Index into <see cref="Shop.Dyes"/> of the colour its fur is dyed, or -1 for its own coat (#44).</summary>
+        public int Dye = -1;
     }
 
     /// <summary>What one touch of a rabbit came to.</summary>

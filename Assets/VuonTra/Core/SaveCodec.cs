@@ -111,6 +111,7 @@ namespace VuonTra.Core
                 sb.Append(",\"level\":").Append(r.Level.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"affection\":").Append(r.Affection.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"petDay\":").Append(r.PetDay.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"dye\":").Append(r.Dye.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"kind\":");
                 WriteString(sb, Rabbits.KindOf(r));
                 sb.Append(",\"name\":");
@@ -364,6 +365,8 @@ namespace VuonTra.Core
                     // The bond (#19): saves from before it, or odd values, start with no hearts and no day.
                     rabbit.Affection = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "affection"), Rabbits.AffectionMax));
                     rabbit.PetDay = TryNumber(entry, "petDay", out double petDay) && petDay >= 0d ? ToLong(petDay) : -1;
+                    // Fur dye (#44): saves from before it, and colours the palette lacks, mean its own coat.
+                    rabbit.Dye = TryNumber(entry, "dye", out double dye) && dye >= 0d && dye < Shop.Dyes.Length ? (int)dye : -1;
                     // Version 5: the kind. Older saves have none, and a kind must belong to the rabbit's tier.
                     rabbit.Kind = entry.TryGetValue("kind", out object kindObj) && kindObj is string kindId ? kindId : null;
                     rabbit.Kind = Rabbits.KindOf(rabbit);
@@ -415,7 +418,7 @@ namespace VuonTra.Core
                         DefId = entry.TryGetValue("def", out object defObj) && defObj is string defId ? defId : "",
                         Name = entry.TryGetValue("name", out object itemNameObj) && itemNameObj is string itemName ? itemName : "",
                         Slot = slot == 1d ? ItemSlot.Charm : ItemSlot.Hat,
-                        Effect = effect == 1d ? ItemEffect.GardenSpeed : (effect == 2d ? ItemEffect.AwayIncome : ItemEffect.StationIncome),
+                        Effect = effect == 1d ? ItemEffect.GardenSpeed : (effect == 2d ? ItemEffect.AwayIncome : (effect == 3d ? ItemEffect.None : ItemEffect.StationIncome)),
                         Tier = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "tier"), Rabbits.TierCount - 1)),
                         Amount = Math.Max(0d, Math.Min(ReadNumber(entry, "amount"), 1000d)),
                     };

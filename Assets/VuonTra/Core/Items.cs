@@ -12,7 +12,9 @@ namespace VuonTra.Core
         /// <summary>Speeds up the whole garden while the wearer is working.</summary>
         GardenSpeed,
         /// <summary>Raises what the garden earns while the player is away, while the wearer is working.</summary>
-        AwayIncome
+        AwayIncome,
+        /// <summary>Nothing at all: the item is for looks (#44: the hats the shop sells).</summary>
+        None
     }
 
     /// <summary>A kind of item, as designed.</summary>
@@ -24,6 +26,12 @@ namespace VuonTra.Core
         public ItemEffect Effect;
         /// <summary>The bonus at the lowest tier.</summary>
         public double BaseAmount;
+        /// <summary>What the shop asks in golden carrots; 0 when it is not for sale (it comes from quests).</summary>
+        public int Price;
+        /// <summary>The tier a bought copy has. Quest items roll their own.</summary>
+        public int Tier;
+        /// <summary>How much higher than the usual line a worn hat of this kind sits, in shares of the rabbit drawing's height.</summary>
+        public float HatLift;
     }
 
     /// <summary>One item the player owns. It carries its own numbers, so it survives content changes.</summary>
@@ -51,10 +59,26 @@ namespace VuonTra.Core
             var item = new Item
             {
                 Id = ++s.NextItemId, DefId = def.Id, Name = def.Name, Slot = def.Slot, Effect = def.Effect,
-                Tier = tier, Amount = def.BaseAmount * TierScale[tier]
+                Tier = tier, Amount = def.Effect == ItemEffect.None ? 0d : def.BaseAmount * TierScale[tier]
             };
             s.Items.Add(item);
             return item;
+        }
+
+        public static ItemDef DefOf(IReadOnlyList<ItemDef> defs, string defId)
+        {
+            if (defs == null || defId == null) return null;
+            for (int i = 0; i < defs.Count; i++)
+                if (defs[i].Id == defId) return defs[i];
+            return null;
+        }
+
+        /// <summary>True when the player has at least one item of this kind, worn or not.</summary>
+        public static bool Owns(GameState s, string defId)
+        {
+            for (int i = 0; i < s.Items.Count; i++)
+                if (s.Items[i].DefId == defId) return true;
+            return false;
         }
 
         public static Item Find(GameState s, long id)

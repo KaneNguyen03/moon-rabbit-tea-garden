@@ -129,6 +129,14 @@ namespace VuonTra.Game
             return null;
         }
 
+        /// <summary>How much higher than the usual line a hat of this kind sits when worn; 0 for any other item.</summary>
+        public float ItemHatLift(string defId)
+        {
+            foreach (ItemData item in Items)
+                if (item != null && item.Id == defId) return item.HatLift;
+            return 0f;
+        }
+
         public List<ItemDef> BuildItems()
         {
             var defs = new List<ItemDef>(Items.Length);

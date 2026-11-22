@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
@@ -22,12 +23,25 @@ namespace VuonTra.Game.UI
         readonly Func<double> _hoursLeft;
         GameObject _portrait;
 
-        public ShopView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<long> today, Func<double> hoursLeft, Action onGift, Action onGoldenSummon, Action onBuyVisitor)
+        /// <summary>One hat on sale: its tile and the parts that change.</summary>
+        sealed class HatTile { public ItemDef Def; public Button Button; public Image Plate, PriceChip; public Text Price; public GameObject Owned; }
+        readonly List<HatTile> _hats = new List<HatTile>();
+        readonly Action<string> _onBuyItem;
+        /// <summary>The hat whose tile was tapped once, waiting for the second tap that buys, and when.</summary>
+        string _armed;
+        float _armedAt;
+        /// <summary>A tap that asks is forgotten after this long.</summary>
+        public const float ConfirmSeconds = 2f;
+        GameState _last;
+
+        public ShopView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<long> today, Func<double> hoursLeft, Action onGift, Action onGoldenSummon, Action onBuyVisitor,
+            IReadOnlyList<ItemDef> items = null, Action<string> onBuyItem = null)
         {
             _catalog = catalog;
             _today = today;
             _hoursLeft = hoursLeft;
-            Sheet = new BottomSheet(canvas, "Shop", catalog, tweens, 1230f, null);
+            _onBuyItem = onBuyItem;
+            Sheet = new BottomSheet(canvas, "Shop", catalog, tweens, 1560f, null);
             RectTransform card = Sheet.Card;
             UiKit.Rect("Title", card).Stretch(0, 1, 1, 1, 40, -120, 40, 40)
                 .AddText(L10n.T("shop.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -98,7 +112,91 @@ namespace VuonTra.Game.UI
             _odds.resizeTextMinSize = 12;
             _odds.resizeTextMaxSize = UiKit.TextSmall;
 
-            UiKit.Rect("Earn", card).Stretch(0, 1, 1, 1, 40, -1070, 40, 990).AddText(L10n.T("shop.earn"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+            // Things for rabbits (#44 round 3): six hats for looks, one tile each; a tap asks, a second tap within two seconds buys.
+            var hats = UiKit.Rect("Hats", card).Stretch(0, 1, 1, 1, 40, -1320, 40, 1000);
+            hats.AddImage(catalog.Panel, Palette.Card, true);
+            UiKit.Rect("Heading", hats).Stretch(0, 1, 1, 1, 24, -56, 24, 8).AddText(L10n.T("shop.hats.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            Text hatsSub = UiKit.Rect("Sub", hats).Stretch(0, 1, 1, 1, 24, -100, 24, 54).AddText(L10n.T("shop.hats.sub"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+            hatsSub.verticalOverflow = VerticalWrapMode.Truncate; // best fit only shrinks for height when overflow is not allowed
+            hatsSub.resizeTextForBestFit = true;
+            hatsSub.resizeTextMinSize = 12;
+            hatsSub.resizeTextMaxSize = UiKit.TextSmall;
+            var hatRow = UiKit.Rect("Row", hats).Stretch(0, 0, 1, 1, 0, 8, 0, 102);
+            const float tileW = 150f, tileH = 210f, gap = 14f;
+            int n = 0;
+            if (items != null)
+                foreach (ItemDef def in items)
+                {
+                    if (def.Price <= 0) continue;
+                    var tile = new HatTile { Def = def };
+                    var rt = UiKit.Rect("Hat " + def.Id, hatRow).Place(0f, 0.5f, 15f + n * (tileW + gap) + tileW / 2f, 0, tileW, tileH);
+                    tile.Plate = rt.AddImage(catalog.Panel, Palette.Mix(Palette.Paper, Color.white, 0.35f), true);
+                    tile.Plate.raycastTarget = true;
+                    tile.Button = rt.gameObject.AddComponent<Button>();
+                    tile.Button.transition = Selectable.Transition.None;
+                    tile.Button.targetGraphic = tile.Plate;
+                    string defId = def.Id;
+                    tile.Button.onClick.AddListener(() => OnHatTap(defId));
+                    Image icon = UiKit.Rect("Icon", rt).Place(0.5f, 1f, 0, -64, 108, 108).AddImage(catalog.ItemIcon(def.Id), Color.white);
+                    icon.preserveAspect = true;
+                    Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -140, tileW - 12f, 44).AddText(L10n.T("item." + def.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    name.resizeTextForBestFit = true;
+                    name.resizeTextMinSize = 11;
+                    name.resizeTextMaxSize = UiKit.Scaled(18);
+                    name.horizontalOverflow = HorizontalWrapMode.Wrap;
+                    var price = UiKit.Rect("Price", rt).Place(0.5f, 0f, 0, 30, tileW - 24f, 40);
+                    tile.PriceChip = price.AddImage(catalog.Panel, Palette.Lantern, true);
+                    float priceInset = 8f;
+                    if (catalog.GoldenCarrot != null)
+                    {
+                        UiKit.Rect("Carrot", price).Place(0f, 0.5f, 20, 0, 26, 26).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
+                        priceInset = 34f;
+                    }
+                    tile.Price = UiKit.Rect("Text", price).Stretch(0, 0, 1, 1, priceInset, 0, 6, 0).AddText(def.Price.ToString(), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    tile.Price.resizeTextForBestFit = true;
+                    tile.Price.resizeTextMinSize = 11;
+                    tile.Price.resizeTextMaxSize = UiKit.TextSmall;
+                    var owned = UiKit.Rect("Owned", rt).Place(0.5f, 0f, 0, 30, tileW - 24f, 40);
+                    owned.AddImage(catalog.Panel, Palette.Moss, true);
+                    Text ownedText = UiKit.Rect("Text", owned).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("shop.hats.owned"), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    ownedText.resizeTextForBestFit = true;
+                    ownedText.resizeTextMinSize = 11;
+                    ownedText.resizeTextMaxSize = UiKit.TextSmall;
+                    tile.Owned = owned.gameObject;
+                    tile.Owned.SetActive(false);
+                    _hats.Add(tile);
+                    n++;
+                }
+
+            UiKit.Rect("Earn", card).Stretch(0, 1, 1, 1, 40, -1400, 40, 1320).AddText(L10n.T("shop.earn"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+        }
+
+        /// <summary>A hat tile tapped: the first tap asks, a second on the same tile soon after buys.</summary>
+        void OnHatTap(string defId)
+        {
+            bool confirmed = _armed == defId && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
+            _armed = confirmed ? null : defId;
+            _armedAt = Time.realtimeSinceStartup;
+            Sfx.Click();
+            if (confirmed) { if (_onBuyItem != null) _onBuyItem(defId); }
+            else if (_last != null) RefreshHats(_last);
+        }
+
+        void RefreshHats(GameState s)
+        {
+            _last = s;
+            foreach (HatTile tile in _hats)
+            {
+                bool owned = Items.Owns(s, tile.Def.Id);
+                bool affordable = s.GoldenCarrots >= tile.Def.Price;
+                bool armed = !owned && _armed == tile.Def.Id && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
+                tile.Button.interactable = !owned && affordable;
+                if (tile.Owned.activeSelf != owned) tile.Owned.SetActive(owned);
+                if (tile.PriceChip.gameObject.activeSelf == owned) tile.PriceChip.gameObject.SetActive(!owned);
+                tile.Price.text = armed ? L10n.T("shop.hats.confirm") : tile.Def.Price.ToString();
+                tile.PriceChip.color = armed ? Palette.Carrot : (affordable ? Palette.Lantern : Palette.Track);
+                tile.Plate.color = owned ? Palette.Mix(Palette.Paper, Palette.Moss, 0.2f) : (armed ? Palette.Mix(Palette.Paper, Palette.Lantern, 0.5f) : Palette.Mix(Palette.Paper, Color.white, 0.35f));
+            }
         }
 
         /// <summary>"Bạc 60 % · Xanh lá 25 % · …" for a table of odds.</summary>
@@ -165,6 +263,7 @@ namespace VuonTra.Game.UI
             _goldenLabel.color = ChunkyButton.InkFor(can);
             _golden.SetEnabled(can);
             _odds.text = OddsText();
+            RefreshHats(s);
         }
     }
 }

@@ -1191,6 +1191,8 @@ namespace VuonTra.Core.Tests
             Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim").onClick.Invoke();
             Assert.AreEqual(1, runner.State.Items.Count);
             Assert.IsNotNull(runner.LastQuestItem);
+            Assert.AreEqual(0, Items.DefOf(runner.ItemDefs, runner.LastQuestItem.DefId).Price, "the shop's hats are bought, never given");
+            Assert.AreNotEqual(ItemEffect.None, runner.LastQuestItem.Effect);
         }
 
         [Test]
@@ -2414,6 +2416,112 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.IsFalse(Find("Canvas/Shop/Card/Visitor/Buy").interactable, "gone home already");
             Assert.AreEqual(L10n.T("shop.visitor.bought"), visitor.Find("Buy/Face/Text").GetComponent<Text>().text);
+        }
+
+        // ----- #44 round 3: hats for looks, and fur dye -----
+
+        [Test]
+        public void The_Shop_Sells_Six_Hats_For_Looks_And_A_Second_Tap_Buys_One()
+        {
+            screen.Shell.StartGame();
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "Bông" });
+            runner.State.NextRabbitId = 1;
+            screen.OpenShop();
+            screen.Refresh();
+            Transform hats = root.transform.Find("Canvas/Shop/Card/Hats");
+            Assert.IsNotNull(hats, "a section of things for rabbits");
+            var sold = new System.Collections.Generic.List<ItemDef>();
+            foreach (ItemDef def in runner.ItemDefs) if (def.Price > 0) sold.Add(def);
+            Assert.AreEqual(6, sold.Count, "six hats for sale");
+            foreach (ItemDef def in sold)
+            {
+                Assert.AreEqual(ItemEffect.None, def.Effect, def.Id + " is for looks only");
+                Assert.AreEqual(ItemSlot.Hat, def.Slot, def.Id);
+                Assert.IsTrue(def.Price >= 20 && def.Price <= 60, def.Id + " costs " + def.Price);
+                Transform tile = hats.Find("Row/Hat " + def.Id);
+                Assert.IsNotNull(tile, "a tile for " + def.Id);
+                Assert.AreEqual(def.Price.ToString(), tile.Find("Price/Text").GetComponent<Text>().text);
+                Assert.IsNotNull(tile.Find("Icon").GetComponent<Image>().sprite, def.Id + " has its picture");
+                Assert.IsFalse(tile.GetComponent<Button>().interactable, "no golden carrots yet: " + def.Id);
+                Assert.IsFalse(tile.Find("Owned").gameObject.activeSelf, def.Id);
+            }
+            ItemDef first = sold[0];
+            runner.State.GoldenCarrots = first.Price + 5;
+            screen.Refresh();
+            string path = "Canvas/Shop/Card/Hats/Row/Hat " + first.Id;
+            Button buy = Find(path);
+            Assert.IsTrue(buy.interactable);
+            buy.onClick.Invoke();
+            Assert.AreEqual(0, runner.State.Items.Count, "the first tap only asks");
+            Assert.AreEqual(L10n.T("shop.hats.confirm"), root.transform.Find(path + "/Price/Text").GetComponent<Text>().text);
+            buy.onClick.Invoke();
+            Assert.AreEqual(1, runner.State.Items.Count, "the second tap buys");
+            Item hat = runner.State.Items[0];
+            Assert.AreEqual(first.Id, hat.DefId);
+            Assert.AreEqual(ItemEffect.None, hat.Effect);
+            Assert.AreEqual(0, hat.WornBy, "in the wardrobe, not on a head yet");
+            Assert.AreEqual(5, runner.State.GoldenCarrots, "the price was paid");
+            screen.Refresh();
+            Transform bought = root.transform.Find(path);
+            Assert.IsTrue(bought.Find("Owned").gameObject.activeSelf, "one of each");
+            Assert.IsFalse(bought.GetComponent<Button>().interactable);
+            Assert.AreEqual(L10n.T("item.effect.none"), ItemPickerView.Describe(hat));
+
+            screen.Shop.Close();
+            screen.Picker.Open(runner.State, 1, ItemSlot.Hat);
+            Transform row = root.transform.Find("Canvas/Picker/Card/Scroll/Content/Item " + hat.Id);
+            Assert.IsNotNull(row, "the hat waits in the picker like any item");
+            StringAssert.Contains(L10n.T("item.effect.none"), row.Find("Sub").GetComponent<Text>().text);
+            Find("Canvas/Picker/Card/Scroll/Content/Item " + hat.Id + "/Use").onClick.Invoke();
+            Assert.AreEqual(1, hat.WornBy);
+            screen.Picker.Close();
+            screen.Refresh();
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/HatOn"), "worn on the head");
+        }
+
+        [Test]
+        public void Dye_Dots_On_The_Rabbit_Sheet_Tint_The_Rabbit_Everywhere_And_Washing_Brings_The_White_Back()
+        {
+            Motion.SetReduced(true);
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
+            Image actor = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit").GetComponent<Image>();
+            Assert.AreEqual(Color.white, actor.color, "white fur to begin with");
+            screen.Detail.Open(runner.Defs, runner.State, 1);
+            Transform dye = root.transform.Find("Canvas/RabbitSheet/Card/Body/Dye");
+            Assert.IsNotNull(dye, "a row to dye the fur");
+            Assert.AreEqual(Shop.Dyes.Length, dye.Find("Dots").childCount, "one dot per colour");
+            StringAssert.Contains(L10n.T("need.more"), dye.Find("Label").GetComponent<Text>().text, "no golden carrots");
+            Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 3").interactable);
+            Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/Dye/Wash").interactable, "white already");
+
+            runner.State.GoldenCarrots = Shop.DyeCost;
+            screen.Refresh();
+            Button dot = Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 3");
+            Assert.IsTrue(dot.interactable);
+            dot.onClick.Invoke();
+            Assert.AreEqual(3, runner.State.Rabbits[0].Dye);
+            Assert.AreEqual(0, runner.State.GoldenCarrots, "eight golden carrots paid");
+            screen.Refresh();
+            Color fur = RabbitGridView.Fur(runner.State.Rabbits[0]);
+            Assert.AreNotEqual(Color.white, fur);
+            Assert.AreEqual(fur, root.transform.Find("Canvas/RabbitSheet/Card/Body/Portrait/Tile/Art").GetComponent<Image>().color, "the portrait on its sheet");
+            Assert.AreEqual(fur, actor.color, "the rabbit at its station");
+            Assert.AreEqual(fur, root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/Art").GetComponent<Image>().color, "its tile in the list");
+            Assert.IsTrue(root.transform.Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 3/Ring").gameObject.activeSelf, "the colour it wears is ringed");
+            Assert.IsFalse(root.transform.Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 5/Ring").gameObject.activeSelf);
+            Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 5").interactable, "another colour costs again");
+
+            Button wash = Find("Canvas/RabbitSheet/Card/Body/Dye/Wash");
+            Assert.IsTrue(wash.interactable);
+            wash.onClick.Invoke();
+            Assert.AreEqual(-1, runner.State.Rabbits[0].Dye);
+            Assert.AreEqual(0, runner.State.GoldenCarrots, "washing is free");
+            screen.Refresh();
+            Assert.AreEqual(Color.white, actor.color);
+            Assert.AreEqual(Color.white, root.transform.Find("Canvas/RabbitSheet/Card/Body/Portrait/Tile/Art").GetComponent<Image>().color);
+            Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/Dye/Wash").interactable);
         }
 
         [Test]

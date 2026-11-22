@@ -144,7 +144,7 @@ namespace VuonTra.Game.UI
         {
             var sb = new StringBuilder(Album ? "album|" : "mine|");
             foreach (Rabbit r in s.Rabbits)
-                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(':').Append(r.Affection).Append(';');
+                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(':').Append(r.Affection).Append(':').Append(r.Dye).Append(';');
             sb.Append('|');
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             if (_isFresh != null && Album)
@@ -287,20 +287,58 @@ namespace VuonTra.Game.UI
             float inset = Mathf.Max(5f, size * 0.035f);
             UiKit.Rect("Back", tile).Stretch(0, 0, 1, 1, inset, inset, inset, inset).AddImage(catalog.Panel, Palette.Mix(Palette.Paper, Color.white, 0.35f), true);
             float art = size - inset * 2f - 6f, foot = inset + 3f;
-            UiKit.Rect("Art", tile).Place(0.5f, 0f, 0, foot + art / 2f, art, art).AddImage(catalog.RabbitArt(r), Color.white).preserveAspect = true;
+            UiKit.Rect("Art", tile).Place(0.5f, 0f, 0, foot + art / 2f, art, art).AddImage(catalog.RabbitArt(r), Fur(r)).preserveAspect = true;
 
             RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(r));
             float across = (GameCatalog.KindHeadX - 0.5f + kind.HatX) * art * GameCatalog.KindAspect;
             Item hat = Items.Worn(s, r.Id, ItemSlot.Hat), charm = Items.Worn(s, r.Id, ItemSlot.Charm);
             Sprite hatIcon = hat != null ? catalog.ItemIcon(hat.DefId) : null, charmIcon = charm != null ? catalog.ItemIcon(charm.DefId) : null;
             if (hatIcon != null && !kind.NoHat)
-                UiKit.Rect("HatOn", tile).Place(0.5f, 0f, across, foot + (GameCatalog.KindHeadTop + kind.HatY + GameCatalog.HatLift) * art, art * GameCatalog.HatSize, art * GameCatalog.HatSize)
-                    .AddImage(hatIcon, Color.white).preserveAspect = true;
+            {
+                var hatOn = UiKit.Rect("HatOn", tile);
+                PlaceHat(hatOn, hatIcon, art, across, foot + (GameCatalog.KindHeadTop + kind.HatY) * art, catalog.ItemHatLift(hat.DefId));
+                hatOn.AddImage(hatIcon, Color.white).preserveAspect = true;
+            }
             if (charmIcon != null)
                 UiKit.Rect("CharmOn", tile).Place(0.5f, 0f, across, foot + (GameCatalog.CharmHeight + kind.HatY) * art, art * GameCatalog.CharmSize, art * GameCatalog.CharmSize)
                     .AddImage(charmIcon, Color.white).preserveAspect = true;
             UiKit.Stars(tile, r.Tier, 0.5f, 0f, 0, inset + 14f, Mathf.RoundToInt(Mathf.Clamp(size * 0.085f, 14f, 22f)));
             return tile;
+        }
+
+        /// <summary>
+        /// The colour a rabbit's drawing is tinted with: white for its own coat, else its dye mixed six parts in ten
+        /// over white, so the drawing's shading shows through (#44).
+        /// </summary>
+        public static Color Fur(Rabbit r)
+        {
+            if (r == null || r.Dye < 0 || r.Dye >= Shop.Dyes.Length) return Color.white;
+            return Palette.Mix(Color.white, Palette.Hex(Shop.Dyes[r.Dye].Hex), 0.6f);
+        }
+
+        /// <summary>
+        /// Sizes and places a worn hat from the shape of its picture: a wide hat is HatSize of the drawing across and
+        /// as tall as its picture makes it, a tall one HatSize high; its foot stands on the line hats sit on, raised by
+        /// the hat's own lift. So a wreath or a bow sits on the head while a tall hat rises above it. A square picture
+        /// lands exactly where hats always did.
+        /// </summary>
+        /// <param name="art">The height of the rabbit drawing's box.</param>
+        /// <param name="across">Where the middle of the head is, from the box's middle.</param>
+        /// <param name="headLine">Where the top of the head is, from the parent's bottom edge.</param>
+        /// <param name="lift">The hat kind's own lift, in shares of <paramref name="art"/>.</param>
+        public static void PlaceHat(RectTransform rt, Sprite icon, float art, float across, float headLine, float lift)
+        {
+            float w = art * GameCatalog.HatSize, h = w;
+            if (icon != null && icon.rect.width > 0f && icon.rect.height > 0f)
+            {
+                float ratio = icon.rect.height / icon.rect.width;
+                if (ratio <= 1f) h = w * ratio;
+                else w = h / ratio;
+            }
+            rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0f);
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.sizeDelta = new Vector2(w, h);
+            rt.anchoredPosition = new Vector2(across, headLine + (GameCatalog.HatLift - GameCatalog.HatSize / 2f + lift) * art);
         }
 
         /// <summary>Every kind, tier by tier. A kind you have met shows itself; one you have not is a shadow with a question.</summary>

@@ -17,9 +17,9 @@ namespace VuonTra.Game.UI
         readonly RectTransform _card, _body;
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
-        readonly Action<long> _onLevelUp, _onLevelMax, _onRename, _onRest;
+        readonly Action<long> _onLevelUp, _onLevelMax, _onRename, _onRest, _onWash;
         readonly Action<long, ItemSlot> _onSlot;
-        readonly Action<long, int> _onAssign;
+        readonly Action<long, int> _onAssign, _onDye;
         long _rabbitId;
         string _kindId, _signature;
 
@@ -29,7 +29,7 @@ namespace VuonTra.Game.UI
         public long RabbitId => _rabbitId;
 
         public RabbitDetailView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long> onLevelUp, Action<long> onLevelMax, Action<long> onRename,
-            Action<long, ItemSlot> onSlot, Action<long, int> onAssign, Action<long> onRest)
+            Action<long, ItemSlot> onSlot, Action<long, int> onAssign, Action<long> onRest, Action<long, int> onDye, Action<long> onWash)
         {
             _catalog = catalog;
             _tweens = tweens;
@@ -39,8 +39,10 @@ namespace VuonTra.Game.UI
             _onSlot = onSlot;
             _onAssign = onAssign;
             _onRest = onRest;
+            _onDye = onDye;
+            _onWash = onWash;
 
-            Sheet = new BottomSheet(canvas, "RabbitSheet", catalog, tweens, 1400f, OnClosed, 0.6f);
+            Sheet = new BottomSheet(canvas, "RabbitSheet", catalog, tweens, 1520f, OnClosed, 0.6f);
             _root = Sheet.Root;
             _card = Sheet.Card;
             var close = UiKit.Rect("Close", _card).Place(1f, 1f, -66, -66, UiKit.MinTouch, UiKit.MinTouch);
@@ -119,6 +121,7 @@ namespace VuonTra.Game.UI
             sb.Append(r.Id).Append(r.Tier).Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(':').Append(r.Affection).Append(L10n.Code);
             sb.Append(':').Append(Rabbits.LevelsAffordable(r, Simulation.Budget(s), out _)); // the max button's count
             sb.Append(s.Coins >= Rabbits.LevelCost(r) ? '+' : '-');
+            sb.Append(':').Append(r.Dye).Append(s.GoldenCarrots >= Shop.DyeCost ? '+' : '-'); // the dye row
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             // Who stands where, and which stations are open, decide the list of places.
             for (int i = 0; i < defs.Count; i++)
@@ -244,7 +247,40 @@ namespace VuonTra.Game.UI
                 UiKit.Secondary(rest, _catalog.Panel, L10n.T("rabbits.rest"), () => _onRest(id));
             }
 
-            var scrollRt = UiKit.Rect("Stations", _body).Stretch(0, 0, 1, 1, 0, 30, 0, 694);
+            // Fur dye (#44): the palette as a row of dots, each a tap for golden carrots; washing it out is free.
+            bool canDye = s.GoldenCarrots >= Shop.DyeCost;
+            var dyeRow = UiKit.Rect("Dye", _body).Stretch(0, 1, 1, 1, 44, -800, 44, 694);
+            Text dyeLabel = UiKit.Rect("Label", dyeRow).Stretch(0, 0.62f, 0.72f, 1)
+                .AddText(canDye ? L10n.T("detail.dye", Shop.DyeCost) : L10n.T("detail.dye.need", Shop.DyeCost), UiKit.TextSmall, canDye ? Palette.Ink : RabbitGridView.Quiet, TextAnchor.MiddleLeft, FontStyle.Bold);
+            dyeLabel.resizeTextForBestFit = true;
+            dyeLabel.resizeTextMinSize = 13;
+            dyeLabel.resizeTextMaxSize = UiKit.TextSmall;
+            var dots = UiKit.Rect("Dots", dyeRow).Stretch(0, 0, 0.72f, 0.62f);
+            for (int i = 0; i < Shop.Dyes.Length; i++)
+            {
+                int dye = i;
+                bool worn = r.Dye == i;
+                var dot = UiKit.Rect("Dot " + i, dots).Place((i + 0.5f) / Shop.Dyes.Length, 0.5f, 0, 0, 56, 56);
+                Image hit = dot.AddImage(null, new Color(0, 0, 0, 0));
+                hit.raycastTarget = true;
+                var dotButton = dot.gameObject.AddComponent<Button>();
+                dotButton.transition = Selectable.Transition.None;
+                dotButton.targetGraphic = hit;
+                dotButton.interactable = canDye && !worn;
+                dotButton.onClick.AddListener(() => _onDye(id, dye));
+                UiKit.Touchable(dot, 56, 56);
+                var ring = UiKit.Rect("Ring", dot).Stretch(0, 0, 1, 1, -7, -7, -7, -7);
+                ring.AddImage(_catalog.Round, Palette.Ink);
+                ring.gameObject.SetActive(worn);
+                Color swatch = Palette.Hex(Shop.Dyes[i].Hex);
+                UiKit.Rect("Fill", dot).Stretch(0, 0, 1, 1).AddImage(_catalog.Round, canDye || worn ? swatch : Palette.Alpha(swatch, 0.45f));
+            }
+            var wash = UiKit.Rect("Wash", dyeRow).Stretch(0.74f, 0, 1, 1);
+            Button washButton = UiKit.TextButton(wash, L10n.T("detail.wash"), () => _onWash(id), UiKit.TextBody);
+            washButton.interactable = r.Dye >= 0;
+            if (r.Dye < 0) foreach (Graphic g in wash.GetComponentsInChildren<Graphic>()) if (g.transform != wash) g.color = Palette.Alpha(RabbitGridView.Quiet, 0.7f);
+
+            var scrollRt = UiKit.Rect("Stations", _body).Stretch(0, 0, 1, 1, 0, 30, 0, 814);
             scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;

@@ -2062,6 +2062,102 @@ MonoBehaviour:
     m_Localized: "{0} \xB7 level {1}, now earns double"
     m_Metadata:
       m_Items: []
+  - m_Id: 224994255691776
+    m_Localized: Just for looks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663296
+    m_Localized: Conical Hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663297
+    m_Localized: Flower Wreath
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663298
+    m_Localized: Wool Hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663299
+    m_Localized: Moon Bow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663300
+    m_Localized: Starry Hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994276663301
+    m_Localized: Golden Crown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857600
+    m_Localized: Things for rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857601
+    m_Localized: "Hats just for looks, worn between the ears \xB7 one of each \xB7 dye is on each rabbit's sheet"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857602
+    m_Localized: Owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857603
+    m_Localized: Tap again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857604
+    m_Localized: '{0} is in the wardrobe'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857605
+    m_Localized: "Fur dye \xB7 {0} golden carrots each time"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857606
+    m_Localized: "Fur dye \xB7 {0} golden carrots \xB7 Still need more"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857607
+    m_Localized: Wash out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857608
+    m_Localized: Dyed {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857609
+    m_Localized: pink
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857610
+    m_Localized: peach
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857611
+    m_Localized: lemon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857612
+    m_Localized: mint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857613
+    m_Localized: sky blue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857614
+    m_Localized: lavender
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857615
+    m_Localized: cream
+    m_Metadata:
+      m_Items: []
+  - m_Id: 224994280857616
+    m_Localized: charcoal
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
