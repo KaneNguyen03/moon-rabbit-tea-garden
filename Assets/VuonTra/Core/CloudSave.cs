@@ -6,7 +6,12 @@ using System.Text;
 namespace VuonTra.Core
 {
     /// <summary>Why a sync is being tried; the timer one is the only kind that is rationed.</summary>
-    public enum SyncReason { Open, Background, Milestone, Timer, Manual }
+    public enum SyncReason
+    {
+        Open, Background, Milestone, Timer, Manual,
+        /// <summary>The cloud said another device wrote its copy (#39).</summary>
+        Remote
+    }
 
     public enum SyncOutcome
     {
@@ -29,7 +34,9 @@ namespace VuonTra.Core
         /// <summary>The cloud's copy replaced the device's, after the device's was backed up.</summary>
         TookRemote,
         /// <summary>Nothing is up there yet.</summary>
-        Nothing
+        Nothing,
+        /// <summary>The save is bigger than the cloud holds (#39): nothing was sent and the device's copy is untouched.</summary>
+        TooLarge
     }
 
     /// <summary>What one sync attempt found and did.</summary>
@@ -64,6 +71,12 @@ namespace VuonTra.Core
     public static class CloudSave
     {
         public const int EnvelopeVersion = 1;
+
+        /// <summary>How many bytes a text takes up there, as UTF-8: what a store's limit is measured in.</summary>
+        public static int Bytes(string text) => text == null ? 0 : Encoding.UTF8.GetByteCount(text);
+
+        /// <summary>True when a text fits under a store's limit, where 0 means no limit.</summary>
+        public static bool Fits(string text, int maxBytes) => maxBytes <= 0 || Bytes(text) <= maxBytes;
 
         public static string Wrap(string save, SaveSummary summary, long now)
         {
@@ -262,7 +275,15 @@ namespace VuonTra.Core
 
         void Push(string localSave, SyncReport r, Action<SyncReport> onDone)
         {
-            _cloud.Push(CloudSave.Wrap(localSave, r.Local, r.At), ok =>
+            string text = CloudSave.Wrap(localSave, r.Local, r.At);
+            if (!CloudSave.Fits(text, _cloud.MaxBytes))
+            {
+                r.Outcome = SyncOutcome.TooLarge;
+                Last = r;
+                onDone?.Invoke(r);
+                return;
+            }
+            _cloud.Push(text, ok =>
             {
                 r.Outcome = ok ? SyncOutcome.Pushed : SyncOutcome.Offline;
                 if (ok) LastPushedAt = r.At;
@@ -276,6 +297,8 @@ namespace VuonTra.Core
     public struct CloudStatus
     {
         public bool Available;
+        /// <summary>There is a cloud on this build but the device is not signed in to it (iCloud off in the settings), so the row says that rather than "no cloud".</summary>
+        public bool SignedOut;
         public long LastPushedAt;
         public SyncReport Last;
         public bool HasLocalBackup;
@@ -288,14 +311,19 @@ namespace VuonTra.Core
         public bool Online = true;
         public string Text;
         public int Pushes, Pulls;
+        /// <summary>A cap like a real store's, or 0 for none; a push over it fails like iCloud's would.</summary>
+        public int MaxBytes;
 
         public bool Available => true;
+
+        int ICloudSave.MaxBytes => MaxBytes;
 
         public void Push(string json, Action<bool> onDone)
         {
             Pushes++;
-            if (Online) Text = json;
-            onDone?.Invoke(Online);
+            bool ok = Online && CloudSave.Fits(json, MaxBytes);
+            if (ok) Text = json;
+            onDone?.Invoke(ok);
         }
 
         public void Pull(Action<string> onDone)

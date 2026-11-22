@@ -2355,6 +2355,38 @@ MonoBehaviour:
     m_Key: season.began.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 265567842852864
+    m_Key: backup.linking
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824384
+    m_Key: backup.failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824385
+    m_Key: provider.gamecenter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824386
+    m_Key: provider.playgames
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824387
+    m_Key: provider.apple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824388
+    m_Key: provider.google
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824389
+    m_Key: cloud.status.signin
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265567863824390
+    m_Key: cloud.status.toolarge
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
