@@ -645,6 +645,23 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: cử chỉ thật trên bản Mac/điện thoại chưa ai thử (test gọi thẳng OnEndDrag với toạ độ giả).
 
+## #22 — Hai ý còn lại: vuốt xuống ở đâu cũng đóng, vườn phía trên vẫn chạm và kéo được
+
+- Test: 428/428 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test màn hình, sửa 1 test (chạm ra ngoài giờ là chạm vào vườn).
+- Commit `1c59ccd`, đã push. Issue #22 để mở (còn: tấm chi tiết thỏ / chọn đồ / đổi tên chuyển sang kiểu tấm trượt; thử tay kéo tay nắm), đã comment, nhãn chờ-PO-duyệt.
+- File mới: `Assets/VuonTra/Game/UI/SheetPull.cs` (gắn lên mỗi danh sách trong tấm). Bỏ lớp "Outside" che vườn. Không chuỗi mới, không ảnh mới (không đổi hình).
+
+### Đã làm (đối chiếu với bình luận "Còn lại" trong #22)
+- Vuốt xuống ở bất kỳ đâu trên tấm để đóng khi danh sách đang ở đầu: danh sách đang ở đầu + ngón đi xuống thì kéo tấm theo (danh sách đứng yên), thả ra thì theo luật cũ (thấp thì đóng, nhanh thì về 60%); danh sách đang cuộn dở thì vẫn cuộn danh sách; vuốt lên ở đầu danh sách vẫn là của danh sách (test).
+- Kéo và chạm được phần vườn phía trên khi tấm đang mở: không còn lớp chắn; vườn kéo được (ScrollRect không bị tắt khi tấm mở); chạm đất trống thì đóng tấm; chạm một trạm thì tấm nhường chỗ cho thẻ trạm đó (test).
+
+### Chưa đạt so với #22
+- Tấm chi tiết thỏ, bảng chọn đồ, đổi tên vẫn là hộp giữa màn có phủ tối.
+- Thử tay kéo tay nắm và vuốt danh sách trên bản Mac.
+
+### Tồn đọng
+- tồn đọng: hai ý trên.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -742,12 +759,13 @@ Sau khi sửa cả bốn xanh.
 - #31 hai ý (`ceca860`): viên ▲/▼ ở mép đếm trạm nâng được hoặc thỏ ngủ gật ngoài tầm nhìn, chạm bay tới; nút ấm trà về tâm vườn.
 - #31 hai ý nữa (`57b1541`, commit gộp với quà liên kết #17 của session kia): chạm một lần ở zoom xa phóng vào; nhớ vị trí và zoom (save v12).
 - #31 ý cuối (`3567671`): vuốt trái/phải trên tấm trạm sang trạm kế. #31 đủ năm ý.
+- #22 hai ý còn lại (`1c59ccd`): vuốt xuống ở đâu trên tấm cũng kéo tấm khi danh sách ở đầu; vườn phía trên tấm chạm và kéo được. Còn các hộp giữa màn chưa thành tấm trượt.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (phần còn lại của #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (phần còn lại của #32, #22 (hộp giữa màn), #23, #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
