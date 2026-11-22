@@ -208,6 +208,8 @@ namespace VuonTra.Game.UI
         const float SheetLift = SheetHalf - TabCover;
         /// <summary>The moon pond at the top of the garden, where the camera starts from.</summary>
         public static Vector2 PondSpot => Heart + new Vector2(330f, 900f);
+        /// <summary>Nothing that must be read stands further right than this: the canopy's crowns reach in from the edge.</summary>
+        public const float ReadableRight = 1000f;
         int _sheetRun, _glideRun;
         float _sheetDragSpeed;
 
@@ -1325,7 +1327,8 @@ namespace VuonTra.Game.UI
             }
             // The jar for the firefly night waits on a stump by the pond from garden level five: glass, a glow inside, a cork.
             {
-                Vector2 jarAt = PondSpot + new Vector2(70f, -290f);
+                // Far enough from the right edge that its plate ends before the canopy's trees, which are drawn over the garden.
+                Vector2 jarAt = PondSpot + new Vector2(-5f, -290f);
                 if (catalog.Decor != null && catalog.Decor.Length > 8 && catalog.Decor[8] != null)
                 {
                     Image stump = AddDecor(_street, catalog.Decor[8], jarAt.x, jarAt.y - 20f, 90f * DecorScale, Color.white);

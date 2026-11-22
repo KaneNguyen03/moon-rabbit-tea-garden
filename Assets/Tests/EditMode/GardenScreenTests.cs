@@ -3947,5 +3947,38 @@ namespace VuonTra.Core.Tests
             UiKit.SetLargeText(false);
             L10n.SetLocale("vi");
         }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Firefly_Jar_And_Its_Plate_Stay_Inside_The_Screen_And_Clear_Of_The_Canopy(string locale, bool large)
+        {
+            L10n.SetLocale(locale);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.Shell.StartGame();
+            runner.State.GardenXp = Garden.XpForLevel(5);
+            screen.Refresh();
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var jar = (RectTransform)street.Find("Jar");
+            Assert.IsTrue(jar.gameObject.activeSelf, "the jar is out from garden level five");
+            var plate = (RectTransform)jar.Find("Plate");
+            // Where the plate's edges land on the garden; the garden is as wide as the screen, so at zoom 1 these are screen units too.
+            float centre = jar.anchoredPosition.x + plate.anchoredPosition.x;
+            float left = centre - plate.rect.width / 2f, right = centre + plate.rect.width / 2f;
+            Assert.GreaterOrEqual(left, 24f, "inside the left edge");
+            Assert.LessOrEqual(right, 1080f - 24f, "inside the right edge");
+            Assert.LessOrEqual(right, GardenScreen.ReadableRight, "and short of the trees at the edge, which are drawn over it");
+            Text text = plate.Find("Text").GetComponent<Text>();
+            Assert.AreEqual(L10n.T("jar.plays", 3), text.text);
+            int size = text.fontSize; bool fit = text.resizeTextForBestFit;
+            text.resizeTextForBestFit = false;
+            text.fontSize = text.resizeTextMinSize;
+            Assert.LessOrEqual(text.preferredWidth, text.rectTransform.rect.width + 1f, "\"" + text.text + "\" fits the plate on one line at " + text.resizeTextMinSize + "px (" + locale + (large ? ", large" : "") + ")");
+            text.fontSize = size; text.resizeTextForBestFit = fit;
+            UiKit.SetLargeText(false);
+            L10n.SetLocale("vi");
+        }
     }
 }
