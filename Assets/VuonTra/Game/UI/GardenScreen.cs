@@ -4656,8 +4656,8 @@ namespace VuonTra.Game.UI
             _guest.gameObject.SetActive(false);
 
             // The HUD pill that says a guest waits, wherever the player has scrolled: a touch goes to the guest and opens the card.
-            // It hangs below the firefly jar's plate as the view rests on the teapot, so it covers none of the garden's plates there (#71).
-            var badge = UiKit.Rect("Order", _hud).Place(1f, 1f, -184, -244, 230, 56);
+            // It sits just under the HUD row, where it covers none of the garden's plates as the view rests on the teapot (#71, re-checked after #50 moved the jar).
+            var badge = UiKit.Rect("Order", _hud).Place(1f, 1f, -184, -176, 230, 56); // just under the HUD row, clear of the jar plate since #50 moved it (#71)
             UiKit.Touchable(badge, 230, 56);
             badge.AddShadow(12f, 8f, 0.3f);
             Image badgeBack = badge.AddImage(catalog.Panel, Palette.Lantern, true);
