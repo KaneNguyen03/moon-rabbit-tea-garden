@@ -2749,5 +2749,63 @@ namespace VuonTra.Core.Tests
 
             Assert.IsNotNull(root.transform.Find("Canvas/Hud/Corner"), "the corner buttons stand on one plate");
         }
+
+        [Test]
+        public void A_Touched_Rabbit_Jumps_And_Shows_A_Heart()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Shell.StartGame();
+            screen.Refresh();
+            var rabbit = (RectTransform)root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
+            float home = rabbit.anchoredPosition.y;
+            int before = screen.Feel.ParticleCount;
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.Greater(screen.Feel.ParticleCount, before);
+            Assert.AreEqual("♥", root.transform.Find("Canvas/Feel/Gain").GetComponent<Text>().text);
+            screen.Advance(0.12f);
+            Assert.Greater(rabbit.anchoredPosition.y, home + 5f, "it jumps");
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+            Assert.AreEqual(home, rabbit.anchoredPosition.y, 0.5f, "and lands where it stood");
+        }
+
+        [Test]
+        public void Carrots_Fly_From_The_Station_To_The_Purse_And_The_Purse_Swells_When_They_Land()
+        {
+            screen.Shell.StartGame();
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f); // the opening glide is over, the teapot is in view
+            var currency = (RectTransform)root.transform.Find("Canvas/Hud/Purse/Currency");
+            screen.PlayPayout(0, new BigNum(5));
+            Assert.Greater(screen.Feel.Flying, 0, "carrots are on their way");
+            float biggest = 1f;
+            for (int i = 0; i < 40; i++)
+            {
+                screen.Advance(1f / 30f);
+                biggest = Mathf.Max(biggest, currency.localScale.x);
+            }
+            Assert.AreEqual(0, screen.Feel.Flying, "they have all landed");
+            Assert.Greater(biggest, 1.1f, "and the purse swelled when they did");
+            Assert.AreEqual(1f, currency.localScale.x, 0.01f, "then settled");
+        }
+
+        [Test]
+        public void An_Upgrade_Blooms_The_Station_Light_And_A_Doubling_Rings_It_With_Stars()
+        {
+            runner.State.Coins = new BigNum(1e9);
+            runner.State.Levels[0] = 9;
+            screen.Shell.StartGame();
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
+            screen.Refresh();
+            var glow = (RectTransform)root.transform.Find("Canvas/Garden/Content/Station am-tra/Glow");
+            Assert.AreEqual(1f, glow.localScale.x, 1e-3f);
+            int before = screen.Feel.ParticleCount;
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke(); // level 10: the first doubling
+            Assert.AreEqual(10, runner.State.Levels[0]);
+            screen.Advance(0.05f);
+            Assert.Greater(glow.localScale.x, 1.1f, "the light behind the station blooms");
+            Assert.GreaterOrEqual(screen.Feel.ParticleCount - before, 14, "a ring of stars on top of the banner's confetti");
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+            Assert.AreEqual(1f, glow.localScale.x, 1e-3f, "and settles back exactly");
+        }
     }
 }

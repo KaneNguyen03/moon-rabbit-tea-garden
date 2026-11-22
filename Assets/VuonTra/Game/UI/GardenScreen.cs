@@ -2903,6 +2903,12 @@ namespace VuonTra.Game.UI
             }
             Runner.Tap(index);
             _actors[index].Squish();
+            if (_actors[index].HasGuest)
+            {
+                // The rabbit likes it: a little jump and a heart.
+                _actors[index].Hop();
+                Feel.FloatText(Feel.PointOf(_actors[index].Root, new Vector2(-70, 240)), "♥", Palette.Blush, 44);
+            }
             Sfx.Pet();
             DismissHint();
         }
@@ -2951,6 +2957,7 @@ namespace VuonTra.Game.UI
             Haptics.Light();
             RectTransform actor = _actors[index].Root;
             _actors[index].Bump(); // from the station's fixed size: presses in quick succession do not add up
+            _actors[index].Flash();
 
             GameCatalog catalog = Runner.Catalog;
             int after = s.Levels[index];
@@ -2964,6 +2971,8 @@ namespace VuonTra.Game.UI
                 Sfx.Milestone();
                 Haptics.Medium();
                 Feel.Moment(L10n.T("moment.milestone.title", Economy.PreviousMilestone(after)), L10n.T("moment.milestone.sub", L10n.Station(catalog.Stations[index].Id)));
+                // A ring of little stars leaves the station: the doubling is the station's own moment too.
+                if (OnScreen(actor)) Feel.Burst(Feel.PointOf(actor, new Vector2(0, 60)), catalog.Round, new[] { Palette.Lantern, Palette.Paper }, 14, 460f, 22f);
             }
             else if (OnScreen(actor))
             {
@@ -3232,7 +3241,10 @@ namespace VuonTra.Game.UI
             if (Mathf.Abs(distance) >= TrayView.SweepDistance) OnSellAllProducts();
         }
 
-        void OnPayout(int index, BigNum amount)
+        void OnPayout(int index, BigNum amount) => PlayPayout(index, amount);
+
+        /// <summary>A station just paid: the amount floats up, two carrots fly to the purse, and the purse swells when they land.</summary>
+        public void PlayPayout(int index, BigNum amount)
         {
             if (Shell.State == ShellState.Title) return;
             RectTransform actor = _actors[index].Root;
@@ -3241,14 +3253,13 @@ namespace VuonTra.Game.UI
             if (SheetOpen && Feel.PointOf(actor).y + ScreenH / 2f < SheetHeight + 60f) return; // it stands behind the sheet
 
             Feel.FloatText(Feel.PointOf(actor, new Vector2(60, 150)), "+" + amount.Short(), Palette.Paper);
-            Feel.Burst(Feel.PointOf(actor, new Vector2(110, 60)), Runner.Catalog.Currency, new[] { Color.white }, 2, 300f, 34f);
             Sfx.Tick();
-
-            // The purse answers too.
-            Tweens.Add(0.15f, t =>
+            if (Feel.Flying > 12) return; // a busy garden does not fill the screen with carrots
+            Feel.Fly(Feel.PointOf(actor, new Vector2(110, 60)), Feel.PointOf(_currency), Runner.Catalog.Currency, Color.white, 2, 36f, () =>
             {
-                if (_currency != null) _currency.localScale = Vector3.one * (1f + 0.25f * Ease.Pop(t));
-            }, Ease.Linear);
+                // The purse answers when the carrots arrive.
+                Tweens.Add(0.15f, t => { if (_currency != null) _currency.localScale = Vector3.one * (1f + 0.25f * Ease.Pop(t)); }, Ease.Linear);
+            });
         }
     }
 }

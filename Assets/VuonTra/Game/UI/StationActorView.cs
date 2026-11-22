@@ -29,7 +29,8 @@ namespace VuonTra.Game.UI
         Image _rabbitImage, _propImage, _chip, _groundImage;
         Text _label;
         GameObject _bar, _glow, _shadow, _ground;
-        float _squish, _shownProgress, _propPop, _hop, _bump;
+        float _squish, _shownProgress, _propPop, _hop, _bump, _flash;
+        RectTransform _glowRect;
 
         /// <summary>
         /// The size this station is drawn at when nothing is moving. Every pop is worked out from this fixed
@@ -68,6 +69,7 @@ namespace VuonTra.Game.UI
             var glow = UiKit.Rect("Glow", Root).Place(0.5f, 0.5f, 10, -20, 560, 470);
             glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
             _glow = glow.gameObject;
+            _glowRect = glow;
 
             var shadow = UiKit.Rect("Shadow", Root).Place(0.5f, 0.5f, 10, -112, 330, 62);
             shadow.AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.4f));
@@ -274,6 +276,12 @@ namespace VuonTra.Game.UI
             _bump = 1f; // a new bump simply restarts the one in progress
         }
 
+        /// <summary>The light behind the station blooms for a moment: an upgrade just landed.</summary>
+        public void Flash()
+        {
+            _flash = 1f;
+        }
+
         /// <summary>A tap landed: squash the rabbit.</summary>
         public void Squish()
         {
@@ -308,6 +316,8 @@ namespace VuonTra.Game.UI
 
             _bump = Mathf.Max(0f, _bump - deltaTime * 5f); // 0.2 s
             Root.localScale = Vector3.one * (BaseScale * (1f + 0.14f * Ease.Pop(1f - _bump) * (_bump > 0f ? 1f : 0f)));
+            _flash = Mathf.Max(0f, _flash - deltaTime * 3f); // a third of a second
+            _glowRect.localScale = Vector3.one * (1f + 0.45f * Ease.Pop(1f - _flash) * (_flash > 0f ? 1f : 0f));
             _squish = Mathf.Max(0f, _squish - deltaTime * 5f);
             _propPop = Mathf.Max(0f, _propPop - deltaTime * 4f);
             _hop = Mathf.Max(0f, _hop - deltaTime * 2.6f);

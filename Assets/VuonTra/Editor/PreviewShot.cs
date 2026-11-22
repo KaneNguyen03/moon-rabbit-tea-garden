@@ -65,6 +65,14 @@ namespace VuonTra.EditorTools
             }
             Step(screen, 0.4f);
             Capture(screen, "2-garden");
+            // A payout: two carrots fly from the teapot to the purse, three frames 0.15 s apart.
+            screen.PlayPayout(0, new BigNum(1200));
+            for (int f = 1; f <= 3; f++)
+            {
+                Step(screen, 0.15f);
+                Capture(screen, "28-fly-" + f);
+            }
+            Step(screen, 0.6f);
             // Photo mode: the garden alone with the snap bar, then the picture just taken.
             screen.PhotoFolder = Folder;
             screen.EnterPhotoMode();
