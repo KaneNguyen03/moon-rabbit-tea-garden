@@ -285,10 +285,16 @@ namespace VuonTra.Game
         /// <summary>True while the shop's gift for today is still to be had.</summary>
         public bool GiftWaiting => Shop.GiftWaiting(State, TodayNumber);
 
-        /// <summary>Takes today's gift at the shop. How many golden carrots it brought; 0 when there was none to take.</summary>
-        public int ClaimDailyGift()
+        /// <summary>
+        /// Takes today's gift at the shop. How many golden carrots it brought; 0 when there was none to take. On the first
+        /// week's seventh day it also brings the conical hat (or its price) and a clover (#57). The day is the clamped
+        /// <see cref="TodayNumber"/>, so a clock set back gets nothing.
+        /// </summary>
+        public int ClaimDailyGift() => ClaimDailyGift(out _);
+
+        public int ClaimDailyGift(out Shop.BigGift big)
         {
-            int gift = Shop.ClaimDailyGift(State, TodayNumber, PickName(), out Rabbit seasonRabbit);
+            int gift = Shop.ClaimDailyGift(State, TodayNumber, PickName(), ItemDefs, out Rabbit seasonRabbit, out big);
             if (seasonRabbit != null) SeasonArrived?.Invoke(seasonRabbit);
             if (gift > 0) Changed();
             return gift;

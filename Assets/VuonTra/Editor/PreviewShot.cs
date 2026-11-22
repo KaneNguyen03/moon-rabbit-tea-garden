@@ -564,6 +564,29 @@ namespace VuonTra.EditorTools
             screen.CloseSheet();
             Step(screen, 0.4f);
 
+            // The gift calendar (#57): day one waiting, day four with three days ticked, and day seven's big gift with the hat and clover.
+            long giftDayBefore = state.GiftDay;
+            int giftStreakBefore = state.GiftStreak;
+            state.GoldenCarrots = 12;
+            state.GiftDay = -1;
+            state.GiftStreak = 0;
+            screen.OpenShop();
+            Step(screen, 0.4f);
+            Capture(screen, "57-ngay-1");
+            state.GiftDay = runner.TodayNumber - 1;
+            state.GiftStreak = 3;
+            screen.Refresh();
+            Step(screen, 0.2f);
+            Capture(screen, "57-ngay-4");
+            state.GiftStreak = 6;
+            screen.Refresh();
+            Step(screen, 0.2f);
+            Capture(screen, "57-ngay-7");
+            screen.Shop.Close();
+            Step(screen, 0.3f);
+            state.GiftDay = giftDayBefore;
+            state.GiftStreak = giftStreakBefore;
+
             // The tea shop by the pond: today's gift and the golden call.
             state.GoldenCarrots = 12;
             screen.OpenShop();

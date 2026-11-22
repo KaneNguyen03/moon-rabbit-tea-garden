@@ -85,6 +85,12 @@ namespace VuonTra.Core.Tests
             }
         }
 
+        /// <summary>The hat the first week's big gift brings (#57), as the shop sells it.</summary>
+        static readonly List<ItemDef> BigGiftHat = new List<ItemDef>
+        {
+            new ItemDef { Id = Shop.BigGiftHat, Name = "Nón lá", Slot = ItemSlot.Hat, Effect = ItemEffect.None, Price = 20, Tier = 1 }
+        };
+
         long Today => 1 + (long)(clock / Day);
 
         BigNum Income => Economy.IncomePerSecond(defs, s) * (mods.IncomeMultiplier * mods.SpeedMultiplier);
@@ -95,7 +101,7 @@ namespace VuonTra.Core.Tests
             sessionClock = 0;
             lastSale = 0;
             Quests.RollDaily(quests, defs, s, Today, mods);
-            goldenGift += Shop.ClaimDailyGift(s, Today);
+            goldenGift += Shop.ClaimDailyGift(s, Today, null, BigGiftHat, out _, out _); // the first seventh day brings the hat and a clover (#57)
             if (Photos.Take(s, Today)) goldenPhoto += Photos.GiftGolden;
         }
 

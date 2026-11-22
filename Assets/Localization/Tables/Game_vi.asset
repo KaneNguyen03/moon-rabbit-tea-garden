@@ -1559,7 +1559,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 192545505140745
-    m_Localized: "Chu\u1ED7i {0} ng\xE0y li\u1EC1n \xB7 b\u1ECF m\u1ED9t ng\xE0y th\xEC v\u1EC1 \u0111\u1EA7u"
+    m_Localized: "Chu\u1ED7i {0} ng\xE0y li\u1EC1n \xB7 b\u1ECF m\u1ED9t ng\xE0y ch\u1EC9 l\xF9i m\u1ED9t"
     m_Metadata:
       m_Items: []
   - m_Id: 192545505140746
@@ -2616,6 +2616,26 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 340555564310536
     m_Localized: "\u0110\xE3 nh\u1EADn \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216427225088
+    m_Localized: "Ng\xE0y {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613696
+    m_Localized: "+{0} \xB7 qu\xE0 l\u1EDBn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613697
+    m_Localized: "Ng\xE0y 7 t\u1EB7ng th\xEAm {0} v\xE0 {1} c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613698
+    m_Localized: "Qu\xE0 l\u1EDBn: {0} \u0111\xE3 v\u1EC1 t\u1EE7 \u0111\u1ED3 \xB7 +{1} c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613699
+    m_Localized: "\u0110\xE3 c\xF3 {0} n\xEAn \u0111\u1ED5i th\xE0nh +{1} c\xE0 r\u1ED1t v\xE0ng \xB7 +{2} c\u1ECF b\u1ED1n l\xE1"
     m_Metadata:
       m_Items: []
   references:

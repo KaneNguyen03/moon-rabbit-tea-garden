@@ -2938,6 +2938,95 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Shop_Shows_Seven_Gift_Days_Ahead_A_Missed_Day_Steps_Back_One_And_Day_Seven_Brings_The_Hat_And_A_Clover()
+        {
+            screen.Shell.StartGame();
+            screen.OpenShop();
+            screen.Refresh();
+            Transform days = root.transform.Find("Canvas/Shop/Card/Today/Days");
+            Assert.IsNotNull(days, "the calendar sits under today's gift");
+            Assert.AreEqual(Shop.WeekDays, days.childCount);
+            Transform d1 = days.Find("Day 1"), d4 = days.Find("Day 4"), d5 = days.Find("Day 5"), d7 = days.Find("Day 7");
+            Assert.AreEqual("Ngày 1", d1.Find("Day").GetComponent<Text>().text);
+            Assert.AreEqual("+1", d1.Find("Amount").GetComponent<Text>().text);
+            Assert.IsTrue(d1.Find("Ring").gameObject.activeSelf, "today's tile is ringed");
+            Assert.IsFalse(d1.Find("Tick").gameObject.activeSelf);
+            Assert.AreEqual("+5", d7.Find("Amount").GetComponent<Text>().text);
+            Assert.IsTrue(d7.Find("Hat").gameObject.activeSelf, "day seven shows the hat");
+            Assert.AreEqual(runner.Catalog.ItemIcon(Shop.BigGiftHat), d7.Find("Hat").GetComponent<Image>().sprite);
+            Assert.IsNotNull(d7.Find("Hat").GetComponent<Image>().sprite);
+            Assert.IsTrue(d7.Find("Clover").gameObject.activeSelf, "and the clover");
+            Assert.AreEqual(runner.Catalog.Clover, d7.Find("Clover").GetComponent<Image>().sprite);
+            Assert.IsFalse(d4.Find("Hat").gameObject.activeSelf, "an ordinary day shows golden carrots only");
+
+            // Three days taken: solid with a tick; the fourth ringed; the rest faded but readable.
+            long today = runner.TodayNumber;
+            runner.State.GiftDay = today - 1;
+            runner.State.GiftStreak = 3;
+            screen.Refresh();
+            for (int i = 1; i <= 3; i++)
+            {
+                Transform d = days.Find("Day " + i);
+                Assert.IsTrue(d.Find("Tick").gameObject.activeSelf, "day " + i + " was taken");
+                Assert.IsFalse(d.Find("Ring").gameObject.activeSelf);
+            }
+            Assert.IsTrue(d4.Find("Ring").gameObject.activeSelf);
+            Assert.IsFalse(d4.Find("Tick").gameObject.activeSelf);
+            Assert.AreEqual(Palette.Ink, d4.Find("Amount").GetComponent<Text>().color);
+            Assert.IsFalse(d5.Find("Ring").gameObject.activeSelf || d5.Find("Tick").gameObject.activeSelf);
+            Assert.AreEqual(Palette.InkSoft, d5.Find("Amount").GetComponent<Text>().color, "faded, still readable");
+            Assert.Less(d5.Find("Golden").GetComponent<Image>().color.a, 1f);
+            Assert.AreEqual("+3", d5.Find("Amount").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("shop.gift.claim", 4), root.transform.Find("Canvas/Shop/Card/Today/Heading").GetComponent<Text>().text);
+
+            // Day five, a day missed: the gift waiting is day four's.
+            runner.State.GiftDay = today - 2;
+            runner.State.GiftStreak = 5;
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.gift.claim", 4), root.transform.Find("Canvas/Shop/Card/Today/Heading").GetComponent<Text>().text);
+            Assert.IsTrue(d4.Find("Ring").gameObject.activeSelf);
+
+            // Day seven: five golden carrots, the conical hat into the wardrobe, and a clover.
+            runner.State.GiftDay = today - 1;
+            runner.State.GiftStreak = 6;
+            screen.Refresh();
+            Text sub = root.transform.Find("Canvas/Shop/Card/Today/Sub").GetComponent<Text>();
+            Assert.AreEqual(L10n.T("shop.gift.big.sub", "Nón lá", 1), sub.text);
+            int golden = runner.State.GoldenCarrots, clovers = runner.State.Clovers;
+            Find("Canvas/Shop/Card/Today/Gift").onClick.Invoke();
+            Assert.AreEqual(golden + 5, runner.State.GoldenCarrots);
+            Assert.AreEqual(clovers + 1, runner.State.Clovers);
+            Assert.IsTrue(Items.Owns(runner.State, "hat-non-la"), "the hat is given");
+            Assert.IsTrue(runner.State.GiftBigClaimed);
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.gift.big.hat", "Nón lá", 1), sub.text, "and the shop says so");
+            Assert.IsTrue(d7.Find("Tick").gameObject.activeSelf);
+            Assert.IsTrue(d7.Find("Hat").gameObject.activeSelf, "today's big gift still shows what it was");
+            Assert.IsFalse(Find("Canvas/Shop/Card/Today/Gift").interactable);
+            Assert.AreEqual(0, runner.ClaimDailyGift(), "once");
+            Assert.AreEqual(clovers + 1, runner.State.Clovers);
+        }
+
+        [Test]
+        public void The_Big_Gift_Pays_The_Hats_Price_When_The_Hat_Is_Owned_And_Says_So()
+        {
+            screen.Shell.StartGame();
+            runner.State.GoldenCarrots = 20;
+            Assert.IsNotNull(runner.BuyItem("hat-non-la"));
+            runner.State.GiftDay = runner.TodayNumber - 1;
+            runner.State.GiftStreak = 6;
+            screen.OpenShop();
+            screen.Refresh();
+            Find("Canvas/Shop/Card/Today/Gift").onClick.Invoke();
+            Assert.AreEqual(5 + 20, runner.State.GoldenCarrots, "five, and twenty in the hat's place");
+            int hats = 0;
+            foreach (Item item in runner.State.Items) if (item.DefId == "hat-non-la") hats++;
+            Assert.AreEqual(1, hats, "no second hat");
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.gift.big.golden", "Nón lá", 20, 1), root.transform.Find("Canvas/Shop/Card/Today/Sub").GetComponent<Text>().text);
+        }
+
+        [Test]
         public void The_Summon_Odds_Read_Without_A_Trailing_Zero_In_Both_Languages()
         {
             Assert.AreEqual("Bạc 60% · Xanh lá 25% · Xanh dương 10% · Tím 4% · Vàng 0,9% · Đỏ 0,1%", ShopView.Odds(Rabbits.Odds));

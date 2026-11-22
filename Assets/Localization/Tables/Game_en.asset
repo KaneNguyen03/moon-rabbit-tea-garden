@@ -1563,7 +1563,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 192545505140745
-    m_Localized: "{0} days in a row \xB7 miss a day and it starts over"
+    m_Localized: "{0} days in a row \xB7 miss a day and it steps back one"
     m_Metadata:
       m_Items: []
   - m_Id: 192545505140746
@@ -2622,6 +2622,26 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 340555564310536
     m_Localized: "Collected \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216427225088
+    m_Localized: Day {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613696
+    m_Localized: "+{0} \xB7 big gift"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613697
+    m_Localized: Day 7 also brings a {0} and {1} clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613698
+    m_Localized: "Big gift: the {0} is in the wardrobe \xB7 +{1} clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613699
+    m_Localized: "You had the {0}, so +{1} golden carrots instead \xB7 +{2} clover"
     m_Metadata:
       m_Items: []
   references:

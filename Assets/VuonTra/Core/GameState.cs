@@ -27,6 +27,10 @@ namespace VuonTra.Core
         /// <summary>The day the shop's daily gift was last paid, and how many days in a row by then.</summary>
         public long GiftDay = -1;
         public int GiftStreak;
+        /// <summary>The day the first week's big gift (#57) was paid, -1 while it is still to come; and whether golden carrots came in the hat's place.</summary>
+        public long GiftBigDay = -1;
+        public bool GiftBigGolden;
+        public bool GiftBigClaimed => GiftBigDay >= 0;
         /// <summary>The day the shop's visiting rabbit was bought, and the day it was last looked at.</summary>
         public long VisitorBoughtDay = -1, VisitorSeenDay = -1;
 
