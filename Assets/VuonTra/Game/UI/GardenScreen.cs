@@ -1294,7 +1294,9 @@ namespace VuonTra.Game.UI
             {
                 int leafStation = 1;
                 for (int i = 0; i < Runner.Defs.Count; i++) if (Runner.Defs[i].Id == "gio-la") { leafStation = i; break; }
-                Vector2 basketAt = StationSpot(leafStation) + new Vector2(50f, 190f);
+                // Past the leaf station on the right, in the one gap between its name and the next station's plate: a
+                // small basket, with its plate hung on its left so neither covers a sign.
+                Vector2 basketAt = StationSpot(leafStation) + new Vector2(104f, 130f);
                 if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
                 {
                     Image tree = AddDecor(_street, catalog.Decor[0], basketAt.x + 30f, basketAt.y + 40f, 150f * DecorScale, Color.white);
@@ -1302,7 +1304,7 @@ namespace VuonTra.Game.UI
                     standing.Add(new KeyValuePair<float, Transform>(basketAt.y + 40f, tree.transform));
                 }
                 Sprite basketSprite = leafStation < catalog.Stations.Length && catalog.Stations[leafStation] != null ? catalog.Stations[leafStation].Prop : null;
-                _basketProp = UiKit.Rect("Basket", _street).Place(0f, 0f, basketAt.x, basketAt.y + 60f, 150, 130);
+                _basketProp = UiKit.Rect("Basket", _street).Place(0f, 0f, basketAt.x, basketAt.y + 48f, 110, 95);
                 Image basketImage = _basketProp.AddImage(basketSprite != null ? basketSprite : catalog.Round, basketSprite != null ? Color.white : Palette.Mix(Palette.Carrot, Palette.Ink, 0.35f));
                 basketImage.preserveAspect = true;
                 basketImage.raycastTarget = true;
@@ -1310,7 +1312,7 @@ namespace VuonTra.Game.UI
                 basketButton.transition = Selectable.Transition.None;
                 basketButton.targetGraphic = basketImage;
                 basketButton.onClick.AddListener(OpenLeaves);
-                var basketPlate = UiKit.Rect("Plate", _basketProp).Place(0.5f, 0f, 0, -26, 250, 44);
+                var basketPlate = UiKit.Rect("Plate", _basketProp).Place(0f, 0.5f, -120, 0, 240, 40); // wide enough for "Hứng lá · còn 3 lượt" on one line
                 basketPlate.AddImage(catalog.Panel, Palette.Paper, true);
                 _basketPlate = UiKit.Rect("Text", basketPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _basketPlate.resizeTextForBestFit = true;
@@ -2448,7 +2450,8 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("persec", "0"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             // "Trà lực": the bar and the boost button are one control.
-            var energy = UiKit.Rect("Energy", _hud).Place(0f, 1f, 632, -76, 396, 100);
+            // Ends before the corner plate (which starts 354 from the right edge), so "Tăng tốc" is never under it.
+            var energy = UiKit.Rect("Energy", _hud).Place(0f, 1f, 578, -76, 288, 100);
             energy.AddShadow();
             _energyButton = UiKit.Chunky(energy, catalog.Panel, OnBoost);
             // Short of power: the bar says how long until a burst can be paid for, instead of doing nothing.
