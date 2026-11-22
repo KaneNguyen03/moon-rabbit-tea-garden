@@ -3090,6 +3090,18 @@ MonoBehaviour:
     m_Localized: Meet the Frog Rabbit 5 times
     m_Metadata:
       m_Items: []
+  - m_Id: 406865048494080
+    m_Localized: Widen the forest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882688
+    m_Localized: "Widen the forest \xB7 ring {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882689
+    m_Localized: The forest steps back!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

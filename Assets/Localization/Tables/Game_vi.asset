@@ -3082,6 +3082,18 @@ MonoBehaviour:
     m_Localized: "G\u1EB7p Th\u1ECF \u1EBEch 5 l\u1EA7n"
     m_Metadata:
       m_Items: []
+  - m_Id: 406865048494080
+    m_Localized: "M\u1EDF r\u1ED9ng r\u1EEBng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882688
+    m_Localized: "M\u1EDF r\u1ED9ng r\u1EEBng \xB7 v\xF2ng {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882689
+    m_Localized: "R\u1EEBng l\xF9i ra m\u1ED9t v\xF2ng!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
