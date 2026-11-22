@@ -1028,7 +1028,7 @@ namespace VuonTra.EditorTools
                 VuonTra.Game.UI.Motion.Reduced = false;
                 screen.Raining = () => true;
                 screen.ClockHours = () => 10.5;
-                screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+                screen.LookAt(screen.StationSpot(0) + new Vector2(0, -120f));
                 Step(screen, 2f);
                 Capture(screen, "62-mua-ngay");
                 screen.ClockHours = () => 22.0;
