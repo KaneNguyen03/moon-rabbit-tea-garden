@@ -4512,5 +4512,20 @@ namespace VuonTra.Core.Tests
             screen.Arrival.SetSeasonDecor(null);
             Assert.IsFalse(decor.gameObject.activeSelf, "nothing out of season or without a picture");
         }
+
+        [Test]
+        public void A_New_Moon_Does_Not_Hand_Todays_Daily_Quests_Out_Again()
+        {
+            screen.Shell.StartGame();
+            runner.State.GardenXp = Garden.XpForLevel(NewMoon.FirstLevel);
+            runner.State.Claimed.Add("ngay-cham");
+            long day = runner.State.DailyDay;
+            runner.State.DailyCarrotTarget = new BigNum(1e12);
+            Assert.IsTrue(runner.BeginNewMoon(out _));
+            Assert.AreEqual(day, runner.State.DailyDay, "still the same day");
+            Assert.IsTrue(runner.State.Claimed.Contains("ngay-cham"), "the daily claimed this morning stays claimed");
+            Assert.Less(runner.State.DailyCarrotTarget.ToDouble(), 1e12, "but the carrot goal fits the small garden");
+        }
+
     }
 }
