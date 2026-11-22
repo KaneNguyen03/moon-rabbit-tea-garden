@@ -2804,6 +2804,58 @@ MonoBehaviour:
     m_Localized: Don't I look nice today?
     m_Metadata:
       m_Items: []
+  - m_Id: 375703374651392
+    m_Localized: "{0} set {1}/{2} \xB7 +{3}% when complete"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817216
+    m_Localized: "{0} set complete \xB7 {0} stations +{1}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817217
+    m_Localized: '{1} {0} set complete!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817218
+    m_Localized: '{0} stations earn {1}% more for good'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817219
+    m_Localized: '{0} kinds met!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817220
+    m_Localized: 'The album''s gift: a Starry Hat'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817221
+    m_Localized: 'You have the Starry Hat: {0} golden carrots instead'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817222
+    m_Localized: The album earns its gold Complete frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817223
+    m_Localized: "Complete \xB7 all {0} kinds met"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817224
+    m_Localized: Meet 10 kinds of rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817225
+    m_Localized: Meet 20 kinds of rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817226
+    m_Localized: "Meet 40 kinds \xB7 a Starry Hat"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817227
+    m_Localized: "Meet all 72 kinds \xB7 Complete frame"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

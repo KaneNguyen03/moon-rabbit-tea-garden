@@ -2795,6 +2795,58 @@ MonoBehaviour:
     m_Key: chatter.dressed
     m_Metadata:
       m_Items: []
+  - m_Id: 375703374651392
+    m_Key: album.set
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817216
+    m_Key: album.set.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817217
+    m_Key: album.set.banner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817218
+    m_Key: album.set.banner.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817219
+    m_Key: album.milestone.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817220
+    m_Key: album.milestone.hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817221
+    m_Key: album.milestone.hat.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817222
+    m_Key: album.milestone.frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817223
+    m_Key: album.frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817224
+    m_Key: quest.loai-10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817225
+    m_Key: quest.loai-20
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817226
+    m_Key: quest.loai-40
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817227
+    m_Key: quest.loai-72
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
