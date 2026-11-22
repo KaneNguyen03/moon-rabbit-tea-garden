@@ -92,7 +92,10 @@ namespace VuonTra.Game
             }
 
             Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            _plotsSeen = State.Plots;
+            _goldSeen = GoldRabbits();
             _ready = true;
+            if (preset == null) SyncNow(SyncReason.Open);
         }
 
         void Start()
@@ -120,6 +123,9 @@ namespace VuonTra.Game
                 Simulation.Tick(Defs, State, dt, Payout, Mods, _rng.NextDouble, ProductMade);
             }
 
+            if (!Paused) State.PlaySeconds += dt;
+            _sinceSync += dt;
+            if (_sinceSync >= SyncTimerSeconds) SyncNow(SyncReason.Timer);
             _sinceSave += dt;
             if (_sinceSave >= AutosaveSeconds)
             {
@@ -239,6 +245,7 @@ namespace VuonTra.Game
         public Rabbit BuyVisitor()
         {
             Rabbit rabbit = Shop.BuyVisitor(State, Today, PickName());
+            _shopBought = rabbit != null;
             if (rabbit != null) Changed();
             return rabbit;
         }
@@ -247,6 +254,7 @@ namespace VuonTra.Game
         public Rabbit SummonGoldenRabbit()
         {
             Rabbit rabbit = Shop.SummonGolden(State, _rng.NextDouble(), PickName(), _rng.NextDouble());
+            _shopBought = rabbit != null;
             if (rabbit != null) Changed();
             return rabbit;
         }
@@ -313,7 +321,111 @@ namespace VuonTra.Game
         /// <summary>Where the save could be backed up to. Local-only until a store sign-in is wired in (#38, #39, #40).</summary>
         public IAccountService Account { get; set; } = new LocalOnlyAccount();
         /// <summary>Where a copy of the save could be kept. Nowhere until the cloud save core is wired in (#38).</summary>
-        public ICloudSave Cloud { get; set; } = new LocalOnlyCloudSave();
+        ICloudSave _cloud = new LocalOnlyCloudSave();
+        public ICloudSave Cloud
+        {
+            get => _cloud;
+            set { _cloud = value ?? new LocalOnlyCloudSave(); _sync = null; }
+        }
+
+        CloudSync _sync;
+        float _sinceSync;
+        /// <summary>Besides opening, going to the background and milestones, the save goes up this often at most.</summary>
+        const float SyncTimerSeconds = 180f;
+        int _plotsSeen, _goldSeen;
+        bool _shopBought;
+        /// <summary>Two copies of the garden differ and the player has to choose: the screen shows them.</summary>
+        public event Action<SyncReport> SyncChoiceNeeded;
+        /// <summary>Every sync attempt that finished, for the settings screen.</summary>
+        public event Action<SyncReport> Synced;
+
+        /// <summary>The sync core over whatever cloud is wired in; built again when the cloud changes.</summary>
+        public CloudSync Sync => _sync ?? (_sync = new CloudSync(Cloud, () => Now));
+
+        public CloudStatus CloudStatus => new CloudStatus
+        {
+            Available = Cloud.Available, LastPushedAt = Sync.LastPushedAt, Last = Sync.Last,
+            HasLocalBackup = _store != null && _store.HasBackup, LocalBackupAt = _store != null ? _store.BackupUnixSeconds : -1
+        };
+
+        string LocalSaveText()
+        {
+            State.LastSeenUnixSeconds = Now;
+            return SaveCodec.Encode(Defs, State, UpgradeDefs);
+        }
+
+        /// <summary>The cloud's copy becomes the garden: the device's copy is backed up first, and a copy that will not load changes nothing.</summary>
+        bool ReplaceWithCloud(string json)
+        {
+            LoadResult loaded = SaveCodec.Decode(Defs, json, UpgradeDefs);
+            if (loaded.Status != LoadStatus.Ok) return false;
+            if (_store != null) _store.Backup();
+            Adopt(loaded.State);
+            return true;
+        }
+
+        void Adopt(GameState state)
+        {
+            State = state;
+            if (State.UpgradeLevels == null || State.UpgradeLevels.Length != UpgradeDefs.Count)
+                Array.Resize(ref State.UpgradeLevels, UpgradeDefs.Count);
+            Mods = Modifiers.From(UpgradeDefs, State);
+            Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            _plotsSeen = State.Plots;
+            _goldSeen = GoldRabbits();
+            StateChanged?.Invoke();
+            Save();
+        }
+
+        int GoldRabbits()
+        {
+            int n = 0;
+            foreach (Rabbit r in State.Rabbits) if (r.Tier >= 4) n++;
+            return n;
+        }
+
+        /// <summary>One sync attempt now, for the reason given. A choice that comes out of it is raised as an event.</summary>
+        public void SyncNow(SyncReason reason, Action<SyncReport> onDone = null)
+        {
+            _sinceSync = 0f;
+            Sync.Sync(reason, LocalSaveText(), SaveSummary.Of(State), r =>
+            {
+                if (r.Outcome == SyncOutcome.NeedsChoice) SyncChoiceNeeded?.Invoke(r);
+                Synced?.Invoke(r);
+                onDone?.Invoke(r);
+            });
+        }
+
+        /// <summary>The player chose between the two copies.</summary>
+        public void ResolveSync(bool takeRemote, Action<SyncReport> onDone = null)
+        {
+            Sync.Resolve(takeRemote, LocalSaveText(), ReplaceWithCloud, r => { Synced?.Invoke(r); onDone?.Invoke(r); });
+        }
+
+        /// <summary>"Save now".</summary>
+        public void PushToCloud(Action<SyncReport> onDone = null)
+        {
+            Sync.PushNow(LocalSaveText(), SaveSummary.Of(State), r => { Synced?.Invoke(r); onDone?.Invoke(r); });
+        }
+
+        /// <summary>"Restore from the cloud": the device's copy is backed up, then replaced.</summary>
+        public void RestoreFromCloud(Action<SyncReport> onDone = null)
+        {
+            Sync.Restore(SaveSummary.Of(State), ReplaceWithCloud, r => { Synced?.Invoke(r); onDone?.Invoke(r); });
+        }
+
+        /// <summary>Brings the backed-up copy on the device back; the copy it replaces becomes the backup, so nothing is lost either way.</summary>
+        public bool RestoreLocalBackup()
+        {
+            if (_store == null || !_store.HasBackup) return false;
+            string backup = _store.ReadBackup();
+            LoadResult loaded = SaveCodec.Decode(Defs, backup, UpgradeDefs);
+            if (loaded.Status != LoadStatus.Ok) return false;
+            string current = _store.ReadRaw();
+            Adopt(loaded.State);
+            if (current != null) _store.WriteBackup(current);
+            return true;
+        }
 
         /// <summary>
         /// Asks the account service to link. When it does, the garden's one-time gift is paid and
@@ -503,6 +615,13 @@ namespace VuonTra.Game
             Mods = Modifiers.From(UpgradeDefs, State);
             StateChanged?.Invoke();
             Save();
+            // The big moments go up at once: more land, a gold-or-rarer rabbit, something bought at the shop.
+            int gold = GoldRabbits();
+            bool milestone = State.Plots > _plotsSeen || gold > _goldSeen || _shopBought;
+            _plotsSeen = State.Plots;
+            _goldSeen = gold;
+            _shopBought = false;
+            if (milestone && _ready) SyncNow(SyncReason.Milestone);
         }
 
         public void Save()
@@ -515,7 +634,11 @@ namespace VuonTra.Game
 
         void OnApplicationPause(bool paused)
         {
-            if (paused && _ready) Save();
+            if (paused && _ready)
+            {
+                Save();
+                SyncNow(SyncReason.Background);
+            }
         }
 
         void OnApplicationQuit()

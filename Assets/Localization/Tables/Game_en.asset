@@ -1818,6 +1818,110 @@ MonoBehaviour:
     m_Localized: Catch leaves thirty times
     m_Metadata:
       m_Items: []
+  - m_Id: 212921664659456
+    m_Localized: No cloud to save to on this build
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436672
+    m_Localized: Not saved to the cloud yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436673
+    m_Localized: Saved to the cloud at {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436674
+    m_Localized: No connection; it will save when one is back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436675
+    m_Localized: The cloud copy was damaged and was ignored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436676
+    m_Localized: The cloud copy is from a newer build and was left alone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436677
+    m_Localized: The two copies differ; waiting for your choice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436678
+    m_Localized: Save now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436679
+    m_Localized: Restore from cloud
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436680
+    m_Localized: Restore the device backup ({0})
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436681
+    m_Localized: Took the cloud copy; the old one is kept as the device backup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436682
+    m_Localized: Kept this copy and saved it to the cloud
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436683
+    m_Localized: Nothing in the cloud yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436684
+    m_Localized: Brought the device backup back
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436685
+    m_Localized: Two copies of the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436686
+    m_Localized: The cloud copy is further along. Choose the one to keep; the other stays backed up on this device.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436687
+    m_Localized: This device's copy is further along. Choose the one to keep; the other stays backed up on this device.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436688
+    m_Localized: On this device
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436689
+    m_Localized: In the cloud
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436690
+    m_Localized: Garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436691
+    m_Localized: "{0} rabbits \xB7 {1} kinds"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436692
+    m_Localized: Played {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436693
+    m_Localized: Last played {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436694
+    m_Localized: Suggested
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436695
+    m_Localized: Keep this device's
+    m_Metadata:
+      m_Items: []
+  - m_Id: 212921681436696
+    m_Localized: Take the cloud's
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

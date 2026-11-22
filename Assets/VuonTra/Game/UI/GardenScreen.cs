@@ -50,6 +50,9 @@ namespace VuonTra.Game.UI
         Text _mortarPlate;
         /// <summary>The mooncake game, opened from the mortar beside the teapot.</summary>
         public PoundingView Pound { get; private set; }
+        /// <summary>The card that asks which of two copies of the garden to keep.</summary>
+        public CloudChoiceView CloudChoice { get; private set; }
+        System.Action<SyncReport> _onSyncChoice;
         /// <summary>The leaf-catching game, opened from the basket under the tea tree past the leaf station.</summary>
         public LeavesView Basket { get; private set; }
         RectTransform _basketProp;
@@ -975,21 +978,46 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor);
-            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account));
+            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
-                () => { Runner.NextAvatar(); Profile.Refresh(Runner.Defs, Runner.State, Runner.Account); },
+                () => { Runner.NextAvatar(); Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus); },
                 () => Rename.Open(L10n.T("profile.rename"), Runner.State.Profile.GardenName, VuonTra.Core.Profile.MaxNameLength, name =>
                 {
                     Sfx.Blip();
                     Runner.RenameGarden(name);
-                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account);
+                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus);
                 }),
                 () => Runner.LinkAccount((ok, gift) =>
                 {
-                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account);
+                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus);
                     if (gift) Feel.FloatText(Feel.PointOf(Profile.Root), L10n.T("backup.rewarded", VuonTra.Core.Profile.LinkRewardClovers), Palette.Lantern, 44);
-                }));
+                }),
+                () => Runner.PushToCloud(r => Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus)),
+                () => Runner.RestoreFromCloud(r =>
+                {
+                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus);
+                    string note = r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : (r.Outcome == SyncOutcome.Nothing ? "cloud.nothing" : (r.Outcome == SyncOutcome.Corrupt ? "cloud.status.corrupt" : null));
+                    if (note != null) Feel.FloatText(Feel.PointOf(Profile.Root), L10n.T(note), Palette.Ink, 34);
+                    Refresh(-1f);
+                }),
+                () =>
+                {
+                    if (!Runner.RestoreLocalBackup()) return;
+                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus);
+                    Feel.FloatText(Feel.PointOf(Profile.Root), L10n.T("cloud.local.restored"), Palette.Ink, 34);
+                    Refresh(-1f);
+                });
+            // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
+            CloudChoice = new CloudChoiceView(_canvas, catalog, Tweens, takeRemote => Runner.ResolveSync(takeRemote, r =>
+            {
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : "cloud.kept"), Palette.Ink, 34);
+                Refresh(-1f);
+            }));
+            if (_onSyncChoice != null) Runner.SyncChoiceNeeded -= _onSyncChoice;
+            _onSyncChoice = r => CloudChoice.Open(r);
+            Runner.SyncChoiceNeeded += _onSyncChoice;
+            if (Runner.Sync.Pending != null) CloudChoice.Open(Runner.Sync.Pending);
             Income = new IncomeView(_canvas, catalog, Tweens);
             Pound = new PoundingView(_canvas, catalog, Tweens, () => Refresh(-1f), run =>
             {
@@ -3083,7 +3111,7 @@ namespace VuonTra.Game.UI
             Detail.Refresh(defs, s);
             Picker.Refresh(s);
             Workers.Refresh(defs, s);
-            Profile.Refresh(defs, s, Runner.Account);
+            Profile.Refresh(defs, s, Runner.Account, Runner.CloudStatus);
             Income.Refresh(defs, s, m);
             bool mortar = Pounding.Unlocked(s);
             if (_mortarProp.gameObject.activeSelf != mortar) _mortarProp.gameObject.SetActive(mortar);
@@ -3799,7 +3827,8 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>A span in the player's words: "5 giờ 12 phút", never less than a minute.</summary>
-        static string Span(double seconds)
+        /// <summary>A stretch of time in minutes, or hours and minutes, as the player reads it.</summary>
+        public static string Span(double seconds)
         {
             int minutes = Mathf.Max(1, Mathf.CeilToInt((float)(seconds / 60d)));
             return minutes >= 60 ? L10n.T("away.hours", minutes / 60, minutes % 60) : L10n.T("away.minutes", minutes);

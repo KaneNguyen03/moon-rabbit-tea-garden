@@ -332,6 +332,28 @@ namespace VuonTra.EditorTools
             Capture(screen, "17-profile");
             screen.Profile.Close();
 
+            // The cloud: a copy up there that is further along raises the choice card; then the profile with the save sent up.
+            {
+                GameState ahead = SaveCodec.Decode(runner.Defs, SaveCodec.Encode(runner.Defs, state, runner.UpgradeDefs), runner.UpgradeDefs).State;
+                ahead.GardenXp = Garden.XpForLevel(Garden.Level(state) + 3);
+                ahead.Rabbits.Add(new Rabbit { Id = ++ahead.NextRabbitId, Tier = 2, Kind = RabbitKinds.OfTier(2)[0].Id, Name = "Mộc", Level = 4 });
+                ahead.LastSeenUnixSeconds = state.LastSeenUnixSeconds + 3600;
+                ahead.PlaySeconds = state.PlaySeconds + 5400;
+                var cloud = new MemoryCloudSave { Text = CloudSave.Wrap(SaveCodec.Encode(runner.Defs, ahead, runner.UpgradeDefs), SaveSummary.Of(ahead), ahead.LastSeenUnixSeconds) };
+                runner.Cloud = cloud;
+                runner.SyncNow(SyncReason.Open);
+                Step(screen, 0.4f);
+                Capture(screen, "38-chon-ban");
+                screen.CloudChoice.Close();
+                runner.Sync.Resolve(false, "{}", _ => false, null); // keep this copy; the push refreshes the status line
+                runner.PushToCloud();
+                screen.Profile.Open(runner.Defs, state, runner.Account, runner.CloudStatus);
+                Step(screen, 0.4f);
+                Capture(screen, "38-ho-so-may");
+                screen.Profile.Close();
+                runner.Cloud = new LocalOnlyCloudSave();
+            }
+
             // Large text: every label a fifth bigger, the sheet and the garden rebuilt around it.
             screen.Shell.Resume();
             Step(screen, 0.6f);

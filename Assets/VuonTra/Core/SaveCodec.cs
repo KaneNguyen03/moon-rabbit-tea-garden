@@ -136,6 +136,7 @@ namespace VuonTra.Core
             sb.Append(",\"tutorialClover\":").Append(s.TutorialCloverGiven ? "true" : "false");
             sb.Append(",\"photosGold\":").Append(s.PhotosWithGoldRabbit.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosRest\":").Append(s.PhotosWithFullRest.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"playSeconds\":").Append(Sane(s.PlaySeconds).ToString("R", CultureInfo.InvariantCulture));
             // Version 14: the mooncake game.
             sb.Append(",\"pounding\":{\"day\":").Append(s.PoundingDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"plays\":").Append(s.PoundingPlays.ToString(CultureInfo.InvariantCulture));
@@ -421,6 +422,7 @@ namespace VuonTra.Core
             s.VisitorSeenDay = TryNumber(root, "visitorSeen", out double visitorSeen) ? ToLong(visitorSeen) : -1;
             s.PhotosWithGoldRabbit = TryNumber(root, "photosGold", out double photosGold) ? Math.Max(0, ToLong(photosGold)) : 0;
             s.PhotosWithFullRest = TryNumber(root, "photosRest", out double photosRest) ? Math.Max(0, ToLong(photosRest)) : 0;
+            s.PlaySeconds = TryNumber(root, "playSeconds", out double played) ? Math.Max(0d, Sane(played)) : 0d;
             // Version 14: the mooncake game. An older save has all its plays and no games behind it.
             if (root.TryGetValue("pounding", out object poundObj) && poundObj is Dictionary<string, object> pound)
             {
@@ -486,7 +488,23 @@ namespace VuonTra.Core
             return -1;
         }
 
-        static bool TryNumber(Dictionary<string, object> obj, string key, out double value)
+        /// <summary>The top-level object of a JSON text, or null when it is not one. For the cloud envelope.</summary>
+        public static Dictionary<string, object> ReadObject(string json)
+        {
+            if (string.IsNullOrWhiteSpace(json)) return null;
+            try { return new Reader(json).ReadDocument() as Dictionary<string, object>; }
+            catch (FormatException) { return null; }
+        }
+
+        /// <summary>A string as JSON, quotes and all.</summary>
+        public static string Quote(string value)
+        {
+            var sb = new StringBuilder((value ?? "").Length + 2);
+            WriteString(sb, value);
+            return sb.ToString();
+        }
+
+        public static bool TryNumber(Dictionary<string, object> obj, string key, out double value)
         {
             if (obj.TryGetValue(key, out object raw) && raw is double d && !double.IsNaN(d) && !double.IsInfinity(d))
             {

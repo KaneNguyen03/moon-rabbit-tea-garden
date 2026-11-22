@@ -3418,5 +3418,87 @@ namespace VuonTra.Core.Tests
             Vector2 mortar = ((RectTransform)world.Find("Mortar")).anchoredPosition, basket = GardenScreen.StationSpot(1);
             Assert.Greater(Mathf.Abs(mortar.x - basket.x), 200f);
         }
+
+        [Test]
+        public void The_Profile_Says_Where_The_Cloud_Stands_And_Save_Now_Sends_The_Garden_Up()
+        {
+            Text T(string path) { Transform x = root.transform.Find(path); Assert.IsNotNull(x, "Missing UI object: " + path); return x.GetComponent<Text>(); }
+            screen.Shell.StartGame();
+            Find("Canvas/Hud/Settings").onClick.Invoke();
+            Find("Canvas/Pause/Card/Profile").onClick.Invoke();
+            Assert.AreEqual(L10n.T("cloud.status.off"), T("Canvas/Profile/Card/CloudStatus").text, "no cloud on this build");
+            Assert.IsFalse(root.transform.Find("Canvas/Profile/Card/RestoreLocal").gameObject.activeSelf, "nothing backed up on the device yet");
+            screen.Profile.Close();
+
+            var cloud = new MemoryCloudSave();
+            runner.Cloud = cloud;
+            Find("Canvas/Pause/Card/Profile").onClick.Invoke();
+            Assert.AreEqual(L10n.T("cloud.status.never"), T("Canvas/Profile/Card/CloudStatus").text);
+            Find("Canvas/Profile/Card/CloudPush").onClick.Invoke();
+            Assert.IsNotNull(cloud.Text, "the garden went up");
+            Assert.AreEqual(EnvelopeStatus.Ok, CloudSave.Open(cloud.Text, out _));
+            Assert.AreEqual(L10n.T("cloud.status.at", ProfileView.Clock(runner.Sync.LastPushedAt)), T("Canvas/Profile/Card/CloudStatus").text);
+
+            cloud.Online = false;
+            Find("Canvas/Profile/Card/CloudPush").onClick.Invoke();
+            Assert.AreEqual(L10n.T("cloud.status.offline"), T("Canvas/Profile/Card/CloudStatus").text, "no network: said plainly, nothing lost");
+        }
+
+        [Test]
+        public void Two_Copies_That_Differ_Bring_Up_The_Choice_Card_And_Taking_The_Cloud_Copy_Replaces_The_Garden()
+        {
+            Text T(string path) { Transform x = root.transform.Find(path); Assert.IsNotNull(x, "Missing UI object: " + path); return x.GetComponent<Text>(); }
+            screen.Shell.StartGame();
+            GameState ahead = SaveCodec.Decode(runner.Defs, SaveCodec.Encode(runner.Defs, runner.State, runner.UpgradeDefs), runner.UpgradeDefs).State;
+            ahead.GardenXp = Garden.XpForLevel(4);
+            ahead.Rabbits.Add(new Rabbit { Id = 50, Tier = 1, Kind = "tho-bong", Name = "Bông" });
+            ahead.LastSeenUnixSeconds = runner.State.LastSeenUnixSeconds + 60;
+            var cloud = new MemoryCloudSave { Text = CloudSave.Wrap(SaveCodec.Encode(runner.Defs, ahead, runner.UpgradeDefs), SaveSummary.Of(ahead), 9000) };
+            runner.Cloud = cloud;
+            int rabbitsBefore = runner.State.Rabbits.Count;
+
+            runner.SyncNow(SyncReason.Open);
+            Assert.IsTrue(screen.CloudChoice.IsOpen, "the choice is the player's");
+            Assert.AreEqual(L10n.T("cloud.level", 4), T("Canvas/CloudChoice/Card/Remote/Level").text);
+            Assert.AreEqual(L10n.T("cloud.rabbits", ahead.Rabbits.Count, ahead.SeenKinds.Count), T("Canvas/CloudChoice/Card/Remote/Rabbits").text);
+            Assert.IsTrue(root.transform.Find("Canvas/CloudChoice/Card/Remote/Suggested").gameObject.activeSelf, "the copy further along is put forward");
+            Assert.IsFalse(root.transform.Find("Canvas/CloudChoice/Card/Local/Suggested").gameObject.activeSelf);
+            Assert.AreEqual(rabbitsBefore, runner.State.Rabbits.Count, "nothing replaced yet");
+
+            Find("Canvas/CloudChoice/Card/KeepRemote").onClick.Invoke();
+            Assert.IsFalse(screen.CloudChoice.IsOpen);
+            Assert.AreEqual(ahead.Rabbits.Count, runner.State.Rabbits.Count, "the cloud copy is the garden now");
+            Assert.AreEqual(4, Garden.Level(runner.State));
+            Assert.IsNull(runner.Sync.Pending);
+            Assert.AreEqual(SyncOutcome.TookRemote, runner.Sync.Last.Outcome);
+
+            // Keeping the device's copy instead sends it up.
+            cloud.Text = CloudSave.Wrap(SaveCodec.Encode(runner.Defs, ahead, runner.UpgradeDefs), SaveSummary.Of(ahead), 9000);
+            runner.State.Rabbits.Clear();
+            runner.State.GardenXp = Garden.XpForLevel(7);
+            runner.SyncNow(SyncReason.Milestone);
+            Assert.IsTrue(screen.CloudChoice.IsOpen);
+            Assert.IsTrue(root.transform.Find("Canvas/CloudChoice/Card/Local/Suggested").gameObject.activeSelf, "the higher garden level is put forward");
+            Find("Canvas/CloudChoice/Card/KeepLocal").onClick.Invoke();
+            Assert.AreEqual(SyncOutcome.Pushed, runner.Sync.Last.Outcome);
+            CloudSave.Open(cloud.Text, out CloudEnvelope env);
+            Assert.AreEqual(7, env.Summary.GardenLevel);
+        }
+
+        [Test]
+        public void A_Gold_Rabbit_Or_More_Land_Sends_The_Save_Up_At_Once_But_An_Upgrade_Does_Not()
+        {
+            var cloud = new MemoryCloudSave();
+            runner.Cloud = cloud;
+            runner.State.Coins = new BigNum(1e12);
+            runner.Buy(0);
+            Assert.AreEqual(0, cloud.Pushes, "an upgrade is not a milestone");
+            runner.State.Rabbits.Add(new Rabbit { Id = 9, Tier = 4, Kind = "tho-sao", Name = "Sao" });
+            runner.Buy(0);
+            Assert.AreEqual(1, cloud.Pushes, "a gold rabbit is");
+            runner.State.Plots++;
+            runner.Buy(0);
+            Assert.AreEqual(2, cloud.Pushes, "so is more land");
+        }
     }
 }

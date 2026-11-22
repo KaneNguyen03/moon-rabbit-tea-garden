@@ -14,6 +14,8 @@ namespace VuonTra.Core
         /// <summary>The share of the purse a quick upgrade may spend: 1, 0.5 or 0.25, so some is kept for opening stations.</summary>
         public double SpendShare = 1d;
         public long LastSeenUnixSeconds;
+        /// <summary>Seconds the game has been open and playing, over the garden's whole life.</summary>
+        public double PlaySeconds;
         public bool HintSeen;
 
         /// <summary>Levels of the garden-wide upgrades, indexed like the upgrade list.</summary>

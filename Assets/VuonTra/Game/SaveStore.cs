@@ -20,6 +20,47 @@ namespace VuonTra.Game
         string MainPath => Path.Combine(_dir, "save.json");
         string TempPath => Path.Combine(_dir, "save.tmp");
         string BadPath => Path.Combine(_dir, "save.bad.json");
+        string BackupPath => Path.Combine(_dir, "save.backup.json");
+
+        /// <summary>The save text as it is on disk, or null.</summary>
+        public string ReadRaw()
+        {
+            try { return File.Exists(MainPath) ? File.ReadAllText(MainPath) : null; }
+            catch (Exception e) { Debug.LogWarning("Không đọc được file lưu: " + e.Message); return null; }
+        }
+
+        public bool HasBackup => File.Exists(BackupPath);
+
+        /// <summary>When the backup was written, in Unix seconds; -1 without one.</summary>
+        public long BackupUnixSeconds => HasBackup ? new DateTimeOffset(File.GetLastWriteTimeUtc(BackupPath)).ToUnixTimeSeconds() : -1;
+
+        public string ReadBackup()
+        {
+            try { return HasBackup ? File.ReadAllText(BackupPath) : null; }
+            catch (Exception e) { Debug.LogWarning("Không đọc được bản sao lưu: " + e.Message); return null; }
+        }
+
+        /// <summary>Keeps a copy of the save on disk as the backup, before anything replaces it. False when there is nothing to keep.</summary>
+        public bool Backup()
+        {
+            string current = ReadRaw();
+            return current != null && WriteBackup(current);
+        }
+
+        public bool WriteBackup(string json)
+        {
+            try
+            {
+                Directory.CreateDirectory(_dir);
+                File.WriteAllText(BackupPath, json);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.LogWarning("Không ghi được bản sao lưu: " + e.Message);
+                return false;
+            }
+        }
 
         /// <summary>True when the file on disk came from a newer build, so saving is off.</summary>
         public bool ReadOnly => _readOnly;

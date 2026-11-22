@@ -160,12 +160,16 @@ namespace VuonTra.Core
     {
         public int GardenLevel;
         public int Rabbits;
+        /// <summary>Kinds met, as the album counts them.</summary>
+        public int Kinds;
+        public double PlaySeconds;
         public long LastSeenUnixSeconds;
         public string Code;
 
         public static SaveSummary Of(GameState s) => new SaveSummary
         {
-            GardenLevel = Garden.Level(s), Rabbits = s.Rabbits.Count, LastSeenUnixSeconds = s.LastSeenUnixSeconds, Code = s.Profile.Code
+            GardenLevel = Garden.Level(s), Rabbits = s.Rabbits.Count, Kinds = s.SeenKinds.Count, PlaySeconds = s.PlaySeconds,
+            LastSeenUnixSeconds = s.LastSeenUnixSeconds, Code = s.Profile.Code
         };
     }
 
