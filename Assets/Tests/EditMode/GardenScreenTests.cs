@@ -3404,6 +3404,117 @@ namespace VuonTra.Core.Tests
             return n;
         }
 
+        // ----- #20: guests and their tea orders -----
+
+        [Test]
+        public void A_Guest_Comes_To_The_Counter_A_Minute_Into_Play_With_A_Bubble_And_A_Pill_Then_Leaves()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Transform guest = root.transform.Find("Canvas/Garden/Content/Guest");
+            Transform pill = root.transform.Find("Canvas/Hud/Order");
+            Assert.IsNotNull(guest); Assert.IsNotNull(pill);
+            Assert.IsFalse(guest.gameObject.activeSelf, "nobody yet");
+            Assert.IsFalse(pill.gameObject.activeSelf);
+
+            for (int i = 0; i < 59; i++) screen.Advance(1f);
+            Assert.IsNull(runner.State.Order, "not before a minute of play");
+            for (int i = 0; i < 2; i++) screen.Advance(1f);
+            Order order = runner.State.Order;
+            Assert.IsNotNull(order, "the first guest comes a minute in");
+            Assert.IsTrue(guest.gameObject.activeSelf);
+            Assert.AreEqual("blip", Sfx.Last);
+            screen.Advance(0.1f); // under reduced motion the walk is over in a frame
+            Assert.IsTrue(screen.GuestAtCounter);
+            Transform bubble = guest.Find("Bubble");
+            Assert.IsTrue(bubble.gameObject.activeSelf, "the order is up in a bubble");
+            Assert.IsTrue(bubble.Find("Item 0").gameObject.activeSelf);
+            Assert.AreEqual(order.Lines.Count > 1, bubble.Find("Item 1").gameObject.activeSelf);
+            Assert.AreEqual("×" + order.Lines[0].Count, bubble.Find("Item 0/Count/Text").GetComponent<Text>().text);
+            Assert.IsTrue(pill.gameObject.activeSelf, "the HUD says a guest waits");
+
+            pill.GetComponent<Button>().onClick.Invoke();
+            Assert.IsTrue(screen.OrderCard.IsOpen, "the pill opens the card");
+            screen.OrderCard.Close();
+
+            for (int i = 0; i < (int)Orders.WaitSeconds + 1; i++) screen.Advance(1f);
+            Assert.IsNull(runner.State.Order, "patience ran out");
+            Assert.AreEqual(0, runner.State.OrdersDelivered, "and nothing is lost for it");
+            for (int i = 0; i < 3; i++) screen.Advance(0.1f);
+            Assert.IsFalse(guest.gameObject.activeSelf, "gone");
+            Assert.IsFalse(pill.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void The_Order_Card_Delivers_Only_When_The_Tray_Has_Everything_And_Pays_Carrots()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            runner.State.Levels[2] = 1; // the jam pot too, so an order can have two lines
+            Order order = runner.PlaceOrder();
+            Assert.IsNotNull(order);
+            screen.Refresh();
+            screen.Advance(0.1f);
+            Assert.IsTrue(screen.GuestAtCounter);
+
+            Find("Canvas/Garden/Content/Guest").onClick.Invoke();
+            Assert.IsTrue(screen.OrderCard.IsOpen, "a touch on the guest opens the card");
+            Button deliver = Find("Canvas/Order/Card/Deliver");
+            Assert.IsFalse(deliver.interactable, "an empty tray");
+            StringAssert.Contains(L10n.T("kind." + order.Guest), root.transform.Find("Canvas/Order/Card/Guest/Name").GetComponent<Text>().text);
+            Assert.IsNotNull(root.transform.Find("Canvas/Order/Card/Guest/PortraitHolder/Tile"));
+            Transform line0 = root.transform.Find("Canvas/Order/Card/Line 0");
+            Assert.IsTrue(line0.gameObject.activeSelf);
+            Assert.AreEqual("0/" + order.Lines[0].Count, line0.Find("Have").GetComponent<Text>().text);
+            Assert.IsFalse(line0.Find("Met").gameObject.activeSelf);
+            Assert.AreEqual(order.Lines.Count > 1, root.transform.Find("Canvas/Order/Card/Line 1").gameObject.activeSelf);
+            Assert.AreEqual(L10n.T("order.missing", TotalCount(order)), deliver.transform.Find("Face/Text").GetComponent<Text>().text);
+
+            // One short still does not do.
+            Tray.Add(runner.State, order.Lines[0].Station, false);
+            screen.Refresh();
+            Assert.AreEqual(order.Lines[0].Count == 1, line0.Find("Met").gameObject.activeSelf);
+            Assert.AreEqual(order.Lines.Count == 1 && order.Lines[0].Count == 1, deliver.interactable);
+            // Everything the guest asked for, and a golden batch that is not for it.
+            foreach (OrderLine line in order.Lines)
+                while (Orders.Have(runner.State, line.Station) < line.Count) Tray.Add(runner.State, line.Station, false);
+            Tray.Add(runner.State, 0, true);
+            screen.Refresh();
+            Assert.IsTrue(deliver.interactable);
+            Assert.IsTrue(line0.Find("Met").gameObject.activeSelf);
+            Assert.AreEqual(order.Lines[0].Count + "/" + order.Lines[0].Count, line0.Find("Have").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("order.deliver"), deliver.transform.Find("Face/Text").GetComponent<Text>().text);
+
+            BigNum expected = Orders.Reward(runner.Defs, runner.State, runner.Mods, order);
+            int cloversBefore = runner.State.Clovers;
+            deliver.onClick.Invoke();
+            Assert.IsNull(runner.State.Order, "served");
+            Assert.IsTrue(runner.State.Coins.Equals(expected), "the products' price and the bonus");
+            Assert.AreEqual(cloversBefore + order.RewardClovers, runner.State.Clovers);
+            Assert.AreEqual(1, runner.State.OrdersDelivered);
+            Assert.AreEqual(1, runner.State.Tray.Count, "only the golden batch is left");
+            Assert.IsTrue(runner.State.Tray[0].Golden);
+            Assert.IsFalse(screen.OrderCard.IsOpen);
+            Assert.Greater(screen.Feel.Flying, 0, "carrots fly to the purse");
+            Assert.IsTrue(screen.Feel.BannerVisible, "a happy guest");
+            Assert.AreEqual("reward", Sfx.Last);
+            screen.Refresh(); // in play the runner's StateChanged does this
+            Assert.IsFalse(root.transform.Find("Canvas/Hud/Order").gameObject.activeSelf);
+
+            // The guest bows and goes home.
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+            Assert.IsFalse(screen.GuestShown);
+            Assert.IsFalse(screen.GuestAtCounter);
+        }
+
+        static int TotalCount(Order order)
+        {
+            int n = 0;
+            foreach (OrderLine line in order.Lines) n += line.Count;
+            return n;
+        }
+
         [Test]
         public void The_Ground_Has_Layers_That_Lie_Under_Everything_That_Stands()
         {
@@ -3576,6 +3687,26 @@ namespace VuonTra.Core.Tests
             runner.State.Plots++;
             runner.Buy(0);
             Assert.AreEqual(2, cloud.Pushes, "so is more land");
+        }
+
+        [Test]
+        public void A_Guest_From_A_Loaded_Save_Already_Stands_At_The_Counter_And_The_Daily_Quest_Counts_Deliveries()
+        {
+            runner.State.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = 40, RewardSeconds = Orders.RewardSeconds };
+            runner.State.Order.Lines.Add(new OrderLine { Station = 0, Count = 1 });
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Assert.IsTrue(screen.GuestShown);
+            Assert.IsTrue(screen.GuestAtCounter, "no walk: it has been waiting a while");
+            Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Guest/Bubble").gameObject.activeSelf);
+
+            Transform quest = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-don");
+            Assert.IsNotNull(quest, "the daily order quest is in the list");
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest don-20"), "and the achievement");
+            Tray.Add(runner.State, 0, false);
+            Assert.IsTrue(runner.DeliverOrder(out _, out _));
+            screen.Refresh();
+            StringAssert.StartsWith("1 / 2", quest.Find("Count").GetComponent<Text>().text);
         }
     }
 }
