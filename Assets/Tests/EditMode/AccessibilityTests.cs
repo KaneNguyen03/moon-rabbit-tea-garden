@@ -288,6 +288,39 @@ namespace VuonTra.Core.Tests
             finally { screen.ExitPhotoMode(); GardenScreen.PhotoFrameOn = frameBefore; }
         }
 
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void Every_Shop_Tile_Name_Fits_On_One_Line_Clear_Of_Its_Price(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.OpenShop();
+            screen.Refresh();
+            Layout();
+            var wrong = new List<string>();
+            int tiles = 0;
+            foreach (Text text in root.transform.Find("Canvas/Shop").GetComponentsInChildren<Text>(true))
+            {
+                Transform tile = text.transform.parent;
+                if (text.name != "Name" || !(tile.name.StartsWith("Decor ") || tile.name.StartsWith("Hat "))) continue;
+                tiles++;
+                string line = OneLine(text);
+                if (line != null) wrong.Add(line);
+                Rect name = WorldRect(text.rectTransform);
+                foreach (string chip in new[] { "Price", "Owned", "Icon" })
+                {
+                    Transform c = tile.Find(chip);
+                    if (c != null && WorldRect((RectTransform)c).Overlaps(name)) wrong.Add(Path(text.transform) + " \"" + text.text + "\" runs into its " + chip);
+                }
+            }
+            Assert.Greater(tiles, Decor.Kinds.Length, "every decor tile and the hats were measured");
+            Assert.IsEmpty(wrong, string.Join("\n", wrong));
+        }
+
         // ----- contrast -----
 
         static double Luminance(Color c)
