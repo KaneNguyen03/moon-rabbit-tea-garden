@@ -504,6 +504,23 @@ namespace VuonTra.EditorTools
             screen.LookAt(new Vector2(540f, 2900f));
             Step(screen, 0.3f);
             Capture(screen, "17-rest-top");
+            // #55 Resting rabbits stroll to an empty spot of the lawn: tea by day, a firefly to chase by night.
+            {
+                screen.ClockHours = () => 12.0;
+                screen.Refresh();
+                Step(screen, screen.StageStroll(0, StrollActivity.Tea));
+                int spot = screen.StrollSpotOf(0);
+                if (spot >= 0) screen.LookAt(GardenScreen.LawnSpots[spot]);
+                Step(screen, 0.4f);
+                Capture(screen, "55-uong-tra");
+                screen.ClockHours = () => 22.0;
+                screen.Refresh();
+                Step(screen, screen.StageStroll(1, StrollActivity.Firefly));
+                spot = screen.StrollSpotOf(1);
+                if (spot >= 0) screen.LookAt(GardenScreen.LawnSpots[spot]);
+                Step(screen, 0.4f);
+                Capture(screen, "55-duoi-dom-dom");
+            }
             // A resting rabbit given the teapot walks over from its seat: caught halfway.
             {
                 Rabbit mover = null;
@@ -604,6 +621,14 @@ namespace VuonTra.EditorTools
                 screen.OrderCard.Close();
                 Step(screen, 0.3f);
             }
+            // Coming back after three hours (#69): four lines and the day's free ×2.
+            var away = new AwayReport { Paid = new BigNum(1.2e9), Seconds = 3 * 3600, Capped = true, TrayAdded = 7, TrayFull = true, GuestsMissed = 3, SleepiestId = Away.Sleepiest(state) };
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 0.5f);
+            Capture(screen, "69-di-vang");
+            screen.AwayCard.Close();
+            Step(screen, 0.4f);
             // The same garden at noon and at dusk; night is every other frame.
             screen.SelectStation(-1);
             screen.LookAt(GardenScreen.StationSpot(0));

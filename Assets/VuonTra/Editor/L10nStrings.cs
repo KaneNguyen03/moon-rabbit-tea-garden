@@ -214,6 +214,16 @@ namespace VuonTra.EditorTools
             { "away.hours", "{0} giờ {1} phút", "{0} h {1} min" },
             { "away.time", "trong {0}.", "in {0}." },
             { "away.time.capped", "trong {0} (đã chạm giới hạn vắng mặt).", "in {0} (away limit reached)." },
+            { "away.tray", "Khay: thêm {0} món", "Tray: {0} new items" },
+            { "away.tray.full", " · khay đầy", " · tray full" },
+            { "away.tray.none", "Khay chưa có món mới", "No new items on the tray" },
+            { "away.guests", "{0} vị khách ghé qua, chưa ai tiếp", "{0} guests came by; nobody was at the counter" },
+            { "away.guests.none", "Không có khách ghé", "No guests came by" },
+            { "away.rabbit", "{0} ngủ say nhất", "{0} slept the most" },
+            { "away.double.free", "Nhận ×2 · miễn phí hôm nay", "Collect ×2 · free today" },
+            { "away.double.cost", "Nhận ×2 · {0} cà rốt vàng", "Collect ×2 · {0} golden" },
+            { "away.double.short", "Còn thiếu {0} cà rốt vàng", "{0} more golden carrots" },
+            { "away.double.done", "Đã nhận ×2", "Collected ×2" },
 
             // ----- station list -----
             { "row.locked", "Chưa mở", "Locked" },

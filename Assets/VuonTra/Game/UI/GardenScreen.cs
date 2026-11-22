@@ -46,6 +46,8 @@ namespace VuonTra.Game.UI
         public TutorialView Guide { get; private set; }
         /// <summary>The tea shop by the pond: the daily gift and the golden call.</summary>
         public ShopView Shop { get; private set; }
+        /// <summary>The welcome-back sheet (#69).</summary>
+        public AwayView AwayCard { get; private set; }
         RectTransform _shopProp, _goldenChip, _mortarProp;
         Text _mortarPlate;
         /// <summary>The mooncake game, opened from the mortar beside the teapot.</summary>
@@ -114,14 +116,24 @@ namespace VuonTra.Game.UI
         readonly List<Image> _tierTradeBadges = new List<Image>();
         readonly List<Image> _tierTradeIcons = new List<Image>();
         // Life in the world: rabbits out for a walk, and ingredients carried between stations.
-        sealed class Walker { public RectTransform Rect; public Image Art; public float X0, X1, Y, Speed, Phase; }
+        /// <summary>A resting rabbit out on the lawn (#55): its picture, what it carries at its spot, and the stroll it is on.</summary>
+        sealed class Walker
+        {
+            public RectTransform Rect, Art, Cup, Steam, Fly, Bubble;
+            public Image ArtImage, SteamImage, FlyImage;
+            public Text BubbleText;
+            public float Phase;
+            public Outing Out = new Outing();
+        }
+        /// <summary>One stroll of one rabbit: which of its strolls it is, whether it was let out, where to, and what it does there.</summary>
+        sealed class Outing { public int Number = int.MinValue; public bool Granted; public int Spot = -1; public StrollActivity Activity; public float Linger; }
         /// <summary>A rabbit on its way to the station it was just given.</summary>
         sealed class Traveler { public RectTransform Rect; public long Id; public int Station; public Vector2 From, To; public float T, Duration; }
         readonly List<Traveler> _travelers = new List<Traveler>();
         long[] _workerIds = new long[0];
         bool _worldSeen;
         /// <summary>A stroll: this share of every period, from the seat out to the lane and back.</summary>
-        public const float StrollPeriod = 48f, StrollShare = 0.5f;
+        public const float StrollPeriod = 48f, StrollShare = 1f / 3f;
         /// <summary>Seconds the screen has been animating; what the strolls and sways are timed on.</summary>
         public float Clock => _clock;
         /// <summary>How many rabbits are walking to a station right now.</summary>
@@ -276,12 +288,12 @@ namespace VuonTra.Game.UI
         bool _hintFading;
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
-        Text _coins, _perSecond, _awayAmount, _awayTime, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
+        Text _coins, _perSecond, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
         RectTransform _questReady, _cardModes;
         ChunkyButton _claimAll;
         Text _plotTitle, _plotSub, _plotCost;
         ChunkyButton _plotBuy, _energyButton;
-        GameObject _hint, _away, _sheet, _modes, _barBadge;
+        GameObject _hint, _sheet, _modes, _barBadge;
         RabbitGridView _rabbitList;
         Text _sheetTitle;
         float _sinceRefresh, _clock;
@@ -714,20 +726,7 @@ namespace VuonTra.Game.UI
                 if (_seatNaps[k].activeSelf != dozing) _seatNaps[k].SetActive(dozing);
             }
 
-            for (int i = 0; i < _walkers.Count; i++)
-            {
-                Walker w = _walkers[i];
-                // Walker i is the rabbit from seat i, out for a stroll part of the time; its seat is empty meanwhile.
-                bool strolling = i < _seated && Strolling(i, _clock);
-                if (w.Rect.gameObject.activeSelf != strolling) w.Rect.gameObject.SetActive(strolling);
-                if (i < _seats.Count && i < _seated && _seats[i].gameObject.activeSelf == strolling) _seats[i].gameObject.SetActive(!strolling);
-                if (!strolling) continue;
-                // Out of the seat, along the lane and back, then home: one path at one pace, so nobody pops in or out.
-                Vector2 seat = i < _seats.Count ? _seats[i].anchoredPosition : new Vector2(w.X0, w.Y);
-                Vector2 at = StrollPoint(seat, w, StrollPhase(i, _clock) / StrollShare, out bool goingRight);
-                w.Rect.anchoredPosition = at + new Vector2(0, Mathf.Abs(Mathf.Sin(_clock * 7f + w.Phase)) * 12f);
-                w.Rect.localScale = new Vector3(goingRight ? 1f : -1f, 1f, 1f);
-            }
+            UpdateStrollers();
 
             UpdateScenery();
             UpdateTravelers(dt);
@@ -770,26 +769,6 @@ namespace VuonTra.Game.UI
         public static bool Strolling(int seat, float clock) => StrollPhase(seat, clock) < StrollShare;
 
         static float StrollPhase(int seat, float clock) => Mathf.Repeat(clock / StrollPeriod + seat * 0.37f, 1f);
-
-        /// <summary>
-        /// Where a strolling rabbit is at <paramref name="u"/> of its walk (0 leaving the seat, 1 back on it): to the
-        /// lane's near end, along the lane and back, and home, at one pace the whole way.
-        /// </summary>
-        static Vector2 StrollPoint(Vector2 seat, Walker w, float u, out bool facingRight)
-        {
-            var laneStart = new Vector2(w.X0, w.Y);
-            float leg = Vector2.Distance(seat, laneStart), lane = 2f * Mathf.Abs(w.X1 - w.X0), total = 2f * leg + lane;
-            float d = Mathf.Clamp01(u) * total;
-            if (d < leg) { facingRight = laneStart.x >= seat.x; return Vector2.Lerp(seat, laneStart, leg > 0f ? d / leg : 1f); }
-            if (d < leg + lane)
-            {
-                float a = (d - leg) / lane; // 0..1 there and back
-                facingRight = a < 0.5f;
-                return new Vector2(w.X0 + Mathf.Abs(w.X1 - w.X0) * (0.5f - 0.5f * Mathf.Cos(a * Mathf.PI * 2f)), w.Y);
-            }
-            facingRight = seat.x >= laneStart.x;
-            return Vector2.Lerp(laneStart, seat, leg > 0f ? (d - leg - lane) / leg : 1f);
-        }
 
         /// <summary>Trees lean from the root, lanterns swing from the hook and flicker, the pond shimmers and ripples. All still under reduced motion.</summary>
         void UpdateScenery()
@@ -841,7 +820,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(Runner.Catalog.Round, Palette.Alpha(Palette.Night, 0.35f));
             Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(Runner.Catalog.RabbitArt(worker), RabbitGridView.Fur(worker));
             art.preserveAspect = true;
-            if (_walkers.Count > 0) rt.SetSiblingIndex(_walkers[0].Rect.GetSiblingIndex()); // drawn with the walkers, under every plate
+            if (_standing != null && _standing.Count > 0 && _standing[0].Value != null) rt.SetSiblingIndex(_standing[0].Value.GetSiblingIndex()); // behind everything that stands, under every plate
             _actors[station].SetAway(true);
             _travelers.Add(new Traveler { Rect = rt, Id = worker.Id, Station = station, From = from, To = to, Duration = Mathf.Clamp(Vector2.Distance(from, to) / 300f, 0.4f, 2.4f) });
         }
@@ -1014,6 +993,7 @@ namespace VuonTra.Game.UI
             Guide = null;
             _guideStep = -1;
             Shop = null;
+            AwayCard = null;
             DecorCard = null;
             _decorSpots.Clear(); _lanternArt.Clear(); _lanternGlowColor = Palette.Lantern;
             PhotoMode = false;
@@ -1391,22 +1371,8 @@ namespace VuonTra.Game.UI
                 standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y, rt));
             }
 
-            // Now and then a seated rabbit gets up for a stroll along a stretch of grass that no station stands on.
-            float[] lanes = { Heart.y + 212f, Heart.y - 312f };
-            float[] laneFrom = { 390f, 400f }, laneTo = { 700f, 715f };
-            for (int i = 0; i < lanes.Length && catalog.Rabbit != null; i++)
-            {
-                var rt = UiKit.Rect("Walker " + i, _street).Place(0f, 0f, 400, lanes[i], 104, 110);
-                rt.pivot = new Vector2(0.5f, 0f);
-                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(catalog.Round, shade);
-                Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
-                art.preserveAspect = true;
-                int walker = i;
-                UiKit.Strokable(art.rectTransform, _scroll, () => StrokeSeat(walker), () => OnSeat(walker)); // #19: the walker is seat i's rabbit
-                _walkers.Add(new Walker { Rect = rt, Art = art, X0 = laneFrom[i], X1 = laneTo[i], Y = lanes[i], Speed = 50f + i * 14f, Phase = i * 900f });
-                rt.gameObject.SetActive(false);
-                standing.Add(new KeyValuePair<float, Transform>(float.MaxValue, rt)); // drawn first, so a walker never covers a level plate
-            }
+            // Now and then a seated rabbit gets up and strolls to an empty spot of the lawn (#55).
+            BuildWalkers(catalog, shade, standing);
 
             // The tea shop stands at the edge of the pond from the first day; a touch opens it.
             if (catalog.ShopProp != null)
@@ -2734,7 +2700,7 @@ namespace VuonTra.Game.UI
             _seasonChip.gameObject.SetActive(false);
 
             // Golden carrots, under the purse, only once there is at least one: nothing strange for a new player.
-            _goldenChip = UiKit.Rect("Golden", _hud).Place(0f, 1f, 210, -154, 170, 52);
+            _goldenChip = UiKit.Rect("Golden", _hud).Place(0f, 1f, 240, -154, 170, 52); // clear of the season chip (#1) on its left
             _goldenChip.AddShadow(10f, 6f, 0.25f);
             _goldenChip.AddImage(catalog.Panel, Palette.Paper, true);
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", _goldenChip).Place(0f, 0.5f, 28, 0, 38, 38).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
@@ -3380,35 +3346,27 @@ namespace VuonTra.Game.UI
 
         void BuildAwayPopup(GameCatalog catalog)
         {
-            var overlay = UiKit.Rect("Away", _canvas).Stretch(0, 0, 1, 1);
-            overlay.AddImage(null, Palette.Scrim).raycastTarget = true;
-            _away = overlay.gameObject;
+            // The welcome-back sheet (#69); the carrots are already in the purse, Collect only closes it, ×2 pays again.
+            AwayCard = new AwayView(_canvas, catalog, Tweens, () => Runner.AwayDoubleCost, () => Runner.State.GoldenCarrots, () => Runner.LastAwayDoubled,
+                () => Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f),
+                OnDoubleAway);
+        }
 
-            var card = UiKit.Rect("Card", overlay).Place(0.5f, 0.5f, 0, 0, 800, 700);
-            UiKit.Rect("Lip", card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
-            UiKit.Rect("Face", card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Title", card).Stretch(0, 0.80f, 1, 1, 40, 0, 40, 40)
-                .AddText(L10n.T("away.title"), 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
-            UiKit.Rect("Body", card).Stretch(0, 0.62f, 1, 0.80f, 60, 0, 60, 0)
-                .AddText(L10n.T("away.body"), UiKit.TextTitle, Palette.InkSoft);
-            UiKit.Rect("Carrot", card).Place(0.5f, 0.5f, -200, 4, 110, 110).AddImage(catalog.Currency, Color.white).preserveAspect = true;
-            _awayAmount = UiKit.Rect("Amount", card).Place(0.5f, 0.5f, 60, 4, 420, 110)
-                .AddText("+0", 84, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _awayTime = UiKit.Rect("Time", card).Stretch(0, 0.29f, 1, 0.40f)
-                .AddText("", UiKit.TextBody, Palette.InkSoft);
-
-            var ok = UiKit.Rect("Ok", card).Place(0.5f, 0f, 0, 120, 580, 130);
-            ChunkyButton okButton = null;
-            okButton = UiKit.Chunky(ok, catalog.Panel, () =>
+        /// <summary>The ×2 on the welcome-back sheet: the latest time away paid once more, then the sheet closes.</summary>
+        void OnDoubleAway()
+        {
+            BigNum paid = Runner.LastAway.Paid;
+            if (!Runner.DoubleAway())
             {
-                okButton.Press(Tweens);
-                Sfx.Reward();
-                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
-                _away.SetActive(false);
-            });
-            UiKit.Rect("Text", okButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("away.ok"), 40, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
-
-            _away.SetActive(false);
+                AwayCard.RefreshDouble();
+                Sfx.Deny();
+                return;
+            }
+            Sfx.Reward();
+            Haptics.Medium();
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + paid.Short(), Palette.Carrot, 44);
+            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 16, 520f, 46f);
+            AwayCard.Close();
         }
 
         void OnShellChanged(ShellState state)
@@ -3715,10 +3673,10 @@ namespace VuonTra.Game.UI
                     Color fur = RabbitGridView.Fur(r);
                     _seatArt[k].sprite = art;
                     _seatArt[k].color = fur;
-                    if (k < _walkers.Count) { _walkers[k].Art.sprite = art; _walkers[k].Art.color = fur; }
+                    if (k < _walkers.Count) { _walkers[k].ArtImage.sprite = art; _walkers[k].ArtImage.color = fur; }
                     PoseSeated(k, r, s, catalog);
                 }
-                bool sitting = taken && !(k < _walkers.Count && Strolling(k, _clock));
+                bool sitting = taken && !Away(k);
                 if (_seats[k].gameObject.activeSelf != sitting) _seats[k].gameObject.SetActive(sitting);
                 // The first two places are the stumps; each later one shows its furniture once it exists.
                 bool cushion = k >= 2 && k < s.RestSpots;
@@ -3799,17 +3757,23 @@ namespace VuonTra.Game.UI
             _plotBuy.SetEnabled(can);
         }
 
-        public void ShowAway(BigNum amount, double seconds)
+        /// <summary>
+        /// Coming back (#69): five minutes away or more opens the welcome-back sheet; a shorter absence just sends
+        /// the carrots up to the purse.
+        /// </summary>
+        public void ShowAway(AwayReport away)
         {
-            _awayAmount.text = "+" + amount.Short();
-            string span = Span(seconds);
-            bool capped = seconds >= Runner.Mods.AwayCapSeconds;
-            _awayTime.text = L10n.T(capped ? "away.time.capped" : "away.time", span);
-            _away.SetActive(true);
-            RectTransform card = (RectTransform)_away.transform.Find("Card");
-            card.localScale = Vector3.one * 0.8f;
-            Tweens.Add(0.3f, t => card.localScale = Vector3.one * Mathf.LerpUnclamped(0.8f, 1f, t), Ease.OutBack);
+            if (away.WorthTelling) { AwayCard.Open(away, Runner.State); return; }
+            if (away.Paid < BigNum.One || Feel == null) return;
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + away.Paid.Short(), Palette.Carrot, 40);
+            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 8, 420f, 40f);
         }
+
+        /// <summary>The sheet for a plain amount and time, as older callers and the tests had it.</summary>
+        public void ShowAway(BigNum amount, double seconds) => ShowAway(new AwayReport
+        {
+            Paid = amount, Seconds = seconds, Capped = seconds >= Runner.Mods.AwayCapSeconds, SleepiestId = VuonTra.Core.Away.Sleepiest(Runner.State)
+        });
 
         /// <summary>
         /// Two pills at the edges say how many stations out of view can be raised or have a dozing rabbit; a
@@ -4777,6 +4741,266 @@ namespace VuonTra.Game.UI
                 if (artRect != null) artRect.localRotation = Quaternion.identity;
                 if (_guestPhase == GuestPhase.Bowing) _guestPhase = GuestPhase.Leaving;
             });
+        }
+
+        #endregion
+
+        #region Strolls to empty spots of the lawn (#55)
+
+        /// <summary>
+        /// Empty spots of the lawn a resting rabbit may stroll to, placed by hand where today's garden has room: each keeps
+        /// <see cref="Strolls.Clearance"/> from every station and 150 from the seats, the props and the decoration spots, and
+        /// stays in from the wood at the edges. The first version of #55; the hex grid (#52) will offer its empty tiles instead.
+        /// </summary>
+        static readonly Vector2[] Lawn =
+        {
+            new Vector2(750f, 380f), new Vector2(310f, 500f), new Vector2(550f, 820f), new Vector2(250f, 1020f),
+            new Vector2(770f, 1060f), new Vector2(750f, 1480f), new Vector2(370f, 1500f), new Vector2(690f, 1840f),
+            new Vector2(390f, 1860f), new Vector2(590f, 2080f), new Vector2(230f, 2260f),
+        };
+        static readonly Vec2[] LawnCore = System.Array.ConvertAll(Lawn, v => new Vec2(v.x, v.y));
+        public static IReadOnlyList<Vector2> LawnSpots => Lawn;
+        /// <summary>How far from its seat a rabbit strolls: about two tiles.</summary>
+        public const float StrollRadius = 520f;
+        /// <summary>Seconds a stroll lasts: out, the rest at the spot, and home.</summary>
+        const float StrollWindow = StrollPeriod * StrollShare;
+
+        /// <summary>Everything that stands on the street, by the ground it stands on, so a walker can be drawn among it (see <see cref="SortWalker"/>).</summary>
+        List<KeyValuePair<float, Transform>> _standing;
+
+        /// <summary>Walker i is seat i's rabbit when it is out; one for every place to rest. Built behind everything that stands, and drawn among it once it is out.</summary>
+        void BuildWalkers(GameCatalog catalog, Color shade, List<KeyValuePair<float, Transform>> standing)
+        {
+            _standing = standing;
+            Sprite cup = catalog.Stations.Length > 0 && catalog.Stations[0] != null && catalog.Stations[0].Product != null ? catalog.Stations[0].Product : catalog.Round;
+            for (int i = 0; i < Seats.Length && catalog.Rabbit != null; i++)
+            {
+                var rt = UiKit.Rect("Walker " + i, _street).Place(0f, 0f, 400, 400, 104, 110);
+                rt.pivot = new Vector2(0.5f, 0f);
+                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(catalog.Round, shade);
+                Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
+                art.preserveAspect = true;
+                int walker = i;
+                UiKit.Strokable(art.rectTransform, _scroll, () => StrokeSeat(walker), () => OnSeat(walker)); // #19: the walker is seat i's rabbit
+                var w = new Walker { Rect = rt, Art = art.rectTransform, ArtImage = art, Phase = i * 900f };
+                // A small cup in its paws, with a wisp of steam.
+                w.Cup = UiKit.Rect("Cup", rt).Place(0.5f, 0f, 34, 14, 36, 36);
+                Image cupImage = w.Cup.AddImage(cup, cup == catalog.Round ? Palette.Paper : Color.white);
+                cupImage.preserveAspect = true;
+                w.Steam = UiKit.Rect("Steam", w.Cup).Place(0.5f, 1f, 2, 10, 16, 16);
+                w.SteamImage = w.Steam.AddImage(catalog.Glow, Palette.Alpha(Palette.Paper, 0.7f));
+                // One firefly of its own to chase.
+                w.Fly = UiKit.Rect("Firefly", rt).Place(0.5f, 0f, 0, 100, 60, 60);
+                w.FlyImage = w.Fly.AddImage(catalog.Glow, Palette.Lantern);
+                UiKit.Rect("Halo", w.Fly).Place(0.5f, 0.5f, 0, 0, 22, 22).AddImage(catalog.Round, Palette.Alpha(Palette.Lantern, 0.45f));
+                UiKit.Rect("Core", w.Fly).Place(0.5f, 0.5f, 0, 0, 11, 11).AddImage(catalog.Round, Palette.Mix(Palette.Lantern, Color.white, 0.7f));
+                // The bubble over its head: a note, a heart or a snore.
+                w.Bubble = UiKit.Rect("Bubble", rt).Place(0.5f, 1f, 40, 14, 64, 40);
+                w.Bubble.AddImage(catalog.Panel, Palette.Paper, true);
+                w.BubbleText = UiKit.Rect("Text", w.Bubble).Stretch(0, 0, 1, 1, 4, 2, 4, 2).AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                w.BubbleText.resizeTextForBestFit = true;
+                w.BubbleText.resizeTextMinSize = 12;
+                w.BubbleText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+                w.Cup.gameObject.SetActive(false); w.Fly.gameObject.SetActive(false); w.Bubble.gameObject.SetActive(false);
+                _walkers.Add(w);
+                rt.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>
+        /// Draws a walker among what stands on the street by where its feet are, so it is in front of the stump behind it and behind
+        /// the table in front of it; while its feet are on a station's ground it goes behind everything, so it never covers a level plate or a name.
+        /// </summary>
+        void SortWalker(Walker w, Vector2 feet)
+        {
+            if (_standing == null || _standing.Count == 0) return;
+            float key = feet.y;
+            for (int k = 0; k < Spots.Length; k++)
+            {
+                Vector2 s = StationSpot(k);
+                if (Mathf.Abs(s.x - feet.x) < 240f && feet.y > s.y - 280f && feet.y < s.y + 60f) { key = float.MaxValue; break; }
+            }
+            int target = -1;
+            for (int k = 0; k < _standing.Count; k++)
+            {
+                if (_standing[k].Value == null || !(_standing[k].Key < key)) continue;
+                target = _standing[k].Value.GetSiblingIndex();
+                break;
+            }
+            if (target < 0)
+            {
+                Transform last = _standing[_standing.Count - 1].Value;
+                if (last == null) return;
+                target = last.GetSiblingIndex() + 1;
+            }
+            int now = w.Rect.GetSiblingIndex();
+            if (now < target) target--;
+            if (now != target) w.Rect.SetSiblingIndex(target);
+        }
+
+        /// <summary>Which stroll of seat <paramref name="seat"/>'s rabbit the clock is in or before: counts up once a period.</summary>
+        static int StrollNumber(int seat, float clock) => Mathf.FloorToInt(clock / StrollPeriod + seat * 0.37f);
+
+        /// <summary>Seconds into its stroll window at <paramref name="clock"/>; only meaningful while <see cref="Strolling"/>.</summary>
+        static float StrollElapsed(int seat, float clock) => StrollPhase(seat, clock) * StrollPeriod;
+
+        /// <summary>Seconds the walk out takes (and the walk home): what the window leaves around the rest at the spot.</summary>
+        static float WalkSeconds(Outing o) => (StrollWindow - o.Linger) / 2f;
+
+        /// <summary>True when the seat's rabbit is standing at its spot (not walking) right now.</summary>
+        public bool AtSpot(int seat)
+        {
+            if (!Granted(seat)) return false;
+            float e = StrollElapsed(seat, _clock), walk = WalkSeconds(_walkers[seat].Out);
+            return e >= walk && e < walk + _walkers[seat].Out.Linger;
+        }
+
+        /// <summary>What the seat's rabbit is doing at its spot, or nothing while it is not there.</summary>
+        public StrollActivity? ActivityOf(int seat) => AtSpot(seat) ? _walkers[seat].Out.Activity : (StrollActivity?)null;
+
+        /// <summary>The lawn spot the seat's rabbit is out to (an index into <see cref="LawnSpots"/>), or -1 while it is home.</summary>
+        public int StrollSpotOf(int seat) => Away(seat) ? _walkers[seat].Out.Spot : -1;
+
+        /// <summary>How many resting rabbits are out on the lawn right now.</summary>
+        public int StrollersOut
+        {
+            get
+            {
+                int n = 0;
+                for (int i = 0; i < _walkers.Count; i++) if (Away(i)) n++;
+                return n;
+            }
+        }
+
+        /// <summary>The seat's rabbit was let out on the stroll the clock is in.</summary>
+        bool Granted(int seat)
+        {
+            if (seat < 0 || seat >= _walkers.Count || seat >= _seated || !Strolling(seat, _clock)) return false;
+            PlanStrolls();
+            Outing o = _walkers[seat].Out;
+            return o.Granted && o.Number == StrollNumber(seat, _clock);
+        }
+
+        /// <summary>The seat is empty because its rabbit is out: walking or at its spot; under reduced motion only while at the spot.</summary>
+        bool Away(int seat) => Granted(seat) && (!Motion.Reduced || AtSpot(seat));
+
+        /// <summary>
+        /// Settles every stroll that begins at this moment, earliest first: a rabbit is let out while fewer than
+        /// <see cref="Strolls.MaxAtOnce"/> are out and an empty spot is in reach that no station and no other stroller stands on.
+        /// Decided once per stroll from the seat and the stroll's number, so the same stroll is the same at any frame rate.
+        /// </summary>
+        void PlanStrolls()
+        {
+            List<int> starting = null;
+            for (int i = 0; i < _walkers.Count && i < _seated; i++)
+            {
+                if (!Strolling(i, _clock) || _walkers[i].Out.Number == StrollNumber(i, _clock)) continue;
+                (starting ?? (starting = new List<int>())).Add(i);
+            }
+            if (starting == null) return;
+            starting.Sort((a, b) => StrollElapsed(b, _clock).CompareTo(StrollElapsed(a, _clock)));
+            bool night = Daylight.NightAt(ClockHours()) > 0.6;
+            int cap = Strolls.MaxAtOnce(Lawn.Length);
+            foreach (int i in starting)
+            {
+                Outing o = _walkers[i].Out;
+                int n = StrollNumber(i, _clock);
+                var blocked = new List<Vec2>(Spots.Length + _walkers.Count);
+                for (int k = 0; k < Spots.Length; k++) { Vector2 at = StationSpot(k); blocked.Add(new Vec2(at.x, at.y)); }
+                int outNow = 0;
+                for (int j = 0; j < _walkers.Count && j < _seated; j++)
+                {
+                    Outing other = _walkers[j].Out;
+                    if (j == i || !Strolling(j, _clock) || !other.Granted || other.Number != StrollNumber(j, _clock)) continue;
+                    outNow++;
+                    blocked.Add(LawnCore[other.Spot]);
+                }
+                Vector2 seat = i < _seats.Count ? _seats[i].anchoredPosition : Heart;
+                o.Number = n;
+                o.Linger = Strolls.LingerFor(Strolls.Roll(i, n, 2));
+                o.Activity = Strolls.ActivityFor(Strolls.Roll(i, n, 1), night);
+                o.Spot = outNow < cap ? Strolls.PickSpot(LawnCore, blocked, new Vec2(seat.x, seat.y), StrollRadius, Strolls.Roll(i, n, 0)) : -1;
+                o.Granted = o.Spot >= 0;
+            }
+        }
+
+        /// <summary>Lets a stroll be seen on demand (previews): seat <paramref name="seat"/>'s rabbit goes out on its next stroll to do
+        /// <paramref name="activity"/>; returns the seconds until it is at its spot.</summary>
+        public float StageStroll(int seat, StrollActivity activity)
+        {
+            if (seat < 0 || seat >= _walkers.Count) return 0f;
+            Outing o = _walkers[seat].Out;
+            o.Activity = activity;
+            o.Linger = Strolls.LingerMost;
+            // This stroll if it has not reached the spot yet; otherwise the next.
+            int n = StrollNumber(seat, _clock);
+            if (!Strolling(seat, _clock) || StrollElapsed(seat, _clock) > WalkSeconds(o)) n++;
+            o.Number = n;
+            Vector2 seatAt = seat < _seats.Count ? _seats[seat].anchoredPosition : Heart;
+            var stations = new List<Vec2>();
+            for (int k = 0; k < Spots.Length; k++) { Vector2 at = StationSpot(k); stations.Add(new Vec2(at.x, at.y)); }
+            o.Spot = Strolls.PickSpot(LawnCore, stations, new Vec2(seatAt.x, seatAt.y), StrollRadius, 0d);
+            o.Granted = o.Spot >= 0;
+            float start = (n - seat * 0.37f) * StrollPeriod;
+            return Mathf.Max(0f, start + WalkSeconds(o) + 0.5f - _clock);
+        }
+
+        /// <summary>Every walker: out of its seat to its spot, the small thing it does there, and home; the seat stands empty meanwhile.</summary>
+        void UpdateStrollers()
+        {
+            for (int i = 0; i < _walkers.Count; i++)
+            {
+                Walker w = _walkers[i];
+                bool away = Away(i);
+                if (w.Rect.gameObject.activeSelf != away) w.Rect.gameObject.SetActive(away);
+                if (i < _seats.Count && i < _seated && _seats[i].gameObject.activeSelf == away) _seats[i].gameObject.SetActive(!away);
+                if (!away) continue;
+                Outing o = w.Out;
+                Vector2 seat = i < _seats.Count ? _seats[i].anchoredPosition : Heart;
+                Vector2 spot = Lawn[o.Spot];
+                float e = StrollElapsed(i, _clock), walk = WalkSeconds(o);
+                bool there = e >= walk && e < walk + o.Linger;
+                bool facingRight;
+                Vector2 at;
+                if (e < walk) { at = Vector2.Lerp(seat, spot, walk > 0f ? e / walk : 1f); facingRight = spot.x >= seat.x; }
+                else if (there) { at = spot; facingRight = seat.x >= spot.x; }
+                else { at = Vector2.Lerp(spot, seat, walk > 0f ? (e - walk - o.Linger) / walk : 1f); facingRight = seat.x >= spot.x; }
+                float since = there ? e - walk : 0f; // seconds at the spot: every movement there is a fixed cycle of it
+                StrollActivity doing = there ? o.Activity : (StrollActivity)(-1);
+                bool tea = doing == StrollActivity.Tea, fly = doing == StrollActivity.Firefly, doze = doing == StrollActivity.Doze;
+                if (w.Cup.gameObject.activeSelf != tea) w.Cup.gameObject.SetActive(tea);
+                if (w.Fly.gameObject.activeSelf != fly) w.Fly.gameObject.SetActive(fly);
+                if (w.Bubble.gameObject.activeSelf != there) w.Bubble.gameObject.SetActive(there);
+                float hop = 0f;
+                if (Motion.Reduced) { /* simply there */ }
+                else if (!there) hop = Mathf.Abs(Mathf.Sin(_clock * 7f + w.Phase)) * 12f;
+                else if (fly)
+                {
+                    // The firefly loops round its head; the rabbit turns after it with little hops.
+                    float a = since * 2f;
+                    w.Fly.anchoredPosition = new Vector2(Mathf.Cos(a) * 52f, 104f + Mathf.Sin(a * 1.3f) * 22f);
+                    w.FlyImage.color = Palette.Alpha(Palette.Lantern, 0.85f + 0.15f * Mathf.Sin(since * 5f));
+                    facingRight = Mathf.Cos(a) >= 0f;
+                    hop = Mathf.Abs(Mathf.Sin(since * 9f)) * 10f;
+                }
+                else if (tea)
+                {
+                    // A wisp of steam rises and thins, over and over.
+                    float k = Mathf.Repeat(since / 1.4f, 1f);
+                    w.Steam.anchoredPosition = new Vector2(2f + Mathf.Sin(k * Mathf.PI * 2f) * 4f, 10f + k * 22f);
+                    w.SteamImage.color = Palette.Alpha(Palette.Paper, 0.7f * (1f - k));
+                }
+                w.BubbleText.text = tea ? "♪" : (fly ? "♥" : "zZ");
+                // Lying down for a doze, rolling a little; standing otherwise.
+                w.Art.localRotation = doze ? Quaternion.Euler(0, 0, -74f + (Motion.Reduced ? 0f : Mathf.Sin(since * 1.1f) * 8f)) : Quaternion.identity;
+                w.Art.anchoredPosition = doze ? new Vector2(0, -14f) : Vector2.zero;
+                w.Rect.anchoredPosition = at + new Vector2(0, hop);
+                SortWalker(w, at);
+                float face = facingRight ? 1f : -1f;
+                w.Rect.localScale = new Vector3(face, 1f, 1f);
+                w.Bubble.localScale = new Vector3(face, 1f, 1f); // the words read the right way round whichever way it faces
+                if (w.Fly.gameObject.activeSelf) w.Fly.localScale = Vector3.one * (0.8f + 0.3f * (0.5f + 0.5f * Mathf.Sin(since * 5f)));
+            }
         }
 
         #endregion

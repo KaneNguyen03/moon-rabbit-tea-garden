@@ -11,6 +11,7 @@ namespace VuonTra.Game
     {
         public GameCatalog Catalog;
         /// <summary>Where the save file lives; null is the player's own save folder. Tests point it at a folder of their own.</summary>
+        /// <summary>Where the save lives; leave empty for the platform's data folder (the scene stores "" here, #70).</summary>
         public string SaveDirectory;
 
         const float AutosaveSeconds = 5f;
@@ -29,8 +30,8 @@ namespace VuonTra.Game
 
         public event Action StateChanged;
         public event Action<int, BigNum> Payout;
-        /// <summary>Amount earned while away and the seconds that counted.</summary>
-        public event Action<BigNum, double> AwayClaimed;
+        /// <summary>What the garden did while the player was away (#69): carrots, the tray, guests, the sleepiest rabbit.</summary>
+        public event Action<AwayReport> AwayClaimed;
         /// <summary>A season's last-day gift brought the season's rabbit (#8).</summary>
         public event Action<Rabbit> SeasonArrived;
         /// <summary>The first day the game sees of a season, once a year: the screen greets it.</summary>
@@ -48,8 +49,10 @@ namespace VuonTra.Game
         SaveStore _store;
         float _sinceSave;
         bool _ready;
-        BigNum _pendingAway;
-        double _pendingAwaySeconds;
+        AwayReport _pendingAway;
+        /// <summary>The latest time away and whether it has been doubled yet: the sheet's ×2 button acts on it once.</summary>
+        public AwayReport LastAway { get; private set; }
+        public bool LastAwayDoubled { get; private set; }
 
         static long Now => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
@@ -103,7 +106,7 @@ namespace VuonTra.Game
                 if (loaded.Status == LoadStatus.Ok)
                 {
                     Mods = Modifiers.From(UpgradeDefs, State);
-                    _pendingAway = Simulation.ClaimAway(Defs, State, Now, out _pendingAwaySeconds, Mods);
+                    _pendingAway = Away.Claim(Defs, State, Now, Mods);
                 }
                 else
                 {
@@ -130,8 +133,8 @@ namespace VuonTra.Game
 
         void Start()
         {
-            if (_pendingAway >= BigNum.One) AwayClaimed?.Invoke(_pendingAway, _pendingAwaySeconds);
-            _pendingAway = BigNum.Zero;
+            if (_pendingAway.Paid >= BigNum.One) TellAway(_pendingAway);
+            _pendingAway = default;
         }
 
         void Update()
@@ -145,8 +148,8 @@ namespace VuonTra.Game
             else if (dt > LongFrameSeconds)
             {
                 // The app was suspended: pay the gap as time away instead of simulating it.
-                BigNum paid = Simulation.ClaimAway(Defs, State, Now, out double counted, Mods);
-                if (paid >= BigNum.One) AwayClaimed?.Invoke(paid, counted);
+                AwayReport away = Away.Claim(Defs, State, Now, Mods);
+                if (away.Paid >= BigNum.One) TellAway(away);
             }
             else
             {
@@ -814,9 +817,9 @@ namespace VuonTra.Game
         public bool BeginNewMoon(out Rabbit gift)
         {
             if (!NewMoon.Begin(Defs, State, PickName(), out gift)) return false;
-            // The day's carrot goal was set from the big garden's income; it is rolled again for the small one.
-            State.DailyDay = -1;
-            Quests.RollDaily(QuestDefs, Defs, State, Today, Modifiers.From(UpgradeDefs, State));
+            // The day's carrot goal was set from the big garden's income; only that goal is set again, so the
+            // day's claims stay claimed and nothing can be collected twice.
+            Quests.RerollCarrotTarget(Defs, State, Modifiers.From(UpgradeDefs, State));
             _plotsSeen = State.Plots;
             Changed();
             return true;
@@ -845,6 +848,35 @@ namespace VuonTra.Game
             _shopBought = false;
             if (milestone && _ready) SyncNow(SyncReason.Milestone);
         }
+
+        /// <summary>Remembers a time away for the ×2 button and tells the screen.</summary>
+        void TellAway(AwayReport away)
+        {
+            LastAway = away;
+            LastAwayDoubled = false;
+            AwayClaimed?.Invoke(away);
+        }
+
+        /// <summary>What doubling the latest time away costs right now in golden carrots (0 for the day's first).</summary>
+        public int AwayDoubleCost => Away.DoubleCostToday(State, TodayNumber);
+
+        /// <summary>
+        /// Pays the latest time away once more (#69): free once a day, then for golden carrots. False when it was
+        /// doubled already, there is nothing to double, or the golden carrots are short.
+        /// </summary>
+        public bool DoubleAway()
+        {
+            if (LastAwayDoubled || !Away.Double(State, TodayNumber, LastAway.Paid)) return false;
+            LastAwayDoubled = true;
+            Changed();
+            return true;
+        }
+
+        /// <summary>For tests and previews: as if the player had just come back with this report.</summary>
+        public void ShowAwayForTest(AwayReport away) => TellAway(away);
+
+        /// <summary>The folder the save is read from and written to, once the runner has started; null before.</summary>
+        public string SaveFolder => _store?.Folder;
 
         public void Save()
         {

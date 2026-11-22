@@ -163,6 +163,9 @@ namespace VuonTra.Core
 
         public bool Due(SyncReason reason, long now) => reason != SyncReason.Timer || LastAttemptAt < 0 || now - LastAttemptAt >= MinSecondsBetweenTimerSyncs;
 
+        /// <summary>A sync is waiting on the cloud right now; one asked for meanwhile is skipped rather than run on top of it.</summary>
+        public bool InFlight { get; private set; }
+
         /// <summary>One attempt. <paramref name="localSave"/> is the device's copy as text; <paramref name="local"/> its summary.</summary>
         public void Sync(SyncReason reason, string localSave, SaveSummary local, Action<SyncReport> onDone)
         {
@@ -170,22 +173,25 @@ namespace VuonTra.Core
             if (!_cloud.Available) { r.Outcome = SyncOutcome.Unavailable; onDone?.Invoke(r); return; }
             if (Pending != null) { onDone?.Invoke(Pending); return; }
             if (!Due(reason, r.At)) { r.Outcome = SyncOutcome.Skipped; onDone?.Invoke(r); return; }
+            if (InFlight) { r.Outcome = SyncOutcome.Skipped; onDone?.Invoke(r); return; }
             LastAttemptAt = r.At;
+            InFlight = true;
+            Action<SyncReport> finish = report => { InFlight = false; onDone?.Invoke(report); };
             _cloud.Pull(text =>
             {
-                if (text == null) { Push(localSave, r, onDone); return; }
+                if (text == null) { Push(localSave, r, finish); return; }
                 EnvelopeStatus status = CloudSave.Open(text, out CloudEnvelope env);
                 if (status == EnvelopeStatus.Corrupt)
                 {
                     r.RemoteWasCorrupt = true;
-                    Push(localSave, r, onDone);
+                    Push(localSave, r, finish);
                     return;
                 }
                 if (status == EnvelopeStatus.NewerVersion)
                 {
                     r.Outcome = SyncOutcome.NewerVersion;
                     Last = r;
-                    onDone?.Invoke(r);
+                    finish?.Invoke(r);
                     return;
                 }
                 r.Remote = env.Summary;
@@ -195,21 +201,21 @@ namespace VuonTra.Core
                     case SaveChoice.Same:
                         // The same garden at the same point by the summary; still sent up when the text itself differs
                         // (two milestones inside one second, say), so the cloud never trails the device.
-                        if (!string.Equals(localSave, env.Save, StringComparison.Ordinal)) { Push(localSave, r, onDone); break; }
+                        if (!string.Equals(localSave, env.Save, StringComparison.Ordinal)) { Push(localSave, r, finish); break; }
                         r.Outcome = SyncOutcome.Same;
                         if (LastPushedAt < 0) LastPushedAt = env.SavedAt;
                         Last = r;
-                        onDone?.Invoke(r);
+                        finish?.Invoke(r);
                         break;
                     case SaveChoice.KeepLocal:
-                        Push(localSave, r, onDone);
+                        Push(localSave, r, finish);
                         break;
                     default:
                         r.Outcome = SyncOutcome.NeedsChoice;
                         r.SuggestRemote = Suggest(local, env.Summary);
                         Pending = r;
                         Last = r;
-                        onDone?.Invoke(r);
+                        finish?.Invoke(r);
                         break;
                 }
             });
@@ -318,18 +324,34 @@ namespace VuonTra.Core
 
         int ICloudSave.MaxBytes => MaxBytes;
 
+        /// <summary>While true, answers wait until <see cref="Release"/>: a slow network for the tests.</summary>
+        public bool Hold;
+        readonly System.Collections.Generic.Queue<Action> _held = new System.Collections.Generic.Queue<Action>();
+
+        /// <summary>Delivers every answer held back so far, in order.</summary>
+        public void Release()
+        {
+            while (_held.Count > 0) _held.Dequeue()();
+        }
+
+        void Answer(Action deliver)
+        {
+            if (Hold) _held.Enqueue(deliver); else deliver();
+        }
+
         public void Push(string json, Action<bool> onDone)
         {
             Pushes++;
             bool ok = Online && CloudSave.Fits(json, MaxBytes);
             if (ok) Text = json;
-            onDone?.Invoke(ok);
+            Answer(() => onDone?.Invoke(ok));
         }
 
         public void Pull(Action<string> onDone)
         {
             Pulls++;
-            onDone?.Invoke(Online ? Text : null);
+            string text = Online ? Text : null;
+            Answer(() => onDone?.Invoke(text));
         }
 
         public int Deletes;

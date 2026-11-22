@@ -1244,6 +1244,48 @@ Sau khi sửa cả bốn xanh.
 - Từ B: `Palette.OnCarrot` và `ChunkyButton.InkFor` trả màu mực cho nút cam; `ICloudSave.MaxBytes`, `SyncOutcome.TooLarge`, `CloudStatus.SignedOut`; `GameRunner.Init` gọi `PlatformServices.Install` + `Platform.AndroidServices.Install` trước `SyncNow(Open)`; `GardenScreen.SimulatePinch` cho test chụm.
 - Vẽ loài thỏ: tấm 3×2 nền `#2E5E49` theo `docs/anh/VE-BANG-ANTIGRAVITY.md`, cắt bằng `/tmp/agy-art/cat-tam-tho-nocorner.py` (bản không xoá góc) ra khung 320×343; hình có vầng sáng (đèn, ánh trăng) để lại viền xanh của nền, chọn ứng viên không có vầng sáng.
 
+## Rà soát tối 22/11 — các commit trong ngày (#1, #9, #39, #40)
+
+- Rà bằng skill code-review mức medium trên b53d5a4 (#1), và đọc tay cdde124 (#9, phần UnityStorefront chỉ biên dịch iOS/Android), 59d075c (#39), 6ae4d55 (#40). Verify sau khi sửa: 710/711 EditMode (1 Inconclusive có chủ ý của #8).
+- Sửa (commit `5b552c4`): ghép ba thỏ có thể nuốt Thỏ Trăng Non — `Rabbits.Merge` lấy thỏ đang nghỉ trước, không phân biệt loài, mà thỏ trăng non vừa đến thì đang nghỉ và chỉ đến đúng một lần. Nay `Rabbits.Mergeable` loại loài `NewMoonOnly`, `CountOfTier`/`CanMerge` không đếm nó; thêm test `A_Merge_Never_Uses_Up_The_Moon_Rabbit`.
+- Sửa (commit `763c48a`): `UnityStorefront.OnPurchaseFailed` truy `product.definition.id` khi cửa hàng báo lỗi cho sản phẩm không biết (`product` null) → thêm chốt null, chỉ ghi warning. Không có test (file chỉ biên dịch trên điện thoại).
+- Không sửa, ghi lại: (1) `GameRunner.BeginNewMoon` cuộn lại ngày nên bốn nhiệm vụ ngày đã nhận có thể nhận lần nữa cùng ngày (tối đa 7 lần, mỗi mùa một lần) — chờ PO; (2) chip "Mùa N" trên HUD chạm mép chip cà rốt vàng vài đơn vị — chỉnh vị trí khi có ảnh thật; (3) `UnityStorefront` từ chối biên lai → `Complete` (cửa hàng giữ tiền, không trả cà rốt) — hợp lý khi `RECEIPT_VALIDATION` tắt, cân nhắc `Pending` khi bật; (4) `CloudSync` không chặn hai lần đồng bộ chồng nhau trên Android (Pull bất đồng bộ) — chưa thấy hậu quả, theo dõi khi thử máy thật.
+- Bốn điểm trên đã làm sau khi điều phối duyệt (717/718): `144f454` `Quests.RerollCarrotTarget` chỉ tính lại mục tiêu cà rốt ngày (và mốc đã thu) khi sang mùa, giữ ngày và các nhiệm vụ đã nhận (test lõi + test runner); `7796a61` chip cà rốt vàng dời sang phải (x 240), test bốn trường hợp vi/en × thường/chữ to hai chip không giao nhau; `fed56b3` biên lai bị từ chối → `Pending` thay vì `Complete`, cửa hàng đưa lại lần mở sau (ghi vào hai hướng dẫn build; chỉ soi bằng mắt); `f93374b` `CloudSync.InFlight` bỏ qua lời gọi mới khi đang chờ mây, `MemoryCloudSave.Hold/Release` giả lập mạng chậm trong test.
+- Sạch, không sửa: lõi NewMoon (reset, save, cap 7 mùa), NewMoonView (giữ 1,5 s rồi bấm), PlatformServices/GameCenterAccount (nhớ đăng nhập, tên mặc định), ICloudKvsCloudSave + CloudKvs.mm (đo 1 MB trước khi gửi, free chuỗi), SavedGamesCloudSave (không ghi đè bản chưa đọc, trần 3 MB), AndroidServices (đổi tên vườn chỉ khi chưa đặt).
+
+## #70 — Bug chặn: bản Mac không lưu được vườn
+
+- Test: 723/724 EditMode qua (1 inconclusive có chủ ý của #8); `verify.sh --build` xanh, bản Mac chạy, Player.log sạch. Thêm 6 test (`SaveStoreTests.cs`).
+- Commit `2578e4e`, đã push. Issue #70 đã comment (gốc lỗi + bảng 5 ý), nhãn chờ-PO-duyệt.
+- Gốc lỗi: `Garden.unity` lưu `SaveDirectory` là chuỗi rỗng, `SaveStore` chỉ đổi `null` thành thư mục mặc định, nên đường dẫn rỗng làm mọi lần tự lưu ném lỗi và lần mở đọc `save.json` theo thư mục làm việc.
+- Sửa: `SaveStore` coi `null`/rỗng/khoảng trắng là chưa đặt → `Application.persistentDataPath`; `SaveStore.DefaultDirectory` để test trỏ vào thư mục tạm (editor dùng chung thư mục với bản Mac); `SaveStore.Folder`, `GameRunner.SaveFolder`.
+- Thử tay bản Mac: mở → chờ → thoát hai lần, `playSeconds` trong save tăng 5,0 → 18,6 → 32,2 giây; log không còn "Không lưu được game". Save nằm ở `~/Library/Application Support/VuonTraTho/Moon Rabbit Tea Garden/save.json`.
+
+### Chưa đạt
+- Save cũ nằm cạnh app không được tự chuyển sang thư mục dữ liệu. iOS/Android dùng cùng `SaveStore` nhưng chưa thử trên máy thật.
+
+## #69 — Màn lúc đi vắng kể chuyện: trần 3 giờ, bốn dòng, nhận ×2 một lần mỗi ngày
+
+- Test: 744/745 EditMode qua trên main (sau khi gộp cả #55). Thêm `AwayTests.cs` (6) và 2 test màn hình; ba test cũ ghim trần 2 giờ đổi sang 3 giờ.
+- Commit `c09c1d1`, đã push. Issue #69 đã comment (bảng 8 ý), nhãn chờ-PO-duyệt. Save thêm `awayDouble` (không tăng phiên bản).
+- Lõi `Core/Away.cs`: `Away.Claim` bọc `Simulation.ClaimAway` và trả `AwayReport` (cà rốt, số giây, chạm trần, món thêm vào khay + khay đầy, khách ghé mà không ai tiếp — một mỗi vòng đặt-chờ, tối đa 8 —, thỏ ngủ say nhất); `Away.Double` miễn phí lần đầu mỗi ngày (ngày kẹp theo `MaxDaySeen`), sau đó 5 cà rốt vàng; khoản ×2 là quà, không tính vào cà rốt đã thu. `Simulation.AwayCapSeconds` 7 200 → 10 800.
+- Màn hình `AwayView` (tấm trượt `Canvas/Away`): bốn dòng, ảnh thỏ ngáp khi mở (tắt khi Giảm chuyển động), nút "Nhận" và "Nhận ×2 · miễn phí hôm nay / · 5 cà rốt vàng / Còn thiếu N / Đã nhận ×2". Vắng dưới 5 phút không mở tấm, chỉ có "+X" và cà rốt bung ở ví. `GameRunner.LastAway`, `DoubleAway`, `AwayDoubleCost`.
+- `GardenPacingTests`: các mốc giữ nguyên từng giây (cấp 5 lúc 6:03, cấp 10 lúc 6 giờ 30).
+- Ảnh: `docs/anh/po-69/69-sau-mung-quay-lai.png`.
+
+### Chưa đạt
+- ×2 qua quảng cáo thưởng (chờ seam quảng cáo). Chưa thử tay.
+
+## #55 — Thỏ đi dạo ra chỗ cỏ trống (bản đầu, agent song song, nhánh agent-55)
+
+- Test: 744/745 EditMode qua trên main sau khi gộp. Nhánh riêng 730/731: `StrollsTests.cs` (10) + 5 test màn hình; một test cũ (`A_Strolling_Rabbit_Leaves_From_Its_Seat_…`) nới điều kiện vị trí vì không còn làn dạo cố định.
+- Commit `e4874dd`, gộp vào main qua `9249b39` + sửa tên `VuonTra.Core.Away` trong `GardenScreen` (hàm `Away(int)` của #55 che lớp lõi của #69), đã push. Issue #55 đã comment, nhãn chờ-PO-duyệt.
+- Lõi `Core/Strolls.cs`: `PickSpot` theo seed trong bán kính, tránh trạm và đường tới trạm; `MaxAtOnce` 1 thỏ/3 chỗ; `ActivityFor` trà/đom đóm (đêm)/ngủ; ở 4–6 s. Màn hình: một walker cho mỗi ghế (6), mỗi 48 s ra một trong 11 điểm cỏ trống, uống trà ♪, đuổi đom đóm ♥, nằm lăn zZ, rồi về; Giảm chuyển động chỉ hiện ở chỗ rồi về; vuốt vẫn được.
+- Ảnh: `docs/anh/po-55/55-sau-uong-tra.png`, `55-sau-duoi-dom-dom.png`.
+
+### Chưa đạt
+- Thỏ làm việc nghỉ giải lao; ghế thảm cạnh ao chưa có chỗ trong tầm. Chuyển sang ô trống khi #52 lên.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái

@@ -57,7 +57,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0.4 + 0.6, m.TapSeconds, 1e-12);
             Assert.AreEqual(1.2, m.SpeedMultiplier, 1e-12);
             Assert.AreEqual(4, m.IncomeMultiplier, 1e-12);
-            Assert.AreEqual(7200 + 7200, m.AwayCapSeconds, 1e-9);
+            Assert.AreEqual(10800 + 7200, m.AwayCapSeconds, 1e-9);
         }
 
         [Test]
@@ -105,8 +105,8 @@ namespace VuonTra.Core.Tests
             s.UpgradeLevels = new[] { 0, 0, 1, 1 };
             s.LastSeenUnixSeconds = 0;
             BigNum paid = Simulation.ClaimAway(defs, s, 30L * 86400, out double counted, Modifiers.From(ups, s));
-            Assert.AreEqual(14400, counted);
-            Assert.AreEqual(14400 / 1.5 * 2, paid.ToDouble(), 1e-6);
+            Assert.AreEqual(18000, counted, "three hours (#69) plus the charm's two");
+            Assert.AreEqual(18000 / 1.5 * 2, paid.ToDouble(), 1e-6);
         }
 
         [Test]

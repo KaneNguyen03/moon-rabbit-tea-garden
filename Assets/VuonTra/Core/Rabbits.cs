@@ -315,11 +315,19 @@ namespace VuonTra.Core
             return rabbit;
         }
 
+        /// <summary>A rabbit a merge may use up: any but a kind that only ever comes once (the new moon's, #1).</summary>
+        public static bool Mergeable(Rabbit r)
+        {
+            RabbitKind kind = RabbitKinds.Find(r.Kind);
+            return kind == null || !kind.NewMoonOnly;
+        }
+
+        /// <summary>How many of a tier a merge could use: the one-time kinds are not counted.</summary>
         public static int CountOfTier(GameState s, int tier)
         {
             int n = 0;
             for (int i = 0; i < s.Rabbits.Count; i++)
-                if (s.Rabbits[i].Tier == tier) n++;
+                if (s.Rabbits[i].Tier == tier && Mergeable(s.Rabbits[i])) n++;
             return n;
         }
 
@@ -342,7 +350,7 @@ namespace VuonTra.Core
                 {
                     Rabbit r = s.Rabbits[i];
                     bool resting = r.Station < 0;
-                    if (r.Tier == tier && resting == (pass == 0)) used.Add(r);
+                    if (r.Tier == tier && resting == (pass == 0) && Mergeable(r)) used.Add(r);
                 }
 
             int station = -1, level = 1, affection = 0;

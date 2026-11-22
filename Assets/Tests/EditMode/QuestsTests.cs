@@ -144,5 +144,21 @@ namespace VuonTra.Core.Tests
             Quests.TryClaim(open2, defs, s, Modifiers.None, out _);
             Assert.AreEqual(1, Quests.ClaimableCount(quests, defs, s));
         }
+
+        [Test]
+        public void Rerolling_The_Carrot_Goal_Keeps_The_Day_And_Its_Claims()
+        {
+            s.TotalTaps = 10; s.DailyTapsBase = 0;
+            Assert.IsTrue(Quests.TryClaim(dailyTaps, defs, s, Modifiers.None, out _));
+            s.DailyCarrotTarget = new BigNum(1e9);
+            s.TotalEarned = new BigNum(500);
+            Quests.RerollCarrotTarget(defs, s, Modifiers.None);
+            Assert.AreEqual(100, s.DailyDay, "the day is the same");
+            Assert.IsTrue(Quests.IsClaimed(dailyTaps, s), "what was claimed stays claimed");
+            double expected = System.Math.Max(Quests.DailyCarrotMinimum, Economy.IncomePerSecond(defs, s).ToDouble() * Quests.DailyCarrotSeconds);
+            Assert.AreEqual(expected, s.DailyCarrotTarget.ToDouble(), 1e-6, "the goal is this garden's income over ten minutes");
+            Assert.AreEqual(500d, s.DailyEarnedBase.ToDouble(), 1e-9, "and counts from now");
+        }
+
     }
 }

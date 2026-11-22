@@ -222,5 +222,18 @@ namespace VuonTra.Core
                 if (quests[i].Daily) s.Claimed.Remove(quests[i].Id);
             return true;
         }
+
+        /// <summary>
+        /// Sets the day's carrot goal again from the income of this moment, counting from now, and nothing else:
+        /// the day, its claims and its other counters stay. For a garden that just began a new moon (#1), whose
+        /// goal was set from the big garden's income.
+        /// </summary>
+        public static void RerollCarrotTarget(IReadOnlyList<StationDef> defs, GameState s, Modifiers m)
+        {
+            s.DailyEarnedBase = s.TotalEarned;
+            BigNum goal = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * DailyCarrotSeconds);
+            var floor = new BigNum(DailyCarrotMinimum);
+            s.DailyCarrotTarget = goal > floor ? goal : floor;
+        }
     }
 }
