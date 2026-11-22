@@ -128,6 +128,9 @@ namespace VuonTra.Core
         public int PacksBought;
         public List<string> PaidTransactions = new List<string>();
 
+        /// <summary>The hex grid the garden stands on (#52): how wide the lawn is and which tile each station, place to rest, decoration and prop has.</summary>
+        public GardenGrid Grid = new GardenGrid();
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState
@@ -141,6 +144,7 @@ namespace VuonTra.Core
             s.Plots = System.Math.Min(defs.Count, VuonTra.Core.Plots.Starting);
             s.TrayWork = new double[defs.Count];
             if (defs.Count > 0) s.Levels[0] = 1;
+            GardenGrid.Settle(defs, s);
             return s;
         }
     }

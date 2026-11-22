@@ -29,7 +29,7 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view.</summary>
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view. The hex grid under the garden (#52) is an additive block, no new version.</summary>
         public const int CurrentVersion = 14;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
@@ -264,7 +264,23 @@ namespace VuonTra.Core
                 if (s.DecorSpots[i] == null) sb.Append("null"); else WriteString(sb, s.DecorSpots[i]);
             }
             sb.Append("],\"lantern\":").Append(s.LanternColor.ToString(CultureInfo.InvariantCulture));
-            sb.Append("}}");
+            sb.Append('}');
+            // The hex grid (#52), an additive block: how wide the lawn is, and the tile of everything standing on it. Empty tiles follow.
+            sb.Append(",\"grid\":{\"radius\":").Append(s.Grid.Radius.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
+            {
+                var ids = new List<string>();
+                foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) ids.Add(o.Key);
+                ids.Sort(string.CompareOrdinal); // the same grid always writes the same text
+                for (int i = 0; i < ids.Count; i++)
+                {
+                    Hex h = s.Grid.TileOf(ids[i]).Value;
+                    if (i > 0) sb.Append(',');
+                    sb.Append("{\"q\":").Append(h.Q.ToString(CultureInfo.InvariantCulture)).Append(",\"r\":").Append(h.R.ToString(CultureInfo.InvariantCulture)).Append(",\"id\":");
+                    WriteString(sb, ids[i]);
+                    sb.Append('}');
+                }
+            }
+            sb.Append("]}}");
             return sb.ToString();
         }
 
@@ -613,6 +629,23 @@ namespace VuonTra.Core
                     if (order.Id > s.NextOrderId) s.NextOrderId = order.Id;
                 }
             }
+
+            // The hex grid (#52). A save from before stands on the default table: every plot's station, place to rest and
+            // decoration standing gets its tile, so nothing is lost. A tile claimed twice keeps its first claimant.
+            s.Grid = new GardenGrid(GardenGrid.RadiusForPlots(s.Plots));
+            if (root.TryGetValue("grid", out object gridObj) && gridObj is Dictionary<string, object> grid)
+            {
+                if (TryNumber(grid, "radius", out double radius)) s.Grid.Radius = (int)Math.Max(0d, Math.Min(radius, GardenGrid.MaxRadius));
+                if (grid.TryGetValue("tiles", out object tilesObj) && tilesObj is List<object> tiles)
+                    foreach (object raw in tiles)
+                    {
+                        if (!(raw is Dictionary<string, object> tile) || !TryNumber(tile, "q", out double q) || !TryNumber(tile, "r", out double r)) continue;
+                        if (!(tile.TryGetValue("id", out object idObj) && idObj is string id) || !GardenGrid.Known(id) || s.Grid.TileOf(id) != null) continue;
+                        if (Math.Abs(q) > GardenGrid.MaxRadius * 2 || Math.Abs(r) > GardenGrid.MaxRadius * 2 || s.Grid.OccupantAt((int)q, (int)r) != null) continue;
+                        s.Grid.Place(id, (int)q, (int)r, true);
+                    }
+            }
+            GardenGrid.Settle(defs, s);
 
             result.Status = LoadStatus.Ok;
             return result;

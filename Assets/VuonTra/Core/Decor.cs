@@ -102,6 +102,7 @@ namespace VuonTra.Core
         {
             if (!SpotOk(s, spot) || s.DecorSpots[spot] != null || IndexOf(kindId) < 0 || Available(s, kindId) <= 0) return false;
             s.DecorSpots[spot] = kindId;
+            GardenGrid.SettleDecor(s);
             return true;
         }
 
@@ -110,6 +111,7 @@ namespace VuonTra.Core
         {
             if (!SpotOk(s, spot) || s.DecorSpots[spot] == null) return false;
             s.DecorSpots[spot] = null;
+            GardenGrid.SettleDecor(s);
             return true;
         }
 
@@ -118,6 +120,7 @@ namespace VuonTra.Core
         {
             if (!SpotOk(s, spot) || s.DecorSpots[spot] == kindId || IndexOf(kindId) < 0 || Available(s, kindId) <= 0) return false;
             s.DecorSpots[spot] = kindId;
+            GardenGrid.SettleDecor(s);
             return true;
         }
 

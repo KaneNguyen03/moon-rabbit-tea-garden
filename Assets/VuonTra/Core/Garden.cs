@@ -177,6 +177,7 @@ namespace VuonTra.Core
             s.Coins -= Cost(defs, s);
             s.Plots = Math.Min(defs.Count, Waves[index].PlotsAfter);
             s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + index + 1));
+            GardenGrid.Settle(defs, s); // the new plots' stations and the new place to rest take their tiles; the lawn gains a ring (#52)
             return true;
         }
     }

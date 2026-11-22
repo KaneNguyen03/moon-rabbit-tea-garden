@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -639,7 +640,7 @@ namespace VuonTra.Core.Tests
             {
                 Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[index].Id).onClick.Invoke();
                 for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
-                float y = GardenScreen.StationSpot(index).y * world.localScale.y + world.anchoredPosition.y;
+                float y = screen.StationSpot(index).y * world.localScale.y + world.anchoredPosition.y;
                 Assert.Greater(y, screen.SheetHeight + 60f, "station " + index + " stands above the sheet");
                 Assert.Less(y, 1920f - 160f, "station " + index + " stands under the HUD");
             }
@@ -730,7 +731,7 @@ namespace VuonTra.Core.Tests
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             float PondY() => GardenScreen.PondSpot.y * world.localScale.y + world.anchoredPosition.y;
-            float PotY() => GardenScreen.StationSpot(0).y * world.localScale.y + world.anchoredPosition.y;
+            float PotY() => screen.StationSpot(0).y * world.localScale.y + world.anchoredPosition.y;
             Assert.That(PondY(), Is.InRange(300f, 1700f), "behind the title the pond is in view");
 
             screen.Shell.StartGame();
@@ -747,7 +748,7 @@ namespace VuonTra.Core.Tests
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             screen.Shell.StartGame();
             for (int i = 0; i < 6; i++) screen.Advance(1f / 30f);
-            screen.LookAt(GardenScreen.StationSpot(2));
+            screen.LookAt(screen.StationSpot(2));
             Vector2 chosen = world.anchoredPosition;
             for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(chosen, world.anchoredPosition, "the glide does not drag the view back");
@@ -955,10 +956,10 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(scroll.vertical);
             for (int a = 0; a < runner.Defs.Count; a++)
             {
-                Vector2 p = GardenScreen.StationSpot(a);
+                Vector2 p = screen.StationSpot(a);
                 Assert.IsTrue(p.x > 200 && p.x < world.sizeDelta.x - 200 && p.y > 200 && p.y < world.sizeDelta.y - 200, "station " + a + " is inside the world");
                 for (int b = a + 1; b < runner.Defs.Count; b++)
-                    Assert.Greater(Vector2.Distance(p, GardenScreen.StationSpot(b)), 280f, a + " and " + b);
+                    Assert.Greater(Vector2.Distance(p, screen.StationSpot(b)), 280f, a + " and " + b);
             }
         }
 
@@ -1087,7 +1088,7 @@ namespace VuonTra.Core.Tests
                 screen.SelectStation(-1);
                 screen.SelectStation(i);
                 screen.Advance(1f); // let the slide finish
-                float feet = (GardenScreen.StationSpot(i).y - 150f) * world.localScale.y + world.anchoredPosition.y;
+                float feet = (screen.StationSpot(i).y - 150f) * world.localScale.y + world.anchoredPosition.y;
                 Assert.GreaterOrEqual(feet, cardTop - 1f, "station " + i + " stands above the card");
             }
         }
@@ -1348,7 +1349,7 @@ namespace VuonTra.Core.Tests
         public void The_Teapot_Is_The_Centrepiece_And_Ingredients_Stand_By_What_They_Supply()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            Assert.AreEqual(world.sizeDelta.x / 2f, GardenScreen.StationSpot(0).x, 0.5f, "teapot in the middle");
+            Assert.AreEqual(world.sizeDelta.x / 2f, screen.StationSpot(0).x, 0.5f, "teapot in the middle");
             float teapot = world.Find("Station am-tra").localScale.x;
             for (int i = 1; i < runner.Defs.Count; i++)
                 Assert.Greater(teapot, world.Find("Station " + runner.Defs[i].Id).localScale.x * 1.3f, "teapot is clearly the largest");
@@ -1358,7 +1359,7 @@ namespace VuonTra.Core.Tests
                 if (runner.Defs[i].Kind != VuonTra.Core.StationKind.Ingredient) continue;
                 for (int j = 0; j < runner.Defs.Count; j++)
                     if (runner.Defs[i].Boosts(runner.Defs[j].Id))
-                        Assert.Less(Vector2.Distance(GardenScreen.StationSpot(i), GardenScreen.StationSpot(j)), 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
+                        Assert.Less(Vector2.Distance(screen.StationSpot(i), screen.StationSpot(j)), 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
             }
         }
 
@@ -3880,7 +3881,7 @@ namespace VuonTra.Core.Tests
                 Vector2 at = ((RectTransform)child).anchoredPosition;
                 for (int i = 0; i < runner.Defs.Count; i++)
                 {
-                    Vector2 spot = GardenScreen.StationSpot(i);
+                    Vector2 spot = screen.StationSpot(i);
                     Assert.IsTrue(Mathf.Abs(spot.x - at.x) >= 230f || Mathf.Abs(spot.y - at.y) >= 230f, "flowers off station " + i);
                 }
             }
@@ -3943,11 +3944,11 @@ namespace VuonTra.Core.Tests
                 if (child.name != "Planter") continue;
                 Vector2 at = ((RectTransform)child).anchoredPosition;
                 float nearest = float.MaxValue;
-                for (int i = 0; i < runner.Defs.Count; i++) nearest = Mathf.Min(nearest, Vector2.Distance(at, GardenScreen.StationSpot(i)));
+                for (int i = 0; i < runner.Defs.Count; i++) nearest = Mathf.Min(nearest, Vector2.Distance(at, screen.StationSpot(i)));
                 Assert.That(nearest, Is.InRange(200f, 320f), "each planter belongs to a station, beside it rather than on it");
             }
             // The mortar no longer sits on the leaf basket's plate: it stands above the teapot's name.
-            Vector2 mortar = ((RectTransform)world.Find("Mortar")).anchoredPosition, basket = GardenScreen.StationSpot(1);
+            Vector2 mortar = ((RectTransform)world.Find("Mortar")).anchoredPosition, basket = screen.StationSpot(1);
             Assert.Greater(Mathf.Abs(mortar.x - basket.x), 200f);
         }
 
@@ -4328,11 +4329,11 @@ namespace VuonTra.Core.Tests
                 Transform spot = world.Find("Spot " + i);
                 Assert.IsNotNull(spot, "spot " + i + " is built with the garden");
                 Assert.IsFalse(spot.gameObject.activeSelf, "a newcomer sees no spot " + i);
-                Vector2 at = GardenScreen.DecorSpotAt(i);
+                Vector2 at = screen.DecorSpotAt(i);
                 Assert.AreEqual(at, ((RectTransform)spot).anchoredPosition);
-                for (int j = 0; j < runner.Defs.Count; j++) Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.StationSpot(j)), 200f, "spot " + i + " clear of station " + j);
+                for (int j = 0; j < runner.Defs.Count; j++) Assert.GreaterOrEqual(Vector2.Distance(at, screen.StationSpot(j)), 200f, "spot " + i + " clear of station " + j);
                 Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.PondSpot), 200f, "spot " + i + " clear of the pond");
-                for (int j = 0; j < i; j++) Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.DecorSpotAt(j)), 200f, "spots " + i + " and " + j + " apart");
+                for (int j = 0; j < i; j++) Assert.GreaterOrEqual(Vector2.Distance(at, screen.DecorSpotAt(j)), 200f, "spots " + i + " and " + j + " apart");
                 Assert.That(at.x, Is.InRange(90f, GardenScreen.ReadableRight - 40f), "spot " + i + " inside the garden, short of the trees at the edge");
             }
             // No planter, mushrooms or stones has been dressed onto a spot: the ground there is kept for the player.
@@ -4342,7 +4343,7 @@ namespace VuonTra.Core.Tests
                 if (child.name != "Planter" && child.name != "Mushrooms" && child.name != "Stones" && child.name != "Bush" && child.name != "Tree") continue;
                 var prop = (RectTransform)child;
                 Vector2 foot = prop.anchoredPosition - new Vector2(0f, prop.rect.height * prop.pivot.y); // where it stands, whatever it pivots on
-                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(foot, GardenScreen.DecorSpotAt(i)), 140f, child.name + " standing at " + foot + " is off spot " + i);
+                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(foot, screen.DecorSpotAt(i)), 140f, child.name + " standing at " + foot + " is off spot " + i);
             }
 
             // Bought at the shop: a tap asks, a second buys; then the empty spots show their "+".
@@ -4527,5 +4528,96 @@ namespace VuonTra.Core.Tests
             Assert.Less(runner.State.DailyCarrotTarget.ToDouble(), 1e12, "but the carrot goal fits the small garden");
         }
 
+            // ----- #52: the hex grid under the garden -----
+
+        [Test]
+        public void Every_Station_Seat_Prop_And_Decoration_Spot_Stands_On_Its_Own_Tile_Of_The_Grid()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            GardenGrid grid = runner.State.Grid;
+            var taken = new Dictionary<Hex, string>();
+            void Claim(Hex tile, string who)
+            {
+                Assert.IsFalse(taken.ContainsKey(tile), who + " shares tile " + tile + " with " + (taken.ContainsKey(tile) ? taken[tile] : ""));
+                taken[tile] = who;
+            }
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Hex tile = grid.TileOf(GardenGrid.StationId(runner.Defs[i])) ?? GardenGrid.DefaultStationTile(i);
+                if (i < runner.State.Plots) Assert.AreEqual(tile, grid.TileOf(GardenGrid.StationId(runner.Defs[i])), "a plot's station is on the grid");
+                Vector2 at = ((RectTransform)world.Find("Station " + runner.Defs[i].Id)).anchoredPosition;
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), at, "station " + i + " stands on its tile");
+                Assert.AreEqual(at, screen.StationSpot(i));
+                Claim(tile, "station " + i);
+            }
+            for (int k = 0; k < RestSpots.Max; k++)
+            {
+                Hex tile = grid.TileOf(GardenGrid.RestId(k)) ?? GardenGrid.DefaultRestTile(k);
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), screen.RestSpot(k), "seat " + k);
+                Vector2 seat = ((RectTransform)world.Find("Seat " + k)).anchoredPosition;
+                Assert.Less(Vector2.Distance(seat, screen.RestSpot(k)), 80f, "the rabbit sits on its seat's tile, lifted onto the furniture at most");
+                Claim(tile, "seat " + k);
+            }
+            Assert.AreEqual(GardenScreen.CellToWorld(grid.TileOf(GardenGrid.MortarId).Value), screen.MortarSpot);
+            Assert.AreEqual(screen.MortarSpot + new Vector2(0, 80f), ((RectTransform)world.Find("Mortar")).anchoredPosition, "the mortar on its tile");
+            Claim(grid.TileOf(GardenGrid.MortarId).Value, "mortar");
+            Assert.AreEqual(GardenScreen.CellToWorld(grid.TileOf(GardenGrid.ShopId).Value), screen.ShopSpot);
+            var shop = (RectTransform)world.Find("Shop");
+            Assert.AreEqual(screen.ShopSpot.x, shop.anchoredPosition.x, 0.5f, "the shop on its tile");
+            Assert.AreEqual(screen.ShopSpot.y + shop.rect.height / 2f, shop.anchoredPosition.y, 0.5f, "standing on the tile's foot");
+            Claim(grid.TileOf(GardenGrid.ShopId).Value, "shop");
+            Assert.AreEqual(GardenScreen.CellToWorld(grid.TileOf(GardenGrid.CounterId).Value), screen.GuestSpot, "the guest's counter on its tile");
+            Claim(grid.TileOf(GardenGrid.CounterId).Value, "counter");
+            for (int i = 0; i < Decor.Spots; i++)
+            {
+                Hex tile = grid.TileOf(GardenGrid.DecorId(i)) ?? GardenGrid.DefaultDecorTile(i);
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), screen.DecorSpotAt(i));
+                Assert.AreEqual(screen.DecorSpotAt(i), ((RectTransform)world.Find("Spot " + i)).anchoredPosition, "decoration spot " + i + " on its tile");
+                Claim(tile, "decor " + i);
+            }
+            Assert.AreEqual(runner.Defs.Count + RestSpots.Max + 3 + Decor.Spots, taken.Count, "one tile each, nothing shared");
+            Assert.AreEqual(GardenScreen.CellToWorld(new Hex(0, 0)), screen.StationSpot(0), "the teapot is the heart of the grid");
+            Assert.AreEqual(GardenScreen.CellToWorld(new Hex(1, 0)).x - GardenScreen.CellToWorld(new Hex(0, 0)).x, (float)GardenGrid.PitchX, 0.01f);
+        }
+
+        [Test]
+        public void A_Garden_With_Every_Station_Open_Has_Everything_On_The_Grid_Where_The_Screen_Shows_It()
+        {
+            GameState s = runner.State;
+            s.Plots = runner.Defs.Count;
+            for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] <= 0) s.Levels[i] = 1;
+            s.RestSpots = RestSpots.Max;
+            GardenGrid.Settle(runner.Defs, s);
+            screen.Refresh();
+            Assert.AreEqual(GardenGrid.RadiusForPlots(runner.Defs.Count), s.Grid.Radius);
+            Assert.AreEqual(runner.Defs.Count + RestSpots.Max + 3, s.Grid.OccupantCount, "every station, every seat, the mortar, the shop and the counter");
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var tiles = new HashSet<Hex>();
+            foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants)
+            {
+                Assert.IsTrue(tiles.Add(o.Value), o.Key + " has a tile of its own");
+                Assert.LessOrEqual(GardenGrid.Distance(o.Value), s.Grid.Radius, o.Key + " stands on the lawn");
+            }
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Hex tile = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[i])).Value;
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), ((RectTransform)world.Find("Station " + runner.Defs[i].Id)).anchoredPosition, runner.Defs[i].Id);
+                Assert.IsTrue(world.Find("Station " + runner.Defs[i].Id).gameObject.activeSelf, runner.Defs[i].Id + " is open and shown");
+            }
+            for (int k = 0; k < RestSpots.Max; k++) Assert.IsNotNull(s.Grid.TileOf(GardenGrid.RestId(k)), "seat " + k);
+        }
+
+        [Test]
+        public void A_Station_Moved_On_The_Grid_Is_Looked_Up_Where_It_Moved_To()
+        {
+            GameState s = runner.State;
+            Hex home = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[1])).Value;
+            Assert.AreEqual(GardenScreen.CellToWorld(home), screen.StationSpot(1));
+            Assert.IsTrue(s.Grid.NearestEmpty(out Hex empty));
+            Assert.IsTrue(s.Grid.Place(GardenGrid.StationId(runner.Defs[1]), empty.Q, empty.R));
+            Assert.AreEqual(GardenScreen.CellToWorld(empty), screen.StationSpot(1), "the screen reads the grid, not a table");
+            Assert.AreEqual(TileState.UnlockedEmpty, s.Grid.Tile(home.Q, home.R).State, "its old tile is free");
+            Assert.AreEqual(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(runner.Defs.Count)), screen.StationSpot(runner.Defs.Count), "a station beyond the catalog still has a place");
+        }
     }
 }
