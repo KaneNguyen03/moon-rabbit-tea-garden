@@ -78,8 +78,12 @@ namespace VuonTra.Core
             new Hex(5, -6),  // 14 sticky rice paddy: top right, beside the candy kiln it feeds
             new Hex(4, -8),  // 15 night tea boat: the top of the garden
         };
-        /// <summary>The places to rest: the two stumps by the tea table at the bottom, the rug by the pond, the stools, the hammock, the swing.</summary>
-        static readonly Hex[] RestTiles = { new Hex(-1, 5), new Hex(-3, 6), new Hex(3, -4), new Hex(0, 5), new Hex(-5, 6), new Hex(-1, 6) };
+        /// <summary>
+        /// The places to rest: the two stumps by the tea table at the bottom, the picnic rug on the grass between the jam pot and the teapot, the
+        /// stools, the hammock, the swing. The rug stood on the pond's bank at (3,-4) until the pond and its "Câu cá" plate were
+        /// kept clear (#58): it covered the plate.
+        /// </summary>
+        static readonly Hex[] RestTiles = { new Hex(-1, 5), new Hex(-3, 6), new Hex(-2, 2), new Hex(0, 5), new Hex(-5, 6), new Hex(-1, 6) };
         /// <summary>The eight decoration spots: two in the resting corner, then up the sides and the middle, one by the tea shop.</summary>
         static readonly Hex[] DecorTiles = { new Hex(-3, 7), new Hex(-5, 7), new Hex(-3, 3), new Hex(1, 3), new Hex(-1, 2), new Hex(-3, 1), new Hex(-2, -1), new Hex(0, -3) };
         static readonly Hex MortarTile = new Hex(1, -1), ShopTile = new Hex(2, -4), CounterTile = new Hex(3, -3);
@@ -401,15 +405,18 @@ namespace VuonTra.Core
         /// <summary>
         /// The lawn tiles kept clear for the props that stand off the grid or reach past their own tile, so nothing the player
         /// arranges covers them: the firefly jar by the pond and its "Đom đóm · còn N lượt" plate, the leaf-catching basket past the
-        /// leaf station's home tile and the plate hung on its left, and the mortar's plate above the mortar. They are the tiles
-        /// whose cell the prop or its plate reaches into, as the garden draws them (GardenScreen's JarSpot, BasketSpot, MortarSpot).
+        /// leaf station's home tile and the plate hung on its left, the mortar's plate above the mortar, and the moon pond with its
+        /// "Câu cá N/5" plate on the left bank (#58). They are the tiles whose cell the prop or its plate reaches more than 16 units
+        /// into, as the garden draws them (GardenScreen's JarSpot, BasketSpot, MortarSpot, PondSpot).
         /// The mortar, the shop and the counter stand on tiles of their own and hold them; the shop and the counter have no plate.
+        /// The pond's plate reaches into the shop's own tile (2,-4) too, which the shop holds.
         /// </summary>
         static readonly Hex[] ReservedTable =
         {
             new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),                 // the mortar's plate
             new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),                 // the leaf-catching basket and its plate
             new Hex(4, -4), new Hex(4, -3), new Hex(5, -4), new Hex(5, -3), // the firefly jar and its plate
+            new Hex(3, -4), new Hex(4, -5), new Hex(5, -5), new Hex(6, -5), // the moon pond and its "Câu cá" plate (#58), with (4,-4) and (5,-4) above
         };
         static readonly HashSet<Hex> ReservedSet = new HashSet<Hex>(ReservedTable);
 

@@ -4545,10 +4545,9 @@ namespace VuonTra.Core.Tests
                     Assert.GreaterOrEqual(Vector2.Distance(spot, ((RectTransform)world.Find("Seat " + k)).anchoredPosition), 150f, spot + " on seat " + k);
                 Assert.IsTrue(spot.x > 150f && spot.x < GardenScreen.ReadableRight - 80f, spot + " under the wood at the edge");
             }
-            // Every seat but the one by the pond has somewhere to go.
+            // Every seat has somewhere to go, the picnic rug too since it left the pond's bank (#58).
             for (int k = 0; k < RestSpots.Max; k++)
             {
-                if (k == 2) continue;
                 Vector2 seat = ((RectTransform)world.Find("Seat " + k)).anchoredPosition;
                 bool any = false;
                 foreach (Vector2 spot in GardenScreen.LawnSpots) any |= Vector2.Distance(spot, seat) <= GardenScreen.StrollRadius;

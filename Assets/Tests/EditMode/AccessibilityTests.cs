@@ -733,7 +733,7 @@ namespace VuonTra.Core.Tests
         // ----- Tiles kept clear for the props off the grid (#54 follow-up) -----
 
         /// <summary>The props off the grid and their plates, as the garden draws them.</summary>
-        static readonly string[] OffGridProps = { "Jar", "Jar/Plate", "Basket", "Basket/Plate", "Mortar", "Mortar/Plate" };
+        static readonly string[] OffGridProps = { "Jar", "Jar/Plate", "Basket", "Basket/Plate", "Mortar", "Mortar/Plate", "PondTap", "PondTap/Plate" }; // the pond and its "Câu cá" plate (#58)
 
         /// <summary>A rect of the garden in garden units: the ones CellToWorld and the spots use.</summary>
         static Rect GardenRect(RectTransform rt, RectTransform street)
@@ -848,7 +848,7 @@ namespace VuonTra.Core.Tests
                         Layout();
                         Transform street = root.transform.Find("Canvas/Garden/Content");
                         var plates = new List<RectTransform>();
-                        foreach (string path in new[] { "Jar", "Jar/Plate", "Basket/Plate", "Mortar/Plate" })
+                        foreach (string path in new[] { "Jar", "Jar/Plate", "Basket/Plate", "Mortar/Plate", "PondTap/Plate" })
                         {
                             var rt = (RectTransform)street.Find(path);
                             Assert.IsTrue(rt.gameObject.activeInHierarchy, path + " is out");

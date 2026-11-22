@@ -270,6 +270,7 @@ namespace VuonTra.Core.Tests
                 new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),                 // the mortar's plate
                 new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),                 // the leaf-catching basket and its plate
                 new Hex(4, -4), new Hex(4, -3), new Hex(5, -4), new Hex(5, -3), // the firefly jar and its plate
+                new Hex(3, -4), new Hex(4, -5), new Hex(5, -5), new Hex(6, -5), // the moon pond and its "Câu cá" plate (#58)
             };
             CollectionAssert.AreEquivalent(expected, GardenGrid.ReservedTiles);
             var g = new GardenGrid(GardenGrid.MaxRadius);
@@ -309,9 +310,14 @@ namespace VuonTra.Core.Tests
             Hex leaf = g.TileOf("station:leaf").Value;
             Assert.IsFalse(g.Place("decor:0", jar.Q, jar.R), "a decoration on the jar's plate");
             Assert.IsFalse(g.Place("station:jam", plate.Q, plate.R), "a station on the mortar's plate");
+            Assert.IsFalse(g.Place("decor:0", 3, -4), "a decoration on the pond's \"Câu cá\" plate (#58)");
+            Assert.IsFalse(g.Place(GardenGrid.RestId(2), 3, -4), "nor the picnic rug that stood there before");
+            Assert.IsFalse(g.Place("decor:0", 5, -5), "nor on the pond itself");
             Assert.IsFalse(g.Move(leaf, jar), "moved onto the jar");
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, jar), "dropped in the arranging mode: back where it was");
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(3, -1)), "nor on the leaf basket");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(3, -4)), "nor on the pond's plate");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(4, -5)), "nor in the pond");
             Assert.AreEqual(leaf, g.TileOf("station:leaf").Value);
             // Something that already stands on one (as a save from before may have it) swaps with nothing.
             Assert.IsTrue(g.Place("decor:1", 4, -4, true));
@@ -347,10 +353,18 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(s.Grid.Place(GardenGrid.DecorId(0), 4, -3, true));
             Assert.IsTrue(s.Grid.Place("station:jam", 3, -1, true));
             Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(0), 1, -2, true));
+            // And from before the pond was kept clear (#58): the picnic rug's old tile under the "Câu cá" plate, a piece in the pond.
+            Assert.IsTrue(Decor.Buy(s, Decor.Kinds[1].Id) && Decor.Place(s, 1, Decor.Kinds[1].Id));
+            Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(1), 3, -4, true));
+            Assert.IsTrue(s.Grid.Place(GardenGrid.DecorId(1), 5, -5, true));
             string json = SaveCodec.Encode(defs, s);
             StringAssert.Contains("\"version\":14", json, "the save stays version 14");
             GameState back = SaveCodec.Decode(defs, json).State;
-            var was = new Dictionary<string, Hex> { { GardenGrid.DecorId(0), new Hex(4, -3) }, { "station:jam", new Hex(3, -1) }, { GardenGrid.RestId(0), new Hex(1, -2) } };
+            var was = new Dictionary<string, Hex>
+            {
+                { GardenGrid.DecorId(0), new Hex(4, -3) }, { "station:jam", new Hex(3, -1) }, { GardenGrid.RestId(0), new Hex(1, -2) },
+                { GardenGrid.RestId(1), new Hex(3, -4) }, { GardenGrid.DecorId(1), new Hex(5, -5) },
+            };
             foreach (KeyValuePair<string, Hex> moved in was)
             {
                 Hex? now = back.Grid.TileOf(moved.Key);
@@ -361,6 +375,7 @@ namespace VuonTra.Core.Tests
                     Assert.GreaterOrEqual(GardenGrid.Distance(h, moved.Value), GardenGrid.Distance(now.Value, moved.Value), moved.Key + ": " + h + " was nearer");
             }
             Assert.AreEqual(Decor.Kinds[0].Id, back.DecorSpots[0], "the piece is kept");
+            Assert.AreEqual(Decor.Kinds[1].Id, back.DecorSpots[1], "and the one from the pond");
             Assert.AreEqual(3, back.Levels[2]);
             foreach (KeyValuePair<string, Hex> o in back.Grid.Occupants)
                 if (GardenGrid.IsReserved(o.Value)) Assert.Fail(o.Key + " still on reserved " + o.Value);

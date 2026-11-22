@@ -187,7 +187,7 @@ namespace VuonTra.Game.UI
 
         /// <summary>
         /// Where resting rabbits sit: each place has a tile of the grid (#52). The two stumps by the tea table come with the
-        /// garden; then a picnic rug by the pond, mushroom stools, a hammock and a swing, one for each place added.
+        /// garden; then a picnic rug on the grass by the jam pot, mushroom stools, a hammock and a swing, one for each place added.
         /// </summary>
         public Vector2 RestSpot(int k) => CellToWorld(Grid != null && Grid.TryTileOf(GardenGrid.RestId(k), out Hex tile) ? tile : GardenGrid.DefaultRestTile(k));
         /// <summary>For the places that bring their own furniture: how tall it is drawn, and how far the rabbit sits above its foot.</summary>

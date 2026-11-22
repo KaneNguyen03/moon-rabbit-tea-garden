@@ -330,7 +330,7 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(ring == null || !ring.gameObject.activeSelf, "no dashed ring on " + h);
             }
             var spot = (RectTransform)root.transform.Find("Canvas/Garden/Content/Spot 7");
-            foreach (Hex kept in new[] { jar, new Hex(4, -4), new Hex(3, -1), new Hex(1, -2) }) // the jar, behind it, the basket, the mortar's plate
+            foreach (Hex kept in new[] { jar, new Hex(4, -4), new Hex(3, -1), new Hex(1, -2), new Hex(3, -4), new Hex(4, -5) }) // the jar, behind it, the basket, the mortar's plate, the pond's plate and the pond (#58)
             {
                 HoldDragDrop(lantern, screen.LayoutViewPoint(kept));
                 Assert.IsNull(screen.LayoutLifted);
