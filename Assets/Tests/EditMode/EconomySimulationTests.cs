@@ -42,6 +42,14 @@ namespace VuonTra.Core.Tests
         // Where the clovers and golden carrots came from.
         int cloversQuests, cloversGames, cloversOrders, goldenGift, goldenPhoto, goldenQuests, goldenGames, goldenTray, goldenSpent;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
+        /// <summary>
+        /// Rewarded-ad seams (#66), off by default so the pace above is the game as it ships (ads are off in builds):
+        /// whether the player takes the day's free ×2 of time away (#69), and whether they watch every video the three
+        /// places offer. What those paid, kept apart.
+        /// </summary>
+        bool takeFreeDouble, everyAd;
+        BigNum earnedDoubles, earnedAds;
+        int goldenAds, extraRounds;
 
         // When things happened (seconds on the clock; -1 = not yet).
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
@@ -73,6 +81,9 @@ namespace VuonTra.Core.Tests
             freeJars.Clear();
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
+            takeFreeDouble = everyAd = false;
+            earnedDoubles = earnedAds = BigNum.Zero;
+            goldenAds = extraRounds = 0;
             levelAt.Clear();
             plotsAt.Clear();
             for (int i = 0; i < 4; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
@@ -109,6 +120,7 @@ namespace VuonTra.Core.Tests
             Quests.RollDaily(quests, defs, s, Today, mods);
             goldenGift += Shop.ClaimDailyGift(s, Today, null, BigGiftHat, out _, out _); // the first seventh day brings the hat and a clover (#57)
             if (Photos.Take(s, Today)) goldenPhoto += Photos.GiftGolden;
+            if (everyAd) while (Ads.ClaimShopGolden(s, Today)) goldenAds += Ads.ShopGoldenReward; // the shop's two videos (#66)
         }
 
         /// <summary>The open brew station that earns most: where a tap is worth most.</summary>
@@ -293,12 +305,21 @@ namespace VuonTra.Core.Tests
             if (Pounding.CanPlay(s, day) && Pounding.Start(s, day)) { seconds = 25d; Busy(seconds); carrots = Pounding.Finish(defs, s, mods, poundingScore).Carrots; }
             else if (Leaves.CanPlay(s, day) && Leaves.Start(s, day)) { seconds = Leaves.Seconds; Busy(seconds); carrots = Leaves.Finish(defs, s, mods, leavesScore).Carrots; }
             else if (Fireflies.CanPlay(s, day) && Fireflies.Start(s, day)) { seconds = Fireflies.Seconds; Busy(seconds); carrots = Fireflies.Finish(defs, s, mods, firefliesScore).Carrots; }
+            else if (everyAd && ExtraRound(day)) return PlayAGame(); // every game's rounds spent: a video for one more (#66)
             else return false;
             earnedGames += carrots;
             cloversGames += s.Clovers - clovers;
             goldenGames += s.GoldenCarrots - golden;
             gamesPlayed++;
             return true;
+        }
+
+        /// <summary>Watches a video for one more round of the first game whose rounds are spent and whose extra is left today.</summary>
+        bool ExtraRound(long day)
+        {
+            foreach (string game in Ads.Games)
+                if (Ads.ClaimExtraRound(s, day, game)) { extraRounds++; return true; }
+            return false;
         }
 
         void Busy(double seconds)
@@ -377,8 +398,12 @@ namespace VuonTra.Core.Tests
         void Away(double seconds)
         {
             s.LastSeenUnixSeconds = 0;
-            earnedAway += Simulation.ClaimAway(defs, s, (long)seconds, out _, mods);
+            BigNum paid = Simulation.ClaimAway(defs, s, (long)seconds, out _, mods);
+            earnedAway += paid;
             clock += seconds;
+            // The welcome-back sheet (#69, #66): the day's free ×2, else a video for ×2 once the free one is spent.
+            if (takeFreeDouble && VuonTra.Core.Away.DoubleIsFree(s, Today) && VuonTra.Core.Away.Double(s, Today, paid)) earnedDoubles += paid;
+            else if (everyAd && Ads.ClaimAwayDouble(s, Today, paid)) earnedAds += paid;
             Note();
         }
 
@@ -390,7 +415,7 @@ namespace VuonTra.Core.Tests
             return total >= 3600 ? (total / 3600) + " giờ " + (total % 3600 / 60) + " phút" : (total / 60) + " phút " + (total % 60) + " giây";
         }
 
-        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders + earnedJars;
+        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders + earnedJars + earnedDoubles + earnedAds;
 
         double Share(BigNum part)
         {
@@ -398,8 +423,8 @@ namespace VuonTra.Core.Tests
             return total.IsZero ? 0d : Math.Round((part / total).ToDouble() * 1000d) / 10d;
         }
 
-        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + GoldenFromLevels;
-        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray;
+        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + GoldenFromLevels;
+        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds;
         int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders;
 
         /// <summary>One row of the table: where the garden stands and where its carrots came from, so far.</summary>
@@ -537,6 +562,89 @@ namespace VuonTra.Core.Tests
             Assert.LessOrEqual(mostJarsCasual, MoonJars.FreePerDay, "at most one free jar a day\n" + report);
             Assert.LessOrEqual(mostJarsTireless, MoonJars.FreePerDay, "the tireless player too\n" + report);
             Assert.Pass(report.ToString());
+        }
+
+        // ----- a player who watches every video (#66) -----
+
+        /// <summary>Where one casual week ended up: the milestones the asserts hold, and what the ×2s and the videos paid.</summary>
+        sealed class Week
+        {
+            public double Level5, Level10, Plots12;
+            public int LevelDayOne, GoldenCalls, Visitors, Summoned, GoldenAds, ExtraRounds, Plots, Rabbits, LevelEnd;
+            public readonly double[] Wait = new double[3];
+            public double DoubleShare, AdShare;
+            public string Table;
+        }
+
+        /// <summary>The casual week of the test above, played with or without the free ×2 and the videos.</summary>
+        Week CasualWeek(bool freeDouble, bool watchEveryAd)
+        {
+            Reset(false);
+            takeFreeDouble = freeDouble;
+            everyAd = watchEveryAd;
+            var w = new Week();
+            for (int day = 1; day <= 7; day++)
+            {
+                Play(20 * 60);
+                Away(8 * 3600);
+                Play(10 * 60);
+                Away(Day - 8 * 3600 - 30 * 60);
+                if (day == 1) w.LevelDayOne = Garden.Level(s);
+            }
+            w.Level5 = levelAt.ContainsKey(5) ? levelAt[5] : -1;
+            w.Level10 = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            w.Plots12 = plotsAt.ContainsKey(12) ? plotsAt[12] : -1;
+            for (int i = 0; i < 3; i++) w.Wait[i] = waveRabbitsAt[i] < 0 ? double.PositiveInfinity : waveRabbitsAt[i] - waveLevelAt[i];
+            w.GoldenCalls = goldenCalls; w.Visitors = visitorsBought; w.Summoned = summoned;
+            w.GoldenAds = goldenAds; w.ExtraRounds = extraRounds;
+            w.Plots = s.Plots; w.Rabbits = s.Rabbits.Count; w.LevelEnd = Garden.Level(s);
+            w.DoubleShare = Share(earnedDoubles); w.AdShare = Share(earnedAds);
+            w.Table = Milestones();
+            return w;
+        }
+
+        static string Row(string label, Week w) =>
+            "| " + label + " | " + Clock(w.Level5) + " | " + Clock(w.Level10) + " | " + w.LevelDayOne + " | " + Clock(w.Plots12) + " | " + w.LevelEnd + " | " + w.Plots + " | " + w.Rabbits
+            + " | " + (w.GoldenCalls + w.Visitors) + " | " + w.GoldenAds + " | " + w.ExtraRounds + " | " + w.DoubleShare + " | " + w.AdShare + " |";
+
+        /// <summary>
+        /// Not the shipped pace (ads are off in every build): the same casual week as above, as it is, then taking the
+        /// day's free ×2 of time away (#69), then also watching every video the three places offer each day (#66). The
+        /// hard rules must still hold for the last one; the table goes to Logs/economy-ads.txt for the owner.
+        /// </summary>
+        [Test]
+        public void Watching_Every_Ad_Each_Day_Keeps_The_Hard_Pacing_Rules()
+        {
+            Week plain = CasualWeek(false, false);
+            Week free = CasualWeek(true, false);
+            Week ads = CasualWeek(true, true);
+
+            var report = new StringBuilder();
+            report.AppendLine("# Người chơi thong thả xem mọi quảng cáo (#66)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi với EconomySimulationTests. Mỗi ngày: ×2 vắng mặt miễn phí ở lần về đầu tiên trong ngày (#69); xem video ×2 ở lần về sau khi lượt miễn phí đã dùng (1/ngày); 2 video ở Tiệm (+1 cà rốt vàng mỗi lần); thêm 1 lượt mỗi trò khi đã chơi hết lượt (1/trò/ngày).");
+            report.AppendLine();
+            report.AppendLine("| Cách chơi | Cấp vườn 5 | Cấp vườn 10 | Cấp hết ngày 1 | 12 ô đất | Cấp hết ngày 7 | Ô đất ngày 7 | Thỏ ngày 7 | Lượt gọi vàng + thỏ ghé tiệm | Vàng từ video | Lượt thêm từ video | ×2 miễn phí % | ×2 video % |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            report.AppendLine(Row("Như hiện nay (không ×2, không quảng cáo)", plain));
+            report.AppendLine(Row("Dùng ×2 miễn phí mỗi ngày", free));
+            report.AppendLine(Row("×2 miễn phí + xem mọi quảng cáo", ads));
+            report.AppendLine();
+            report.AppendLine("Mốc khi xem mọi quảng cáo:");
+            report.AppendLine(ads.Table);
+            bool calls = ads.GoldenCalls + ads.Visitors <= 6;
+            report.AppendLine(calls ? "Lượt gọi bằng cà rốt vàng vẫn trong mức \"vài lần một tuần, không phải mỗi ngày\" (≤ 6)."
+                : "Lượt gọi bằng cà rốt vàng vượt mức \"không phải mỗi ngày\" (> 6): cần chủ project quyết.");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-ads.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            Assert.GreaterOrEqual(ads.Level5, 5 * 60, "garden level 5 should not come in the first five minutes\n" + report);
+            Assert.LessOrEqual(ads.Level5, 12 * 60, "garden level 5 should come within twelve minutes\n" + report);
+            Assert.GreaterOrEqual(ads.LevelDayOne, 10, "garden level 10 should come within day one\n" + report);
+            Assert.GreaterOrEqual(ads.Level10, 2 * 3600, "garden level 10 should not come in the first sitting\n" + report);
+            Assert.IsTrue(ads.Plots12 < 0 || ads.Plots12 >= 2 * Day, "all twelve plots should wait for day three\n" + report);
+            for (int w = 0; w < 3; w++) Assert.LessOrEqual(ads.Wait[w], 300, "wave " + (w + 1) + " waited on rabbits\n" + report);
         }
     }
 }

@@ -30,3 +30,14 @@ Ghi chú: nếu sau này thêm phân tích (analytics) hay quảng cáo thì ph�
 
 - Email hỗ trợ thật vào `AppInfo.SupportEmail` và đường dẫn công khai của chính sách (`docs/chinh-sach-quyen-rieng-tu.md` phải được đăng ở một trang mở, ví dụ GitHub Pages của một repo public) vào `AppInfo.PrivacyUrl`.
 - Điền hai bảng trên vào console sau khi tạo app trên hai cửa hàng (#41).
+
+## 5. Quảng cáo thưởng (#66): chưa bật
+
+- **Hiện tại:** game **không có quảng cáo**. Chỉ có "chỗ cắm" trong code (`Core/Ads.cs`: `IRewardedAds`, `FakeRewardedAds`, `NoAds`). Mọi bản build cho người chơi (cả bản Mac) chạy `NoAds`: không nạp SDK quảng cáo, không gọi mạng, không nút xem quảng cáo, không bán vé "Bỏ quảng cáo". Video giả chỉ chạy trong Unity Editor để thử ba chỗ. Hai bảng ở mục 1 và 2 **giữ nguyên "No"**.
+- **Công tắc:** `GameRunner.AdsInPlayerBuilds` (mặc định `false`). Chỉ bật khi chủ project đã chốt có quảng cáo và đã cắm SDK thật.
+- **Nếu sau này thêm LevelPlay (gói Ads Mediation của Unity) thì phải đổi:**
+  - App Store — App Privacy: trả lời **Yes** cho thu thập dữ liệu; khai *Identifiers → Device ID* (IDFA nếu người chơi cho phép), *Usage Data → Advertising Data / Product Interaction*, *Diagnostics → Crash Data / Performance Data*, mục đích *Third-Party Advertising* và *Analytics*; "dùng để theo dõi" là **Yes** nếu dùng IDFA, khi đó phải hiện hộp **ATT** trước lần đầu nạp quảng cáo và thêm `NSUserTrackingUsageDescription`, cùng danh sách `SKAdNetworkItems` của các mạng quảng cáo vào Info.plist.
+  - Google Play — Data safety: **Yes**; khai *Device or other IDs* (Advertising ID) collected và shared với bên thứ ba cho mục đích *Advertising or marketing* và *Analytics*, *App info and performance → Crash logs / Diagnostics*; thêm quyền `com.google.android.gms.permission.AD_ID`; đánh dấu "Contains ads" trên trang cửa hàng.
+  - Hộp đồng ý GDPR/CCPA (UMP của Google hoặc hộp đồng ý của LevelPlay) trước khi nạp quảng cáo ở EU/Anh/California; cập nhật `docs/chinh-sach-quyen-rieng-tu.md` nêu tên SDK quảng cáo và các mạng đối tác.
+  - Nhóm tuổi: giữ "Ages 13 and over" ở Google Play; nếu nhắm cả trẻ em thì phải dùng mạng quảng cáo được chứng nhận cho Families, tắt quảng cáo cá nhân hoá.
+- **Vé "Bỏ quảng cáo" (`vuontra.noads.30`)** là gói mua qua cửa hàng như cà rốt vàng (#9), không thêm loại dữ liệu nào ngoài biên lai giao dịch; chỉ bày bán khi quảng cáo đã bật.

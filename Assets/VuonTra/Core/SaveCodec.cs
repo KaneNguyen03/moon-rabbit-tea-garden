@@ -293,6 +293,20 @@ namespace VuonTra.Core
             sb.Append(",\"bought\":").Append(s.MoonJarsBoughtToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"freeDay\":").Append(s.MoonJarFreeDay.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
+            // Rewarded-ad seams (#66), an additive block: the day the claims count for, each place's claims that day, and the pass's end day.
+            sb.Append(",\"ads\":{\"day\":").Append(s.AdsToday.Day.ToString(CultureInfo.InvariantCulture)).Append(",\"used\":{");
+            {
+                bool firstAd = true;
+                foreach (string key in Ads.Keys())
+                {
+                    if (!s.AdsToday.Used.TryGetValue(key, out int used) || used <= 0) continue;
+                    if (!firstAd) sb.Append(',');
+                    firstAd = false;
+                    WriteString(sb, key);
+                    sb.Append(':').Append(used.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+            sb.Append("},\"passUntil\":").Append(s.NoAdsUntilDay.ToString(CultureInfo.InvariantCulture)).Append('}');
             // The hex grid (#52), an additive block: how wide the lawn is, and the tile of everything standing on it. Empty tiles follow.
             sb.Append(",\"grid\":{\"radius\":").Append(s.Grid.Radius.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
             {
@@ -739,6 +753,19 @@ namespace VuonTra.Core
                             Day = ToLong(ReadNumber(entry, "day")),
                         });
                     }
+            }
+
+            // Rewarded-ad seams (#66). A save from before has every claim of the day and no pass; counts are kept to the caps.
+            if (root.TryGetValue("ads", out object adsObj) && adsObj is Dictionary<string, object> ads)
+            {
+                s.AdsToday.Day = TryNumber(ads, "day", out double adsDay) ? ToLong(adsDay) : -1;
+                if (ads.TryGetValue("used", out object usedObj) && usedObj is Dictionary<string, object> used)
+                    foreach (string key in Ads.Keys())
+                    {
+                        int n = (int)Math.Max(0d, Math.Min(ReadNumber(used, key), Ads.CapOfKey(key)));
+                        if (n > 0) s.AdsToday.Used[key] = n;
+                    }
+                s.NoAdsUntilDay = TryNumber(ads, "passUntil", out double passUntil) ? Math.Max(-1L, ToLong(passUntil)) : -1;
             }
 
             // The hex grid (#52). A save from before stands on the default table: every plot's station, place to rest and

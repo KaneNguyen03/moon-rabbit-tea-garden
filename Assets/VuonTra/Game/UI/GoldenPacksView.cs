@@ -119,6 +119,7 @@ namespace VuonTra.Game.UI
             _store = store;
             _busy = false;
             _status.text = store != null && store.Ready ? "" : L10n.T("packs.notready");
+            LayoutPass();
             ShowRows();
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
@@ -137,6 +138,7 @@ namespace VuonTra.Game.UI
                 row.Label.color = can ? Palette.Ink : Palette.InkSoft;
             }
             _restore.interactable = !_busy && _store != null && _store.Ready;
+            ShowPass();
         }
 
         void OnPack(int index)
@@ -178,5 +180,91 @@ namespace VuonTra.Game.UI
         }
 
         public void Close() => _root.SetActive(false);
+
+        // ----- the no-ads pass (#66) -----
+
+        /// <summary>How much taller the card stands while the pass is on sale, and where the pass row and the status line then sit.</summary>
+        public const float CardHeight = 1180f, PassExtra = 150f, PassY = -870f, StatusY = -900f;
+        RectTransform _passRow;
+        ChunkyButton _passButton;
+        Text _passLabel, _passPrice;
+        Func<bool> _passShown;
+        Func<int> _passDays;
+        Action<Action<PurchaseResult>> _onBuyPass;
+
+        /// <summary>The pass row is on the card now (only while ads are switched on).</summary>
+        public bool PassShown => _passRow != null && _passRow.gameObject.activeSelf;
+        public string PassLabel => _passLabel != null ? _passLabel.text : null;
+
+        /// <summary>
+        /// Adds the no-ads pass under the three packs, with the store's own price: shown only while
+        /// <paramref name="shown"/> says ads are switched on, since there is nothing to remove otherwise.
+        /// </summary>
+        public void AttachPass(GameCatalog catalog, Func<bool> shown, Func<int> daysLeft, Action<Action<PurchaseResult>> onBuy)
+        {
+            _passShown = shown;
+            _passDays = daysLeft;
+            _onBuyPass = onBuy;
+            _passRow = UiKit.Rect("NoAds", _card).Place(0.5f, 1f, 0, PassY, 760, 124);
+            _passButton = UiKit.Chunky(_passRow, catalog.Panel, () => { _passButton.Press(_tweens); OnPass(); });
+            _passButton.Face.color = Palette.Card;
+            _passButton.Lip.color = Palette.CardLip;
+            _passLabel = UiKit.Rect("Text", _passButton.FaceRect).Stretch(0, 0, 0.66f, 1, 30, 0, 0, 0)
+                .AddText(L10n.T("noads.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _passLabel.resizeTextForBestFit = true;
+            _passLabel.resizeTextMinSize = 16;
+            _passLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextTitle);
+            var chip = UiKit.Rect("PriceChip", _passButton.FaceRect).Place(1f, 0.5f, -120, 0, 200, 64);
+            chip.AddImage(catalog.Panel, Palette.Paper, true);
+            _passPrice = UiKit.Rect("Price", chip).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _passPrice.resizeTextForBestFit = true;
+            _passPrice.resizeTextMinSize = 14;
+            _passPrice.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _passRow.gameObject.SetActive(false);
+        }
+
+        /// <summary>The card grows to hold the pass row, and the status line moves under it, only while the pass is on sale.</summary>
+        void LayoutPass()
+        {
+            bool on = _passRow != null && _passShown != null && _passShown();
+            if (_passRow != null && _passRow.gameObject.activeSelf != on) _passRow.gameObject.SetActive(on);
+            _card.sizeDelta = new Vector2(_card.sizeDelta.x, CardHeight + (on ? PassExtra : 0f));
+            Vector2 at = _status.rectTransform.anchoredPosition;
+            _status.rectTransform.anchoredPosition = new Vector2(at.x, StatusY - (on ? PassExtra : 0f));
+        }
+
+        void ShowPass()
+        {
+            if (!PassShown) return;
+            string price = _store != null ? _store.PriceOf(Storefront.NoAdsPass) : null;
+            bool can = !_busy && _store != null && _store.Ready && price != null;
+            int days = _passDays != null ? _passDays() : 0;
+            _passLabel.text = days > 0 ? L10n.T("noads.active", days) : L10n.T("noads.title");
+            _passPrice.text = price ?? L10n.T("packs.price.unknown");
+            _passButton.SetEnabled(can);
+            _passLabel.color = can ? Palette.Ink : Palette.InkSoft;
+        }
+
+        void OnPass()
+        {
+            if (_busy || _store == null || !_store.Ready || _onBuyPass == null) return;
+            Sfx.Blip();
+            _busy = true;
+            _status.text = L10n.T("packs.buying");
+            ShowRows();
+            _onBuyPass(result =>
+            {
+                _busy = false;
+                switch (result.Outcome)
+                {
+                    case PurchaseOutcome.Paid: _status.text = L10n.T("noads.paid", _passDays != null ? _passDays() : Ads.PassDays); break;
+                    case PurchaseOutcome.Cancelled: _status.text = L10n.T("packs.cancelled"); break;
+                    case PurchaseOutcome.Duplicate: _status.text = L10n.T("packs.duplicate"); break;
+                    case PurchaseOutcome.Unavailable: _status.text = L10n.T("packs.notready"); break;
+                    default: _status.text = L10n.T("packs.failed"); break;
+                }
+                ShowRows();
+            });
+        }
     }
 }

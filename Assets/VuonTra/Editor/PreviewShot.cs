@@ -680,6 +680,7 @@ namespace VuonTra.EditorTools
             RenderAlbumSets(runner, screen);
             RenderMoonJars(runner, screen);
             RenderGiftCodes(runner, screen);
+            RenderAdSeams(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1095,6 +1096,71 @@ namespace VuonTra.EditorTools
             Capture(screen, "68-ma-sai");
             screen.Profile.Close();
             screen.Shell.Resume();
+            Step(screen, 0.4f);
+        }
+
+        /// <summary>
+        /// #66: the rewarded-ad seams on the editor's pretend videos. The welcome-back sheet once the day's free ×2 is
+        /// spent (golden ×2 stays the main button, "Xem 30 giây" above it), the shop's golden row with its pill, the packs
+        /// card with the no-ads pass, and a mooncake result once the day's rounds are spent, first with a video to watch,
+        /// then with the pass ("Nhận ngay"). Player builds run on NoAds and show none of this.
+        /// </summary>
+        static void RenderAdSeams(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 60, 30, 18, 12 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 8;
+            s.RestSpots = 3;
+            s.GardenXp = Garden.XpForLevel(12);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.6e6);
+            s.GoldenCarrots = 12;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            runner.AdProvider = new FakeRewardedAds();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.4f);
+
+            s.AwayDoubleDay = runner.TodayNumber; // the free ×2 was taken this morning
+            var away = new AwayReport { Paid = new BigNum(8.4e8), Seconds = 2 * 3600, TrayAdded = 4, GuestsMissed = 2, SleepiestId = Away.Sleepiest(s) };
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 0.5f);
+            Capture(screen, "66-di-vang-xem");
+            screen.AwayCard.Close();
+            Step(screen, 0.4f);
+
+            screen.OpenShop();
+            screen.Refresh();
+            Step(screen, 0.5f);
+            Capture(screen, "66-tiem-xem");
+            Press(screen, "Canvas/Shop/Card/Have/BuyMore");
+            Step(screen, 0.4f);
+            Capture(screen, "66-ve-bo-quang-cao");
+            screen.GoldenPacks.Close();
+            screen.Shop.Close();
+            Step(screen, 0.4f);
+
+            s.PoundingDay = runner.TodayNumber;
+            s.PoundingPlays = Pounding.PlaysPerDay - 1; // this is the day's last round
+            screen.OpenPounding();
+            Step(screen, 30f);
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Capture(screen, "66-them-luot");
+            Ads.GrantPass(s, runner.TodayNumber);
+            screen.Refresh();
+            Step(screen, 0.2f);
+            Capture(screen, "66-them-luot-nhan-ngay");
+            screen.Pound.Close();
+            s.NoAdsUntilDay = -1;
+            screen.Refresh();
             Step(screen, 0.4f);
         }
     }
