@@ -1322,6 +1322,16 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Viên "▲ N" ở mép trên có thể đè biển "Giã bánh" (nêu trong #71). Code chưa có vùng an toàn ngang. Chưa thử tay.
 
+## #51 — Bãi cỏ luôn quang, phần chưa mở là vành rừng (agent song song, nhánh agent-51)
+
+- Test: 776/777 EditMode qua trên main sau khi gộp. Nhánh riêng 761/762: 5 test màn hình mới (vành không đè ô ở 4/6/8/10/12 ô và cách ô đã mua ≥ 200, không sương ở mọi đợt, mua đợt thì vành phía đó lùi và mờ, Giảm chuyển động đặt ngay, camera tới mọi ô đã mở sau mỗi đợt); test sương cũ thay bằng test vòng nét đứt.
+- Commit `a0e5e51` (nhánh agent-51), gộp vào main qua `8d53fb3`, đã push. Issue #51 đã comment (bảng 8 ý), nhãn chờ-PO-duyệt.
+- `GardenScreen`: bỏ sương và bụi/nấm trên ô chưa mua; ô chưa mua là vòng nét đứt (`Ring i`), mua xong mọc cỏ + hoa (`Bloom i`). Vành rừng hai bên bãi, hai hàng mỗi bên, sáu mẫu theo hash cố định; mỗi mảnh sát mép bãi và lùi ra tới khi cách mọi ô đã mua và giỏ/lọ/cối ≥ 200, không đè ô nào. Mua đợt: mảnh phải lùi thì mờ rồi hiện lại xa hơn trong 0,6 s (`RimStep`). `RefreshFog` → `RefreshLand`. `ClampView` giữ nguyên.
+- Ảnh (docs/anh/po-51/): trước/sau khung mở đầu và zoom xa, khung mở đầu vi/en/chữ to, mua đợt 1 trước/giữa/sau, năm mốc đợt đất (`PreviewShot.RenderLandWaves`).
+
+### Chưa đạt
+- Vành chỉ ở hai bên (ô chưa mở xen kẽ theo chiều dọc nên không đặt được mặt rừng ngang). Ảnh en/chữ to chỉ ở khung mở đầu. Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
