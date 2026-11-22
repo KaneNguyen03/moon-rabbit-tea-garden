@@ -2354,6 +2354,14 @@ MonoBehaviour:
     m_Localized: Lanterns in {0}
     m_Metadata:
       m_Items: []
+  - m_Id: 257877154455552
+    m_Localized: '{0} is here!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 257877167038464
+    m_Localized: '{0} visits the shop, answers golden calls and comes with the last day''s gift'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

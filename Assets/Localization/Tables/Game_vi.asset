@@ -2350,6 +2350,14 @@ MonoBehaviour:
     m_Localized: "\u0110\xE8n l\u1ED3ng m\xE0u {0}"
     m_Metadata:
       m_Items: []
+  - m_Id: 257877154455552
+    m_Localized: "M\xF9a {0} \u0111\xE3 v\u1EC1!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 257877167038464
+    m_Localized: "{0} gh\xE9 ti\u1EC7m, nghe g\u1ECDi v\xE0ng v\xE0 \u0111\u1EBFn c\xF9ng qu\xE0 ng\xE0y cu\u1ED1i m\xF9a"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
