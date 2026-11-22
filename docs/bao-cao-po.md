@@ -1450,6 +1450,27 @@ Sau khi sửa cả bốn xanh.
 - Bán kính bắt đầu là 3, không phải 2 như đề xuất. Ghế nghỉ, tiệm và hai chỗ trang trí cuối đứng ngoài bãi cỏ cho tới đợt mở đất cuối, coi như khung có sẵn của vườn.
 - Chưa có #53 (vòng đất lộ dần) và #54 (người chơi tự xếp vườn). Chưa thử tay.
 
+## #68 — Mã quà và hộp thư: nhập mã trong Hồ sơ, thư quà đền bù, không cần máy chủ (agent song song, nhánh agent-68)
+
+- Test: 938/939 qua, 0 lỗi (1 test inconclusive là `SeasonTests.Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit`, không thuộc phần này); 36 test mới (18 GiftCodes, 11 Mailbox, 7 màn hình); `tools/verify.sh` GREEN.
+- Commit: f6f1d4c, merge 5464614. Main sau gộp: 953/954.
+- Đã làm:
+- `Core/GiftCodes.cs`: bảng mã công khai `TRATHO-2026` (5 cà rốt vàng + 2 cỏ) và `CAMON-PLAYTEST` (mũ Nơ trăng), cả hai dùng được đến 31/3/2027.
+- Mã ký HMAC-SHA256: 4 ký tự loại (quà + ngày cuối) và 4 ký tự chữ ký. Có 4 loại: 5 vàng, 10 vàng, 2 cỏ, 5 vàng + 2 cỏ.
+- Mỗi vườn dùng một mã một lần; mã đã dùng lưu trong save (`codesUsed`). Không phân biệt hoa thường, bỏ qua dấu cách và gạch ngang.
+- `tools/make-code.sh`: tạo khoá (`--new-key`) và tạo mã; khoá nằm ở `Assets/Resources/keys.json`, git bỏ qua.
+- `Core/Mailbox.cs`: tối đa 10 thư, mỗi thư 30 ngày. Thư xin lỗi khi save hỏng (10 vàng + 3 cỏ). Thư quà mùa (5 vàng) cho mỗi mùa bị lỡ trọn vẹn trong vòng 1 năm. Số quà theo loại thư, sửa file save không tăng được.
+- Hồ sơ: ô nhập mã + nút "Nhận quà" dưới mã người chơi. Mã đúng thì đóng thẻ, cà rốt vàng bay về ví; mã sai thì ô rung, `Sfx.Deny` và báo lý do.
+- Thẻ Tạm nghỉ: nút "Thư" ở góc trên trái, có số đếm, mở thẻ Hộp thư.
+- Ảnh: docs/anh/po-68/68-tam-nghi-thu.png, 68-hop-thu.png, 68-hop-thu-da-nhan.png, 68-ho-so-ma-qua.png, 68-ma-sai.png
+
+### Chưa đạt / cần PO quyết
+- Chưa chạy thử bằng tay trên bản Mac (mới có test màn hình).
+- Chưa có khoá thật: cần chạy `tools/make-code.sh --new-key` trên máy build và cất khoá ở chỗ an toàn. Khoá nằm trong bản build (thư mục Resources), nên người chịu khó mổ bản build vẫn lấy được.
+- PO duyệt các con số tự chọn: hạn 31/3/2027 cho hai mã công khai, thư xin lỗi 10 vàng + 3 cỏ, thư quà mùa 5 vàng, 4 loại mã ký.
+- Nhập mã đúng sẽ đóng cả Hồ sơ lẫn thẻ Tạm nghỉ để thấy quà bay về ví; nhận thư thì ở lại hộp thư và chỉ hiện một dòng "Đã nhận …".
+- Chơi lại từ đầu thì danh sách mã đã dùng cũng mất, nên nhập lại được mã cũ.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
