@@ -2611,6 +2611,18 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Summon_Odds_Read_Without_A_Trailing_Zero_In_Both_Languages()
+        {
+            Assert.AreEqual("Bạc 60% · Xanh lá 25% · Xanh dương 10% · Tím 4% · Vàng 0,9% · Đỏ 0,1%", ShopView.Odds(Rabbits.Odds));
+            Assert.AreEqual("Bạc 25% · Xanh lá 35% · Xanh dương 22% · Tím 12% · Vàng 5% · Đỏ 1%", ShopView.Odds(Shop.GoldenOdds));
+            L10n.SetLocale("en");
+            Assert.AreEqual("Silver 60% · Green 25% · Blue 10% · Purple 4% · Gold 0.9% · Red 0.1%", ShopView.Odds(Rabbits.Odds));
+            Assert.AreEqual("Silver 25% · Green 35% · Blue 22% · Purple 12% · Gold 5% · Red 1%", ShopView.Odds(Shop.GoldenOdds));
+            screen.RebuildUi();
+            StringAssert.Contains("Silver 60% · Green 25%", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Odds").GetComponent<Text>().text, "and so the Rabbits tab reads");
+        }
+
+        [Test]
         public void The_Rabbits_Tab_Shows_Both_Calls_Odds_And_Golden_Quests_Show_A_Golden_Chip()
         {
             Transform odds = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Odds");

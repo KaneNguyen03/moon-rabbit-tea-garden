@@ -335,14 +335,15 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>"Bạc 60 % · Xanh lá 25 % · …" for a table of odds.</summary>
+        /// <summary>"Bạc 60% · Xanh lá 25% · … · Vàng 0,9%" for a table of odds: whole numbers without a trailing ",0" in either language (#72).</summary>
         public static string Odds(double[] odds)
         {
             var sb = new System.Text.StringBuilder();
             for (int tier = 0; tier < odds.Length; tier++)
             {
                 if (tier > 0) sb.Append(" · ");
-                sb.Append(L10n.Tier(tier)).Append(' ').Append(UiKit.Times(odds[tier] * 100d).Replace(",0", "")).Append('%');
+                string percent = (odds[tier] * 100d).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+                sb.Append(L10n.Tier(tier)).Append(' ').Append(L10n.Number(percent)).Append('%');
             }
             return sb.ToString();
         }
