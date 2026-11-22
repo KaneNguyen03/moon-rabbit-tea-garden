@@ -22,7 +22,7 @@ MonoBehaviour:
   CycleSeconds: 5
   Boosts: []
   Prop: {fileID: 21300000, guid: 6c31d2d42e6b9433eaaf2691df167cf2, type: 3}
-  Product: {fileID: 0}
+  Product: {fileID: 21300000, guid: f595db76219ee4bffa43b41f6b09812f, type: 3}
   Rabbit: {fileID: 21300000, guid: 8fbb94678c4de4dbabd95a9d6847d7df, type: 3}
   WorkFrames: []
   Accent: {r: 0.8784314, g: 0.34117648, b: 0.47843137, a: 1}
