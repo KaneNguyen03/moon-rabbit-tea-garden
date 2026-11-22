@@ -1118,6 +1118,7 @@ Sau khi sửa cả bốn xanh.
 - Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
 - #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
+- Hai chỗ chữ bị che (`ac9a9d0`, sau verify --build; verify thường xanh 618/618): thanh Trà lực ngắn lại (288, kết thúc trước tấm nút góc) nên "Tăng tốc!" đọc đủ; giỏ Hứng lá nhỏ lại (110×95), dời sang phải (StationSpot(giỏ lá) + (104, 130)) và biển của nó treo bên trái (240 rộng, một dòng), không còn đè "Mở rộng vườn" hay tên trạm; ảnh `docs/anh/po-37/37-khay-hinh.png` cập nhật.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`, `po-49`, `po-41`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
