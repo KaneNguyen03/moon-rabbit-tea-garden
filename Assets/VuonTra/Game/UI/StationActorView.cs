@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
@@ -50,7 +51,10 @@ namespace VuonTra.Game.UI
         GameObject _bunting, _rankLanterns, _rankHalo;
         RectTransform _rankHaloRect;
         int _rank;
-        Image _hatImage, _charmImage;
+        Image _hatImage, _charmImage, _toolImage;
+        RectTransform _tool;
+        Vector2 _toolHome;
+        RabbitTrade _trade;
         bool _guest, _haloWanted, _signBob;
         int _level = -1;
         float _shownLevel, _levelRun;
@@ -181,6 +185,15 @@ namespace VuonTra.Game.UI
             _charmImage.preserveAspect = true;
             _charmImage.gameObject.SetActive(false);
 
+            // What the station's trade is worked with (#2): the trade's icon held in the near paw, moved by the trade
+            // in Animate. Drawn with the rabbit, so it squashes, leans and hops along.
+            _toolHome = new Vector2(GuestBox * 0.30f, GuestBox * 0.30f);
+            _tool = UiKit.Rect("Tool", _rabbit).Place(0.5f, 0f, _toolHome.x, _toolHome.y, GuestBox * 0.26f, GuestBox * 0.26f);
+            _tool.pivot = new Vector2(0.5f, 0.15f); // held near the handle's end, so it turns about the paw
+            _toolImage = _tool.AddImage(null, Color.white);
+            _toolImage.preserveAspect = true;
+            _tool.gameObject.SetActive(false);
+
             // Shown only while the station can be afforded: the one hint on the scene that says "tap me".
             _upArrowRect = UiKit.Rect("CanUp", Root).Place(0.5f, 0.5f, 150, -118, 56, 56);
             _upArrowRect.AddImage(catalog.IconUp, Color.white).preserveAspect = true;
@@ -277,8 +290,10 @@ namespace VuonTra.Game.UI
         /// <param name="hatNudge">This kind's own nudge for the hat, in shares of the drawing's height.</param>
         /// <param name="hatLift">The hat kind's own lift (#44), in shares of the drawing's height.</param>
         /// <param name="fur">The tint of the rabbit's fur: white, or its dye (#44).</param>
-        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo, Vector2 hatNudge = default, float hatLift = 0f, Color? fur = null)
+        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo, Vector2 hatNudge = default, float hatLift = 0f, Color? fur = null, Sprite tool = null, RabbitTrade trade = RabbitTrade.None)
         {
+            _trade = trade;
+            Show(_toolImage, art != null ? tool : null);
             // The same numbers the rabbit list uses, so a hat sits the same on a rabbit wherever it is drawn.
             float across = (GameCatalog.KindHeadX - 0.5f + hatNudge.x) * GuestBox * GameCatalog.KindAspect;
             RabbitGridView.PlaceHat((RectTransform)_hatImage.transform, hat, GuestBox, across, (GameCatalog.KindHeadTop + hatNudge.y) * GuestBox, hatLift);
@@ -290,6 +305,42 @@ namespace VuonTra.Game.UI
             Show(_hatImage, _guest ? hat : null);
             Show(_charmImage, _guest ? charm : null);
             ShowWho();
+        }
+
+        /// <summary>
+        /// The tool at work, between fixed bounds: a brewer stirs (the spoon turns about the paw), a baker kneads
+        /// (the tool presses down and up), a gatherer swings the basket, a stargazer tilts the glass slowly. A
+        /// dozing rabbit lets it rest, and under reduced motion it only sits in the paw.
+        /// </summary>
+        void MoveTool(float t)
+        {
+            float angle = 0f;
+            Vector2 shift = Vector2.zero;
+            if (!Dozing && !Motion.Reduced)
+            {
+                switch (_trade)
+                {
+                    case RabbitTrade.Brewer:
+                        angle = Mathf.Sin(t * 5f + _index) * 22f;
+                        shift = new Vector2(Mathf.Cos(t * 5f + _index), Mathf.Sin(t * 5f + _index)) * 4f;
+                        break;
+                    case RabbitTrade.Baker:
+                        angle = Mathf.Sin(t * 4.5f + _index) * 6f;
+                        shift = new Vector2(0f, -Mathf.Abs(Mathf.Sin(t * 4.5f + _index)) * 10f);
+                        break;
+                    case RabbitTrade.Gatherer:
+                        angle = Mathf.Sin(t * 2.4f + _index) * 12f;
+                        shift = new Vector2(0f, Mathf.Abs(Mathf.Sin(t * 2.4f + _index)) * 6f);
+                        break;
+                    default:
+                        angle = Mathf.Sin(t * 1.1f + _index) * 8f;
+                        shift = new Vector2(0f, 20f);
+                        break;
+                }
+            }
+            else if (Dozing) shift = new Vector2(0f, -12f);
+            _tool.localRotation = Quaternion.Euler(0, 0, angle);
+            _tool.anchoredPosition = _toolHome + shift;
         }
 
         /// <summary>The station's visible rank (#49): 0 plain, 1 bunting, 2 stone lanterns and a golden plate, 3 a halo too. Only an open station shows any.</summary>
@@ -429,6 +480,7 @@ namespace VuonTra.Game.UI
                 // A working rabbit sways as it works; a sleeping one nods slowly.
                 float lean = Dozing ? Mathf.Sin(time * 0.9f + _index) * 2.2f - 9f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
                 _rabbit.localRotation = Quaternion.Euler(0, 0, lean * (1f - air));
+                if (_tool.gameObject.activeSelf) MoveTool(time * tempo);
             }
             if (open && _shownLevel < _level)
             {

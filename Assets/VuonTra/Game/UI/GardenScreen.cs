@@ -152,6 +152,11 @@ namespace VuonTra.Game.UI
         /// <summary>The rabbit on the swing is drawn a little smaller so it fits between the posts.</summary>
         static readonly float[] SeatScale = { 1f, 1f, 1f, 1f, 1f, 0.82f };
         readonly List<GameObject> _seatNaps = new List<GameObject>();
+        /// <summary>A seated rabbit's hat and its name plate (#3).</summary>
+        readonly List<Image> _seatHats = new List<Image>();
+        readonly List<Text> _seatNames = new List<Text>();
+        /// <summary>How a rabbit holds itself at each place: a squat on the stumps, the rug, the stool and the swing; lying in the hammock.</summary>
+        static readonly bool[] SeatLies = { false, false, false, false, true, false };
         readonly List<RectTransform> _seats = new List<RectTransform>();
         readonly List<Image> _seatArt = new List<Image>();
         readonly List<GameObject> _seatCushions = new List<GameObject>();
@@ -904,6 +909,7 @@ namespace VuonTra.Game.UI
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
+            _seatHats.Clear(); _seatNames.Clear();
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
@@ -1225,6 +1231,20 @@ namespace VuonTra.Game.UI
                 art.preserveAspect = true;
                 UiKit.Strokable(art.rectTransform, _scroll, () => StrokeSeat(seat), () => OnSeat(seat)); // #19: stroked where it sits
                 rt.localScale = Vector3.one * SeatScale[k];
+                // The hat hangs from the picture, so it lies down with it in the hammock; the name sits under the seat.
+                var hatOn = UiKit.Rect("HatOn", art.rectTransform);
+                Image hatImage = hatOn.AddImage(null, Color.white);
+                hatImage.preserveAspect = true;
+                hatOn.gameObject.SetActive(false);
+                _seatHats.Add(hatImage);
+                var namePlate = UiKit.Rect("Name", rt).Place(0.5f, 0f, 0, -16, 150, 34);
+                namePlate.AddImage(catalog.Panel, Palette.Paper, true);
+                Text nameText = UiKit.Rect("Text", namePlate).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                nameText.resizeTextForBestFit = true;
+                nameText.resizeTextMinSize = 12;
+                nameText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+                nameText.verticalOverflow = VerticalWrapMode.Truncate;
+                _seatNames.Add(nameText);
                 // Resting looks different from working: a slow sway, and now and then a doze.
                 var nap = UiKit.Rect("Nap", rt).Place(1f, 1f, 6, -6, 60, 34);
                 nap.AddImage(catalog.Panel, Palette.Paper, true);
@@ -3320,7 +3340,8 @@ namespace VuonTra.Game.UI
                     _actors[i].SetWorker(catalog.RabbitArt(worker),
                         hat != null && !kind.NoHat ? catalog.ItemIcon(hat.DefId) : null, charm != null ? catalog.ItemIcon(charm.DefId) : null,
                         worker.Tier >= 4 && !kind.OwnGlow, new Vector2(kind.HatX, kind.HatY),
-                        hat != null ? catalog.ItemHatLift(hat.DefId) : 0f, RabbitGridView.Fur(worker));
+                        hat != null ? catalog.ItemHatLift(hat.DefId) : 0f, RabbitGridView.Fur(worker),
+                        catalog.TradeIcon(defs[i].Trade), defs[i].Trade);
                 }
 
                 GameObject chip = _tierChips[i].gameObject;
@@ -3394,11 +3415,13 @@ namespace VuonTra.Game.UI
                 _seatIds[k] = taken ? seated[k].Id : 0;
                 if (taken)
                 {
-                    Sprite art = catalog.RabbitArt(seated[k]);
-                    Color fur = RabbitGridView.Fur(seated[k]);
+                    Rabbit r = seated[k];
+                    Sprite art = catalog.RabbitArt(r);
+                    Color fur = RabbitGridView.Fur(r);
                     _seatArt[k].sprite = art;
                     _seatArt[k].color = fur;
                     if (k < _walkers.Count) { _walkers[k].Art.sprite = art; _walkers[k].Art.color = fur; }
+                    PoseSeated(k, r, s, catalog);
                 }
                 bool sitting = taken && !(k < _walkers.Count && Strolling(k, _clock));
                 if (_seats[k].gameObject.activeSelf != sitting) _seats[k].gameObject.SetActive(sitting);
@@ -3406,6 +3429,34 @@ namespace VuonTra.Game.UI
                 bool cushion = k >= 2 && k < s.RestSpots;
                 if (_seatCushions[k].activeSelf != cushion) _seatCushions[k].SetActive(cushion);
             }
+        }
+
+        /// <summary>
+        /// A resting rabbit holds itself like one (#3), made from the standing picture by code until poses are drawn:
+        /// a squat (wider, lower) on the stumps, the rug, the stool and the swing; lying along the hammock. Its hat
+        /// comes with it, placed on the head the way the rabbit list places it, and its name sits under the seat.
+        /// </summary>
+        void PoseSeated(int k, Rabbit r, GameState s, GameCatalog catalog)
+        {
+            RectTransform art = _seatArt[k].rectTransform;
+            bool lies = k < SeatLies.Length && SeatLies[k];
+            art.localRotation = Quaternion.Euler(0, 0, lies ? -72f : 0f);
+            art.localScale = lies ? new Vector3(0.92f, 0.92f, 1f) : new Vector3(1.06f, 0.86f, 1f);
+            art.anchoredPosition = lies ? new Vector2(12f, 26f) : new Vector2(0f, -6f);
+
+            const float Box = 124f;
+            RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(r));
+            Item hat = Items.Worn(s, r.Id, ItemSlot.Hat);
+            Sprite icon = hat != null && kind != null && !kind.NoHat ? catalog.ItemIcon(hat.DefId) : null;
+            Image hatImage = _seatHats[k];
+            if (icon != null)
+            {
+                float across = (GameCatalog.KindHeadX - 0.5f + kind.HatX) * Box * GameCatalog.KindAspect;
+                RabbitGridView.PlaceHat(hatImage.rectTransform, icon, Box, across, (GameCatalog.KindHeadTop + kind.HatY) * Box, catalog.ItemHatLift(hat.DefId));
+                hatImage.sprite = icon;
+            }
+            if (hatImage.gameObject.activeSelf != (icon != null)) hatImage.gameObject.SetActive(icon != null);
+            _seatNames[k].text = r.Name;
         }
 
         /// <summary>True when the one thing the station's card offers (land, opening, or levels) can be paid for.</summary>

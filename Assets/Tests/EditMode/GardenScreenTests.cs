@@ -3980,5 +3980,63 @@ namespace VuonTra.Core.Tests
             UiKit.SetLargeText(false);
             L10n.SetLocale("vi");
         }
+
+        [Test]
+        public void A_Working_Rabbit_Holds_Its_Stations_Tool_And_Works_It_Between_Fixed_Bounds()
+        {
+            screen.Shell.StartGame();
+            Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra");
+            Assert.IsFalse(station.Find("Rabbit/Tool").gameObject.activeSelf, "no tool without a rabbit");
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            Motion.SetReduced(true);
+            screen.Refresh();
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
+            var tool = (RectTransform)station.Find("Rabbit/Tool");
+            Assert.IsTrue(tool.gameObject.activeSelf, "a tool in the paw");
+            Assert.AreEqual(runner.Catalog.TradeIcon(runner.Defs[0].Trade), tool.GetComponent<Image>().sprite, "the station's trade, not the rabbit's");
+            Assert.AreEqual(Quaternion.identity, tool.localRotation, "held still under reduced motion");
+
+            Motion.SetReduced(false);
+            float maxAngle = 0f; bool moved = false; Vector2 home = tool.anchoredPosition;
+            for (int k = 0; k < 40; k++)
+            {
+                screen.Advance(0.05f);
+                float a = Mathf.Abs(Mathf.DeltaAngle(0f, tool.localRotation.eulerAngles.z));
+                maxAngle = Mathf.Max(maxAngle, a);
+                if (Vector2.Distance(tool.anchoredPosition, home) > 1f || a > 0.5f) moved = true;
+            }
+            Assert.IsTrue(moved, "the tool is worked");
+            Assert.LessOrEqual(maxAngle, 25f, "between fixed bounds");
+
+            runner.State.Rabbits[0].Station = -1;
+            screen.Refresh();
+            Assert.IsFalse(tool.gameObject.activeSelf, "and goes with the rabbit");
+        }
+
+        [Test]
+        public void Resting_Rabbits_Squat_On_Their_Seats_Lie_In_The_Hammock_And_Wear_Their_Hat_And_Name()
+        {
+            runner.State.RestSpots = RestSpots.Max;
+            for (int i = 1; i <= 5; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 5 - i, Kind = RabbitKinds.OfTier(5 - i)[0].Id, Name = "T" + i });
+            runner.State.NextRabbitId = 5;
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
+            runner.EquipItem(hat.Id, 1); // the rarest, who takes the first seat
+            screen.Refresh();
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            var stump = (RectTransform)world.Find("Seat 0/Art");
+            Assert.Less(stump.localScale.y, 1f, "a squat on the stump");
+            Assert.Greater(stump.localScale.x, 1f);
+            Assert.AreEqual(0f, Mathf.DeltaAngle(0f, stump.localRotation.eulerAngles.z), 0.01f);
+            var hammock = (RectTransform)world.Find("Seat 4/Art");
+            Assert.AreEqual(-72f, Mathf.DeltaAngle(0f, hammock.localRotation.eulerAngles.z), 0.01f, "lying along the hammock");
+            Assert.AreEqual("T1", world.Find("Seat 0/Name/Text").GetComponent<Text>().text, "the name under the seat");
+            Assert.AreEqual("T5", world.Find("Seat 4/Name/Text").GetComponent<Text>().text);
+            Transform hatOn = world.Find("Seat 0/Art/HatOn");
+            bool noHat = RabbitKinds.Find(runner.State.Rabbits[0].Kind).NoHat;
+            Assert.AreEqual(!noHat, hatOn.gameObject.activeSelf, "the hat comes along to the seat");
+            if (!noHat) Assert.AreEqual(runner.Catalog.ItemIcon(hat.DefId), hatOn.GetComponent<Image>().sprite);
+            Assert.IsFalse(world.Find("Seat 1/Art/HatOn").gameObject.activeSelf, "no hat on a rabbit that wears none");
+        }
     }
 }
