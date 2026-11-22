@@ -950,6 +950,19 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt so với #28
 - Thỏ chớp mắt, vẫy tai (cần khung hình vẽ); hình ngôi sao riêng cho vòng sao; thử tay trên máy thật.
 
+## #33 — Dễ đọc và dễ dùng: chữ to, vùng chạm, vùng an toàn, tương phản
+
+- Test: 522/522 EditMode qua (verify.sh: seed, 92 ảnh, biên dịch, test). File mới `AccessibilityTests.cs` (10 test: chữ to, vùng an toàn, vùng chạm, tràn chữ vi/en × thường/chữ to, tương phản WCAG).
+- Commit `d48ede5`, đã push. Issue #33 đã comment (bảng đối chiếu 6 ý), nhãn chờ-PO-duyệt.
+- Chữ to: `UiKit.LargeText` (PlayerPrefs `text.large`), `UiKit.TextScale` 1,2 nhân vào mọi `AddText`; công tắc "Chữ to" trên thẻ Tạm nghỉ (thẻ cao 1290), `UiKit.TextChanged` → `GardenScreen.RebuildUi` như đổi ngôn ngữ. Pill chế độ mua, biển "Thêm thỏ", nhãn Trà lực, nhãn "Loài chưa gặp" nới theo (best fit).
+- Vùng chạm: `UiKit.MinTouch = 88`; `UiKit.Touchable(rt, w, h)` đặt tấm bắt chạm ẩn cho pill nằm trong dải chật. 40 nút dưới mức đã sửa (đóng, nút phụ, pill chế độ / ảnh / tỷ lệ / ngôn ngữ / bỏ qua / mép cuộn, tab con Thỏ).
+- Vùng an toàn: `GardenScreen.SafeInsets` (dưới, trên) thay `SafeBottom`; HUD hạ theo tai thỏ trong `PlaceTabBar`.
+- Tương phản: `Palette.InkSoft` 64 % → 70 % mực (4,4:1 → 5,2:1 trên thẻ). Chữ kem trên nút cam 2,0:1 để PO quyết (mực trên cam được 6,2:1).
+- Ảnh (docs/anh/po-33/): `33-truoc-tam-nghi.png`, `33-sau-tam-nghi.png`, `33-sau-chu-to.png`, `33-sau-vuon.png`. PreviewShot thêm khung `33-chu-to`.
+
+### Chưa đạt
+- Màu chữ trên nút chính (chờ PO). Chưa thử tay trên máy thật, chưa đo trên máy có tai thỏ thật.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
