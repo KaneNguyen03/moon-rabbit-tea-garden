@@ -165,6 +165,16 @@ namespace VuonTra.EditorTools
             state.TotalTaps = 37;
             runner.BuyUpgrade(0); // also refreshes the modifiers
 
+            // The working rabbits with their trade tools (#2), close up, once they have walked to their posts.
+            screen.Refresh();
+            Step(screen, 3f);
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
+            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(-60f, 0f));
+            Step(screen, 0.6f);
+            Capture(screen, "2-dung-cu-nghe");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.LookAt(GardenScreen.StationSpot(0));
+            Step(screen, 0.3f);
             Press(screen, "Canvas/Hud/Energy");
             Step(screen, 2.4f);
             Capture(screen, "4-boost");
