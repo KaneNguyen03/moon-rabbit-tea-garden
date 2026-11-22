@@ -2339,5 +2339,45 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2000d - 0.1d * 1920d / 1.5d, runner.State.ViewY, 1d, "looking elsewhere is noted at once, so the next save keeps it");
             Assert.AreEqual(1.5d, runner.State.ViewZoom, 1e-3d);
         }
+
+        [Test]
+        public void A_Swipe_Across_The_Station_Card_Walks_To_The_Next_Station_And_The_Garden_Follows()
+        {
+            for (int i = 0; i < 6; i++) runner.State.Levels[i] = 1 + i;
+            runner.State.Plots = 6;
+            screen.Shell.StartGame();
+            screen.Refresh();
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Text name = root.transform.Find("Canvas/Card/Name").GetComponent<Text>();
+            screen.FocusStation(2);
+            Assert.AreEqual(2, screen.Selected);
+
+            var swipe = root.transform.Find("Canvas/Card/Face").GetComponent<CardSwipe>();
+            Assert.IsNotNull(swipe, "the card's face catches swipes");
+            var left = new UnityEngine.EventSystems.PointerEventData(null) { pressPosition = new Vector2(600f, 300f), position = new Vector2(380f, 310f) };
+            swipe.OnEndDrag(left);
+            Assert.AreEqual(3, screen.Selected, "a swipe to the left goes to the next station");
+            Assert.AreEqual(L10n.Station(runner.Defs[3].Id), name.text);
+            float before = world.anchoredPosition.y;
+            var right = new UnityEngine.EventSystems.PointerEventData(null) { pressPosition = new Vector2(300f, 300f), position = new Vector2(520f, 290f) };
+            swipe.OnEndDrag(right);
+            swipe.OnEndDrag(right);
+            Assert.AreEqual(1, screen.Selected, "two swipes to the right go back two");
+            Assert.AreNotEqual(before, world.anchoredPosition.y, "the garden followed the card");
+
+            var tooShort = new UnityEngine.EventSystems.PointerEventData(null) { pressPosition = new Vector2(300f, 300f), position = new Vector2(340f, 300f) };
+            swipe.OnEndDrag(tooShort);
+            Assert.AreEqual(1, screen.Selected, "a nudge is not a swipe");
+            var mostlyUp = new UnityEngine.EventSystems.PointerEventData(null) { pressPosition = new Vector2(300f, 300f), position = new Vector2(200f, 500f) };
+            swipe.OnEndDrag(mostlyUp);
+            Assert.AreEqual(1, screen.Selected, "nor is a drag that mostly goes up");
+
+            swipe.OnEndDrag(right);
+            swipe.OnEndDrag(right);
+            Assert.AreEqual(0, screen.Selected, "it stops at the first station instead of wrapping round");
+            screen.SelectStation(-1);
+            swipe.OnEndDrag(left);
+            Assert.AreEqual(-1, screen.Selected, "no card, nothing to step");
+        }
     }
 }

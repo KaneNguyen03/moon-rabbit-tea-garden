@@ -1048,6 +1048,8 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             Image face = UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             face.raycastTarget = true; // a tap on the card is not a tap on the ground behind it
+            // A sideways swipe on the card walks to the neighbouring station, and the garden follows.
+            face.gameObject.AddComponent<CardSwipe>().Stepped = StepStation;
 
             _cardName = UiKit.Rect("Name", _card).Stretch(0, 1, 1, 1, 32, -70, 200, 14)
                 .AddText("", 36, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -1106,6 +1108,19 @@ namespace VuonTra.Game.UI
             if (index < 0 || index >= _actors.Count) return;
             CenterOn(StationSpot(index));
             SelectStation(index);
+        }
+
+        /// <summary>
+        /// Moves the card to the next (+1) or previous (-1) station that stands in the garden, and brings the
+        /// garden along. At either end it stays where it is.
+        /// </summary>
+        public void StepStation(int direction)
+        {
+            if (Selected < 0 || direction == 0) return;
+            int target = Selected + (direction > 0 ? 1 : -1);
+            if (target < 0 || target >= _actors.Count || !_actors[target].Root.gameObject.activeSelf) return;
+            Sfx.Click();
+            FocusStation(target);
         }
 
         /// <summary>Opens the card over a station, or closes it with -1.</summary>
