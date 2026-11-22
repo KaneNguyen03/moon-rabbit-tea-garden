@@ -36,6 +36,13 @@ namespace VuonTra.Game
         public event Action<Rabbit> SeasonArrived;
         /// <summary>The first day the game sees of a season, once a year: the screen greets it.</summary>
         public event Action<Season> SeasonBegan;
+        /// <summary>A set of the album was just completed (#61): the screen raises its banner.</summary>
+        public event Action<AlbumSet> AlbumSetCompleted;
+        /// <summary>
+        /// An album milestone with a gift of its own was just reached (#61): 40 kinds (the hat) or 72 (the frame),
+        /// with the golden carrots given instead of a hat the player already had (0 otherwise).
+        /// </summary>
+        public event Action<int, int> AlbumMilestoneReached;
 
         /// <summary>Greets the running season if it has not been greeted this year; true when it was greeted now.</summary>
         public bool GreetSeason()
@@ -120,6 +127,7 @@ namespace VuonTra.Game
             Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
+            NoteAlbum(false);
             _ready = true;
             if (preset == null)
             {
@@ -577,6 +585,7 @@ namespace VuonTra.Game
             Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
+            NoteAlbum(false);
             StateChanged?.Invoke();
             Save();
         }
@@ -840,6 +849,7 @@ namespace VuonTra.Game
         {
             int buyMode = State.BuyMode;
             State = GameState.NewGame(Defs, UpgradeDefs.Count);
+            _setsDone.Clear(); // a new garden fills its album again, banners and all
             Rabbits.GiftFirst(State, PickName());
             State.BuyMode = buyMode;
             State.HintSeen = true;
@@ -876,6 +886,7 @@ namespace VuonTra.Game
         void Changed()
         {
             if (!Tutorial.IsDone(State)) Tutorial.Advance(State);
+            NoteAlbum(true);
             // Upgrades, working rabbits and their items all feed the modifiers.
             Mods = Modifiers.From(UpgradeDefs, State);
             StateChanged?.Invoke();
@@ -887,6 +898,28 @@ namespace VuonTra.Game
             _goldSeen = gold;
             _shopBought = false;
             if (milestone && _ready) SyncNow(SyncReason.Milestone);
+        }
+
+        /// <summary>The album's sets already complete, so only a set completed now raises a banner (#61).</summary>
+        readonly HashSet<string> _setsDone = new HashSet<string>();
+
+        /// <summary>
+        /// Gives the album's milestone gifts not yet given and notes which sets are complete (#61). With
+        /// <paramref name="tell"/> the screen hears of a set or a gift that is new; without, nothing is announced
+        /// (a save just loaded or restored).
+        /// </summary>
+        void NoteAlbum(bool tell)
+        {
+            if (!tell) _setsDone.Clear();
+            foreach (AlbumSet set in AlbumSets.Completed(State))
+                if (_setsDone.Add(set.Key) && tell) AlbumSetCompleted?.Invoke(set);
+            // A milestone's gift goes up last: the rarer moment is the one left on screen.
+            int goldenBefore = State.GoldenCarrots;
+            List<int> reached = AlbumSets.ClaimMilestones(State, ItemDefs);
+            int golden = State.GoldenCarrots - goldenBefore;
+            foreach (int milestone in reached)
+                if (tell && (milestone == AlbumSets.HatMilestone || milestone == AlbumSets.FrameMilestone))
+                    AlbumMilestoneReached?.Invoke(milestone, milestone == AlbumSets.HatMilestone ? golden : 0);
         }
 
         /// <summary>Remembers a time away for the ×2 button and tells the screen.</summary>

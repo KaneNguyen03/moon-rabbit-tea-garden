@@ -1160,6 +1160,7 @@ namespace VuonTra.Game.UI
             if (_onSeasonArrived != null) Runner.SeasonArrived -= _onSeasonArrived;
             _onSeasonArrived = rabbit => { Sfx.Summon(rabbit.Tier); Welcome(rabbit); };
             Runner.SeasonArrived += _onSeasonArrived;
+            AlbumBanner.Attach(this); // a set of the album just completed, or a milestone's gift (#61)
             if (_onSyncChoice != null) Runner.SyncChoiceNeeded -= _onSyncChoice;
             _onSyncChoice = r => CloudChoice.Open(r);
             Runner.SyncChoiceNeeded += _onSyncChoice;

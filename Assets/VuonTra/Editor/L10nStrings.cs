@@ -670,6 +670,20 @@ namespace VuonTra.EditorTools
             { "chatter.season.Christmas", "Giáng sinh an lành nha bạn!", "Merry Christmas to you!" },
             { "chatter.boost", "Nhờ {0} tiếp sức, mẻ này thơm hơn hẳn!", "Thanks to the {0}, this batch smells even better!" },
             { "chatter.dressed", "Hôm nay mình diện đẹp không nè?", "Don't I look nice today?" },
+            // The album pays (#61): sets by trade within a tier, and the kinds-met milestones.
+            { "album.set", "Bộ {0} {1}/{2} · +{3} % khi đủ", "{0} set {1}/{2} · +{3}% when complete" },
+            { "album.set.done", "Đủ bộ {0} · trạm {0} +{1} %", "{0} set complete · {0} stations +{1}%" },
+            { "album.set.banner", "Đủ bộ {0} bậc {1}!", "{1} {0} set complete!" },
+            { "album.set.banner.sub", "Trạm {0} thu thêm {1} % mãi mãi", "{0} stations earn {1}% more for good" },
+            { "album.milestone.title", "Đã gặp {0} loài thỏ!", "{0} kinds met!" },
+            { "album.milestone.hat", "Quà của sổ thỏ: Mũ sao", "The album's gift: a Starry Hat" },
+            { "album.milestone.hat.golden", "Đã có Mũ sao, nhận {0} cà rốt vàng", "You have the Starry Hat: {0} golden carrots instead" },
+            { "album.milestone.frame", "Sổ thỏ được viền vàng Đủ bộ", "The album earns its gold Complete frame" },
+            { "album.frame", "Đủ bộ · đã gặp cả {0} loài thỏ", "Complete · all {0} kinds met" },
+            { "quest.loai-10", "Gặp 10 loài thỏ", "Meet 10 kinds of rabbit" },
+            { "quest.loai-20", "Gặp 20 loài thỏ", "Meet 20 kinds of rabbit" },
+            { "quest.loai-40", "Gặp 40 loài thỏ · tặng Mũ sao", "Meet 40 kinds · a Starry Hat" },
+            { "quest.loai-72", "Gặp đủ 72 loài · khung Đủ bộ", "Meet all 72 kinds · Complete frame" },
         };
     }
 }

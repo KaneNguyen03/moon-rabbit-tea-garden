@@ -117,6 +117,15 @@ namespace VuonTra.EditorTools
                 new Q { Id = "dom-30",    Title = "Bắt đom đóm 30 đêm",              Metric = QuestMetric.FirefliesGames,     Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
                 // Guests' tea orders (#20).
                 new Q { Id = "don-20",    Title = "Giao 20 đơn trà",                 Metric = QuestMetric.OrdersDelivered, Target = 20, Seconds = 90, Carrots = 2000, Clovers = 2 },
+                // The album's milestones (#61): the quests pay the golden carrots and the clover; the hat (40) and the
+                // gold frame (72) are given by the album itself the moment the kinds are met (AlbumSets.ClaimMilestones).
+                // 10 and 20 kinds come in everyone's first hour, so they pay 1 and 2 golden carrots, not the 3 and 5 first
+                // proposed: those bought a casual player a second golden call on day one, a Gold rabbit on day two and all
+                // twelve plots a day early (EconomySimulationTests).
+                new Q { Id = "loai-10",   Title = "Gặp 10 loài thỏ",                 Metric = QuestMetric.KindsMet, Target = 10, Seconds = 30,  Carrots = 300,   Golden = 1 },
+                new Q { Id = "loai-20",   Title = "Gặp 20 loài thỏ",                 Metric = QuestMetric.KindsMet, Target = 20, Seconds = 60,  Carrots = 1000,  Golden = 2, Clovers = 1 },
+                new Q { Id = "loai-40",   Title = "Gặp 40 loài thỏ · tặng Mũ sao",   Metric = QuestMetric.KindsMet, Target = 40, Seconds = 120, Carrots = 5000,  Golden = 10 },
+                new Q { Id = "loai-72",   Title = "Gặp đủ 72 loài · khung Đủ bộ",    Metric = QuestMetric.KindsMet, Target = 72, Seconds = 300, Carrots = 20000, Golden = 20 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)
