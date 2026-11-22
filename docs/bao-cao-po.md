@@ -1253,6 +1253,17 @@ Sau khi sửa cả bốn xanh.
 - Bốn điểm trên đã làm sau khi điều phối duyệt (717/718): `144f454` `Quests.RerollCarrotTarget` chỉ tính lại mục tiêu cà rốt ngày (và mốc đã thu) khi sang mùa, giữ ngày và các nhiệm vụ đã nhận (test lõi + test runner); `7796a61` chip cà rốt vàng dời sang phải (x 240), test bốn trường hợp vi/en × thường/chữ to hai chip không giao nhau; `fed56b3` biên lai bị từ chối → `Pending` thay vì `Complete`, cửa hàng đưa lại lần mở sau (ghi vào hai hướng dẫn build; chỉ soi bằng mắt); `f93374b` `CloudSync.InFlight` bỏ qua lời gọi mới khi đang chờ mây, `MemoryCloudSave.Hold/Release` giả lập mạng chậm trong test.
 - Sạch, không sửa: lõi NewMoon (reset, save, cap 7 mùa), NewMoonView (giữ 1,5 s rồi bấm), PlatformServices/GameCenterAccount (nhớ đăng nhập, tên mặc định), ICloudKvsCloudSave + CloudKvs.mm (đo 1 MB trước khi gửi, free chuỗi), SavedGamesCloudSave (không ghi đè bản chưa đọc, trần 3 MB), AndroidServices (đổi tên vườn chỉ khi chưa đặt).
 
+## #70 — Bug chặn: bản Mac không lưu được vườn
+
+- Test: 723/724 EditMode qua (1 inconclusive có chủ ý của #8); `verify.sh --build` xanh, bản Mac chạy, Player.log sạch. Thêm 6 test (`SaveStoreTests.cs`).
+- Commit `2578e4e`, đã push. Issue #70 đã comment (gốc lỗi + bảng 5 ý), nhãn chờ-PO-duyệt.
+- Gốc lỗi: `Garden.unity` lưu `SaveDirectory` là chuỗi rỗng, `SaveStore` chỉ đổi `null` thành thư mục mặc định, nên đường dẫn rỗng làm mọi lần tự lưu ném lỗi và lần mở đọc `save.json` theo thư mục làm việc.
+- Sửa: `SaveStore` coi `null`/rỗng/khoảng trắng là chưa đặt → `Application.persistentDataPath`; `SaveStore.DefaultDirectory` để test trỏ vào thư mục tạm (editor dùng chung thư mục với bản Mac); `SaveStore.Folder`, `GameRunner.SaveFolder`.
+- Thử tay bản Mac: mở → chờ → thoát hai lần, `playSeconds` trong save tăng 5,0 → 18,6 → 32,2 giây; log không còn "Không lưu được game". Save nằm ở `~/Library/Application Support/VuonTraTho/Moon Rabbit Tea Garden/save.json`.
+
+### Chưa đạt
+- Save cũ nằm cạnh app không được tự chuyển sang thư mục dữ liệu. iOS/Android dùng cùng `SaveStore` nhưng chưa thử trên máy thật.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
