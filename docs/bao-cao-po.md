@@ -984,6 +984,28 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt so với #34
 - Chưa có hình gợn nước riêng (vòng gợn dùng ảnh ánh sáng); thử tay cảm giác chiều sâu khi kéo trên máy thật.
 
+## #19 — Chạm và vuốt thỏ, mức thân thiết (agent song song, nhánh agent-19)
+
+- Test: 559/559 EditMode qua trên main sau khi gộp (verify.sh: seed, 98 ảnh, biên dịch, test). Nhánh riêng 533/533: +5 test luật (`RabbitsTests.cs`), +1 save, +5 màn hình.
+- Commit `5a76632` (nhánh agent-19), gộp vào main qua `4a48d81`…`23cf0c1`, đã push. Issue #19 đã comment (bảng đối chiếu 8 ý), nhãn chờ-PO-duyệt. Save không đổi phiên bản, mỗi thỏ thêm `affection`, `petDay`.
+- Luật trong `Core/Rabbits.cs`: `Rabbit.Affection` 0–5, `PetDay`; `Rabbits.Pet(s, r, ngày, wake)`: lần vuốt đầu mỗi ngày +1 tim và +5 Trà lực (`PetEnergy`), đánh thức thỏ gật trả 8 (`DozeEnergy`, dời từ GardenScreen) và tính là lần vuốt của ngày; tới 3 tim mở câu nói (`AffectionLine`), tới 5 tim tặng 1 cỏ đúng một lần (`AffectionGiftClovers`); ghép ba giữ mức cao nhất; `Rabbits.Hearts(n)`.
+- Màn hình: `UiKit.Strokable` (kéo qua hình thỏ = một lần vuốt, vẫn cuộn vườn, nhấc tay không tính chạm); chạm/vuốt thỏ ở trạm, chỗ nghỉ (`Seat n/Art`) và đang đi dạo (`Walker n/Art`); tim bay lên, "+5 trà lực"; thỏ ngáp vươn người 0,6 s (`Motion.Yawn`) trước khi gật, tắt khi Giảm chuyển động; bong bóng câu nói `Canvas/Garden/Content/BondLine` 3 s (`Motion.Speech`), câu theo nghề `bond.line.<nghề>`; tấm khoảnh khắc tặng cỏ. Ô tim trên thẻ thỏ (`RabbitSheet/Card/Body/Bond`) và ô thỏ ("Cấp 3 ☆ ♥♥").
+- Ảnh (docs/anh/po-19/): `19-sau-vuot-tho.png`, `19-sau-tim-the.png`.
+
+### Chưa đạt
+- Cảnh thỏ ngồi uống trà (cần tranh). Mới 1 câu nói mỗi nghề; quà chỉ là cỏ bốn lá. Chưa thử tay trên máy thật.
+
+## #10 phần 1 — Hứng lá trà (agent song song, nhánh agent-10a)
+
+- Test: 559/559 EditMode qua trên main sau khi gộp. Nhánh riêng 544/544: +21 test luật (`LeavesTests.cs`), +1 màn hình.
+- Commit `aa7215f` (nhánh agent-10a), gộp vào main qua `4a48d81`…`23cf0c1`, đã push. Issue #10 đã comment phần 1 (để mở chờ phần 2). Save vẫn v14, thêm khối `leaves` sau `pounding`; save cũ mở ra đủ 3 lượt.
+- Luật trong `Core/Leaves.cs`: ván 30 giây, 48 vật rơi theo lịch từ seed (ngày × 1000003 + số ván): 36 lá (+1), 4 lá vàng (+2), 8 quả thông (−3, sàn 0, choáng 0,5 s); rơi 2,8 → 2,0 s nhanh dần; bề rộng hứng ±0,12; tối đa 44, sao 15/29/38; `MiniGameRecord` (khối lượt/ngày dùng chung cho từng trò: 3 lượt, làm mới theo ngày, lùi đồng hồ không thêm); mở ở cấp vườn 4; thưởng = thu nhập/giây × hệ số × 60 × điểm/44; lượt có sao đầu ngày +1 cỏ (cờ riêng); không cà rốt vàng.
+- Màn hình `LeavesView` (`Canvas/Leaves`): tán cây, lá/quả thông đặt theo đồng hồ mỗi khung (bể 12 hình), giỏ kéo theo ngón hoặc chạm để trượt, +1 / +2 lá vàng! / Ui! −3, giỏ lắc sạm khi dính quả thông (tắt khi Giảm chuyển động), tấm kết quả. Giỏ trong vườn (`Canvas/Garden/Content/Basket`) cạnh trạm Giỏ lá trà, biển "Hứng lá · còn N lượt" / "Mai hứng tiếp". Thành tựu `la-3sao`, `la-30`; `QuestMetric.LeavesThreeStar`, `LeavesGames` cuối enum.
+- Ảnh (docs/anh/po-10/): `10-sau-hung-la.png`, `10-sau-hung-la-ket-qua.png`.
+
+### Chưa đạt
+- Lá, lá vàng, quả thông là hình tròn tô màu; tán cây và giỏ dùng hình sẵn có. Chưa thử tay. Phần 2 "Đêm đom đóm" đang làm trên nhánh agent-10b.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
