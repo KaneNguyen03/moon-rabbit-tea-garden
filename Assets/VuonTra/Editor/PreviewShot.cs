@@ -72,6 +72,13 @@ namespace VuonTra.EditorTools
             screen.Snap();
             Step(screen, 0.4f);
             Capture(screen, "18-chup-xem");
+            GameObject.Find("Canvas/PhotoReview/Card/Close").GetComponent<Button>().onClick.Invoke();
+            screen.Snap();
+            GameObject.Find("Canvas/PhotoReview/Card/Close").GetComponent<Button>().onClick.Invoke();
+            screen.OpenAlbum();
+            Step(screen, 0.3f);
+            Capture(screen, "18-album");
+            screen.CloseAlbum();
             screen.ExitPhotoMode();
             Step(screen, 0.2f);
             // Selling a stack from the tray: the carrots fly up to the purse, two frames.

@@ -1427,6 +1427,46 @@ MonoBehaviour:
     m_Key: backup.rewarded
     m_Metadata:
       m_Items: []
+  - m_Id: 180083632365568
+    m_Key: photo.frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754176
+    m_Key: photo.names
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754177
+    m_Key: photo.fireflies
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754178
+    m_Key: photo.album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754179
+    m_Key: photo.album.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754180
+    m_Key: photo.album.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754181
+    m_Key: photo.logo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754182
+    m_Key: quest.anh-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754183
+    m_Key: quest.anh-vang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754184
+    m_Key: quest.anh-nghi
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

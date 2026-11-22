@@ -115,6 +115,15 @@ namespace VuonTra.Core
             sb.Append(",\"goldenToday\":").Append(s.GoldenToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photoDay\":").Append(s.PhotoDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosTaken\":").Append(s.PhotosTaken.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"photosGold\":").Append(s.PhotosWithGoldRabbit.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"photosRest\":").Append(s.PhotosWithFullRest.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"album\":[");
+            for (int i = 0; i < s.Album.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                WriteString(sb, s.Album[i]);
+            }
+            sb.Append(']');
             sb.Append(",\"tray\":[");
             for (int i = 0; i < s.Tray.Count; i++)
             {
@@ -361,6 +370,11 @@ namespace VuonTra.Core
             s.GoldenToday = TryNumber(root, "goldenToday", out double goldenToday) ? (int)Math.Max(0d, Math.Min(goldenToday, Tray.GoldenPerDay)) : 0;
             s.PhotoDay = TryNumber(root, "photoDay", out double photoDay) ? ToLong(photoDay) : -1;
             s.PhotosTaken = TryNumber(root, "photosTaken", out double photosTaken) ? Math.Max(0, ToLong(photosTaken)) : 0;
+            s.PhotosWithGoldRabbit = TryNumber(root, "photosGold", out double photosGold) ? Math.Max(0, ToLong(photosGold)) : 0;
+            s.PhotosWithFullRest = TryNumber(root, "photosRest", out double photosRest) ? Math.Max(0, ToLong(photosRest)) : 0;
+            if (root.TryGetValue("album", out object albumObj) && albumObj is List<object> album)
+                foreach (object item in album)
+                    if (item is string path && path.Length > 0 && s.Album.Count < Photos.AlbumSize && !s.Album.Contains(path)) s.Album.Add(path);
             if (root.TryGetValue("tray", out object trayObj) && trayObj is List<object> tray)
                 foreach (object item in tray)
                 {

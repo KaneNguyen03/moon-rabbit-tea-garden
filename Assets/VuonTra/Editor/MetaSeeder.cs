@@ -84,6 +84,10 @@ namespace VuonTra.EditorTools
                 new Q { Id = "thu-1k",    Title = "Thu tổng cộng 1.000 cà rốt",     Metric = QuestMetric.CarrotsEarned, Target = 1e3, Seconds = 120,  Carrots = 150 },
                 new Q { Id = "thu-1m",    Title = "Thu tổng cộng 1 triệu cà rốt",   Metric = QuestMetric.CarrotsEarned, Target = 1e6, Seconds = 900,  Carrots = 1e5, Clovers = 1 },
                 new Q { Id = "thu-1b",    Title = "Thu tổng cộng 1 tỉ cà rốt",      Metric = QuestMetric.CarrotsEarned, Target = 1e9, Seconds = 1800, Carrots = 1e8, Clovers = 3 },
+                // Pictures of the garden (#18).
+                new Q { Id = "anh-1",     Title = "Chụp tấm ảnh đầu tiên",          Metric = QuestMetric.PhotosTaken,         Target = 1, Seconds = 120, Carrots = 100 },
+                new Q { Id = "anh-vang",  Title = "Chụp ảnh có một thỏ bậc Vàng",   Metric = QuestMetric.PhotosWithGoldRabbit, Target = 1, Seconds = 600, Carrots = 1000, Clovers = 2 },
+                new Q { Id = "anh-nghi",  Title = "Chụp ảnh khi đủ 6 chỗ nghỉ",     Metric = QuestMetric.PhotosWithFullRest,   Target = 1, Seconds = 900, Carrots = 2000, Clovers = 2 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)

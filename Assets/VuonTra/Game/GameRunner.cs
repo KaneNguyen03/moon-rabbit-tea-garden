@@ -190,9 +190,9 @@ namespace VuonTra.Game
         }
 
         /// <summary>A photo of the garden was taken. True when it brought today's gift.</summary>
-        public bool TakePhoto()
+        public bool TakePhoto(string path = null)
         {
-            bool gift = Photos.Take(State, Today);
+            bool gift = Photos.Take(State, Today, path);
             Changed();
             return gift;
         }

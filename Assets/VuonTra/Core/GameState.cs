@@ -66,6 +66,10 @@ namespace VuonTra.Core
         /// <summary>The day a photo was last taken (its gift is once a day), and how many have been taken in all.</summary>
         public long PhotoDay = -1;
         public long PhotosTaken;
+        /// <summary>Photos taken while a gold-or-rarer rabbit lived here, and while every place to rest was open: what two quests count.</summary>
+        public long PhotosWithGoldRabbit, PhotosWithFullRest;
+        /// <summary>Where the latest pictures were written, oldest first; at most <see cref="Photos.AlbumSize"/>.</summary>
+        public List<string> Album = new List<string>();
 
         /// <summary>Where the player last looked: the garden point under the middle of the screen and the zoom; zoom 0 means never recorded.</summary>
         public double ViewX, ViewY, ViewZoom;

@@ -1434,6 +1434,46 @@ MonoBehaviour:
     m_Localized: +{0} clovers for linking
     m_Metadata:
       m_Items: []
+  - m_Id: 180083632365568
+    m_Localized: Frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754176
+    m_Localized: Names
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754177
+    m_Localized: Fireflies
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754178
+    m_Localized: Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754179
+    m_Localized: "Album \xB7 the last {0} photos"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754180
+    m_Localized: No photos yet. Take the first one.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754181
+    m_Localized: Moon Rabbit Tea Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754182
+    m_Localized: Take your first photo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754183
+    m_Localized: Take a photo with a Gold rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754184
+    m_Localized: Take a photo with all 6 resting places
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -2016,6 +2016,119 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Photo_Options_Put_A_Frame_Round_The_Picture_And_Can_Hide_Names_And_Fireflies()
+        {
+            GardenScreen.PhotoFrameOn = true;
+            GardenScreen.PhotoNamesOn = true;
+            GardenScreen.PhotoFirefliesOn = true;
+            screen.Shell.StartGame();
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            runner.State.Profile.GardenName = "Vườn Mây";
+            screen.Refresh();
+            Transform frame = root.transform.Find("Canvas/PhotoFrame");
+            Transform fireflies = root.transform.Find("Canvas/Garden/Content/Fireflies");
+            Transform chip = root.transform.Find("Canvas/Garden/Content/Station am-tra/Tier");
+            Assert.IsFalse(frame.gameObject.activeSelf, "no frame outside photo mode");
+            Assert.IsTrue(fireflies.gameObject.activeSelf);
+
+            screen.EnterPhotoMode();
+            Assert.IsTrue(frame.gameObject.activeSelf);
+            Assert.AreEqual("Vườn Mây", frame.Find("GardenName").GetComponent<Text>().text);
+            StringAssert.Contains("/", frame.Find("Date").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("photo.logo"), frame.Find("Logo").GetComponent<Text>().text);
+            Assert.IsTrue(chip.gameObject.activeSelf, "the name plate is in the picture by default");
+
+            Find("Canvas/PhotoBar/Options/Names").onClick.Invoke();
+            Assert.IsFalse(GardenScreen.PhotoNamesOn);
+            Assert.IsFalse(chip.gameObject.activeSelf, "names off: the plate goes");
+            Find("Canvas/PhotoBar/Options/Fireflies").onClick.Invoke();
+            Assert.IsFalse(fireflies.gameObject.activeSelf);
+            Find("Canvas/PhotoBar/Options/Frame").onClick.Invoke();
+            Assert.IsFalse(frame.gameObject.activeSelf);
+
+            screen.ExitPhotoMode();
+            Assert.IsTrue(fireflies.gameObject.activeSelf, "the garden has its fireflies back");
+            screen.Refresh();
+            Assert.IsTrue(chip.gameObject.activeSelf, "and its name plates");
+            GardenScreen.PhotoFrameOn = true;
+            GardenScreen.PhotoNamesOn = true;
+            GardenScreen.PhotoFirefliesOn = true;
+        }
+
+        [Test]
+        public void The_Album_Keeps_The_Last_Pictures_And_Opens_One()
+        {
+            screen.Shell.StartGame();
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-album-" + System.Guid.NewGuid().ToString("N"));
+            System.IO.Directory.CreateDirectory(dir);
+            try
+            {
+                screen.PhotoFolder = dir;
+                screen.EnterPhotoMode();
+                Find("Canvas/PhotoBar/Album").onClick.Invoke();
+                Transform album = root.transform.Find("Canvas/PhotoAlbum");
+                Assert.IsTrue(album.gameObject.activeSelf);
+                Assert.IsNotNull(album.Find("Card/Grid/Empty"), "nothing yet");
+                screen.CloseAlbum();
+
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+                Assert.AreEqual(2, runner.State.Album.Count);
+                string newest = runner.State.Album[1];
+
+                Find("Canvas/PhotoBar/Album").onClick.Invoke();
+                Assert.IsNull(album.Find("Card/Grid/Empty"));
+                Assert.IsNotNull(album.Find("Card/Grid/Photo 0"));
+                Assert.IsNotNull(album.Find("Card/Grid/Photo 1"));
+                StringAssert.Contains("2", album.Find("Card/Title").GetComponent<Text>().text);
+                Find("Canvas/PhotoAlbum/Card/Grid/Photo 0").onClick.Invoke();
+                Assert.IsFalse(album.gameObject.activeSelf);
+                Assert.IsTrue(root.transform.Find("Canvas/PhotoReview").gameObject.activeSelf, "the newest picture opens for a second look");
+                Assert.AreEqual(newest, screen.LastPhotoPath);
+
+                // A file that went missing leaves the album when it is opened again.
+                System.IO.File.Delete(runner.State.Album[0]);
+                Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+                Find("Canvas/PhotoBar/Album").onClick.Invoke();
+                Assert.AreEqual(1, runner.State.Album.Count);
+                Assert.IsNull(album.Find("Card/Grid/Photo 1"));
+            }
+            finally
+            {
+                screen.ExitPhotoMode();
+                if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true);
+            }
+        }
+
+        [Test]
+        public void The_Three_Photo_Quests_Are_In_The_List_And_The_First_Finishes_With_A_Snap()
+        {
+            screen.Shell.StartGame();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Quests/Content");
+            Assert.IsNotNull(content.Find("Quest anh-1"));
+            Assert.IsNotNull(content.Find("Quest anh-vang"));
+            Assert.IsNotNull(content.Find("Quest anh-nghi"));
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-quest-" + System.Guid.NewGuid().ToString("N"));
+            try
+            {
+                screen.PhotoFolder = dir;
+                screen.EnterPhotoMode();
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                screen.ExitPhotoMode();
+                screen.Refresh();
+                Assert.IsTrue(content.Find("Quest anh-1/Claim").gameObject.activeSelf, "the first photo quest is ready to collect");
+                Assert.IsFalse(content.Find("Quest anh-vang/Claim").gameObject.activeSelf);
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true);
+            }
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");

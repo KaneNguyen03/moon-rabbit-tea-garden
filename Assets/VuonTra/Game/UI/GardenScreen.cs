@@ -51,10 +51,18 @@ namespace VuonTra.Game.UI
         public string PhotoFolder;
         /// <summary>The last picture written, or null.</summary>
         public string LastPhotoPath { get; private set; }
-        GameObject _photoBar, _photoReview;
+        GameObject _photoBar, _photoReview, _photoFrame, _photoAlbum, _fireflyLayer;
         Image _photoPreview;
-        Text _photoNote, _photoGift;
+        Text _photoNote, _photoGift, _frameName, _frameDate, _albumTitle;
+        RectTransform _albumGrid;
         Texture2D _photoTexture;
+        readonly List<Texture2D> _albumTextures = new List<Texture2D>();
+        readonly Dictionary<string, Image> _photoToggles = new Dictionary<string, Image>();
+        readonly Dictionary<string, Text> _photoToggleLabels = new Dictionary<string, Text>();
+        /// <summary>What a picture includes: the paper frame, the rabbits' name plates, the fireflies. Remembered on the device.</summary>
+        public static bool PhotoFrameOn { get => PlayerPrefs.GetInt("photo.frame", 1) == 1; set => PlayerPrefs.SetInt("photo.frame", value ? 1 : 0); }
+        public static bool PhotoNamesOn { get => PlayerPrefs.GetInt("photo.names", 1) == 1; set => PlayerPrefs.SetInt("photo.names", value ? 1 : 0); }
+        public static bool PhotoFirefliesOn { get => PlayerPrefs.GetInt("photo.fireflies", 1) == 1; set => PlayerPrefs.SetInt("photo.fireflies", value ? 1 : 0); }
         RectTransform _upgradeAllRow;
         readonly GameObject[] _lists = new GameObject[TabCount];
         readonly Text[] _openLabels = new Text[TabCount];
@@ -1237,18 +1245,66 @@ namespace VuonTra.Game.UI
         void BuildPhotoMode(GameCatalog catalog)
         {
             // A small plate at the foot of the screen while framing: snap, or done.
-            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 150, 640, 130);
+            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 150, 860, 130);
             bar.AddShadow(18f, 10f, 0.3f);
             UiKit.Rect("Lip", bar).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Plate", bar).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
             UiKit.Rect("Hint", bar).Stretch(0, 1, 1, 1, 0, -6, 0, -44).AddText(L10n.T("photo.hint"), UiKit.TextSmall, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold).AddShadow();
-            var done = UiKit.Rect("Done", bar).Place(0f, 0.5f, 130, 4, 200, 76);
+            // What goes into the picture: three pills above the bar, remembered between sessions.
+            var options = UiKit.Rect("Options", bar).Place(0.5f, 1f, 0, 64, 620, 64);
+            options.AddImage(catalog.Panel, Palette.Track, true).raycastTarget = true;
+            AddPhotoToggle(options, catalog, "Frame", L10n.T("photo.frame"), 104, () => PhotoFrameOn, v => PhotoFrameOn = v);
+            AddPhotoToggle(options, catalog, "Names", L10n.T("photo.names"), 310, () => PhotoNamesOn, v => PhotoNamesOn = v);
+            AddPhotoToggle(options, catalog, "Fireflies", L10n.T("photo.fireflies"), 516, () => PhotoFirefliesOn, v => PhotoFirefliesOn = v);
+            var album = UiKit.Rect("Album", bar).Place(0f, 0.5f, 110, 4, 170, 76);
+            UiKit.Secondary(album, catalog.Panel, L10n.T("photo.album"), () => { Sfx.Click(); OpenAlbum(); });
+            var done = UiKit.Rect("Done", bar).Place(0f, 0.5f, 300, 4, 170, 76);
             UiKit.Secondary(done, catalog.Panel, L10n.T("photo.done"), () => { Sfx.Click(); ExitPhotoMode(); });
             var snap = UiKit.Rect("Snap", bar).Place(1f, 0.5f, -170, 4, 280, 96);
             ChunkyButton snapButton = UiKit.Chunky(snap, catalog.Panel, Snap);
             UiKit.Rect("Text", snapButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("photo.snap"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _photoBar = bar.gameObject;
             _photoBar.SetActive(false);
+
+            // The paper frame round the picture: a cream border with an ink line, the garden's name, the date
+            // and the game's name in a corner. It lives in the canvas, so a snap takes it with the garden.
+            var photoFrame = UiKit.Rect("PhotoFrame", _canvas).Stretch(0, 0, 1, 1);
+            const float Edge = 44f, Foot = 150f;
+            Color paper = Palette.Paper, ink = Palette.Ink;
+            UiKit.Rect("Top", photoFrame).Stretch(0, 1, 1, 1, 0, -Edge, 0, 0).AddImage(null, paper);
+            UiKit.Rect("Left", photoFrame).Stretch(0, 0, 0, 1, 0, 0, -Edge, 0).AddImage(null, paper);
+            UiKit.Rect("Right", photoFrame).Stretch(1, 0, 1, 1, -Edge, 0, 0, 0).AddImage(null, paper);
+            UiKit.Rect("Bottom", photoFrame).Stretch(0, 0, 1, 0, 0, 0, 0, -Foot).AddImage(null, paper);
+            UiKit.Rect("Line", photoFrame).Stretch(0, 0, 1, 1, Edge - 4, Foot - 4, Edge - 4, Edge - 4).AddImage(catalog.Panel, Palette.Alpha(ink, 0.5f), true).pixelsPerUnitMultiplier = 3f;
+            UiKit.Rect("Inner", photoFrame).Stretch(0, 0, 1, 1, Edge, Foot, Edge, Edge).AddImage(catalog.Panel, new Color(0, 0, 0, 0), true);
+            _frameName = UiKit.Rect("GardenName", photoFrame).Stretch(0, 0, 0.6f, 0, Edge + 16, 70, 0, -(Foot - 10)).AddText("", 40, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _frameName.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _frameDate = UiKit.Rect("Date", photoFrame).Stretch(0.5f, 0, 1, 0, 0, 70, Edge + 16, -(Foot - 10)).AddText("", 30, Palette.InkSoft, TextAnchor.MiddleRight);
+            UiKit.Rect("Logo", photoFrame).Stretch(0, 0, 1, 0, Edge + 16, 24, Edge + 16, -66).AddText(L10n.T("photo.logo"), 24, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
+            photoFrame.SetSiblingIndex(bar.GetSiblingIndex()); // under the snap bar, over the garden
+            _photoFrame = photoFrame.gameObject;
+            _photoFrame.SetActive(false);
+
+            // The album: the last pictures, three to a row; a touch opens one.
+            var albumOverlay = UiKit.Rect("PhotoAlbum", _canvas).Stretch(0, 0, 1, 1);
+            albumOverlay.AddImage(null, Palette.Scrim).raycastTarget = true;
+            var albumScrim = albumOverlay.gameObject.AddComponent<Button>();
+            albumScrim.transition = Selectable.Transition.None;
+            albumScrim.onClick.AddListener(CloseAlbum);
+            var albumCard = UiKit.Rect("Card", albumOverlay).Place(0.5f, 0.5f, 0, 40, 960, 1420);
+            UiKit.Rect("Lip", albumCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
+            UiKit.Rect("Face", albumCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
+            _albumTitle = UiKit.Rect("Title", albumCard).Stretch(0, 1, 1, 1, 40, -110, 130, 30).AddText("", UiKit.TextTitle, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var albumClose = UiKit.Rect("Close", albumCard).Place(1f, 1f, -70, -70, 80, 80);
+            Image albumCloseImage = albumClose.AddImage(catalog.Round, Palette.Track);
+            albumCloseImage.raycastTarget = true;
+            var albumCloseButton = albumClose.gameObject.AddComponent<Button>();
+            albumCloseButton.transition = Selectable.Transition.None;
+            albumCloseButton.onClick.AddListener(CloseAlbum);
+            UiKit.Rect("Text", albumClose).Stretch(0, 0, 1, 1).AddText("×", 48, ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _albumGrid = UiKit.Rect("Grid", albumCard).Stretch(0, 0, 1, 1, 40, 40, 40, 130);
+            _photoAlbum = albumOverlay.gameObject;
+            _photoAlbum.SetActive(false);
 
             // The picture just taken, with what to do with it.
             var overlay = UiKit.Rect("PhotoReview", _canvas).Stretch(0, 0, 1, 1);
@@ -1278,6 +1334,40 @@ namespace VuonTra.Game.UI
             _photoReview.SetActive(false);
         }
 
+        void AddPhotoToggle(RectTransform track, GameCatalog catalog, string name, string label, float x, System.Func<bool> get, System.Action<bool> set)
+        {
+            var rt = UiKit.Rect(name, track).Place(0f, 0.5f, x, 0, 196, 52);
+            Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
+            img.raycastTarget = true;
+            var button = rt.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = img;
+            button.onClick.AddListener(() => { Sfx.Click(); set(!get()); ApplyPhotoOptions(); });
+            _photoToggles[name] = img;
+            _photoToggleLabels[name] = UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(label, UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+        }
+
+        /// <summary>Shows the frame, the name plates and the fireflies as the options say, in or out of photo mode.</summary>
+        void ApplyPhotoOptions()
+        {
+            bool frame = PhotoMode && PhotoFrameOn;
+            if (_photoFrame.activeSelf != frame) _photoFrame.SetActive(frame);
+            if (frame)
+            {
+                _frameName.text = string.IsNullOrEmpty(Runner.State.Profile.GardenName) ? L10n.T("profile.unnamed") : Runner.State.Profile.GardenName;
+                _frameDate.text = System.DateTime.Now.ToString("dd/MM/yyyy");
+            }
+            bool fireflies = !PhotoMode || PhotoFirefliesOn;
+            if (_fireflyLayer != null && _fireflyLayer.activeSelf != fireflies) _fireflyLayer.SetActive(fireflies);
+            foreach (KeyValuePair<string, Image> pair in _photoToggles)
+            {
+                bool on = pair.Key == "Frame" ? PhotoFrameOn : (pair.Key == "Names" ? PhotoNamesOn : PhotoFirefliesOn);
+                pair.Value.color = on ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
+                _photoToggleLabels[pair.Key].color = on ? Palette.Card : Palette.InkSoft;
+            }
+            RefreshStreet(Runner.Defs, Runner.State); // the name plates follow the option
+        }
+
         /// <summary>Everything but the garden goes away, and the snap bar comes up. Only while playing.</summary>
         public void EnterPhotoMode()
         {
@@ -1290,6 +1380,67 @@ namespace VuonTra.Game.UI
             _tabBar.gameObject.SetActive(false);
             ProductTray.Root.gameObject.SetActive(false);
             _photoBar.SetActive(true);
+            ApplyPhotoOptions();
+        }
+
+        /// <summary>The last pictures, newest first. Files that are gone are dropped from the album first.</summary>
+        public void OpenAlbum()
+        {
+            GameState s = Runner.State;
+            if (VuonTra.Core.Photos.Tidy(s, System.IO.File.Exists) > 0) Runner.Save();
+            var old = new List<GameObject>();
+            foreach (Transform child in _albumGrid) old.Add(child.gameObject);
+            foreach (GameObject go in old) { if (Application.isPlaying) Destroy(go); else DestroyImmediate(go); }
+            foreach (Texture2D tex in _albumTextures) if (tex != null) { if (Application.isPlaying) Destroy(tex); else DestroyImmediate(tex); }
+            _albumTextures.Clear();
+            _albumTitle.text = L10n.T("photo.album.title", s.Album.Count);
+            if (s.Album.Count == 0)
+            {
+                UiKit.Rect("Empty", _albumGrid).Stretch(0, 1, 1, 1, 0, -120, 0, 0).AddText(L10n.T("photo.album.empty"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter);
+            }
+            const float Cell = 284f, Gap = 14f;
+            for (int i = 0; i < s.Album.Count; i++)
+            {
+                string path = s.Album[s.Album.Count - 1 - i]; // newest first
+                int column = i % 3, row = i / 3;
+                var cell = UiKit.Rect("Photo " + i, _albumGrid).Place(0f, 1f, Cell / 2f + column * (Cell + Gap), -(Cell / 2f + row * (Cell + Gap)), Cell, Cell);
+                Image plate = cell.AddImage(Runner.Catalog.Panel, Palette.Card, true);
+                plate.raycastTarget = true;
+                var button = cell.gameObject.AddComponent<Button>();
+                button.transition = Selectable.Transition.None;
+                button.targetGraphic = plate;
+                var tex = new Texture2D(2, 2, TextureFormat.RGB24, false);
+                try { tex.LoadImage(System.IO.File.ReadAllBytes(path)); } catch (System.Exception e) { Debug.LogWarning("Không đọc được ảnh " + path + ": " + e.Message); }
+                _albumTextures.Add(tex);
+                var picture = UiKit.Rect("Picture", cell).Stretch(0, 0, 1, 1, 10, 10, 10, 10).gameObject.AddComponent<RawImage>();
+                picture.texture = tex;
+                picture.raycastTarget = false;
+                // Keep the picture's own proportions inside the square.
+                var fitter = picture.gameObject.AddComponent<AspectRatioFitter>();
+                fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+                fitter.aspectRatio = tex.height > 0 ? tex.width / (float)tex.height : 1f;
+                string chosen = path;
+                Texture2D chosenTex = tex;
+                button.onClick.AddListener(() => { Sfx.Click(); ShowPhoto(chosen, chosenTex); });
+            }
+            _photoAlbum.SetActive(true);
+        }
+
+        public void CloseAlbum()
+        {
+            _photoAlbum.SetActive(false);
+        }
+
+        /// <summary>Opens one picture from the album in the review card, with its file and no gift line.</summary>
+        void ShowPhoto(string path, Texture2D tex)
+        {
+            LastPhotoPath = path;
+            _photoPreview.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
+            _photoGift.text = "";
+            _photoNote.text = path;
+            CloseAlbum();
+            _photoBar.SetActive(false);
+            _photoReview.SetActive(true);
         }
 
         public void ExitPhotoMode()
@@ -1297,7 +1448,9 @@ namespace VuonTra.Game.UI
             if (!PhotoMode) return;
             PhotoMode = false;
             _photoReview.SetActive(false);
+            _photoAlbum.SetActive(false);
             _photoBar.SetActive(false);
+            ApplyPhotoOptions();
             _hud.gameObject.SetActive(true);
             _tabBar.gameObject.SetActive(true);
             Refresh();
@@ -1345,7 +1498,7 @@ namespace VuonTra.Game.UI
             Sfx.Shutter();
             Haptics.Medium();
             Feel.Flash(Color.white, 0.18f);
-            bool gift = Runner.TakePhoto();
+            bool gift = Runner.TakePhoto(path);
             _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftClovers) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
@@ -1401,6 +1554,7 @@ namespace VuonTra.Game.UI
             _fireflyImages.Clear();
             if (_glowSpots.Count == 0) return;
             var layer = UiKit.Rect("Fireflies", _street).Stretch(0, 0, 0, 0);
+            _fireflyLayer = layer.gameObject;
             for (int i = 0; i < 22; i++)
             {
                 var rt = UiKit.Rect("Firefly", layer).Place(0f, 0f, 0, 0, 30, 30);
@@ -2417,7 +2571,7 @@ namespace VuonTra.Game.UI
                 }
 
                 GameObject chip = _tierChips[i].gameObject;
-                bool named = worker != null && Zoom != ZoomLevel.Far;
+                bool named = worker != null && Zoom != ZoomLevel.Far && (!PhotoMode || PhotoNamesOn);
                 if (chip.activeSelf != named) chip.SetActive(named);
                 if (!named) continue;
                 _tierChips[i].color = Palette.Tiers[worker.Tier];

@@ -65,6 +65,13 @@ namespace VuonTra.EditorTools
             { "photo.saved", "Đã lưu: {0}", "Saved: {0}" },
             { "photo.copied", "Đã chép ảnh vào clipboard", "Copied to the clipboard" },
             { "photo.hint", "Kéo và zoom để căn khung", "Drag and zoom to frame it" },
+            { "photo.frame", "Khung", "Frame" },
+            { "photo.names", "Tên thỏ", "Names" },
+            { "photo.fireflies", "Đom đóm", "Fireflies" },
+            { "photo.album", "Album", "Album" },
+            { "photo.album.title", "Album · {0} ảnh gần nhất", "Album · the last {0} photos" },
+            { "photo.album.empty", "Chưa có ảnh nào. Chụp tấm đầu tiên nhé.", "No photos yet. Take the first one." },
+            { "photo.logo", "Vườn Trà Thỏ Trăng", "Moon Rabbit Tea Garden" },
             { "mode.milestone", "Tới mốc", "To ×2" },
             { "upgradeall.title", "Nâng tất cả", "Upgrade everything" },
             { "upgradeall.row", "Dùng cà rốt đang có để nâng nhiều trạm một lượt", "Spend what you have across every station at once" },
@@ -314,6 +321,9 @@ namespace VuonTra.EditorTools
             { "quest.thu-1k", "Thu tổng cộng 1.000 cà rốt", "Earn 1,000 carrots in total" },
             { "quest.thu-1m", "Thu tổng cộng 1 triệu cà rốt", "Earn 1 million carrots in total" },
             { "quest.thu-1b", "Thu tổng cộng 1 tỉ cà rốt", "Earn 1 billion carrots in total" },
+            { "quest.anh-1", "Chụp tấm ảnh đầu tiên", "Take your first photo" },
+            { "quest.anh-vang", "Chụp ảnh có một thỏ bậc Vàng", "Take a photo with a Gold rabbit" },
+            { "quest.anh-nghi", "Chụp ảnh khi đủ 6 chỗ nghỉ", "Take a photo with all 6 resting places" },
         };
     }
 }

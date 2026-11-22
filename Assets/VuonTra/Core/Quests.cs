@@ -12,7 +12,13 @@ namespace VuonTra.Core
         /// <summary>The level of the station named by StationId.</summary>
         StationLevel,
         /// <summary>Total levels across all garden-wide upgrades.</summary>
-        UpgradesOwned
+        UpgradesOwned,
+        /// <summary>Pictures of the garden taken, in all.</summary>
+        PhotosTaken,
+        /// <summary>Pictures taken while a gold-or-rarer rabbit lived in the garden.</summary>
+        PhotosWithGoldRabbit,
+        /// <summary>Pictures taken while every place to rest was open.</summary>
+        PhotosWithFullRest
     }
 
     /// <summary>
@@ -71,6 +77,12 @@ namespace VuonTra.Core
                     return 0;
                 case QuestMetric.UpgradesOwned:
                     return Upgrades.OwnedLevels(s);
+                case QuestMetric.PhotosTaken:
+                    return s.PhotosTaken;
+                case QuestMetric.PhotosWithGoldRabbit:
+                    return s.PhotosWithGoldRabbit;
+                case QuestMetric.PhotosWithFullRest:
+                    return s.PhotosWithFullRest;
                 default:
                     return 0;
             }

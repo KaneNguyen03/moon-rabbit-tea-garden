@@ -1430,6 +1430,46 @@ MonoBehaviour:
     m_Localized: "+{0} c\u1ECF b\u1ED1n l\xE1 v\xEC \u0111\xE3 li\xEAn k\u1EBFt"
     m_Metadata:
       m_Items: []
+  - m_Id: 180083632365568
+    m_Localized: Khung
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754176
+    m_Localized: "T\xEAn th\u1ECF"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754177
+    m_Localized: "\u0110om \u0111\xF3m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754178
+    m_Localized: Album
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754179
+    m_Localized: "Album \xB7 {0} \u1EA3nh g\u1EA7n nh\u1EA5t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754180
+    m_Localized: "Ch\u01B0a c\xF3 \u1EA3nh n\xE0o. Ch\u1EE5p t\u1EA5m \u0111\u1EA7u ti\xEAn nh\xE9."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754181
+    m_Localized: "V\u01B0\u1EDDn Tr\xE0 Th\u1ECF Tr\u0103ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754182
+    m_Localized: "Ch\u1EE5p t\u1EA5m \u1EA3nh \u0111\u1EA7u ti\xEAn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754183
+    m_Localized: "Ch\u1EE5p \u1EA3nh c\xF3 m\u1ED9t th\u1ECF b\u1EADc V\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 180083640754184
+    m_Localized: "Ch\u1EE5p \u1EA3nh khi \u0111\u1EE7 6 ch\u1ED7 ngh\u1EC9"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
