@@ -29,7 +29,7 @@ namespace VuonTra.Game.UI
         Image _rabbitImage, _propImage, _chip, _groundImage;
         Text _label;
         GameObject _bar, _glow, _shadow, _ground;
-        float _squish, _shownProgress, _propPop, _hop, _bump, _flash;
+        float _squish, _shownProgress, _propPop, _hop, _bump, _flash, _yawn;
         RectTransform _glowRect;
 
         /// <summary>
@@ -56,7 +56,9 @@ namespace VuonTra.Game.UI
 
         /// <param name="onTap">The station itself was touched: it works faster.</param>
         /// <param name="onPad">The empty pad was touched: the player wants to put a rabbit here.</param>
-        public void Build(Transform parent, GameCatalog catalog, StationData data, Action<int> onTap, Action<int> onPad)
+        /// <param name="onStroke">A finger was dragged across the rabbit (#19): once per stroke. With it, a touch on the rabbit is still a tap on the station.</param>
+        /// <param name="scroll">The garden's scroll, so a stroke still drags the garden along.</param>
+        public void Build(Transform parent, GameCatalog catalog, StationData data, Action<int> onTap, Action<int> onPad, Action<int> onStroke = null, ScrollRect scroll = null)
         {
             Root = UiKit.Rect("Station " + data.Id, parent);
 
@@ -118,6 +120,7 @@ namespace VuonTra.Game.UI
             _rabbitHome = _rabbit.anchoredPosition;
             _rabbitImage = _rabbit.AddImage(null, Color.white);
             _rabbitImage.preserveAspect = true;
+            if (onStroke != null) UiKit.Strokable(_rabbit, scroll, () => onStroke(_index), () => onTap(_index));
             _rabbit.gameObject.SetActive(false);
 
             // What a collected rabbit wears. Both hang from the rabbit, so they squash and hop with it;
@@ -276,12 +279,17 @@ namespace VuonTra.Game.UI
             if (_upArrow.activeSelf != can) _upArrow.SetActive(can);
         }
 
-        /// <summary>Only a rabbit can nod off: an empty station never sleeps.</summary>
+        /// <summary>Only a rabbit can nod off: an empty station never sleeps. Nodding off starts with a yawn.</summary>
         public void SetDozing(bool dozing)
         {
+            bool was = Dozing;
             Dozing = dozing && _look == StationLook.Open && _guest;
+            if (Dozing && !was) _yawn = 1f;
             if (_dozeBubble.activeSelf != Dozing) _dozeBubble.SetActive(Dozing);
         }
+
+        /// <summary>True while the rabbit is still stretching into its nap; the stretch is skipped under reduced motion.</summary>
+        public bool Yawning => _yawn > 0f;
 
         /// <summary>The station was upgraded: the whole of it swells for a moment and settles back.</summary>
         public void Bump()
@@ -334,6 +342,7 @@ namespace VuonTra.Game.UI
             _squish = Mathf.Max(0f, _squish - deltaTime * 5f);
             _propPop = Mathf.Max(0f, _propPop - deltaTime * 4f);
             _hop = Mathf.Max(0f, _hop - deltaTime * 2.6f);
+            _yawn = Mathf.Max(0f, _yawn - deltaTime / Motion.Time(Motion.Yawn));
             float tempo = boosting ? 2f : 1f;
 
             if (_rabbit.gameObject.activeSelf)
@@ -342,9 +351,11 @@ namespace VuonTra.Game.UI
                 // Landing squash at the end of a jump, stretch on the way up.
                 float air = Mathf.Sin((1f - _hop) * Mathf.PI) * (_hop > 0f ? 1f : 0f);
                 float land = _hop > 0f && _hop < 0.18f ? (0.18f - _hop) / 0.18f * 0.12f : 0f;
+                // The yawn: one slow stretch up from the feet, from fixed numbers, so it never adds up.
+                float yawn = Ease.Pop(1f - _yawn) * (_yawn > 0f ? 1f : 0f);
                 _rabbit.localScale = new Vector3(
-                    1f + _squish * 0.12f - breathe * 0.5f - air * 0.06f + land,
-                    1f - _squish * 0.18f + breathe + air * 0.10f - land, 1f);
+                    1f + _squish * 0.12f - breathe * 0.5f - air * 0.06f + land - yawn * 0.04f,
+                    1f - _squish * 0.18f + breathe + air * 0.10f - land + yawn * 0.09f, 1f);
                 _rabbit.anchoredPosition = _rabbitHome + new Vector2(0, air * 46f);
                 // A working rabbit sways as it works; a sleeping one nods slowly.
                 float lean = Dozing ? Mathf.Sin(time * 0.9f + _index) * 2.2f - 9f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;

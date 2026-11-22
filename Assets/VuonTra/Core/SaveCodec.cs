@@ -109,6 +109,8 @@ namespace VuonTra.Core
                 sb.Append("{\"id\":").Append(r.Id.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"tier\":").Append(r.Tier.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"level\":").Append(r.Level.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"affection\":").Append(r.Affection.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"petDay\":").Append(r.PetDay.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"kind\":");
                 WriteString(sb, Rabbits.KindOf(r));
                 sb.Append(",\"name\":");
@@ -318,6 +320,9 @@ namespace VuonTra.Core
                         if (index >= 0 && s.Levels[index] > 0 && taken.Add(index)) rabbit.Station = index;
                     }
                     rabbit.Level = (int)Math.Max(1d, Math.Min(ReadNumber(entry, "level"), Rabbits.LevelCaps[rabbit.Tier]));
+                    // The bond (#19): saves from before it, or odd values, start with no hearts and no day.
+                    rabbit.Affection = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "affection"), Rabbits.AffectionMax));
+                    rabbit.PetDay = TryNumber(entry, "petDay", out double petDay) && petDay >= 0d ? ToLong(petDay) : -1;
                     // Version 5: the kind. Older saves have none, and a kind must belong to the rabbit's tier.
                     rabbit.Kind = entry.TryGetValue("kind", out object kindObj) && kindObj is string kindId ? kindId : null;
                     rabbit.Kind = Rabbits.KindOf(rabbit);

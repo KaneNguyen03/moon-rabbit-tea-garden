@@ -17,6 +17,25 @@ namespace VuonTra.Core
         public int Level = 1;
         /// <summary>Index of the station it works at, or -1 when resting.</summary>
         public int Station = -1;
+        /// <summary>How close the rabbit and the player are, 0 to <see cref="Rabbits.AffectionMax"/>: one more for each day it is stroked.</summary>
+        public int Affection;
+        /// <summary>The day it was last stroked (see <see cref="Rabbits.Pet"/>), or -1 when never.</summary>
+        public long PetDay = -1;
+    }
+
+    /// <summary>What one touch of a rabbit came to.</summary>
+    public struct PetResult
+    {
+        /// <summary>False when there was no rabbit to touch; nothing else is set then.</summary>
+        public bool Found;
+        /// <summary>The first stroke of this day: the bond grew (unless already at its cap) and tea power was paid.</summary>
+        public bool FirstToday;
+        /// <summary>Tea power paid for this touch; zero after the first stroke of the day unless it was a wake.</summary>
+        public double Energy;
+        /// <summary>The bond just reached <see cref="Rabbits.AffectionLine"/>: the rabbit has something to say.</summary>
+        public bool LineUnlocked;
+        /// <summary>The bond just reached its cap: the rabbit gave its clover, already counted in the purse.</summary>
+        public bool GiftGiven;
     }
 
     /// <summary>
@@ -78,6 +97,55 @@ namespace VuonTra.Core
 
         /// <summary>What the rabbit is worth where it is now (resting counts as no bonus).</summary>
         public static double WorkMultiplier(IReadOnlyList<StationDef> defs, GameState s, Rabbit r) => MultiplierAt(defs, s, r, r.Station);
+
+        // ----- touching and stroking (#19) -----
+
+        /// <summary>The most hearts a rabbit can hold for the player.</summary>
+        public const int AffectionMax = 5;
+        /// <summary>At this many hearts the rabbit says a line of its own.</summary>
+        public const int AffectionLine = 3;
+        /// <summary>At the cap the rabbit gives this many clovers, once.</summary>
+        public const int AffectionGiftClovers = 1;
+        /// <summary>Tea power for the first stroke of a day.</summary>
+        public const double PetEnergy = 5d;
+        /// <summary>Tea power for waking a rabbit that nodded off at its post, every time.</summary>
+        public const double DozeEnergy = 8d;
+
+        /// <summary>
+        /// The player touched or stroked a rabbit on <paramref name="day"/>. The first time on any day (a day
+        /// before the last one counts too: a clock set back is not a reason to go cold) the bond grows by one
+        /// up to its cap and <see cref="PetEnergy"/> is paid; every later touch that day is for love alone.
+        /// Waking a dozing rabbit (<paramref name="wake"/>) pays <see cref="DozeEnergy"/> instead, every time.
+        /// The clover for a full bond is paid exactly once, at the step that completes it.
+        /// </summary>
+        public static PetResult Pet(GameState s, Rabbit r, long day, bool wake = false)
+        {
+            var result = new PetResult();
+            if (r == null) return result;
+            result.Found = true;
+            result.FirstToday = r.PetDay != day;
+            if (result.FirstToday)
+            {
+                r.PetDay = day;
+                if (r.Affection < AffectionMax)
+                {
+                    r.Affection = Math.Max(0, r.Affection) + 1;
+                    result.LineUnlocked = r.Affection == AffectionLine;
+                    result.GiftGiven = r.Affection == AffectionMax;
+                    if (result.GiftGiven) s.Clovers += AffectionGiftClovers;
+                }
+            }
+            result.Energy = wake ? DozeEnergy : (result.FirstToday ? PetEnergy : 0d);
+            if (result.Energy > 0d) s.Energy = Math.Min(Energy.Max, Math.Max(0d, s.Energy) + result.Energy);
+            return result;
+        }
+
+        /// <summary>The hearts a rabbit holds, as marks: full ones for the bond so far, hollow for the rest.</summary>
+        public static string Hearts(int affection)
+        {
+            int full = Math.Max(0, Math.Min(AffectionMax, affection));
+            return new string('♥', full) + new string('♡', AffectionMax - full);
+        }
 
         public const int MaxNameLength = 12;
 
@@ -275,14 +343,17 @@ namespace VuonTra.Core
                     if (r.Tier == tier && resting == (pass == 0)) used.Add(r);
                 }
 
-            int station = -1, level = 1;
+            int station = -1, level = 1, affection = 0;
+            long petDay = -1;
             foreach (Rabbit r in used)
             {
                 if (station < 0 && r.Station >= 0) station = r.Station;
                 if (r.Level > level) level = r.Level; // the training is not lost
+                if (r.Affection > affection) affection = r.Affection; // nor is the love
+                if (r.PetDay > petDay) petDay = r.PetDay;
                 s.Rabbits.Remove(r);
             }
-            var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Kind = RabbitKinds.Pick(tier + 1, kindRoll), Name = used[0].Name, Station = station, Level = level };
+            var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Kind = RabbitKinds.Pick(tier + 1, kindRoll), Name = used[0].Name, Station = station, Level = level, Affection = affection, PetDay = petDay };
             merged.FirstOfKind = See(s, merged.Kind);
             s.Rabbits.Add(merged);
             if (merged.FirstOfKind) Garden.AddXp(s, Garden.XpNewKind);

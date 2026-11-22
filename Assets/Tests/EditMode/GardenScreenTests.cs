@@ -3128,5 +3128,139 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0.6f, glow.GetComponent<Image>().color.a, 0.001f);
             Assert.AreEqual(0f, ripple.GetComponent<Image>().color.a);
         }
+        // ----- #19: touching and stroking rabbits -----
+
+        /// <summary>Fires every entry of one kind on an EventTrigger, as a finger would.</summary>
+        void Trigger(string path, UnityEngine.EventSystems.EventTriggerType type)
+        {
+            Transform t = root.transform.Find(path);
+            Assert.IsNotNull(t, "Missing UI object: " + path);
+            var trigger = t.GetComponent<UnityEngine.EventSystems.EventTrigger>();
+            Assert.IsNotNull(trigger, "Nothing to stroke at " + path);
+            var data = new UnityEngine.EventSystems.PointerEventData(null) { button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };
+            foreach (UnityEngine.EventSystems.EventTrigger.Entry e in trigger.triggers)
+                if (e.eventID == type) e.callback.Invoke(data);
+        }
+
+        Rabbit GiveWorker(long id = 1, int station = 0, int affection = 0)
+        {
+            var r = new Rabbit { Id = id, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = station, Affection = affection };
+            runner.State.Rabbits.Add(r);
+            runner.State.NextRabbitId = id;
+            screen.Refresh();
+            return r;
+        }
+
+        [Test]
+        public void Touching_A_Working_Rabbit_Pays_Tea_Power_Once_A_Day_And_Its_Card_Shows_The_Heart()
+        {
+            screen.Shell.StartGame();
+            runner.State.Energy = 10;
+            Rabbit r = GiveWorker();
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "the first stroke of the day pays tea power");
+            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(runner.TodayNumber, r.PetDay);
+            Assert.AreEqual(1, runner.State.TotalTaps, "a touch on the rabbit is still a tap on its station");
+
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "the second stroke of the day is for love alone");
+            Assert.AreEqual(1, r.Affection);
+
+            screen.Detail.Open(runner.Defs, runner.State, 1);
+            Text hearts = root.transform.Find("Canvas/RabbitSheet/Card/Body/Bond/Text").GetComponent<Text>();
+            Assert.AreEqual("♥♡♡♡♡", hearts.text, "one heart of five on the rabbit's own sheet");
+            r.Affection = 4;
+            screen.Refresh();
+            Assert.AreEqual("♥♥♥♥♡", root.transform.Find("Canvas/RabbitSheet/Card/Body/Bond/Text").GetComponent<Text>().text, "the sheet follows the bond");
+            Assert.AreEqual("Cấp 1 ♥♥♥♥", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Level").GetComponent<Text>().text, "and so does the grid cell");
+        }
+
+        [Test]
+        public void Stroking_A_Rabbit_Counts_Once_Per_Stroke_And_The_Touch_That_Ends_It_Is_Not_A_Tap()
+        {
+            screen.Shell.StartGame();
+            runner.State.Energy = 10;
+            Rabbit r = GiveWorker();
+            const string rabbit = "Canvas/Garden/Content/Station am-tra/Rabbit";
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.BeginDrag);
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.Drag);
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.Drag);
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.Drag);
+            Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "one stroke, however far the finger goes");
+            Assert.AreEqual(1, r.Affection);
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.PointerClick); // the finger lifting off the rabbit
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.EndDrag);
+            Assert.AreEqual(0, runner.State.TotalTaps, "letting go after a stroke is not a tap on the station");
+
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.PointerClick);
+            Assert.AreEqual(1, runner.State.TotalTaps, "a plain touch on the rabbit is");
+            Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "and pays nothing more today");
+        }
+
+        [Test]
+        public void Waking_A_Dozing_Rabbit_Is_The_Days_Stroke_And_Pays_The_Doze_Reward()
+        {
+            screen.Shell.StartGame();
+            runner.State.Energy = 10;
+            Rabbit r = GiveWorker();
+            Assert.IsTrue(screen.DozeSomeone());
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(10 + Rabbits.DozeEnergy, runner.State.Energy, 1e-6, "a wake pays the doze reward in place of the stroke's");
+            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(runner.TodayNumber, r.PetDay);
+        }
+
+        [Test]
+        public void A_Resting_Rabbit_Can_Be_Petted_At_Its_Seat_Or_Out_Walking()
+        {
+            screen.Shell.StartGame();
+            runner.State.Energy = 10;
+            Rabbit r = GiveWorker(1, -1);
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Assert.IsNotNull(world.Find("Seat 0/Art").GetComponent<UnityEngine.EventSystems.EventTrigger>(), "a seated rabbit can be stroked");
+            Assert.IsNotNull(world.Find("Walker 0/Art").GetComponent<UnityEngine.EventSystems.EventTrigger>(), "and so can one out for a stroll");
+
+            Find("Canvas/Garden/Content/Seat 0").onClick.Invoke();
+            Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6);
+            Assert.AreEqual(1, r.Affection);
+            Assert.IsTrue(screen.Detail.IsOpen, "a touch still opens its sheet");
+            Assert.AreEqual(1, screen.Detail.RabbitId);
+            screen.Detail.Close();
+
+            Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.BeginDrag);
+            Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.Drag);
+            Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.EndDrag);
+            Assert.AreEqual(1, r.Affection, "one heart a day, wherever it is");
+            Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6);
+            Assert.IsFalse(screen.Detail.IsOpen, "a stroke does not open the sheet");
+        }
+
+        [Test]
+        public void Close_Friends_Say_A_Line_In_The_Garden_And_Give_A_Clover()
+        {
+            screen.Shell.StartGame();
+            Rabbit r = GiveWorker(1, 0, Rabbits.AffectionLine - 1);
+            Transform line = root.transform.Find("Canvas/Garden/Content/BondLine");
+            Assert.IsTrue(line == null || !line.gameObject.activeSelf, "nothing to say yet");
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(Rabbits.AffectionLine, r.Affection);
+            line = root.transform.Find("Canvas/Garden/Content/BondLine");
+            Assert.IsNotNull(line, "the line is spoken over the rabbit");
+            Assert.IsTrue(line.gameObject.activeSelf);
+            Assert.AreEqual(L10n.T("bond.line.Brewer"), line.Find("Text").GetComponent<Text>().text, "a brewer's line for a brewer");
+            Assert.AreNotEqual("", L10n.T("bond.line.Brewer"));
+            for (int i = 0; i < 30 * 5; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(line.gameObject.activeSelf, "the line leaves on its own");
+
+            runner.State.Clovers = 0;
+            r.Affection = Rabbits.AffectionMax - 1;
+            r.PetDay = -1;
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(Rabbits.AffectionMax, r.Affection);
+            Assert.AreEqual(Rabbits.AffectionGiftClovers, runner.State.Clovers, "the closest friend gives a clover");
+            Assert.IsTrue(screen.Feel.BannerVisible, "and it is a moment");
+            StringAssert.Contains("Bông", root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+        }
     }
 }

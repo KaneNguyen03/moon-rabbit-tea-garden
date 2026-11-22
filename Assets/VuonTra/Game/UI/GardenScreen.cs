@@ -28,7 +28,6 @@ namespace VuonTra.Game.UI
         /// <summary>Stations are drawn at this size so four or five fit on one screen.</summary>
         const float StationScale = 0.7f;
         const float DecorScale = 0.7f;
-        const float DozeEnergy = 8f;
 
         static readonly string[] TabNames = { "Trạm", "Bùa", "Nhiệm vụ", "Thỏ" };
 
@@ -1079,7 +1078,7 @@ namespace VuonTra.Game.UI
             {
                 Vector2 spot = StationSpot(i);
                 var actor = new StationActorView(i);
-                actor.Build(_street, catalog, catalog.Stations[i], OnTap, OnPad);
+                actor.Build(_street, catalog, catalog.Stations[i], OnTap, OnPad, OnStroke, _scroll);
                 actor.Root.Place(0f, 0f, spot.x, spot.y, 440, 360);
                 actor.BaseScale = StationSize(i);
                 actor.Root.localScale = Vector3.one * StationSize(i);
@@ -1141,15 +1140,11 @@ namespace VuonTra.Game.UI
                 hit.raycastTarget = true;
                 var seatButton = rt.gameObject.AddComponent<Button>();
                 seatButton.transition = Selectable.Transition.None;
-                seatButton.onClick.AddListener(() =>
-                {
-                    if (_seatIds[seat] <= 0) return;
-                    Sfx.Click();
-                    Detail.Open(Runner.Defs, Runner.State, _seatIds[seat]);
-                });
+                seatButton.onClick.AddListener(() => OnSeat(seat));
                 UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 4, 84, 20).AddImage(catalog.Round, shade);
                 Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
                 art.preserveAspect = true;
+                UiKit.Strokable(art.rectTransform, _scroll, () => StrokeSeat(seat), () => OnSeat(seat)); // #19: stroked where it sits
                 rt.localScale = Vector3.one * SeatScale[k];
                 // Resting looks different from working: a slow sway, and now and then a doze.
                 var nap = UiKit.Rect("Nap", rt).Place(1f, 1f, 6, -6, 60, 34);
@@ -1174,6 +1169,8 @@ namespace VuonTra.Game.UI
                 UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(catalog.Round, shade);
                 Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
                 art.preserveAspect = true;
+                int walker = i;
+                UiKit.Strokable(art.rectTransform, _scroll, () => StrokeSeat(walker), () => OnSeat(walker)); // #19: the walker is seat i's rabbit
                 _walkers.Add(new Walker { Rect = rt, Art = art, X0 = laneFrom[i], X1 = laneTo[i], Y = lanes[i], Speed = 50f + i * 14f, Phase = i * 900f });
                 rt.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(float.MaxValue, rt)); // drawn first, so a walker never covers a level plate
@@ -3213,21 +3210,13 @@ namespace VuonTra.Game.UI
             }
             SelectStation(index); // a tap always shows the station's card, asleep or not
             if (Runner.State.Levels[index] <= 0) return;
-            if (_actors[index].Dozing)
-            {
-                // Waking a dozing rabbit is a small kindness, repaid in tea power.
-                _actors[index].SetDozing(false);
-                Runner.AddEnergy(DozeEnergy);
-                Feel.FloatText(Feel.PointOf(_actors[index].Root, new Vector2(-70, 190)), L10n.T("doze.reward", (int)DozeEnergy), Palette.Lantern, 38);
-            }
+            // Waking a dozing rabbit is a small kindness, repaid in tea power; any touch is a stroke (#19).
+            bool wake = _actors[index].Dozing;
+            if (wake) _actors[index].SetDozing(false);
+            PetStation(index, wake);
             Runner.Tap(index);
             _actors[index].Squish();
-            if (_actors[index].HasGuest)
-            {
-                // The rabbit likes it: a little jump and a heart.
-                _actors[index].Hop();
-                Feel.FloatText(Feel.PointOf(_actors[index].Root, new Vector2(-70, 240)), "♥", Palette.Blush, 44);
-            }
+            if (_actors[index].HasGuest) _actors[index].Hop(); // the rabbit likes it: a little jump
             Sfx.Pet();
             DismissHint();
         }
@@ -3646,6 +3635,113 @@ namespace VuonTra.Game.UI
                 // The purse answers when the carrots arrive.
                 Tweens.Add(0.15f, t => { if (_currency != null) _currency.localScale = Vector3.one * (1f + 0.25f * Ease.Pop(t)); }, Ease.Linear);
             });
+        }
+
+        // ----- touching and stroking rabbits (#19) -----
+
+        RectTransform _bondLine;
+        Text _bondText;
+        int _bondToken;
+
+        /// <summary>The rabbit at a station was touched or stroked.</summary>
+        void PetStation(int index, bool wake = false)
+        {
+            Rabbit worker = Rabbits.AtStation(Runner.State, index);
+            if (worker == null || !_actors[index].Root.gameObject.activeSelf) return;
+            Pet(worker.Id, _actors[index].Root, new Vector2(-70, 140), wake);
+        }
+
+        /// <summary>A finger was dragged across a working rabbit: a stroke, not a tap on its station.</summary>
+        void OnStroke(int index)
+        {
+            if (Runner.State.Levels[index] <= 0) return;
+            bool wake = _actors[index].Dozing;
+            if (wake) _actors[index].SetDozing(false);
+            PetStation(index, wake);
+            Sfx.Pet();
+            DismissHint();
+        }
+
+        /// <summary>A resting rabbit was touched where it sits or walks: a stroke, and its own sheet.</summary>
+        void OnSeat(int seat)
+        {
+            if (seat < 0 || seat >= _seatIds.Length || _seatIds[seat] <= 0) return;
+            StrokeSeat(seat);
+            Sfx.Click();
+            Detail.Open(Runner.Defs, Runner.State, _seatIds[seat]);
+        }
+
+        /// <summary>A finger was dragged across a resting rabbit: a stroke alone, the sheet stays shut.</summary>
+        void StrokeSeat(int seat)
+        {
+            if (seat < 0 || seat >= _seatIds.Length || _seatIds[seat] <= 0) return;
+            // Hearts rise from wherever the rabbit is at the moment: its seat, or the lane it strolls.
+            RectTransform near = seat < _walkers.Count && _walkers[seat].Rect.gameObject.activeSelf ? _walkers[seat].Rect : (seat < _seats.Count ? _seats[seat] : null);
+            if (near == null) return;
+            Pet(_seatIds[seat], near, new Vector2(0, 150), false);
+            Sfx.Pet();
+        }
+
+        /// <summary>
+        /// A rabbit was touched or stroked, wherever it is: hearts float up, tea power on the first stroke of
+        /// the day, a line when the bond reaches three hearts, and its clover when the bond is full.
+        /// </summary>
+        void Pet(long rabbitId, RectTransform near, Vector2 offset, bool wake)
+        {
+            Rabbit r = Rabbits.Find(Runner.State, rabbitId);
+            if (r == null) return;
+            PetResult pet = Runner.PetRabbit(rabbitId, wake);
+            if (!pet.Found) return;
+            GameCatalog catalog = Runner.Catalog;
+            Vector2 at = Feel.PointOf(near, offset);
+            Haptics.Light();
+            // The heart comes first, always; the reward, when there is one, follows it up.
+            if (pet.FirstToday)
+            {
+                // The day's first stroke: a burst of hearts and a little sparkle.
+                Feel.FloatText(at + new Vector2(70, 30), "♥", Palette.Blush, 54);
+                Feel.FloatText(at + new Vector2(20, 70), "♥", Palette.Blush, 36);
+                Feel.FloatText(at + new Vector2(110, 80), "♥", Palette.Blush, 30);
+                Feel.Burst(at + new Vector2(60, 20), catalog.Round, new[] { Palette.Blush, Palette.Paper }, 8, 420f, 18f);
+            }
+            else Feel.FloatText(at + new Vector2(70, 30), "♥", Palette.Blush, 36); // the rest of the day: a smaller heart
+            if (pet.Energy > 0d) Feel.FloatText(at + new Vector2(-110, -60), L10n.T("doze.reward", (int)pet.Energy), Palette.Lantern, 38); // by the shoulder, clear of the hearts and of any line
+            if (pet.LineUnlocked) Say(near, offset, L10n.T("bond.line." + Rabbits.TradeOf(r)));
+            if (pet.GiftGiven)
+            {
+                Sfx.Sting();
+                Feel.Moment(L10n.T("bond.gift.title", r.Name), L10n.T("bond.gift.sub", Rabbits.AffectionGiftClovers));
+                // The clover flies to the rabbits tab, where clovers are spent.
+                Feel.Fly(at, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round,
+                    catalog.Clover != null ? Color.white : Palette.Moss, Rabbits.AffectionGiftClovers, 38f);
+            }
+        }
+
+        /// <summary>A short line in a paper bubble over a rabbit in the garden; it springs in and leaves by itself.</summary>
+        void Say(RectTransform near, Vector2 offset, string text)
+        {
+            if (_bondLine == null)
+            {
+                _bondLine = UiKit.Rect("BondLine", _street).Place(0f, 0f, 0, 0, 520, 72);
+                _bondLine.pivot = new Vector2(0.5f, 0f);
+                _bondLine.AddImage(Runner.Catalog.Panel, Palette.Paper, true);
+                _bondText = UiKit.Rect("Text", _bondLine).Stretch(0, 0, 1, 1, 18, 6, 18, 6)
+                    .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _bondText.resizeTextForBestFit = true; // the longest line in either language stays on its plate
+                _bondText.resizeTextMinSize = 16;
+                _bondText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+                _bondText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            }
+            int token = ++_bondToken;
+            _bondText.text = text;
+            // Both sit on the street, so the bubble's place is the rabbit's own, lifted clear of its ears.
+            _bondLine.anchoredPosition = near.anchoredPosition + new Vector2(0, Mathf.Abs(offset.y) * near.localScale.y + 60f);
+            _bondLine.SetAsLastSibling();
+            _bondLine.gameObject.SetActive(true);
+            _bondLine.localScale = Vector3.zero;
+            Tweens.Add(Motion.Time(Motion.Panel), t => _bondLine.localScale = Vector3.one * t, Motion.Curve(Ease.OutBack));
+            Tweens.Add(Motion.Time(Motion.PanelOut), t => { if (token == _bondToken) _bondLine.localScale = Vector3.one * (1f - t); }, Ease.InCubic,
+                Motion.Speech, () => { if (token == _bondToken) _bondLine.gameObject.SetActive(false); });
         }
     }
 }

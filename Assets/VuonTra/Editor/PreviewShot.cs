@@ -407,6 +407,21 @@ namespace VuonTra.EditorTools
                     Step(screen, 0.7f);
                     Capture(screen, "28-tho-di-tram");
                     Step(screen, 3f);
+                    // Stroked at its new post on the day its bond reaches three hearts: hearts, tea power and its line (#19).
+                    mover.Affection = Rabbits.AffectionLine - 1;
+                    mover.PetDay = -1;
+                    screen.FocusStation(0); // settle the view on the teapot first, so the hearts rise where the rabbit stands
+                    Step(screen, 0.5f);
+                    Press(screen, "Canvas/Garden/Content/Station am-tra");
+                    Step(screen, 0.25f);
+                    Capture(screen, "19-vuot-tho");
+                    Step(screen, 1f);
+                    screen.SelectStation(-1);
+                    screen.Detail.Open(runner.Defs, state, mover.Id);
+                    Step(screen, 0.5f);
+                    Capture(screen, "19-tim-the");
+                    screen.Detail.Close();
+                    Step(screen, 3f);
                 }
             }
 

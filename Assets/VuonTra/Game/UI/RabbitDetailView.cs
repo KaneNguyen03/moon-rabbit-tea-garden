@@ -116,7 +116,7 @@ namespace VuonTra.Game.UI
         string Signature(IReadOnlyList<StationDef> defs, GameState s, Rabbit r)
         {
             var sb = new StringBuilder();
-            sb.Append(r.Id).Append(r.Tier).Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(L10n.Code);
+            sb.Append(r.Id).Append(r.Tier).Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(':').Append(r.Affection).Append(L10n.Code);
             sb.Append(':').Append(Rabbits.LevelsAffordable(r, Simulation.Budget(s), out _)); // the max button's count
             sb.Append(s.Coins >= Rabbits.LevelCost(r) ? '+' : '-');
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
@@ -183,6 +183,12 @@ namespace VuonTra.Game.UI
             tradeIcon.preserveAspect = true;
             UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 52, 0, 10, 0)
                 .AddText(L10n.Trade(trade) + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : ""), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+
+            // The bond (#19): full hearts for the days it has been stroked, hollow for the ones still to come.
+            var bond = UiKit.Rect("Bond", _body).Place(0f, 1f, 420 + 300 + 20 + 110, -272, 220, 44);
+            bond.AddImage(_catalog.Panel, Palette.Alpha(Palette.Paper, 0.92f), true);
+            UiKit.Rect("Text", bond).Stretch(0, 0, 1, 1, 10, 0, 10, 0)
+                .AddText(Rabbits.Hearts(r.Affection), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             List<int> suited = Rabbits.SuitedStations(defs, s, r);
             if (suited.Count > 0)

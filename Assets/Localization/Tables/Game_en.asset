@@ -1722,6 +1722,34 @@ MonoBehaviour:
     m_Localized: Large text
     m_Metadata:
       m_Items: []
+  - m_Id: 208507595907072
+    m_Localized: The garden smells lovely today, doesn't it?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489984
+    m_Localized: Let me brew you a really good pot!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489985
+    m_Localized: This batch is just for you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489986
+    m_Localized: I picked the sweetest young leaves!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489987
+    m_Localized: So many stars tonight. Watch them with me?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489988
+    m_Localized: '{0} gives you a clover!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489989
+    m_Localized: "Closest of friends \xB7 +{0} clover"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

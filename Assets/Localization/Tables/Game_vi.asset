@@ -1718,6 +1718,34 @@ MonoBehaviour:
     m_Localized: "Ch\u1EEF to"
     m_Metadata:
       m_Items: []
+  - m_Id: 208507595907072
+    m_Localized: "H\xF4m nay v\u01B0\u1EDDn th\u01A1m qu\xE1, b\u1EA1n nh\u1EC9?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489984
+    m_Localized: "Pha cho b\u1EA1n m\u1ED9t \u1EA5m tr\xE0 th\u1EADt ngon nh\xE9!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489985
+    m_Localized: "M\u1EBB b\xE1nh n\xE0y d\xE0nh ri\xEAng cho b\u1EA1n \u0111\xF3!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489986
+    m_Localized: "M\xECnh h\xE1i \u0111\u01B0\u1EE3c l\xE1 non ngon nh\u1EA5t r\u1ED3i!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489987
+    m_Localized: "T\u1ED1i nay nhi\u1EC1u sao l\u1EAFm, ng\u1EAFm c\xF9ng m\xECnh kh\xF4ng?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489988
+    m_Localized: "B\xE9 {0} t\u1EB7ng b\u1EA1n c\u1ECF b\u1ED1n l\xE1!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489989
+    m_Localized: "Th\xE2n thi\u1EBFt h\u1EBFt m\u1EE9c \xB7 +{0} c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

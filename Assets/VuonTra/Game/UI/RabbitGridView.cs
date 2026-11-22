@@ -144,7 +144,7 @@ namespace VuonTra.Game.UI
         {
             var sb = new StringBuilder(Album ? "album|" : "mine|");
             foreach (Rabbit r in s.Rabbits)
-                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(';');
+                sb.Append(r.Id).Append(':').Append(r.Tier).Append(':').Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(':').Append(r.Affection).Append(';');
             sb.Append('|');
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             if (_isFresh != null && Album)
@@ -273,7 +273,7 @@ namespace VuonTra.Game.UI
             name.resizeTextMinSize = 18;
             name.resizeTextMaxSize = 28;
             UiKit.Rect("Level", cell).Place(0.5f, 0f, 0, 28, CellW - 24f, 30)
-                .AddText(L10n.T("station.level", r.Level) + L10n.LevelStars(r), UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("station.level", r.Level) + L10n.LevelStars(r) + L10n.Hearts(r), UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>

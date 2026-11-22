@@ -511,5 +511,93 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(-1, r.Rabbits[2].Station);
             Assert.AreEqual(3, r.NextRabbitId);
         }
+        [Test]
+        public void Petting_Pays_Tea_Power_Once_A_Day_And_Raises_Affection()
+        {
+            Rabbit r = Add(0, 0);
+            s.Energy = 10;
+            PetResult first = Rabbits.Pet(s, r, 100);
+            Assert.IsTrue(first.Found);
+            Assert.IsTrue(first.FirstToday);
+            Assert.AreEqual(Rabbits.PetEnergy, first.Energy, 1e-9);
+            Assert.AreEqual(10 + Rabbits.PetEnergy, s.Energy, 1e-9);
+            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(100, r.PetDay);
+
+            PetResult again = Rabbits.Pet(s, r, 100);
+            Assert.IsTrue(again.Found);
+            Assert.IsFalse(again.FirstToday, "the second stroke of the day is for love alone");
+            Assert.AreEqual(0d, again.Energy, 1e-9);
+            Assert.AreEqual(10 + Rabbits.PetEnergy, s.Energy, 1e-9);
+            Assert.AreEqual(1, r.Affection);
+
+            Assert.IsTrue(Rabbits.Pet(s, r, 101).FirstToday, "a new day");
+            Assert.AreEqual(2, r.Affection);
+            Assert.IsTrue(Rabbits.Pet(s, r, 50).FirstToday, "a clock that went backwards is still another day");
+            Assert.AreEqual(3, r.Affection);
+            Assert.AreEqual(50, r.PetDay);
+            Assert.IsFalse(Rabbits.Pet(s, r, 50).FirstToday);
+        }
+
+        [Test]
+        public void Affection_Stops_At_Its_Cap_And_Nobody_Pets_A_Rabbit_That_Is_Not_There()
+        {
+            Rabbit r = Add(1);
+            for (long day = 1; day <= Rabbits.AffectionMax + 3; day++) Rabbits.Pet(s, r, day);
+            Assert.AreEqual(Rabbits.AffectionMax, r.Affection);
+            Assert.IsTrue(Rabbits.Pet(s, r, 99).FirstToday, "still a first stroke of the day, and still worth tea power");
+            Assert.AreEqual(Rabbits.AffectionMax, r.Affection);
+
+            s.Energy = 10;
+            PetResult none = Rabbits.Pet(s, null, 5);
+            Assert.IsFalse(none.Found);
+            Assert.IsFalse(none.FirstToday);
+            Assert.AreEqual(0d, none.Energy, 1e-9);
+            Assert.AreEqual(10, s.Energy, 1e-9);
+        }
+
+        [Test]
+        public void Waking_A_Dozing_Rabbit_Pays_The_Doze_Reward_However_Often_It_Naps()
+        {
+            Rabbit r = Add(0, 0);
+            s.Energy = 10;
+            PetResult wake = Rabbits.Pet(s, r, 1, wake: true);
+            Assert.IsTrue(wake.FirstToday);
+            Assert.AreEqual(Rabbits.DozeEnergy, wake.Energy, 1e-9, "a wake pays the doze reward, not the stroke's");
+            Assert.AreEqual(Rabbits.DozeEnergy, Rabbits.Pet(s, r, 1, wake: true).Energy, 1e-9, "the second nap of the day is still worth waking");
+            Assert.AreEqual(10 + 2 * Rabbits.DozeEnergy, s.Energy, 1e-9);
+            Assert.AreEqual(1, r.Affection, "one heart a day, however many naps");
+
+            s.Energy = Energy.Max - 1;
+            Rabbits.Pet(s, r, 2, wake: true);
+            Assert.AreEqual(Energy.Max, s.Energy, 1e-9, "never past the top of the bar");
+        }
+
+        [Test]
+        public void Close_Friends_Say_A_Line_At_Three_Hearts_And_Give_A_Clover_At_Five_Once()
+        {
+            Rabbit r = Add(2);
+            s.Clovers = 0;
+            for (long day = 1; day <= 7; day++)
+            {
+                PetResult pet = Rabbits.Pet(s, r, day);
+                Assert.AreEqual(day == Rabbits.AffectionLine, pet.LineUnlocked, "the line comes on day " + Rabbits.AffectionLine + ", not " + day);
+                Assert.AreEqual(day == Rabbits.AffectionMax, pet.GiftGiven, "the gift comes on day " + Rabbits.AffectionMax + ", not " + day);
+                Assert.IsFalse(Rabbits.Pet(s, r, day).LineUnlocked, "never twice on one day");
+                Assert.IsFalse(Rabbits.Pet(s, r, day).GiftGiven);
+            }
+            Assert.AreEqual(Rabbits.AffectionMax, r.Affection);
+            Assert.AreEqual(Rabbits.AffectionGiftClovers, s.Clovers, "one clover, paid exactly once");
+        }
+
+        [Test]
+        public void Merging_Keeps_The_Strongest_Bond()
+        {
+            Rabbit a = Add(0), b = Add(0), c = Add(0);
+            a.Affection = 1; b.Affection = 4; b.PetDay = 30; c.Affection = 2; c.PetDay = 31;
+            Rabbit merged = Rabbits.Merge(s, 0);
+            Assert.AreEqual(4, merged.Affection, "the love is not lost");
+            Assert.AreEqual(31, merged.PetDay);
+        }
     }
 }

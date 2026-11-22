@@ -257,5 +257,29 @@ namespace VuonTra.Core.Tests
             GameState bad = SaveCodec.Decode(defs, "{\"version\":12,\"stations\":[],\"view\":{\"x\":1,\"y\":2,\"zoom\":99}}").State;
             Assert.AreEqual(0d, bad.ViewZoom, "a zoom the game does not offer is ignored");
         }
+        [Test]
+        public void Affection_And_The_Day_Of_The_Last_Stroke_Round_Trip_And_Old_Saves_Start_Without()
+        {
+            s.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "A", Affection = 3, PetDay = 20751 });
+            s.Rabbits.Add(new Rabbit { Id = 2, Tier = 1, Name = "B" });
+            s.NextRabbitId = 2;
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(3, r.Rabbits[0].Affection);
+            Assert.AreEqual(20751, r.Rabbits[0].PetDay);
+            Assert.AreEqual(0, r.Rabbits[1].Affection);
+            Assert.AreEqual(-1, r.Rabbits[1].PetDay, "never stroked");
+
+            const string json = "{\"version\":14,\"stations\":[],\"rabbits\":[" +
+                "{\"id\":1,\"tier\":0,\"name\":\"A\"}," +
+                "{\"id\":2,\"tier\":0,\"name\":\"B\",\"affection\":99,\"petDay\":-7}," +
+                "{\"id\":3,\"tier\":0,\"name\":\"C\",\"affection\":\"lots\",\"petDay\":\"x\"}]}";
+            GameState old = SaveCodec.Decode(defs, json).State;
+            Assert.AreEqual(0, old.Rabbits[0].Affection, "a save from before the bond");
+            Assert.AreEqual(-1, old.Rabbits[0].PetDay);
+            Assert.AreEqual(Rabbits.AffectionMax, old.Rabbits[1].Affection, "never above the cap");
+            Assert.AreEqual(-1, old.Rabbits[1].PetDay, "a day before the first is no day");
+            Assert.AreEqual(0, old.Rabbits[2].Affection, "not a number");
+            Assert.AreEqual(-1, old.Rabbits[2].PetDay);
+        }
     }
 }

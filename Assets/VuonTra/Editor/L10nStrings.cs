@@ -125,6 +125,14 @@ namespace VuonTra.EditorTools
             { "worker.here", "Đang ở đây", "Here now" },
             { "worker.resting", "Đang nghỉ", "Resting" },
             { "doze.reward", "+{0} trà lực", "+{0} tea power" },
+            // ----- touching and stroking rabbits (#19) -----
+            { "bond.line.None", "Hôm nay vườn thơm quá, bạn nhỉ?", "The garden smells lovely today, doesn't it?" },
+            { "bond.line.Brewer", "Pha cho bạn một ấm trà thật ngon nhé!", "Let me brew you a really good pot!" },
+            { "bond.line.Baker", "Mẻ bánh này dành riêng cho bạn đó!", "This batch is just for you!" },
+            { "bond.line.Gatherer", "Mình hái được lá non ngon nhất rồi!", "I picked the sweetest young leaves!" },
+            { "bond.line.Stargazer", "Tối nay nhiều sao lắm, ngắm cùng mình không?", "So many stars tonight. Watch them with me?" },
+            { "bond.gift.title", "Bé {0} tặng bạn cỏ bốn lá!", "{0} gives you a clover!" },
+            { "bond.gift.sub", "Thân thiết hết mức · +{0} cỏ bốn lá", "Closest of friends · +{0} clover" },
             { "gold.title", "Đom đóm vàng!", "Golden firefly!" },
             { "gold.sub", "+{0} cà rốt", "+{0} carrots" },
 

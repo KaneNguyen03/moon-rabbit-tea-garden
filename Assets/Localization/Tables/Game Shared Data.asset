@@ -1715,6 +1715,34 @@ MonoBehaviour:
     m_Key: pause.text
     m_Metadata:
       m_Items: []
+  - m_Id: 208507595907072
+    m_Key: bond.line.None
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489984
+    m_Key: bond.line.Brewer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489985
+    m_Key: bond.line.Baker
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489986
+    m_Key: bond.line.Gatherer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489987
+    m_Key: bond.line.Stargazer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489988
+    m_Key: bond.gift.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 208507608489989
+    m_Key: bond.gift.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

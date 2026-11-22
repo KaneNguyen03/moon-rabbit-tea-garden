@@ -2,6 +2,7 @@ using VuonTra.Core;
 using System;
 using System.Globalization;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace VuonTra.Game.UI
@@ -139,6 +140,51 @@ namespace VuonTra.Game.UI
         /// A tier's stars on a small paper pill, in ink: the rarity cue that does not depend on colour.
         /// Sits at the given spot of its parent (anchor and offset), one star for silver up to six for red.
         /// </summary>
+        /// <summary>
+        /// Makes a rabbit strokable (#19): a finger dragged across it is one stroke however far it goes, and
+        /// the garden under it still scrolls with the drag (every drag event is handed on to
+        /// <paramref name="scroll"/>). A plain touch is a tap; the touch that ends a stroke is not one.
+        /// The trigger sits on the rabbit's own image, so it takes the touch before any button around it.
+        /// </summary>
+        public static void Strokable(RectTransform rt, ScrollRect scroll, Action onStroke, Action onTap)
+        {
+            Image hit = rt.GetComponent<Image>();
+            if (hit == null) hit = rt.AddImage(null, new Color(0, 0, 0, 0));
+            hit.raycastTarget = true;
+            var trigger = rt.gameObject.AddComponent<EventTrigger>();
+            bool stroked = false;
+            Entry(trigger, EventTriggerType.InitializePotentialDrag, e => { if (scroll != null && e is PointerEventData p) scroll.OnInitializePotentialDrag(p); });
+            Entry(trigger, EventTriggerType.BeginDrag, e =>
+            {
+                stroked = false;
+                if (scroll != null && e is PointerEventData p) scroll.OnBeginDrag(p);
+            });
+            Entry(trigger, EventTriggerType.Drag, e =>
+            {
+                if (scroll != null && e is PointerEventData p) scroll.OnDrag(p);
+                if (stroked) return;
+                stroked = true;
+                onStroke?.Invoke();
+            });
+            Entry(trigger, EventTriggerType.EndDrag, e =>
+            {
+                stroked = false; // the touch that lifts off comes before this, so it has already been read
+                if (scroll != null && e is PointerEventData p) scroll.OnEndDrag(p);
+            });
+            Entry(trigger, EventTriggerType.PointerClick, _ =>
+            {
+                if (stroked) { stroked = false; return; }
+                onTap?.Invoke();
+            });
+        }
+
+        static void Entry(EventTrigger trigger, EventTriggerType type, UnityEngine.Events.UnityAction<BaseEventData> call)
+        {
+            var entry = new EventTrigger.Entry { eventID = type };
+            entry.callback.AddListener(call);
+            trigger.triggers.Add(entry);
+        }
+
         public static Text Stars(RectTransform parent, int tier, float anchorX, float anchorY, float x, float y, int size = 18)
         {
             int stars = Rarity.Stars(tier);

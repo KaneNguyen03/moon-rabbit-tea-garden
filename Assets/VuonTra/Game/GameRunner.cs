@@ -299,6 +299,17 @@ namespace VuonTra.Game
             return ok;
         }
 
+        /// <summary>
+        /// The player touched or stroked a rabbit (#19): the bond and the tea power follow <see cref="Rabbits.Pet"/>.
+        /// Saved only when something changed; a touch that pays nothing is not worth a write.
+        /// </summary>
+        public PetResult PetRabbit(long id, bool wake = false)
+        {
+            PetResult result = Rabbits.Pet(State, Rabbits.Find(State, id), Today, wake);
+            if (result.FirstToday || result.Energy > 0d) Changed();
+            return result;
+        }
+
         /// <summary>Where the save could be backed up to. Local-only until a store sign-in is wired in (#38, #39, #40).</summary>
         public IAccountService Account { get; set; } = new LocalOnlyAccount();
         /// <summary>Where a copy of the save could be kept. Nowhere until the cloud save core is wired in (#38).</summary>

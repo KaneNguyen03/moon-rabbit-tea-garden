@@ -66,6 +66,10 @@ namespace VuonTra.Game.UI
         public const float Glide = 1f;
         /// <summary>The gap between one list row appearing and the next.</summary>
         public const float Stagger = 0.035f;
+        /// <summary>A rabbit's stretch as it nods off at its post. Ambient: the player can act all through it.</summary>
+        public const float Yawn = 0.6f;
+        /// <summary>How long a line a rabbit says stays over its head before it leaves by itself.</summary>
+        public const float Speech = 3f;
 
         const string ReducedKey = "motion.reduced";
 
