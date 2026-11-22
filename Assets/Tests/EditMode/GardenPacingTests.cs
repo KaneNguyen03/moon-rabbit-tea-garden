@@ -138,6 +138,27 @@ namespace VuonTra.Core.Tests
             return total >= 3600 ? (total / 3600) + " giờ " + (total % 3600 / 60) + " phút" : (total / 60) + " phút " + (total % 60) + " giây";
         }
 
+        /// <summary>A garden on its second season (#1) earns a quarter more, so the same casual player climbs faster, and still climbs.</summary>
+        [Test]
+        public void The_Second_Season_Climbs_Faster_Than_The_First_And_Still_Passes_The_Marks()
+        {
+            Play(10 * 60);
+            double firstXp = s.GardenXp;
+            double firstCoins = s.TotalEarned.ToDouble();
+            int firstLevel = Garden.Level(s);
+
+            SetUp();
+            s.Season = 1;
+            mods = Modifiers.From(ups, s);
+            Assert.AreEqual(1.25d, mods.IncomeMultiplier, 1e-9);
+            Play(10 * 60);
+
+            Assert.Greater(s.TotalEarned.ToDouble(), firstCoins, "a quarter more on every carrot");
+            Assert.GreaterOrEqual(s.GardenXp, firstXp, "more carrots buy more levels");
+            Assert.GreaterOrEqual(Garden.Level(s), firstLevel);
+            Assert.GreaterOrEqual(Garden.Level(s), 5, "the ten-minute mark still holds on the second season");
+        }
+
         /// <summary>Not a pass or fail: writes how a tireless, perfect player fares, to show the fastest the game can go.</summary>
         [Test]
         public void Report_For_A_Tireless_Player()

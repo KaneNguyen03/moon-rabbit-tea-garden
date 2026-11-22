@@ -50,6 +50,126 @@ namespace VuonTra.Core.Tests
             return t.GetComponent<Button>();
         }
 
+        // ----- The new moon (#1) -----
+
+        void GrowToLevel(int level)
+        {
+            screen.Shell.SkipTitle();
+            GameState s = runner.State;
+            s.GardenXp = Garden.XpForLevel(level);
+            s.Coins = new BigNum(50000);
+            s.Levels[1] = 40; s.Levels[2] = 12;
+            s.Plots = 6;
+            s.RestSpots = 3;
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0d).Id, 2);
+            screen.Refresh();
+        }
+
+        [Test]
+        public void The_Pause_Card_Offers_The_New_Moon_Only_Once_The_Garden_Is_Far_Enough()
+        {
+            screen.Shell.SkipTitle();
+            screen.Shell.OpenPause();
+            Transform locked = root.transform.Find("Canvas/Pause/Card/NewMoonLocked");
+            Assert.IsTrue(locked.gameObject.activeSelf, "a new garden sees the level it needs");
+            StringAssert.Contains(NewMoon.FirstLevel.ToString(), locked.GetComponent<Text>().text);
+            Assert.IsFalse(root.transform.Find("Canvas/Pause/Card/NewMoon").gameObject.activeSelf);
+            screen.Shell.Resume();
+            screen.Advance(0.5f);
+
+            GrowToLevel(NewMoon.FirstLevel);
+            screen.Shell.OpenPause();
+            Assert.IsTrue(root.transform.Find("Canvas/Pause/Card/NewMoon").gameObject.activeSelf, "far enough: the button is there");
+            Assert.IsFalse(locked.gameObject.activeSelf);
+            Assert.IsTrue(root.transform.Find("Canvas/Pause/Card/NewMoon/Face/Badge").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void The_Compare_Card_Shows_The_Saves_Own_Numbers_And_A_Short_Hold_Arms_Nothing()
+        {
+            GrowToLevel(NewMoon.FirstLevel);
+            screen.Shell.OpenPause();
+            Find("Canvas/Pause/Card/NewMoon").onClick.Invoke();
+            Assert.IsTrue(screen.NewMoonCard.IsOpen);
+            string keep = root.transform.Find("Canvas/NewMoon/Card/Keep/Body").GetComponent<Text>().text;
+            string lose = root.transform.Find("Canvas/NewMoon/Card/Lose/Body").GetComponent<Text>().text;
+            string gain = root.transform.Find("Canvas/NewMoon/Card/Gain/Body").GetComponent<Text>().text;
+            StringAssert.Contains(runner.State.Rabbits.Count + " bé thỏ", keep);
+            StringAssert.Contains("Ô đất 6 → 4", lose);
+            StringAssert.Contains("chỗ nghỉ 3 → 2", lose);
+            StringAssert.Contains("cấp vườn 30 → 1", lose);
+            StringAssert.Contains("+0% → +25%", gain);
+            StringAssert.Contains("Thỏ Trăng Non", gain);
+
+            screen.NewMoonCard.Hold();
+            screen.Advance(0.8f);
+            screen.NewMoonCard.Release();
+            Assert.IsFalse(screen.NewMoonCard.Armed, "too short a hold");
+            screen.NewMoonCard.Hold();
+            screen.Advance(1.2f);
+            screen.NewMoonCard.Cancel();
+            Assert.IsFalse(screen.NewMoonCard.Armed, "a finger that slid off");
+            Assert.AreEqual(0, runner.State.Season);
+            StringAssert.Contains("1,5", root.transform.Find("Canvas/NewMoon/Card/Begin/Face/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void A_Full_Hold_Then_A_Press_Begins_The_Season_Shows_The_Moment_And_Brings_The_Moon_Rabbit()
+        {
+            Motion.SetReduced(true);
+            GrowToLevel(NewMoon.FirstLevel);
+            int rabbits = runner.State.Rabbits.Count;
+            screen.Shell.OpenPause();
+            Find("Canvas/Pause/Card/NewMoon").onClick.Invoke();
+            screen.NewMoonCard.Hold();
+            screen.Advance(NewMoonView.HoldSeconds + 0.1f);
+            screen.NewMoonCard.Release();
+            Assert.IsTrue(screen.NewMoonCard.Armed);
+            StringAssert.Contains("mùa 1", root.transform.Find("Canvas/NewMoon/Card/Begin/Face/Text").GetComponent<Text>().text);
+            Assert.AreEqual(0, runner.State.Season, "armed is not begun");
+
+            screen.NewMoonCard.Hold();
+            screen.NewMoonCard.Release();
+            Assert.IsFalse(screen.NewMoonCard.IsOpen);
+            Assert.AreEqual(1, runner.State.Season);
+            Assert.AreEqual(ShellState.Playing, screen.Shell.State);
+            Assert.IsTrue(screen.NewMoonMoment.IsOpen, "the moon sets and rises");
+            Assert.AreEqual(4, runner.State.Plots);
+            Assert.AreEqual(1, runner.State.Levels[0]);
+            Assert.AreEqual(0, runner.State.Levels[1]);
+            Assert.AreEqual(rabbits + 1, runner.State.Rabbits.Count);
+
+            screen.Advance(0.5f);
+            screen.Advance(0.5f);
+            Assert.IsFalse(screen.NewMoonMoment.IsOpen, "with reduced motion the moment is short");
+            Assert.IsTrue(screen.Arrival.IsOpen, "the moon rabbit arrives");
+            Rabbit moon = runner.State.Rabbits[runner.State.Rabbits.Count - 1];
+            Assert.AreEqual(NewMoon.MoonKind, moon.Kind);
+            Transform chip = root.transform.Find("Canvas/Hud/Season");
+            Assert.IsTrue(chip.gameObject.activeSelf);
+            Assert.AreEqual("Mùa 1", chip.Find("Text").GetComponent<Text>().text);
+            Assert.AreEqual(1.25d, runner.Mods.IncomeMultiplier, 1e-9);
+        }
+
+        [Test]
+        public void A_Tap_Ends_The_Moment_Early()
+        {
+            GrowToLevel(NewMoon.FirstLevel);
+            screen.Shell.OpenPause();
+            Find("Canvas/Pause/Card/NewMoon").onClick.Invoke();
+            screen.NewMoonCard.Hold();
+            screen.Advance(NewMoonView.HoldSeconds + 0.1f);
+            screen.NewMoonCard.Release();
+            screen.NewMoonCard.Hold();
+            screen.NewMoonCard.Release();
+            screen.Advance(0.5f);
+            Assert.IsTrue(screen.NewMoonMoment.IsOpen);
+            Assert.Less(screen.NewMoonMoment.Progress, 1f);
+            Find("Canvas/NewMoonMoment").onClick.Invoke();
+            Assert.IsFalse(screen.NewMoonMoment.IsOpen);
+            Assert.IsTrue(screen.Arrival.IsOpen);
+        }
+
         [Test]
         public void Runner_Starts_With_Twelve_Stations_And_First_Open()
         {
@@ -957,8 +1077,8 @@ namespace VuonTra.Core.Tests
                 cells++;
                 bool seen = runner.State.SeenKinds.Contains(kind.Id);
                 if (seen) met++;
-                // An unmet everyday kind is a question; an unmet seasonal kind says when it can be met (#8).
-                string unmet = kind.Season != Season.None ? L10n.T("album.season.only", L10n.Season(kind.Season)) : "???";
+                // An unmet everyday kind is a question; an unmet seasonal kind says when it can be met (#8); the moon rabbit says how (#1).
+                string unmet = kind.NewMoonOnly ? L10n.T("album.newmoon.only") : kind.Season != Season.None ? L10n.T("album.season.only", L10n.Season(kind.Season)) : "???";
                 Assert.AreEqual(seen ? L10n.T("kind." + kind.Id) : unmet, cell.Find("Name").GetComponent<Text>().text);
             }
             Assert.AreEqual(RabbitKinds.All.Count, cells);

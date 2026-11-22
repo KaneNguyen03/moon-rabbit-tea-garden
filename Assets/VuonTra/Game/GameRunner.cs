@@ -757,6 +757,22 @@ namespace VuonTra.Game
             Changed();
         }
 
+        /// <summary>
+        /// Begins the next season (#1): the garden goes back to its first plots, keeping its rabbits and items, and
+        /// income grows for good. The moon rabbit comes out in <paramref name="gift"/> the first time. False, and
+        /// nothing changes, when the garden is not far enough.
+        /// </summary>
+        public bool BeginNewMoon(out Rabbit gift)
+        {
+            if (!NewMoon.Begin(Defs, State, PickName(), out gift)) return false;
+            // The day's carrot goal was set from the big garden's income; it is rolled again for the small one.
+            State.DailyDay = -1;
+            Quests.RollDaily(QuestDefs, Defs, State, Today, Modifiers.From(UpgradeDefs, State));
+            _plotsSeen = State.Plots;
+            Changed();
+            return true;
+        }
+
         /// <summary>Buys the next garden plot, which lets the next station be opened.</summary>
         public bool BuyPlot()
         {

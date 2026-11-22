@@ -141,6 +141,7 @@ namespace VuonTra.Core
             sb.Append(",\"maxDay\":").Append(s.MaxDaySeen.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"seasonGreeted\":").Append(s.SeasonGreetedDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"playSeconds\":").Append(Sane(s.PlaySeconds).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"season\":").Append(s.Season.ToString(CultureInfo.InvariantCulture));
             // Version 14: the mooncake game.
             sb.Append(",\"pounding\":{\"day\":").Append(s.PoundingDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"plays\":").Append(s.PoundingPlays.ToString(CultureInfo.InvariantCulture));
@@ -482,6 +483,7 @@ namespace VuonTra.Core
             s.MaxDaySeen = TryNumber(root, "maxDay", out double maxDay) ? ToLong(maxDay) : -1;
             s.SeasonGreetedDay = TryNumber(root, "seasonGreeted", out double greeted) ? ToLong(greeted) : -1;
             s.PlaySeconds = TryNumber(root, "playSeconds", out double played) ? Math.Max(0d, Sane(played)) : 0d;
+            s.Season = TryNumber(root, "season", out double season) ? (int)Math.Max(0d, Math.Min(season, NewMoon.MaxSeasons)) : 0;
             // Version 14: the mooncake game. An older save has all its plays and no games behind it.
             if (root.TryGetValue("pounding", out object poundObj) && poundObj is Dictionary<string, object> pound)
             {
