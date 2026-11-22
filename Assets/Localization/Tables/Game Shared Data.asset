@@ -3091,6 +3091,46 @@ MonoBehaviour:
     m_Key: moment.forest.title
     m_Metadata:
       m_Items: []
+  - m_Id: 408026325442560
+    m_Key: layout.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831168
+    m_Key: layout.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831169
+    m_Key: layout.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831170
+    m_Key: layout.store
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831171
+    m_Key: layout.store.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831172
+    m_Key: layout.stored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831173
+    m_Key: layout.cannot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831174
+    m_Key: layout.stored.row
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831175
+    m_Key: layout.takeout
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831176
+    m_Key: layout.full
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
