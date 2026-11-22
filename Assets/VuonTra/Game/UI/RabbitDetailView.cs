@@ -187,11 +187,11 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 52, 0, 10, 0)
                 .AddText(L10n.Trade(trade) + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : ""), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            // The bond (#19): full hearts for the days it has been stroked, hollow for the ones still to come.
+            // The bond (#19): full hearts for the bond so far, hollow for the ones still to come; ten since #58, so in the small size to fit on one line.
             var bond = UiKit.Rect("Bond", _body).Place(0f, 1f, 420 + 300 + 20 + 110, -272, 220, 44);
             bond.AddImage(_catalog.Panel, Palette.Alpha(Palette.Paper, 0.92f), true);
-            UiKit.Rect("Text", bond).Stretch(0, 0, 1, 1, 10, 0, 10, 0)
-                .AddText(Rabbits.Hearts(r.Affection), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", bond).Stretch(0, 0, 1, 1, 6, 0, 6, 0)
+                .AddText(Rabbits.Hearts(r.Affection), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             List<int> suited = Rabbits.SuitedStations(defs, s, r);
             if (suited.Count > 0)

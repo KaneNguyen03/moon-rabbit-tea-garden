@@ -166,6 +166,13 @@ namespace VuonTra.Core
         public long FrogsMet;
         public double FrogLeft;
 
+        /// <summary>The moon pond (#58): baits kept when the clock last counted, the unix second it counts the next one from (-1: never fished, all five on hand), casts in all, the basket (one count per kind of fish), and fish caught and fed in all.</summary>
+        public int Baits;
+        public long BaitAt = -1;
+        public long Casts;
+        public int[] Fish = new int[VuonTra.Core.Fishing.Points.Length];
+        public long FishCaught, FishFed;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

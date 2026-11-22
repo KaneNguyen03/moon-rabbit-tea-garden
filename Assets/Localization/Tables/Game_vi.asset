@@ -3082,6 +3082,62 @@ MonoBehaviour:
     m_Localized: "G\u1EB7p Th\u1ECF \u1EBEch 5 l\u1EA7n"
     m_Metadata:
       m_Items: []
+  - m_Id: 409984125886464
+    m_Localized: "C\xE2u 50 con c\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275072
+    m_Localized: "M\u1ED9t b\xE9 th\u1ECF \u0111\u1EA1t 10 tim"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275073
+    m_Localized: "C\xE1 b\u1EA1c nh\u1ECF"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275074
+    m_Localized: "C\xE1 v\xE0ng cam"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275075
+    m_Localized: "C\xE1 koi h\u1ED3ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275076
+    m_Localized: "C\xE1 tr\u0103ng non"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275077
+    m_Localized: "C\xE1 ch\xE9p v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275078
+    m_Localized: "C\xE1 sao \u0111\xEAm"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275079
+    m_Localized: "+{0} \u0111i\u1EC3m th\xE2n thi\u1EBFt"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275080
+    m_Localized: "M\u1ED3i: {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275081
+    m_Localized: "M\u1ED3i ti\u1EBFp theo sau {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275082
+    m_Localized: "H\u1EBFt m\u1ED3i r\u1ED3i, ch\u1EDD ch\xFAt nh\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275083
+    m_Localized: "B\xE9 {0} th\xE2n thi\u1EBFt \u0111\u1EE7 10 tim!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275084
+    m_Localized: "B\u1EA1n th\xE2n nh\u1EA5t \xB7 +{0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

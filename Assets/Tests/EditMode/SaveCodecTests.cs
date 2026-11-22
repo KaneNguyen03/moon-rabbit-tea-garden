@@ -276,7 +276,7 @@ namespace VuonTra.Core.Tests
             GameState old = SaveCodec.Decode(defs, json).State;
             Assert.AreEqual(0, old.Rabbits[0].Affection, "a save from before the bond");
             Assert.AreEqual(-1, old.Rabbits[0].PetDay);
-            Assert.AreEqual(Rabbits.AffectionMax, old.Rabbits[1].Affection, "never above the cap");
+            Assert.AreEqual(Rabbits.PointsFor(Rabbits.GiftHearts), old.Rabbits[1].Affection, "never above the old cap of five hearts, as points (#58)");
             Assert.AreEqual(-1, old.Rabbits[1].PetDay, "a day before the first is no day");
             Assert.AreEqual(0, old.Rabbits[2].Affection, "not a number");
             Assert.AreEqual(-1, old.Rabbits[2].PetDay);

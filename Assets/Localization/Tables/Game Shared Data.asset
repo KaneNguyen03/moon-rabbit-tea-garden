@@ -3079,6 +3079,62 @@ MonoBehaviour:
     m_Key: quest.ech-5
     m_Metadata:
       m_Items: []
+  - m_Id: 409984125886464
+    m_Key: quest.ca-50
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275072
+    m_Key: quest.tim-10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275073
+    m_Key: fish.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275074
+    m_Key: fish.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275075
+    m_Key: fish.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275076
+    m_Key: fish.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275077
+    m_Key: fish.4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275078
+    m_Key: fish.5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275079
+    m_Key: fish.points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275080
+    m_Key: fish.baits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275081
+    m_Key: fish.next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275082
+    m_Key: fish.nobait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275083
+    m_Key: bond.ten.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275084
+    m_Key: bond.ten.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

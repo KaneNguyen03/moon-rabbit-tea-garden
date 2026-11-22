@@ -129,6 +129,9 @@ namespace VuonTra.EditorTools
                 new Q { Id = "loai-72",   Title = "Gặp đủ 72 loài · khung Đủ bộ",    Metric = QuestMetric.KindsMet, Target = 72, Seconds = 300, Carrots = 20000, Golden = 20 },
                 // The Frog Rabbit in the rain (#62): five met, two clovers.
                 new Q { Id = "ech-5",     Title = "Gặp Thỏ Ếch 5 lần",               Metric = QuestMetric.FrogsMet, Target = 5, Seconds = 60, Carrots = 1000, Clovers = 2 },
+                // The moon pond and the bond in points (#58): fifty fish caught, and one rabbit with all ten hearts.
+                new Q { Id = "ca-50",     Title = "Câu 50 con cá",                   Metric = QuestMetric.FishCaught, Target = 50, Seconds = 60, Carrots = 1000, Clovers = 2 },
+                new Q { Id = "tim-10",    Title = "Một bé thỏ đạt 10 tim",           Metric = QuestMetric.MostHearts, Target = 10, Seconds = 180, Carrots = 9000, Golden = 3 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)

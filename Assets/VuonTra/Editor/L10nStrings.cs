@@ -748,6 +748,21 @@ namespace VuonTra.EditorTools
             { "frog.sub", "Quà mưa: {0} cà rốt", "A rainy-day gift: {0} carrots" },
             { "frog.sub.clover", "Quà mưa: {0} cà rốt và 1 cỏ", "A rainy-day gift: {0} carrots and a clover" },
             { "quest.ech-5", "Gặp Thỏ Ếch 5 lần", "Meet the Frog Rabbit 5 times" },
+            // ----- fishing and feeding (#58a) -----
+            { "quest.ca-50", "Câu 50 con cá", "Catch 50 fish" },
+            { "quest.tim-10", "Một bé thỏ đạt 10 tim", "A rabbit with all 10 hearts" },
+            { "fish.0", "Cá bạc nhỏ", "Little silverfish" },
+            { "fish.1", "Cá vàng cam", "Orange goldfish" },
+            { "fish.2", "Cá koi hồng", "Pink koi" },
+            { "fish.3", "Cá trăng non", "Crescent fish" },
+            { "fish.4", "Cá chép vàng", "Golden carp" },
+            { "fish.5", "Cá sao đêm", "Starry night fish" },
+            { "fish.points", "+{0} điểm thân thiết", "+{0} bond points" },
+            { "fish.baits", "Mồi: {0}/{1}", "Bait: {0}/{1}" },
+            { "fish.next", "Mồi tiếp theo sau {0}", "Next bait in {0}" },
+            { "fish.nobait", "Hết mồi rồi, chờ chút nhé", "Out of bait, back soon" },
+            { "bond.ten.title", "Bé {0} thân thiết đủ 10 tim!", "{0} has all 10 hearts!" },
+            { "bond.ten.sub", "Bạn thân nhất · +{0} cà rốt vàng", "Best of friends · +{0} golden carrots" },
         };
     }
 }

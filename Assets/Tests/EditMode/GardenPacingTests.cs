@@ -43,6 +43,16 @@ namespace VuonTra.Core.Tests
         int frogsMet, frogClovers;
         BigNum earnedFrogs;
         System.Random frogRng;
+        /// <summary>
+        /// The moon pond (#58): every sitting opens with every bait that came back since the last one cast, a fixed share
+        /// of them caught (<see cref="FishCatchRate"/>, the rest tapped too late), every fish fed to the rabbit at the
+        /// station that earns most, which is also stroked once a day. The casts have their own dice, so the rest of the
+        /// week plays out the same with fishing or without.
+        /// </summary>
+        bool goFishing = true;
+        const double FishCatchRate = 0.8;
+        int casts, fishCaught, fishPoints;
+        System.Random fishRng;
 
         [SetUp]
         public void SetUp()
@@ -56,6 +66,7 @@ namespace VuonTra.Core.Tests
             mods = Modifiers.From(ups, s);
             rng = new System.Random(20261122);
             clock = 0;
+            tapsPerSecond = 1; buyEvery = 3; buysAtOnce = 1; questEvery = 30; // NUnit keeps one instance: a tireless test before must not set the pace of the next
             levelAt.Clear();
             summoned = 0;
             for (int i = 0; i < 4; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
@@ -69,6 +80,9 @@ namespace VuonTra.Core.Tests
             frogsMet = frogClovers = 0;
             earnedFrogs = BigNum.Zero;
             frogRng = new System.Random(62);
+            goFishing = true;
+            casts = fishCaught = fishPoints = 0;
+            fishRng = new System.Random(58);
             Quests.RollDaily(quests, defs, s, 1, mods);
         }
 
@@ -116,6 +130,49 @@ namespace VuonTra.Core.Tests
                 return;
             }
         }
+
+        /// <summary>The open brew station that earns most: where the player sends the fish.</summary>
+        int BusiestStation()
+        {
+            int best = -1;
+            BigNum bestIncome = BigNum.Zero;
+            for (int i = 0; i < defs.Count; i++)
+            {
+                if (defs[i].Kind != StationKind.Brew || s.Levels[i] <= 0) continue;
+                BigNum income = Economy.StationIncomePerSecond(defs, s, i, out _, out _);
+                if (best < 0 || income > bestIncome) { best = i; bestIncome = income; }
+            }
+            return best;
+        }
+
+        /// <summary>A sitting opens at the pond (#58): every bait cast, most caught, every fish fed to the busiest station's rabbit, stroked once a day.</summary>
+        void GoFishing()
+        {
+            if (!goFishing) return;
+            long now = (long)clock;
+            FishingCast cast;
+            while ((cast = Fishing.Cast(s, now, fishRng.NextDouble)) != null)
+            {
+                casts++;
+                cast.Advance(cast.BobSeconds + (fishRng.NextDouble() < FishCatchRate ? 0.25 : 1d));
+                if (cast.Tap() == CastTap.Caught && Fishing.Land(s, cast)) fishCaught++;
+            }
+            Rabbit r = Rabbits.AtStation(s, BusiestStation());
+            if (r == null) return;
+            Rabbits.Pet(s, r, today);
+            for (int k = Fishing.Kinds - 1; k >= 0; k--)
+                while (s.Fish[k] > 0 && Fishing.Feed(s, r, k).Fed) fishPoints += Fishing.Points[k];
+        }
+
+        int MostHearts()
+        {
+            int most = 0;
+            foreach (Rabbit r in s.Rabbits) most = System.Math.Max(most, Rabbits.HeartsOf(r));
+            return most;
+        }
+
+        string FishLine() => "Câu cá (#58): thả " + casts + " lần, được " + fishCaught + " con (" + (int)(FishCatchRate * 100) + " % chạm đúng lúc), cho thỏ ở trạm thu nhiều nhất ăn " + fishPoints
+            + " điểm, vuốt nó mỗi ngày; tim cao nhất " + MostHearts() + " (×" + Rabbits.HeartMultipliers[MostHearts()] + ")";
 
         string FrogLine()
         {
@@ -212,6 +269,7 @@ namespace VuonTra.Core.Tests
         void Play(double seconds)
         {
             MeetFrog();
+            GoFishing();
             for (int i = 0; i < seconds; i++)
             {
                 ActiveSecond();
@@ -273,6 +331,7 @@ namespace VuonTra.Core.Tests
             var report = new StringBuilder();
             report.AppendLine("Người chơi không nghỉ tay (3 chạm/giây, 4 lần mua mỗi giây, nhận nhiệm vụ ngay)");
             report.AppendLine(FrogLine());
+            report.AppendLine(FishLine());
             report.AppendLine("  sau 20 phút: xp " + (int)xp20 + " (cấp " + at20 + "); cuối ngày 1: xp " + (int)s.GardenXp + " (cấp " + Garden.Level(s) + "), " + s.Rabbits.Count + " thỏ, " + s.Plots + " ô đất");
             foreach (int level in new[] { 3, 5, 6, 10, 15 })
                 report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt"));
@@ -334,6 +393,7 @@ namespace VuonTra.Core.Tests
                 report.AppendLine("  đợt " + (w + 1) + ": đủ cấp lúc " + Clock(waveLevelAt[w]) + ", đủ thỏ lúc " + Clock(waveRabbitsAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
             report.AppendLine(JarLine() + "; mở ngay khi ví cho mở (cấp vườn 3)");
             report.AppendLine(FrogLine());
+            report.AppendLine(FishLine());
             report.AppendLine("Diễn biến:");
             report.Append(trace);
             System.IO.Directory.CreateDirectory("Logs");
@@ -416,6 +476,55 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(fiveAfter, 5 * 60, "level 5 still not in the first five minutes\n" + report);
             Assert.Greater(frogsMet, 0, "the casual player does meet frogs\n" + report);
             Assert.LessOrEqual(frogsMet, 7 * FrogRabbit.PerDay, "two a day at most\n" + report);
+        }
+
+        /// <summary>
+        /// The moon pond and the hearts it feeds (#58): the casual week played without fishing and with every bait cast
+        /// each sitting, four in five caught and every fish fed to the busiest station's rabbit. The hearts bring level 10
+        /// no more than 30 % sooner (the issue's rule), the ten-minute mark still holds, and the tireless player's day is
+        /// written beside it.
+        /// </summary>
+        [Test]
+        public void Fishing_And_Feeding_Every_Sitting_Bring_Level_Ten_No_More_Than_Thirty_Percent_Sooner()
+        {
+            goFishing = false;
+            CasualWeek();
+            double tenBefore = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            double fiveBefore = levelAt.ContainsKey(5) ? levelAt[5] : -1;
+            double fifteenBefore = levelAt.ContainsKey(15) ? levelAt[15] : -1;
+            int endBefore = Garden.Level(s);
+            Assert.AreEqual(0, casts);
+
+            SetUp();
+            CasualWeek();
+            double tenAfter = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            double fiveAfter = levelAt.ContainsKey(5) ? levelAt[5] : -1;
+            double fifteenAfter = levelAt.ContainsKey(15) ? levelAt[15] : -1;
+            string report = "Không câu cá: cấp 5 lúc " + Clock(fiveBefore) + ", cấp 10 lúc " + Clock(tenBefore) + ", cấp 15 lúc " + Clock(fifteenBefore) + ", hết ngày 7 cấp " + endBefore + ".\n"
+                + "Câu cá mỗi buổi: cấp 5 lúc " + Clock(fiveAfter) + ", cấp 10 lúc " + Clock(tenAfter) + ", cấp 15 lúc " + Clock(fifteenAfter) + ", hết ngày 7 cấp " + Garden.Level(s) + ".\n" + FishLine();
+
+            SetUp();
+            tapsPerSecond = 3; buyEvery = 1; buysAtOnce = 4; questEvery = 1;
+            goFishing = false;
+            Play(20 * 60);
+            for (int visit = 0; visit < 4; visit++) { Away(2 * 3600); Play(5 * 60); }
+            double tirelessTenBefore = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            SetUp();
+            tapsPerSecond = 3; buyEvery = 1; buysAtOnce = 4; questEvery = 1;
+            Play(20 * 60);
+            for (int visit = 0; visit < 4; visit++) { Away(2 * 3600); Play(5 * 60); }
+            double tirelessTenAfter = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            report += "\nNgười chơi không nghỉ tay: cấp 10 lúc " + Clock(tirelessTenBefore) + " không câu, " + Clock(tirelessTenAfter) + " có câu.";
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/garden-pacing-fishing.txt", report);
+            TestContext.WriteLine(report);
+
+            Assert.GreaterOrEqual(tenBefore, 0, report);
+            Assert.GreaterOrEqual(tenAfter, 0, report);
+            Assert.GreaterOrEqual(tenAfter, 0.7 * tenBefore, "level 10 no more than 30 % sooner\n" + report);
+            Assert.GreaterOrEqual(fiveAfter, 5 * 60, "level 5 still not in the first five minutes\n" + report);
+            Assert.LessOrEqual(fiveAfter, 12 * 60, "and still within twelve\n" + report);
+            Assert.Greater(fishCaught, 0, "the casual player does catch fish\n" + report);
         }
     }
 }

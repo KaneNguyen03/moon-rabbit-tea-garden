@@ -3090,6 +3090,62 @@ MonoBehaviour:
     m_Localized: Meet the Frog Rabbit 5 times
     m_Metadata:
       m_Items: []
+  - m_Id: 409984125886464
+    m_Localized: Catch 50 fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275072
+    m_Localized: A rabbit with all 10 hearts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275073
+    m_Localized: Little silverfish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275074
+    m_Localized: Orange goldfish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275075
+    m_Localized: Pink koi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275076
+    m_Localized: Crescent fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275077
+    m_Localized: Golden carp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275078
+    m_Localized: Starry night fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275079
+    m_Localized: +{0} bond points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275080
+    m_Localized: 'Bait: {0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275081
+    m_Localized: Next bait in {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275082
+    m_Localized: Out of bait, back soon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275083
+    m_Localized: '{0} has all 10 hearts!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 409984134275084
+    m_Localized: "Best of friends \xB7 +{0} golden carrots"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
