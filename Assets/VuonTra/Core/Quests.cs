@@ -28,7 +28,11 @@ namespace VuonTra.Core
         /// <summary>How many plots the garden has.</summary>
         PlotsOwned,
         /// <summary>How many rabbits stand at their tier's level cap.</summary>
-        RabbitsAtCap
+        RabbitsAtCap,
+        /// <summary>1 once a leaf-catching game has earned three stars.</summary>
+        LeavesThreeStar,
+        /// <summary>Leaf-catching games played, in all.</summary>
+        LeavesGames
     }
 
     /// <summary>
@@ -110,6 +114,10 @@ namespace VuonTra.Core
                     return s.PoundingBestStars >= 3 ? 1 : 0;
                 case QuestMetric.PoundingGames:
                     return s.PoundingGames;
+                case QuestMetric.LeavesThreeStar:
+                    return s.Leaves.BestStars >= 3 ? 1 : 0;
+                case QuestMetric.LeavesGames:
+                    return s.Leaves.Games;
                 case QuestMetric.RabbitsAtCap:
                 {
                     int capped = 0;

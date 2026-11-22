@@ -1718,6 +1718,74 @@ MonoBehaviour:
     m_Localized: "Ch\u1EEF to"
     m_Metadata:
       m_Items: []
+  - m_Id: 209331277520896
+    m_Localized: "H\u1EE9ng l\xE1 tr\xE0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881024
+    m_Localized: "K\xE9o gi\u1ECF h\u1EE9ng l\xE1, n\xE9 qu\u1EA3 th\xF4ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881025
+    m_Localized: "{0} \u0111i\u1EC3m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881026
+    m_Localized: "C\xF2n {0} gi\xE2y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881027
+    m_Localized: +1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881028
+    m_Localized: "+2 l\xE1 v\xE0ng!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881029
+    m_Localized: "Ui! \u22123"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075328
+    m_Localized: "Th\xF4i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075329
+    m_Localized: Xong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075330
+    m_Localized: "Gi\u1ECF \u0111\u1EA7y r\u1ED3i!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075331
+    m_Localized: "H\u1EE9ng \u0111\u01B0\u1EE3c {0} l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075332
+    m_Localized: "+{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075333
+    m_Localized: "+1 c\u1ECF b\u1ED1n l\xE1 (l\u01B0\u1EE3t \u0111\u1EA7u trong ng\xE0y c\xF3 sao)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075334
+    m_Localized: "H\u1EE9ng l\xE1 \xB7 c\xF2n {0} l\u01B0\u1EE3t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075335
+    m_Localized: "Mai h\u1EE9ng ti\u1EBFp"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075336
+    m_Localized: "H\u1EE9ng l\xE1 3 sao l\u1EA7n \u0111\u1EA7u"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075337
+    m_Localized: "H\u1EE9ng l\xE1 30 v\xE1n"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

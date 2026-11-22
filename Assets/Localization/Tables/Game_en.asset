@@ -1722,6 +1722,74 @@ MonoBehaviour:
     m_Localized: Large text
     m_Metadata:
       m_Items: []
+  - m_Id: 209331277520896
+    m_Localized: Catch the tea leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881024
+    m_Localized: Drag the basket under the leaves, dodge the pine cones
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881025
+    m_Localized: '{0} points'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881026
+    m_Localized: '{0} s left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881027
+    m_Localized: +1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881028
+    m_Localized: +2 golden!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881029
+    m_Localized: "Ouch! \u22123"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075328
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075329
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075330
+    m_Localized: Basket full!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075331
+    m_Localized: '{0} leaves caught'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075332
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075333
+    m_Localized: +1 clover (first starred game today)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075334
+    m_Localized: "Catch leaves \xB7 {0} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075335
+    m_Localized: More tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075336
+    m_Localized: First three-star leaf catch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075337
+    m_Localized: Catch leaves thirty times
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

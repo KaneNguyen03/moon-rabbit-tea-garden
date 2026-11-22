@@ -96,6 +96,9 @@ namespace VuonTra.EditorTools
                 new Q { Id = "loai-do",   Title = "Gặp loài thỏ bậc Đỏ đầu tiên",    Metric = QuestMetric.RarestKindMet, Target = 6,  Seconds = 1800, Carrots = 9000, Golden = 5 },
                 new Q { Id = "dat-12",    Title = "Mở đủ 12 ô đất",                  Metric = QuestMetric.PlotsOwned,    Target = 12, Seconds = 1800, Carrots = 9000, Golden = 5 },
                 new Q { Id = "tho-max",   Title = "Một bé thỏ đạt cấp tối đa",       Metric = QuestMetric.RabbitsAtCap,  Target = 1,  Seconds = 900,  Carrots = 3000, Golden = 5 },
+                // The leaf-catching game (#10).
+                new Q { Id = "la-3sao",   Title = "Hứng lá 3 sao lần đầu",           Metric = QuestMetric.LeavesThreeStar, Target = 1,  Seconds = 600,  Carrots = 1000, Clovers = 2 },
+                new Q { Id = "la-30",     Title = "Hứng lá 30 ván",                  Metric = QuestMetric.LeavesGames,     Target = 30, Seconds = 1800, Carrots = 3000, Clovers = 3 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)

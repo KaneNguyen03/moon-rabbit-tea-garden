@@ -347,6 +347,22 @@ namespace VuonTra.Game
             return result;
         }
 
+        /// <summary>Spends one of today's leaf-catching plays and hands back the game, seeded by the day and the games so far; null when none is left.</summary>
+        public LeavesRun StartLeaves()
+        {
+            if (!Leaves.Start(State, Today)) return null;
+            Changed();
+            return LeavesRun.FromSeed(Leaves.SeedFor(Today, State.Leaves.Games));
+        }
+
+        /// <summary>Pays a finished leaf-catching game.</summary>
+        public LeavesResult FinishLeaves(LeavesRun run)
+        {
+            LeavesResult result = Leaves.Finish(Defs, State, Mods, run);
+            Changed();
+            return result;
+        }
+
         /// <summary>Makes the next rabbit the player's avatar; null when there are none.</summary>
         public Rabbit NextAvatar()
         {

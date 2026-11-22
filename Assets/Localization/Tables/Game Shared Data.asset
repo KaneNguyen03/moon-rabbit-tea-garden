@@ -1715,6 +1715,74 @@ MonoBehaviour:
     m_Key: pause.text
     m_Metadata:
       m_Items: []
+  - m_Id: 209331277520896
+    m_Key: leaves.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881024
+    m_Key: leaves.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881025
+    m_Key: leaves.score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881026
+    m_Key: leaves.time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881027
+    m_Key: leaves.leaf
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881028
+    m_Key: leaves.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331306881029
+    m_Key: leaves.cone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075328
+    m_Key: leaves.quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075329
+    m_Key: leaves.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075330
+    m_Key: leaves.result
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075331
+    m_Key: leaves.caught
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075332
+    m_Key: leaves.reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075333
+    m_Key: leaves.clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075334
+    m_Key: basket.plays
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075335
+    m_Key: basket.tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075336
+    m_Key: quest.la-3sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 209331311075337
+    m_Key: quest.la-30
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
