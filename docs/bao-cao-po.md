@@ -860,6 +860,16 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Tiếng chưa ai nghe (mình không nghe được); cần chủ project nghe trong bản Mac.
 
+## #21 — Ngày và đêm theo giờ thật (phần hình ảnh)
+
+- Test: 470/470 EditMode qua (verify.sh: seed, 86 ảnh, biên dịch, test). Thêm 3 test core (`DaylightTests.cs`, file mới), 1 test màn hình.
+- Commit `79a6558`, đã push. Issue #21 đã comment, nhãn chờ-PO-duyệt. #5 chỉ comment (cần bundle gốc macOS, để ưu tiên thấp như issue ghi).
+- File mới: `Core/Daylight.cs` (PhaseAt, NightAt với sàn 0,35, FirefliesAt). `GardenScreen.ClockHours` (đồng hồ thay được), `UpdateDaylight` gọi trong `Refresh`: lớp "Daylight" dưới HUD, quầng trăng mờ dần, số đom đóm. PreviewShot đặt giờ 22 cho mọi khung, thêm `21-ban-ngay`, `21-hoang-hon`.
+- Ảnh (docs/anh/po-21/): `21-dem.png`, `21-hoang-hon.png`, `21-ban-ngay.png`.
+
+### Chưa đạt
+- Thỏ hiếm ghé tiệm ban đêm: chờ #44. Độ đậm lớp phủ chưa ai xem bằng mắt vào ban ngày thật.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
