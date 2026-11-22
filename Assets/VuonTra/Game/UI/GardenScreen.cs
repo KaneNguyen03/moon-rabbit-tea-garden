@@ -232,6 +232,7 @@ namespace VuonTra.Game.UI
         RectTransform _card;
         Text _cardName, _cardLevel, _cardInfo, _cardBuyTop, _cardBuyCost;
         ChunkyButton _cardBuy;
+        GameObject _cardBuyCarrot;
         // Small events: a golden firefly to catch, and rabbits that nod off.
         RectTransform _gold;
         float _goldTimer = 25f, _goldAge, _dozeTimer = 18f;
@@ -1546,7 +1547,12 @@ namespace VuonTra.Game.UI
             _cardName.horizontalOverflow = HorizontalWrapMode.Overflow;
             var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -104, -42, 160, 46);
             _cardLevelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            // "Cấp 500 ✦✦✦" is wider than the pill at full size: the words shrink to stay on one line (#73).
+            _cardLevel.resizeTextForBestFit = true;
+            _cardLevel.resizeTextMinSize = 14;
+            _cardLevel.resizeTextMaxSize = _cardLevel.fontSize;
+            _cardLevel.verticalOverflow = VerticalWrapMode.Truncate;
             _cardInfo = UiKit.Rect("Info", _card).Stretch(0, 1, 1, 1, 32, -138, 32, 74)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             // The same buy modes as the Stations tab; one choice, remembered in both places.
@@ -1587,7 +1593,9 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardBuyCost = UiKit.Rect("Cost", _cardBuy.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 64, 0)
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleRight, FontStyle.Bold);
-            UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42).AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            var carrot = UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42);
+            carrot.AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            _cardBuyCarrot = carrot.gameObject;
 
             _card.gameObject.SetActive(false);
         }
@@ -1713,6 +1721,7 @@ namespace VuonTra.Game.UI
             bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
             if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
             _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
+            if (_cardBuyCarrot.activeSelf == capped) _cardBuyCarrot.SetActive(!capped); // at the cap nothing is paid, so no carrot (#74)
             Color ink = ChunkyButton.InkFor(can);
             _cardBuyTop.color = ink;
             _cardBuyCost.color = ink;
@@ -1721,8 +1730,9 @@ namespace VuonTra.Game.UI
 
         void BuildPhotoMode(GameCatalog catalog)
         {
-            // A small plate at the foot of the screen while framing: snap, or done.
-            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 150, 860, 130);
+            // A small plate at the foot of the screen while framing: snap, or done. It stands above the paper frame's
+            // foot, shadow and all, so the garden's name and the date show in the preview as they will in the picture (#75).
+            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 240, 860, 130);
             bar.AddShadow(18f, 10f, 0.3f);
             UiKit.Rect("Lip", bar).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Plate", bar).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
@@ -4646,7 +4656,8 @@ namespace VuonTra.Game.UI
             _guest.gameObject.SetActive(false);
 
             // The HUD pill that says a guest waits, wherever the player has scrolled: a touch goes to the guest and opens the card.
-            var badge = UiKit.Rect("Order", _hud).Place(1f, 1f, -184, -176, 230, 56);
+            // It hangs below the firefly jar's plate as the view rests on the teapot, so it covers none of the garden's plates there (#71).
+            var badge = UiKit.Rect("Order", _hud).Place(1f, 1f, -184, -244, 230, 56);
             UiKit.Touchable(badge, 230, 56);
             badge.AddShadow(12f, 8f, 0.3f);
             Image badgeBack = badge.AddImage(catalog.Panel, Palette.Lantern, true);

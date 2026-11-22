@@ -2750,6 +2750,18 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Summon_Odds_Read_Without_A_Trailing_Zero_In_Both_Languages()
+        {
+            Assert.AreEqual("Bạc 60% · Xanh lá 25% · Xanh dương 10% · Tím 4% · Vàng 0,9% · Đỏ 0,1%", ShopView.Odds(Rabbits.Odds));
+            Assert.AreEqual("Bạc 25% · Xanh lá 35% · Xanh dương 22% · Tím 12% · Vàng 5% · Đỏ 1%", ShopView.Odds(Shop.GoldenOdds));
+            L10n.SetLocale("en");
+            Assert.AreEqual("Silver 60% · Green 25% · Blue 10% · Purple 4% · Gold 0.9% · Red 0.1%", ShopView.Odds(Rabbits.Odds));
+            Assert.AreEqual("Silver 25% · Green 35% · Blue 22% · Purple 12% · Gold 5% · Red 1%", ShopView.Odds(Shop.GoldenOdds));
+            screen.RebuildUi();
+            StringAssert.Contains("Silver 60% · Green 25%", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Odds").GetComponent<Text>().text, "and so the Rabbits tab reads");
+        }
+
+        [Test]
         public void The_Rabbits_Tab_Shows_Both_Calls_Odds_And_Golden_Quests_Show_A_Golden_Chip()
         {
             Transform odds = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Odds");
@@ -3091,6 +3103,28 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Find("Canvas/Card/Buy").interactable);
             Assert.AreEqual(L10n.T("row.maxlevel"), T("Canvas/Card/Buy/Face/Top").text);
             Assert.AreEqual(L10n.StationLevel(Economy.MaxLevel), T("Canvas/Card/Level/Text").text);
+        }
+
+        [Test]
+        public void The_Card_Button_Of_A_Station_At_Its_Cap_Shows_No_Carrot()
+        {
+            runner.State.Levels[0] = Economy.MaxLevel - 1;
+            runner.State.Coins = new BigNum(1e300);
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Transform carrot = root.transform.Find("Canvas/Card/Buy/Face/Carrot");
+            Assert.IsNotNull(carrot);
+            Assert.IsTrue(carrot.gameObject.activeSelf, "one level left: the button still costs carrots");
+
+            runner.State.Levels[0] = Economy.MaxLevel;
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("row.maxlevel"), root.transform.Find("Canvas/Card/Buy/Face/Top").GetComponent<Text>().text);
+            Assert.IsFalse(carrot.gameObject.activeSelf, "at the cap nothing is paid, so no carrot either");
+
+            runner.State.Levels[0] = Economy.MaxLevel - 1; // a reset save, say: the price is back
+            screen.Refresh();
+            Assert.IsTrue(carrot.gameObject.activeSelf, "and with it the carrot");
         }
 
         [Test]

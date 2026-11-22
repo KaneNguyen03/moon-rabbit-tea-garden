@@ -162,11 +162,14 @@ namespace VuonTra.Game.UI
                     tile.Button.onClick.AddListener(() => OnHatTap(defId));
                     Image icon = UiKit.Rect("Icon", rt).Place(0.5f, 1f, 0, -64, 108, 108).AddImage(catalog.ItemIcon(def.Id), Color.white);
                     icon.preserveAspect = true;
-                    Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -140, tileW - 12f, 44).AddText(L10n.T("item." + def.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    // One line between the picture and the price: too short a box for two, so a long name such as "Mushroom stools"
+                    // shrinks instead of wrapping onto the price chip (#76).
+                    Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -138, tileW - 12f, 32).AddText(L10n.T("item." + def.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                     name.resizeTextForBestFit = true;
                     name.resizeTextMinSize = 11;
                     name.resizeTextMaxSize = UiKit.Scaled(18);
                     name.horizontalOverflow = HorizontalWrapMode.Wrap;
+                    name.verticalOverflow = VerticalWrapMode.Truncate;
                     var price = UiKit.Rect("Price", rt).Place(0.5f, 0f, 0, 30, tileW - 24f, 40);
                     tile.PriceChip = price.AddImage(catalog.Panel, Palette.Lantern, true);
                     float priceInset = 8f;
@@ -238,11 +241,14 @@ namespace VuonTra.Game.UI
                 tile.Button.onClick.AddListener(() => OnDecorTap(kindId));
                 Image icon = UiKit.Rect("Icon", rt).Place(0.5f, 1f, 0, -64, 112, 108).AddImage(catalog.DecorArt(kind.Id), Color.white);
                 icon.preserveAspect = true;
-                Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -140, tileW - 12f, 44).AddText(L10n.T("decor." + kind.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                // One line between the picture and the price: too short a box for two, so a long name such as "Mushroom stools"
+                // shrinks instead of wrapping onto the price chip (#76).
+                Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -138, tileW - 12f, 32).AddText(L10n.T("decor." + kind.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 name.resizeTextForBestFit = true;
                 name.resizeTextMinSize = 11;
                 name.resizeTextMaxSize = UiKit.Scaled(18);
                 name.horizontalOverflow = HorizontalWrapMode.Wrap;
+                name.verticalOverflow = VerticalWrapMode.Truncate;
                 var price = UiKit.Rect("Price", rt).Place(0.5f, 0f, 0, 30, tileW - 24f, 40);
                 tile.PriceChip = price.AddImage(catalog.Panel, Palette.Lantern, true);
                 float priceInset = 8f;
@@ -335,14 +341,15 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>"Bạc 60 % · Xanh lá 25 % · …" for a table of odds.</summary>
+        /// <summary>"Bạc 60% · Xanh lá 25% · … · Vàng 0,9%" for a table of odds: whole numbers without a trailing ",0" in either language (#72).</summary>
         public static string Odds(double[] odds)
         {
             var sb = new System.Text.StringBuilder();
             for (int tier = 0; tier < odds.Length; tier++)
             {
                 if (tier > 0) sb.Append(" · ");
-                sb.Append(L10n.Tier(tier)).Append(' ').Append(UiKit.Times(odds[tier] * 100d).Replace(",0", "")).Append('%');
+                string percent = (odds[tier] * 100d).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ',');
+                sb.Append(L10n.Tier(tier)).Append(' ').Append(L10n.Number(percent)).Append('%');
             }
             return sb.ToString();
         }

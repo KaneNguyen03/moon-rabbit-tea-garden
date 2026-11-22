@@ -218,6 +218,132 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(spills, spills.Count + " labels spill in " + code + (large ? " (large text)" : "") + ":\n" + string.Join("\n", spills));
         }
 
+        /// <summary>
+        /// Null when the label's words sit on one line inside its box at the size it is drawn (after best fit),
+        /// else what went wrong. A best-fit label is skipped by <see cref="Spills"/>, so this asks the generator itself.
+        /// </summary>
+        static string OneLine(Text text)
+        {
+            Vector2 size = text.rectTransform.rect.size;
+            var gen = new TextGenerator();
+            TextGenerationSettings settings = text.GetGenerationSettings(size);
+            gen.Populate(text.text, settings);
+            settings.fontSize = text.resizeTextForBestFit ? gen.fontSizeUsedForBestFit : settings.fontSize;
+            settings.resizeTextForBestFit = false;
+            settings.horizontalOverflow = HorizontalWrapMode.Overflow;
+            settings.verticalOverflow = VerticalWrapMode.Overflow;
+            float ppu = text.pixelsPerUnit;
+            float w = gen.GetPreferredWidth(text.text, settings) / ppu, h = gen.GetPreferredHeight(text.text, settings) / ppu;
+            if (w <= size.x + 1f && h <= size.y + 1f) return null;
+            return Path(text.transform) + " \"" + text.text + "\" at " + Mathf.RoundToInt(settings.fontSize / ppu) + "px is " + Mathf.RoundToInt(w) + "x" + Mathf.RoundToInt(h) + " in " + Mathf.RoundToInt(size.x) + "x" + Mathf.RoundToInt(size.y);
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Level_500_Label_Fits_On_One_Line_In_Its_Pill_On_The_Card_And_The_Row(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            runner.State.Levels[0] = Economy.MaxLevel;
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Layout();
+            Text card = root.transform.Find("Canvas/Card/Level/Text").GetComponent<Text>();
+            Assert.AreEqual(L10n.StationLevel(Economy.MaxLevel), card.text);
+            Assert.IsNull(OneLine(card));
+            screen.SelectStation(-1);
+            screen.OpenSheet(0);
+            screen.Refresh();
+            Layout();
+            Text row = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Level/Text").GetComponent<Text>();
+            Assert.AreEqual(L10n.StationLevel(Economy.MaxLevel), row.text);
+            Assert.IsNull(OneLine(row));
+        }
+
+        [Test]
+        public void The_Photo_Bar_Leaves_The_Frames_Name_And_Date_In_View()
+        {
+            bool frameBefore = GardenScreen.PhotoFrameOn;
+            GardenScreen.PhotoFrameOn = true;
+            try
+            {
+                runner.State.Profile.GardenName = "Vườn Trà Mây Trắng";
+                screen.Shell.StartGame();
+                screen.Refresh();
+                screen.EnterPhotoMode();
+                Layout();
+                Transform frame = root.transform.Find("Canvas/PhotoFrame");
+                Assert.IsTrue(frame.gameObject.activeSelf, "the frame is on");
+                var words = new List<RectTransform> { (RectTransform)frame.Find("GardenName"), (RectTransform)frame.Find("Date"), (RectTransform)frame.Find("Logo") };
+                var covered = new List<string>();
+                foreach (RectTransform part in root.transform.Find("Canvas/PhotoBar").GetComponentsInChildren<RectTransform>(false))
+                    foreach (RectTransform word in words)
+                        if (WorldRect(part).Overlaps(WorldRect(word))) covered.Add(Path(part) + " over " + word.name);
+                Assert.IsEmpty(covered, string.Join("\n", covered));
+            }
+            finally { screen.ExitPhotoMode(); GardenScreen.PhotoFrameOn = frameBefore; }
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void Every_Shop_Tile_Name_Fits_On_One_Line_Clear_Of_Its_Price(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.OpenShop();
+            screen.Refresh();
+            Layout();
+            var wrong = new List<string>();
+            int tiles = 0;
+            foreach (Text text in root.transform.Find("Canvas/Shop").GetComponentsInChildren<Text>(true))
+            {
+                Transform tile = text.transform.parent;
+                if (text.name != "Name" || !(tile.name.StartsWith("Decor ") || tile.name.StartsWith("Hat "))) continue;
+                tiles++;
+                string line = OneLine(text);
+                if (line != null) wrong.Add(line);
+                Rect name = WorldRect(text.rectTransform);
+                foreach (string chip in new[] { "Price", "Owned", "Icon" })
+                {
+                    Transform c = tile.Find(chip);
+                    if (c != null && WorldRect((RectTransform)c).Overlaps(name)) wrong.Add(Path(text.transform) + " \"" + text.text + "\" runs into its " + chip);
+                }
+            }
+            Assert.Greater(tiles, Decor.Kinds.Length, "every decor tile and the hats were measured");
+            Assert.IsEmpty(wrong, string.Join("\n", wrong));
+        }
+
+        [TestCase("Canvas/Fireflies", "Timer")]
+        [TestCase("Canvas/Leaves", "Timer")]
+        [TestCase("Canvas/Pound", "Beats")]
+        public void The_Minigame_Score_And_Count_Keep_24_From_The_Screen_Edges_And_Below_The_Notch(string game, string count)
+        {
+            GardenScreen.SafeInsets = () => new Vector2(90f, 120f); // a phone with a notch and a home bar
+            screen.Advance(0.1f);
+            Layout();
+            var overlay = (RectTransform)root.transform.Find(game);
+            Assert.IsNotNull(overlay, game);
+            Rect screenRect = overlay.rect;
+            float notch = GardenScreen.SafeInsets().y;
+            foreach (string name in new[] { "Score", count })
+            {
+                Rect r = RectIn((RectTransform)overlay.Find(name), overlay);
+                Assert.GreaterOrEqual(r.xMin, screenRect.xMin + 24f, game + "/" + name + " keeps off the left edge");
+                Assert.LessOrEqual(r.xMax, screenRect.xMax - 24f, game + "/" + name + " keeps off the right edge");
+                Assert.LessOrEqual(r.yMax, screenRect.yMax - notch, game + "/" + name + " sits below the notch");
+            }
+            Transform quit = overlay.Find("Quit");
+            if (quit != null) Assert.IsFalse(RectIn((RectTransform)quit, overlay).Overlaps(RectIn((RectTransform)overlay.Find(count), overlay)), "the count is clear of the quit button");
+        }
+
         // ----- contrast -----
 
         static double Luminance(Color c)
@@ -276,6 +402,66 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(season.gameObject.activeSelf && golden.gameObject.activeSelf, "both chips are up");
             Rect a = WorldRect(season), b = WorldRect(golden);
             Assert.IsFalse(a.Overlaps(b), "season " + a + " against golden " + b);
+        }
+
+        /// <summary>A rect's corners in another rect's own units.</summary>
+        static Rect RectIn(RectTransform rt, RectTransform space)
+        {
+            var c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            Vector3 a = space.InverseTransformPoint(c[0]), b = space.InverseTransformPoint(c[2]);
+            return Rect.MinMaxRect(a.x, a.y, b.x, b.y);
+        }
+
+        /// <summary>
+        /// Where a rect lands on the 1080x1920 phone the layout is drawn for, measured from the corner of
+        /// <paramref name="frame"/> it hangs from. The test canvas has the batch screen's shape, so the HUD (hung
+        /// from the top) and the garden (placed from the bottom) only line up again in phone units.
+        /// </summary>
+        static Rect OnPhone(RectTransform rt, RectTransform frame, Vector2 corner)
+        {
+            Rect r = RectIn(rt, frame), f = frame.rect;
+            var from = new Vector2(Mathf.Lerp(f.xMin, f.xMax, corner.x), Mathf.Lerp(f.yMin, f.yMax, corner.y));
+            var to = new Vector2(corner.x * 1080f, corner.y * 1920f);
+            return new Rect(r.position - from + to, r.size);
+        }
+
+        /// <summary>The plates the garden hangs on its stations and its games, as they are on screen now.</summary>
+        List<RectTransform> GardenPlates()
+        {
+            var plates = new List<RectTransform>();
+            Transform street = root.transform.Find("Canvas/Garden/Content");
+            foreach (Transform child in street)
+            {
+                if (!child.gameObject.activeInHierarchy) continue;
+                Transform plate = child.name.StartsWith("Station ") ? child.Find("Level") : child.Find("Plate");
+                if (plate != null && plate.gameObject.activeInHierarchy) plates.Add((RectTransform)plate);
+            }
+            return plates;
+        }
+
+        [Test]
+        public void The_Guest_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot()
+        {
+            screen.Shell.StartGame();
+            runner.State.GardenXp = Garden.XpForLevel(5); // the firefly jar and its plate are out
+            runner.PlaceOrder();
+            screen.Refresh();
+            screen.LookAt(GardenScreen.StationSpot(0)); // where the teapot button takes the view
+            Layout();
+            var pill = (RectTransform)root.transform.Find("Canvas/Hud/Order");
+            Assert.IsTrue(pill.gameObject.activeSelf, "a guest waits, so the pill is up");
+            Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Jar").gameObject.activeSelf, "the jar is out");
+            var hud = (RectTransform)root.transform.Find("Canvas/Hud");
+            var view = (RectTransform)root.transform.Find("Canvas/Garden");
+            Rect p = OnPhone(pill, hud, Vector2.one);
+            var covered = new List<string>();
+            foreach (RectTransform plate in GardenPlates())
+            {
+                Rect r = OnPhone(plate, view, Vector2.zero);
+                if (r.Overlaps(p)) covered.Add(Path(plate) + " " + r);
+            }
+            Assert.IsEmpty(covered, "the guest pill " + p + " covers: " + string.Join(", ", covered));
         }
 
     }
