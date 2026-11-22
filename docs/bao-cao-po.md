@@ -1137,6 +1137,29 @@ Sau khi sửa cả bốn xanh.
 - Ứng viên 2 mỗi mùa để PO quyết. Chưa thử tay.
 - Nối thêm (`8062d34`, 653/654): băng rôn "Mùa … đã về!" một lần mỗi mùa mỗi năm (`Seasons.ShouldGreet`, save "seasonGreeted", `GameRunner.GreetSeason`/`SeasonBegan`, kèm tiếng); thỏ mùa từ quà ngày cuối mùa bước ra cổng trăng như mọi lần gọi (`SeasonArrived` → `Welcome`); vòm cổng trăng treo hình mùa (`decor_cong-trung-thu/tet/giang-sinh` của điều phối, `GameCatalog.GateDecor`, `SummonMomentView.SetSeasonDecor`), lắc ±2,5°, đứng yên khi Giảm chuyển động, ngoài mùa không treo (test). Ảnh `docs/anh/po-8/8-cong-midautumn/tet/christmas.png`.
 
+## #6 — Cân lại kinh tế sau khi có đủ nguồn thu (agent song song, nhánh agent-6)
+
+- Test: 662/663 EditMode qua trên main sau khi gộp (1 inconclusive có chủ ý của #8; verify.sh: seed, 113 ảnh, biên dịch, test). Nhánh riêng 631/631: +1 test mô phỏng (`EconomySimulationTests.cs`).
+- Commit `310c418` (nhánh agent-6), gộp vào main qua `82f725c`…`6f2e1d3`, đã push. Issue #6 đã comment (bảng trước/sau, hằng số, bốn điểm cần PO quyết), nhãn chờ-PO-duyệt. Bảng đầy đủ: `docs/anh/po-6/6-mo-phong-truoc.txt`, `6-mo-phong-sau.txt`.
+- Mô phỏng: người thong thả 20 + 10 phút/ngày × 7 ngày và người không nghỉ tay 2 giờ, chơi đủ khay, ba trò chơi, đơn khách, tiệm (quà ngày, ảnh, gọi vàng, thỏ ghé), trà lực, nâng cấp thỏ; cà rốt, cỏ, vàng chia theo nguồn. Phát hiện: vắng mặt chiếm 95–99 % cà rốt một ngày của người thong thả, nên tỉ lệ theo nguồn đo trên phần kiếm lúc đang chơi.
+- Hằng số: thưởng nhiệm vụ theo giây thu nhập ÷ 10 (cả 9 nhiệm vụ mùa của #8: 60 → 6 giây, cà rốt vàng của chúng giữ nguyên); đường cong cấp vườn `100 + 14 × L` (cấp 5 = 540, 10 = 1 530, 15 = 2 870); cà rốt vàng mỗi 5 cấp 3 → 2; thành tựu vàng 5 → 3. Test ghim số cũ sửa theo; `GardenPacingTests` giữ nguyên ngưỡng.
+- Nhịp sau khi đổi (thong thả): cấp 5 ở 7:15 (trước 12:25); cấp 10 lúc 8 h 29 tối ngày 1 (trước sáng ngày 2); 12 ô đất ngày 3; nhiệm vụ 36 % → 16 % cà rốt ở phút 10 / 20 (trước 80 / 66); trò chơi + đơn 20 % cà rốt lúc chơi ngày 1; 5 lượt gọi vàng tuần đầu rồi ~2–3/tuần.
+- Kỹ thuật: Core thuần C# nên agent biên dịch Core + test mô phỏng bằng .NET SDK kèm trong Unity thành console (ngoài repo, `/tmp/econsim`) để thử hằng số trong vài giây; bảng trùng từng số với Unity.
+
+### Chưa đạt / cần PO quyết
+- Người chơi không nghỉ tay vẫn đủ 12 ô ở phút 9 (mỗi cấp mua = 1 điểm) — cần trần điểm nếu muốn ~2 giờ. Giá thỏ/đất phẳng nên thành miễn phí sau phút 5. Bùa Bàn tay ấm làm chạm thành 63 % thu nhập người chơi nhanh. Cỏ nhiều nhưng không lạm phát, để nguyên. Chưa thử tay.
+
+## #11 — Trang trí vườn: 8 chỗ đặt cố định, 4 món, màu đèn lồng (agent song song, nhánh agent-11)
+
+- Test: 662/663 EditMode qua trên main sau khi gộp. Nhánh riêng 638/638: +5 test luật (`DecorTests.cs`), +3 màn hình.
+- Commit `1ce7ded` (nhánh agent-11), gộp vào main qua `82f725c`…`6f2e1d3`, đã push. Issue #11 đã comment (đề xuất trước khi code, rồi bảng đối chiếu 9 ý), nhãn chờ-PO-duyệt. Save thêm khối `decor` (không tăng phiên bản); save cũ mở nguyên.
+- Luật trong `Core/Decor.cs`: 8 chỗ (`Spots`), 4 món (Đèn đá 15, Bồn hoa 20, Ghế nấm 30, Thảm picnic 40 cà rốt vàng; mua lặp, tổng tối đa 8), `Buy/Place/Store/Swap`, màu đèn lồng 4 màu × 10 cà rốt vàng (`SetLanternColor`). Nhãn "Ghế nằm" trong đề xuất đổi thành "Ghế nấm" vì hình `decor_ghe-nam` là ghế nấm.
+- Màn hình: kệ "Trang trí vườn" trong Tiệm dưới "Đồ cho thỏ" (tấm cao 1770), 4 ô kiểu ô mũ + hàng 4 chấm màu đèn; 8 chỗ `Canvas/Garden/Content/Spot 0..7` chỉ hiện "+" mờ khi có món trong kho, chạm mở tấm `Canvas/Decor/Card` (Đặt/Đổi/Cất vào kho), bung sáng + blip; màu đèn nhuộm mọi `Lantern` và vầng sáng. Chỗ đặt cách trạm, ao và nhau ≥ 200; trang trí sẵn của vườn né chỗ.
+- Ảnh (docs/anh/po-11/): `11-sau-trang-tri.png`, `11-sau-ke-trang-tri.png`.
+
+### Chưa đạt
+- Kiểu ao (ngoài phạm vi). Chưa thử tay. Tấm Tiệm đã dài, kệ sau nên tách tab.
+
 ## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
