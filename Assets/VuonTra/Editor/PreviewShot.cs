@@ -642,10 +642,71 @@ namespace VuonTra.EditorTools
             Step(screen, 0.2f);
 
             RenderGuidance(runner, screen);
+            RenderLandWaves(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        }
+
+        /// <summary>
+        /// #51: a new garden is clear grass with dashed rings on the land not bought and the forest rim at its edge; buying the
+        /// first wave steps the rim back. The opening view in Vietnamese, English and large text, the wave before, halfway
+        /// and after, and the whole garden from far away at each of the five land stages (4, 6, 8, 10 and 12 plots).
+        /// </summary>
+        static void RenderLandWaves(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            for (int i = 0; i < Plots.Starting; i++) s.Levels[i] = 6 - i;
+            Rabbits.GiftFirst(s, "Bông");
+            runner.Init(s);
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.LookAt(GardenScreen.StationSpot(0));
+            Step(screen, 0.4f);
+            Capture(screen, "51-mo-vuon");
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            Step(screen, 0.6f);
+            Capture(screen, "51-mo-vuon-en");
+            L10n.SetLocale("vi");
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            Step(screen, 0.6f);
+            Capture(screen, "51-mo-vuon-chu-to");
+            UiKit.SetLargeText(false);
+            screen.RebuildUi();
+            Step(screen, 0.6f);
+
+            // The first wave opens the two plots left of the teapot: the rim there steps back while the grass comes up.
+            Vector2 side = (GardenScreen.StationSpot(4) + GardenScreen.StationSpot(5)) / 2f;
+            screen.LookAt(side);
+            Step(screen, 0.3f);
+            Capture(screen, "51-mua-dot-1-truoc");
+            s.Plots = Expansion.Waves[0].PlotsAfter;
+            screen.Refresh();
+            Step(screen, GardenScreen.RimStep * 0.4f);
+            Capture(screen, "51-mua-dot-1-giua");
+            Step(screen, GardenScreen.RimStep + 0.4f);
+            Capture(screen, "51-mua-dot-1-sau");
+
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            for (int wave = 0; wave <= Expansion.Waves.Length; wave++)
+            {
+                int plots = wave == 0 ? Plots.Starting : Expansion.Waves[wave - 1].PlotsAfter;
+                for (int i = 0; i < s.Levels.Length; i++) s.Levels[i] = i < plots - 2 || i < Plots.Starting ? Mathf.Max(1, 6 - i) : 0;
+                s.Plots = plots;
+                screen.Refresh();
+                Step(screen, GardenScreen.RimStep + 0.4f);
+                Capture(screen, "51-dot-" + wave);
+            }
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
         }
 
         /// <summary>A brand-new garden for the guidance frames: the first step, then the card step, then the sheet step.</summary>

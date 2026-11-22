@@ -514,7 +514,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Hud_Shows_The_Garden_Level_And_Mist_Lies_On_Land_Not_Yet_Opened()
+        public void The_Hud_Shows_The_Garden_Level_And_Land_Not_Yet_Opened_Is_A_Dashed_Ring_On_Clear_Grass()
         {
             Transform hud = root.transform.Find("Canvas/Hud");
             Assert.AreEqual("1", hud.Find("Level/Text").GetComponent<Text>().text);
@@ -523,19 +523,215 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("4", hud.Find("Level/Text").GetComponent<Text>().text);
             Assert.AreEqual(0.5f, hud.Find("Level/Ring").GetComponent<Image>().fillAmount, 0.01f);
 
+            // #51: no mist and nothing growing on land the garden does not have yet, only a faint dashed ring.
             Transform world = root.transform.Find("Canvas/Garden/Content");
-            Assert.IsNull(world.Find("Mist 3"), "the first four plots are the garden's own");
-            Assert.IsTrue(world.Find("Mist 4").gameObject.activeSelf);
-            Assert.IsTrue(world.Find("Mist 11").gameObject.activeSelf);
-            Assert.IsTrue(world.Find("Grove 5").gameObject.activeSelf, "trees stand where no station is drawn yet");
+            Assert.IsNull(world.Find("Ring 3"), "the first four plots are the garden's own");
+            for (int i = Plots.Starting; i < runner.Defs.Count; i++)
+            {
+                Assert.IsNull(world.Find("Mist " + i), "no mist on plot " + i);
+                Assert.IsNull(world.Find("Grove " + i), "nothing grows on plot " + i);
+                Transform ring = world.Find("Ring " + i);
+                Assert.IsNotNull(ring, "plot " + i + " is marked");
+                Assert.IsTrue(ring.gameObject.activeSelf);
+                Assert.Greater(ring.childCount, 12, "a ring of dashes");
+                Assert.IsFalse(world.Find("Bloom " + i).gameObject.activeSelf, "no fresh grass before the land is bought");
+            }
             for (int i = 0; i < 5; i++) runner.State.Levels[i] = 1;
             runner.State.Plots = 6;
             screen.Refresh();
-            for (int i = 0; i < 40; i++) screen.Advance(0.1f); // the mist takes a moment to lift
-            Assert.IsFalse(world.Find("Mist 4").gameObject.activeSelf);
-            Assert.IsFalse(world.Find("Grove 5").gameObject.activeSelf, "the sixth station is drawn now, so its trees are gone");
-            Assert.IsTrue(world.Find("Mist 6").gameObject.activeSelf);
-            Assert.IsTrue(world.Find("Grove 8").gameObject.activeSelf);
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f); // the rim steps back and the grass comes up
+            foreach (int i in new[] { 4, 5 })
+            {
+                Assert.IsFalse(world.Find("Ring " + i).gameObject.activeSelf, "plot " + i + " is the garden's now");
+                Transform bloom = world.Find("Bloom " + i);
+                Assert.IsTrue(bloom.gameObject.activeSelf, "fresh grass on plot " + i);
+                Assert.AreEqual(1f, bloom.localScale.x, 1e-3f);
+                Assert.AreEqual(1f, bloom.GetComponent<CanvasGroup>().alpha, 1e-3f);
+            }
+            Assert.IsTrue(world.Find("Ring 6").gameObject.activeSelf);
+            Assert.IsTrue(world.Find("Ring 11").gameObject.activeSelf);
+        }
+
+        /// <summary>The pieces of the forest rim (#51), as they stand on the canopy in garden units, without the sway.</summary>
+        List<KeyValuePair<string, Rect>> RimPieces()
+        {
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var rim = new List<KeyValuePair<string, Rect>>();
+            for (int k = 0; k < canopy.childCount; k++)
+            {
+                var rt = (RectTransform)canopy.GetChild(k);
+                if (!rt.gameObject.activeSelf || !rt.name.StartsWith("Rim ") || rt.name == "Rim Shade") continue;
+                Vector2 at = rt.anchoredPosition, size = rt.rect.size;
+                rim.Add(new KeyValuePair<string, Rect>(rt.name, new Rect(at.x - rt.pivot.x * size.x, at.y - rt.pivot.y * size.y, size.x, size.y)));
+            }
+            return rim;
+        }
+
+        /// <summary>Opens the garden up to <paramref name="plots"/> plots, with a station on every one before the last wave.</summary>
+        void HavePlots(int plots)
+        {
+            for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = i < plots - 2 || i < Plots.Starting ? 1 : 0;
+            runner.State.Plots = plots;
+            screen.Refresh();
+        }
+
+        [TestCase(4)]
+        [TestCase(6)]
+        [TestCase(8)]
+        [TestCase(10)]
+        [TestCase(12)]
+        public void The_Forest_Rim_Stands_On_No_Plot_And_Two_Hundred_Units_From_Every_Open_Station(int plots)
+        {
+            Motion.SetReduced(true);
+            HavePlots(plots);
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            List<KeyValuePair<string, Rect>> rim = RimPieces();
+            Assert.Greater(rim.Count, 20, "a rim of forest around the lawn");
+            var kinds = new HashSet<string>();
+            foreach (KeyValuePair<string, Rect> piece in rim) kinds.Add(piece.Key);
+            Assert.GreaterOrEqual(kinds.Count, 4, "built from four or five kinds of piece: " + string.Join(", ", kinds));
+
+            int onPlots = 0;
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Transform station = street.Find("Station " + runner.Defs[i].Id);
+                var parts = new List<RectTransform>();
+                foreach (string part in new[] { "Level", "Pad", "Floor", "Prop", "Rabbit", "Tier", "Ground" }) parts.Add((RectTransform)station.Find(part));
+                if (i >= Plots.Starting) parts.Add((RectTransform)street.Find("Ring " + i));
+                bool open = i < plots;
+                foreach (RectTransform part in parts)
+                {
+                    Rect at = GardenRect(part, street);
+                    foreach (KeyValuePair<string, Rect> piece in rim)
+                    {
+                        float c = Clearance(at, piece.Value);
+                        if (c < 0f) onPlots++;
+                        if (open) Assert.GreaterOrEqual(c, 200f, runner.Defs[i].Id + "/" + part.name + " is open and keeps 200 units from the rim; " + piece.Key + " at " + piece.Value);
+                    }
+                }
+            }
+            Assert.AreEqual(0, onPlots, "no piece of the rim stands on a plot, bought or not, at " + plots + " plots");
+            foreach (string path in new[] { "Basket", "Basket/Plate", "Jar", "Jar/Plate", "Mortar", "Mortar/Plate" })
+            {
+                Rect at = GardenRect((RectTransform)street.Find(path), street);
+                foreach (KeyValuePair<string, Rect> piece in rim)
+                    Assert.GreaterOrEqual(Clearance(at, piece.Value), 200f, path + " keeps 200 units from the rim; " + piece.Key + " at " + piece.Value);
+            }
+            foreach (KeyValuePair<string, Rect> piece in rim)
+                Assert.IsTrue(piece.Value.xMax <= 40f || piece.Value.xMin >= 1080f - 40f, piece.Key + " at " + piece.Value + " stands at the lawn's edge, not on it");
+        }
+
+        [Test]
+        public void No_Mist_Lies_On_The_Garden_At_Any_Land_Wave()
+        {
+            Sprite mist = runner.Catalog.Mist;
+            Transform garden = root.transform.Find("Canvas/Garden");
+            for (int plots = Plots.Starting; plots <= runner.Defs.Count; plots += 2)
+            {
+                HavePlots(plots);
+                for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+                foreach (Image img in garden.GetComponentsInChildren<Image>(false))
+                    Assert.IsTrue(mist == null || img.sprite != mist, img.name + " is mist over the garden at " + plots + " plots");
+            }
+        }
+
+        [Test]
+        public void Buying_A_Wave_Moves_The_Rim_Out_On_That_Side_And_The_Trees_Fade_Over()
+        {
+            HavePlots(4);
+            List<KeyValuePair<string, Rect>> before = RimPieces();
+            runner.State.Levels[4] = 0;
+            runner.State.Plots = 6;
+            screen.Refresh();
+            screen.Advance(0.15f);
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            bool fading = false;
+            for (int k = 0; k < canopy.childCount; k++)
+            {
+                Image img = canopy.GetChild(k).GetComponent<Image>();
+                if (img != null && canopy.GetChild(k).name.StartsWith("Rim ") && img.color.a > 0.02f && img.color.a < 0.98f) fading = true;
+            }
+            Assert.IsTrue(fading, "the pieces that step back fade out and in again");
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+            List<KeyValuePair<string, Rect>> after = RimPieces();
+            Assert.AreEqual(before.Count, after.Count, "the same pieces, further out");
+            int moved = 0;
+            for (int k = 0; k < before.Count; k++)
+            {
+                Rect a = before[k].Value, b = after[k].Value;
+                Assert.AreEqual(a.y, b.y, 0.01f, "a piece only steps sideways");
+                bool left = a.xMax < 540f;
+                if (left) Assert.LessOrEqual(b.x, a.x + 0.01f, "the rim on the left only steps back"); else Assert.GreaterOrEqual(b.x, a.x - 0.01f, "the rim on the right only steps back");
+                if (Mathf.Abs(b.x - a.x) > 1f)
+                {
+                    moved++;
+                    // Only the side the wave's plots are on opens.
+                    bool newThere = false;
+                    for (int i = 4; i < 6; i++) if ((GardenScreen.StationSpot(i).x < 540f) == left) newThere = true;
+                    Assert.IsTrue(newThere, before[k].Key + " at " + a + " moved, on the side with no new plot");
+                }
+            }
+            Assert.GreaterOrEqual(moved, 2, "the rim beside the two new plots stepped back");
+            foreach (Transform child in canopy)
+                if (child.name.StartsWith("Rim ") && child.name != "Rim Shade" && child.gameObject.activeSelf)
+                    Assert.AreEqual(1f, child.GetComponent<Image>().color.a, 1e-3f, child.name + " back in full");
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_A_New_Wave_Puts_The_Rim_And_The_Grass_In_Place_At_Once()
+        {
+            Motion.SetReduced(true);
+            HavePlots(4);
+            List<KeyValuePair<string, Rect>> before = RimPieces();
+            runner.State.Plots = 6;
+            screen.Refresh(); // no time passes: nothing may be on its way
+            List<KeyValuePair<string, Rect>> now = RimPieces();
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+            List<KeyValuePair<string, Rect>> settled = RimPieces();
+            Assert.AreEqual(settled.Count, now.Count);
+            bool changed = false;
+            for (int k = 0; k < now.Count; k++)
+            {
+                Assert.AreEqual(settled[k].Value.x, now[k].Value.x, 0.01f, now[k].Key + " is already where it ends up");
+                if (k < before.Count && Mathf.Abs(before[k].Value.x - now[k].Value.x) > 1f) changed = true;
+            }
+            Assert.IsTrue(changed, "the rim did step back");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            foreach (Transform child in canopy)
+                if (child.name.StartsWith("Rim ") && child.name != "Rim Shade" && child.gameObject.activeSelf)
+                    Assert.AreEqual(1f, child.GetComponent<Image>().color.a, 1e-3f, child.name + " in full at once");
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            screen.Refresh();
+            foreach (int i in new[] { 4, 5 })
+            {
+                Assert.IsFalse(world.Find("Ring " + i).gameObject.activeSelf);
+                Transform bloom = world.Find("Bloom " + i);
+                Assert.IsTrue(bloom.gameObject.activeSelf);
+                Assert.AreEqual(1f, bloom.localScale.x, 1e-3f, "the grass is simply there");
+                Assert.AreEqual(1f, bloom.GetComponent<CanvasGroup>().alpha, 1e-3f);
+            }
+        }
+
+        [Test]
+        public void The_View_Reaches_The_Outermost_Open_Plot_After_Every_Wave()
+        {
+            screen.Shell.StartGame();
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            for (int plots = Plots.Starting; plots <= runner.Defs.Count; plots += 2)
+            {
+                HavePlots(plots);
+                foreach (GardenScreen.ZoomLevel zoom in new[] { GardenScreen.ZoomLevel.Default, GardenScreen.ZoomLevel.Near, GardenScreen.ZoomLevel.Far })
+                {
+                    screen.SetZoom(zoom, false);
+                    for (int i = 0; i < plots; i++)
+                    {
+                        screen.LookAt(GardenScreen.StationSpot(i));
+                        Vector2 at = GardenScreen.StationSpot(i) * world.localScale.x + world.anchoredPosition;
+                        Assert.IsTrue(at.x > 0f && at.x < 1080f && at.y > 340f && at.y < 1920f - 160f,
+                            "plot " + i + " of " + plots + " comes into view at " + zoom + ": " + at);
+                    }
+                }
+            }
         }
 
         [Test]
@@ -1072,15 +1268,7 @@ namespace VuonTra.Core.Tests
                 trees++;
                 Assert.LessOrEqual(rt.rect.height, 120f, "only the small tea tree by the leaf basket stands on the lawn, at " + rt.anchoredPosition);
             }
-            Assert.LessOrEqual(trees, 1, "the groves on the misted plots are low growth now");
-            for (int i = Plots.Starting; i < runner.Defs.Count; i++)
-            {
-                Transform grove = street.Find("Grove " + i);
-                Assert.IsNotNull(grove, "the misted plot " + i + " still has its grove");
-                Assert.Greater(grove.childCount, 0);
-                foreach (RectTransform rt in grove.GetComponentsInChildren<RectTransform>(true))
-                    if (rt != grove) Assert.LessOrEqual(rt.rect.height, 120f, "low detail on plot " + i);
-            }
+            Assert.LessOrEqual(trees, 1, "nothing grows on the land not yet opened either (#51)");
         }
 
         [Test]
@@ -1762,7 +1950,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Xây · 120", sign.text);
             Assert.AreEqual(Palette.Carrot, basket.Find("Level").GetComponent<Image>().color, "lit when it can be paid for");
 
-            // Land the garden has not grown into: only a sign under the mist, nothing else.
+            // Land the garden has not grown into: only a sign on its dashed ring, nothing else.
             for (int i = 1; i < 4; i++) runner.State.Levels[i] = 1;
             screen.Refresh();
             Transform oven = Station("lo-banh");
