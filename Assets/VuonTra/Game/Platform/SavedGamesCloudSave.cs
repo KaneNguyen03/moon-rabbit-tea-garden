@@ -18,7 +18,8 @@ namespace VuonTra.Game.Platform
         /// <summary>The one snapshot's name in Saved Games.</summary>
         public const string FileName = "vuon";
         /// <summary>Saved Games takes at most 3 MB per snapshot.</summary>
-        public const int MaxBytes = 3 * 1024 * 1024;
+        public const int Limit = 3 * 1024 * 1024;
+        public int MaxBytes => Limit;
         /// <summary>A cover bigger than this is left off rather than risk the write.</summary>
         public const int MaxCoverBytes = 800 * 1024;
 
@@ -46,7 +47,7 @@ namespace VuonTra.Game.Platform
             LastPushTooLarge = false;
             if (!Available || _unseen) { onDone?.Invoke(false); return; }
             byte[] data = Encoding.UTF8.GetBytes(json);
-            if (data.Length > MaxBytes)
+            if (data.Length > Limit)
             {
                 LastPushTooLarge = true;
                 Debug.LogWarning(L10n.T("playgames.toolarge") + " (" + data.Length + " B)");

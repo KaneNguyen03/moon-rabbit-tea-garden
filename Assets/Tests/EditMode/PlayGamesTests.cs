@@ -303,7 +303,7 @@ namespace VuonTra.Core.Tests
         {
             games.SignedIn = true;
             SavedGamesCloudSave cloud = Cloud();
-            string huge = new string('x', SavedGamesCloudSave.MaxBytes + 1);
+            string huge = new string('x', SavedGamesCloudSave.Limit + 1);
             bool? pushed = null;
             cloud.Push(huge, ok => pushed = ok);
             Assert.AreEqual(false, pushed);
@@ -415,8 +415,8 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(LoadStatus.Ok, SaveCodec.Decode(defs, raw, upgrades).Status, "the maximal save still loads");
                 string envelope = CloudSave.Wrap(raw, SaveSummary.Of(s), 1_900_000_000);
                 int bytes = Encoding.UTF8.GetByteCount(envelope);
-                Debug.Log("Saved Games size check: maximal save " + Encoding.UTF8.GetByteCount(raw) + " bytes, as an envelope " + bytes + " bytes, limit " + SavedGamesCloudSave.MaxBytes);
-                Assert.Less(bytes, SavedGamesCloudSave.MaxBytes / 10, "a tenth of the 3 MB limit leaves years of growth");
+                Debug.Log("Saved Games size check: maximal save " + Encoding.UTF8.GetByteCount(raw) + " bytes, as an envelope " + bytes + " bytes, limit " + SavedGamesCloudSave.Limit);
+                Assert.Less(bytes, SavedGamesCloudSave.Limit / 10, "a tenth of the 3 MB limit leaves years of growth");
             }
             finally { if (Directory.Exists(dir)) Directory.Delete(dir, true); }
         }
