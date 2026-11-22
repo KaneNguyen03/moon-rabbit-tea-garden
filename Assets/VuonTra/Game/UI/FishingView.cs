@@ -196,7 +196,7 @@ namespace VuonTra.Game.UI
                 _castButton.Shake(_tweens);
                 return;
             }
-            Sfx.Click();
+            Sfx.Cast();
             _castButton.Press(_tweens);
             _say = Say.Wait;
             _popAge = 0f;
@@ -212,7 +212,7 @@ namespace VuonTra.Game.UI
             CastTap tap = _runner.TapCast();
             if (tap == CastTap.Early)
             {
-                Sfx.Blip();
+                Sfx.FloatUp();
                 _say = Say.Early;
                 _popAge = 0f;
             }
@@ -222,7 +222,7 @@ namespace VuonTra.Game.UI
 
         void Caught(int fish)
         {
-            Sfx.Reward();
+            Sfx.Strike();
             Haptics.Light();
             _say = Say.Caught;
             _caughtLine = L10n.T("pond.caught", L10n.T("fish." + fish)) + " · " + L10n.T("fish.points", Fishing.Points[fish]);
@@ -243,8 +243,11 @@ namespace VuonTra.Game.UI
             _catch.anchoredPosition = from;
             _catch.localScale = Vector3.zero;
             _tweens.Add(Motion.Time(0.25f), t => { if (_catch != null) _catch.localScale = Vector3.one * size * t; }, Motion.Curve(Ease.OutBack));
+            bool reeling = false;
             _tweens.Add(Motion.Time(FlySeconds), t =>
             {
+                // The reel runs from the moment the fish leaves the water; its thunk lands with it in the basket.
+                if (!reeling) { reeling = true; Sfx.Reel(); }
                 if (_catch == null) return;
                 Vector2 mid = (from + to) * 0.5f + new Vector2(0f, 140f);
                 float u = 1f - t;
@@ -256,7 +259,6 @@ namespace VuonTra.Game.UI
                 FishFlying = Mathf.Max(0, FishFlying - 1);
                 if (_catch == null) return;
                 if (FishFlying == 0) _catch.gameObject.SetActive(false);
-                Sfx.Tick();
                 _tweens.Add(Motion.Tap, t => { if (_basket != null) _basket.localScale = Vector3.one * (1f + 0.15f * Ease.Pop(t)); }, Ease.Linear, 0f,
                     () => { if (_basket != null) _basket.localScale = Vector3.one; });
                 Draw();
@@ -276,12 +278,12 @@ namespace VuonTra.Game.UI
                 CastPhase phase = _runner.AdvanceCast(dt);
                 if (phase == CastPhase.Lost)
                 {
-                    Sfx.Deny();
+                    Sfx.BaitLost();
                     _say = Say.Lost;
                 }
                 else if (phase == CastPhase.Sinking && before != CastPhase.Sinking)
                 {
-                    Sfx.Tick();
+                    Sfx.Sink();
                     Haptics.Light();
                     _say = Say.Sink;
                 }
