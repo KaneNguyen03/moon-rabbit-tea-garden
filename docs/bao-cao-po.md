@@ -1160,14 +1160,14 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Kiểu ao (ngoài phạm vi). Chưa thử tay. Tấm Tiệm đã dài, kệ sau nên tách tab.
 
-## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
+## Bàn giao (22/11 ~17:40, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
-- main = origin/main (tới commit này, ngay sau `7b88825`; sau mốc build 14:51 chỉ có `ac9a9d0` sửa hai nhãn bị che và #44 lượt 3 `7b81fe9`, verify thường xanh 622/622), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
-- `tools/verify.sh --build` xanh lúc 16:10 trên HEAD `23f1a8a` (session B chạy theo yêu cầu chủ project, bản Mac đang mở cho chủ project xem): seed, 107 ảnh preview, biên dịch, 630/630 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception. Bản này gồm ba sửa nhỏ sau mốc 14:51 (`ac9a9d0`, `994a396`, `22fc554`), #44 lượt 3 (`7b81fe9`) và lớp nước màu nền trạm (`23f1a8a`, session "Cozy watercolor art direction"). Mốc trước: 14:51 trên `025eaf5`: seed, 105 ảnh preview, biên dịch, 618/618 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369; mốc 06:30 là 417/417). Chưa ai bấm thử.
-- Trong ngày 22/11 ba session chạy cùng lúc: session này (code), session "Issue GitHub còn mở" (code, luân phiên checkout với session này qua tin nhắn "xong lượt"/"checkout rảnh"; làm #44 lượt 1–2 (`4fc84eb`, `5119c0a`), #33, và #19, #10 Hứng lá + Đêm đom đóm, #20, #44 lượt 3 (`7b81fe9`: đồ cho thỏ, nhuộm lông, 6 mũ vẽ) bằng agent song song trong worktree riêng `../VuonTraNam-19`, `-10a`, `-10b`, `-20`, `-44` rồi gộp qua nhánh `integrate-1` `4a48d81`…`adf9827`, `integrate-2` `e282242`…`d2b1390` và `agent-44` ff `9763ceb`…`7b88825`), và session điều phối "Agent sửa lỗi GitHub" (giao hàng đợi, không sửa Assets; vẽ hình bằng Antigravity, commit docs `8d85900`, cách vẽ ở `docs/anh/VE-BANG-ANTIGRAVITY.md`).
-- Quy ước mới của chủ project từ 22/11: không mở issue mới cho việc; dòng chưa có issue trong #16 thì comment đối chiếu vào #16, tick dòng, ghi mục ở file này. #49 (mốc trạm) mở trước khi có quy ước, để PO đóng hoặc gộp.
-- Save hiện ở v14 (`pounding`), sau đó thêm khối `leaves`, `fireflies`, `orders`, `playSeconds`, `visitorBought/Seen` không tăng version; save cũ mở lên được (test).
+- main = origin/main (tới commit này, ngay sau `1b1907e`), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`; `.agent/`, `.agents/`, `.github/`, `skills-lock.json`, `docs/danh-sach-duyet.md` để nguyên).
+- `tools/verify.sh --build` xanh lúc 17:21 trên HEAD `1b1907e` (main sau khi gộp #6 + #11): seed, 113 ảnh preview, biên dịch, 662/663 EditMode (1 inconclusive có chủ ý trong SeasonTests), build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception. Mốc trước: 16:10 trên `23f1a8a`.
+- Chiều 22/11 (từ ~16:30) chủ project giao session này điều phối hoàn thiện mọi issue mở và trả lời ba điều: các session được đóng nhóm A trong `docs/danh-sach-duyet.md`; bảy issue `question` làm theo mặc định rồi duyệt sau; #2, #3, #8 làm bản code trước, hình vẽ sau. Phân việc: session này → #2, #3, #15, #42 phần code, #8 (kể cả băng rôn mùa + cổng trăng); B → #6, #11 (agent trong worktree riêng, gộp qua `agent-6` ff `6f2e1d3`); điều phối → đóng 15 issue nhóm A, mặc định + nhãn cần-chủ-project cho #7/#9/#39/#40, hình #8 và ba vòng hoa cổng trăng, đề xuất #1 (`docs/de-xuat-1.md`).
+- Quy ước từ 22/11: không mở issue mới cho việc; dòng chưa có issue trong #16 thì comment đối chiếu vào #16, tick dòng, ghi mục ở file này. #49 mở trước khi có quy ước, để PO đóng hoặc gộp.
+- Save v14 (`pounding`) cộng các khối thêm sau không tăng version: `leaves`, `fireflies`, `orders`, `playSeconds`, `visitorBought/Seen`, `dye`, `maxDay`, `seasonGreeted`, `photosSeason`, `decor`; save cũ mở lên được (test).
 
 ### Việc session này làm (sau mục 05:40)
 - `tools/verify.sh` (`822a8e9`): một lệnh kiểm hết; `--build` thêm bản Mac và đọc Player.log; đỏ là thoát khác 0.
@@ -1200,15 +1200,15 @@ Sau khi sửa cả bốn xanh.
 - Biển "Đom đóm · còn N lượt" bị tán cây viền (lớp Canopy, vẽ trên vườn) che đuôi (`22fc554`, verify thường xanh 630/630): lọ đom đóm dời vào trong (PondSpot + (-5, -290)), biển kết thúc trước `GardenScreen.ReadableRight` = 1000; test 4 trường hợp vi/en × thường/chữ to đo biển nằm trọn trong màn (cách mép ≥ 24), không vượt 1000, chữ vừa một dòng ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-lo-dom-dom-sau.png`.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`, `po-49`, `po-41`; #16 đã tick.
 
-### Chưa đụng tới (theo thứ tự trong #16)
-- Màn "lúc bạn đi vắng": tấm `Canvas/Away` (Mừng bạn quay lại, số cà rốt, thời gian) đã có từ `ba1cd71`; chưa rõ PO muốn thêm gì (thỏ làm gì lúc vắng, món trong khay…). Chưa tick vì chưa có mô tả.
-- Mọi dòng khác trong #16 đã tick hoặc đang chờ PO duyệt. Hàng đợi của cả hai session code đã hết việc không cần chủ project quyết.
+### Chưa đụng tới / còn mở
+- Màn "lúc bạn đi vắng": tấm `Canvas/Away` đã có từ `ba1cd71`; PO chưa nói muốn thêm gì. Dòng #16 chưa tick.
+- Còn mở vì cần chủ project: #4 (thử tay), #9 (tiền thật), #39, #40 (tài khoản Apple/Google, module và gói Play Games), #41 (module iOS/Android), #42 hai ô cửa hàng + địa chỉ chính sách và email hỗ trợ thật (`AppInfo`), #1 (đề xuất mùa trăng mới chờ duyệt), #7 (giữ luật ghép, phương án sao ghi trên issue), #5 (chụm trackpad Mac, ưu tiên thấp), #16 (hàng đợi).
+- Chờ PO duyệt (chờ-PO-duyệt): #2, #3, #8, #10, #13, #15, #17, #19–#21, #29, #30, #33, #37, #38, #41–#46, #49, #6, #11, #44, #45 (xem `docs/danh-sach-duyet.md` cho nhóm B/C).
 
 ### Cần chủ project thử tay hoặc quyết
-- Đóng các issue đã gắn `chờ-PO-duyệt` sau khi xem (#13, #14, #17, #19, #21–#28, #31–#38, #41, #43–#49), hoặc gắn `PO-trả-lại` kèm ý chưa đạt.
-- Thử trong bản Mac `Build/Mac/VuonTraTho.app`: ván Giã bánh trăng (nhịp ±80/±160 ms có vừa không, hình chày/bột mới), khay sản phẩm với hình món và đĩa gỗ, thỏ đi bộ tới trạm khi xếp, cảnh nền đung đưa, lớp đất và tán cây trượt (#34), tấm chọn bản lưu mây (#38, cần mây giả: `MemoryCloudSave`), mốc trạm ở cấp 25/100/300 (#49: kiểu dây đèn/đèn đá/vầng sáng hay băng cờ như điều phối gợi ý), Hồ sơ với Lưu ngay/Khôi phục từ mây (nói rõ "chưa có nơi lưu mây").
-- #41: cài module iOS và Android cho Unity 6000.6.10f1 qua Unity Hub, Xcode, Android SDK/NDK/JDK; rồi `tools/build.sh ios` / `tools/build.sh android`, seed lại một lần để gán icon theo cỡ; icon và màn hình chờ nên vẽ riêng thay bản ghép.
-- Quyết: #17 phần Unity Cloud hay đi theo #39/#40; #39, #40, #42, #9, #15 (các issue `question`); #28 chớp mắt/vẫy tai cần khung hình vẽ; "Màn lúc bạn đi vắng" muốn gì thêm.
+- Đọc bình luận và ảnh của các issue chờ-PO-duyệt, đóng hoặc gắn `PO-trả-lại` kèm ý chưa đạt (nhãn này chưa tồn tại; tạo khi dùng).
+- Thử bản Mac mới nhất `Build/Mac/VuonTraTho.app` (tên cửa sổ giờ là Moon Rabbit Tea Garden): thỏ cầm dụng cụ nghề, thỏ nghỉ ngồi/nằm với mũ và tên, Hồ sơ mục Quyền riêng tư (Xoá dữ liệu của tôi), mùa (đặt đồng hồ máy vào tháng 9 hoặc 12 để thấy băng rôn, thỏ ghé tiệm, cổng trăng treo hình; đồng hồ không lùi được sau khi đã thấy ngày mới), kinh tế sau #6, trang trí vườn #11, cùng các mục đã liệt kê ở Bàn giao 16:00.
+- Quyết: ứng viên 2 mỗi mùa (#8), kiểu mốc trạm (#49), #17 Unity Cloud hay theo #39/#40, #1 đề xuất, địa chỉ chính sách + email hỗ trợ (#42), nhóm tuổi và khai báo cửa hàng (#42), tên app giữ "Moon Rabbit Tea Garden" (#15).
 
 ### Lưu ý kỹ thuật mới
 - Trước khi sửa file: xem `mcp list_sessions`/`git status` để chắc không có session khác đang viết cùng thư mục; không chạy hai Unity batch cùng lúc (khoá `Temp/UnityLockfile`).
