@@ -1529,6 +1529,28 @@ Sau khi sửa cả bốn xanh.
 - Chỗ dạo của thỏ (#55) chưa lấy từ ô trống của lưới.
 - Ba khóa chữ cũ (`land.expand`, `plot.title`, `moment.plot.title`) không còn dùng nhưng vẫn để trong L10nStrings.
 
+## #54 — Chế độ Bố trí: kéo thả trạm sang ô trống, hoán đổi, cất vào kho (agent song song, nhánh agent-54)
+
+
+- **Test:** 943/944 (0 hỏng; 26 test mới: 12 Core `LayoutTests`, 14 màn hình `LayoutModeTests`). `tools/verify.sh` GREEN, 157 khung xem trước.
+- **Commit:** 3be8974, merge 582cd5b (sau #53). Main sau gộp: 1048/1049.
+
+**Đã làm**
+- Nút "Bố trí" (tổ ong 7 ô) ở đầu trái thanh tab, cạnh tab Trạm. Bật lên: HUD và thanh tab ẩn, mỗi ô trống có vòng nét đứt màu kem, dưới đáy có thanh với ô "Cất vào kho" và nút "Xong". Lần đầu hiện một dòng hướng dẫn.
+- Giữ 0,3 giây trên trạm, chỗ nghỉ hoặc đồ trang trí để nhấc lên (to 1,06, có bóng); nó đi theo ngón và ô đích sáng vàng. Thả lên ô trống thì đặt, lên thứ khác thì đổi chỗ, ra ngoài thì trượt về. Giảm chuyển động thì đặt tức thì. Cối, tiệm và quầy không di chuyển.
+- Cất vào kho: trạm giữ cấp, không sinh cà rốt, không làm hàng cho khay, khách không gọi món của nó, không tiếp sức trạm khác; thỏ ở đó về nghỉ. Đồ trang trí cất thì về kho trang trí cũ (#11). Lấy ra ở cuối tab Trạm, trạm đứng lên ô trống gần tâm nhất.
+- Core: `GardenGrid.Move/Swap/Store/TakeOut`, `Place` từ chối trạm đang cất, `Settle` chừa trạm đang cất; `Core/Layout.cs` (Drop, Store, TakeOut, IsStored). Save vẫn v14, thêm danh sách "stored" trong khối "grid", chỉ ghi khi có. Mùa trăng mới thì kho trống lại.
+- Bấm "Xong" sau khi có thay đổi thì dựng lại vườn để cảnh vật theo chỗ mới.
+
+- **Ảnh:** docs/anh/po-54/54-bo-tri-bat.png (chế độ bật, vòng nét đứt), 54-dang-nhac.png (đang nhấc giỏ lá), 54-sau-hoan-doi.png (nồi mứt đổi chỗ với ấm trà), 54-sau-xong.png (vườn sau "Xong")
+
+### Chưa đạt / cần PO quyết
+- Ấm trà chỉ dời được, không cất được, để vườn không bao giờ về 0 thu nhập. PO có muốn cho cất không?
+- Trạm mới mua vẫn về ô mặc định (#52), chỉ khi ô đó bị chiếm mới sang ô trống gần đó, chứ không phải "ô trống gần tâm nhất". Để sau khi gộp #53 mới quyết, vì #53 đổi cách mở đất.
+- Cảnh vật cố định (đường đá, đèn lối đi) dựng theo chỗ trạm khi dựng vườn: sau khi dời, có đèn đứng trước trạm (ảnh 54-sau-xong). Lấy trạm ra từ tab Trạm thì cảnh vật chưa dựng lại ngay.
+- Ô trống sát trạm có vòng đè lên mép đế trạm, vì ô cách nhau 150 đơn vị mà đế trạm rộng hơn.
+- "+5 % khi trạm tiếp sức đứng kề trạm được tiếp sức" để làm issue sau.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
