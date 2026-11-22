@@ -50,6 +50,8 @@ namespace VuonTra.Core
         public HashSet<string> Claimed = new HashSet<string>();
         /// <summary>Every kind of rabbit the player has ever had, including ones since merged away: the album.</summary>
         public HashSet<string> SeenKinds = new HashSet<string>();
+        /// <summary>Kinds that arrived and have not been looked at in the album yet: the "new" marks.</summary>
+        public HashSet<string> FreshKinds = new HashSet<string>();
         /// <summary>How many places resting rabbits have to sit in the garden.</summary>
         public int RestSpots = VuonTra.Core.RestSpots.Starting;
         /// <summary>The garden's experience; its level follows from this.</summary>

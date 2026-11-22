@@ -473,6 +473,26 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Kind_Arriving_For_The_First_Time_Is_Marked_New_Until_It_Is_Looked_At_And_The_Save_Keeps_The_Mark()
+        {
+            s.Clovers = 3;
+            Rabbit first = Rabbits.Summon(s, 0d, "A", 0d);
+            Assert.IsTrue(first.FirstOfKind);
+            Assert.IsTrue(s.FreshKinds.Contains(first.Kind), "new in the album");
+            Rabbits.Summon(s, 0d, "B", 0d);
+            Assert.AreEqual(1, s.FreshKinds.Count, "the same kind again is not new again");
+
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.IsTrue(r.FreshKinds.Contains(first.Kind), "closing the game does not take the mark off");
+            Assert.IsTrue(Rabbits.LookAt(r, first.Kind));
+            Assert.IsFalse(r.FreshKinds.Contains(first.Kind));
+            Assert.IsFalse(Rabbits.LookAt(r, first.Kind), "nothing left to take off");
+
+            GameState odd = SaveCodec.Decode(defs, "{\"version\":12,\"stations\":[],\"seenKinds\":[\"tho-bong\"],\"freshKinds\":[\"tho-bong\",\"tho-me\"]}").State;
+            CollectionAssert.AreEquivalent(new[] { "tho-bong" }, odd.FreshKinds, "a mark only on a kind that is in the album");
+        }
+
+        [Test]
         public void Load_Repairs_Bad_Rabbit_Data()
         {
             const string json = "{\"version\":3,\"stations\":[{\"id\":\"tea\",\"level\":3,\"progress\":0}],\"rabbits\":[" +

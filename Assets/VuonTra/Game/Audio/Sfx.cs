@@ -19,6 +19,7 @@ namespace VuonTra.Game
 
         static AudioSource _oneShots, _bed, _music;
         static AudioClip _blip, _click, _sting, _tick, _ambient, _melody, _pet, _milestone, _reward, _sheetUp, _sheetDown, _deny;
+        static readonly AudioClip[] _summon = new AudioClip[6];
 
         /// <summary>The name of the last sound asked for, whether or not it could be heard (for tests).</summary>
         public static string Last { get; private set; } = "";
@@ -72,6 +73,13 @@ namespace VuonTra.Game
         public static void Click() => Play("click", _click ?? (_click = MakeClick()), 0.5f, 0.05f);
         /// <summary>Something worth celebrating: a new station, a new rabbit.</summary>
         public static void Sting() => Play("sting", _sting ?? (_sting = MakeSting()), 0.6f, 0f);
+
+        /// <summary>A rabbit arrived: the rarer the tier, the more bells and the higher they climb.</summary>
+        public static void Summon(int tier)
+        {
+            tier = Mathf.Clamp(tier, 0, _summon.Length - 1);
+            Play("summon-" + tier, _summon[tier] ?? (_summon[tier] = MakeSummon(tier)), 0.6f, 0f);
+        }
 
         // ----- one sound for each kind of touch -----
         /// <summary>A rabbit was patted: two quick soft chirps.</summary>
@@ -226,6 +234,32 @@ namespace VuonTra.Game
             {
                 low += ((float)rng.NextDouble() * 2f - 1f - low) * 0.35f;
                 return low * 0.9f;
+            });
+        }
+
+        /// <summary>
+        /// Tier 0 is two soft bells; each tier adds a bell and starts a little higher, so tier 5 is a
+        /// seven-note climb with a shimmer on top.
+        /// </summary>
+        static AudioClip MakeSummon(int tier)
+        {
+            int count = 2 + tier;
+            float gap = tier >= 4 ? 0.085f : 0.11f;
+            float root = 523.25f * Mathf.Pow(1.059463f, tier * 2); // a whole tone up per tier
+            float[] ratios = { 1f, 1.25f, 1.5f, 2f, 2.5f, 3f, 4f };
+            float length = 0.45f + count * gap;
+            return Make("summon-" + tier, length, t =>
+            {
+                float sum = 0f;
+                for (int k = 0; k < count; k++)
+                {
+                    float local = t - k * gap;
+                    if (local < 0f) continue;
+                    float env = Mathf.Min(1f, local / 0.008f) * Mathf.Exp(-local * (tier >= 4 ? 5f : 7f));
+                    float w = 2f * Mathf.PI * root * ratios[k] * local;
+                    sum += (Mathf.Sin(w) + 0.25f * Mathf.Sin(2f * w) + (tier >= 4 ? 0.12f * Mathf.Sin(3f * w) : 0f)) * env;
+                }
+                return sum * (0.34f - tier * 0.02f);
             });
         }
 

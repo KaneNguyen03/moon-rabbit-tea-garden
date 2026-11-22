@@ -150,8 +150,8 @@ namespace VuonTra.Game.UI
         /// <summary>The moon gate a newly called or merged rabbit steps out of.</summary>
         public SummonMomentView Arrival { get; private set; }
         /// <summary>Kinds met for the first time and not yet looked at in the album: their cells are marked.</summary>
-        readonly HashSet<string> _freshKinds = new HashSet<string>();
-        public bool IsFreshKind(string kindId) => _freshKinds.Contains(kindId);
+        /// <summary>A kind that arrived and has not been looked at yet: the save remembers, so the mark outlives the session.</summary>
+        public bool IsFreshKind(string kindId) => Runner.State.FreshKinds.Contains(kindId);
         /// <summary>0 = stations, 1 = upgrades ("bùa"), 2 = quests, 3 = rabbits.</summary>
         public int Tab { get; private set; }
         /// <summary>True from the moment a sheet is asked for until it is asked to close (the slide out comes after).</summary>
@@ -2177,7 +2177,7 @@ namespace VuonTra.Game.UI
             }, kindId =>
             {
                 Sfx.Click();
-                _freshKinds.Remove(kindId); // looked at now
+                Runner.LookAtKind(kindId); // looked at now
                 Detail.OpenKind(Runner.Defs, Runner.State, kindId);
             }, null, IsFreshKind);
 
@@ -2559,7 +2559,7 @@ namespace VuonTra.Game.UI
                 Tweens.Add(0.32f, t => _badgePop = 0.4f * Ease.Pop(t), Ease.Linear, 0f, () => _badgePop = 0f); // one more to collect
             _shownClaimable = claimable;
             // The rabbits tab counts what waits there: stations with nobody, merges that can be made, kinds not yet looked at.
-            int waiting = Rabbits.StationsWithoutWorker(s) + _freshKinds.Count;
+            int waiting = Rabbits.StationsWithoutWorker(s) + s.FreshKinds.Count;
             for (int tier = 0; tier < Rabbits.TierCount; tier++) if (Rabbits.CanMerge(s, tier)) waiting++;
             if (_rabbitBadgeRect.gameObject.activeSelf != (waiting > 0)) _rabbitBadgeRect.gameObject.SetActive(waiting > 0);
             _rabbitBadgeText.text = waiting.ToString();
@@ -3010,7 +3010,7 @@ namespace VuonTra.Game.UI
             Rabbit rabbit = Runner.SummonRabbit();
             if (rabbit == null) return;
             _rabbitList.Summon.Press(Tweens);
-            Sfx.Sting();
+            Sfx.Summon(rabbit.Tier);
             Haptics.Medium();
             Welcome(rabbit);
         }
@@ -3019,14 +3019,13 @@ namespace VuonTra.Game.UI
         {
             Rabbit merged = Runner.MergeRabbits(tier);
             if (merged == null) return;
-            Sfx.Sting();
+            Sfx.Summon(merged.Tier);
             Welcome(merged);
         }
 
         /// <summary>A rabbit has just arrived, called or merged: it steps out of the moon gate.</summary>
         void Welcome(Rabbit rabbit)
         {
-            if (rabbit.FirstOfKind) _freshKinds.Add(Rabbits.KindOf(rabbit));
             Arrival.Show(Runner.Catalog.RabbitArt(rabbit), rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Rarity(rabbit.Tier)),
                 Palette.Tiers[rabbit.Tier], rabbit.FirstOfKind, L10n.T("summon.new"), L10n.T("summon.hint"), rabbit.Tier == 0);
         }

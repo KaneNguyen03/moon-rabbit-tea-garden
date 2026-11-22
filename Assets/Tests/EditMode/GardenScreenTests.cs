@@ -2233,6 +2233,37 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(guide.gameObject.activeSelf);
         }
 
+        // ----- #13: the summon moment -----
+
+        [Test]
+        public void Each_Tier_Arrives_To_Its_Own_Bells_And_The_New_Mark_Survives_A_Restart()
+        {
+            screen.Shell.StartGame();
+            runner.State.Clovers = 1;
+            screen.Refresh();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Summon/Button").onClick.Invoke();
+            Rabbit called = runner.State.Rabbits[runner.State.Rabbits.Count - 1];
+            Assert.AreEqual("summon-" + called.Tier, Sfx.Last, "the bells of its tier");
+            Assert.IsTrue(screen.IsFreshKind(called.Kind));
+            screen.Arrival.Close();
+
+            // Three silver rabbits merge into a green one: the green bells.
+            for (int i = 0; i < 3; i++) runner.State.Rabbits.Add(new Rabbit { Id = 100 + i, Tier = 0, Kind = "tho-bong", Name = "S" + i });
+            runner.State.NextRabbitId = 102;
+            screen.Refresh();
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Merge 0/Button").onClick.Invoke();
+            Assert.AreEqual("summon-1", Sfx.Last, "a merge arrives to the bells of the tier it made");
+            screen.Arrival.Close();
+
+            // The game closes and opens again: the mark is still there, until the kind's page is opened.
+            GameState again = SaveCodec.Decode(runner.Defs, SaveCodec.Encode(runner.Defs, runner.State), runner.UpgradeDefs).State;
+            Assert.IsTrue(again.FreshKinds.Contains(called.Kind));
+            runner.LookAtKind(called.Kind);
+            Assert.IsFalse(screen.IsFreshKind(called.Kind));
+            GameState after = SaveCodec.Decode(runner.Defs, SaveCodec.Encode(runner.Defs, runner.State), runner.UpgradeDefs).State;
+            Assert.IsFalse(after.FreshKinds.Contains(called.Kind));
+        }
+
         [Test]
         public void Away_Popup_Shows_And_Closes()
         {

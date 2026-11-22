@@ -107,11 +107,16 @@ namespace VuonTra.Core
             return true;
         }
 
-        /// <summary>Puts a kind in the album. True when it was not there before.</summary>
+        /// <summary>Puts a kind in the album, marked new until it is looked at. True when it was not there before.</summary>
         public static bool See(GameState s, string kindId)
         {
-            return RabbitKinds.Find(kindId) != null && s.SeenKinds.Add(kindId);
+            bool first = RabbitKinds.Find(kindId) != null && s.SeenKinds.Add(kindId);
+            if (first) s.FreshKinds.Add(kindId);
+            return first;
         }
+
+        /// <summary>The player looked at a kind in the album: its "new" mark comes off. True when there was one.</summary>
+        public static bool LookAt(GameState s, string kindId) => s.FreshKinds.Remove(kindId);
 
         /// <summary>The rabbit's kind, or its tier's default when it has none or one that belongs to another tier.</summary>
         public static string KindOf(Rabbit r)

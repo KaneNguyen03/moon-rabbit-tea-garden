@@ -281,6 +281,12 @@ namespace VuonTra.Game
             return ok;
         }
 
+        /// <summary>A kind's page in the album was opened: its "new" mark comes off and stays off.</summary>
+        public void LookAtKind(string kindId)
+        {
+            if (Rabbits.LookAt(State, kindId)) Changed();
+        }
+
         /// <summary>Makes the next rabbit the player's avatar; null when there are none.</summary>
         public Rabbit NextAvatar()
         {

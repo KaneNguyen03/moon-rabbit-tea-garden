@@ -83,7 +83,16 @@ namespace VuonTra.Core
             }
             sb.Append("],\"gardenXp\":").Append(s.GardenXp.ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"restSpots\":").Append(s.RestSpots.ToString(CultureInfo.InvariantCulture));
-            sb.Append(",\"seenKinds\":[");
+            sb.Append(",\"freshKinds\":[");
+            {
+                int n = 0;
+                foreach (string kind in s.FreshKinds)
+                {
+                    if (n++ > 0) sb.Append(',');
+                    WriteString(sb, kind);
+                }
+            }
+            sb.Append("],\"seenKinds\":[");
             first = true;
             foreach (string id in s.SeenKinds)
             {
@@ -311,8 +320,12 @@ namespace VuonTra.Core
             // Version 6: the album. Whatever the save says, every rabbit still here has certainly been seen.
             if (root.TryGetValue("seenKinds", out object seenObj) && seenObj is List<object> seen)
                 foreach (object item in seen)
-                    if (item is string seenId) Rabbits.See(s, seenId);
-            foreach (Rabbit r in s.Rabbits) Rabbits.See(s, Rabbits.KindOf(r));
+                    if (item is string seenId && RabbitKinds.Find(seenId) != null) s.SeenKinds.Add(seenId); // straight into the album: nothing here is new
+            foreach (Rabbit r in s.Rabbits) s.SeenKinds.Add(Rabbits.KindOf(r));
+            // The "new" marks: only kinds that are in the album can carry one.
+            if (root.TryGetValue("freshKinds", out object freshObj) && freshObj is List<object> fresh)
+                foreach (object item in fresh)
+                    if (item is string kind && s.SeenKinds.Contains(kind)) s.FreshKinds.Add(kind);
 
             long savedNext = ToLong(ReadNumber(root, "nextRabbitId"));
             if (savedNext > s.NextRabbitId) s.NextRabbitId = savedNext;
