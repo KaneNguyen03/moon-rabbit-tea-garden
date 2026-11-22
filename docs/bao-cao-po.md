@@ -826,6 +826,21 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: trong batch preview, nhãn "Bỏ qua" dựng lúc màn hình đang tiếng Anh nên khung 30-buoc hiện "Skip" (quirk đã ghi ở mục Bàn giao của session kia); trong game không ảnh hưởng.
 
+## #14 — Màu Thỏ Việt Quất và Thỏ Dâu Tây
+
+- Commit `aae36e3`, đã push; verify.sh xanh 452/452 (chung lượt với #13). Issue đã comment, nhãn chờ-PO-duyệt.
+- Nguyên nhân: xoay màu toàn ảnh cho thỏ Khoai Môn làm lông kem và má đổi theo. Script mới `docs/anh/po-loai-tho/30-bien-the/sua-14-viet-quat-dau-tay.py` chỉ đổi vùng tím của tai và lưng, nén dải màu quanh màu đích. Hai file trong `Art/Final` và bản sao trong docs đã thay; `Art/Generated` tự sinh lại khi seed.
+
+## #13 — Khoảnh khắc gọi thỏ: tiếng theo bậc, dấu Mới lưu
+
+- Test: 452/452 EditMode qua (verify.sh). Thêm 1 test core, 1 test màn hình.
+- Commit `38ef8b7`, đã push. Issue đã comment, nhãn chờ-PO-duyệt.
+- `Sfx.Summon(tier)`: sáu clip (2 + bậc nốt, mỗi bậc cao hơn một cung, Vàng/Đỏ dày hơn); `OnSummon` và `OnMerge` dùng nó thay `Sting`.
+- `GameState.FreshKinds` (save `freshKinds`, chỉ giữ loài có trong sổ); `Rabbits.See` thêm, `Rabbits.LookAt` bỏ; `GameRunner.LookAtKind`; `GardenScreen.IsFreshKind` đọc từ state. Sửa `SaveCodec` không gọi `See` khi đọc sổ (nếu không mọi loài thành mới sau khi mở lại).
+
+### Chưa đạt
+- Tiếng chưa ai nghe (mình không nghe được); cần chủ project nghe trong bản Mac.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
