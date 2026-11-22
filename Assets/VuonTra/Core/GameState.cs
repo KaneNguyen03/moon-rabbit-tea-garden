@@ -121,6 +121,9 @@ namespace VuonTra.Core
         public string[] DecorSpots = new string[Decor.Spots];
         public int LanternColor;
 
+        /// <summary>How many new moons this garden has begun (#1); each one adds a lasting share to income. 0 for a garden on its first season.</summary>
+        public int Season;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

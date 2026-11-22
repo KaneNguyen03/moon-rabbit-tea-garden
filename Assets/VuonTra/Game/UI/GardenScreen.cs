@@ -237,6 +237,11 @@ namespace VuonTra.Game.UI
         public RabbitDetailView Detail { get; private set; }
         /// <summary>The moon gate a newly called or merged rabbit steps out of.</summary>
         public SummonMomentView Arrival { get; private set; }
+        /// <summary>The new moon (#1): the compare card and the moment that follows it.</summary>
+        public NewMoonView NewMoonCard { get; private set; }
+        public NewMoonMomentView NewMoonMoment { get; private set; }
+        RectTransform _seasonChip;
+        Text _seasonText;
         /// <summary>Kinds met for the first time and not yet looked at in the album: their cells are marked.</summary>
         /// <summary>A kind that arrived and has not been looked at yet: the save remembers, so the mark outlives the session.</summary>
         public bool IsFreshKind(string kindId) => Runner.State.FreshKinds.Contains(kindId);
@@ -346,6 +351,8 @@ namespace VuonTra.Game.UI
             PlaceTabBar();
             ShowTabBar(dt);
             if (Arrival != null) Arrival.Update(dt);
+            if (NewMoonCard != null) NewMoonCard.Update(dt);
+            if (NewMoonMoment != null) NewMoonMoment.Update(dt);
             Feel.Update(dt);
             Shell.Update(_clock);
             UpdateWorld(dt);
@@ -1041,7 +1048,8 @@ namespace VuonTra.Game.UI
                 Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor);
             DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
-            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus));
+            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus),
+                () => NewMoon.CanBegin(Runner.State), () => NewMoon.LevelNeeded(Runner.State.Season), () => NewMoonCard.Open(Runner.Defs, Runner.State), () => NewMoon.AtCap(Runner.State));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
                 () => { Runner.NextAvatar(); Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus); },
@@ -1079,6 +1087,8 @@ namespace VuonTra.Game.UI
                     Refresh(-1f);
                 }));
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
+            NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
+            NewMoonMoment = new NewMoonMomentView(_canvas, catalog);
             CloudChoice = new CloudChoiceView(_canvas, catalog, Tweens, takeRemote => Runner.ResolveSync(takeRemote, r =>
             {
                 Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : "cloud.kept"), Palette.Ink, 34);
@@ -1786,7 +1796,7 @@ namespace VuonTra.Game.UI
             if (frame)
             {
                 _frameName.text = string.IsNullOrEmpty(Runner.State.Profile.GardenName) ? L10n.T("profile.unnamed") : Runner.State.Profile.GardenName;
-                _frameDate.text = System.DateTime.Now.ToString("dd/MM/yyyy");
+                _frameDate.text = System.DateTime.Now.ToString("dd/MM/yyyy") + (Runner.State.Season > 0 ? " · " + L10n.T("hud.season", Runner.State.Season) : "");
             }
             bool fireflies = !PhotoMode || PhotoFirefliesOn;
             if (_fireflyLayer != null && _fireflyLayer.activeSelf != fireflies) _fireflyLayer.SetActive(fireflies);
@@ -2653,6 +2663,15 @@ namespace VuonTra.Game.UI
                 _levelText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1).AddText("1", 40, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
             _levelBadge = badge;
+            // The season's chip under the level, only once a new moon has been begun (#1).
+            _seasonChip = UiKit.Rect("Season", _hud).Place(0f, 1f, 70, -140, 120, 40);
+            _seasonChip.AddShadow(10f, 6f, 0.25f);
+            _seasonChip.AddImage(catalog.Panel, Palette.Lantern, true);
+            _seasonText = UiKit.Rect("Text", _seasonChip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _seasonText.resizeTextForBestFit = true;
+            _seasonText.resizeTextMinSize = 14;
+            _seasonText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _seasonChip.gameObject.SetActive(false);
 
             // Golden carrots, under the purse, only once there is at least one: nothing strange for a new player.
             _goldenChip = UiKit.Rect("Golden", _hud).Place(0f, 1f, 210, -154, 170, 52);
@@ -3474,6 +3493,11 @@ namespace VuonTra.Game.UI
             bool can = Energy.CanBoost(s);
             int gardenLevel = Garden.Level(s);
             _levelText.text = gardenLevel.ToString();
+            if (_seasonChip != null)
+            {
+                _seasonChip.gameObject.SetActive(s.Season > 0);
+                if (s.Season > 0) _seasonText.text = L10n.T("hud.season", s.Season);
+            }
             _levelRing.fillAmount = Mathf.Max(0.02f, (float)Garden.Progress(s));
             if (_shownGardenLevel > 0 && gardenLevel > _shownGardenLevel && Shell.State != ShellState.Title)
             {
@@ -4086,6 +4110,24 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>A rabbit has just arrived, called or merged: it steps out of the moon gate.</summary>
+        /// <summary>The compare card was held and pressed: the season begins, the moon sets and rises, and the garden is small again.</summary>
+        void OnNewMoonBegun()
+        {
+            if (!Runner.BeginNewMoon(out Rabbit gift)) return;
+            Shell.Resume();
+            Haptics.Medium();
+            int season = Runner.State.Season;
+            NewMoonMoment.Open(season, () =>
+            {
+                SelectStation(-1);
+                LookAt(StationSpot(0));
+                Refresh(-1f);
+                Sfx.Sting();
+                if (gift != null) Welcome(gift);
+                else Feel.Moment(L10n.T("newmoon.done.title", season), L10n.T("newmoon.done.sub", (int)System.Math.Round((NewMoon.Bonus(season) - 1d) * 100d), NewMoon.GiftClovers, NewMoon.GiftGolden));
+            });
+        }
+
         void Welcome(Rabbit rabbit)
         {
             Arrival.SetSeasonDecor(Runner.Catalog.GateDecor(Runner.SeasonNow));

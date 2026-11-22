@@ -366,7 +366,7 @@ namespace VuonTra.Game.UI
             }
 
             // The seasons' kinds (#8), after the tiers: met ones kept for good, the others marked with their season.
-            IReadOnlyList<RabbitKind> seasonal = RabbitKinds.Seasonal();
+            IReadOnlyList<RabbitKind> seasonal = RabbitKinds.Special();
             if (seasonal.Count > 0)
             {
                 int metSeasonal = 0;
@@ -386,7 +386,9 @@ namespace VuonTra.Game.UI
                     if (!met)
                     {
                         Transform cell = row.Find("Kind " + seasonal[i].Id);
-                        cell.Find("Name").GetComponent<Text>().text = L10n.T("album.season.only", L10n.Season(seasonal[i].Season));
+                        cell.Find("Name").GetComponent<Text>().text = seasonal[i].NewMoonOnly
+                            ? L10n.T("album.newmoon.only")
+                            : L10n.T("album.season.only", L10n.Season(seasonal[i].Season));
                     }
                 }
             }

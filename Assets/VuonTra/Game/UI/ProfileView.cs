@@ -254,7 +254,9 @@ namespace VuonTra.Game.UI
             _code.text = s.Profile.Code;
             int open = 0;
             for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] > 0) open++;
-            _stats.text = L10n.T("profile.stats", Garden.Level(s), s.Rabbits.Count, open);
+            _stats.text = s.Season > 0
+                ? L10n.T("profile.stats.season", Garden.Level(s), s.Rabbits.Count, open, s.Season, (int)System.Math.Round((NewMoon.Bonus(s) - 1d) * 100d))
+                : L10n.T("profile.stats", Garden.Level(s), s.Rabbits.Count, open);
             if (_copiedAt > 0f && Time.unscaledTime - _copiedAt > 1.5f)
             {
                 _copiedAt = -99f;

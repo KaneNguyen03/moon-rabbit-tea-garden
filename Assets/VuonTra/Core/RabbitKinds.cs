@@ -40,11 +40,13 @@ namespace VuonTra.Core
         public bool NoHat;
         /// <summary>The stretch of the year this kind can be met in (#8); None for the kinds of every day.</summary>
         public Season Season;
+        /// <summary>Comes only with a new moon (#1): never from clovers, the shop or a merge.</summary>
+        public bool NewMoonOnly;
 
         public RabbitKind(string id, int tier, RabbitTrade trade, string nameVi, string nameEn, bool ownGlow = false,
-            float hatX = 0f, float hatY = 0f, bool ownOutline = false, bool noHat = false, Season season = Season.None)
+            float hatX = 0f, float hatY = 0f, bool ownOutline = false, bool noHat = false, Season season = Season.None, bool newMoonOnly = false)
         {
-            Season = season;
+            Season = season; NewMoonOnly = newMoonOnly;
             Id = id; Tier = tier; Trade = trade; NameVi = nameVi; NameEn = nameEn; OwnGlow = ownGlow;
             HatX = hatX; HatY = hatY; OwnOutline = ownOutline; NoHat = noHat;
         }
@@ -138,6 +140,8 @@ namespace VuonTra.Core
             new RabbitKind("tho-den-ong-sao", 4, RabbitTrade.Stargazer, "Thỏ Đèn Ông Sao", "Star Lantern Rabbit", season: Season.MidAutumn),
             new RabbitKind("tho-ao-dai", 4, RabbitTrade.Brewer, "Thỏ Áo Dài", "Áo Dài Rabbit", season: Season.Tet),
             new RabbitKind("tho-noel", 4, RabbitTrade.Baker, "Thỏ Noel", "Noel Rabbit", season: Season.Christmas),
+            // The moon rabbit (#1): purple, a stargazer, and only ever met by beginning a new moon.
+            new RabbitKind(NewMoon.MoonKind, 3, RabbitTrade.Stargazer, "Thỏ Trăng Non", "New Moon Rabbit", newMoonOnly: true),
         };
 
         public static IReadOnlyList<RabbitKind> All => Table;
@@ -163,7 +167,16 @@ namespace VuonTra.Core
         {
             var list = new List<RabbitKind>(2);
             for (int i = 0; i < Table.Length; i++)
-                if (Table[i].Tier == tier && (Table[i].Season == Season.None || Table[i].Season == season)) list.Add(Table[i]);
+                if (Table[i].Tier == tier && !Table[i].NewMoonOnly && (Table[i].Season == Season.None || Table[i].Season == season)) list.Add(Table[i]);
+            return list;
+        }
+
+        /// <summary>The kinds met only on an occasion, in table order: the seasons' (#8), then the new moon's (#1).</summary>
+        public static IReadOnlyList<RabbitKind> Special()
+        {
+            var list = new List<RabbitKind>(4);
+            for (int i = 0; i < Table.Length; i++)
+                if (Table[i].Season != Season.None || Table[i].NewMoonOnly) list.Add(Table[i]);
             return list;
         }
 

@@ -51,6 +51,8 @@ namespace VuonTra.Core
             // Items worn by working rabbits count whether or not there are upgrades.
             m.SpeedMultiplier += Items.GardenBonus(s, ItemEffect.GardenSpeed);
             m.AwayIncomeMultiplier += Items.GardenBonus(s, ItemEffect.AwayIncome);
+            // Every new moon begun (#1) pays its lasting share on all income.
+            if (s != null) m.IncomeMultiplier *= NewMoon.Bonus(s);
             if (upgrades == null || s.UpgradeLevels == null) return m;
             for (int i = 0; i < upgrades.Count && i < s.UpgradeLevels.Length; i++)
             {

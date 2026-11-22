@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.UI;
+using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
@@ -27,15 +28,22 @@ namespace VuonTra.Game.UI
         readonly GameObject _title, _pause;
         readonly CanvasGroup _titleGroup, _pauseGroup;
         readonly RectTransform _pauseCard;
-        readonly Text _prompt, _resetLabel, _profileName, _profileCode;
+        readonly Text _prompt, _resetLabel, _profileName, _profileCode, _newMoonLocked;
         readonly Image _profileArt;
         readonly Action _onReset;
+        readonly GameObject _newMoon;
+        readonly Func<bool> _newMoonReady, _newMoonCapped;
+        readonly Func<int> _newMoonLevel;
         float _resetArmedAt = -99f;
 
-        public ShellView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onReset, Action onProfile = null)
+        public ShellView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onReset, Action onProfile = null,
+            Func<bool> newMoonReady = null, Func<int> newMoonLevel = null, Action onNewMoon = null, Func<bool> newMoonCapped = null)
         {
             _tweens = tweens;
             _onReset = onReset;
+            _newMoonReady = newMoonReady;
+            _newMoonLevel = newMoonLevel;
+            _newMoonCapped = newMoonCapped;
 
             // ----- Title: the live garden is the backdrop -----
             var title = UiKit.Rect("Title", canvas).Stretch(0, 0, 1, 1);
@@ -65,7 +73,7 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1290);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1400);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
@@ -111,6 +119,33 @@ namespace VuonTra.Game.UI
             // Every label a fifth bigger; the screen builds itself again, as for a language change.
             AddToggleRow(catalog, "Text", L10n.T("pause.text"), -880, () => UiKit.LargeText, UiKit.SetLargeText);
 
+            // The new moon (#1): a warm button with a badge once the garden is far enough; until then one line says the level it asks for.
+            var newMoon = UiKit.Rect("NewMoon", _pauseCard).Place(0.5f, 0f, 0, 420, 700, 100);
+            _newMoon = newMoon.gameObject;
+            ChunkyButton newMoonButton = null;
+            newMoonButton = UiKit.Chunky(newMoon, catalog.Panel, () =>
+            {
+                newMoonButton.Press(_tweens);
+                Sfx.Click();
+                onNewMoon?.Invoke();
+            });
+            newMoonButton.Face.color = Palette.Lantern;
+            newMoonButton.Lip.color = Palette.Mix(Palette.Lantern, Palette.Ink, 0.3f);
+            UiKit.Rect("Text", newMoonButton.FaceRect).Stretch(0, 0, 1, 1, 24, 0, 150, 0)
+                .AddText(L10n.T("pause.newmoon"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var badge = UiKit.Rect("Badge", newMoonButton.FaceRect).Place(1f, 0.5f, -70, 0, 120, 48);
+            badge.AddImage(catalog.Panel, Palette.Carrot, true);
+            Text badgeText = UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("pause.newmoon.ready"), UiKit.TextSmall, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            badgeText.resizeTextForBestFit = true;
+            badgeText.resizeTextMinSize = 14;
+            badgeText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _newMoonLocked = UiKit.Rect("NewMoonLocked", _pauseCard).Place(0.5f, 0f, 0, 420, 700, 100)
+                .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter);
+            _newMoonLocked.resizeTextForBestFit = true;
+            _newMoonLocked.resizeTextMinSize = 16;
+            _newMoonLocked.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            ShowNewMoon();
+
             var resume = UiKit.Rect("Resume", _pauseCard).Place(0.5f, 0f, 0, 260, 620, 130);
             ChunkyButton resumeButton = null;
             resumeButton = UiKit.Chunky(resume, catalog.Panel, () =>
@@ -130,6 +165,17 @@ namespace VuonTra.Game.UI
             _resetLabel = UiKit.Rect("Text", reset).Stretch(0, 0, 1, 1).AddText(L10n.T("pause.reset"), UiKit.TextTitle, Palette.InkSoft);
 
             _pause.SetActive(false);
+        }
+
+        /// <summary>The new-moon row as the garden stands: the button, or the line that says what it still needs.</summary>
+        void ShowNewMoon()
+        {
+            bool ready = _newMoonReady != null && _newMoonReady();
+            _newMoon.SetActive(ready);
+            _newMoonLocked.gameObject.SetActive(!ready);
+            if (ready) return;
+            bool capped = _newMoonCapped != null && _newMoonCapped();
+            _newMoonLocked.text = capped ? L10n.T("pause.newmoon.cap") : L10n.T("pause.newmoon.locked", _newMoonLevel != null ? _newMoonLevel() : NewMoon.FirstLevel);
         }
 
         /// <summary>A setting that is either on or off: its name on the left, a pill that says which on the right.</summary>
@@ -222,6 +268,7 @@ namespace VuonTra.Game.UI
             _resetArmedAt = -99f;
             _resetLabel.text = L10n.T("pause.reset");
             _resetLabel.color = Palette.InkSoft;
+            ShowNewMoon();
             _pause.SetActive(true);
             _pauseGroup.alpha = 0f;
             _pauseGroup.blocksRaycasts = true;

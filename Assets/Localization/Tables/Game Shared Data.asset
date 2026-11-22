@@ -2355,6 +2355,106 @@ MonoBehaviour:
     m_Key: season.began.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 265931266711552
+    m_Key: pause.newmoon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071680
+    m_Key: pause.newmoon.ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071681
+    m_Key: pause.newmoon.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071682
+    m_Key: pause.newmoon.cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071683
+    m_Key: newmoon.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071684
+    m_Key: newmoon.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071685
+    m_Key: newmoon.keep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071686
+    m_Key: newmoon.keep.list
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071687
+    m_Key: newmoon.lose
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071688
+    m_Key: newmoon.lose.list
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071689
+    m_Key: newmoon.gain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071690
+    m_Key: newmoon.gain.list
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071691
+    m_Key: newmoon.gain.rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071692
+    m_Key: newmoon.hold
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071693
+    m_Key: newmoon.armed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071694
+    m_Key: newmoon.cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071695
+    m_Key: newmoon.moment.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071696
+    m_Key: newmoon.moment.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071697
+    m_Key: newmoon.moment.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071698
+    m_Key: newmoon.done.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071699
+    m_Key: newmoon.done.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071700
+    m_Key: hud.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071701
+    m_Key: profile.stats.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931296071702
+    m_Key: album.newmoon.only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 265931308654592
+    m_Key: kind.tho-trang-non
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

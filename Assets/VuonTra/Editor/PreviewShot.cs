@@ -643,6 +643,47 @@ namespace VuonTra.EditorTools
             Step(screen, 0.5f);
             Capture(screen, "30-buoc-3");
             screen.CloseSheet();
+
+            // #1 The new moon: the pause card's row once the garden is far enough, the compare card before and after
+            // the hold, the moment, and the garden small again with the season's chip.
+            fresh.GardenXp = Garden.XpForLevel(31);
+            fresh.Coins = new BigNum(2.4e6);
+            fresh.Levels[0] = 180; fresh.Levels[1] = 95; fresh.Levels[2] = 60; fresh.Levels[3] = 25; fresh.Levels[4] = 10;
+            fresh.Plots = 8;
+            fresh.RestSpots = 4;
+            fresh.Clovers = 2;
+            fresh.GoldenCarrots = 14;
+            Rabbits.Assign(fresh, Rabbits.Arrive(fresh, 2, "Lam", 0.2).Id, 2);
+            Rabbits.Assign(fresh, Rabbits.Arrive(fresh, 3, "Tím", 0.4).Id, 3);
+            Rabbits.Arrive(fresh, 4, "Vàng", 0.6);
+            screen.Refresh();
+            Step(screen, 0.3f);
+            screen.Shell.OpenPause();
+            Step(screen, 0.6f);
+            Capture(screen, "1-mua-trang-nut");
+            Press(screen, "Canvas/Pause/Card/NewMoon");
+            Step(screen, 0.4f);
+            Capture(screen, "1-mua-trang-so-sanh");
+            screen.NewMoonCard.Hold();
+            Step(screen, 0.8f);
+            Capture(screen, "1-mua-trang-dang-giu");
+            Step(screen, 0.9f);
+            screen.NewMoonCard.Release();
+            Step(screen, 0.2f);
+            Capture(screen, "1-mua-trang-mo-khoa");
+            screen.NewMoonCard.Hold();
+            screen.NewMoonCard.Release();
+            Step(screen, 1.0f);
+            Capture(screen, "1-mua-trang-trang-lan");
+            Step(screen, 1.6f);
+            Capture(screen, "1-mua-trang-trang-moc");
+            screen.NewMoonMoment.Tap();
+            Step(screen, SummonMomentView.Length + 0.4f); // the moon rabbit fully revealed at the gate
+            Capture(screen, "1-mua-trang-tho-moi");
+            screen.Arrival.Tap();
+            screen.Arrival.Tap();
+            Step(screen, 0.6f);
+            Capture(screen, "1-mua-trang-vuon-moi");
         }
 
         static void Press(GardenScreen screen, string path)
