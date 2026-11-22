@@ -1380,6 +1380,17 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Không có tiếng; thỏ ngủ gật không nói; câu rảnh có thể chờ tới 180 giây khi có khách; bong bóng chưa có đuôi. Chưa thử tay.
 
+## #61 — Sổ thỏ có thưởng: đủ bộ nghề trong bậc +3 %, mốc 10/20/40/72 loài (agent song song, nhánh agent-61)
+
+- Test: 852/853 EditMode qua trên main sau khi gộp. Nhánh riêng 832/833: `AlbumSetsTests` 9, `GardenScreenTests` 3, `AccessibilityTests` 4 ca; `GardenPacingTests` thêm kiểm tối đa 2 bộ trong ngày 1.
+- Commit `ee9cd0f` (nhánh agent-61), gộp vào main qua `89e09d7` (ghép test, chuỗi và khung preview với #59) + seed lại bảng chuỗi, đã push. Issue #61 đã comment (bảng 10 ý + điểm cần PO chọn), nhãn chờ-PO-duyệt. Save thêm `albumMilestones` (v14).
+- `Core/AlbumSets.cs`: 24 bộ (bậc × nghề, chỉ loài thường ngày); `TradeFactor` = 1 + 0,03 × số bộ đủ (tối đa 1,18), nhân trong `Economy.IncomePerCycle` theo nghề trạm (trạm nguyên liệu nhân vào phần tiếp sức). Mốc: nhiệm vụ `loai-10/20/40/72` (`QuestMetric.KindsMet`) trả 1, 2 + 1 cỏ, 10, 20 cà rốt vàng; `ClaimMilestones` tặng Mũ sao (40) và khung Đủ bộ (72). Sổ thỏ chia nhóm theo nghề, viền vàng khi đủ, băng rôn khi vừa đủ.
+- Nhịp: mốc 10 và 20 hạ từ 3 và 5 vàng xuống 1 và 2 để giữ "12 ô đất chờ ngày 3"; sau khi hạ, 12 ô đất lúc 48 giờ 7 phút; cấp 10 thong thả lúc 4 giờ 29 (trước 6 giờ 30), cấp 5 không đổi.
+- Ảnh (docs/anh/po-61/): `61-so-tho-bo.png`, `61-du-bo.png`.
+
+### Chưa đạt / cần PO quyết
+- Giữ 1 và 2 vàng ở mốc 10/20 hay nới mốc 12 ô đất. Bảng thu nhập chưa có dòng sổ thỏ; chế độ chụp chưa chọn được khung Đủ bộ. Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
