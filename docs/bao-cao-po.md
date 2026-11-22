@@ -1514,6 +1514,21 @@ Sau khi sửa cả bốn xanh.
 - Tiếng mưa theo thanh Âm thanh (như issue), còn nền ambient vẫn theo thanh Nhạc.
 - Chưa có mũ ếch vẽ (Antigravity); chưa có ảnh Thỏ Ếch trong mưa đêm; bài "Mưa" chưa tự bật khi trời mưa.
 
+## #53 — Mở rộng rừng theo vòng (agent song song, nhánh agent-53)
+
+- **Test:** 946/947 qua (1 inconclusive, 0 lỗi), thêm 29 test (ForestRingTests 18, ForestRingScreenTests 10, GardenLevelTests +1). tools/verify.sh: RESULT GREEN.
+- **Commit:** 3041061, merge 30f2ce1. Main sau gộp: 1022/1023.
+- **Đã làm:** Đất không còn mở theo đợt mà theo vòng rừng: R3 → 4 → 5 → 6 → 7, mỗi vòng thêm 2 ô trạm, 1 chỗ nghỉ và 6R + 6 ô lưới. Khi đủ điều kiện, biển "Mở rộng rừng" hiện ở mép bãi cỏ cạnh đất sắp mở; bấm thì vành rừng (#51) lùi ra, cỏ mới mọc từng búi ở chỗ cây vừa đứng và trên ô trống của vòng mới; Giảm chuyển động thì hiện ngay. Bảng tên đất trống và thẻ trong tab Trạm đổi thành "Mở rộng rừng · vòng N". Save vẫn version 14; save cũ đổi số ô đất thành R. GardenGrid chỉ thêm `EmptyTiles` và `NearestEmptyApart`.
+- **Nhịp:** mọi mốc giữ nguyên (thong thả: vòng 1 phút 4, vòng 2 phút 11, vòng 3 giờ 4–8, vòng 4 ngày 2–3; không nghỉ tay: vòng 4 phút 9).
+- **Ảnh:** docs/anh/po-53/ — 53-vong-1-truoc/giua/sau, 53-vong-2-truoc/sau, 53-vong-1-xa-truoc, 53-vong-2-xa-sau.
+
+### Chưa đạt / cần PO quyết
+- Giá vòng: giữ 25 % giá hai trạm (như đợt cũ). Giá 25 % một trạm làm vòng 1 mở lúc 1:33 nhưng hỏng hai luật kinh tế (trò chơi + đơn khách 11,7 % < 15 %, R7 về ngày 2). Muốn rẻ hơn thì phải chỉnh lại kinh tế.
+- Luật "R7 chờ ngày 3" mong manh: cấp 15 rơi lúc 32h35 hoặc 48h07 tùy seed. Cho R7 cần cấp 16 thì qua mọi seed, nhưng đổi bảng của issue.
+- `ClampView` không đổi (vườn đã rộng hơn R7; vòng 6–7 phần lớn nằm ngoài bề ngang bãi cỏ dọc).
+- Chỗ dạo của thỏ (#55) chưa lấy từ ô trống của lưới.
+- Ba khóa chữ cũ (`land.expand`, `plot.title`, `moment.plot.title`) không còn dùng nhưng vẫn để trong L10nStrings.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
