@@ -49,6 +49,7 @@ namespace VuonTra.EditorTools
             runner.Init(state);
 
             screen.Build();
+            screen.ClockHours = () => 22.0; // every frame is the night garden unless a frame says otherwise
             screen.Refresh();
             if (Directory.Exists(Folder)) Directory.Delete(Folder, true);
             Directory.CreateDirectory(Folder);
@@ -382,6 +383,18 @@ namespace VuonTra.EditorTools
             Capture(screen, "47-cap-row");
             screen.CloseSheet();
             Step(screen, 0.4f);
+
+            // The same garden at noon and at dusk; night is every other frame.
+            screen.SelectStation(-1);
+            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.ClockHours = () => 13.0;
+            Step(screen, 0.3f);
+            Capture(screen, "21-ban-ngay");
+            screen.ClockHours = () => 18.0;
+            Step(screen, 0.3f);
+            Capture(screen, "21-hoang-hon");
+            screen.ClockHours = () => 22.0;
+            Step(screen, 0.2f);
 
             RenderGuidance(runner, screen);
 

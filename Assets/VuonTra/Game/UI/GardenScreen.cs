@@ -1610,11 +1610,19 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>Moonlight and darkened corners over the garden, under the HUD.</summary>
+        /// <summary>The hour of the day the garden is lit for. Tests and previews set their own.</summary>
+        public System.Func<double> ClockHours = () => System.DateTime.Now.TimeOfDay.TotalHours;
+        Image _daylight, _moonGlow;
+        static readonly Color MoonGlowColor = new Color(0.80f, 0.90f, 1f, 0.26f);
+
         void BuildAtmosphere(GameCatalog catalog)
         {
+            // The time of day lies over the garden as a wash of colour: amber at dusk, rose and blue at dawn,
+            // a pale warmth by day, and nothing at all at night, which is how the garden is meant to be seen.
+            _daylight = UiKit.Rect("Daylight", _canvas).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
             // The moon itself is above the canopy; its glow spills in at the top corner.
-            UiKit.Rect("MoonGlow", _canvas).Place(1f, 1f, -140, -200, 1300, 1300)
-                .AddImage(catalog.Glow, new Color(0.80f, 0.90f, 1f, 0.26f));
+            _moonGlow = UiKit.Rect("MoonGlow", _canvas).Place(1f, 1f, -140, -200, 1300, 1300)
+                .AddImage(catalog.Glow, MoonGlowColor);
             if (catalog.BgVignette != null)
             {
                 var v = UiKit.Rect("Vignette", _canvas).Stretch(0, 0, 1, 1);
@@ -1622,6 +1630,27 @@ namespace VuonTra.Game.UI
                 raw.texture = catalog.BgVignette;
                 raw.raycastTarget = false;
             }
+        }
+
+        /// <summary>Lights the garden for the hour: the wash, the moon's glow and how many fireflies are out.</summary>
+        void UpdateDaylight()
+        {
+            double hour = ClockHours();
+            float night = (float)Daylight.NightAt(hour);
+            float lift = (1f - night) / (1f - (float)Daylight.DayFloor); // 0 at night, 1 at midday
+            Color wash;
+            switch (Daylight.PhaseAt(hour))
+            {
+                case DayPhase.Dusk: wash = Palette.Alpha(Palette.Carrot, 0.22f * lift); break;
+                case DayPhase.Dawn: wash = Palette.Alpha(Palette.Mix(Palette.Blush, new Color(0.62f, 0.77f, 1f), 0.5f), 0.22f * lift); break;
+                case DayPhase.Day: wash = Palette.Alpha(Palette.Mix(Palette.Lantern, Color.white, 0.55f), 0.2f); break;
+                default: wash = new Color(0, 0, 0, 0); break;
+            }
+            if (_daylight != null) _daylight.color = wash;
+            if (_moonGlow != null) _moonGlow.color = Palette.Alpha(MoonGlowColor, MoonGlowColor.a * Mathf.Lerp(0.3f, 1f, night));
+            int awake = Daylight.FirefliesAt(hour, _fireflies.Count);
+            for (int i = 0; i < _fireflies.Count; i++)
+                if (_fireflies[i].gameObject.activeSelf != (i < awake)) _fireflies[i].gameObject.SetActive(i < awake);
         }
 
         /// <summary>A few warm fireflies that live in the garden itself, each circling a lantern or a station.</summary>
@@ -2535,6 +2564,7 @@ namespace VuonTra.Game.UI
             if (dt < 0f) _shownCoins = s.Coins.ToDouble();
 
             RefreshEnergy(s, boosting);
+            UpdateDaylight();
             RefreshStreet(defs, s);
 
             for (int i = 0; i < _rows.Count; i++) _rows[i].Refresh(defs, s, m, dt);

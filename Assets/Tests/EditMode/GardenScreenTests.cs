@@ -2264,6 +2264,46 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(after.FreshKinds.Contains(called.Kind));
         }
 
+        // ----- #21: the time of day, from the clock, as a look -----
+
+        [Test]
+        public void The_Garden_Is_Lit_For_The_Hour_And_Night_Is_Its_Own_Look()
+        {
+            screen.Shell.StartGame();
+            Transform fireflies = root.transform.Find("Canvas/Garden/Content/Fireflies");
+            Image wash = root.transform.Find("Canvas/Daylight").GetComponent<Image>();
+            Image moon = root.transform.Find("Canvas/MoonGlow").GetComponent<Image>();
+            int all = fireflies.childCount;
+            int Out() { int n = 0; foreach (Transform f in fireflies) if (f.gameObject.activeSelf) n++; return n; }
+
+            screen.ClockHours = () => 22.0;
+            screen.Refresh();
+            Assert.AreEqual(0f, wash.color.a, 1e-6, "at night nothing lies over the garden");
+            Assert.AreEqual(0.26f, moon.color.a, 1e-6);
+            Assert.AreEqual(all, Out());
+            double before = runner.State.Coins.ToDouble();
+
+            screen.ClockHours = () => 13.0;
+            screen.Refresh();
+            Assert.Greater(wash.color.a, 0.1f, "a pale warmth by day");
+            Assert.Less(moon.color.a, 0.26f, "the moon's glow fades by day");
+            Assert.AreEqual(Daylight.FirefliesAt(13, all), Out(), "only a few fireflies by day");
+            Assert.AreEqual(before, runner.State.Coins.ToDouble(), 1e-9, "the hour changes the look, never the carrots");
+
+            screen.ClockHours = () => 18.0;
+            screen.Refresh();
+            Assert.Greater(wash.color.r, wash.color.b, "dusk is amber");
+            Assert.AreEqual(all / 2, Out());
+
+            screen.ClockHours = () => 6.0;
+            screen.Refresh();
+            Assert.Greater(wash.color.a, 0f, "dawn has its wash too");
+            screen.ClockHours = () => 3.0;
+            screen.Refresh();
+            Assert.AreEqual(0f, wash.color.a, 1e-6);
+            Assert.AreEqual(all, Out());
+        }
+
         [Test]
         public void Away_Popup_Shows_And_Closes()
         {
