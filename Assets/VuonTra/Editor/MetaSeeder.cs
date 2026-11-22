@@ -181,6 +181,8 @@ namespace VuonTra.EditorTools
             catalog.Clover = FinalArt.Load("icon_clover");
             catalog.Hand = FinalArt.Load("icon_hand");
             catalog.Mortar = FinalArt.Find("prop_coi-gia-banh");
+            catalog.StoneLantern = FinalArt.Find("decor_den-da");
+            catalog.Planter = FinalArt.Find("decor_bon-hoa");
             catalog.GoldenCarrot = FinalArt.Find("icon_ca-rot-vang");
             catalog.GiftBox = FinalArt.Find("icon_hop-qua");
             catalog.ShopProp = FinalArt.Find("prop_tiem");

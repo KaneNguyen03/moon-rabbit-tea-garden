@@ -105,6 +105,8 @@ MonoBehaviour:
   Clover: {fileID: 21300000, guid: 18a371d3f9b11408899105bcdf27f585, type: 3}
   Hand: {fileID: 21300000, guid: 63355055a10d94d8797f2d657c053943, type: 3}
   Mortar: {fileID: 21300000, guid: a8282103e51d547919f3af4b49750b0f, type: 3}
+  StoneLantern: {fileID: 21300000, guid: e02d778da5692454baef2db026aba016, type: 3}
+  Planter: {fileID: 21300000, guid: ce8713973683243d9a5758b924e7f1f0, type: 3}
   GoldenCarrot: {fileID: 21300000, guid: 574b012909f2f4f5fb4499600cb84a82, type: 3}
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}
