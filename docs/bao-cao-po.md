@@ -1471,6 +1471,27 @@ Sau khi sửa cả bốn xanh.
 - Nhập mã đúng sẽ đóng cả Hồ sơ lẫn thẻ Tạm nghỉ để thấy quà bay về ví; nhận thư thì ở lại hộp thư và chỉ hiện một dòng "Đã nhận …".
 - Chơi lại từ đầu thì danh sách mã đã dùng cũng mất, nên nhập lại được mã cũ.
 
+## #66 — Seam quảng cáo thưởng ở ba chỗ có trần ngày, và vé Bỏ quảng cáo (agent song song, nhánh agent-66)
+
+**Test:** 940/941 (1 Inconclusive có sẵn: SeasonTests, phụ thuộc mùa), 25 test mới. verify.sh RESULT GREEN.
+**Commit:** 6a544ac, merge 6e866b2. Main sau gộp: 976/977.
+
+Đã làm:
+- `Core/Ads.cs`: `IRewardedAds`, `FakeRewardedAds` (luôn sẵn sàng, trả kết quả sau 1 giây; chỉ dùng trong editor và test), `NoAds`; tên ba chỗ quảng cáo là hằng số; trần theo ngày đã kẹp, lưu thêm vào save (vẫn bản 14).
+- Ba chỗ, mỗi chỗ một nút phụ, chỉ hiện khi có gì để nhận: ×2 ở màn chào trở lại khi lượt miễn phí đã dùng (1/ngày; ×2 miễn phí và ×2 bằng cà rốt vàng giữ nguyên); thêm 1 lượt ở thẻ kết quả khi trò đã hết lượt (1/trò/ngày); "Xem để nhận 1 cà rốt vàng" ở hàng cà rốt vàng của Tiệm (2/ngày).
+- Vé "Bỏ quảng cáo · 30 ngày" (`vuontra.noads.30`) ở thẻ mua cà rốt vàng, giá lấy từ cửa hàng, chỉ bán khi quảng cáo bật; có vé thì mọi nút thành "Nhận ngay", cùng trần.
+- Công tắc duy nhất: `GameRunner.AdsInPlayerBuilds` (đang tắt). Mọi bản build cho người chơi, kể cả bản Mac, không có nút quảng cáo.
+- Mục 5 trong docs/khai-bao-du-lieu-cua-hang.md.
+- Nhịp chơi khi xem mọi quảng cáo (Logs/economy-ads.txt): cấp 5 lúc 7 phút 15 giây, cấp 10 lúc 8 giờ 27 phút → 8 giờ 30 phút, 12 ô đất ngày 3 không đổi; +14 cà rốt vàng/tuần; lượt gọi vàng 5 → 6.
+
+Ảnh: docs/anh/po-66/66-di-vang-xem.png, 66-tiem-xem.png, 66-ve-bo-quang-cao.png, 66-them-luot.png, 66-them-luot-nhan-ngay.png
+
+### Chưa đạt / cần PO quyết
+- Có quảng cáo hay không; ba chỗ và trần; giá vé và 30 ngày.
+- Lượt gọi bằng cà rốt vàng của người chơi xem mọi quảng cáo chạm đúng mức trần 6/tuần; nếu muốn chừa khoảng trống thì giảm quà ở Tiệm còn 1/ngày.
+- Mốc 12 ô đất chỉ cách vạch ngày 3 bảy phút ở cả ba cách chơi (có từ trước, không do quảng cáo).
+- Chưa cài SDK LevelPlay, chưa có hộp ATT/GDPR; chạm vào cối/giỏ/hũ khi hết lượt chưa mời xem thêm lượt.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
