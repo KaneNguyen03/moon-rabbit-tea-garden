@@ -1248,6 +1248,7 @@ namespace VuonTra.Game.UI
                 _landRings.Add(BuildRing(catalog, i));
             }
             BuildDecor(catalog, count, standing);
+            BuildForestRing(catalog, count); // #53: the grass of every ring still to open, and the sign at the lawn's edge
 
             for (int i = 0; i < count; i++)
             {
@@ -3767,6 +3768,7 @@ namespace VuonTra.Game.UI
             }
             _shownGardenLevel = gardenLevel;
             RefreshLand(s);
+            RefreshForestRing(Runner.Defs, s); // #53
 
             _energyFill.anchorMax = new Vector2(Mathf.Clamp01((float)(s.Energy / Energy.Max)), 1f);
             _energyLabel.text = L10n.T("energy.label", Mathf.FloorToInt((float)s.Energy));
@@ -3803,7 +3805,7 @@ namespace VuonTra.Game.UI
                 _actors[i].SetRank(look == StationLook.Open ? Economy.Rank(s.Levels[i]) : 0);
                 if (look == StationLook.Land)
                 {
-                    _actors[i].SetSign(L10n.T("land.expand"), Expansion.CanExpand(defs, s));
+                    _actors[i].SetSign(L10n.T("forest.expand"), Expansion.CanExpand(defs, s)); // #53
                 }
                 else if (look == StationLook.Unbuilt)
                 {
@@ -3984,7 +3986,7 @@ namespace VuonTra.Game.UI
         /// </summary>
         static string ExpansionNeeds(IReadOnlyList<StationDef> defs, GameState s)
         {
-            ExpansionWave wave = Expansion.Next(defs, s);
+            ForestRing wave = Expansion.Next(defs, s);
             if (wave == null) return "";
             string Mark(bool met, string text) => "<color=#" + (met ? "2E7D4F" : "B4532A") + ">" + text + "</color>";
             int level = Garden.Level(s);
@@ -3994,7 +3996,7 @@ namespace VuonTra.Game.UI
                 parts.Add(Mark(s.Rabbits.Count >= wave.NeedRabbits, L10n.T("expand.rabbits", wave.NeedRabbits) + (s.Rabbits.Count >= wave.NeedRabbits ? "" : L10n.T("expand.have", s.Rabbits.Count))));
             if (wave.NeedKinds > 0)
                 parts.Add(Mark(s.SeenKinds.Count >= wave.NeedKinds, L10n.T("expand.kinds", wave.NeedKinds) + (s.SeenKinds.Count >= wave.NeedKinds ? "" : L10n.T("expand.have", s.SeenKinds.Count))));
-            parts.Add(Mark(Expansion.HasCarrots(defs, s), L10n.T("expand.carrots", Expansion.Cost(defs, s).Short())));
+            parts.Add(Mark(Expansion.HasCarrots(defs, s), L10n.T("expand.carrots", Expansion.CostOfNext(defs, s).Short())));
             return string.Join(" · ", parts);
         }
 
@@ -4006,7 +4008,7 @@ namespace VuonTra.Game.UI
             if (_plotRow.GetSiblingIndex() != s.Plots + 1) _plotRow.SetSiblingIndex(s.Plots + 1); // after the upgrade-all row and the owned plots
             BigNum cost = Plots.CostOfNext(defs, s);
             bool can = Expansion.CanExpand(defs, s);
-            _plotTitle.text = L10n.T("plot.title", Expansion.NextIndex(defs, s) + 1);
+            _plotTitle.text = L10n.T("forest.title", Expansion.RingsTaken(s) + 1); // #53
             _plotSub.text = ExpansionNeeds(defs, s);
             _plotCost.text = cost.Short();
             _plotCost.color = ChunkyButton.InkFor(can);
@@ -4247,7 +4249,7 @@ namespace VuonTra.Game.UI
             // Name what the new land is for.
             var names = new List<string>();
             for (int i = before; i < Runner.State.Plots && i < Runner.Defs.Count; i++) names.Add(L10n.Station(Runner.Defs[i].Id));
-            Feel.Moment(L10n.T("moment.plot.title"), L10n.T("moment.plot.sub", string.Join(", ", names)));
+            Feel.Moment(L10n.T("moment.forest.title"), L10n.T("moment.plot.sub", string.Join(", ", names))); // #53
         }
 
         void OnSummon()
@@ -6120,6 +6122,216 @@ namespace VuonTra.Game.UI
             Tweens.Add(Motion.Time(0.4f), t => { if (artRect != null) artRect.anchoredPosition = new Vector2(0f, 40f * Ease.Pop(t)); }, Ease.Linear, 0f,
                 () => { if (artRect != null) artRect.anchoredPosition = Vector2.zero; });
             _frogPhase = FrogPhase.Going;
+        }
+
+        #endregion
+
+        #region Ring expansion (#53)
+
+        /// <summary>The sign at the lawn's edge that widens the forest: it stands there while the garden can widen, and a press opens the next ring.</summary>
+        RectTransform _forestSign;
+        ChunkyButton _forestSignButton;
+        Text _forestSignText;
+        /// <summary>Tufts of new grass for every ring the garden can still open, the nearest ring first; hidden until their ring opens.</summary>
+        readonly List<CanvasGroup> _ringGrass = new List<CanvasGroup>();
+        /// <summary>The lawn's rings as last drawn, and the plots the sign was last placed for.</summary>
+        int _ringShown = -1, _signPlots = -1;
+        const float ForestSignW = 230f, ForestSignH = 104f, ForestPostH = 80f;
+        /// <summary>The sign's middle stands this far in from the garden's side, on the edge line where the wood begins, so all of its board is in view.</summary>
+        const float ForestSignOut = 50f;
+        /// <summary>New grass and the sign keep this far from the garden's top and bottom, where the wood closes over the lawn.</summary>
+        const float RingGrassBand = 540f;
+
+        /// <summary>Where the sign's foot stands in the garden: at the lawn's edge, beside the land the next ring opens.</summary>
+        public Vector2 ForestSignSpot { get; private set; }
+
+        /// <summary>
+        /// Where new grass comes up when a ring opens: on the ring's tiles that lie on the lawn clear of every station, seat and
+        /// prop, and at the lawn's edge where a piece of the rim stood before it stepped back for this ring. Only rows the view
+        /// can bring clear of the tab bar and the HUD at every zoom; the wood closes over the rest.
+        /// </summary>
+        List<Vector2> RingGrassSpots(int radius, int stations)
+        {
+            var spots = new List<Vector2>();
+            void Add(Vector2 at)
+            {
+                if (at.y < RingGrassBand || at.y > WorldH - RingGrassBand) return;
+                foreach (Vector2 other in spots) if (Vector2.Distance(other, at) < 60f) return;
+                spots.Add(at);
+            }
+            foreach (Hex h in GardenGrid.Ring(radius))
+            {
+                Vector2 at = CellToWorld(h) + new Vector2(0f, -60f);
+                if (RingGrassClear(at, stations)) Add(at);
+            }
+            int before = Expansion.PlotsForRadius(Runner.Defs, radius - 1), after = Expansion.PlotsForRadius(Runner.Defs, radius);
+            foreach (RimPiece piece in _rim)
+            {
+                float from = RimX(piece, before);
+                if (Mathf.Abs(RimX(piece, after) - from) < 20f) continue;
+                Add(new Vector2(Mathf.Clamp(from - piece.Side * piece.Width / 2f, 30f, WorldW - 30f), piece.Y)); // its edge nearest the lawn
+            }
+            return spots;
+        }
+
+        /// <summary>A tile's foot is clear for grass: inside the lawn, off every station's ground, and off the seats, decorations and props.</summary>
+        bool RingGrassClear(Vector2 at, int stations)
+        {
+            if (at.x < 90f || at.x > WorldW - 90f) return false;
+            for (int i = 0; i < stations; i++)
+            {
+                Vector2 d = at - (StationSpot(i) + new Vector2(0f, -60f));
+                if (d.x * d.x / (170f * 170f) + d.y * d.y / (140f * 140f) < 1f) return false;
+            }
+            for (int k = 0; k < RestSpots.Max; k++) if (Vector2.Distance(RestSpot(k), at) < 110f) return false;
+            for (int k = 0; k < Decor.Spots; k++) if (Vector2.Distance(DecorSpotAt(k), at) < 90f) return false;
+            return Vector2.Distance(at, PondSpot) > 260f && Vector2.Distance(at, JarSpot) > 140f && Vector2.Distance(at, MortarSpot) > 150f && Vector2.Distance(at, ShopSpot) > 180f;
+        }
+
+        /// <summary>A rectangle of the garden, in its own units, from anything standing on it.</summary>
+        Rect StreetRect(RectTransform rt)
+        {
+            var corners = new Vector3[4];
+            rt.GetWorldCorners(corners);
+            Vector2 a = _street.InverseTransformPoint(corners[0]), b = _street.InverseTransformPoint(corners[2]);
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        /// <summary>
+        /// Where the sign's foot stands for the land of station <paramref name="next"/>: at the lawn's edge on that land's side,
+        /// a little below it, moved up or down the edge until it covers no plate in the garden.
+        /// </summary>
+        Vector2 ForestSignSpotFor(int next)
+        {
+            Vector2 plot = StationSpot(next);
+            float x = plot.x < WorldW / 2f ? ForestSignOut : WorldW - ForestSignOut;
+            var plates = new List<Rect>();
+            foreach (RectTransform rt in _street.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "Level" || rt.name == "Plate") plates.Add(StreetRect(rt));
+            float low = RingGrassBand, high = WorldH - RingGrassBand - ForestSignH - ForestPostH, start = Mathf.Clamp(plot.y - 150f, low, high);
+            for (int n = 0; n < 60; n++)
+            {
+                float y = Mathf.Clamp(start + (n % 2 == 0 ? -1f : 1f) * ((n + 1) / 2) * 30f, low, high);
+                var sign = new Rect(x - ForestSignW / 2f - 8f, y - 8f, ForestSignW + 16f, ForestSignH + ForestPostH + 16f);
+                bool clear = true;
+                foreach (Rect plate in plates) if (plate.Overlaps(sign)) { clear = false; break; }
+                if (clear) return new Vector2(x, y);
+            }
+            return new Vector2(x, start);
+        }
+
+        void BuildForestRing(GameCatalog catalog, int stations)
+        {
+            _ringGrass.Clear();
+            _ringShown = _signPlots = -1;
+            for (int r = GardenGrid.StartingRadius + 1; r <= Expansion.LastRadius(Runner.Defs); r++)
+                _ringGrass.Add(BuildRingGrass(catalog, r, stations));
+
+            // On the canopy, over the trees of the rim it stands among, so they never hide it; last, so nothing there covers it.
+            Transform parent = _canopy != null ? _canopy : (Transform)_street;
+            _forestSign = UiKit.Rect("Forest Sign", parent).Place(0f, 0f, 0f, 0f, ForestSignW, ForestSignH + ForestPostH);
+            _forestSign.pivot = new Vector2(0.5f, 0f);
+            UiKit.Rect("Post", _forestSign).Place(0.5f, 0f, 0f, ForestPostH / 2f + 4f, 22f, ForestPostH + 8f)
+                .AddImage(catalog.Panel, Palette.Mix(Palette.Carrot, Palette.Ink, 0.55f), true).raycastTarget = false;
+            var board = UiKit.Rect("Board", _forestSign).Place(0.5f, 1f, 0f, -ForestSignH / 2f, ForestSignW, ForestSignH);
+            _forestSignButton = UiKit.Chunky(board, catalog.Panel, OnForestSign);
+            _forestSignText = UiKit.Rect("Text", _forestSignButton.FaceRect).Stretch(0, 0, 1, 1, 14, 6, 14, 6)
+                .AddText(L10n.T("forest.expand"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _forestSignText.resizeTextForBestFit = true;
+            _forestSignText.resizeTextMinSize = 16;
+            _forestSignText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _forestSign.gameObject.SetActive(false);
+        }
+
+        /// <summary>A few blades of fresh grass and now and then a flower on each of a ring's grass spots: hidden until the ring opens, and then they stay.</summary>
+        CanvasGroup BuildRingGrass(GameCatalog catalog, int radius, int stations)
+        {
+            var ring = UiKit.Rect("Ring Grass " + radius, _street).Stretch(0, 0, 1, 1);
+            CanvasGroup group = ring.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            Color[] blades = { Palette.Alpha(Palette.Moss, 0.8f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Paper, 0.3f), 0.75f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Grass, 0.4f), 0.85f) };
+            Color[] petals = { Palette.Blush, Palette.Lantern, Palette.Paper };
+            List<Vector2> spots = RingGrassSpots(radius, stations);
+            for (int n = 0; n < spots.Count; n++)
+            {
+                Vector2 at = spots[n];
+                var tuft = UiKit.Rect("Tuft " + n, ring).Place(0f, 0f, at.x, at.y, 80f, 50f);
+                tuft.pivot = new Vector2(0.5f, 0f);
+                float seed = at.x * 0.13f + at.y * 0.077f + radius;
+                for (int k = 0; k < 5; k++)
+                {
+                    float x = (k - 2f) * 13f + (Hash(seed + k) - 0.5f) * 8f, size = 26f + Hash(seed + k + 3f) * 16f;
+                    var blade = UiKit.Rect("Blade", tuft).Place(0.5f, 0f, x, size * 0.4f, size * 0.35f, size);
+                    blade.localRotation = Quaternion.Euler(0, 0, (k - 2f) * -9f + (Hash(seed + k + 6f) - 0.5f) * 10f);
+                    blade.AddImage(catalog.Round, blades[k % blades.Length]).raycastTarget = false;
+                }
+                if (Hash(seed + 9f) < 0.5f)
+                    UiKit.Rect("Petal", tuft).Place(0.5f, 0f, (Hash(seed + 10f) - 0.5f) * 40f, 34f, 14f, 14f)
+                        .AddImage(catalog.Round, Palette.Alpha(petals[(int)(Hash(seed + 11f) * petals.Length) % petals.Length], 0.9f)).raycastTarget = false;
+            }
+            ring.gameObject.SetActive(false);
+            return group;
+        }
+
+        /// <summary>
+        /// The grass of the rings the lawn holds, and the sign. When a ring opens its grass comes up tile by tile from the
+        /// centre outward while the rim steps back (<see cref="RefreshLand"/>); under reduced motion, and when the screen first
+        /// shows, it is simply there. The sign stands at the lawn's edge beside the next ring's land while the garden can widen.
+        /// </summary>
+        void RefreshForestRing(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            if (_forestSign == null) return;
+            int radius = Expansion.Radius(s);
+            if (radius != _ringShown)
+            {
+                bool growing = _ringShown >= 0 && radius > _ringShown && !Motion.Reduced;
+                for (int k = 0; k < _ringGrass.Count; k++)
+                {
+                    int r = GardenGrid.StartingRadius + 1 + k;
+                    CanvasGroup group = _ringGrass[k];
+                    bool open = r <= radius;
+                    if (group.gameObject.activeSelf != open) group.gameObject.SetActive(open);
+                    if (!open) continue;
+                    if (!growing || r <= _ringShown)
+                    {
+                        foreach (Transform tuft in group.transform) tuft.localScale = Vector3.one;
+                        continue;
+                    }
+                    int n = 0;
+                    foreach (Transform child in group.transform)
+                    {
+                        Transform tuft = child;
+                        tuft.localScale = Vector3.zero;
+                        Tweens.Add(RimStep, t => { if (tuft != null) tuft.localScale = Vector3.one * Mathf.Max(0f, t); }, Ease.OutBack, RimStep / 3f + 0.04f * n++,
+                            () => { if (tuft != null) tuft.localScale = Vector3.one; });
+                    }
+                }
+                _ringShown = radius;
+            }
+
+            bool can = Expansion.CanExpand(defs, s);
+            if (can && s.Plots != _signPlots)
+            {
+                // Beside the first plot the ring opens, on its side of the lawn, clear of every plate.
+                ForestSignSpot = ForestSignSpotFor(Mathf.Min(s.Plots, defs.Count - 1));
+                _forestSign.anchoredPosition = ForestSignSpot;
+                _signPlots = s.Plots;
+            }
+            if (_forestSign.gameObject.activeSelf == can) return;
+            _forestSign.gameObject.SetActive(can);
+            if (_forestSignText != null) _forestSignText.text = L10n.T("forest.expand");
+            RectTransform sign = _forestSign;
+            if (can && !Motion.Reduced)
+                Tweens.Add(Motion.Panel, t => { if (sign != null) sign.localScale = Vector3.one * Mathf.Max(0f, t); }, Ease.OutBack, 0f, () => { if (sign != null) sign.localScale = Vector3.one; });
+            else sign.localScale = Vector3.one;
+        }
+
+        /// <summary>The sign is pressed: the next ring opens, the forest steps back and the new grass comes up.</summary>
+        void OnForestSign()
+        {
+            if (!Expansion.CanExpand(Runner.Defs, Runner.State)) return;
+            _forestSignButton.Press(Tweens);
+            OnBuyPlot();
         }
 
         #endregion

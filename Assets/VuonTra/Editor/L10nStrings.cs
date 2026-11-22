@@ -748,6 +748,10 @@ namespace VuonTra.EditorTools
             { "frog.sub", "Quà mưa: {0} cà rốt", "A rainy-day gift: {0} carrots" },
             { "frog.sub.clover", "Quà mưa: {0} cà rốt và 1 cỏ", "A rainy-day gift: {0} carrots and a clover" },
             { "quest.ech-5", "Gặp Thỏ Ếch 5 lần", "Meet the Frog Rabbit 5 times" },
+            // ----- ring expansion of the forest (#53) -----
+            { "forest.expand", "Mở rộng rừng", "Widen the forest" },
+            { "forest.title", "Mở rộng rừng · vòng {0}", "Widen the forest · ring {0}" },
+            { "moment.forest.title", "Rừng lùi ra một vòng!", "The forest steps back!" },
         };
     }
 }

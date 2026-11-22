@@ -149,17 +149,19 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Land_Waves_Decorations_And_The_New_Moon_Keep_The_Grid_In_Step()
         {
+            // Land (#53): with six stations the first ring of the forest opens the fifth and sixth plots' stations and a third place to rest.
+            var six = new List<StationDef>(defs);
+            for (int i = 3; i < 6; i++) six.Add(new StationDef { Id = "s" + i, Name = "S" + i, Kind = StationKind.Brew, BaseCost = 1e4 * i, CostGrowth = 1.1, BaseIncome = 1, CycleSeconds = 1 });
+            GameState land = GameState.NewGame(six);
+            Assert.IsNull(land.Grid.TileOf("station:s4"));
+            land.Coins = new BigNum(1e9); land.GardenXp = Garden.XpForLevel(50);
+            Assert.IsTrue(Expansion.Expand(six, land));
+            Assert.AreEqual(6, land.Plots);
+            Assert.AreEqual(GardenGrid.DefaultStationTile(4), land.Grid.TileOf("station:s4"), "the new plot's station has its tile");
+            Assert.AreEqual(GardenGrid.DefaultStationTile(5), land.Grid.TileOf("station:s5"));
+            Assert.AreEqual(GardenGrid.DefaultRestTile(2), land.Grid.TileOf("rest:2"), "and so has the new place to rest");
+            Assert.AreEqual(GardenGrid.StartingRadius + 1, land.Grid.Radius);
             GameState s = GameState.NewGame(defs);
-            // Land: the only wave three stations allow opens the third plot's station and a third place to rest.
-            s.Plots = 2; GardenGrid.Settle(defs, s);
-            Assert.IsNull(s.Grid.TileOf("station:jam"));
-            s.Coins = new BigNum(1e9); s.GardenXp = Garden.XpForLevel(50);
-            for (int i = 0; i < 3; i++) s.Rabbits.Add(new Rabbit { Id = i + 1, Tier = 0 });
-            Assert.IsTrue(Expansion.TryExpand(defs, s));
-            Assert.AreEqual(3, s.Plots);
-            Assert.AreEqual(GardenGrid.DefaultStationTile(2), s.Grid.TileOf("station:jam"), "the new plot's station has its tile");
-            Assert.AreEqual(GardenGrid.DefaultRestTile(2), s.Grid.TileOf("rest:2"), "and so has the new place to rest");
-            Assert.AreEqual(GardenGrid.RadiusForPlots(3), s.Grid.Radius);
             // Decorations: placed, the spot's tile is taken; stored, it is free again.
             s.GoldenCarrots = 100;
             Assert.IsTrue(Decor.Buy(s, "den-da"));

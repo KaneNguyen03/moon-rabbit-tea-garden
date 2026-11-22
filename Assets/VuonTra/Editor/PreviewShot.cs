@@ -681,6 +681,7 @@ namespace VuonTra.EditorTools
             RenderMoonJars(runner, screen);
             RenderGiftCodes(runner, screen);
             RenderAdSeams(runner, screen);
+            RenderForestRings(runner, screen); // #53
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -727,7 +728,7 @@ namespace VuonTra.EditorTools
             screen.LookAt(side);
             Step(screen, 0.3f);
             Capture(screen, "51-mua-dot-1-truoc");
-            s.Plots = Expansion.Waves[0].PlotsAfter;
+            s.Plots = Expansion.PlotsForRadius(runner.Defs, Expansion.Rings[0].RadiusAfter);
             screen.Refresh();
             Step(screen, GardenScreen.RimStep * 0.4f);
             Capture(screen, "51-mua-dot-1-giua");
@@ -735,9 +736,9 @@ namespace VuonTra.EditorTools
             Capture(screen, "51-mua-dot-1-sau");
 
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
-            for (int wave = 0; wave <= Expansion.Waves.Length; wave++)
+            for (int wave = 0; wave <= Expansion.Rings.Length; wave++)
             {
-                int plots = wave == 0 ? Plots.Starting : Expansion.Waves[wave - 1].PlotsAfter;
+                int plots = wave == 0 ? Plots.Starting : Expansion.PlotsForRadius(runner.Defs, Expansion.Rings[wave - 1].RadiusAfter);
                 for (int i = 0; i < s.Levels.Length; i++) s.Levels[i] = i < plots - 2 || i < Plots.Starting ? Mathf.Max(1, 6 - i) : 0;
                 s.Plots = plots;
                 screen.Refresh();
@@ -1205,6 +1206,68 @@ namespace VuonTra.EditorTools
             s.NoAdsUntilDay = -1;
             screen.Refresh();
             Step(screen, 0.4f);
+        }
+
+        /// <summary>
+        /// #53: the forest steps back ring by ring. For each of the first two rings: the sign at the lawn's edge once the garden
+        /// can widen, halfway through the step (the rim fading over, the new grass coming up), and after; the whole garden from
+        /// far away before and after each; and the sign in English and in large text.
+        /// </summary>
+        static void RenderForestRings(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            for (int i = 0; i < Plots.Starting; i++) s.Levels[i] = 6 - i;
+            Rabbits.GiftFirst(s, "Bông");
+            runner.Init(s);
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            for (int ring = 0; ring < 2; ring++)
+            {
+                ForestRing next = Expansion.Next(runner.Defs, s);
+                s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
+                while (s.Rabbits.Count < next.NeedRabbits) Rabbits.Arrive(s, 0, "Thỏ " + (s.Rabbits.Count + 1), (s.Rabbits.Count * 0.37) % 1d);
+                s.Coins = Expansion.CostOfNext(runner.Defs, s) * new BigNum(1.2);
+                for (int i = 0; i < s.Plots; i++) if (s.Levels[i] <= 0) s.Levels[i] = 1;
+                screen.Refresh();
+                Step(screen, 4f); // the new garden level's banner comes and goes first
+                screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+                Step(screen, 0.2f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-xa-truoc");
+                screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+                screen.LookAt(screen.ForestSignSpot + new Vector2(screen.ForestSignSpot.x < 540f ? 380f : -380f, 120f));
+                Step(screen, 0.3f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-truoc");
+                if (ring == 0)
+                {
+                    L10n.SetLocale("en");
+                    screen.RebuildUi();
+                    Step(screen, 0.6f);
+                    Capture(screen, "53-bien-en");
+                    L10n.SetLocale("vi");
+                    UiKit.SetLargeText(true);
+                    screen.RebuildUi();
+                    Step(screen, 0.6f);
+                    Capture(screen, "53-bien-chu-to");
+                    UiKit.SetLargeText(false);
+                    screen.RebuildUi();
+                    Step(screen, 0.6f);
+                }
+                Press(screen, "Canvas/Garden/Canopy/Forest Sign/Board");
+                screen.Refresh();
+                Step(screen, GardenScreen.RimStep * 0.5f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-giua");
+                Step(screen, GardenScreen.RimStep + 1.2f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-sau");
+                screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+                Step(screen, 0.2f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-xa-sau");
+                screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            }
         }
     }
 }

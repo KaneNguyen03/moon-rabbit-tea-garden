@@ -2056,7 +2056,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(oven.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Pad").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Prop").gameObject.activeSelf);
-            Assert.AreEqual("Mở rộng vườn", oven.Find("Level/Text").GetComponent<Text>().text);
+            Assert.AreEqual("Mở rộng rừng", oven.Find("Level/Text").GetComponent<Text>().text); // #53
 
             // One of your rabbits arrives: the rabbit shows and the pad goes.
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });

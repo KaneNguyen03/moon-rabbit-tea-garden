@@ -217,9 +217,9 @@ namespace VuonTra.Core.Tests
 
         void BuyCheapest()
         {
-            if (Expansion.TryExpand(defs, s))
+            if (Expansion.Expand(defs, s))
             {
-                waveTakenAt[Expansion.WavesTaken(s.Plots) - 1] = clock;
+                if (Expansion.RingsTaken(s) <= waveTakenAt.Length) waveTakenAt[Expansion.RingsTaken(s) - 1] = clock; // the forest stepped back a ring (#53)
                 mods = Modifiers.From(ups, s); // one more place to rest (#60)
                 return;
             }
@@ -406,9 +406,9 @@ namespace VuonTra.Core.Tests
             for (int l = 2; l <= level; l++)
                 if (!levelAt.ContainsKey(l)) levelAt[l] = clock;
             if (!plotsAt.ContainsKey(s.Plots)) plotsAt[s.Plots] = clock;
-            for (int w = 0; w < Expansion.Waves.Length; w++)
+            for (int w = 0; w < Expansion.Rings.Length; w++)
             {
-                ExpansionWave wave = Expansion.Waves[w];
+                ForestRing wave = Expansion.Rings[w];
                 if (waveLevelAt[w] < 0 && level >= wave.NeedLevel) waveLevelAt[w] = clock;
                 if (waveRabbitsAt[w] < 0 && s.Rabbits.Count >= wave.NeedRabbits && s.SeenKinds.Count >= wave.NeedKinds) waveRabbitsAt[w] = clock;
             }
@@ -480,11 +480,11 @@ namespace VuonTra.Core.Tests
             foreach (int level in new[] { 3, 5, 10, 15 })
                 sb.AppendLine("| Cấp vườn " + level + " | " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt") + " |");
             foreach (int plots in new[] { 6, 8, 10, 12 })
-                sb.AppendLine("| " + plots + " ô đất | " + (plotsAt.ContainsKey(plots) ? Clock(plotsAt[plots]) : "chưa đạt") + " |");
+                sb.AppendLine("| " + plots + " ô đất (R " + GardenGrid.RadiusForPlots(plots) + ") | " + (plotsAt.ContainsKey(plots) ? Clock(plotsAt[plots]) : "chưa đạt") + " |");
             sb.AppendLine("| Thỏ Tím đầu tiên | " + Clock(purpleAt) + " |");
             sb.AppendLine("| Thỏ Vàng đầu tiên | " + Clock(goldAt) + " |");
             for (int w = 0; w < 4; w++)
-                sb.AppendLine("| Đợt đất " + (w + 1) + " | đủ cấp " + Clock(waveLevelAt[w]) + ", đủ thỏ " + Clock(waveRabbitsAt[w]) + ", mở " + Clock(waveTakenAt[w]) + " |");
+                sb.AppendLine("| Vòng rừng R " + Expansion.Rings[w].RadiusAfter + " | đủ cấp " + Clock(waveLevelAt[w]) + ", đủ thỏ " + Clock(waveRabbitsAt[w]) + ", mở " + Clock(waveTakenAt[w]) + " |");
             return sb.ToString();
         }
 
@@ -574,7 +574,7 @@ namespace VuonTra.Core.Tests
             report.AppendLine();
             // Not asserted: a player who buys four levels a second earns a point for each, so the level that opens the last
             // plots comes in minutes however the carrots are priced. Whether that experience should be capped is the owner's call.
-            report.AppendLine("Người chơi không nghỉ tay mở đủ 12 ô đất lúc " + Clock(plots12Tireless) + " (mục tiêu: không trước ~2 giờ; chưa đạt vì mỗi cấp trạm mua đều cho 1 điểm, 4 lần mua mỗi giây).");
+            report.AppendLine("Người chơi không nghỉ tay mở đủ 12 ô đất (R 7) lúc " + Clock(plots12Tireless) + " (mục tiêu: không trước ~2 giờ; chưa đạt vì mỗi cấp trạm mua đều cho 1 điểm, 4 lần mua mỗi giây).");
 
             System.IO.Directory.CreateDirectory("Logs");
             System.IO.File.WriteAllText("Logs/economy-pacing.txt", report.ToString());
@@ -585,7 +585,7 @@ namespace VuonTra.Core.Tests
             Assert.LessOrEqual(level5, 12 * 60, "garden level 5 should come within twelve minutes\n" + report);
             Assert.GreaterOrEqual(levelDayOne, 10, "garden level 10 should come within day one\n" + report);
             Assert.GreaterOrEqual(level10, 2 * 3600, "garden level 10 should not come in the first sitting\n" + report);
-            Assert.IsTrue(plots12Casual < 0 || plots12Casual >= 2 * Day, "all twelve plots should wait for day three\n" + report);
+            Assert.IsTrue(plots12Casual < 0 || plots12Casual >= 2 * Day, "the seventh ring (R 7, all twelve plots) should wait for day three\n" + report);
             for (int w = 0; w < 3; w++) Assert.LessOrEqual(waitCasual[w], 300, "wave " + (w + 1) + " waited on rabbits\n" + report);
             Assert.Less(questShare1, 35, "quests should not dominate day one\n" + report);
             Assert.GreaterOrEqual(playShare1, 15, "the games and the guests should matter on day one\n" + report);

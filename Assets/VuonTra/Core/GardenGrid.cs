@@ -291,5 +291,32 @@ namespace VuonTra.Core
                 else if (!g._tileOf.ContainsKey(id) && !g.Seat(id, DefaultDecorTile(n)) && g.NearestEmpty(DefaultDecorTile(n), out Hex spare)) g.Seat(id, spare);
             }
         }
+
+        // ----- Ring expansion of the forest (#53) -----
+
+        /// <summary>The tiles of the lawn with nothing standing on them, nearest the centre first.</summary>
+        public List<Hex> EmptyTiles()
+        {
+            var empty = new List<Hex>();
+            foreach (Hex h in Spiral(Radius)) if (!_occupantAt.ContainsKey(h)) empty.Add(h);
+            return empty;
+        }
+
+        /// <summary>
+        /// The empty lawn tile nearest the centre that keeps at least <paramref name="spacing"/> tiles from every station, for a
+        /// station the player did not place themselves; the plain nearest empty tile when no tile keeps that far. False when the lawn is full.
+        /// </summary>
+        public bool NearestEmptyApart(int spacing, out Hex found)
+        {
+            foreach (Hex h in Spiral(Radius))
+            {
+                if (_occupantAt.ContainsKey(h)) continue;
+                bool apart = true;
+                foreach (KeyValuePair<string, Hex> o in _tileOf)
+                    if (o.Key.StartsWith("station:") && Distance(o.Value, h) < spacing) { apart = false; break; }
+                if (apart) { found = h; return true; }
+            }
+            return NearestEmpty(out found);
+        }
     }
 }
