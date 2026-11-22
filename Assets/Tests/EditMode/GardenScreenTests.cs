@@ -4346,7 +4346,7 @@ namespace VuonTra.Core.Tests
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.BeginDrag);
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.Drag);
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.EndDrag);
-            Assert.AreEqual(1, r.Affection, "a stroke on the lawn counts");
+            Assert.AreEqual(Rabbits.PetPoints, r.Affection, "a stroke on the lawn counts");
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6);
 
             // It stays four to six seconds, then walks home: by the end of its window it sits again.
@@ -4555,21 +4555,24 @@ namespace VuonTra.Core.Tests
             Rabbit r = GiveWorker();
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "the first stroke of the day pays tea power");
-            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(Rabbits.PetPoints, r.Affection);
             Assert.AreEqual(runner.TodayNumber, r.PetDay);
             Assert.AreEqual(1, runner.State.TotalTaps, "a touch on the rabbit is still a tap on its station");
 
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "the second stroke of the day is for love alone");
-            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(Rabbits.PetPoints, r.Affection);
 
             screen.Detail.Open(runner.Defs, runner.State, 1);
             Text hearts = root.transform.Find("Canvas/RabbitSheet/Card/Body/Bond/Text").GetComponent<Text>();
-            Assert.AreEqual("♥♡♡♡♡", hearts.text, "one heart of five on the rabbit's own sheet");
-            r.Affection = 4;
+            Assert.AreEqual("♥♡♡♡♡♡♡♡♡♡", hearts.text, "one heart of ten on the rabbit's own sheet (#58)");
+            r.Affection = Rabbits.PointsFor(4);
             screen.Refresh();
-            Assert.AreEqual("♥♥♥♥♡", root.transform.Find("Canvas/RabbitSheet/Card/Body/Bond/Text").GetComponent<Text>().text, "the sheet follows the bond");
+            Assert.AreEqual("♥♥♥♥♡♡♡♡♡♡", root.transform.Find("Canvas/RabbitSheet/Card/Body/Bond/Text").GetComponent<Text>().text, "the sheet follows the bond");
             Assert.AreEqual("Cấp 1 ♥♥♥♥", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Level").GetComponent<Text>().text, "and so does the grid cell");
+            r.Affection = Rabbits.PointsFor(7);
+            screen.Refresh();
+            Assert.AreEqual("Cấp 1 ♥7", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Level").GetComponent<Text>().text, "past five, one heart and the count");
         }
 
         [Test]
@@ -4584,7 +4587,7 @@ namespace VuonTra.Core.Tests
             Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.Drag);
             Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.Drag);
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "one stroke, however far the finger goes");
-            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(Rabbits.PetPoints, r.Affection);
             Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.PointerClick); // the finger lifting off the rabbit
             Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.EndDrag);
             Assert.AreEqual(0, runner.State.TotalTaps, "letting go after a stroke is not a tap on the station");
@@ -4603,7 +4606,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.DozeSomeone());
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             Assert.AreEqual(10 + Rabbits.DozeEnergy, runner.State.Energy, 1e-6, "a wake pays the doze reward in place of the stroke's");
-            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(Rabbits.PetPoints, r.Affection);
             Assert.AreEqual(runner.TodayNumber, r.PetDay);
         }
 
@@ -4619,7 +4622,7 @@ namespace VuonTra.Core.Tests
 
             Find("Canvas/Garden/Content/Seat 0").onClick.Invoke();
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6);
-            Assert.AreEqual(1, r.Affection);
+            Assert.AreEqual(Rabbits.PetPoints, r.Affection);
             Assert.IsTrue(screen.Detail.IsOpen, "a touch still opens its sheet");
             Assert.AreEqual(1, screen.Detail.RabbitId);
             screen.Detail.Close();
@@ -4627,7 +4630,7 @@ namespace VuonTra.Core.Tests
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.BeginDrag);
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.Drag);
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.EndDrag);
-            Assert.AreEqual(1, r.Affection, "one heart a day, wherever it is");
+            Assert.AreEqual(Rabbits.PetPoints, r.Affection, "one day's points, wherever it is");
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6);
             Assert.IsFalse(screen.Detail.IsOpen, "a stroke does not open the sheet");
         }
@@ -4636,11 +4639,11 @@ namespace VuonTra.Core.Tests
         public void Close_Friends_Say_A_Line_In_The_Garden_And_Give_A_Clover()
         {
             screen.Shell.StartGame();
-            Rabbit r = GiveWorker(1, 0, Rabbits.AffectionLine - 1);
+            Rabbit r = GiveWorker(1, 0, Rabbits.PointsFor(Rabbits.LineHearts) - Rabbits.PetPoints);
             Transform line = root.transform.Find("Canvas/Garden/Content/BondLine");
             Assert.IsTrue(line == null || !line.gameObject.activeSelf, "nothing to say yet");
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
-            Assert.AreEqual(Rabbits.AffectionLine, r.Affection);
+            Assert.AreEqual(Rabbits.LineHearts, Rabbits.HeartsOf(r));
             line = root.transform.Find("Canvas/Garden/Content/BondLine");
             Assert.IsNotNull(line, "the line is spoken over the rabbit");
             Assert.IsTrue(line.gameObject.activeSelf);
@@ -4650,10 +4653,10 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(line.gameObject.activeSelf, "the line leaves on its own");
 
             runner.State.Clovers = 0;
-            r.Affection = Rabbits.AffectionMax - 1;
+            r.Affection = Rabbits.PointsFor(Rabbits.GiftHearts) - Rabbits.PetPoints;
             r.PetDay = -1;
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
-            Assert.AreEqual(Rabbits.AffectionMax, r.Affection);
+            Assert.AreEqual(Rabbits.GiftHearts, Rabbits.HeartsOf(r));
             Assert.AreEqual(Rabbits.AffectionGiftClovers, runner.State.Clovers, "the closest friend gives a clover");
             Assert.IsTrue(screen.Feel.BannerVisible, "and it is a moment");
             StringAssert.Contains("Bông", root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
@@ -5752,7 +5755,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, screen.ChatLines);
 
             // A bond line outranks it: the idle line goes, and no other comes while the bond line is up.
-            r.Affection = Rabbits.AffectionLine - 1;
+            r.Affection = Rabbits.PointsFor(Rabbits.LineHearts) - Rabbits.PetPoints;
             r.PetDay = -1;
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             Transform bond = root.transform.Find("Canvas/Garden/Content/BondLine");

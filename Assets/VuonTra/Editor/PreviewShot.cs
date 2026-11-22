@@ -541,7 +541,7 @@ namespace VuonTra.EditorTools
                     Capture(screen, "28-tho-di-tram");
                     Step(screen, 3f);
                     // Stroked at its new post on the day its bond reaches three hearts: hearts, tea power and its line (#19).
-                    mover.Affection = Rabbits.AffectionLine - 1;
+                    mover.Affection = Rabbits.PointsFor(Rabbits.LineHearts) - Rabbits.PetPoints;
                     mover.PetDay = -1;
                     screen.FocusStation(0); // settle the view on the teapot first, so the hearts rise where the rabbit stands
                     Step(screen, 0.5f);

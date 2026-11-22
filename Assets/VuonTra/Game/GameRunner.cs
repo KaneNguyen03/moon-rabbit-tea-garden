@@ -1080,6 +1080,65 @@ namespace VuonTra.Game
             BuyGolden(Storefront.NoAdsPass, done);
         }
 
+        // ----- fishing and feeding (#58a) -----
+
+        /// <summary>The clock the pond's baits run on, in unix seconds; tests set it to step through the refills.</summary>
+        public Func<long> FishingClock = () => Now;
+
+        /// <summary>The cast in the water now, or null; the pond's card drives it with <see cref="AdvanceCast"/> and <see cref="TapCast"/>.</summary>
+        public FishingCast Cast { get; private set; }
+
+        /// <summary>True once the moon pond can be fished.</summary>
+        public bool PondOpen => Fishing.Unlocked(State);
+
+        /// <summary>Baits on hand now, 0 to <see cref="Fishing.BaitCap"/>.</summary>
+        public int Baits => Fishing.Baits(State, FishingClock());
+
+        /// <summary>Seconds until the next bait comes back; 0 when all five are on hand.</summary>
+        public long NextBaitIn => Fishing.NextBaitIn(State, FishingClock());
+
+        /// <summary>Fish of each kind in the basket, indexed like <see cref="Fishing.Points"/>.</summary>
+        public IReadOnlyList<int> Basket => State.Fish;
+
+        /// <summary>Spends a bait and casts; null, with nothing spent, when the pond is closed, no bait is left or a cast is still out.</summary>
+        public FishingCast StartCast()
+        {
+            if (Cast != null && !Cast.Over) return null;
+            Cast = Fishing.Cast(State, FishingClock(), _rng.NextDouble);
+            if (Cast != null) Changed();
+            return Cast;
+        }
+
+        /// <summary>Time passed for the cast in the water; once the float has sunk untouched the bait is gone and the cast ends.</summary>
+        public CastPhase AdvanceCast(double dt)
+        {
+            if (Cast == null) return CastPhase.Lost;
+            CastPhase phase = Cast.Advance(dt);
+            if (phase == CastPhase.Lost) Cast = null;
+            return phase;
+        }
+
+        /// <summary>The player tapped the pond: too early brings the float back up, in the window puts the fish in the basket.</summary>
+        public CastTap TapCast()
+        {
+            if (Cast == null) return CastTap.None;
+            CastTap tap = Cast.Tap();
+            if (tap == CastTap.Caught && Fishing.Land(State, Cast)) Changed();
+            if (Cast.Over) Cast = null;
+            return tap;
+        }
+
+        /// <summary>Feeds a fish of kind <paramref name="fish"/> from the basket to a rabbit; its hearts may rise, with their gifts paid.</summary>
+        public FeedResult Feed(long rabbitId, int fish)
+        {
+            FeedResult result = Fishing.Feed(State, Rabbits.Find(State, rabbitId), fish);
+            if (result.Fed) Changed();
+            return result;
+        }
+
+        /// <summary>Feeds the rabbit the best fish in the basket; not fed when the basket is empty.</summary>
+        public FeedResult FeedBest(long rabbitId) => Feed(rabbitId, Fishing.BestInBasket(State));
+
         /// <summary>For tests and previews: as if the player had just come back with this report.</summary>
         public void ShowAwayForTest(AwayReport away) => TellAway(away);
 
