@@ -757,6 +757,25 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: số cỏ thưởng liên kết (3) là mình chọn, chủ project duyệt.
 
+## #18 — Phần còn lại của bản Mac: khung ảnh, công tắc, album, nhiệm vụ
+
+- Test: 436/436 EditMode qua (verify.sh: seed, 78 ảnh, biên dịch, test). Thêm 3 test core (`PhotosTests.cs`) và 3 test màn hình.
+- Commit `8ba94fd`, đã push. Issue #18 đã comment; vẫn mở cho quà cà rốt vàng (#44) và phần mobile.
+- Ba quest asset mới `Content/Quests/anh-*.asset` (seed); `QuestMetric` thêm PhotosTaken, PhotosWithGoldRabbit, PhotosWithFullRest; save thêm `photosGold`, `photosRest`, `album` (vẫn v12). Bảng chuỗi seed lại (3 key quest, 8 key photo.*).
+- Ảnh (docs/anh/po-18/): `18-sau-khung-anh.png`, `18-sau-xem-co-khung.png`, `18-sau-album.png`.
+
+### Đã làm (đối chiếu với nguyên văn #18)
+- Khung: lớp `PhotoFrame` trong canvas (dưới thanh chụp, trên vườn): viền giấy kem, đường mực, tên vườn, ngày, logo chữ. Ảnh chụp mang khung vì chụp qua camera của game.
+- Công tắc: `GardenScreen.PhotoFrameOn/PhotoNamesOn/PhotoFirefliesOn` (PlayerPrefs); `ApplyPhotoOptions` tắt lớp "Fireflies" và nhãn "Tier" của thỏ ở trạm trong chế độ chụp.
+- Album: `Photos.Take(s, day, path)` giữ 12 đường dẫn mới nhất; `GardenScreen.OpenAlbum` đọc file bằng `Texture2D.LoadImage`, `Photos.Tidy` bỏ file mất; chạm mở tấm xem lại.
+- Nhiệm vụ: `Photos.Take` đếm ảnh có thỏ bậc ≥ Vàng (`Photos.GoldTier` = 4) và ảnh khi `RestSpots == Max`; ba thành tựu trong `MetaSeeder`.
+
+### Chưa đạt so với #18
+- Quà cà rốt vàng (#44); phần mobile (#41).
+
+### Tồn đọng
+- tồn đọng: album đọc lại file mỗi lần mở (12 ảnh, nhanh); nếu sau này album dài hơn thì nên cache thumbnail.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
