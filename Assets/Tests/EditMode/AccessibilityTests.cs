@@ -539,7 +539,7 @@ namespace VuonTra.Core.Tests
             runner.State.GardenXp = Garden.XpForLevel(5); // the firefly jar and its plate are out
             runner.PlaceOrder();
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0)); // where the teapot button takes the view
+            screen.LookAt(screen.StationSpot(0)); // where the teapot button takes the view
             Layout();
             var pill = (RectTransform)root.transform.Find("Canvas/Hud/Order");
             Assert.IsTrue(pill.gameObject.activeSelf, "a guest waits, so the pill is up");
@@ -565,7 +565,7 @@ namespace VuonTra.Core.Tests
             runner.State.GardenXp = Garden.XpForLevel(5); // the mortar, the basket and the jar are all out
             screen.Refresh();
             screen.SetZoom(zoom, false);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Layout();
             var pill = (RectTransform)root.transform.Find("Canvas/EdgeUp");
             pill.gameObject.SetActive(true); // as when a station waits above the view

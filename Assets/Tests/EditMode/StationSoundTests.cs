@@ -82,7 +82,7 @@ namespace VuonTra.Core.Tests
             float bestDistance = float.MaxValue;
             for (int i = 0; i < 6; i++)
             {
-                Vector2 at = GardenScreen.StationSpot(i) * world.localScale.x + world.anchoredPosition;
+                Vector2 at = screen.StationSpot(i) * world.localScale.x + world.anchoredPosition;
                 float d = Vector2.Distance(at, centre);
                 if (d < bestDistance) { bestDistance = d; best = i; }
             }
@@ -133,7 +133,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.StationSound.Playing, "the usual view is quiet");
 
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.StationSpot(2));
+            screen.LookAt(screen.StationSpot(2));
             int nearest = NearestOpen();
             Assert.AreEqual(2, nearest, "looking at the jam pot puts it in the middle");
             Step(Frame);
@@ -163,7 +163,7 @@ namespace VuonTra.Core.Tests
         {
             OpenSix();
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(0.6f);
             Assert.AreEqual(Id(0), screen.StationSound.StationId);
             screen.SelectStation(5);
@@ -177,9 +177,9 @@ namespace VuonTra.Core.Tests
         {
             OpenSix();
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.StationSpot(2));
+            screen.LookAt(screen.StationSpot(2));
             Step(0.6f);
-            screen.LookAt(GardenScreen.StationSpot(4));
+            screen.LookAt(screen.StationSpot(4));
             Assert.AreEqual(4, NearestOpen());
             Step(Frame);
             Assert.AreEqual(Id(4), screen.StationSound.StationId);
@@ -195,7 +195,7 @@ namespace VuonTra.Core.Tests
             int most = 0;
             foreach (int i in path)
             {
-                screen.LookAt(GardenScreen.StationSpot(i));
+                screen.LookAt(screen.StationSpot(i));
                 for (int f = 0; f < 5; f++)
                 {
                     screen.Advance(Frame);
@@ -213,7 +213,7 @@ namespace VuonTra.Core.Tests
         {
             OpenSix();
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(0.2f);
             Assert.AreEqual(1f, screen.StationSound.Pitch, 1e-4f);
             runner.State.BoostSecondsLeft = 30d;
@@ -229,7 +229,7 @@ namespace VuonTra.Core.Tests
         {
             OpenSix();
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(0.6f);
             float effects = Sfx.SfxGain;
 

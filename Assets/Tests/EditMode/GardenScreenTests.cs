@@ -4478,7 +4478,7 @@ namespace VuonTra.Core.Tests
                 for (int i = 0; i < 12; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
                 for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.DecorSpotAt(i)), 150f, spot + " by decoration spot " + i);
                 Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.PondSpot), 300f, spot + " in the pond");
-                Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.GuestSpot), 150f, spot + " on the guest");
+                Assert.GreaterOrEqual(Vector2.Distance(spot, screen.GuestSpot), 150f, spot + " on the guest");
                 for (int k = 0; k < RestSpots.Max; k++)
                     Assert.GreaterOrEqual(Vector2.Distance(spot, ((RectTransform)world.Find("Seat " + k)).anchoredPosition), 150f, spot + " on seat " + k);
                 Assert.IsTrue(spot.x > 150f && spot.x < GardenScreen.ReadableRight - 80f, spot + " under the wood at the edge");
