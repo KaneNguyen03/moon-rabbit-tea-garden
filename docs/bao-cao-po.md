@@ -933,6 +933,23 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Lượt 3 (mũ, nhuộm) chờ 6 hình vẽ. Chưa thử tay trên máy thật.
 
+## #28 — Cảnh nền đung đưa, thỏ đi thật
+
+- Test: 514/514 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 3 test màn hình; 4 test cũ chờ thỏ đi tới trạm rồi mới soi.
+- Commit `fcf3f64`, đã push. Issue #28 để mở (còn chớp mắt/vẫy tai cần hình, thử tay), đã comment, nhãn chờ-PO-duyệt.
+- Cảnh nền (`GardenScreen.UpdateScenery`): cây nghiêng từ gốc ±1,6° chậm (có thêm run nhỏ ±0,4°), đèn lồng treo từ móc lắc ±3° và ánh đèn chập chờn 72–100 %, mặt ao thở nhẹ và hai vòng sáng loang ra rồi tan mỗi 2,8 giây, đom đóm bay theo 6 đàn, mỗi đàn trôi từ đèn này sang đèn kế rồi về trong 26 giây. Bật Giảm chuyển động thì tất cả đứng yên (test).
+- Thỏ đi dạo: từ ghế đi ra đầu lối, dọc lối đi về, rồi về ghế, cùng một tốc độ suốt đường (`StrollPoint`); chu kỳ 48 giây, nửa đầu đi dạo. Không còn hiện và biến tức thì (test: lúc bắt đầu đứng đúng chỗ ghế, 2 giây sau đã đi xa nhưng không nhảy cóc).
+- Thỏ được xếp vào trạm: đi bộ từ ghế (hoặc trạm cũ) tới chỗ đứng ở trạm (`Traveler`, 300 px/giây, 0,4–2,4 giây), nhún theo bước, tới nơi thì hiện ra và nhảy một cái; trong lúc đi trạm không hiện pad lẫn thỏ. Giảm chuyển động: có mặt ngay (test). `StationActorView.SetAway`.
+- Ảnh (docs/anh/po-28/): `28-tho-di-tram.png` (thỏ tím đang đi từ ghế lên ấm trà, vẽ dưới các biển cấp).
+
+### Đã làm (đối chiếu với mục "Còn lại" trong #28)
+- Thỏ đi dạo đi thật theo lối từ chỗ nghỉ ra rồi quay về, nhún theo nhịp bước: đủ.
+- Thỏ được xếp thì đi tới trạm: đủ.
+- Tán cây đung đưa chậm, đèn lồng lắc và chập chờn, mặt ao gợn, đom đóm bay theo đàn: đủ (vòng gợn dùng ảnh ánh sáng có sẵn, chưa có hình gợn nước riêng).
+
+### Chưa đạt so với #28
+- Thỏ chớp mắt, vẫy tai (cần khung hình vẽ); hình ngôi sao riêng cho vòng sao; thử tay trên máy thật.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -960,6 +977,7 @@ Sau khi sửa cả bốn xanh.
 - #28 bốn ý còn lại (`33f9b5a`): thỏ nảy và ♥ khi chạm; cà rốt bay về ví, ví phồng khi nhận; ánh sáng loé khi nâng; vòng sao qua mốc. Còn chớp mắt/vẫy tai (cần hình), thỏ đi tới trạm, cảnh nền đung đưa.
 - #22 ý cuối (`bdf2647`): tấm chi tiết thỏ, chọn đồ, chọn thỏ thành tấm trượt dùng chung (`BottomSheet`). #22 chỉ còn thử tay.
 - #45 Giã bánh trăng (`7ce83c9`): trò chơi nhỏ đầu tiên theo đề xuất đã duyệt; save v14; hai thành tựu. Còn hình chày/bánh ba trạng thái.
+- #28 phần code còn lại (`fcf3f64`): cây, đèn lồng, ao, đom đóm theo đàn chuyển động; thỏ đi dạo từ ghế ra lối và về; thỏ được xếp đi bộ tới trạm. Còn chớp mắt/vẫy tai (cần hình).
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
