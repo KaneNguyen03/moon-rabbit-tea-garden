@@ -2262,6 +2262,98 @@ MonoBehaviour:
     m_Localized: Only this season; gone when it ends
     m_Metadata:
       m_Items: []
+  - m_Id: 256349303726080
+    m_Localized: Garden decor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891904
+    m_Localized: "Owned \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891905
+    m_Localized: No room
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891906
+    m_Localized: Lantern colour
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891907
+    m_Localized: Stone lantern
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891908
+    m_Localized: Flower planter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891909
+    m_Localized: Mushroom stools
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891910
+    m_Localized: Picnic mat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891911
+    m_Localized: paper
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891912
+    m_Localized: blush
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891913
+    m_Localized: mint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891914
+    m_Localized: lavender
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891915
+    m_Localized: Decorate this spot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891916
+    m_Localized: Bought at the tea shop, waiting in storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891917
+    m_Localized: 'Here now: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891918
+    m_Localized: An empty spot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891919
+    m_Localized: 'In storage: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891920
+    m_Localized: None in storage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891921
+    m_Localized: Place
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891922
+    m_Localized: Swap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891923
+    m_Localized: Put away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891924
+    m_Localized: "{0} is in storage \xB7 tap a + in the garden"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 256349328891925
+    m_Localized: Lanterns in {0}
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
