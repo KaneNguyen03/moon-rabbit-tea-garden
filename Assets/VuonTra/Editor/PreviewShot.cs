@@ -301,6 +301,14 @@ namespace VuonTra.EditorTools
             Capture(screen, "18b-shadow");
             Step(screen, 1.6f);
             Capture(screen, "18c-arrived");
+            // The moon gate dressed for each season (#8): the same moment with the season's hanging on the arch.
+            foreach (var season in new[] { Season.MidAutumn, Season.Tet, Season.Christmas })
+            {
+                screen.Arrival.SetSeasonDecor(runner.Catalog.GateDecor(season));
+                Step(screen, 0.3f);
+                Capture(screen, "8-cong-" + season.ToString().ToLowerInvariant());
+            }
+            screen.Arrival.SetSeasonDecor(null);
             screen.Arrival.Close();
             Step(screen, 0.2f);
             screen.Detail.Open(runner.Defs, state, state.Rabbits[0].Id);

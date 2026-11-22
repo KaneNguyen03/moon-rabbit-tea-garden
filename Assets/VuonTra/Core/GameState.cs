@@ -87,6 +87,8 @@ namespace VuonTra.Core
         /// <summary>The mooncake game: today's plays, the day's once-only gifts, and the lifetime counts.</summary>
         /// <summary>The latest day this save has seen (#8): the day the game goes by when the clock is turned back.</summary>
         public long MaxDaySeen = -1;
+        /// <summary>The day a season's greeting was last shown, so each season is greeted once a year.</summary>
+        public long SeasonGreetedDay = -1;
         /// <summary>Pictures taken while a rabbit of the running season lived in the garden.</summary>
         public long PhotosWithSeasonRabbit;
         public long PoundingDay = -1;

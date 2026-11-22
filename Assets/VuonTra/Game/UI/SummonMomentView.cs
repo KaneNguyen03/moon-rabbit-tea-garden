@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
@@ -14,7 +15,8 @@ namespace VuonTra.Game.UI
         const float GateIn = 0.45f, FlashEnd = 1.15f, StepEnd = 1.85f;
 
         readonly GameObject _root, _newBadge, _hint;
-        readonly RectTransform _gate, _rabbit, _newRect, _texts;
+        readonly RectTransform _gate, _rabbit, _newRect, _texts, _gateDecor;
+        readonly Image _gateDecorImage;
         readonly Image _burst, _tint, _rabbitImage, _plate;
         readonly Text _name, _kind, _newText, _hintText;
         readonly CanvasGroup _textGroup;
@@ -47,6 +49,12 @@ namespace VuonTra.Game.UI
             else _gate.AddImage(catalog.Round, Palette.Lantern);
             // The light inside the gate takes the tier's colour.
             _tint = UiKit.Rect("Tint", _gate).Place(0.5f, 0.5f, 4, -18, 372, 430).AddImage(catalog.Round, Color.white);
+            // The season's dressing hangs from the top of the arch and swings a little (#8); nothing hangs out of season.
+            _gateDecor = UiKit.Rect("GateDecor", _gate).Place(0.5f, 1f, 0, -40, 520, 200);
+            _gateDecor.pivot = new Vector2(0.5f, 1f);
+            _gateDecorImage = _gateDecor.AddImage(null, Color.white);
+            _gateDecorImage.preserveAspect = true;
+            _gateDecor.gameObject.SetActive(false);
 
             // Glints round the gate. Every arrival has a few; silver, whose colour is nearly the gate's own, has many and bright.
             for (int i = 0; i < _sparkles.Length; i++)
@@ -126,11 +134,23 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
+        /// <summary>What hangs on the arch: the season's dressing while a season runs and its picture exists, else nothing.</summary>
+        public void SetSeasonDecor(Sprite decor)
+        {
+            bool show = decor != null;
+            if (show) _gateDecorImage.sprite = decor;
+            if (_gateDecor.gameObject.activeSelf != show) _gateDecor.gameObject.SetActive(show);
+            _gateDecor.localRotation = Quaternion.identity;
+        }
+
         public void Update(float dt)
         {
             if (!IsOpen || _t >= Length + 1f) return;
             _t += dt;
             Apply();
+            // The dressing swings from its hook between fixed bounds; still under reduced motion.
+            if (_gateDecor.gameObject.activeSelf)
+                _gateDecor.localRotation = Quaternion.Euler(0, 0, Motion.Reduced ? 0f : Mathf.Sin(_t * 1.6f) * 2.5f);
         }
 
         static float Span(float t, float from, float to) => Mathf.Clamp01((t - from) / (to - from));

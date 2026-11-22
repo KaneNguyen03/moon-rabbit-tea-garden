@@ -72,6 +72,19 @@ namespace VuonTra.Game
 
         [Tooltip("The moon gate a called rabbit steps out of.")]
         public Sprite MoonGate;
+        [Tooltip("What hangs on the moon gate's arch in each season (#8): star lanterns, apricot branches, a pine wreath.")]
+        public Sprite GateMidAutumn, GateTet, GateChristmas;
+
+        public Sprite GateDecor(Season season)
+        {
+            switch (season)
+            {
+                case Season.MidAutumn: return GateMidAutumn;
+                case Season.Tet: return GateTet;
+                case Season.Christmas: return GateChristmas;
+                default: return null;
+            }
+        }
 
         [Tooltip("Bare ground with a signpost: a plot that has nothing built on it yet.")]
         public Sprite PlotSign;

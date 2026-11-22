@@ -32,6 +32,17 @@ namespace VuonTra.Game
         public event Action<BigNum, double> AwayClaimed;
         /// <summary>A season's last-day gift brought the season's rabbit (#8).</summary>
         public event Action<Rabbit> SeasonArrived;
+        /// <summary>The first day the game sees of a season, once a year: the screen greets it.</summary>
+        public event Action<Season> SeasonBegan;
+
+        /// <summary>Greets the running season if it has not been greeted this year; true when it was greeted now.</summary>
+        public bool GreetSeason()
+        {
+            if (!Seasons.ShouldGreet(State, TodayNumber)) return false;
+            SeasonBegan?.Invoke(SeasonNow);
+            Save();
+            return true;
+        }
 
         SaveStore _store;
         float _sinceSave;
@@ -135,6 +146,7 @@ namespace VuonTra.Game
             {
                 if (Quests.RollDaily(QuestDefs, Defs, State, Today, Mods)) StateChanged?.Invoke();
                 Save();
+                GreetSeason();
             }
         }
 

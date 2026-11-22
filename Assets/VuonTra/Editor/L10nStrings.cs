@@ -406,6 +406,8 @@ namespace VuonTra.EditorTools
             { "album.season", "Thỏ theo mùa · {0}/{1}", "Seasonal rabbits · {0}/{1}" },
             { "album.season.only", "Chỉ có trong {0}", "Only during {0}" },
             { "quest.season.note", "Chỉ trong mùa; hết mùa thì mất", "Only this season; gone when it ends" },
+            { "season.began.title", "Mùa {0} đã về!", "{0} is here!" },
+            { "season.began.sub", "{0} ghé tiệm, nghe gọi vàng và đến cùng quà ngày cuối mùa", "{0} visits the shop, answers golden calls and comes with the last day's gift" },
 
             // ----- the mooncake game -----
             { "pound.title", "Giã bánh trăng", "Pound the mooncake" },
