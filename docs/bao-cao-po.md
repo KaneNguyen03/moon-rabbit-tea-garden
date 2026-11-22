@@ -1432,6 +1432,24 @@ Sau khi sửa cả bốn xanh.
 - Chưa có file ghi âm; mới có chỗ gắn `Sfx.SupplyStationClip`, seeder chưa nạp `sfx_<id>.ogg`.
 - Game chưa có mưa, nên bài Mưa chỉ phát khi người chơi chọn.
 
+## #52 — Vườn đứng trên lưới lục giác (agent song song, nhánh agent-52)
+
+- Test: 917/918 EditMode trên main sau khi gộp. Có 15 test mới: 12 trong `GardenGridTests`, 3 trong `GardenScreenTests`.
+- Commit: code `00ef751`, merge `c587616`, sửa sau gộp `643faa1`, `bd10c7d`, `5b2ecfa`. Save thêm khối `grid`, vẫn giữ v14.
+- Mỗi trạm, chỗ nghỉ, đồ trang trí, cối, tiệm và quầy khách có một ô lục giác riêng, tính từ ấm trà (các ô cách nhau 150 ngang, 200 dọc).
+  - Bãi cỏ lúc đầu rộng 3 vòng; mỗi đợt mở đất thêm 1 vòng, tới 7 vòng khi đủ 12 trạm.
+  - Save cũ tự xếp mọi thứ lên ô mặc định, không mất gì.
+  - Người chơi gần như không thấy khác: vật xê dịch nhiều nhất 171 đơn vị, cối lên nằm trên ấm trà.
+- Sửa thêm khi gộp với main:
+  - Các bảng tĩnh (`Seats`, `DecorSpots`, `Spots`) mà viền rừng #51, bé thỏ đi dạo #55 và tiếng trạm #63 còn dùng nay đọc từ lưới.
+  - Tính lại điểm dạo chơi trên bãi cỏ.
+  - Biển "Giã bánh" dời sang trái để không nằm dưới ô "▲ N" ở mép trên.
+- Ảnh (docs/anh/po-52/): `52-truoc-vuon.png`, `52-sau-vuon.png`, `52-truoc-12-tram.png`, `52-sau-12-tram.png`.
+
+### Chưa đạt / cần PO quyết
+- Bán kính bắt đầu là 3, không phải 2 như đề xuất. Ghế nghỉ, tiệm và hai chỗ trang trí cuối đứng ngoài bãi cỏ cho tới đợt mở đất cuối, coi như khung có sẵn của vườn.
+- Chưa có #53 (vòng đất lộ dần) và #54 (người chơi tự xếp vườn). Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
