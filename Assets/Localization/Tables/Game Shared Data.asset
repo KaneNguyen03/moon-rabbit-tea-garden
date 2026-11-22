@@ -2643,6 +2643,26 @@ MonoBehaviour:
     m_Key: quest.ngay-anh
     m_Metadata:
       m_Items: []
+  - m_Id: 366259223912448
+    m_Key: detail.resting.share
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301056
+    m_Key: rest.share.short
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301057
+    m_Key: rest.row.share
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301058
+    m_Key: income.resting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301059
+    m_Key: quest.nghi-6
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

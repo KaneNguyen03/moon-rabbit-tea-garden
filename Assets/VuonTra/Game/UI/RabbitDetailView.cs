@@ -240,7 +240,11 @@ namespace VuonTra.Game.UI
 
             // Where it works: every open station, its own trade first, and a way to rest.
             bool working = r.Station >= 0 && r.Station < defs.Count;
-            Line("Where", 622, 44, working ? L10n.T("detail.working", L10n.Station(defs[r.Station].Id)) : L10n.T("detail.resting"), 30, Palette.Ink, FontStyle.Bold, 44, 330);
+            // A rabbit seated at a place to rest says what it adds to the whole garden (#60).
+            string where = working ? L10n.T("detail.working", L10n.Station(defs[r.Station].Id))
+                : RestSpots.IsSeated(s, r) ? L10n.T("detail.resting.share", RabbitGridView.Percent(RestSpots.BonusOf(r)))
+                : L10n.T("detail.resting");
+            Line("Where", 622, 44, where, 30, Palette.Ink, FontStyle.Bold, 44, 330);
             if (working)
             {
                 var rest = UiKit.Rect("Rest", _body).Place(1f, 1f, -174, -644, 260, 68);

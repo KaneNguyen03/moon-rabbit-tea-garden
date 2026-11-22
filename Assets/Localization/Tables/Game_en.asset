@@ -2652,6 +2652,26 @@ MonoBehaviour:
     m_Localized: Take 3 photos rabbits ask for
     m_Metadata:
       m_Items: []
+  - m_Id: 366259223912448
+    m_Localized: "Resting \xB7 +{0}% garden"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301056
+    m_Localized: +{0}% garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301057
+    m_Localized: "Places to rest: {0}/{1} taken \xB7 garden income +{2}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301058
+    m_Localized: Resting rabbits ({0}) +{1}%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301059
+    m_Localized: Six rabbits resting together
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

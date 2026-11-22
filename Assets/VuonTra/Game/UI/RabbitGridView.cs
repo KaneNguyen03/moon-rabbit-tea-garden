@@ -222,16 +222,18 @@ namespace VuonTra.Game.UI
             _dynamic.Add(root.gameObject);
         }
 
-        /// <summary>How many resting rabbits can sit out in the garden. More places come with widening the garden.</summary>
+        /// <summary>How many resting rabbits sit out in the garden and what they add to its income. More places come with widening the garden.</summary>
         void AddRest(GameState s)
         {
             var root = UiKit.Rect("Rest", _content);
             root.AddImage(_catalog.Panel, Palette.Track, true);
             root.gameObject.AddComponent<LayoutElement>().preferredHeight = 60;
-            int resting = 0;
-            foreach (Rabbit r in s.Rabbits) if (r.Station < 0) resting++;
+            int seated = RestSpots.Seated(s).Count;
+            string line = seated > 0
+                ? L10n.T("rest.row.share", seated, s.RestSpots, Percent(RestSpots.Bonus(s)))
+                : L10n.T("rest.row", seated, s.RestSpots);
             Text text = UiKit.Rect("Text", root).Stretch(0, 0, 1, 1, 24, 0, 24, 0)
-                .AddText(L10n.T("rest.row", Mathf.Min(resting, s.RestSpots), s.RestSpots), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(line, UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             text.resizeTextForBestFit = true;
             text.resizeTextMinSize = 16;
             text.resizeTextMaxSize = 24;
@@ -258,12 +260,25 @@ namespace VuonTra.Game.UI
             Image tradeIcon = UiKit.Rect("Icon", trade).Stretch(0, 0, 1, 1, 10, 10, 10, 10).AddImage(_catalog.TradeIcon(Rabbits.TradeOf(r)), inTrade ? Palette.Ink : Palette.Paper);
             tradeIcon.preserveAspect = true;
 
-            // Working shows the station's own thing; resting shows a nap.
+            // Working shows the station's own thing; a rabbit seated at a place to rest shows its share of the
+            // garden's income (#60); one resting without a place shows a nap.
             bool working = r.Station >= 0 && r.Station < defs.Count;
-            var status = UiKit.Rect("Status", cell).Place(1f, 1f, -34, -34, 54, 54);
-            status.AddImage(_catalog.Round, Palette.Paper);
+            bool seated = !working && RestSpots.IsSeated(s, r);
+            var status = seated
+                ? UiKit.Rect("Status", cell).Place(1f, 1f, -84, -34, 150, 54)
+                : UiKit.Rect("Status", cell).Place(1f, 1f, -34, -34, 54, 54);
+            if (seated) status.AddImage(_catalog.Panel, Palette.Paper, true);
+            else status.AddImage(_catalog.Round, Palette.Paper);
             if (working && _catalog.Stations[r.Station].Prop != null)
                 UiKit.Rect("Icon", status).Stretch(0, 0, 1, 1, 7, 7, 7, 7).AddImage(_catalog.Stations[r.Station].Prop, Color.white).preserveAspect = true;
+            else if (seated)
+            {
+                Text share = UiKit.Rect("Share", status).Stretch(0, 0, 1, 1, 10, 0, 10, 0)
+                    .AddText(L10n.T("rest.share.short", Percent(RestSpots.BonusOf(r))), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                share.resizeTextForBestFit = true;
+                share.resizeTextMinSize = 14;
+                share.resizeTextMaxSize = UiKit.TextSmall;
+            }
             else
                 UiKit.Rect("Nap", status).Stretch(0, 0, 1, 1).AddText("zz", UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
 
@@ -304,6 +319,12 @@ namespace VuonTra.Game.UI
                     .AddImage(charmIcon, Color.white).preserveAspect = true;
             UiKit.Stars(tile, r.Tier, 0.5f, 0f, 0, inset + 14f, Mathf.RoundToInt(Mathf.Clamp(size * 0.085f, 14f, 22f)));
             return tile;
+        }
+
+        /// <summary>A share as a percentage without its sign, in the language's own decimal mark: 0.025 is "2,5" in Vietnamese, "2.5" in English.</summary>
+        public static string Percent(double share)
+        {
+            return L10n.Number((share * 100d).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ','));
         }
 
         /// <summary>

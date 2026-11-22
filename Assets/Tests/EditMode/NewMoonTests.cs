@@ -180,7 +180,7 @@ namespace VuonTra.Core.Tests
             LoadResult back = SaveCodec.Decode(defs, json);
             Assert.AreEqual(LoadStatus.Ok, back.Status);
             Assert.AreEqual(1, back.State.Season);
-            Assert.AreEqual(1.25d, Modifiers.From(null, back.State).IncomeMultiplier, 1e-12);
+            Assert.AreEqual(1.25d * RestSpots.Multiplier(back.State), Modifiers.From(null, back.State).IncomeMultiplier, 1e-12, "the season's quarter, times the seated rabbits' share (#60)");
 
             LoadResult old = SaveCodec.Decode(defs, json.Replace(",\"season\":1", ""));
             Assert.AreEqual(LoadStatus.Ok, old.Status);

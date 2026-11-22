@@ -337,6 +337,11 @@ namespace VuonTra.EditorTools
             { "tier.3", "Tím", "Purple" },
             { "tier.4", "Vàng", "Gold" },
             { "tier.5", "Đỏ", "Red" },
+            // Resting rabbits lend a hand (#60): each one seated adds a share of the whole garden's income.
+            { "detail.resting.share", "Đang nghỉ · +{0} % vườn", "Resting · +{0}% garden" },
+            { "rest.share.short", "+{0} % vườn", "+{0}% garden" },
+            { "rest.row.share", "Chỗ nghỉ trong vườn: {0}/{1} bé đang ngồi · +{2} % thu nhập vườn", "Places to rest: {0}/{1} taken · garden income +{2}%" },
+            { "income.resting", "Thỏ đang nghỉ ({0}) +{1} %", "Resting rabbits ({0}) +{1}%" },
 
             // ----- items -----
             { "rename.title", "Đặt tên cho bé", "Name your rabbit" },
@@ -423,6 +428,7 @@ namespace VuonTra.EditorTools
             { "quest.mua-gap-noel", "Gặp Thỏ Noel", "Meet the Noel Rabbit" },
             { "quest.mua-nghe-noel", "Xếp Thỏ Noel vào đúng nghề", "Put the Noel Rabbit to its trade" },
             { "quest.mua-anh-noel", "Chụp ảnh có Thỏ Noel", "Take a photo with the Noel Rabbit" },
+            { "quest.nghi-6", "Đủ 6 bé thỏ cùng nghỉ", "Six rabbits resting together" },
             // ----- seasons (#8) -----
             { "season.midautumn", "Trung thu", "Mid-Autumn" },
             { "season.tet", "Tết", "Tết" },

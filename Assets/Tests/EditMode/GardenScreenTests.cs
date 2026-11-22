@@ -149,7 +149,7 @@ namespace VuonTra.Core.Tests
             Transform chip = root.transform.Find("Canvas/Hud/Season");
             Assert.IsTrue(chip.gameObject.activeSelf);
             Assert.AreEqual("Mùa 1", chip.Find("Text").GetComponent<Text>().text);
-            Assert.AreEqual(1.25d, runner.Mods.IncomeMultiplier, 1e-9);
+            Assert.AreEqual(1.25d * RestSpots.Multiplier(runner.State), runner.Mods.IncomeMultiplier, 1e-9, "the season's quarter, times the seated rabbits' share (#60)");
         }
 
         [Test]
@@ -3506,6 +3506,101 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.Income.IsOpen);
         }
 
+        /// <summary>A silver rabbit at the teapot, a blue and a green resting and a gold one at the cauldron, with three places to rest.</summary>
+        void SeatTwoOfThree()
+        {
+            runner.State.Levels[0] = 5;
+            runner.State.Levels[1] = 2;
+            runner.State.Levels[2] = 3;
+            runner.State.RestSpots = 3;
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = RabbitKinds.OfTier(0)[0].Id, Name = "Mây", Station = 0 });
+            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 2, Kind = RabbitKinds.OfTier(2)[0].Id, Name = "Sương" });
+            runner.State.Rabbits.Add(new Rabbit { Id = 3, Tier = 1, Kind = RabbitKinds.OfTier(1)[0].Id, Name = "Mè", Station = 2 });
+            runner.State.Rabbits.Add(new Rabbit { Id = 4, Tier = 4, Kind = RabbitKinds.OfTier(4)[0].Id, Name = "Sao", Station = 1 });
+            runner.State.NextRabbitId = 4;
+            screen.Shell.StartGame();
+            Assert.IsTrue(runner.AssignRabbit(3, -1), "the green one is sent to rest");
+            screen.Refresh();
+        }
+
+        [Test]
+        public void The_Purse_Card_Shows_What_The_Resting_Rabbits_Add_To_The_Whole_Garden()
+        {
+            SeatTwoOfThree();
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+            Assert.AreEqual(1.055, runner.Mods.IncomeMultiplier, 1e-9, "blue +3 % and green +2,5 % are in the garden's modifiers");
+
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            string rows = "Canvas/Income/Card/Scroll/Content/";
+            Assert.AreEqual("Thỏ đang nghỉ (2) +5,5 %", T(rows + "Resting").text);
+            Assert.AreEqual(L10n.T("income.charms", UiKit.Times(1d)), T(rows + "Charms").text, "the charms line keeps to the charms");
+            BigNum total = Economy.IncomePerSecond(runner.Defs, runner.State) * (runner.Mods.IncomeMultiplier * runner.Mods.SpeedMultiplier);
+            Assert.AreEqual(L10n.T("income.total", total.Short()), T(rows + "Total").text, "the total includes the share");
+            Find("Canvas/Income/Card/Close").onClick.Invoke();
+
+            // Put back to work, the share is gone and so is the line.
+            runner.State.Levels[3] = 1;
+            Assert.IsTrue(runner.AssignRabbit(3, 2));
+            Assert.IsTrue(runner.AssignRabbit(2, 3));
+            Assert.AreEqual(1d, runner.Mods.IncomeMultiplier, 1e-9);
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            Assert.IsNull(root.transform.Find(rows + "Resting"), "no resting line with nobody seated");
+        }
+
+        [Test]
+        public void A_Seated_Rabbits_Sheet_And_Card_Say_What_It_Adds_And_A_Rabbit_Without_A_Seat_Does_Not()
+        {
+            SeatTwoOfThree();
+            screen.Detail.Open(runner.Defs, runner.State, 2);
+            Assert.AreEqual("Đang nghỉ · +3 % vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+            screen.Detail.Open(runner.Defs, runner.State, 3);
+            Assert.AreEqual("Đang nghỉ · +2,5 % vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+            screen.Detail.Close();
+
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content");
+            Transform Cell(long id)
+            {
+                foreach (Transform row in content)
+                {
+                    Transform c = row.Find("Rabbit " + id);
+                    if (c != null) return c;
+                }
+                Assert.Fail("no card for rabbit " + id);
+                return null;
+            }
+            Assert.AreEqual("+3 % vườn", Cell(2).Find("Status/Share").GetComponent<Text>().text, "the nap badge of a seated rabbit says its share");
+            Assert.IsNull(Cell(1).Find("Status/Share"), "a working rabbit shows its station");
+            StringAssert.Contains("+5,5 %", content.Find("Rest/Text").GetComponent<Text>().text, "the places row adds them up");
+
+            // A third resting rabbit with no place left: it adds nothing and its sheet says nothing of a share.
+            runner.State.RestSpots = 2;
+            runner.AssignRabbit(4, -1);
+            Assert.AreEqual(1d + 0.06 + 0.03, runner.Mods.IncomeMultiplier, 1e-9, "gold and blue sit; green has no place");
+            screen.Refresh();
+            Assert.IsNull(Cell(3).Find("Status/Share"));
+            screen.Detail.Open(runner.Defs, runner.State, 3);
+            Assert.AreEqual(L10n.T("detail.resting"), root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void A_Rabbit_Nodding_Off_In_Its_Seat_Still_Adds_Its_Share()
+        {
+            SeatTwoOfThree();
+            double share = runner.Mods.IncomeMultiplier;
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            bool dozed = false;
+            for (int i = 0; i < 400 && !dozed; i++)
+            {
+                screen.Advance(0.1f);
+                for (int k = 0; k < 2; k++) dozed |= world.Find("Seat " + k + "/Nap").gameObject.activeInHierarchy;
+            }
+            Assert.IsTrue(dozed, "a seated rabbit dozes now and then");
+            Assert.AreEqual(share, runner.Mods.IncomeMultiplier, 1e-12);
+            Assert.AreEqual(share, Modifiers.From(runner.UpgradeDefs, runner.State).IncomeMultiplier, 1e-12);
+        }
+
         [Test]
         public void A_Tea_Bar_Short_Of_Power_Says_How_Long_Until_A_Burst_And_A_Full_One_Breathes()
         {
@@ -5324,7 +5419,8 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 5; i++) screen.Advance(1f);
             Assert.IsTrue(PhotoAsks.Waiting(runner.State), "the bubble's time stands still while framing");
 
-            BigNum expected = PhotoAsks.Reward(runner.Defs, runner.State, runner.Mods);
+            // Mây was put on her seat straight into the state; her share of the income (#60) is in the modifiers from the next change on.
+            BigNum expected = PhotoAsks.Reward(runner.Defs, runner.State, Modifiers.From(runner.UpgradeDefs, runner.State));
             Assert.Greater(expected.ToDouble(), 0d);
             BigNum before = runner.State.Coins;
             string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-ask-" + System.Guid.NewGuid().ToString("N"));

@@ -46,7 +46,9 @@ namespace VuonTra.Core
         /// <summary>Pictures taken with a rabbit of the running season in the garden.</summary>
         PhotosWithSeasonRabbit,
         /// <summary>Pictures taken for a rabbit that asked for one (#56).</summary>
-        PhotoAsksAnswered
+        PhotoAsksAnswered,
+        /// <summary>How many rabbits sit at the places to rest right now (#60).</summary>
+        RabbitsResting
     }
 
     /// <summary>
@@ -152,6 +154,8 @@ namespace VuonTra.Core
                     return s.PhotosWithSeasonRabbit;
                 case QuestMetric.PhotoAsksAnswered:
                     return q.Daily ? Math.Max(0, s.PhotoAsksAnswered - s.DailyPhotoAsksBase) : s.PhotoAsksAnswered;
+                case QuestMetric.RabbitsResting:
+                    return RestSpots.Seated(s).Count;
                 case QuestMetric.OrdersDelivered:
                     return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:

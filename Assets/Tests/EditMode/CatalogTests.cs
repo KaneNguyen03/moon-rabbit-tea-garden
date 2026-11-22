@@ -88,5 +88,16 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(defs[1].Boosts("am-tra"));
             Assert.IsFalse(defs[1].Boosts("noi-mut"));
         }
+
+        [Test]
+        public void Six_Rabbits_Resting_Together_Is_Shipped_As_An_Achievement()
+        {
+            QuestDef six = catalog.BuildQuests().Find(q => q.Id == "nghi-6");
+            Assert.IsNotNull(six, "the seeder adds it");
+            Assert.AreEqual(QuestMetric.RabbitsResting, six.Metric);
+            Assert.AreEqual(RestSpots.Max, six.Target, 1e-9);
+            Assert.AreEqual(2, six.RewardClovers);
+            Assert.IsFalse(six.Daily);
+        }
     }
 }

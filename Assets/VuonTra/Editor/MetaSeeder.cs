@@ -102,6 +102,7 @@ namespace VuonTra.EditorTools
                 new Q { Id = "mua-anh-noel",       Title = "Chụp ảnh có Thỏ Noel",              Metric = QuestMetric.PhotosWithSeasonRabbit, Target = 1, Seconds = 6,  Carrots = 100, Golden = 10, Season = Season.Christmas },
                 new Q { Id = "anh-vang",  Title = "Chụp ảnh có một thỏ bậc Vàng",   Metric = QuestMetric.PhotosWithGoldRabbit, Target = 1, Seconds = 60, Carrots = 1000, Clovers = 2 },
                 new Q { Id = "anh-nghi",  Title = "Chụp ảnh khi đủ 6 chỗ nghỉ",     Metric = QuestMetric.PhotosWithFullRest,   Target = 1, Seconds = 90, Carrots = 2000, Clovers = 2 },
+                new Q { Id = "nghi-6",    Title = "Đủ 6 bé thỏ cùng nghỉ",          Metric = QuestMetric.RabbitsResting,       Target = 6, Seconds = 90, Carrots = 2000, Clovers = 2 },
                 // Golden carrots, once each (#44).
                 new Q { Id = "loai-tim",  Title = "Gặp loài thỏ bậc Tím đầu tiên",   Metric = QuestMetric.RarestKindMet, Target = 4,  Seconds = 60,  Carrots = 1000, Golden = 3 },
                 new Q { Id = "loai-vang", Title = "Gặp loài thỏ bậc Vàng đầu tiên",  Metric = QuestMetric.RarestKindMet, Target = 5,  Seconds = 90,  Carrots = 3000, Golden = 3 },

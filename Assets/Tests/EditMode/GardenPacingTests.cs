@@ -57,6 +57,7 @@ namespace VuonTra.Core.Tests
                 if (Expansion.TryExpand(defs, s))
                 {
                     waveTakenAt[Expansion.WavesTaken(s.Plots) - 1] = clock;
+                    mods = Modifiers.From(ups, s); // one more place to rest (#60)
                     continue;
                 }
                 // The cheapest thing on offer: a level, the next station, or a charm.
@@ -84,12 +85,16 @@ namespace VuonTra.Core.Tests
             if ((int)clock % questEvery == 0)
                 foreach (QuestDef quest in quests) Quests.TryClaim(quest, defs, s, mods, out _);
             // Every clover calls a rabbit, and nobody is ever merged away: the plainest way to play.
+            bool called = false;
             while (s.Clovers >= Rabbits.SummonCost)
             {
                 Rabbits.Summon(s, rng.NextDouble(), "R", rng.NextDouble());
                 summoned++;
                 Rabbits.AutoAssign(defs, s);
+                called = true;
             }
+            // As in the game, who works and who rests feeds the modifiers (#60).
+            if (called) mods = Modifiers.From(ups, s);
             Note();
         }
 

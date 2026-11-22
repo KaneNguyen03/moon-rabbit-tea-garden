@@ -7,7 +7,7 @@ namespace VuonTra.Game.UI
 {
     /// <summary>
     /// Where the carrots come from: one row per brewing station with what it earns a second and the rabbit
-    /// and ingredient factors behind it, then the garden-wide multipliers and the total. Opens from the purse.
+    /// and ingredient factors behind it, then the garden-wide multipliers (the seated rabbits' share among them) and the total. Opens from the purse.
     /// </summary>
     public sealed class IncomeView
     {
@@ -121,9 +121,12 @@ namespace VuonTra.Game.UI
             }
             if (shown == 0) AddNote("Empty", L10n.T("income.empty"), Palette.InkSoft);
 
-            // Garden-wide: charms, speed, the boost, and the total the purse shows.
+            // Garden-wide: the seated rabbits' share, charms, speed, the boost, and the total the purse shows.
             bool boosting = s.BoostSecondsLeft > 0d;
-            AddNote("Charms", L10n.T("income.charms", UiKit.Times(m.IncomeMultiplier)), Palette.Ink);
+            int seated = RestSpots.Seated(s).Count;
+            double rest = RestSpots.Multiplier(s);
+            if (seated > 0) AddNote("Resting", L10n.T("income.resting", seated, RabbitGridView.Percent(rest - 1d)), Palette.Ink);
+            AddNote("Charms", L10n.T("income.charms", UiKit.Times(m.IncomeMultiplier / rest)), Palette.Ink);
             AddNote("Speed", L10n.T("income.speed", UiKit.Times(m.SpeedMultiplier)), Palette.Ink);
             if (boosting) AddNote("Boost", L10n.T("income.boost", UiKit.Times(Energy.BoostSpeed)), Palette.Moss);
             BigNum total = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));

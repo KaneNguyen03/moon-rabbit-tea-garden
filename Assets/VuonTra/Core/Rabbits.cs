@@ -97,7 +97,7 @@ namespace VuonTra.Core
             return Multiplier(s, r) * (Suits(defs, r, station) ? TradeBonus : 1d);
         }
 
-        /// <summary>What the rabbit is worth where it is now (resting counts as no bonus).</summary>
+        /// <summary>What the rabbit is worth where it is now (resting counts as no bonus to a station; a seated rabbit adds to the whole garden instead, see <see cref="RestSpots.BonusOf"/>).</summary>
         public static double WorkMultiplier(IReadOnlyList<StationDef> defs, GameState s, Rabbit r) => MultiplierAt(defs, s, r, r.Station);
 
         // ----- touching and stroking (#19) -----

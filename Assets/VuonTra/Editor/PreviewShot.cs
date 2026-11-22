@@ -667,6 +667,7 @@ namespace VuonTra.EditorTools
             RenderGuidance(runner, screen);
             RenderLandWaves(runner, screen);
             RenderPhotoAsk(runner, screen);
+            RenderRestShare(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -748,6 +749,45 @@ namespace VuonTra.EditorTools
             Step(screen, 0.6f);
             Capture(screen, "56-khung-thu");
             screen.ExitPhotoMode();
+            Step(screen, 0.3f);
+        }
+
+        /// <summary>#60: four rabbits seated at the places to rest, the purse's card with their share, one's own sheet and the Rabbits tab.</summary>
+        static void RenderRestShare(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 40, 18, 12, 6, 3 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 7;
+            s.RestSpots = 4;
+            s.GardenXp = Garden.XpForLevel(8);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.1e5);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.1).Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 0, "Mè", 0.3).Id, 2);
+            Rabbits.Arrive(s, 4, "Sao", 0.5);
+            Rabbits.Arrive(s, 2, "Sương", 0.2);
+            Rabbits.Arrive(s, 1, "Cốm", 0.7);
+            Rabbits.Arrive(s, 0, "Bông", 0.4);
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(GardenScreen.StationSpot(0));
+            Step(screen, 0.5f);
+            Press(screen, "Canvas/Hud/Purse");
+            Step(screen, 0.4f);
+            Capture(screen, "60-thu-nhap");
+            screen.Income.Close();
+            screen.Detail.Open(runner.Defs, s, s.Rabbits[2].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "60-tho-nghi");
+            screen.Detail.Close();
+            screen.OpenSheet(3);
+            Step(screen, 0.5f);
+            Capture(screen, "60-tab-tho");
+            screen.CloseSheet();
             Step(screen, 0.3f);
         }
 

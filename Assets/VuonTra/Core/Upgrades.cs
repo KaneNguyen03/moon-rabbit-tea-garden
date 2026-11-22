@@ -53,6 +53,8 @@ namespace VuonTra.Core
             m.AwayIncomeMultiplier += Items.GardenBonus(s, ItemEffect.AwayIncome);
             // Every new moon begun (#1) pays its lasting share on all income.
             if (s != null) m.IncomeMultiplier *= NewMoon.Bonus(s);
+            // Rabbits seated at the places to rest each add their share of all income (#60).
+            if (s != null) m.IncomeMultiplier *= RestSpots.Multiplier(s);
             if (upgrades == null || s.UpgradeLevels == null) return m;
             for (int i = 0; i < upgrades.Count && i < s.UpgradeLevels.Length; i++)
             {

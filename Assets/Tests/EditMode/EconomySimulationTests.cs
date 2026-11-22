@@ -170,6 +170,7 @@ namespace VuonTra.Core.Tests
             if (Expansion.TryExpand(defs, s))
             {
                 waveTakenAt[Expansion.WavesTaken(s.Plots) - 1] = clock;
+                mods = Modifiers.From(ups, s); // one more place to rest (#60)
                 return;
             }
             int best = -1;
@@ -288,8 +289,11 @@ namespace VuonTra.Core.Tests
                 LevelRabbits();
             }
             if ((int)sessionClock % questEvery == 0) ClaimQuests();
+            int rabbitsBefore = s.Rabbits.Count;
             SpendClovers();
             SpendGolden();
+            // As in the game, who works and who rests feeds the modifiers (#60).
+            if (s.Rabbits.Count != rabbitsBefore) mods = Modifiers.From(ups, s);
             if ((int)sessionClock % gameEvery == 0 && PlayAGame()) Note();
             Note();
             int t = (int)clock;
