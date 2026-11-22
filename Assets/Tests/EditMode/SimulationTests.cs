@@ -143,12 +143,13 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Away_Is_Capped_At_Two_Hours()
+        public void Away_Is_Capped_At_Three_Hours()
         {
+            // Three hours since #69 (two before).
             s.LastSeenUnixSeconds = 0;
             BigNum paid = Simulation.ClaimAway(defs, s, 30L * 86400, out double counted);
-            Assert.AreEqual(7200, counted);
-            Assert.AreEqual(7200 / 1.5, paid.ToDouble(), 1e-6);
+            Assert.AreEqual(10800, counted);
+            Assert.AreEqual(10800 / 1.5, paid.ToDouble(), 1e-6);
         }
 
         [Test]

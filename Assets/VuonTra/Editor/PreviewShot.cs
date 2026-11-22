@@ -604,6 +604,14 @@ namespace VuonTra.EditorTools
                 screen.OrderCard.Close();
                 Step(screen, 0.3f);
             }
+            // Coming back after three hours (#69): four lines and the day's free ×2.
+            var away = new AwayReport { Paid = new BigNum(1.2e9), Seconds = 3 * 3600, Capped = true, TrayAdded = 7, TrayFull = true, GuestsMissed = 3, SleepiestId = Away.Sleepiest(state) };
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 0.5f);
+            Capture(screen, "69-di-vang");
+            screen.AwayCard.Close();
+            Step(screen, 0.4f);
             // The same garden at noon and at dusk; night is every other frame.
             screen.SelectStation(-1);
             screen.LookAt(GardenScreen.StationSpot(0));

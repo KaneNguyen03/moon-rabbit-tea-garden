@@ -2767,9 +2767,60 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(away.gameObject.activeSelf);
             screen.ShowAway(new BigNum(4000), 600);
             Assert.IsTrue(away.gameObject.activeSelf);
-            StringAssert.Contains("10 phút", away.Find("Card/Time").GetComponent<Text>().text);
+            StringAssert.Contains("10 phút", away.Find("Card/Carrots/Time").GetComponent<Text>().text);
             Find("Canvas/Away/Card/Ok").onClick.Invoke();
+            for (int i = 0; i < 20; i++) screen.Advance(0.05f); // the sheet slides away
             Assert.IsFalse(away.gameObject.activeSelf);
+        }
+
+        // ----- #69: the welcome-back sheet tells the time away -----
+
+        [Test]
+        public void The_Welcome_Back_Sheet_Tells_Four_Lines_And_Doubles_Once_Free_Then_For_Golden()
+        {
+            screen.Shell.StartGame();
+            GameState s = runner.State;
+            if (s.Rabbits.Count == 0) Rabbits.GiftFirst(s, "Bông");
+            var away = new AwayReport { Paid = new BigNum(5000), Seconds = 3 * 3600, Capped = true, TrayAdded = 7, TrayFull = true, GuestsMissed = 3, SleepiestId = s.Rabbits[0].Id };
+            BigNum before = s.Coins;
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away); // in play the runner's event does this (wired in Start)
+            Transform card = root.transform.Find("Canvas/Away/Card");
+            Assert.IsTrue(screen.AwayCard.IsOpen);
+            Assert.AreEqual("+" + new BigNum(5000).Short(), card.Find("Carrots/Amount").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("away.tray", 7) + L10n.T("away.tray.full"), card.Find("Tray/Text").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("away.guests", 3), card.Find("Guests/Text").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("away.rabbit", s.Rabbits[0].Name), card.Find("Rabbit/Text").GetComponent<Text>().text);
+            Assert.IsNotNull(card.Find("Rabbit/PortraitHolder/Tile"), "the sleepy rabbit's picture");
+            Assert.AreEqual(L10n.T("away.double.free"), screen.AwayCard.DoubleLabel);
+
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual((before + new BigNum(5000)).ToDouble(), s.Coins.ToDouble(), 1e-6, "paid once more");
+            Assert.AreEqual(runner.TodayNumber, s.AwayDoubleDay);
+
+            // The next time away today: ×2 costs golden carrots, and says what is missing when short.
+            s.GoldenCarrots = 2;
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Assert.AreEqual(L10n.T("away.double.short", Away.DoubleCost - 2), screen.AwayCard.DoubleLabel);
+            Assert.IsFalse(screen.AwayCard.DoubleEnabled);
+            s.GoldenCarrots = 9;
+            screen.AwayCard.RefreshDouble();
+            Assert.AreEqual(L10n.T("away.double.cost", Away.DoubleCost), screen.AwayCard.DoubleLabel);
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual(9 - Away.DoubleCost, s.GoldenCarrots);
+            Assert.IsFalse(runner.DoubleAway(), "one doubling per time away");
+        }
+
+        [Test]
+        public void Under_Five_Minutes_Away_There_Is_No_Sheet_Only_Carrots_To_The_Purse()
+        {
+            screen.Shell.StartGame();
+            var brief = new AwayReport { Paid = new BigNum(300), Seconds = 120 };
+            runner.ShowAwayForTest(brief);
+            screen.ShowAway(brief);
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+            Assert.IsFalse(root.transform.Find("Canvas/Away").gameObject.activeSelf);
         }
 
         [Test]

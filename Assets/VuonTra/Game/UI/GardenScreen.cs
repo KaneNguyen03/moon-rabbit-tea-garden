@@ -46,6 +46,8 @@ namespace VuonTra.Game.UI
         public TutorialView Guide { get; private set; }
         /// <summary>The tea shop by the pond: the daily gift and the golden call.</summary>
         public ShopView Shop { get; private set; }
+        /// <summary>The welcome-back sheet (#69).</summary>
+        public AwayView AwayCard { get; private set; }
         RectTransform _shopProp, _goldenChip, _mortarProp;
         Text _mortarPlate;
         /// <summary>The mooncake game, opened from the mortar beside the teapot.</summary>
@@ -276,12 +278,12 @@ namespace VuonTra.Game.UI
         bool _hintFading;
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
-        Text _coins, _perSecond, _awayAmount, _awayTime, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
+        Text _coins, _perSecond, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
         RectTransform _questReady, _cardModes;
         ChunkyButton _claimAll;
         Text _plotTitle, _plotSub, _plotCost;
         ChunkyButton _plotBuy, _energyButton;
-        GameObject _hint, _away, _sheet, _modes, _barBadge;
+        GameObject _hint, _sheet, _modes, _barBadge;
         RabbitGridView _rabbitList;
         Text _sheetTitle;
         float _sinceRefresh, _clock;
@@ -1014,6 +1016,7 @@ namespace VuonTra.Game.UI
             Guide = null;
             _guideStep = -1;
             Shop = null;
+            AwayCard = null;
             DecorCard = null;
             _decorSpots.Clear(); _lanternArt.Clear(); _lanternGlowColor = Palette.Lantern;
             PhotoMode = false;
@@ -3380,35 +3383,27 @@ namespace VuonTra.Game.UI
 
         void BuildAwayPopup(GameCatalog catalog)
         {
-            var overlay = UiKit.Rect("Away", _canvas).Stretch(0, 0, 1, 1);
-            overlay.AddImage(null, Palette.Scrim).raycastTarget = true;
-            _away = overlay.gameObject;
+            // The welcome-back sheet (#69); the carrots are already in the purse, Collect only closes it, ×2 pays again.
+            AwayCard = new AwayView(_canvas, catalog, Tweens, () => Runner.AwayDoubleCost, () => Runner.State.GoldenCarrots, () => Runner.LastAwayDoubled,
+                () => Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f),
+                OnDoubleAway);
+        }
 
-            var card = UiKit.Rect("Card", overlay).Place(0.5f, 0.5f, 0, 0, 800, 700);
-            UiKit.Rect("Lip", card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
-            UiKit.Rect("Face", card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Title", card).Stretch(0, 0.80f, 1, 1, 40, 0, 40, 40)
-                .AddText(L10n.T("away.title"), 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
-            UiKit.Rect("Body", card).Stretch(0, 0.62f, 1, 0.80f, 60, 0, 60, 0)
-                .AddText(L10n.T("away.body"), UiKit.TextTitle, Palette.InkSoft);
-            UiKit.Rect("Carrot", card).Place(0.5f, 0.5f, -200, 4, 110, 110).AddImage(catalog.Currency, Color.white).preserveAspect = true;
-            _awayAmount = UiKit.Rect("Amount", card).Place(0.5f, 0.5f, 60, 4, 420, 110)
-                .AddText("+0", 84, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _awayTime = UiKit.Rect("Time", card).Stretch(0, 0.29f, 1, 0.40f)
-                .AddText("", UiKit.TextBody, Palette.InkSoft);
-
-            var ok = UiKit.Rect("Ok", card).Place(0.5f, 0f, 0, 120, 580, 130);
-            ChunkyButton okButton = null;
-            okButton = UiKit.Chunky(ok, catalog.Panel, () =>
+        /// <summary>The ×2 on the welcome-back sheet: the latest time away paid once more, then the sheet closes.</summary>
+        void OnDoubleAway()
+        {
+            BigNum paid = Runner.LastAway.Paid;
+            if (!Runner.DoubleAway())
             {
-                okButton.Press(Tweens);
-                Sfx.Reward();
-                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
-                _away.SetActive(false);
-            });
-            UiKit.Rect("Text", okButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("away.ok"), 40, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
-
-            _away.SetActive(false);
+                AwayCard.RefreshDouble();
+                Sfx.Deny();
+                return;
+            }
+            Sfx.Reward();
+            Haptics.Medium();
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + paid.Short(), Palette.Carrot, 44);
+            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 16, 520f, 46f);
+            AwayCard.Close();
         }
 
         void OnShellChanged(ShellState state)
@@ -3799,17 +3794,23 @@ namespace VuonTra.Game.UI
             _plotBuy.SetEnabled(can);
         }
 
-        public void ShowAway(BigNum amount, double seconds)
+        /// <summary>
+        /// Coming back (#69): five minutes away or more opens the welcome-back sheet; a shorter absence just sends
+        /// the carrots up to the purse.
+        /// </summary>
+        public void ShowAway(AwayReport away)
         {
-            _awayAmount.text = "+" + amount.Short();
-            string span = Span(seconds);
-            bool capped = seconds >= Runner.Mods.AwayCapSeconds;
-            _awayTime.text = L10n.T(capped ? "away.time.capped" : "away.time", span);
-            _away.SetActive(true);
-            RectTransform card = (RectTransform)_away.transform.Find("Card");
-            card.localScale = Vector3.one * 0.8f;
-            Tweens.Add(0.3f, t => card.localScale = Vector3.one * Mathf.LerpUnclamped(0.8f, 1f, t), Ease.OutBack);
+            if (away.WorthTelling) { AwayCard.Open(away, Runner.State); return; }
+            if (away.Paid < BigNum.One || Feel == null) return;
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + away.Paid.Short(), Palette.Carrot, 40);
+            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 8, 420f, 40f);
         }
+
+        /// <summary>The sheet for a plain amount and time, as older callers and the tests had it.</summary>
+        public void ShowAway(BigNum amount, double seconds) => ShowAway(new AwayReport
+        {
+            Paid = amount, Seconds = seconds, Capped = seconds >= Runner.Mods.AwayCapSeconds, SleepiestId = Away.Sleepiest(Runner.State)
+        });
 
         /// <summary>
         /// Two pills at the edges say how many stations out of view can be raised or have a dozing rabbit; a

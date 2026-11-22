@@ -89,6 +89,8 @@ namespace VuonTra.Core
         public long MaxDaySeen = -1;
         /// <summary>The day a season's greeting was last shown, so each season is greeted once a year.</summary>
         public long SeasonGreetedDay = -1;
+        /// <summary>The day the free doubling of time away was used (#69); -1 never.</summary>
+        public long AwayDoubleDay = -1;
         /// <summary>Pictures taken while a rabbit of the running season lived in the garden.</summary>
         public long PhotosWithSeasonRabbit;
         public long PoundingDay = -1;

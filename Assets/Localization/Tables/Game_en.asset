@@ -2584,6 +2584,46 @@ MonoBehaviour:
     m_Localized: +{0} golden carrots
     m_Metadata:
       m_Items: []
+  - m_Id: 340555539144704
+    m_Localized: 'Tray: {0} new items'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310528
+    m_Localized: " \xB7 tray full"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310529
+    m_Localized: No new items on the tray
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310530
+    m_Localized: '{0} guests came by; nobody was at the counter'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310531
+    m_Localized: No guests came by
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310532
+    m_Localized: '{0} slept the most'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310533
+    m_Localized: "Collect \xD72 \xB7 free today"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310534
+    m_Localized: "Collect \xD72 \xB7 {0} golden"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310535
+    m_Localized: '{0} more golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310536
+    m_Localized: "Collected \xD72"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

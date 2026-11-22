@@ -9,7 +9,8 @@ namespace VuonTra.Core
         /// <summary>Seconds of work one tap adds to a station.</summary>
         public const double TapSeconds = 0.4;
         /// <summary>The longest absence that still pays.</summary>
-        public const double AwayCapSeconds = 7200;
+        /// <summary>Time away is paid for up to three hours (#69), more with the Long Sleep charm.</summary>
+        public const double AwayCapSeconds = 10800;
         /// <summary>Absences shorter than this pay nothing.</summary>
         public const double AwayMinSeconds = 30;
 

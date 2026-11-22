@@ -2578,6 +2578,46 @@ MonoBehaviour:
     m_Localized: "+{0} c\xE0 r\u1ED1t v\xE0ng"
     m_Metadata:
       m_Items: []
+  - m_Id: 340555539144704
+    m_Localized: "Khay: th\xEAm {0} m\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310528
+    m_Localized: " \xB7 khay \u0111\u1EA7y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310529
+    m_Localized: "Khay ch\u01B0a c\xF3 m\xF3n m\u1EDBi"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310530
+    m_Localized: "{0} v\u1ECB kh\xE1ch gh\xE9 qua, ch\u01B0a ai ti\u1EBFp"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310531
+    m_Localized: "Kh\xF4ng c\xF3 kh\xE1ch gh\xE9"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310532
+    m_Localized: "{0} ng\u1EE7 say nh\u1EA5t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310533
+    m_Localized: "Nh\u1EADn \xD72 \xB7 mi\u1EC5n ph\xED h\xF4m nay"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310534
+    m_Localized: "Nh\u1EADn \xD72 \xB7 {0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310535
+    m_Localized: "C\xF2n thi\u1EBFu {0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 340555564310536
+    m_Localized: "\u0110\xE3 nh\u1EADn \xD72"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

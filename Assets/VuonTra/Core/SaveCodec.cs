@@ -140,6 +140,7 @@ namespace VuonTra.Core
             sb.Append(",\"photosSeason\":").Append(s.PhotosWithSeasonRabbit.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"maxDay\":").Append(s.MaxDaySeen.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"seasonGreeted\":").Append(s.SeasonGreetedDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"awayDouble\":").Append(s.AwayDoubleDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"playSeconds\":").Append(Sane(s.PlaySeconds).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"season\":").Append(s.Season.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"packs\":").Append(s.PacksBought.ToString(CultureInfo.InvariantCulture));
@@ -490,6 +491,7 @@ namespace VuonTra.Core
             s.PhotosWithSeasonRabbit = TryNumber(root, "photosSeason", out double photosSeason) ? Math.Max(0, ToLong(photosSeason)) : 0;
             s.MaxDaySeen = TryNumber(root, "maxDay", out double maxDay) ? ToLong(maxDay) : -1;
             s.SeasonGreetedDay = TryNumber(root, "seasonGreeted", out double greeted) ? ToLong(greeted) : -1;
+            s.AwayDoubleDay = TryNumber(root, "awayDouble", out double awayDouble) ? ToLong(awayDouble) : -1;
             s.PlaySeconds = TryNumber(root, "playSeconds", out double played) ? Math.Max(0d, Sane(played)) : 0d;
             s.Season = TryNumber(root, "season", out double season) ? (int)Math.Max(0d, Math.Min(season, NewMoon.MaxSeasons)) : 0;
             s.PacksBought = TryNumber(root, "packs", out double packs) ? (int)Math.Max(0d, Math.Min(packs, int.MaxValue)) : 0;
