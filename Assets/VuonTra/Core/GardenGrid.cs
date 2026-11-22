@@ -69,6 +69,12 @@ namespace VuonTra.Core
             new Hex(0, -4),  //  9 mooncake bakery: top left
             new Hex(0, 4),   // 10 flower spring: bottom right
             new Hex(-3, 5),  // 11 star observatory: bottom left, within reach of the flower spring it feeds
+            // The four after the star observatory (#67b) stand in a row above the shop and the pond, on land the eighth and
+            // ninth rings make room for: the garden is a tall lawn one screen wide, so the far rings only reach it at the top.
+            new Hex(1, -6),  // 12 lotus garden: top left, just above the mooncake bakery it feeds
+            new Hex(3, -6),  // 13 malt candy kiln: top middle
+            new Hex(5, -6),  // 14 sticky rice paddy: top right, beside the candy kiln it feeds
+            new Hex(4, -8),  // 15 night tea boat: the top of the garden
         };
         /// <summary>The places to rest: the two stumps by the tea table at the bottom, the rug by the pond, the stools, the hammock, the swing.</summary>
         static readonly Hex[] RestTiles = { new Hex(-1, 5), new Hex(-3, 6), new Hex(3, -4), new Hex(0, 5), new Hex(-5, 6), new Hex(-1, 6) };

@@ -73,7 +73,7 @@ namespace VuonTra.Core.Tests
         // When things happened (seconds on the clock; -1 = not yet).
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
         readonly Dictionary<int, double> plotsAt = new Dictionary<int, double>();
-        readonly double[] waveLevelAt = new double[4], waveRabbitsAt = new double[4], waveTakenAt = new double[4];
+        readonly double[] waveLevelAt = new double[Expansion.Rings.Length], waveRabbitsAt = new double[Expansion.Rings.Length], waveTakenAt = new double[Expansion.Rings.Length];
         double purpleAt = -1, goldAt = -1;
         readonly List<string> snapshots = new List<string>();
         readonly StringBuilder trace = new StringBuilder();
@@ -114,7 +114,7 @@ namespace VuonTra.Core.Tests
             goldenAds = extraRounds = 0;
             levelAt.Clear();
             plotsAt.Clear();
-            for (int i = 0; i < 4; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
+            for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
             purpleAt = goldAt = -1;
             snapshots.Clear();
             trace.Clear();
@@ -276,7 +276,7 @@ namespace VuonTra.Core.Tests
             s.BuyMode = 1;
             for (int i = 0; i < defs.Count; i++)
             {
-                if (s.Levels[i] == 0 && !Economy.CanUnlock(s, i)) continue;
+                if (s.Levels[i] == 0 && !Economy.CanUnlock(defs, s, i)) continue;
                 if (Economy.LevelsLeft(s.Levels[i]) <= 0) continue;
                 BigNum cost = Economy.CostOfNext(defs[i], s.Levels[i], 1);
                 if (best < 0 || cost < bestCost) { best = i; bestCost = cost; bestIsUpgrade = false; }
@@ -530,7 +530,7 @@ namespace VuonTra.Core.Tests
                 sb.AppendLine("| " + plots + " ô đất (R " + GardenGrid.RadiusForPlots(plots) + ") | " + (plotsAt.ContainsKey(plots) ? Clock(plotsAt[plots]) : "chưa đạt") + " |");
             sb.AppendLine("| Thỏ Tím đầu tiên | " + Clock(purpleAt) + " |");
             sb.AppendLine("| Thỏ Vàng đầu tiên | " + Clock(goldAt) + " |");
-            for (int w = 0; w < 4; w++)
+            for (int w = 0; w < waveLevelAt.Length; w++)
                 sb.AppendLine("| Vòng rừng R " + Expansion.Rings[w].RadiusAfter + " | đủ cấp " + Clock(waveLevelAt[w]) + ", đủ thỏ " + Clock(waveRabbitsAt[w]) + ", mở " + Clock(waveTakenAt[w]) + " |");
             return sb.ToString();
         }

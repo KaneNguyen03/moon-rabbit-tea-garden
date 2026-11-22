@@ -234,9 +234,9 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Runner_Starts_With_Twelve_Stations_And_First_Open()
+        public void Runner_Starts_With_Sixteen_Stations_And_First_Open()
         {
-            Assert.AreEqual(12, runner.Defs.Count);
+            Assert.AreEqual(16, runner.Defs.Count);
             Assert.AreEqual(1, runner.State.Levels[0]);
         }
 
@@ -1267,7 +1267,9 @@ namespace VuonTra.Core.Tests
 
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
-            Assert.LessOrEqual(world.sizeDelta.y * world.localScale.y, 1920f + 0.5f, "the whole garden fits top to bottom");
+            // The lawn from the resting corner to the shop fits top to bottom; the band above it, where the four newest stations
+            // stand (#67b), is a scroll up, so the foot of the garden stays clear of the tab bar.
+            Assert.AreEqual(1920f, 2970f * world.localScale.y, 0.5f, "the lawn up to the shop fits top to bottom");
             Assert.IsFalse(plate.activeSelf, "no level plates from far away");
             // Smaller than the screen sideways: it sits in the middle, not against an edge.
             Assert.AreEqual((1080f - world.sizeDelta.x * world.localScale.x) / 2f, world.anchoredPosition.x, 0.5f);
@@ -1782,9 +1784,17 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < runner.Defs.Count; i++)
             {
                 if (runner.Defs[i].Kind != VuonTra.Core.StationKind.Ingredient) continue;
+                float nearest = float.MaxValue;
                 for (int j = 0; j < runner.Defs.Count; j++)
                     if (runner.Defs[i].Boosts(runner.Defs[j].Id))
-                        Assert.Less(Vector2.Distance(screen.StationSpot(i), screen.StationSpot(j)), 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
+                    {
+                        float apart = Vector2.Distance(screen.StationSpot(i), screen.StationSpot(j));
+                        nearest = Mathf.Min(nearest, apart);
+                        // The first twelve stand by everything they supply. The lotus garden (#67) feeds the bakery at the top and
+                        // the observatory at the foot of the garden, so the four newest stand by at least one of theirs.
+                        if (i < 12) Assert.Less(apart, 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
+                    }
+                Assert.Less(nearest, 520f, runner.Defs[i].Id + " is near one station it supplies");
             }
         }
 
@@ -3744,7 +3754,7 @@ namespace VuonTra.Core.Tests
             // Close in, looking at the top of the garden: the lowest stations are out of view below. (At the usual
             // zoom, since #50, the whole garden is all but in view, so nothing waits beyond an edge.)
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(new Vector2(540f, 2900f));
+            screen.LookAt(new Vector2(540f, 2330f)); // the top of the lawn below the band of the four newest stations (#67b)
             screen.Advance(1f / 30f);
             Assert.IsTrue(down.activeSelf, "stations that can be raised wait below");
             StringAssert.StartsWith("▼ ", down.transform.Find("Text").GetComponent<Text>().text);
@@ -4476,7 +4486,7 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(GardenScreen.LawnSpots.Count, 6);
             foreach (Vector2 spot in GardenScreen.LawnSpots)
             {
-                for (int i = 0; i < 12; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
+                for (int i = 0; i < runner.Defs.Count; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
                 for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.DecorSpotAt(i)), 150f, spot + " by decoration spot " + i);
                 Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.PondSpot), 300f, spot + " in the pond");
                 Assert.GreaterOrEqual(Vector2.Distance(spot, screen.GuestSpot), 150f, spot + " on the guest");

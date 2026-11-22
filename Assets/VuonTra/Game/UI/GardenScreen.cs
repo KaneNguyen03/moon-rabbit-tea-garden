@@ -25,7 +25,9 @@ namespace VuonTra.Game.UI
         const float ScreenW = 1080f, ScreenH = 1920f;
         // The lawn is as wide as the portrait screen and only scrolls up and down. At the usual zoom the screen is
         // wider than the lawn, so it sits in the middle with open grass and, further out, the wood past both sides (#50).
-        const float WorldW = 1080f, WorldH = 2970f; // room below the last station, so it can scroll clear of the docked card
+        // Room below the last station, so it can scroll clear of the docked card; and 800 more at the top (#67b), where the
+        // land of the eighth and ninth rings meets the lawn and the four stations after the star observatory stand.
+        const float WorldW = 1080f, WorldH = 3770f;
         /// <summary>The feet of the nearest trees of the wood stand this far past the lawn's sides: clear of every station by 200 and more.</summary>
         const float RimLeft = -300f, RimRight = WorldW + 310f;
         /// <summary>No tree of the wood comes nearer than this to a station's sign, pad, rabbit or prop, or to the props that must be read (#50).</summary>
@@ -433,7 +435,13 @@ namespace VuonTra.Game.UI
         /// Far shows the whole garden top to bottom; near is for looking at one rabbit. The usual view stands back 17 %
         /// (#50): the screen spans 1300 garden units, so three station columns and five or more plots are in view at once.
         /// </summary>
-        public const float ZoomFar = ScreenH / WorldH, ZoomDefault = 0.83f, ZoomNear = 1.5f;
+        public const float ZoomFar = ScreenH / FarSpan, ZoomDefault = 0.83f, ZoomNear = 1.5f;
+        /// <summary>
+        /// How much of the garden's height the far view shows: the lawn from the resting corner to the shop, as before the top
+        /// band of #67b. The four stations up there are a scroll away from far; at a smaller zoom the foot of the garden would
+        /// sink under the tab bar.
+        /// </summary>
+        const float FarSpan = 2970f;
         float _zoom = ZoomDefault;
         Text _zoomMark, _levelText;
         Image _levelRing;
@@ -1670,9 +1678,9 @@ namespace VuonTra.Game.UI
             else if (level <= 0)
             {
                 cost = Economy.CostOfNext(defs[i], 0, 1);
-                bool previousOpen = Economy.CanUnlock(s, i);
+                bool previousOpen = Economy.CanUnlock(defs, s, i);
                 can = previousOpen && s.Coins >= cost;
-                _cardInfo.text = previousOpen ? StationRowView.Describe(defs, s, i, 1, m) : L10n.T("row.needprev");
+                _cardInfo.text = previousOpen ? StationRowView.Describe(defs, s, i, 1, m) : StationRowView.LockedReason(defs, s, i);
                 _cardBuyTop.text = L10n.T("row.open");
             }
             else
@@ -1686,7 +1694,7 @@ namespace VuonTra.Game.UI
                 _cardBuyTop.text = capped ? L10n.T("row.maxlevel") : L10n.T("row.upgrade", count);
             }
             // Short of carrots and nothing else: the plate says how many are missing.
-            bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
+            bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(defs, s, i)));
             if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
             _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
             if (_cardBuyCarrot.activeSelf == capped) _cardBuyCarrot.SetActive(!capped); // at the cap nothing is paid, so no carrot (#74)
@@ -3723,7 +3731,7 @@ namespace VuonTra.Game.UI
             // The stations tab counts the stations that could be opened for what is in the purse.
             int openable = 0;
             for (int i = 0; i < defs.Count; i++)
-                if (s.Levels[i] <= 0 && Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1)) openable++;
+                if (s.Levels[i] <= 0 && Economy.CanUnlock(defs, s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1)) openable++;
             if (_stationBadgeRect.gameObject.activeSelf != (openable > 0)) _stationBadgeRect.gameObject.SetActive(openable > 0);
             _stationBadgeText.text = openable.ToString();
             _clovers.text = L10n.T("quests.clovers", s.Clovers);
@@ -3816,7 +3824,7 @@ namespace VuonTra.Game.UI
                 {
                     // The price sign: what it costs to build, or how many carrots are still missing for the next one.
                     BigNum cost = Economy.CostOfNext(defs[i], 0, 1);
-                    bool next = Economy.CanUnlock(s, i), can = next && s.Coins >= cost;
+                    bool next = Economy.CanUnlock(defs, s, i), can = next && s.Coins >= cost;
                     _actors[i].SetSign(next && !can ? L10n.T("plot.short", (cost - s.Coins).Short()) : L10n.T("plot.build", cost.Short()), can);
                 }
                 _actors[i].SetCanUpgrade(CanAfford(defs, s, i));
@@ -3980,7 +3988,7 @@ namespace VuonTra.Game.UI
         {
             if (i >= s.Plots) return Expansion.CanExpand(defs, s);
             int level = s.Levels[i];
-            if (level <= 0) return Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1);
+            if (level <= 0) return Economy.CanUnlock(defs, s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1);
             int count = Simulation.BuyCount(defs, s, i);
             return count > 0 && s.Coins >= Economy.CostOfNext(defs[i], level, count);
         }

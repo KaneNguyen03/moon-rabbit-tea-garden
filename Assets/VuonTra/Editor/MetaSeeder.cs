@@ -77,6 +77,10 @@ namespace VuonTra.EditorTools
                 new Q { Id = "mo-2",      Title = "Đánh thức bé thỏ thứ hai",       Metric = QuestMetric.StationsOpen,  Target = 2,  Seconds = 12,  Carrots = 60 },
                 new Q { Id = "mo-4",      Title = "Có 4 trạm đang hoạt động",       Metric = QuestMetric.StationsOpen,  Target = 4,  Seconds = 90,  Carrots = 500,  Clovers = 2 },
                 new Q { Id = "mo-8",      Title = "Cả 8 bé thỏ đều thức",           Metric = QuestMetric.StationsOpen,  Target = 8,  Seconds = 360, Carrots = 5000, Clovers = 5 },
+                // The four stations after the star observatory (#67). Clovers only: with five golden carrots each as well, the
+                // casual player of EconomySimulationTests called with golden carrots seven or eight times a week (the rule is six).
+                new Q { Id = "mo-12",     Title = "Cả 12 bé thỏ đều thức",          Metric = QuestMetric.StationsOpen,  Target = 12, Seconds = 600, Carrots = 5e4, Clovers = 5 },
+                new Q { Id = "mo-16",     Title = "Có 16 trạm",                     Metric = QuestMetric.StationsOpen,  Target = 16, Seconds = 900, Carrots = 1e5, Clovers = 5 },
                 new Q { Id = "tra-10",    Title = "Ấm trà sương đạt cấp 10",        Metric = QuestMetric.StationLevel,  Station = "am-tra", Target = 10, Seconds = 18, Carrots = 100 },
                 new Q { Id = "tra-25",    Title = "Ấm trà sương đạt cấp 25",        Metric = QuestMetric.StationLevel,  Station = "am-tra", Target = 25, Seconds = 60, Carrots = 500, Clovers = 1 },
                 new Q { Id = "tra-50",    Title = "Ấm trà sương đạt cấp 50",        Metric = QuestMetric.StationLevel,  Station = "am-tra", Target = 50, Seconds = 180, Carrots = 5000, Clovers = 2 },

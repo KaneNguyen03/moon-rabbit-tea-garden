@@ -20,6 +20,7 @@ MonoBehaviour:
   CostGrowth: 1.14
   BaseIncome: 0
   CycleSeconds: 0
+  NeedGardenLevel: 0
   Boosts:
   - {fileID: 11400000, guid: 8807bc36796d44c7e98c1e893bab9f86, type: 2}
   - {fileID: 11400000, guid: 73d97d3febd0944eabfe1797453c3405, type: 2}

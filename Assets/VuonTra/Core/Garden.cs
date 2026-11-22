@@ -133,6 +133,12 @@ namespace VuonTra.Core
             new ForestRing { RadiusAfter = 5, NeedLevel = 6,  NeedRabbits = 6 },
             new ForestRing { RadiusAfter = 6, NeedLevel = 10, NeedRabbits = 10 },
             new ForestRing { RadiusAfter = 7, NeedLevel = 15, NeedKinds = 8 },
+            // The rings for the four stations after the star observatory (#67b): each asks for the garden level of the first
+            // station it makes room for (16 for the lotus garden, 20 for the rice paddy), not the five more a ring of the rule
+            // below would ask (20 and 25), so a casual player opens the thirteenth station on day four or five and the sixteenth
+            // by day nine to twelve. Past these the rule takes over again: R 10 asks for 25, R 11 for 30.
+            new ForestRing { RadiusAfter = 8, NeedLevel = 16, NeedKinds = 8 },
+            new ForestRing { RadiusAfter = 9, NeedLevel = 20, NeedKinds = 8 },
         };
 
         /// <summary>The ring that widens the lawn to <paramref name="radiusAfter"/> rings; past the table, five levels more each time. Null for no such ring.</summary>

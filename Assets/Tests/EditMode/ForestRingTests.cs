@@ -70,9 +70,12 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Past_The_Table_Every_Ring_Asks_Five_Levels_More()
         {
-            Assert.AreEqual(20, Expansion.Ring(8).NeedLevel);
-            Assert.AreEqual(25, Expansion.Ring(9).NeedLevel);
-            Assert.AreEqual(8, Expansion.Ring(9).NeedKinds);
+            // R 8 and R 9 are in the table (#67b): they ask for the levels of the stations they make room for, 16 and 20.
+            Assert.AreEqual(16, Expansion.Ring(8).NeedLevel);
+            Assert.AreEqual(20, Expansion.Ring(9).NeedLevel);
+            Assert.AreEqual(25, Expansion.Ring(10).NeedLevel);
+            Assert.AreEqual(30, Expansion.Ring(11).NeedLevel);
+            Assert.AreEqual(8, Expansion.Ring(10).NeedKinds);
             Assert.IsNull(Expansion.Ring(3), "the lawn starts three rings wide");
             Assert.IsNull(Expansion.Ring(GardenGrid.MaxRadius + 1));
             Assert.AreEqual(7, Expansion.LastRadius(defs), "twelve stations: the forest steps back to seven rings");

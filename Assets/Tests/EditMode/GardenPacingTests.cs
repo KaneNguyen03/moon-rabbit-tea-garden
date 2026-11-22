@@ -21,7 +21,7 @@ namespace VuonTra.Core.Tests
         System.Random rng;
         double clock; // seconds of the player's day
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
-        readonly double[] waveLevelAt = new double[4], waveRabbitsAt = new double[4], waveTakenAt = new double[4];
+        readonly double[] waveLevelAt = new double[Expansion.Rings.Length], waveRabbitsAt = new double[Expansion.Rings.Length], waveTakenAt = new double[Expansion.Rings.Length];
         int summoned;
         /// <summary>How the simulated player plays: taps a second, seconds between purchases, seconds between looking at quests.</summary>
         int tapsPerSecond = 1, buyEvery = 3, buysAtOnce = 1, questEvery = 30;
@@ -69,13 +69,16 @@ namespace VuonTra.Core.Tests
             tapsPerSecond = 1; buyEvery = 3; buysAtOnce = 1; questEvery = 30; // NUnit keeps one instance: a tireless test before must not set the pace of the next
             levelAt.Clear();
             summoned = 0;
-            for (int i = 0; i < 4; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
+            for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
             trace.Clear();
             openJars = true;
             today = 1;
             jarsHeld = jarsOpened = 0;
             earnedJars = BigNum.Zero;
             freeJars.Clear();
+            newStationOpenedOn.Clear();
+            newStationOpenedAt.Clear();
+            levelOnDay.Clear();
             meetFrogs = true;
             frogsMet = frogClovers = 0;
             earnedFrogs = BigNum.Zero;
@@ -219,7 +222,7 @@ namespace VuonTra.Core.Tests
                 s.BuyMode = 1;
                 for (int i = 0; i < defs.Count; i++)
                 {
-                    if (s.Levels[i] == 0 && !Economy.CanUnlock(s, i)) continue;
+                    if (s.Levels[i] == 0 && !Economy.CanUnlock(defs, s, i)) continue;
                     BigNum cost = Economy.CostOfNext(defs[i], s.Levels[i], 1);
                     if (best < 0 || cost < bestCost) { best = i; bestCost = cost; bestIsUpgrade = false; }
                 }
@@ -253,6 +256,7 @@ namespace VuonTra.Core.Tests
 
         void Note()
         {
+            NoteNewStations();
             int level = Garden.Level(s);
             for (int l = 2; l <= level; l++)
                 if (!levelAt.ContainsKey(l)) levelAt[l] = clock;
@@ -346,7 +350,7 @@ namespace VuonTra.Core.Tests
         /// The casual player's week: on the first day twenty minutes at the start, then four visits of five minutes, two
         /// hours apart; on days two to seven three visits of five minutes each, dailies renewed each morning.
         /// </summary>
-        void CasualWeek(System.Action endOfDayOne = null)
+        void CasualWeek(System.Action endOfDayOne = null, int lastDay = 7)
         {
             Play(20 * 60);
             for (int visit = 0; visit < 4; visit++)
@@ -355,7 +359,7 @@ namespace VuonTra.Core.Tests
                 Play(5 * 60);
             }
             endOfDayOne?.Invoke();
-            for (int day = 2; day <= 7; day++)
+            for (int day = 2; day <= lastDay; day++)
             {
                 Away(8 * 3600);
                 today = day;
@@ -389,7 +393,7 @@ namespace VuonTra.Core.Tests
             report.AppendLine("Cuối ngày 1: cấp " + levelDayOne + ", " + rabbitsDayOne + " thỏ, " + kindsDayOne + " loài đã gặp, " + plotsDayOne + " ô đất (R " + GardenGrid.RadiusForPlots(plotsDayOne) + ")");
             report.AppendLine("Cuối ngày 7: cấp " + Garden.Level(s) + ", " + s.Rabbits.Count + " thỏ, " + s.SeenKinds.Count + " loài đã gặp, " + s.Plots + " ô đất (R " + Expansion.Radius(s) + "), đã gọi " + summoned + " lần");
             report.AppendLine("Sổ thỏ: cuối ngày 1 đủ " + setsDayOne.Count + " bộ (" + string.Join(", ", setsDayOne.ConvertAll(x => x.Key)) + "), cuối ngày 7 đủ " + AlbumSets.Completed(s).Count + " bộ (" + string.Join(", ", AlbumSets.Completed(s).ConvertAll(x => x.Key)) + ")");
-            for (int w = 0; w < 4; w++)
+            for (int w = 0; w < waveLevelAt.Length; w++)
                 report.AppendLine("  vòng rừng R " + Expansion.Rings[w].RadiusAfter + ": đủ cấp lúc " + Clock(waveLevelAt[w]) + ", đủ thỏ lúc " + Clock(waveRabbitsAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
             report.AppendLine(JarLine() + "; mở ngay khi ví cho mở (cấp vườn 3)");
             report.AppendLine(FrogLine());
@@ -526,5 +530,64 @@ namespace VuonTra.Core.Tests
             Assert.LessOrEqual(fiveAfter, 12 * 60, "and still within twelve\n" + report);
             Assert.Greater(fishCaught, 0, "the casual player does catch fish\n" + report);
         }
+
+        #region Four new stations (#67a, #67b)
+
+        /// <summary>The day each station after the twelfth was opened, by its index.</summary>
+        readonly Dictionary<int, long> newStationOpenedOn = new Dictionary<int, long>();
+        readonly Dictionary<int, double> newStationOpenedAt = new Dictionary<int, double>();
+        /// <summary>The garden level at the end of each day of play.</summary>
+        readonly SortedDictionary<long, int> levelOnDay = new SortedDictionary<long, int>();
+
+        void NoteNewStations()
+        {
+            levelOnDay[today] = Garden.Level(s);
+            for (int i = 12; i < defs.Count; i++)
+                if (s.Levels[i] > 0 && !newStationOpenedOn.ContainsKey(i)) { newStationOpenedOn[i] = today; newStationOpenedAt[i] = clock; }
+        }
+
+        string NewStationLine(int i) => "  trạm " + (i + 1) + " (" + defs[i].Name + ", cấp vườn " + defs[i].NeedGardenLevel + "): "
+            + (newStationOpenedOn.ContainsKey(i) ? "mở ngày " + newStationOpenedOn[i] + " (" + Clock(newStationOpenedAt[i]) + " trên đồng hồ chơi)" : "chưa mở");
+
+        /// <summary>
+        /// The four stations after the star observatory (#67): the casual player of the week above, played on to day fourteen,
+        /// opens the eighth and ninth rings of the forest (#53) when the garden is grown enough, and with them the thirteenth
+        /// station on day three to five and the sixteenth on day eight to twelve.
+        /// </summary>
+        [Test]
+        public void A_Casual_Player_Opens_Station_Thirteen_On_Day_Three_To_Five_And_Sixteen_On_Day_Eight_To_Twelve()
+        {
+            Assert.AreEqual(16, defs.Count, "four stations after the star observatory");
+            CasualWeek(null, 14);
+            var report = new StringBuilder();
+            report.AppendLine("Bốn trạm mới (#67), người chơi thong thả như trên, chơi tới ngày 14; đất cho trạm 13–16 là vòng rừng R 8 (cấp " + Expansion.Ring(8).NeedLevel + ") và R 9 (cấp " + Expansion.Ring(9).NeedLevel + "), giá một phần tư giá hai trạm.");
+            for (int i = 12; i < defs.Count; i++) report.AppendLine(NewStationLine(i));
+            for (int w = 0; w < waveLevelAt.Length; w++)
+                report.AppendLine("  vòng rừng R " + Expansion.Rings[w].RadiusAfter + " (cấp " + Expansion.Rings[w].NeedLevel + "): đủ cấp lúc " + Clock(waveLevelAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
+            foreach (int level in new[] { 10, 15, 16, 18, 20, 22, 23 })
+                report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt"));
+            var days = new List<string>();
+            foreach (KeyValuePair<long, int> d in levelOnDay) days.Add("ngày " + d.Key + ": " + d.Value);
+            report.AppendLine("  cấp vườn cuối mỗi ngày: " + string.Join(", ", days));
+            report.AppendLine("Cuối ngày 14: cấp " + Garden.Level(s) + ", thu/giây " + Economy.IncomePerSecond(defs, s).ToShortString() + ", " + s.Plots + " ô đất, bãi cỏ R " + Expansion.Radius(s));
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/garden-pacing-67.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            Assert.AreEqual(defs.Count, s.Plots, "every station has its land by day fourteen\n" + report);
+            Assert.IsTrue(newStationOpenedOn.ContainsKey(12), "station 13 never opened\n" + report);
+            Assert.GreaterOrEqual(newStationOpenedOn[12], 3, "station 13 not before day three\n" + report);
+            Assert.LessOrEqual(newStationOpenedOn[12], 5, "station 13 by day five\n" + report);
+            Assert.IsTrue(newStationOpenedOn.ContainsKey(15), "station 16 never opened\n" + report);
+            Assert.GreaterOrEqual(newStationOpenedOn[15], 8, "station 16 not before day eight\n" + report);
+            Assert.LessOrEqual(newStationOpenedOn[15], 12, "station 16 by day twelve\n" + report);
+            for (int i = 13; i < defs.Count; i++)
+            {
+                Assert.IsTrue(newStationOpenedOn.ContainsKey(i), "station " + (i + 1) + " never opened\n" + report);
+                Assert.GreaterOrEqual(newStationOpenedOn[i], newStationOpenedOn[i - 1], "in order\n" + report);
+            }
+        }
+
+        #endregion
     }
 }

@@ -728,6 +728,14 @@ namespace VuonTra.EditorTools
             { "mail.lastday", "hôm nay là ngày cuối", "last day today" },
             { "mail.claim", "Nhận", "Claim" },
             { "mail.claimed", "Đã nhận {0}", "Claimed {0}" },
+            // ----- four stations after the star observatory (#67a) -----
+            { "station.ho-sen", "Vườn hoa sen", "Lotus Garden" },
+            { "station.lo-keo", "Lò kẹo mạch nha", "Malt Candy Kiln" },
+            { "station.ruong-nep", "Ruộng lúa nếp", "Sticky Rice Paddy" },
+            { "station.thuyen-tra", "Thuyền trà đêm", "Night Tea Boat" },
+            { "quest.mo-12", "Cả 12 bé thỏ đều thức", "All 12 rabbits awake" },
+            { "quest.mo-16", "Có 16 trạm", "Have 16 stations" },
+            { "row.needlevel", "Cần vườn cấp {0}", "Needs garden level {0}" },
             // ----- rewarded ad seams and the no-ads pass (#66) -----
             { "ad.away", "Xem 30 giây · nhận ×2", "Watch 30 s · collect ×2" },
             { "ad.away.now", "Nhận ngay ×2", "Collect ×2 now" },

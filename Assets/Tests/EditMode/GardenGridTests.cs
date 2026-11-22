@@ -115,7 +115,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(7, GardenGrid.RadiusForPlots(12));
             // Everything the full garden holds has a tile of its own on the default table, inside the final lawn.
             var taken = new HashSet<Hex>();
-            for (int i = 0; i < 12; i++) { Hex h = GardenGrid.DefaultStationTile(i); Assert.IsTrue(taken.Add(h), "station " + i); Assert.LessOrEqual(GardenGrid.Distance(h), GardenGrid.RadiusForPlots(i + 1), "station " + i + " stands on the lawn its wave opens"); }
+            for (int i = 0; i < 16; i++) { Hex h = GardenGrid.DefaultStationTile(i); Assert.IsTrue(taken.Add(h), "station " + i); Assert.LessOrEqual(GardenGrid.Distance(h), GardenGrid.RadiusForPlots(i + 1), "station " + i + " stands on the lawn its wave opens"); }
             for (int n = 0; n < RestSpots.Max; n++) { Hex h = GardenGrid.DefaultRestTile(n); Assert.IsTrue(taken.Add(h), "rest " + n); Assert.LessOrEqual(GardenGrid.Distance(h), GardenGrid.RadiusForPlots(12)); }
             for (int n = 0; n < Decor.Spots; n++) { Hex h = GardenGrid.DefaultDecorTile(n); Assert.IsTrue(taken.Add(h), "decor " + n); Assert.LessOrEqual(GardenGrid.Distance(h), GardenGrid.RadiusForPlots(12)); }
             foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId }) Assert.IsTrue(taken.Add(GardenGrid.DefaultTile(id, defs)), id);
@@ -123,8 +123,9 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(GardenGrid.TileCount(GardenGrid.RadiusForPlots(12)), taken.Count, "the final lawn has a tile for everything");
             // The first four stations stand on the starting lawn, and later stations carry on downward without meeting.
             for (int i = 0; i < 4; i++) Assert.LessOrEqual(GardenGrid.Distance(GardenGrid.DefaultStationTile(i)), GardenGrid.StartingRadius);
-            Assert.AreNotEqual(GardenGrid.DefaultStationTile(12), GardenGrid.DefaultStationTile(13));
-            Assert.Greater(GardenGrid.DefaultStationTile(12).R, GardenGrid.DefaultStationTile(11).R);
+            // Past the sixteen of the table (#67b), they carry on downward without meeting.
+            Assert.AreNotEqual(GardenGrid.DefaultStationTile(16), GardenGrid.DefaultStationTile(17));
+            Assert.Greater(GardenGrid.DefaultStationTile(16).R, GardenGrid.DefaultStationTile(11).R);
         }
 
         [Test]

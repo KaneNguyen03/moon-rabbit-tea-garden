@@ -560,6 +560,10 @@ namespace VuonTra.Game
                 case "tiem-banh": return "crackle"; // the mooncake oven
                 case "suoi-hoa": return "stream";   // the flower spring
                 case "dai-sao": return "tinkle";    // the observatory's star chimes
+                case "ho-sen": return "stream";     // water round the lotus leaves (#67)
+                case "lo-keo": return "simmer";     // malt syrup bubbling down to candy
+                case "ruong-nep": return "rustle";  // rice stalks in the paddy
+                case "thuyen-tra": return "boil";   // a kettle on the night boat
                 default: return null;
             }
         }

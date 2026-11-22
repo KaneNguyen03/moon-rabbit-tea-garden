@@ -18,12 +18,13 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Has_Twelve_Stations_In_Unlock_Order()
+        public void Has_Sixteen_Stations_In_Unlock_Order()
         {
             var ids = new List<string>();
             foreach (StationData s in catalog.Stations) ids.Add(s.Id);
             CollectionAssert.AreEqual(
-                new[] { "am-tra", "gio-la", "noi-mut", "coi-hoa", "lo-banh", "to-mat", "tra-sua", "binh-sao", "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao" }, ids);
+                new[] { "am-tra", "gio-la", "noi-mut", "coi-hoa", "lo-banh", "to-mat", "tra-sua", "binh-sao", "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao",
+                        "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" }, ids); // the four after the star observatory (#67)
         }
 
         [Test]
@@ -69,9 +70,9 @@ namespace VuonTra.Core.Tests
             foreach (StationData s in catalog.Stations) Assert.IsNotNull(s.Prop, s.Id);
             Assert.IsNotNull(catalog.Rabbit);
             // A station either has its own dressed rabbit or wears the shared tinted scarf.
-            // The four newest stations have no costume drawn yet and show the plain shared rabbit.
+            // The eight newest stations have no costume drawn yet and show the plain shared rabbit.
             // Remove an id from this list when its rabbit_<id>.png lands in Art/Final.
-            var awaitingArt = new HashSet<string> { "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao" };
+            var awaitingArt = new HashSet<string> { "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao", "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" };
             foreach (StationData s in catalog.Stations)
                 if (s.Rabbit == null && !awaitingArt.Contains(s.Id))
                     Assert.IsNotNull(catalog.Scarf, s.Id + " has neither its own rabbit nor a scarf");
@@ -84,7 +85,7 @@ namespace VuonTra.Core.Tests
         public void Defs_Carry_The_Boost_Links()
         {
             List<StationDef> defs = catalog.BuildDefs();
-            Assert.AreEqual(12, defs.Count);
+            Assert.AreEqual(16, defs.Count, "twelve stations and the four after the star observatory (#67)");
             Assert.IsTrue(defs[1].Boosts("am-tra"));
             Assert.IsFalse(defs[1].Boosts("noi-mut"));
         }
