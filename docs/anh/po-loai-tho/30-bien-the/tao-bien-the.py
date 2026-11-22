@@ -46,6 +46,8 @@ V=[
  ("tho-bang","Thỏ Băng","Ice Rabbit",2,"Stargazer","tho-suong",None,1,1,(.72,.93,1.0),None),
  ("tho-anh-dao","Thỏ Anh Đào","Cherry Blossom Rabbit",3,"Gatherer","tho-oai-huong",336,1.3,1.0,None,None),
  ("tho-luu-ly","Thỏ Lưu Ly","Forget-me-not Rabbit",3,"Gatherer","tho-oai-huong",214,1.45,1.0,None,None),
+ # Việt Quất và Dâu Tây: xoay toàn ảnh làm lông kem đổi màu theo (#14); hai con này giờ xuất bằng sua-14-viet-quat-dau-tay.py
+ # (chỉ xoay vùng tím của tai và lưng, giữ lông kem và má). Hai dòng dưới giữ cho sheet30 đủ 30 con.
  ("tho-viet-quat","Thỏ Việt Quất","Blueberry Lop",3,"Baker","tho-khoai-mon",-38,1.25,.88,None,None),
  ("tho-dau-tay","Thỏ Dâu Tây","Strawberry Lop",3,"Baker","tho-khoai-mon",44,1.2,1.0,None,None),
  ("tho-hoa-nhai","Thỏ Hoa Nhài","Jasmine Rabbit",3,"Brewer","tho-oai-huong",50,.45,1.08,None,None),
