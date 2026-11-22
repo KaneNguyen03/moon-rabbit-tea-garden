@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Game;
+using VuonTra.Game.Platform;
 using VuonTra.Game.UI;
 using L10n = VuonTra.Game.L10n;
 using Motion = VuonTra.Game.UI.Motion;
@@ -41,6 +42,9 @@ namespace VuonTra.Core.Tests
             Object.DestroyImmediate(root);
             Motion.SetReduced(false);
             Haptics.SetOn(true);
+            Notifications.Notifier = new FakeNotifier();
+            Notifications.SetOn(false);
+            Notifications.Notifier = new LogNotifier();
             L10n.SetLocale("vi");
         }
 
@@ -1086,6 +1090,99 @@ namespace VuonTra.Core.Tests
             int quiet = Haptics.Count;
             Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
             Assert.AreEqual(quiet, Haptics.Count, "switched off: nothing buzzes");
+        }
+
+        // ----- device reminders (#65) -----
+
+        sealed class FakeNotifier : INotifier
+        {
+            public bool Grant = true;
+            public int Asked, Cancelled;
+            public List<Notice> Scheduled = new List<Notice>();
+            public void RequestPermission(System.Action<bool> done) { Asked++; done(Grant); }
+            public void Schedule(IReadOnlyList<Notice> notices) => Scheduled.AddRange(notices);
+            public void CancelAll() { Cancelled++; Scheduled.Clear(); }
+        }
+
+        /// <summary>What the engine calls when the app goes to the background or comes back (SendMessage does not run in edit mode).</summary>
+        void AppPause(bool paused) =>
+            typeof(GameRunner).GetMethod("OnApplicationPause", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .Invoke(runner, new object[] { paused });
+
+        [Test]
+        public void Remind_Me_Is_Off_At_First_And_Asks_Permission_Only_When_Turned_On()
+        {
+            var fake = new FakeNotifier();
+            Notifications.Notifier = fake;
+            Notifications.SetOn(false);
+            fake.Asked = 0;
+            screen.Shell.StartGame();
+            screen.Shell.OpenPause();
+            Assert.AreEqual("Nhắc tôi", root.transform.Find("Canvas/Pause/Card/Remind Label").GetComponent<Text>().text);
+            Text pill = root.transform.Find("Canvas/Pause/Card/Remind/Text").GetComponent<Text>();
+            Assert.AreEqual("Tắt", pill.text, "off until the player turns it on");
+            Assert.AreEqual(0, fake.Asked, "opening the game and the card asks nothing");
+
+            Find("Canvas/Pause/Card/Remind").onClick.Invoke();
+            Assert.IsTrue(Notifications.On);
+            Assert.AreEqual(1, fake.Asked, "turning it on asks once");
+            Assert.AreEqual("Bật", pill.text);
+            Assert.AreEqual(1, PlayerPrefs.GetInt("remind.on", 0), "kept for the next launch");
+
+            Find("Canvas/Pause/Card/Remind").onClick.Invoke();
+            Assert.IsFalse(Notifications.On);
+            Assert.AreEqual(1, fake.Asked, "turning it off asks nothing");
+            Assert.AreEqual("Tắt", pill.text);
+        }
+
+        [Test]
+        public void Remind_Me_Goes_Back_Off_When_Permission_Is_Refused()
+        {
+            var fake = new FakeNotifier { Grant = false };
+            Notifications.Notifier = fake;
+            Notifications.SetOn(false);
+            screen.Shell.StartGame();
+            screen.Shell.OpenPause();
+            Find("Canvas/Pause/Card/Remind").onClick.Invoke();
+            Assert.AreEqual(1, fake.Asked);
+            Assert.IsFalse(Notifications.On, "refused: the switch is off again");
+            Assert.AreEqual("Tắt", root.transform.Find("Canvas/Pause/Card/Remind/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void Going_To_The_Background_Registers_The_Reminders_In_The_Players_Language_And_Coming_Back_Cancels_Them()
+        {
+            var fake = new FakeNotifier();
+            Notifications.Notifier = fake;
+            Notifications.SetOn(true);
+            runner.State.LastSeenUnixSeconds = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            AppPause(true);
+            Assert.That(fake.Scheduled.Count, Is.InRange(2, Reminders.MaxCount), "the list is handed over");
+            var bodies = new List<string>();
+            foreach (Notice n in fake.Scheduled)
+            {
+                Assert.AreEqual("Vườn Trà Thỏ Trăng", n.Title);
+                bodies.Add(n.Body);
+            }
+            CollectionAssert.Contains(bodies, L10n.T("remind.gift"));
+            CollectionAssert.Contains(bodies, L10n.T("remind.missyou"));
+
+            int cancelled = fake.Cancelled;
+            AppPause(false);
+            Assert.AreEqual(cancelled + 1, fake.Cancelled, "back in front: all taken away");
+            Assert.IsEmpty(fake.Scheduled);
+
+            L10n.SetLocale("en");
+            AppPause(true);
+            Assert.AreEqual("Moon Rabbit Tea Garden", fake.Scheduled[0].Title);
+            bodies.Clear();
+            foreach (Notice n in fake.Scheduled) bodies.Add(n.Body);
+            CollectionAssert.Contains(bodies, "We haven't seen you for a while. The rabbits miss you.");
+
+            Notifications.SetOn(false);
+            AppPause(true);
+            Assert.IsEmpty(fake.Scheduled, "switched off: nothing is registered");
         }
 
         [Test]

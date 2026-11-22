@@ -52,3 +52,10 @@ Code đã có: `Core/Storefront.cs` (ba gói consumable `vuontra.golden.50`, `vu
 4. **Xác minh biên lai**: Services → In-App Purchasing → **Receipt Validation Obfuscator**, dán Google Play public key (lấy ở bước Android), bấm Obfuscate: Unity sinh `GooglePlayTangle` và `AppleTangle` vào `Assets/`. Rồi thêm define **`RECEIPT_VALIDATION`** (Player Settings → Scripting Define Symbols, cho iOS và Android) để `TangleReceiptCheck` được biên dịch và thay `AcceptAllReceipts`. Chưa có tangle thì để nguyên define tắt: mọi biên lai được chấp nhận (chỉ dùng khi thử).
 5. **Thử sandbox**: tạo Sandbox Tester trong Users and Access, đăng nhập tài khoản đó trong Cài đặt → App Store → Sandbox Account trên máy thử; mua một gói, thấy cà rốt vàng cộng đúng một lần; đóng app giữa chừng rồi mở lại: giao dịch dang dở tự giao (`Delivered`); "Khôi phục mua hàng" không cộng lặp (save nhớ 64 mã giao dịch gần nhất).
 6. **Biên lai bị từ chối** (khi bật `RECEIPT_VALIDATION`): game báo "mua không thành" nhưng KHÔNG hoàn tất giao dịch với cửa hàng (`PurchaseProcessingResult.Pending`), nên lần mở app sau App Store đưa lại giao dịch đó để kiểm biên lai lần nữa; tiền không bị nuốt.
+
+## 6. Nhắc tôi: thông báo tại máy (#65)
+
+- Gói `com.unity.mobile.notifications` 2.5.0 đã có trong `Packages/manifest.json`; `VuonTra.Game.asmdef` bật `VUONTRA_NOTIFICATIONS` khi có gói. Code gọi gói nằm trong `MobileNotifier` (`Assets/VuonTra/Game/Platform/Notifications.cs`), chỉ biên dịch khi `(UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR`.
+- Không xin quyền lúc mở app: `Assets/VuonTra/Editor/Notifications/NotificationsBuildSettings.cs` tắt *Request Authorization on App Launch* trước mỗi bản iOS (log `[VuonTra] Notifications: no permission request at launch`). Quyền chỉ được hỏi khi người chơi bật "Nhắc tôi" ở Tạm nghỉ.
+- Không cần capability Push Notifications (chỉ là thông báo cục bộ).
+- Thử trên máy (sau #41): bật "Nhắc tôi" → hộp xin quyền hiện một lần; vào nền rồi chỉnh giờ máy tới 9:00 hôm sau → thấy "Quà ngày mới đang chờ…"; chạm thông báo mở game; mở game lại thì mọi nhắc còn chờ bị xoá (Cài đặt → Thông báo không còn mục treo).

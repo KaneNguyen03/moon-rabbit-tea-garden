@@ -127,6 +127,8 @@ namespace VuonTra.Game
                 // (Game Center and iCloud on iOS, #39; Play Games and Saved Games on Android, #40; nothing elsewhere).
                 PlatformServices.Install(this);
                 Platform.AndroidServices.Install(this);
+                // Reminders left for the time away are not needed once the game is open (#65).
+                Notifications.CameBack();
                 SyncNow(SyncReason.Open);
             }
         }
@@ -932,12 +934,19 @@ namespace VuonTra.Game
             {
                 Save();
                 SyncNow(SyncReason.Background);
+                PlanReminders();
             }
+            else if (!paused && _ready) Notifications.CameBack();
         }
 
         void OnApplicationQuit()
         {
-            if (_ready) Save();
+            if (!_ready) return;
+            Save();
+            PlanReminders();
         }
+
+        /// <summary>The device reminders (#65), planned again from the garden as it is left; an empty list while switched off.</summary>
+        void PlanReminders() => Notifications.GoingAway(State, Mods, DateTimeOffset.Now);
     }
 }

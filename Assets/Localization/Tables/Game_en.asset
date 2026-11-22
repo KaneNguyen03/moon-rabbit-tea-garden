@@ -2804,6 +2804,38 @@ MonoBehaviour:
     m_Localized: Don't I look nice today?
     m_Metadata:
       m_Items: []
+  - m_Id: 374145534648320
+    m_Localized: Remind me
+    m_Metadata:
+      m_Items: []
+  - m_Id: 374145555619840
+    m_Localized: Moon Rabbit Tea Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 374145555619841
+    m_Localized: The tray is full and the rabbits are rested. Come sell the treats!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 374145555619842
+    m_Localized: A new daily gift is waiting, and a new rabbit is visiting the shop.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 374145555619843
+    m_Localized: '{0} is here! Come meet a new friend in the garden.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 374145555619844
+    m_Localized: We haven't seen you for a while. The rabbits miss you.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 374145555619845
+    m_Localized: Reminders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 374145555619846
+    m_Localized: Full tray, daily gift, new season
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
