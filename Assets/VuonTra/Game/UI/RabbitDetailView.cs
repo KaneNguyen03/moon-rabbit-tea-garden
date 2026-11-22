@@ -172,11 +172,10 @@ namespace VuonTra.Game.UI
 
             var plate = UiKit.Rect("Kind", _body).Place(0f, 1f, 420 + 210, -150, 420, 46);
             plate.AddImage(_catalog.Panel, tier, true);
-            Text plateText = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 12, 0, 12, 0)
-                .AddText(L10n.T("detail.kind", L10n.Kind(r), L10n.Rarity(r.Tier)), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
-            plateText.resizeTextForBestFit = true;
-            plateText.resizeTextMinSize = 15;
-            plateText.resizeTextMaxSize = 24;
+            // A long kind with its tier and stars ("Thỏ Đèn Lồng · bậc Vàng ★★★★★") shrinks to stay on one line in the pill (#81).
+            UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 12, 0, 12, 0)
+                .AddText(L10n.T("detail.kind", L10n.Kind(r), L10n.Rarity(r.Tier)), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)
+                .FitOneLine(420 - 24, 14);
 
             Line("Worth", 186, 54, L10n.T("detail.worth", UiKit.Times(Rabbits.WorkMultiplier(defs, s, r))), 40, Palette.Ink, FontStyle.Bold);
 
@@ -370,7 +369,9 @@ namespace VuonTra.Game.UI
             name.resizeTextMaxSize = 48;
             var plate = UiKit.Rect("Tier", _body).Place(0.5f, 1f, 0, -700, 360, 50);
             plate.AddImage(_catalog.Panel, Palette.Tiers[kind.Tier], true);
-            UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1).AddText(L10n.T("album.kind.tier", L10n.Rarity(kind.Tier), UiKit.Times(Rabbits.Multipliers[kind.Tier])), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 12, 0, 12, 0)
+                .AddText(L10n.T("album.kind.tier", L10n.Rarity(kind.Tier), UiKit.Times(Rabbits.Multipliers[kind.Tier])), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)
+                .FitOneLine(360 - 24, 14);
 
             var tradeChip = UiKit.Rect("Trade", _body).Place(0.5f, 1f, 0, -776, 360, 50);
             tradeChip.AddImage(_catalog.Panel, Palette.Lantern, true);

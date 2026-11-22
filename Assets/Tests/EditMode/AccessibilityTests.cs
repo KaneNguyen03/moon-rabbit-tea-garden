@@ -265,6 +265,40 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(OneLine(row));
         }
 
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void Every_Kind_And_Tier_Pill_Fits_On_One_Line_On_The_Rabbits_Sheet_And_The_Album_Page(string code, bool large)
+        {
+            // #81: "Thỏ Đèn Lồng · bậc Vàng ★★★★★" wrapped in its pill and the stars fell out below it.
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            GameState s = runner.State;
+            var wrong = new List<string>();
+            int pills = 0;
+            foreach (RabbitKind kind in RabbitKinds.All)
+            {
+                Rabbit r = Rabbits.ArriveKind(s, kind.Id, "Bông");
+                screen.Detail.Open(runner.Defs, s, r.Id);
+                Layout();
+                Text own = root.transform.Find("Canvas/RabbitSheet/Card/Body/Kind/Text").GetComponent<Text>();
+                Assert.AreEqual(L10n.T("detail.kind", L10n.Kind(r), L10n.Rarity(r.Tier)), own.text);
+                string line = OneLine(own);
+                if (line != null) wrong.Add(line);
+                screen.Detail.OpenKind(runner.Defs, s, kind.Id);
+                Layout();
+                line = OneLine(root.transform.Find("Canvas/RabbitSheet/Card/Body/Tier/Text").GetComponent<Text>());
+                if (line != null) wrong.Add(line);
+                pills += 2;
+            }
+            screen.Detail.Close();
+            Assert.AreEqual(2 * RabbitKinds.All.Count, pills);
+            Assert.IsEmpty(wrong, wrong.Count + " pills run onto a second line in " + code + (large ? " (large text)" : "") + ":\n" + string.Join("\n", wrong));
+        }
+
         [Test]
         public void The_Photo_Bar_Leaves_The_Frames_Name_And_Date_In_View()
         {
