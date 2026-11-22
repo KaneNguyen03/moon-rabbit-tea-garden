@@ -633,6 +633,18 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: vuốt trái/phải trên tấm trạm (ý cuối của #31).
 
+## #31 — Ý cuối: vuốt trái/phải trên tấm trạm
+
+- Test: 426/426 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 1 test màn hình.
+- Commit `3567671`, đã push. Issue #31 đã đủ năm ý, comment cuối, nhãn chờ-PO-duyệt.
+- File mới: `Assets/VuonTra/Game/UI/CardSwipe.cs` (bắt vuốt ngang trên mặt tấm, ngưỡng 80 px, bỏ qua vuốt chủ yếu theo chiều dọc). `GardenScreen.StepStation(±1)`. Không chuỗi mới, không ảnh mới (không đổi hình).
+
+### Đã làm (đối chiếu với nguyên văn #31)
+- Trên tấm trạm: vuốt trái sang trạm kế, vuốt phải về trạm trước, vườn cuộn theo; dừng ở hai đầu, không vòng; nhích nhẹ hoặc vuốt dọc không tính (test).
+
+### Tồn đọng
+- tồn đọng: cử chỉ thật trên bản Mac/điện thoại chưa ai thử (test gọi thẳng OnEndDrag với toạ độ giả).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -728,13 +740,14 @@ Sau khi sửa cả bốn xanh.
 - #26 phần còn lại (`a754d5f`): thẻ bùa ghi hiệu lực hiện tại → sau một cấp; thanh cấp bằng chấm.
 - #32 hai ý đầu (`386be8e`): chạm ví mở bảng "Cà rốt đến từ đâu"; thanh Trà lực nói còn bao lâu và thở khi đủ.
 - #31 hai ý (`ceca860`): viên ▲/▼ ở mép đếm trạm nâng được hoặc thỏ ngủ gật ngoài tầm nhìn, chạm bay tới; nút ấm trà về tâm vườn.
-- #31 hai ý nữa (`57b1541`, commit gộp với quà liên kết #17 của session kia): chạm một lần ở zoom xa phóng vào; nhớ vị trí và zoom (save v12). Còn vuốt trái/phải trên tấm trạm.
+- #31 hai ý nữa (`57b1541`, commit gộp với quà liên kết #17 của session kia): chạm một lần ở zoom xa phóng vào; nhớ vị trí và zoom (save v12).
+- #31 ý cuối (`3567671`): vuốt trái/phải trên tấm trạm sang trạm kế. #31 đủ năm ý.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (ý cuối của #31, phần còn lại của #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (phần còn lại của #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
