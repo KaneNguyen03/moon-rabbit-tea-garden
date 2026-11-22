@@ -1221,7 +1221,30 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt (cần chủ project)
 - Tài khoản Apple Developer và Google Play Console, ba sản phẩm consumable khai trên hai cửa hàng với đúng ba id trên và giá thật; khoá Google Play → tangle → bật `RECEIPT_VALIDATION`; chạy thử trên máy thật (sandbox). Nâng gói lên Unity IAP 5 (viết lại `UnityStorefront` theo `StoreController`) là việc sau, khi đã có tài khoản.
 
-## Bàn giao (22/11 ~17:40, phiên code thứ hai dừng tại đây)
+## Bàn giao (22/11 ~18:25, cuối ngày: bảng issue đã cạn việc của session)
+
+### Trạng thái
+- main = origin/main tới commit này (ngay sau `a3663d6`), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`; `.agent/`, `.agents/`, `.github/`, `skills-lock.json`, `docs/danh-sach-duyet.md` để nguyên).
+- `tools/verify.sh --build` xanh lúc 18:22 trên HEAD `a3663d6` (main sau #1 + #9 + các nhánh của B): seed, 124 ảnh preview, biên dịch, 709/710 EditMode (1 inconclusive có chủ ý trong SeasonTests), build Mac mở chạy, Player.log không exception. Mốc trước: 17:21 trên `1b1907e`.
+- Tối 22/11 chủ project nói "mục tiêu là không dừng khi chưa hoàn thành issue": các issue cần chủ project được làm phần code theo mặc định của đề xuất, phần tài khoản/giá/khoá để lại comment rõ; điều phối đóng nhóm B theo mặc định.
+
+### Việc tối 22/11 (sau mục Bàn giao 17:40)
+- Session này: #1 Mùa trăng mới (`b53d5a4`, 676/677, Thỏ Trăng Non vẽ bằng Antigravity `kind_tho-trang-non.png`); #9 phần code (`cdde124`, 709/710: seam `IStorefront`, ba gói cà rốt vàng, thẻ mua với Khôi phục giao dịch, cộng một lần mỗi giao dịch, `UnityStorefront` cho iOS/Android trên Unity IAP 4.15, cửa hàng giả ở editor); comment đối chiếu + nhãn chờ-PO-duyệt trên #1 và #9; hai dòng trạng thái trong thân #16 đã làm mới.
+- B (agent trong worktree, gộp qua nhánh tích hợp): #33 chữ mực trên nút cam (`09f8a94`, đã đóng); #39 Game Center + iCloud key-value (`59d075c`, `Game/Platform/*`, `Plugins/iOS/CloudKvs.mm`, chỉ biên dịch `#if UNITY_IOS`); #5 chụm trackpad Mac (`73d1611`, `Plugins/macOS/PinchZoom.bundle`); #40 Play Games + Saved Games (`6ae4d55` + `095dcdc` + `86ae0a2`; manifest thêm `com.google.play.games` 2.3.0 + EDM4U, define `VUONTRA_PLAY_GAMES`); `docs/build-ios.md`, `docs/build-android.md`.
+- Điều phối: đóng theo mặc định #43, #46, #30, #49, #17, #38, #7, #15; bản nháp khai báo dữ liệu cửa hàng + nhóm tuổi `docs/khai-bao-du-lieu-cua-hang.md` (#42, hai ô cuối tick); làm mới `docs/danh-sach-duyet.md` cho chủ project.
+
+### Còn mở
+- Cần chủ project: #4 (chơi thử tay bản Mac), #41 (module iOS/Android trên máy build; làm theo hai file docs/build-*.md), #39/#40/#5 (tài khoản Apple/Google, thử máy thật), #9 (tài khoản hai cửa hàng, ba sản phẩm `vuontra.golden.50/150/500`, giá thật, tangle kiểm hoá đơn rồi bật define `RECEIPT_VALIDATION`), #42 (email hỗ trợ và địa chỉ chính sách thật trong `AppInfo`), #16 (hàng đợi).
+- Chờ PO duyệt (chờ-PO-duyệt), tất cả đã có comment + ảnh: #1, #2, #3, #6, #8, #10, #11, #13, #19, #20, #21, #28, #29, #37, #44, #45 và phần code của #5, #39, #40, #41, #42. Chủ project đọc `docs/danh-sach-duyet.md`, đóng hoặc gắn `PO-trả-lại` kèm ý chưa đạt (nhãn tạo khi dùng); session kế sửa `PO-trả-lại` trước.
+- Hình vẽ tay còn thiếu: huy hiệu mùa (#1), chớp mắt/vẫy tai (#28), mốc trạm theo bậc (#49, đã đóng theo mặc định bằng code).
+
+### Lưu ý kỹ thuật mới
+- Mùa trăng mới: mọi số trong `Core/NewMoon.cs` (`FirstLevel`, `LevelStep`, `MaxSeasons`, `BonusPerSeason`, quà); hệ số nằm trong `Modifiers.From` nên mọi nguồn thu hưởng; `RabbitKind.NewMoonOnly` loại khỏi `OfTier`; `RabbitKinds.Special()` = loài mùa + loài trăng non (album). Test `Every_Kind_Has_A_Picture…` đòi mỗi loài một hình thật `kind_<id>.png` trong `Art/Final` (meta chép từ loài cũ, đổi guid).
+- Cửa hàng (#9): `GameRunner.Store` (trường `_storefront`; `_store` là `SaveStore`), `BuyGolden`, `RestorePurchases`; `Storefront.Grant` chỉ cộng khi mã giao dịch chưa có trong `PaidTransactions` (save `paid`, 64 mã); `VuonTra.Game.asmdef` tham chiếu `UnityEngine.Purchasing(.Stores/.Security)` với define `UNITY_PURCHASING` theo gói 4.x; `UnityStorefront` chỉ biên dịch `UNITY_PURCHASING && (UNITY_IOS || UNITY_ANDROID)`; nâng gói lên IAP 5 thì viết lại file này theo `StoreController`.
+- Từ B: `Palette.OnCarrot` và `ChunkyButton.InkFor` trả màu mực cho nút cam; `ICloudSave.MaxBytes`, `SyncOutcome.TooLarge`, `CloudStatus.SignedOut`; `GameRunner.Init` gọi `PlatformServices.Install` + `Platform.AndroidServices.Install` trước `SyncNow(Open)`; `GardenScreen.SimulatePinch` cho test chụm.
+- Vẽ loài thỏ: tấm 3×2 nền `#2E5E49` theo `docs/anh/VE-BANG-ANTIGRAVITY.md`, cắt bằng `/tmp/agy-art/cat-tam-tho-nocorner.py` (bản không xoá góc) ra khung 320×343; hình có vầng sáng (đèn, ánh trăng) để lại viền xanh của nền, chọn ứng viên không có vầng sáng.
+
+## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
 - main = origin/main (tới commit này, ngay sau `1b1907e`), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`; `.agent/`, `.agents/`, `.github/`, `skills-lock.json`, `docs/danh-sach-duyet.md` để nguyên).
