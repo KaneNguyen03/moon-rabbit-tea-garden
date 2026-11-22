@@ -3059,6 +3059,26 @@ MonoBehaviour:
     m_Key: noads.float
     m_Metadata:
       m_Items: []
+  - m_Id: 402840848687104
+    m_Key: frog.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075712
+    m_Key: frog.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075713
+    m_Key: frog.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075714
+    m_Key: frog.sub.clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075715
+    m_Key: quest.ech-5
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

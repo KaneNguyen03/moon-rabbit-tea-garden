@@ -3070,6 +3070,26 @@ MonoBehaviour:
     m_Localized: No ads for {0} days
     m_Metadata:
       m_Items: []
+  - m_Id: 402840848687104
+    m_Localized: Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075712
+    m_Localized: The Frog Rabbit says hello!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075713
+    m_Localized: 'A rainy-day gift: {0} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075714
+    m_Localized: 'A rainy-day gift: {0} carrots and a clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075715
+    m_Localized: Meet the Frog Rabbit 5 times
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
