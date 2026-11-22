@@ -1574,6 +1574,28 @@ Sau khi sửa cả bốn xanh.
 - Bảng quảng cáo (#66) cho kết quả khác nhau giữa các lần chạy giống hệt (129 hoặc 132 thỏ).
 - Phần 58b chưa làm.
 
+## #67 — Bốn trạm mới sau Đài ngắm sao, đất là hai vòng rừng mới (67a + 67b, agent song song, nhánh agent-67a)
+
+- Test: 1065/1066 qua (1 inconclusive, 0 lỗi), 17 test mới so với main (16 trong `FourStationsTests`, 1 trong `GardenPacingTests`); `tools/verify.sh` RESULT GREEN.
+- Commit: 63091ac (67a), 69414ef (gộp main 1840323 cùng 67b), merge vào main 21748d8. Main sau gộp: 1089/1090.
+- Đã làm:
+  - Bốn trạm: Vườn hoa sen (`ho-sen`, tiếp sức, 3e14, tiếp sức Tiệm bánh trung thu và Đài ngắm sao), Lò kẹo mạch nha (`lo-keo`, pha chế, Làm bánh, 4,5e15, 60 giây, 1,2e10), Ruộng lúa nếp (`ruong-nep`, tiếp sức, 6,5e16, tiếp sức Lò kẹo và Trà sữa trăng), Thuyền trà đêm (`thuyen-tra`, pha chế, Pha trà, 1e18, 75 giây, 1,8e11). Growth 1,16–1,17. Mỗi trạm cần cấp vườn 16 / 18 / 20 / 23.
+  - Đất: vòng rừng R 8 (cấp 16) cho hai trạm đầu, R 9 (cấp 20) cho hai trạm sau, giá ¼ giá hai trạm như #53. Bốn trạm đứng thành hàng phía trên tiệm trà và ao; vườn cao thêm 800 ở trên.
+  - Bấm dòng trạm trong tab Trạm thì vườn cuộn tới trạm đó. Nhìn xa giờ thấy bãi cỏ tới tiệm trà; hàng trạm mới cần cuộn lên một chút.
+  - Hình thật cho bốn trạm và hai món; món Lò kẹo và Thuyền trà hiện trong khay và trong đơn khách.
+  - Nhiệm vụ "Cả 12 bé thỏ đều thức" và "Có 16 trạm", mỗi cái 5 cỏ.
+  - Tiếng riêng, tên vi/en; save cũ nhận thêm 4 trạm cấp 0 mà không lệch dữ liệu nào; Mùa trăng mới đưa 4 trạm về 0.
+- Nhịp (so với main): người thong thả không đổi ở cấp 5 / cấp 10 / R 7; mở trạm 13 ngày 5, trạm 14 ngày 6, trạm 15 ngày 7, trạm 16 ngày 9; cuối ngày 7 cấp 21 với 16 ô đất. Người chơi chăm hơn mở R 8 ngày 3, R 9 ngày 4, thu nhập cuối ngày 7 tăng khoảng ×94, gọi bằng cà rốt vàng 6 lần một tuần. Không mô phỏng nào tới cấp 30.
+- Ảnh: `docs/anh/po-67/67-tram-moi-cho.png` (tab Trạm, bốn trạm chờ), `67-xa-truoc-vong-8.png` (nhìn xa, biển "Mở rộng rừng" trước R 8), `67-vong-moi.png` (hàng trạm mới ở đầu vườn), `67-xa-sau-vong-9.png` (nhìn xa sau R 9), `67-tram-moi-mo.png` (tab Trạm sau khi mở), `67-khay-keo.png` (món Lò kẹo trong khay).
+
+### Chưa đạt / cần PO quyết
+- Cấp vườn 16 / 18 / 20 / 23 thay cho 18 / 22 / 26 / 30 của issue; R 8 / R 9 hỏi cấp 16 / 20 thay vì 20 / 25 theo luật +5 của #53. Theo luật cũ người thong thả không mở được trạm 15–16 trước ngày 14 (đứng ở cấp 23 từ ngày 9).
+- Hai nhiệm vụ mới chỉ thưởng 5 cỏ, bỏ 5 cà rốt vàng: có cà rốt vàng thì người chơi chăm hơn gọi bằng cà rốt vàng 7–8 lần một tuần, quá luật 6. Hiện là đúng 6.
+- Thu nhập tăng mạnh vì hai trạm tiếp sức mới rẻ, được nâng cấp cao và nhân giá các trạm chúng tiếp sức (người chơi chăm: khoảng ×94 cuối ngày 7; người không nghỉ tay: khoảng ×600 sau 2 giờ). Nhịp đi theo cấp vườn nên các mốc gần như không đổi.
+- Vườn hoa sen tiếp sức hai trạm một ở đầu vườn một ở cuối vườn, nên chỉ đứng gần Tiệm bánh. Luật "trạm tiếp sức đứng gần" được nới cho bốn trạm mới: gần ít nhất một trạm chúng tiếp sức.
+- Nhìn xa không còn thấy cả vườn: thấy bãi cỏ tới tiệm trà, hàng trạm mới cần cuộn lên; nếu thấy cả vườn thì các trạm dưới cùng bị thanh tab che.
+- Người thong thả không tới cấp 30 trong 14 ngày nên Mùa trăng mới đầu tiên không đến (đã như vậy trên main).
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
