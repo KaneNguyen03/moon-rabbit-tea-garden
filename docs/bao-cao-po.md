@@ -1070,6 +1070,20 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Chưa thử tay trên máy thật; bong bóng chưa có hình riêng; một khách một lúc (chưa có hàng).
 
+## #45 nối hình — chày, bột, bánh, cối trống
+
+- Test: 618/618 EditMode qua. Thêm 1 test màn hình (bột → đang giã → méo một lúc sau Méo → bánh xong trên tấm kết quả; chày hạ xuống rồi về chỗ).
+- Commit `7ca9091`, đã push. Comment lên #45; nhãn chờ-PO-duyệt giữ nguyên.
+- Catalog thêm MortarEmpty, Pestle, Dough, DoughPounded, Cake, CakeDented (seed từ `prop_coi-trong`, `prop_chay`, `banh_bot`, `banh_dang-gia`, `banh_xong`, `banh_meo`). Trong ván: cối trống, chày riêng nghiêng 10° treo trên bột, hạ 60 đơn vị khi giã rồi về (hai mốc cố định); bột thô tới nhịp 15, đang giã từ nhịp 15, méo 0,6 giây sau mỗi Méo, bánh xong khi hết ván; tấm kết quả có hình bánh (xong từ 1 sao, méo khi 0 sao). Cối trong vườn vẫn `prop_coi-gia-banh`.
+- Ảnh (docs/anh/po-45/): `45-vong-chay.png`, `45-deo.png`, `45-ket-qua.png` cập nhật.
+
+## #37 nối hình — bảy món và khay gỗ
+
+- Test: 618/618 EditMode qua; test khay cũ đổi sang kiểm đúng hình món (`product_am-tra`) và đĩa gỗ (`khay_go`).
+- Commit `a7897ba`, đã push. Comment đối chiếu lên #37, nhãn chờ-PO-duyệt (mọi ý làm được bằng code đã có; còn chạm/vuốt thật).
+- Bảy `product_<id>.png` chép vào Art/Final, seed tự gán `StationData.Product`; khay dùng `khay_go` làm đĩa dưới từng món (khung khay vẫn tấm giấy chuẩn vì khay gỗ tròn không kéo dài được thành khung 5 ô).
+- Ảnh (docs/anh/po-37/): `37-khay-hinh.png`.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -1102,6 +1116,7 @@ Sau khi sửa cả bốn xanh.
 - #38 lõi lưu mây (`d88b60c`): phong bì có mã kiểm, `CloudSync` (khi nào đồng bộ, chọn bản, không tự ghi đè), sao lưu trên máy trước khi thay, tấm chọn bản, trạng thái + Lưu ngay + Khôi phục trong Hồ sơ, thời gian chơi trong save. Còn nhà cung cấp thật (#39/#40).
 - Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
+- #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`, `po-49`, `po-41`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
