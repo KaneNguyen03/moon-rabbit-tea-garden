@@ -103,6 +103,23 @@ namespace VuonTra.Game.UI
         readonly List<Image> _tierTradeIcons = new List<Image>();
         // Life in the world: rabbits out for a walk, and ingredients carried between stations.
         sealed class Walker { public RectTransform Rect; public Image Art; public float X0, X1, Y, Speed, Phase; }
+        /// <summary>A rabbit on its way to the station it was just given.</summary>
+        sealed class Traveler { public RectTransform Rect; public long Id; public int Station; public Vector2 From, To; public float T, Duration; }
+        readonly List<Traveler> _travelers = new List<Traveler>();
+        long[] _workerIds = new long[0];
+        bool _worldSeen;
+        /// <summary>A stroll: this share of every period, from the seat out to the lane and back.</summary>
+        public const float StrollPeriod = 48f, StrollShare = 0.5f;
+        /// <summary>Seconds the screen has been animating; what the strolls and sways are timed on.</summary>
+        public float Clock => _clock;
+        /// <summary>How many rabbits are walking to a station right now.</summary>
+        public int TravelersWalking => _travelers.Count;
+        /// <summary>How many rabbits are seated or out strolling from a seat.</summary>
+        public int SeatedCount => _seated;
+        /// <summary>The scenery that moves: trees lean from the root, lanterns swing from the hook and flicker, the pond shimmers.</summary>
+        readonly List<RectTransform> _swayTrees = new List<RectTransform>(), _swayLanterns = new List<RectTransform>();
+        readonly List<Image> _lanternGlows = new List<Image>(), _ripples = new List<Image>();
+        RectTransform _pondGlow;
 
         /// <summary>
         /// Where resting rabbits sit, as offsets from the teapot. The two stumps by the tea table come with the
@@ -570,13 +587,15 @@ namespace VuonTra.Game.UI
                 if (w.Rect.gameObject.activeSelf != strolling) w.Rect.gameObject.SetActive(strolling);
                 if (i < _seats.Count && i < _seated && _seats[i].gameObject.activeSelf == strolling) _seats[i].gameObject.SetActive(!strolling);
                 if (!strolling) continue;
-                float span = w.X1 - w.X0, travelled = _clock * w.Speed + w.Phase;
-                float along = Mathf.PingPong(travelled, span);
-                bool goingRight = Mathf.FloorToInt(travelled / span) % 2 == 0;
-                w.Rect.anchoredPosition = new Vector2(w.X0 + along, w.Y + Mathf.Abs(Mathf.Sin(_clock * 7f + w.Phase)) * 12f);
+                // Out of the seat, along the lane and back, then home: one path at one pace, so nobody pops in or out.
+                Vector2 seat = i < _seats.Count ? _seats[i].anchoredPosition : new Vector2(w.X0, w.Y);
+                Vector2 at = StrollPoint(seat, w, StrollPhase(i, _clock) / StrollShare, out bool goingRight);
+                w.Rect.anchoredPosition = at + new Vector2(0, Mathf.Abs(Mathf.Sin(_clock * 7f + w.Phase)) * 12f);
                 w.Rect.localScale = new Vector3(goingRight ? 1f : -1f, 1f, 1f);
             }
 
+            UpdateScenery();
+            UpdateTravelers(dt);
             if (Shell.State == ShellState.Playing)
             {
                 _courierTimer -= dt;
@@ -605,10 +624,114 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>Whether the rabbit of a seat is out walking at this moment: a little under half of every 36 seconds, each at its own time.</summary>
-        public static bool Strolling(int seat, float clock)
+        /// <summary>Whether the rabbit of a seat is out walking at this moment: half of every 48 seconds, each at its own time.</summary>
+        public static bool Strolling(int seat, float clock) => StrollPhase(seat, clock) < StrollShare;
+
+        static float StrollPhase(int seat, float clock) => Mathf.Repeat(clock / StrollPeriod + seat * 0.37f, 1f);
+
+        /// <summary>
+        /// Where a strolling rabbit is at <paramref name="u"/> of its walk (0 leaving the seat, 1 back on it): to the
+        /// lane's near end, along the lane and back, and home, at one pace the whole way.
+        /// </summary>
+        static Vector2 StrollPoint(Vector2 seat, Walker w, float u, out bool facingRight)
         {
-            return Mathf.Repeat(clock / 36f + seat * 0.37f, 1f) < 0.42f;
+            var laneStart = new Vector2(w.X0, w.Y);
+            float leg = Vector2.Distance(seat, laneStart), lane = 2f * Mathf.Abs(w.X1 - w.X0), total = 2f * leg + lane;
+            float d = Mathf.Clamp01(u) * total;
+            if (d < leg) { facingRight = laneStart.x >= seat.x; return Vector2.Lerp(seat, laneStart, leg > 0f ? d / leg : 1f); }
+            if (d < leg + lane)
+            {
+                float a = (d - leg) / lane; // 0..1 there and back
+                facingRight = a < 0.5f;
+                return new Vector2(w.X0 + Mathf.Abs(w.X1 - w.X0) * (0.5f - 0.5f * Mathf.Cos(a * Mathf.PI * 2f)), w.Y);
+            }
+            facingRight = seat.x >= laneStart.x;
+            return Vector2.Lerp(laneStart, seat, leg > 0f ? (d - leg - lane) / leg : 1f);
+        }
+
+        /// <summary>Trees lean from the root, lanterns swing from the hook and flicker, the pond shimmers and ripples. All still under reduced motion.</summary>
+        void UpdateScenery()
+        {
+            bool still = Motion.Reduced;
+            for (int i = 0; i < _swayTrees.Count; i++)
+                _swayTrees[i].localRotation = still ? Quaternion.identity
+                    : Quaternion.Euler(0, 0, Mathf.Sin(_clock * 0.45f + i * 1.7f) * 1.6f + Mathf.Sin(_clock * 1.3f + i * 0.9f) * 0.4f);
+            for (int i = 0; i < _swayLanterns.Count; i++)
+            {
+                _swayLanterns[i].localRotation = still ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Sin(_clock * 1.4f + i * 2.3f) * 3f);
+                float flicker = still ? 1f : 0.86f + 0.14f * Mathf.Sin(_clock * 9f + i * 3.1f) * Mathf.Sin(_clock * 2.3f + i);
+                if (i < _lanternGlows.Count) _lanternGlows[i].color = Palette.Alpha(Palette.Lantern, LanternGlowAlpha * flicker);
+            }
+            if (_pondGlow != null)
+                _pondGlow.localScale = still ? Vector3.one : new Vector3(1f + 0.03f * Mathf.Sin(_clock * 0.9f), 1f + 0.02f * Mathf.Sin(_clock * 1.3f + 1f), 1f);
+            for (int i = 0; i < _ripples.Count; i++)
+            {
+                float k = still ? 0f : Mathf.Repeat(_clock / 2.8f + i * 0.5f, 1f);
+                _ripples[i].rectTransform.localScale = Vector3.one * Mathf.Lerp(0.35f, 1.1f, k);
+                _ripples[i].color = new Color(0.85f, 0.93f, 1f, still ? 0f : 0.22f * (1f - k));
+            }
+        }
+        const float LanternGlowAlpha = 0.6f;
+
+        /// <summary>Stands a piece of scenery on the ground at (x, y) so it can lean from there, and names it for what it is.</summary>
+        static void Rooted(Image img, string name, float x, float y, List<RectTransform> into)
+        {
+            if (img == null) return;
+            RectTransform rt = img.rectTransform;
+            rt.name = name;
+            rt.pivot = new Vector2(0.5f, 0f);
+            rt.anchoredPosition = new Vector2(x, y);
+            into.Add(rt);
+        }
+
+        /// <summary>A rabbit just given a station sets off from where it was (its old station, or its seat) and walks there.</summary>
+        void StartTravel(Rabbit worker, int station)
+        {
+            CancelTravel(station);
+            Vector2 from = _seats.Count > 0 ? _seats[0].anchoredPosition : Heart;
+            for (int j = 0; j < _workerIds.Length; j++) if (j != station && _workerIds[j] == worker.Id && j < _actors.Count) from = StationSpot(j) + _actors[j].RabbitHome;
+            for (int k = 0; k < _seats.Count; k++) if (_seatIds[k] == worker.Id) from = _seats[k].anchoredPosition;
+            Vector2 to = StationSpot(station) + _actors[station].RabbitHome;
+            var rt = UiKit.Rect("Traveler", _street).Place(0f, 0f, from.x, from.y, 104, 110);
+            rt.pivot = new Vector2(0.5f, 0f);
+            UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(Runner.Catalog.Round, Palette.Alpha(Palette.Night, 0.35f));
+            Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(Runner.Catalog.RabbitArt(worker), Color.white);
+            art.preserveAspect = true;
+            if (_walkers.Count > 0) rt.SetSiblingIndex(_walkers[0].Rect.GetSiblingIndex()); // drawn with the walkers, under every plate
+            _actors[station].SetAway(true);
+            _travelers.Add(new Traveler { Rect = rt, Id = worker.Id, Station = station, From = from, To = to, Duration = Mathf.Clamp(Vector2.Distance(from, to) / 300f, 0.4f, 2.4f) });
+        }
+
+        void CancelTravel(int station)
+        {
+            for (int i = _travelers.Count - 1; i >= 0; i--)
+            {
+                if (_travelers[i].Station != station) continue;
+                Discard(_travelers[i].Rect.gameObject);
+                _travelers.RemoveAt(i);
+            }
+            if (station < _actors.Count) _actors[station].SetAway(false);
+        }
+
+        /// <summary>The walk itself: a straight line with little hops, facing the way it goes; on arrival the rabbit appears and hops once.</summary>
+        void UpdateTravelers(float dt)
+        {
+            for (int i = _travelers.Count - 1; i >= 0; i--)
+            {
+                Traveler t = _travelers[i];
+                t.T += dt / t.Duration;
+                if (t.T >= 1f)
+                {
+                    Discard(t.Rect.gameObject);
+                    _travelers.RemoveAt(i);
+                    if (t.Station < _actors.Count) { _actors[t.Station].SetAway(false); _actors[t.Station].Hop(); }
+                    continue;
+                }
+                Vector2 pos = Vector2.Lerp(t.From, t.To, t.T);
+                pos.y += Mathf.Abs(Mathf.Sin(t.T * Mathf.PI * Mathf.Max(2f, Mathf.Round(t.Duration * 4f)))) * 14f;
+                t.Rect.anchoredPosition = pos;
+                t.Rect.localScale = new Vector3(t.To.x >= t.From.x ? 1f : -1f, 1f, 1f);
+            }
         }
 
         /// <summary>One ingredient sets off from its station to a station that uses it, when both are open.</summary>
@@ -748,6 +871,7 @@ namespace VuonTra.Game.UI
             Shop = null;
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
+            _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
@@ -940,8 +1064,8 @@ namespace VuonTra.Game.UI
                 {
                     Color dim = Palette.Mix(Color.white, Palette.Night, 0.3f);
                     // The trees stand on the station's own ground, so they never reach into a neighbour that is open.
-                    AddDecor(grove, catalog.Decor[0], spot.x - 66f, spot.y - 40f, 190f, dim);
-                    AddDecor(grove, catalog.Decor[0], spot.x + 84f, spot.y - 70f, 165f, dim);
+                    Rooted(AddDecor(grove, catalog.Decor[0], spot.x - 66f, spot.y - 40f, 190f, dim), "Tree", spot.x - 66f, spot.y - 40f, _swayTrees);
+                    Rooted(AddDecor(grove, catalog.Decor[0], spot.x + 84f, spot.y - 70f, 165f, dim), "Tree", spot.x + 84f, spot.y - 70f, _swayTrees);
                 }
                 _fogTrees.Add(grove.gameObject);
                 standing.Add(new KeyValuePair<float, Transform>(spot.y - 40f, grove));
@@ -959,6 +1083,7 @@ namespace VuonTra.Game.UI
                 // Every station's level reads at the same size, clear of the rabbit's feet and the prop.
                 actor.PlacePlate(0.78f / StationSize(i), new Vector2(0, -26f));
                 _actors.Add(actor);
+                _workerIds = new long[_actors.Count];
                 standing.Add(new KeyValuePair<float, Transform>(spot.y - 112f * StationSize(i), actor.Root));
 
                 // Every name plate is the same size on screen and floats the same distance above its rabbit.
@@ -1041,7 +1166,7 @@ namespace VuonTra.Game.UI
             float[] laneFrom = { 390f, 400f }, laneTo = { 700f, 715f };
             for (int i = 0; i < lanes.Length && catalog.Rabbit != null; i++)
             {
-                var rt = UiKit.Rect("Walker", _street).Place(0f, 0f, 400, lanes[i], 104, 110);
+                var rt = UiKit.Rect("Walker " + i, _street).Place(0f, 0f, 400, lanes[i], 104, 110);
                 rt.pivot = new Vector2(0.5f, 0f);
                 UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(catalog.Round, shade);
                 Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
@@ -1766,11 +1891,20 @@ namespace VuonTra.Game.UI
         /// <summary>Each firefly loops slowly around its light and pulses.</summary>
         void UpdateFireflies()
         {
+            // The fireflies fly in a few flocks; each flock drifts from one light to the next and back on its own clock.
+            int flocks = Mathf.Max(1, Mathf.Min(6, _glowSpots.Count));
             for (int i = 0; i < _fireflies.Count; i++)
             {
                 float seed = i * 7.31f;
-                Vector2 home = _glowSpots[i % _glowSpots.Count];
-                float angle = _clock * (0.35f + Hash(seed) * 0.4f) + seed, reach = 50f + Hash(seed + 2f) * 80f;
+                int flock = i % flocks;
+                Vector2 home = _glowSpots[flock % _glowSpots.Count];
+                if (!Motion.Reduced && _glowSpots.Count > 1)
+                {
+                    Vector2 next = _glowSpots[(flock + 1) % _glowSpots.Count];
+                    float t = Mathf.SmoothStep(0f, 1f, Mathf.PingPong(_clock / 26f + flock * 0.37f, 1f));
+                    home = Vector2.Lerp(home, next, t) + new Vector2(Mathf.Sin(_clock * 0.3f + flock) * 30f, Mathf.Cos(_clock * 0.23f + flock) * 20f);
+                }
+                float angle = _clock * (0.35f + Hash(seed) * 0.4f) + seed, reach = 30f + Hash(seed + 2f) * 50f;
                 _fireflies[i].anchoredPosition = home + new Vector2(Mathf.Cos(angle) * reach, Mathf.Sin(angle * 1.3f) * reach * 0.6f);
                 float pulse = 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
                 _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.2f + 0.6f * pulse);
@@ -1816,12 +1950,21 @@ namespace VuonTra.Game.UI
                 {
                     var at = new Vector2(x + 14f * DecorScale, y + 150f * DecorScale);
                     var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, at.x, at.y, 300f, 300f);
-                    glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.6f));
+                    _lanternGlows.Add(glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, LanternGlowAlpha)));
                     standing.Add(new KeyValuePair<float, Transform>(y + 0.5f, glow));
                     _glowSpots.Add(at);
                 }
                 Image img = AddDecor(_street, d[kind], x, y, height, tint);
                 if (img != null) standing.Add(new KeyValuePair<float, Transform>(y, img.transform));
+                if (kind == Tree) Rooted(img, "Tree", x, y, _swayTrees);
+                if (kind == Lantern && img != null)
+                {
+                    // A lantern hangs from its hook, so it swings from the top.
+                    img.name = "Lantern";
+                    img.rectTransform.pivot = new Vector2(0.5f, 1f);
+                    img.rectTransform.anchoredPosition = new Vector2(x, y + height);
+                    _swayLanterns.Add(img.rectTransform);
+                }
             }
 
             bool Free(float x, float y, float clearX, float below, float above)
@@ -1836,8 +1979,11 @@ namespace VuonTra.Game.UI
 
             // The pond lies flat, so it goes down before anything that stands. It holds the moon.
             AddDecor(_street, d[Pond], pondAt.x, pondAt.y - 85f, 175f, Color.white);
-            UiKit.Rect("PondGlow", _street).Place(0f, 0f, pondAt.x + 20f, pondAt.y + 6f, 370f, 270f)
-                .AddImage(catalog.Glow, new Color(0.80f, 0.90f, 1f, 0.3f));
+            _pondGlow = UiKit.Rect("PondGlow", _street).Place(0f, 0f, pondAt.x + 20f, pondAt.y + 6f, 370f, 270f);
+            _pondGlow.AddImage(catalog.Glow, new Color(0.80f, 0.90f, 1f, 0.3f));
+            // Two rings of light that widen and fade in turn: the water moving under the moon.
+            for (int r = 0; r < 2; r++)
+                _ripples.Add(UiKit.Rect("Ripple", _street).Place(0f, 0f, pondAt.x + 20f, pondAt.y + 6f, 260f, 180f).AddImage(catalog.Glow, new Color(0.85f, 0.93f, 1f, 0f)));
             _glowSpots.Add(pondAt + new Vector2(14, 28));
 
             // Places to sit, in the corners the stations leave free.
@@ -2791,6 +2937,14 @@ namespace VuonTra.Game.UI
 
                 Rabbit worker = Rabbits.AtStation(s, i);
                 GameCatalog catalog = Runner.Catalog;
+                long workerId = worker != null ? worker.Id : 0;
+                if (i < _workerIds.Length && _workerIds[i] != workerId)
+                {
+                    // A newcomer walks over from wherever it was; under reduced motion, or before the garden has been seen, it is simply there.
+                    if (workerId != 0 && _worldSeen && !Motion.Reduced) StartTravel(worker, i);
+                    else CancelTravel(i);
+                    _workerIds[i] = workerId;
+                }
                 if (worker == null) _actors[i].SetWorker(null, null, null, false);
                 else
                 {
@@ -2815,6 +2969,7 @@ namespace VuonTra.Game.UI
             }
             RefreshCard(defs, s, Runner.Mods);
             RefreshSeats(s);
+            _worldSeen = true;
         }
 
         /// <summary>The mist lies on every plot the garden does not have; when the garden widens it lifts.</summary>

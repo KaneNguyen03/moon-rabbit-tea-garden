@@ -384,6 +384,19 @@ namespace VuonTra.EditorTools
             screen.LookAt(new Vector2(540f, 2900f));
             Step(screen, 0.3f);
             Capture(screen, "17-rest-top");
+            // A resting rabbit given the teapot walks over from its seat: caught halfway.
+            {
+                Rabbit mover = null;
+                foreach (Rabbit r in state.Rabbits) if (r.Station < 0) { mover = r; break; }
+                if (mover != null && runner.AssignRabbit(mover.Id, 0))
+                {
+                    screen.Refresh();
+                    screen.LookAt(new Vector2(540f, 1200f));
+                    Step(screen, 0.7f);
+                    Capture(screen, "28-tho-di-tram");
+                    Step(screen, 3f);
+                }
+            }
 
             // The teapot at its cap: the card and the row say "max level" and offer nothing.
             state.Levels[0] = Economy.MaxLevel;

@@ -945,7 +945,7 @@ namespace VuonTra.Core.Tests
         {
             Transform world = root.transform.Find("Canvas/Garden/Content");
             Assert.IsFalse(world.Find("Seat 0").gameObject.activeSelf, "nobody resting: nobody seated");
-            Assert.IsFalse(world.Find("Walker").gameObject.activeSelf, "and nobody out walking");
+            Assert.IsFalse(world.Find("Walker 0").gameObject.activeSelf, "and nobody out walking");
 
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 4, Kind = "tho-sao", Name = "Sao" });
             runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-me", Name = "Mè" });
@@ -987,6 +987,7 @@ namespace VuonTra.Core.Tests
             Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
             runner.EquipItem(hat.Id, 1);
             screen.Refresh();
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
             Assert.IsTrue(rabbit.gameObject.activeSelf);
             Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the collected rabbit itself");
             Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
@@ -1398,6 +1399,7 @@ namespace VuonTra.Core.Tests
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
             runner.State.NextRabbitId = 1;
             screen.Refresh();
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
             Assert.IsTrue(teapot.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(teapot.Find("Pad").gameObject.activeSelf);
         }
@@ -1434,6 +1436,7 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(picker.gameObject.activeSelf, "and is gone once it has slid away");
             screen.Refresh();
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
             Assert.IsTrue(Station("am-tra").Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Station("am-tra").Find("Pad").gameObject.activeSelf);
         }
@@ -2906,6 +2909,7 @@ namespace VuonTra.Core.Tests
             runner.State.NextRabbitId = 1;
             screen.Shell.StartGame();
             screen.Refresh();
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
             var rabbit = (RectTransform)root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
             float home = rabbit.anchoredPosition.y;
             int before = screen.Feel.ParticleCount;
@@ -3038,6 +3042,91 @@ namespace VuonTra.Core.Tests
             Find("Canvas/Pound/Result/Card/Done").onClick.Invoke();
             Assert.IsFalse(screen.Pound.IsOpen);
             Assert.AreEqual(L10n.T("mortar.plays", 2), mortar.transform.Find("Plate/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void A_Rabbit_Put_To_Work_Walks_From_Its_Seat_To_The_Station_Unless_Motion_Is_Reduced()
+        {
+            screen.Shell.StartGame();
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-me", Name = "Mè" });
+            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-bong", Name = "Bông" });
+            runner.State.NextRabbitId = 2;
+            screen.Refresh();
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Transform station = world.Find("Station " + runner.Defs[0].Id);
+            Assert.IsNull(world.Find("Traveler"));
+
+            Assert.IsTrue(runner.AssignRabbit(1, 0));
+            screen.Refresh();
+            var traveler = (RectTransform)world.Find("Traveler");
+            Assert.IsNotNull(traveler, "the rabbit sets off");
+            Assert.AreEqual("kind_tho-me", traveler.Find("Art").GetComponent<Image>().sprite.name);
+            Assert.IsFalse(station.Find("Rabbit").gameObject.activeSelf, "not at the station until it gets there");
+            Assert.IsFalse(station.Find("Pad").gameObject.activeSelf, "and the pad does not show either");
+            Assert.AreEqual(world.Find("Seat 0").GetComponent<RectTransform>().anchoredPosition, traveler.anchoredPosition, "from its seat");
+            screen.Advance(0.5f);
+            Assert.AreNotEqual(world.Find("Seat 0").GetComponent<RectTransform>().anchoredPosition, traveler.anchoredPosition, "on its way");
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f);
+            Assert.IsNull(world.Find("Traveler"), "arrived");
+            Assert.IsTrue(station.Find("Rabbit").gameObject.activeSelf, "walking=" + screen.TravelersWalking + " pad=" + station.Find("Pad").gameObject.activeSelf + " at=" + Rabbits.Find(runner.State, 1).Station + " name=" + station.name);
+
+            // Under reduced motion the newcomer is simply there: the other rabbit takes over the teapot at once.
+            Motion.SetReduced(true);
+            Assert.IsTrue(runner.AssignRabbit(2, 0));
+            screen.Refresh();
+            Assert.IsNull(world.Find("Traveler"));
+            Assert.IsTrue(station.Find("Rabbit").gameObject.activeSelf);
+            Assert.AreEqual("kind_tho-bong", station.Find("Rabbit").GetComponent<Image>().sprite.name);
+        }
+
+        [Test]
+        public void A_Strolling_Rabbit_Leaves_From_Its_Seat_And_Walks_Rather_Than_Appearing()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-me", Name = "Mè" });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Assert.IsTrue(GardenScreen.Strolling(0, 0f), "at the start of its period the first rabbit is out");
+            var walker = (RectTransform)world.Find("Walker 0");
+            var seat = (RectTransform)world.Find("Seat 0");
+            screen.Advance(0f);
+            Assert.IsTrue(walker.gameObject.activeSelf, "clock=" + screen.Clock + " seated=" + screen.SeatedCount + " strolling=" + GardenScreen.Strolling(0, screen.Clock) + " seatShown=" + seat.gameObject.activeSelf);
+            Assert.IsFalse(seat.gameObject.activeSelf, "the seat is empty while its rabbit is out");
+            Assert.AreEqual(seat.anchoredPosition, walker.anchoredPosition, "it starts on the seat, not in the lane");
+            screen.Advance(2f);
+            Vector2 later = walker.anchoredPosition;
+            Assert.Greater(later.y, seat.anchoredPosition.y + 100f, "two seconds on it has walked away from the seat");
+            Assert.Less(Vector2.Distance(later, seat.anchoredPosition), 2f * 300f, "at a walk, not a jump");
+        }
+
+        [Test]
+        public void The_Scenery_Sways_Between_Fixed_Bounds_And_Holds_Still_Under_Reduced_Motion()
+        {
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Transform tree = world.Find("Tree"), lantern = world.Find("Lantern"), glow = world.Find("LanternGlow"), ripple = world.Find("Ripple");
+            Assert.IsNotNull(tree); Assert.IsNotNull(lantern); Assert.IsNotNull(ripple);
+            Assert.AreEqual(0f, ((RectTransform)tree).pivot.y, "a tree leans from its root");
+            Assert.AreEqual(1f, ((RectTransform)lantern).pivot.y, "a lantern swings from its hook");
+            float maxTree = 0f, maxLantern = 0f, minGlow = 1f, maxGlow = 0f;
+            for (int k = 0; k < 120; k++)
+            {
+                screen.Advance(0.1f);
+                maxTree = Mathf.Max(maxTree, Mathf.Abs(Mathf.DeltaAngle(0f, tree.localRotation.eulerAngles.z)));
+                maxLantern = Mathf.Max(maxLantern, Mathf.Abs(Mathf.DeltaAngle(0f, lantern.localRotation.eulerAngles.z)));
+                float a = glow.GetComponent<Image>().color.a;
+                minGlow = Mathf.Min(minGlow, a); maxGlow = Mathf.Max(maxGlow, a);
+            }
+            Assert.Greater(maxTree, 0.3f, "the tree moves"); Assert.LessOrEqual(maxTree, 2.05f, "but only a little");
+            Assert.Greater(maxLantern, 0.5f); Assert.LessOrEqual(maxLantern, 3.05f);
+            Assert.Greater(maxGlow - minGlow, 0.02f, "the lantern flickers"); Assert.GreaterOrEqual(minGlow, 0.6f * 0.7f); Assert.LessOrEqual(maxGlow, 0.6f + 0.001f);
+            Assert.Greater(ripple.GetComponent<Image>().color.a, 0f, "the pond ripples");
+
+            Motion.SetReduced(true);
+            screen.Advance(0.1f);
+            Assert.AreEqual(Quaternion.identity, tree.localRotation);
+            Assert.AreEqual(Quaternion.identity, lantern.localRotation);
+            Assert.AreEqual(0.6f, glow.GetComponent<Image>().color.a, 0.001f);
+            Assert.AreEqual(0f, ripple.GetComponent<Image>().color.a);
         }
     }
 }

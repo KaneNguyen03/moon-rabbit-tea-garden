@@ -235,6 +235,16 @@ namespace VuonTra.Game.UI
 
         /// <summary>True while one of the player's rabbits stands here.</summary>
         public bool HasGuest => _guest;
+        /// <summary>Where the rabbit stands, from the station's own point.</summary>
+        public Vector2 RabbitHome => _rabbitHome;
+        /// <summary>While the rabbit is still walking over, the station shows nobody and no pad.</summary>
+        public void SetAway(bool away)
+        {
+            if (_away == away) return;
+            _away = away;
+            ShowWho();
+        }
+        bool _away;
         /// <summary>The empty pad, for things that point at it.</summary>
         public RectTransform Pad => _pad;
 
@@ -242,7 +252,7 @@ namespace VuonTra.Game.UI
         void ShowWho()
         {
             bool open = _look == StationLook.Open;
-            bool rabbit = open && _guest, pad = open && !_guest, lit = rabbit && _haloWanted;
+            bool rabbit = open && _guest && !_away, pad = open && !_guest, lit = rabbit && _haloWanted;
             if (_rabbit.gameObject.activeSelf != rabbit) _rabbit.gameObject.SetActive(rabbit);
             if (_pad.gameObject.activeSelf != pad) _pad.gameObject.SetActive(pad);
             if (_halo.activeSelf != lit) _halo.SetActive(lit);
