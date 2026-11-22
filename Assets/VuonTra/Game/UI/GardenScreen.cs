@@ -827,7 +827,7 @@ namespace VuonTra.Game.UI
             UpgradeAll = new UpgradeAllView(_canvas, catalog, Tweens, share => Runner.SetSpendShare(share), OnUpgradeAll);
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
-            Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, OnDailyGift, OnSummonGolden);
+            Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
@@ -2719,7 +2719,8 @@ namespace VuonTra.Game.UI
             bool anyGolden = s.GoldenCarrots > 0;
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
             _goldenText.text = s.GoldenCarrots.ToString();
-            if (_shopBadge != null && _shopBadge.activeSelf != Runner.GiftWaiting) _shopBadge.SetActive(Runner.GiftWaiting);
+            bool shopNews = Runner.GiftWaiting || Runner.VisitorUnseen; // a gift to take, or a visitor not yet looked at
+            if (_shopBadge != null && _shopBadge.activeSelf != shopNews) _shopBadge.SetActive(shopNews);
             ProductTray.Refresh(s);
             // The tray lives in the plain garden view; a sheet or a station card covers its place.
             bool trayShown = Shell.State == ShellState.Playing && !SheetOpen && Selected < 0 && !PhotoMode && (s.Tray.Count > 0 || Tray.IsFull(s));
@@ -3199,7 +3200,19 @@ namespace VuonTra.Game.UI
             if (Shell.State != ShellState.Playing || PhotoMode) return;
             if (SheetOpen) CloseSheet();
             SelectStation(-1);
+            Runner.MarkVisitorSeen();
             Shop.Open(Runner.State);
+        }
+
+        /// <summary>Today's visitor goes home with the player: it steps out of the moon gate like any arrival.</summary>
+        void OnBuyVisitor()
+        {
+            Rabbit rabbit = Runner.BuyVisitor();
+            if (rabbit == null) return;
+            Shop.Close();
+            Sfx.Summon(rabbit.Tier);
+            Haptics.Medium();
+            Welcome(rabbit);
         }
 
         /// <summary>Today's gift from the shop: golden carrots fly from the gift box up to their place on the HUD.</summary>

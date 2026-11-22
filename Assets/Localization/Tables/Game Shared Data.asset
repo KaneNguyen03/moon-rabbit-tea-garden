@@ -1679,6 +1679,38 @@ MonoBehaviour:
     m_Key: mortar.tomorrow
     m_Metadata:
       m_Items: []
+  - m_Id: 197531119116288
+    m_Key: shop.visitor.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504896
+    m_Key: shop.visitor.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504897
+    m_Key: shop.visitor.new
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504898
+    m_Key: shop.visitor.buy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504899
+    m_Key: shop.visitor.need
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504900
+    m_Key: shop.visitor.bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504901
+    m_Key: shop.visitor.hours
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504902
+    m_Key: shop.visitor.minutes
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

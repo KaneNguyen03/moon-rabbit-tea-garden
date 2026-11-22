@@ -1686,6 +1686,38 @@ MonoBehaviour:
     m_Localized: More tomorrow
     m_Metadata:
       m_Items: []
+  - m_Id: 197531119116288
+    m_Localized: Today's visitor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504896
+    m_Localized: "{0} \xB7 {1} \xB7 {2} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504897
+    m_Localized: A kind you have not met!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504898
+    m_Localized: "Take home \xB7 {0} golden"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504899
+    m_Localized: '{0} more golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504900
+    m_Localized: Already home
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504901
+    m_Localized: '{0} h'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504902
+    m_Localized: '{0} min'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

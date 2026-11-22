@@ -117,6 +117,73 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Visitor_Is_The_Same_All_Day_For_A_Garden_And_Another_Day_Or_Garden_Brings_Another()
+        {
+            s.Profile.Code = "THO-ABCDEF";
+            Shop.Visitor a = Shop.VisitorFor(s, 300), b = Shop.VisitorFor(s, 300);
+            Assert.AreEqual(a.Kind, b.Kind);
+            Assert.AreEqual(a.Tier, b.Tier);
+            Assert.GreaterOrEqual(a.Tier, Shop.VisitorFirstTier, "blue or rarer");
+            Assert.AreEqual(Shop.VisitorPrices[a.Tier - Shop.VisitorFirstTier], a.Price);
+            Assert.IsFalse(a.Bought);
+            Assert.IsFalse(a.Seen);
+
+            var kinds = new HashSet<string>();
+            for (long day = 300; day < 360; day++) kinds.Add(Shop.VisitorFor(s, day).Kind);
+            Assert.Greater(kinds.Count, 3, "the days bring different rabbits");
+            var other = GameState.NewGame(defs);
+            other.Profile.Code = "THO-ZZZZZZ";
+            int same = 0;
+            for (long day = 300; day < 360; day++) if (Shop.VisitorFor(other, day).Kind == Shop.VisitorFor(s, day).Kind) same++;
+            Assert.Less(same, 60, "another garden has its own visitors");
+        }
+
+        [Test]
+        public void Visitor_Tiers_Follow_Their_Odds_And_Unmet_Kinds_Come_Three_Times_As_Often()
+        {
+            double sum = 0d;
+            foreach (double p in Shop.VisitorTierOdds) sum += p;
+            Assert.AreEqual(1d, sum, 1e-9);
+            int[] tiers = new int[Rabbits.TierCount];
+            for (long day = 0; day < 2000; day++) tiers[Shop.VisitorFor(s, day).Tier]++;
+            Assert.AreEqual(0, tiers[0] + tiers[1], "never silver or green");
+            Assert.Greater(tiers[2], tiers[3]);
+            Assert.Greater(tiers[3], tiers[4]);
+            Assert.Greater(tiers[4], tiers[5]);
+
+            // Every blue kind but one is in the album: the one that is not should be picked about three times as often.
+            IReadOnlyList<RabbitKind> blue = RabbitKinds.OfTier(2);
+            foreach (RabbitKind kind in blue) Rabbits.See(s, kind.Id);
+            string missing = blue[0].Id;
+            s.SeenKinds.Remove(missing);
+            int hits = 0, n = 10000;
+            for (int i = 0; i < n; i++) if (Shop.PickKind(s, 2, i / (double)n) == missing) hits++;
+            double expected = (double)Shop.UnseenWeight / (Shop.UnseenWeight + blue.Count - 1);
+            Assert.AreEqual(expected, hits / (double)n, 0.01);
+        }
+
+        [Test]
+        public void The_Visitor_Can_Be_Bought_Once_Today_Only_For_Its_Price()
+        {
+            Shop.Visitor v = Shop.VisitorFor(s, 400);
+            s.GoldenCarrots = v.Price - 1;
+            Assert.IsNull(Shop.BuyVisitor(s, 400, "V"), "one short");
+            s.GoldenCarrots = v.Price;
+            Rabbit bought = Shop.BuyVisitor(s, 400, "V");
+            Assert.IsNotNull(bought);
+            Assert.AreEqual(v.Kind, bought.Kind);
+            Assert.AreEqual(v.Tier, bought.Tier);
+            Assert.AreEqual(0, s.GoldenCarrots);
+            Assert.IsTrue(Shop.VisitorFor(s, 400).Bought);
+            s.GoldenCarrots = 1000;
+            Assert.IsNull(Shop.BuyVisitor(s, 400, "V"), "once a day");
+            Assert.IsFalse(Shop.VisitorFor(s, 401).Bought, "tomorrow's is for sale again");
+            Assert.AreEqual(1000, s.GoldenCarrots);
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(400, r.VisitorBoughtDay);
+        }
+
+        [Test]
         public void The_Save_Keeps_Golden_Carrots_And_The_Gift_And_An_Old_Save_Has_None()
         {
             s.GoldenCarrots = 7;

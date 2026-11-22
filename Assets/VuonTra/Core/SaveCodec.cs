@@ -129,6 +129,8 @@ namespace VuonTra.Core
             sb.Append(",\"golden\":").Append(s.GoldenCarrots.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftDay\":").Append(s.GiftDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftStreak\":").Append(s.GiftStreak.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"visitorBought\":").Append(s.VisitorBoughtDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"visitorSeen\":").Append(s.VisitorSeenDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"tutorialClover\":").Append(s.TutorialCloverGiven ? "true" : "false");
             sb.Append(",\"photosGold\":").Append(s.PhotosWithGoldRabbit.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosRest\":").Append(s.PhotosWithFullRest.ToString(CultureInfo.InvariantCulture));
@@ -404,6 +406,8 @@ namespace VuonTra.Core
             s.GoldenCarrots = TryNumber(root, "golden", out double goldenCarrots) ? (int)Math.Max(0d, Math.Min(goldenCarrots, int.MaxValue)) : 0;
             s.GiftDay = TryNumber(root, "giftDay", out double giftDay) ? ToLong(giftDay) : -1;
             s.GiftStreak = TryNumber(root, "giftStreak", out double giftStreak) ? (int)Math.Max(0d, Math.Min(giftStreak, 100000)) : 0;
+            s.VisitorBoughtDay = TryNumber(root, "visitorBought", out double visitorBought) ? ToLong(visitorBought) : -1;
+            s.VisitorSeenDay = TryNumber(root, "visitorSeen", out double visitorSeen) ? ToLong(visitorSeen) : -1;
             s.PhotosWithGoldRabbit = TryNumber(root, "photosGold", out double photosGold) ? Math.Max(0, ToLong(photosGold)) : 0;
             s.PhotosWithFullRest = TryNumber(root, "photosRest", out double photosRest) ? Math.Max(0, ToLong(photosRest)) : 0;
             // Version 14: the mooncake game. An older save has all its plays and no games behind it.

@@ -2383,6 +2383,37 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Shop_Shows_Todays_Visitor_And_Opening_The_Shop_Clears_Its_Mark()
+        {
+            screen.Shell.StartGame();
+            runner.ClaimDailyGift();
+            screen.Refresh();
+            Transform badge = root.transform.Find("Canvas/Garden/Content/Shop/Badge");
+            Assert.IsTrue(badge.gameObject.activeSelf, "a visitor not yet looked at");
+            screen.OpenShop();
+            screen.Refresh();
+            Assert.IsFalse(badge.gameObject.activeSelf, "looked at now");
+            Transform visitor = root.transform.Find("Canvas/Shop/Card/Visitor");
+            Shop.Visitor v = runner.VisitorToday;
+            Assert.AreEqual(L10n.T("kind." + v.Kind), visitor.Find("Name").GetComponent<Text>().text);
+            Assert.IsNotNull(visitor.Find("PortraitHolder/Tile"));
+            Assert.IsFalse(Find("Canvas/Shop/Card/Visitor/Buy").interactable, "no golden carrots");
+            runner.State.GoldenCarrots = v.Price;
+            screen.Refresh();
+            Assert.IsTrue(Find("Canvas/Shop/Card/Visitor/Buy").interactable);
+            int before = runner.State.Rabbits.Count;
+            Find("Canvas/Shop/Card/Visitor/Buy").onClick.Invoke();
+            Assert.AreEqual(before + 1, runner.State.Rabbits.Count);
+            Assert.AreEqual(v.Kind, runner.State.Rabbits[before].Kind);
+            Assert.AreEqual(0, runner.State.GoldenCarrots);
+            screen.Arrival.Close();
+            screen.OpenShop();
+            screen.Refresh();
+            Assert.IsFalse(Find("Canvas/Shop/Card/Visitor/Buy").interactable, "gone home already");
+            Assert.AreEqual(L10n.T("shop.visitor.bought"), visitor.Find("Buy/Face/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");

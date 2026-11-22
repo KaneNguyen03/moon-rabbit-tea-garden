@@ -214,7 +214,15 @@ namespace VuonTra.Core
         public static Rabbit Arrive(GameState s, int tier, string name, double kindRoll)
         {
             tier = ClampTier(tier);
-            var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = tier, Kind = RabbitKinds.Pick(tier, kindRoll), Name = name };
+            return ArriveKind(s, RabbitKinds.Pick(tier, kindRoll), name);
+        }
+
+        /// <summary>A new rabbit of a known kind joins the garden.</summary>
+        public static Rabbit ArriveKind(GameState s, string kindId, string name)
+        {
+            RabbitKind kind = RabbitKinds.Find(kindId);
+            int tier = kind != null ? kind.Tier : 0;
+            var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = tier, Kind = kind != null ? kind.Id : RabbitKinds.DefaultFor(tier), Name = name };
             rabbit.FirstOfKind = See(s, rabbit.Kind);
             s.Rabbits.Add(rabbit);
             Garden.AddXp(s, Garden.XpSummon + (rabbit.FirstOfKind ? Garden.XpNewKind : 0));

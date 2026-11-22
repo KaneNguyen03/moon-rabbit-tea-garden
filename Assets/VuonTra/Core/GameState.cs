@@ -25,6 +25,8 @@ namespace VuonTra.Core
         /// <summary>The day the shop's daily gift was last paid, and how many days in a row by then.</summary>
         public long GiftDay = -1;
         public int GiftStreak;
+        /// <summary>The day the shop's visiting rabbit was bought, and the day it was last looked at.</summary>
+        public long VisitorBoughtDay = -1, VisitorSeenDay = -1;
 
         // Lifetime counters that quests read.
         public long TotalTaps;

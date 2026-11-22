@@ -378,6 +378,14 @@ namespace VuonTra.EditorTools
             { "shop.have", "Bạn có {0} cà rốt vàng", "You have {0} golden carrots" },
             { "shop.earn", "Kiếm ở: quà mỗi ngày, món vàng ở khay, ảnh đầu ngày, mỗi 5 cấp vườn, thành tựu", "Earned from: the daily gift, golden batches, the day's first photo, every 5th garden level, achievements" },
             { "moment.golden.title", "+{0} cà rốt vàng", "+{0} golden carrots" },
+            { "shop.visitor.title", "Thỏ ghé tiệm hôm nay", "Today's visitor" },
+            { "shop.visitor.sub", "{0} · {1} · còn {2}", "{0} · {1} · {2} left" },
+            { "shop.visitor.new", "Loài chưa gặp!", "A kind you have not met!" },
+            { "shop.visitor.buy", "Mua · {0} cà rốt vàng", "Take home · {0} golden" },
+            { "shop.visitor.need", "Còn thiếu {0} cà rốt vàng", "{0} more golden carrots" },
+            { "shop.visitor.bought", "Đã về vườn", "Already home" },
+            { "shop.visitor.hours", "{0} giờ", "{0} h" },
+            { "shop.visitor.minutes", "{0} phút", "{0} min" },
             { "moment.golden.sub", "Vườn lên cấp {0}", "Garden level {0}" },
         };
     }

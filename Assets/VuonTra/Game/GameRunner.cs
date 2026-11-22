@@ -221,6 +221,28 @@ namespace VuonTra.Game
             return gift;
         }
 
+        /// <summary>Who is visiting the shop today.</summary>
+        public Shop.Visitor VisitorToday => Shop.VisitorFor(State, Today);
+
+        /// <summary>True while today's visitor has not been looked at yet.</summary>
+        public bool VisitorUnseen => State.VisitorSeenDay != Today;
+
+        /// <summary>The shop was opened: today's visitor has been seen.</summary>
+        public void MarkVisitorSeen()
+        {
+            if (State.VisitorSeenDay == Today) return;
+            State.VisitorSeenDay = Today;
+            Changed();
+        }
+
+        /// <summary>Buys today's visitor; null when it cannot be bought.</summary>
+        public Rabbit BuyVisitor()
+        {
+            Rabbit rabbit = Shop.BuyVisitor(State, Today, PickName());
+            if (rabbit != null) Changed();
+            return rabbit;
+        }
+
         /// <summary>Calls a rabbit with golden carrots at the shop's odds; null when there are not enough.</summary>
         public Rabbit SummonGoldenRabbit()
         {

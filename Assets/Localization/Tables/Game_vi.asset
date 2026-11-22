@@ -1682,6 +1682,38 @@ MonoBehaviour:
     m_Localized: "Mai gi\xE3 ti\u1EBFp"
     m_Metadata:
       m_Items: []
+  - m_Id: 197531119116288
+    m_Localized: "Th\u1ECF gh\xE9 ti\u1EC7m h\xF4m nay"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504896
+    m_Localized: "{0} \xB7 {1} \xB7 c\xF2n {2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504897
+    m_Localized: "Lo\xE0i ch\u01B0a g\u1EB7p!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504898
+    m_Localized: "Mua \xB7 {0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504899
+    m_Localized: "C\xF2n thi\u1EBFu {0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504900
+    m_Localized: "\u0110\xE3 v\u1EC1 v\u01B0\u1EDDn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504901
+    m_Localized: "{0} gi\u1EDD"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 197531127504902
+    m_Localized: "{0} ph\xFAt"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
