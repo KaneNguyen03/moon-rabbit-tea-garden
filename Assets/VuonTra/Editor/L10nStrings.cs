@@ -703,6 +703,13 @@ namespace VuonTra.EditorTools
             { "shop.jar.soldout", "Mai mua tiếp", "Back tomorrow" },
             { "float.jar.bought", "+1 hũ trăng · mở ở ví cà rốt", "+1 moon jar · open it from the purse" },
             { "fireflies.jar", "+1 hũ trăng (3 sao)", "+1 moon jar (three stars)" },
+            // ----- station sounds up close and the choice of tune, on the pause card (#63) -----
+            { "pause.station", "Tiếng trạm", "Stations" },
+            { "pause.tune", "Nhạc", "Tune" },
+            { "tune.auto", "Tự động", "Auto" },
+            { "tune.moon", "Đêm trăng", "Moonlit night" },
+            { "tune.dawn", "Rạng sáng", "Daybreak" },
+            { "tune.rain", "Mưa", "Rain" },
         };
     }
 }

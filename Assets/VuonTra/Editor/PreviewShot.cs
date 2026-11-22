@@ -382,6 +382,14 @@ namespace VuonTra.EditorTools
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "10-pause");
+            // #63: the station-sound slider and the tune pill, turned to "Rạng sáng" for the picture and back after.
+            {
+                Sfx.Tune tuneBefore = Sfx.CurrentTune;
+                for (int i = 0; i < 4 && Sfx.CurrentTune != Sfx.Tune.Dawn; i++) Press(screen, "Canvas/Pause/Card/Tune");
+                Step(screen, 0.1f);
+                Capture(screen, "63-tieng-tram");
+                for (int i = 0; i < 4 && Sfx.CurrentTune != tuneBefore; i++) Press(screen, "Canvas/Pause/Card/Tune");
+            }
             // The profile behind the pause card's first row: avatar, garden name, code, backup.
             Press(screen, "Canvas/Pause/Card/Profile");
             Step(screen, 0.4f);
