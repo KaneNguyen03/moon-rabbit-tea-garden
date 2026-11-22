@@ -122,11 +122,11 @@ namespace VuonTra.Game.UI
 
             if (locked)
             {
-                next = Economy.CanUnlock(s, _index);
+                next = Economy.CanUnlock(defs, s, _index);
                 BigNum cost = Economy.CostOfNext(d, 0, 1);
                 _level.text = L10n.T("row.locked");
                 _levelChip.color = Palette.OffLip;
-                if (!next) _sub.text = _index >= s.Plots ? L10n.T("row.needplot") : L10n.T("row.needprev");
+                if (!next) _sub.text = LockedReason(defs, s, _index);
                 canAfford = next && s.Coins >= cost;
                 bool shortOnly = next && !canAfford; // only carrots are missing: say how many
                 _buyTop.text = shortOnly ? L10n.T("need.more") : L10n.T("row.open");
@@ -164,6 +164,17 @@ namespace VuonTra.Game.UI
             // Bars animate, never snap.
             _shownMilestone = deltaTime < 0f ? milestone : Mathf.Lerp(_shownMilestone, milestone, Mathf.Clamp01(deltaTime * 8f));
             _milestoneFill.anchorMax = new Vector2(Mathf.Clamp01(_shownMilestone), 1f);
+        }
+
+        /// <summary>
+        /// Why a closed station cannot be opened yet: the garden level it asks for (#67), then its plot, then the station
+        /// before it. Empty when it can be opened.
+        /// </summary>
+        public static string LockedReason(IReadOnlyList<StationDef> defs, GameState s, int index)
+        {
+            if (!Economy.HasGardenLevel(defs, s, index)) return L10n.T("row.needlevel", defs[index].NeedGardenLevel);
+            if (index >= s.Plots) return L10n.T("row.needplot");
+            return Economy.CanUnlock(defs, s, index) ? "" : L10n.T("row.needprev");
         }
 
         /// <summary>What one cycle pays at a level: the real figure when the station is open, the base figure before.</summary>

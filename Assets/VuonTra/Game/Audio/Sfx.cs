@@ -197,12 +197,181 @@ namespace VuonTra.Game
             Play("tick", _tick ?? (_tick = MakeTick()), 0.22f, 0.1f);
         }
 
+        static readonly List<string> _recent = new List<string>();
+        static readonly Dictionary<string, float> _volumes = new Dictionary<string, float>();
+
+        /// <summary>The names of the last sounds asked for, oldest first, up to 64 (for tests).</summary>
+        public static IReadOnlyList<string> Recent => _recent;
+        public static void ClearRecent() => _recent.Clear();
+        /// <summary>How loud <paramref name="name"/> was last asked to play, the Sound slider included (for tests); 0 if never.</summary>
+        public static float LastVolumeOf(string name) => _volumes.TryGetValue(name, out float v) ? v : 0f;
+
         static void Play(string name, AudioClip clip, float volume, float pitchSpread)
         {
             Last = name;
+            _recent.Add(name);
+            if (_recent.Count > 64) _recent.RemoveAt(0);
+            _volumes[name] = volume * SfxGain;
             if (_oneShots == null || !Application.isPlaying || SfxGain <= 0f) return;
             _oneShots.pitch = 1f + UnityEngine.Random.Range(-pitchSpread, pitchSpread);
             _oneShots.PlayOneShot(clip, volume * SfxGain);
+        }
+
+        // ----- the moon pond (#58) -----
+
+        static readonly Dictionary<string, AudioClip> _fishing = new Dictionary<string, AudioClip>();
+
+        /// <summary>The line swishes out and the float lands with a small plop.</summary>
+        public static void Cast() => Play("cast", FishingClip("cast"), 0.45f, 0.03f);
+        /// <summary>The float goes under: a short low bloop, the moment to strike.</summary>
+        public static void Sink() => Play("sink", FishingClip("sink"), 0.5f, 0.03f);
+        /// <summary>A strike in the window: a quick soft splash.</summary>
+        public static void Strike() => Play("strike", FishingClip("strike"), 0.45f, 0.04f);
+        /// <summary>The fish flies to the basket: a rising flutter of reel clicks and a soft thunk as it lands.</summary>
+        public static void Reel() => Play("reel", FishingClip("reel"), 0.42f, 0f);
+        /// <summary>The float sank untouched and the bait is gone: a gentle "aw" of two notes going down.</summary>
+        public static void BaitLost() => Play("bait-lost", FishingClip("bait-lost"), 0.42f, 0f);
+        /// <summary>Struck too early: the float bobs back up with a tiny rising blub.</summary>
+        public static void FloatUp() => Play("float-up", FishingClip("float-up"), 0.3f, 0.05f);
+
+        /// <summary>One of the pond's sounds by name, made the first time it is asked for; null for an unknown name.</summary>
+        public static AudioClip FishingClip(string name)
+        {
+            if (name == null) return null;
+            if (_fishing.TryGetValue(name, out AudioClip made) && made != null) return made;
+            float[] data;
+            var r = new System.Random(58);
+            switch (name)
+            {
+                case "cast": data = DrawCast(r); break;
+                case "sink": data = DrawSink(r); break;
+                case "strike": data = DrawStrike(r); break;
+                case "reel": data = DrawReel(r); break;
+                case "bait-lost": data = DrawBaitLost(); break;
+                case "float-up": data = DrawFloatUp(); break;
+                default: return null;
+            }
+            made = Shape(name, data);
+            _fishing[name] = made;
+            return made;
+        }
+
+        /// <summary>A whoosh of soft air that brightens then fades as the line flies, then the float's plop and a drop of spray.</summary>
+        static float[] DrawCast(System.Random r)
+        {
+            var buf = new float[Samples(0.62f)];
+            int swish = Samples(0.3f);
+            float low = 0f, lower = 0f;
+            for (int i = 0; i < swish; i++)
+            {
+                float k = i / (float)swish;
+                low += ((float)r.NextDouble() * 2f - 1f - low) * Mathf.Lerp(0.04f, 0.22f, Mathf.Sin(k * Mathf.PI));
+                lower += (low - lower) * 0.02f;
+                buf[i] += (low - lower) * Mathf.Sin(k * Mathf.PI) * 0.9f;
+            }
+            int at = Samples(0.33f);
+            Glide(buf, at, 620f, 240f, 0.05f, 30f, 0.5f);
+            Burst(buf, at, 0.03f, 0.12f, 0.35f, r);
+            return buf;
+        }
+
+        /// <summary>A round low tone that slides down as the float is pulled under, and one small bubble after it.</summary>
+        static float[] DrawSink(System.Random r)
+        {
+            var buf = new float[Samples(0.42f)];
+            Glide(buf, 0, 360f, 150f, 0.12f, 13f, 0.6f, 0.008f);
+            Bubble(buf, Samples(0.13f), 420f, 2.5f, 0.12f, 40f);
+            return buf;
+        }
+
+        /// <summary>A soft splash: a wash of filtered water noise, a body of low water and a few bright bubbles.</summary>
+        static float[] DrawStrike(System.Random r)
+        {
+            var buf = new float[Samples(0.5f)];
+            Burst(buf, 0, 0.26f, 0.5f, 0.3f, r);
+            Glide(buf, 0, 480f, 200f, 0.05f, 26f, 0.3f);
+            for (int k = 0; k < 6; k++)
+                Bubble(buf, Samples(0.02f + (float)r.NextDouble() * 0.16f), 700f + (float)r.NextDouble() * 600f, 1.8f, 0.07f, 70f);
+            return buf;
+        }
+
+        /// <summary>
+        /// Nine soft reel clicks climbing in pitch while the fish flies (0.55 s, the card's flight), then the basket's
+        /// low wicker thunk as it lands.
+        /// </summary>
+        static float[] DrawReel(System.Random r)
+        {
+            var buf = new float[Samples(0.9f)];
+            for (int k = 0; k < 9; k++)
+            {
+                int at = Samples(k * 0.058f);
+                float pitch = Mathf.Lerp(700f, 1400f, k / 8f);
+                Ping(buf, at, pitch, 0.16f, 80f, 0.06f);
+                Burst(buf, at, 0.006f, 0.08f, 0.25f, r);
+            }
+            int land = Samples(0.55f);
+            Glide(buf, land, 150f, 85f, 0.08f, 17f, 0.6f, 0.004f);
+            Burst(buf, land, 0.05f, 0.22f, 0.12f, r);
+            return buf;
+        }
+
+        /// <summary>"Aw": two soft notes, the second lower and sagging a little, slow to start so nothing in it is sharp.</summary>
+        static float[] DrawBaitLost()
+        {
+            var buf = new float[Samples(0.75f)];
+            void Note(float start, float from, float to, float gain)
+            {
+                int at = Samples(start), length = Mathf.Min(Samples(0.55f), buf.Length - at);
+                float phase = 0f;
+                for (int i = 0; i < length; i++)
+                {
+                    float t = i / (float)Rate;
+                    phase += 2f * Mathf.PI * Mathf.Lerp(from, to, Mathf.Clamp01(t / 0.35f)) / Rate;
+                    float env = Mathf.Min(1f, t / 0.025f) * Mathf.Exp(-t * 6f) * Mathf.Clamp01((0.55f - t) / 0.08f);
+                    buf[at + i] += (Mathf.Sin(phase) + 0.2f * Mathf.Sin(2f * phase)) * env * gain;
+                }
+            }
+            Note(0f, 392f, 392f, 0.4f);        // G
+            Note(0.2f, 311.13f, 293.66f, 0.4f); // E flat, sagging towards D
+            return buf;
+        }
+
+        /// <summary>A tiny bubble that rises: the float bobbing back to the top.</summary>
+        static float[] DrawFloatUp()
+        {
+            var buf = new float[Samples(0.18f)];
+            Bubble(buf, 0, 380f, 3f, 0.5f, 32f);
+            return buf;
+        }
+
+        /// <summary>A tone sliding from <paramref name="from"/> to <paramref name="to"/> Hz over <paramref name="glide"/> seconds, dying away.</summary>
+        static void Glide(float[] buf, int at, float from, float to, float glide, float decay, float gain, float attack = 0.003f)
+        {
+            int length = Mathf.Min(Samples(6f / decay), buf.Length - at);
+            float phase = 0f;
+            for (int i = 0; i < length; i++)
+            {
+                float t = i / (float)Rate;
+                phase += 2f * Mathf.PI * Mathf.Lerp(from, to, Mathf.Clamp01(t / glide)) / Rate;
+                buf[at + i] += (Mathf.Sin(phase) + 0.15f * Mathf.Sin(2f * phase)) * Mathf.Min(1f, t / attack) * Mathf.Exp(-t * decay) * gain;
+            }
+        }
+
+        /// <summary>A one-shot from a drawn buffer: 5 ms fades at both ends, kept under 0.9.</summary>
+        static AudioClip Shape(string name, float[] data)
+        {
+            float peak = 0f;
+            foreach (float v in data) peak = Mathf.Max(peak, Mathf.Abs(v));
+            float gain = peak > 0.9f ? 0.9f / peak : 1f;
+            int fade = Samples(0.005f);
+            for (int i = 0; i < data.Length; i++)
+            {
+                float edge = Mathf.Min(1f, Mathf.Min(i, data.Length - 1 - i) / (float)fade);
+                data[i] *= gain * edge;
+            }
+            AudioClip clip = AudioClip.Create(name, data.Length, 1, Rate, false);
+            clip.SetData(data, 0);
+            return clip;
         }
 
         static AudioClip Make(string name, float seconds, Func<float, float> sample)
@@ -560,6 +729,10 @@ namespace VuonTra.Game
                 case "tiem-banh": return "crackle"; // the mooncake oven
                 case "suoi-hoa": return "stream";   // the flower spring
                 case "dai-sao": return "tinkle";    // the observatory's star chimes
+                case "ho-sen": return "stream";     // water round the lotus leaves (#67)
+                case "lo-keo": return "simmer";     // malt syrup bubbling down to candy
+                case "ruong-nep": return "rustle";  // rice stalks in the paddy
+                case "thuyen-tra": return "boil";   // a kettle on the night boat
                 default: return null;
             }
         }

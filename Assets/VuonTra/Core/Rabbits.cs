@@ -17,7 +17,10 @@ namespace VuonTra.Core
         public int Level = 1;
         /// <summary>Index of the station it works at, or -1 when resting.</summary>
         public int Station = -1;
-        /// <summary>How close the rabbit and the player are, 0 to <see cref="Rabbits.AffectionMax"/>: one more for each day it is stroked.</summary>
+        /// <summary>
+        /// How close the rabbit and the player are, in bond points from 0 to <see cref="Rabbits.AffectionMax"/> (#58): ten for
+        /// each day it is stroked, more for each fish it is fed. Its hearts follow from them (<see cref="Rabbits.HeartsOf(int)"/>).
+        /// </summary>
         public int Affection;
         /// <summary>The day it was last stroked (see <see cref="Rabbits.Pet"/>), or -1 when never.</summary>
         public long PetDay = -1;
@@ -34,10 +37,23 @@ namespace VuonTra.Core
         public bool FirstToday;
         /// <summary>Tea power paid for this touch; zero after the first stroke of the day unless it was a wake.</summary>
         public double Energy;
-        /// <summary>The bond just reached <see cref="Rabbits.AffectionLine"/>: the rabbit has something to say.</summary>
+        /// <summary>The bond just reached <see cref="Rabbits.LineHearts"/>: the rabbit has something to say.</summary>
         public bool LineUnlocked;
-        /// <summary>The bond just reached its cap: the rabbit gave its clover, already counted in the purse.</summary>
+        /// <summary>The bond just reached <see cref="Rabbits.GiftHearts"/>: the rabbit gave its clover, already counted in the purse.</summary>
         public bool GiftGiven;
+        /// <summary>The bond just reached ten hearts (#58): the rabbit gave its golden carrots, already counted in the purse.</summary>
+        public bool TenHearts;
+    }
+
+    /// <summary>Which of the bond's moments one gain of points crossed (#19, #58); the gifts are already paid.</summary>
+    public struct BondStep
+    {
+        /// <summary>The bond reached <see cref="Rabbits.LineHearts"/>: the rabbit has something to say.</summary>
+        public bool LineUnlocked;
+        /// <summary>The bond reached <see cref="Rabbits.GiftHearts"/>: one clover.</summary>
+        public bool GiftGiven;
+        /// <summary>The bond reached ten hearts: <see cref="Rabbits.TenHeartGolden"/> golden carrots, and the heart badge from now on.</summary>
+        public bool TenHearts;
     }
 
     /// <summary>
@@ -59,11 +75,11 @@ namespace VuonTra.Core
 
         static int ClampTier(int tier) => Math.Max(0, Math.Min(TierCount - 1, tier));
 
-        /// <summary>What this rabbit multiplies its station by: tier, level, then its own items.</summary>
+        /// <summary>What this rabbit multiplies its station by: tier, level, its own items, then its hearts (#58).</summary>
         public static double Multiplier(GameState s, Rabbit r)
         {
             double fromLevel = Multipliers[ClampTier(r.Tier)] * (1d + LevelBonus * (Math.Max(1, r.Level) - 1));
-            return fromLevel * (1d + Items.StationBonus(s, r.Id));
+            return fromLevel * (1d + Items.StationBonus(s, r.Id)) * HeartMultiplier(r);
         }
 
         /// <summary>What a rabbit's multiplier is multiplied by at a station of its own trade.</summary>
@@ -87,7 +103,7 @@ namespace VuonTra.Core
         {
             var list = new List<int>();
             for (int i = 0; i < defs.Count; i++)
-                if (s.Levels[i] > 0 && Suits(defs, r, i)) list.Add(i);
+                if (s.Levels[i] > 0 && Suits(defs, r, i) && !Layout.IsStored(defs, s, i)) list.Add(i);
             return list;
         }
 
@@ -100,25 +116,86 @@ namespace VuonTra.Core
         /// <summary>What the rabbit is worth where it is now (resting counts as no bonus to a station; a seated rabbit adds to the whole garden instead, see <see cref="RestSpots.BonusOf"/>).</summary>
         public static double WorkMultiplier(IReadOnlyList<StationDef> defs, GameState s, Rabbit r) => MultiplierAt(defs, s, r, r.Station);
 
-        // ----- touching and stroking (#19) -----
+        // ----- touching and stroking (#19), the bond in points (#58) -----
 
         /// <summary>The most hearts a rabbit can hold for the player.</summary>
-        public const int AffectionMax = 5;
+        public const int HeartMax = 10;
+        /// <summary>
+        /// Bond points each heart starts at, from none to ten (#58): the steps of the issue (10, 30, 80 ... 8 880) and one
+        /// more of ten thousand for the tenth. An old save's 0 to 5 hearts become exactly the points those hearts start at,
+        /// and a day's stroke (<see cref="PetPoints"/>) still brings the first heart.
+        /// </summary>
+        public static readonly int[] HeartPoints = { 0, 10, 30, 80, 180, 380, 880, 1880, 3880, 8880, 18880 };
+        /// <summary>The most bond points a rabbit can hold: ten hearts.</summary>
+        public const int AffectionMax = 18880;
+        /// <summary>What a rabbit's hearts multiply its worth by, from none to ten (#58).</summary>
+        public static readonly double[] HeartMultipliers = { 1d, 1.05, 1.1, 1.2, 1.3, 1.45, 1.6, 1.8, 2d, 2.3, 2.6 };
         /// <summary>At this many hearts the rabbit says a line of its own.</summary>
-        public const int AffectionLine = 3;
-        /// <summary>At the cap the rabbit gives this many clovers, once.</summary>
+        public const int LineHearts = 3;
+        /// <summary>At this many hearts the rabbit gives <see cref="AffectionGiftClovers"/>, once: the old full bond.</summary>
+        public const int GiftHearts = 5;
+        /// <summary>The clovers given at <see cref="GiftHearts"/>.</summary>
         public const int AffectionGiftClovers = 1;
+        /// <summary>Golden carrots a rabbit gives once, the day its bond reaches ten hearts (#58).</summary>
+        public const int TenHeartGolden = 3;
+        /// <summary>Bond points for the first stroke of a day.</summary>
+        public const int PetPoints = 10;
         /// <summary>Tea power for the first stroke of a day.</summary>
         public const double PetEnergy = 5d;
         /// <summary>Tea power for waking a rabbit that nodded off at its post, every time.</summary>
         public const double DozeEnergy = 8d;
 
+        /// <summary>Hearts for so many bond points, 0 to <see cref="HeartMax"/>.</summary>
+        public static int HeartsOf(int points)
+        {
+            int hearts = 0;
+            while (hearts < HeartMax && points >= HeartPoints[hearts + 1]) hearts++;
+            return hearts;
+        }
+
+        public static int HeartsOf(Rabbit r) => r == null ? 0 : HeartsOf(r.Affection);
+
+        /// <summary>The bond points a number of hearts starts at: how an old save's hearts become points.</summary>
+        public static int PointsFor(int hearts) => HeartPoints[Math.Max(0, Math.Min(HeartMax, hearts))];
+
+        /// <summary>Points still to go to the next heart; 0 at ten hearts.</summary>
+        public static int PointsToNext(Rabbit r)
+        {
+            int hearts = HeartsOf(r);
+            return hearts >= HeartMax ? 0 : HeartPoints[hearts + 1] - Math.Max(0, r.Affection);
+        }
+
+        /// <summary>What the rabbit's hearts multiply its worth by.</summary>
+        public static double HeartMultiplier(Rabbit r) => HeartMultipliers[HeartsOf(r)];
+
+        /// <summary>True for a rabbit with all ten hearts: it wears the heart badge.</summary>
+        public static bool FullHearts(Rabbit r) => HeartsOf(r) >= HeartMax;
+
+        /// <summary>
+        /// Adds bond points, never past <see cref="AffectionMax"/>, and pays what the hearts it crosses bring: the clover at
+        /// <see cref="GiftHearts"/> and the golden carrots at ten, each exactly once, at the step that reaches it.
+        /// </summary>
+        public static BondStep AddBond(GameState s, Rabbit r, int points)
+        {
+            var step = new BondStep();
+            if (r == null || points <= 0) return step;
+            int before = HeartsOf(r);
+            r.Affection = Math.Min(AffectionMax, Math.Max(0, r.Affection) + points);
+            int after = HeartsOf(r);
+            step.LineUnlocked = before < LineHearts && after >= LineHearts;
+            step.GiftGiven = before < GiftHearts && after >= GiftHearts;
+            step.TenHearts = before < HeartMax && after >= HeartMax;
+            if (step.GiftGiven) s.Clovers += AffectionGiftClovers;
+            if (step.TenHearts) s.GoldenCarrots += TenHeartGolden;
+            return step;
+        }
+
         /// <summary>
         /// The player touched or stroked a rabbit on <paramref name="day"/>. The first time on a day later than the
-        /// last one the bond grows by one up to its cap and <see cref="PetEnergy"/> is paid; every later touch that
-        /// day, and every touch on a day the clock was turned back to, is for love alone (#78).
+        /// last one the bond grows by <see cref="PetPoints"/> up to its cap and <see cref="PetEnergy"/> is paid; every
+        /// later touch that day, and every touch on a day the clock was turned back to, is for love alone (#78).
         /// Waking a dozing rabbit (<paramref name="wake"/>) pays <see cref="DozeEnergy"/> instead, every time.
-        /// The clover for a full bond is paid exactly once, at the step that completes it.
+        /// The clover and the ten-heart gift are paid exactly once, at the step that reaches them.
         /// </summary>
         public static PetResult Pet(GameState s, Rabbit r, long day, bool wake = false)
         {
@@ -129,24 +206,21 @@ namespace VuonTra.Core
             if (result.FirstToday)
             {
                 r.PetDay = day;
-                if (r.Affection < AffectionMax)
-                {
-                    r.Affection = Math.Max(0, r.Affection) + 1;
-                    result.LineUnlocked = r.Affection == AffectionLine;
-                    result.GiftGiven = r.Affection == AffectionMax;
-                    if (result.GiftGiven) s.Clovers += AffectionGiftClovers;
-                }
+                BondStep step = AddBond(s, r, PetPoints);
+                result.LineUnlocked = step.LineUnlocked;
+                result.GiftGiven = step.GiftGiven;
+                result.TenHearts = step.TenHearts;
             }
             result.Energy = wake ? DozeEnergy : (result.FirstToday ? PetEnergy : 0d);
             if (result.Energy > 0d) s.Energy = Math.Min(Energy.Max, Math.Max(0d, s.Energy) + result.Energy);
             return result;
         }
 
-        /// <summary>The hearts a rabbit holds, as marks: full ones for the bond so far, hollow for the rest.</summary>
-        public static string Hearts(int affection)
+        /// <summary>The hearts a rabbit holds for so many bond points, as marks: full ones for the bond so far, hollow for the rest.</summary>
+        public static string Hearts(int points)
         {
-            int full = Math.Max(0, Math.Min(AffectionMax, affection));
-            return new string('♥', full) + new string('♡', AffectionMax - full);
+            int full = HeartsOf(points);
+            return new string('♥', full) + new string('♡', HeartMax - full);
         }
 
         public const int MaxNameLength = 12;
@@ -402,6 +476,15 @@ namespace VuonTra.Core
             return n;
         }
 
+        /// <summary>Like <see cref="StationsWithoutWorker(GameState)"/>, leaving out the stations put away in storage (#54).</summary>
+        public static int StationsWithoutWorker(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            int n = 0;
+            for (int i = 0; i < s.Levels.Length; i++)
+                if (s.Levels[i] > 0 && AtStation(s, i) == null && !Layout.IsStored(defs, s, i)) n++;
+            return n;
+        }
+
         /// <summary>The rabbit's own multiplier at a station, without the trade bonus. Income uses the overload with the stations.</summary>
         public static double StationMultiplier(GameState s, int station)
         {
@@ -500,7 +583,7 @@ namespace VuonTra.Core
             var worth = new Dictionary<int, double>();
             for (int i = 0; i < defs.Count; i++)
             {
-                if (s.Levels[i] <= 0) continue;
+                if (s.Levels[i] <= 0 || Layout.IsStored(defs, s, i)) continue; // a stored station has no post (#54)
                 open.Add(i);
                 StationDef d = defs[i];
                 // Compare on a log scale so huge incomes still order correctly; rabbits excluded.

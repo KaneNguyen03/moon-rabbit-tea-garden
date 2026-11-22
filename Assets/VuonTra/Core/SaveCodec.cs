@@ -109,7 +109,9 @@ namespace VuonTra.Core
                 sb.Append("{\"id\":").Append(r.Id.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"tier\":").Append(r.Tier.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"level\":").Append(r.Level.ToString(CultureInfo.InvariantCulture));
-                sb.Append(",\"affection\":").Append(r.Affection.ToString(CultureInfo.InvariantCulture));
+                // The bond (#58) in points; "affection" keeps the old hearts (0 to 5) for a build from before the points.
+                sb.Append(",\"affection\":").Append(Math.Min(Rabbits.GiftHearts, Rabbits.HeartsOf(r)).ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"bond\":").Append(r.Affection.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"petDay\":").Append(r.PetDay.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"dye\":").Append(r.Dye.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"kind\":");
@@ -322,7 +324,21 @@ namespace VuonTra.Core
                     sb.Append('}');
                 }
             }
-            sb.Append("]}");
+            sb.Append(']');
+            if (s.Grid.StoredCount > 0)
+            {
+                // The stations put away (#54), an additive list written only when there are some.
+                var stored = new List<string>(s.Grid.Stored);
+                stored.Sort(string.CompareOrdinal);
+                sb.Append(",\"stored\":[");
+                for (int i = 0; i < stored.Count; i++)
+                {
+                    if (i > 0) sb.Append(',');
+                    WriteString(sb, stored[i]);
+                }
+                sb.Append(']');
+            }
+            sb.Append('}');
             // Gift codes and the mailbox (#68), additive: the codes used, then the letters and the day the box last looked.
             sb.Append(",\"codesUsed\":[");
             first = true;
@@ -355,6 +371,19 @@ namespace VuonTra.Core
             sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"met\":").Append(s.FrogsMet.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"left\":").Append(Sane(s.FrogLeft).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append('}');
+            // The moon pond (#58), an additive block: baits kept and the second the next is counted from, casts, the basket, fish caught and fed.
+            sb.Append(",\"fishing\":{\"baits\":").Append(s.Baits.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"baitAt\":").Append(s.BaitAt.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"casts\":").Append(s.Casts.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"basket\":[");
+            for (int i = 0; i < Fishing.Kinds; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append((s.Fish != null && i < s.Fish.Length ? s.Fish[i] : 0).ToString(CultureInfo.InvariantCulture));
+            }
+            sb.Append("],\"caught\":").Append(s.FishCaught.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"fed\":").Append(s.FishFed.ToString(CultureInfo.InvariantCulture));
             sb.Append("}}");
             return sb.ToString();
         }
@@ -481,8 +510,11 @@ namespace VuonTra.Core
                         if (index >= 0 && s.Levels[index] > 0 && taken.Add(index)) rabbit.Station = index;
                     }
                     rabbit.Level = (int)Math.Max(1d, Math.Min(ReadNumber(entry, "level"), Rabbits.LevelCaps[rabbit.Tier]));
-                    // The bond (#19): saves from before it, or odd values, start with no hearts and no day.
-                    rabbit.Affection = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "affection"), Rabbits.AffectionMax));
+                    // The bond (#19) in points (#58). A save from before the points kept 0 to 5 hearts, which become the
+                    // points those hearts start at; saves from before the bond, or odd values, start with none.
+                    rabbit.Affection = TryNumber(entry, "bond", out double bond)
+                        ? (int)Math.Max(0d, Math.Min(bond, Rabbits.AffectionMax))
+                        : Rabbits.PointsFor((int)Math.Max(0d, Math.Min(ReadNumber(entry, "affection"), Rabbits.GiftHearts)));
                     rabbit.PetDay = TryNumber(entry, "petDay", out double petDay) && petDay >= 0d ? ToLong(petDay) : -1;
                     // Fur dye (#44): saves from before it, and colours the palette lacks, mean its own coat.
                     rabbit.Dye = TryNumber(entry, "dye", out double dye) && dye >= 0d && dye < Shop.Dyes.Length ? (int)dye : -1;
@@ -789,6 +821,10 @@ namespace VuonTra.Core
                         if (Math.Abs(q) > GardenGrid.MaxRadius * 2 || Math.Abs(r) > GardenGrid.MaxRadius * 2 || s.Grid.OccupantAt((int)q, (int)r) != null) continue;
                         s.Grid.Place(id, (int)q, (int)r, true);
                     }
+                // The stations put away (#54); Settle lets go of any that is not an open station with a plot.
+                if (grid.TryGetValue("stored", out object storedObj) && storedObj is List<object> stored)
+                    foreach (object raw in stored)
+                        if (raw is string id && GardenGrid.Known(id)) s.Grid.Restore(id);
             }
             GardenGrid.Settle(defs, s);
 
@@ -800,6 +836,19 @@ namespace VuonTra.Core
                 s.FrogsToday = (int)Math.Max(0d, Math.Min(ReadNumber(frog, "today"), FrogRabbit.PerDay));
                 s.FrogsMet = Math.Max(0L, ToLong(ReadNumber(frog, "met")));
                 s.FrogLeft = Math.Max(0d, Math.Min(FrogRabbit.StaySeconds, ReadNumber(frog, "left")));
+            }
+
+            // The moon pond (#58). A save from before it has never fished: all five baits on hand and an empty basket.
+            if (root.TryGetValue("fishing", out object fishingObj) && fishingObj is Dictionary<string, object> fishing)
+            {
+                s.Baits = (int)Math.Max(0d, Math.Min(ReadNumber(fishing, "baits"), Fishing.BaitCap));
+                s.BaitAt = TryNumber(fishing, "baitAt", out double baitAt) && baitAt >= 0d ? ToLong(baitAt) : -1;
+                s.Casts = Math.Max(0L, ToLong(ReadNumber(fishing, "casts")));
+                if (fishing.TryGetValue("basket", out object basketObj) && basketObj is List<object> basket)
+                    for (int i = 0; i < Fishing.Kinds && i < basket.Count; i++)
+                        if (basket[i] is double n && n > 0d) s.Fish[i] = (int)Math.Min(n, int.MaxValue);
+                s.FishCaught = Math.Max(0L, ToLong(ReadNumber(fishing, "caught")));
+                s.FishFed = Math.Max(0L, ToLong(ReadNumber(fishing, "fed")));
             }
 
             result.Status = LoadStatus.Ok;

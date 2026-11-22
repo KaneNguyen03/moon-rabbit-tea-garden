@@ -3090,6 +3090,206 @@ MonoBehaviour:
     m_Localized: Meet the Frog Rabbit 5 times
     m_Metadata:
       m_Items: []
+  - m_Id: 406865048494080
+    m_Localized: Widen the forest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882688
+    m_Localized: "Widen the forest \xB7 ring {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882689
+    m_Localized: The forest steps back!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026325442560
+    m_Localized: Arrange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831168
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831169
+    m_Localized: "Hold to pick up \xB7 drop on an empty tile, on something to swap, or in storage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831170
+    m_Localized: Store away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831171
+    m_Localized: 'In storage: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831172
+    m_Localized: Stored away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831173
+    m_Localized: Only open stations and decorations can be stored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831174
+    m_Localized: "{0} \xB7 level {1} \xB7 in storage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831175
+    m_Localized: Take out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831176
+    m_Localized: The garden has no empty tile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723350331392
+    m_Localized: Catch 50 fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720000
+    m_Localized: A rabbit with all 10 hearts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720001
+    m_Localized: Little silverfish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720002
+    m_Localized: Orange goldfish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720003
+    m_Localized: Pink koi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720004
+    m_Localized: Crescent fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720005
+    m_Localized: Golden carp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720006
+    m_Localized: Starry night fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720007
+    m_Localized: +{0} bond points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720008
+    m_Localized: 'Bait: {0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720009
+    m_Localized: Next bait in {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720010
+    m_Localized: Out of bait, back soon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720011
+    m_Localized: '{0} has all 10 hearts!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720012
+    m_Localized: "Best of friends \xB7 +{0} golden carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720798867456
+    m_Localized: Lotus Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256064
+    m_Localized: Malt Candy Kiln
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256065
+    m_Localized: Sticky Rice Paddy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256066
+    m_Localized: Night Tea Boat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256067
+    m_Localized: All 12 rabbits awake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256068
+    m_Localized: Have 16 stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256069
+    m_Localized: Needs garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308916662272
+    m_Localized: Fishing {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050880
+    m_Localized: Fishing at the moon pond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050881
+    m_Localized: Cast
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050882
+    m_Localized: "Line's out\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050883
+    m_Localized: No bait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050884
+    m_Localized: Cast, wait for the float to sink, then tap the water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050885
+    m_Localized: "Wait for the float to sink\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050886
+    m_Localized: It's sinking! Tap now!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050887
+    m_Localized: Too soon, the float bobs back up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050888
+    m_Localized: The bait is gone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050889
+    m_Localized: 'Caught: {0}!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050890
+    m_Localized: Feed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050891
+    m_Localized: "{0} \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050892
+    m_Localized: +{0} pts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050893
+    m_Localized: "Basket empty \xB7 fish at the pond"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050894
+    m_Localized: All 10 hearts
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

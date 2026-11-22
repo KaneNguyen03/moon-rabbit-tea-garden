@@ -541,7 +541,7 @@ namespace VuonTra.EditorTools
                     Capture(screen, "28-tho-di-tram");
                     Step(screen, 3f);
                     // Stroked at its new post on the day its bond reaches three hearts: hearts, tea power and its line (#19).
-                    mover.Affection = Rabbits.AffectionLine - 1;
+                    mover.Affection = Rabbits.PointsFor(Rabbits.LineHearts) - Rabbits.PetPoints;
                     mover.PetDay = -1;
                     screen.FocusStation(0); // settle the view on the teapot first, so the hearts rise where the rabbit stands
                     Step(screen, 0.5f);
@@ -680,7 +680,13 @@ namespace VuonTra.EditorTools
             RenderAlbumSets(runner, screen);
             RenderMoonJars(runner, screen);
             RenderGiftCodes(runner, screen);
+            RenderFourStations(runner, screen);
             RenderAdSeams(runner, screen);
+            RenderForestRings(runner, screen); // #53
+            RenderLayout(runner, screen);
+            RenderPond(runner, screen); // #58b
+            RenderQaNits2(); // #79–#82, on a freshly opened scene so the title shows again
+            RenderReservedProps(); // #54 follow-up
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -727,7 +733,7 @@ namespace VuonTra.EditorTools
             screen.LookAt(side);
             Step(screen, 0.3f);
             Capture(screen, "51-mua-dot-1-truoc");
-            s.Plots = Expansion.Waves[0].PlotsAfter;
+            s.Plots = Expansion.PlotsForRadius(runner.Defs, Expansion.Rings[0].RadiusAfter);
             screen.Refresh();
             Step(screen, GardenScreen.RimStep * 0.4f);
             Capture(screen, "51-mua-dot-1-giua");
@@ -735,9 +741,9 @@ namespace VuonTra.EditorTools
             Capture(screen, "51-mua-dot-1-sau");
 
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
-            for (int wave = 0; wave <= Expansion.Waves.Length; wave++)
+            for (int wave = 0; wave <= Expansion.Rings.Length; wave++)
             {
-                int plots = wave == 0 ? Plots.Starting : Expansion.Waves[wave - 1].PlotsAfter;
+                int plots = wave == 0 ? Plots.Starting : Expansion.PlotsForRadius(runner.Defs, Expansion.Rings[wave - 1].RadiusAfter);
                 for (int i = 0; i < s.Levels.Length; i++) s.Levels[i] = i < plots - 2 || i < Plots.Starting ? Mathf.Max(1, 6 - i) : 0;
                 s.Plots = plots;
                 screen.Refresh();
@@ -1143,6 +1149,87 @@ namespace VuonTra.EditorTools
         }
 
         /// <summary>
+        /// #67: the four stations after the star observatory. At R 7 the Stations tab at its foot says what each waits for and
+        /// the far garden shows the sign for the eighth ring; the eighth ring opens (the forest steps back, the lotus garden
+        /// and the candy kiln get their land at the top of the garden), then the ninth; the four open in the garden up close
+        /// and from far away, and the candy kiln's own product sits in the tray.
+        /// </summary>
+        static void RenderFourStations(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            for (int i = 0; i < 12; i++) s.Levels[i] = 160 - 10 * i;
+            s.Plots = 12;
+            s.RestSpots = 6;
+            s.GardenXp = Garden.XpForLevel(defs[12].NeedGardenLevel) + 40;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(8.4e15);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            for (int i = 0; i < 11; i++) Rabbits.Arrive(s, 1, "Thỏ " + (i + 2), (i * 0.37) % 1d);
+            foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < 8) s.SeenKinds.Add(kind.Id);
+            s.FreshKinds.Clear();
+            GardenGrid.Settle(defs, s);
+            runner.Init(s);
+            screen.RebuildUi();
+            if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 4f); // past the garden level's banner
+            screen.OpenSheet(0);
+            Step(screen, 0.5f);
+            var list = GameObject.Find("Canvas/Sheet/Panel/Scroll").GetComponent<UnityEngine.UI.ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            list.verticalNormalizedPosition = 0f;
+            Step(screen, 0.3f);
+            Capture(screen, "67-tram-moi-cho");
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            screen.LookAt(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(15)));
+            Step(screen, 0.3f);
+            Capture(screen, "67-xa-truoc-vong-8");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+
+            // The eighth ring: the forest steps back and the top of the garden takes the lotus garden and the candy kiln.
+            Press(screen, "Canvas/Garden/Canopy/Forest Sign/Board");
+            screen.Refresh();
+            Step(screen, GardenScreen.RimStep + 1.2f);
+            s.Levels[12] = 14; s.Levels[13] = 9;
+            // The ninth: the rice paddy and the night tea boat.
+            s.GardenXp = Garden.XpForLevel(defs[15].NeedGardenLevel) + 40;
+            s.Coins = Expansion.CostOfNext(defs, s) * new BigNum(1.2);
+            screen.Refresh();
+            Step(screen, 4f);
+            Press(screen, "Canvas/Garden/Canopy/Forest Sign/Board");
+            screen.Refresh();
+            Step(screen, GardenScreen.RimStep + 1.2f);
+            s.Levels[14] = 6; s.Levels[15] = 3;
+            s.Coins = new BigNum(8.4e17);
+            Tray.Add(s, 13, false); Tray.Add(s, 13, false); Tray.Add(s, 15, true); Tray.Add(s, 11, false);
+            screen.Refresh();
+            Step(screen, 4f);
+            screen.LookAt(screen.StationSpot(13) + new Vector2(0f, -120f));
+            Step(screen, 0.5f);
+            Capture(screen, "67-vong-moi");
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            screen.LookAt(screen.StationSpot(15)); // far, at the top: the band of the four over the shop and the pond
+            Step(screen, 0.3f);
+            Capture(screen, "67-xa-sau-vong-9");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.OpenSheet(0);
+            Step(screen, 0.5f);
+            Canvas.ForceUpdateCanvases();
+            list.verticalNormalizedPosition = 0f;
+            Step(screen, 0.3f);
+            Capture(screen, "67-tram-moi-mo");
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+            Capture(screen, "67-khay-keo");
+        }
+
+        /// <summary>
         /// #66: the rewarded-ad seams on the editor's pretend videos. The welcome-back sheet once the day's free ×2 is
         /// spent (golden ×2 stays the main button, "Xem 30 giây" above it), the shop's golden row with its pill, the packs
         /// card with the no-ads pass, and a mooncake result once the day's rounds are spent, first with a video to watch,
@@ -1205,6 +1292,366 @@ namespace VuonTra.EditorTools
             s.NoAdsUntilDay = -1;
             screen.Refresh();
             Step(screen, 0.4f);
+        }
+
+        /// <summary>
+        /// #53: the forest steps back ring by ring. For each of the first two rings: the sign at the lawn's edge once the garden
+        /// can widen, halfway through the step (the rim fading over, the new grass coming up), and after; the whole garden from
+        /// far away before and after each; and the sign in English and in large text.
+        /// </summary>
+        static void RenderForestRings(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            for (int i = 0; i < Plots.Starting; i++) s.Levels[i] = 6 - i;
+            Rabbits.GiftFirst(s, "Bông");
+            runner.Init(s);
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            for (int ring = 0; ring < 2; ring++)
+            {
+                ForestRing next = Expansion.Next(runner.Defs, s);
+                s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
+                while (s.Rabbits.Count < next.NeedRabbits) Rabbits.Arrive(s, 0, "Thỏ " + (s.Rabbits.Count + 1), (s.Rabbits.Count * 0.37) % 1d);
+                s.Coins = Expansion.CostOfNext(runner.Defs, s) * new BigNum(1.2);
+                for (int i = 0; i < s.Plots; i++) if (s.Levels[i] <= 0) s.Levels[i] = 1;
+                screen.Refresh();
+                Step(screen, 4f); // the new garden level's banner comes and goes first
+                screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+                Step(screen, 0.2f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-xa-truoc");
+                screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+                screen.LookAt(screen.ForestSignSpot + new Vector2(screen.ForestSignSpot.x < 540f ? 380f : -380f, 120f));
+                Step(screen, 0.3f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-truoc");
+                if (ring == 0)
+                {
+                    L10n.SetLocale("en");
+                    screen.RebuildUi();
+                    Step(screen, 0.6f);
+                    Capture(screen, "53-bien-en");
+                    L10n.SetLocale("vi");
+                    UiKit.SetLargeText(true);
+                    screen.RebuildUi();
+                    Step(screen, 0.6f);
+                    Capture(screen, "53-bien-chu-to");
+                    UiKit.SetLargeText(false);
+                    screen.RebuildUi();
+                    Step(screen, 0.6f);
+                }
+                Press(screen, "Canvas/Garden/Canopy/Forest Sign/Board");
+                screen.Refresh();
+                Step(screen, GardenScreen.RimStep * 0.5f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-giua");
+                Step(screen, GardenScreen.RimStep + 1.2f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-sau");
+                screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+                Step(screen, 0.2f);
+                Capture(screen, "53-vong-" + (ring + 1) + "-xa-sau");
+                screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            }
+        }
+
+        /// <summary>
+        /// #54 arranging the garden: the mode on with a dashed ring on every empty tile and the first-time hint, a station
+        /// lifted and carried, the garden after a swap (still arranging), and the garden built again after "Xong".
+        /// </summary>
+        static void RenderLayout(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(4);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            Rabbits.Arrive(s, 1, "Mây", 0.4); // one resting on a stump
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0f, -80f));
+            Step(screen, 0.5f);
+            screen.EnterLayoutMode();
+            Step(screen, 0.3f);
+            Capture(screen, "54-bo-tri-bat");
+
+            // The leaf basket held, then carried halfway towards an empty tile left of the teapot.
+            Hex basket = s.Grid.TileOf(GardenGrid.StationId(defs[1])).Value, teapot = s.Grid.TileOf(GardenGrid.StationId(defs[0])).Value;
+            Hex empty = basket;
+            int best = int.MaxValue;
+            foreach (Hex h in screen.LayoutEmptyTiles())
+            {
+                int d = GardenGrid.Distance(h, new Hex(-1, 1));
+                if (d < best) { best = d; empty = h; }
+            }
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(basket));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            Vector2 half = (screen.LayoutViewPoint(basket) + screen.LayoutViewPoint(empty)) / 2f + new Vector2(60f, 230f); // above the teapot, clear of it
+            screen.SimulateLayoutDrag(half);
+            Step(screen, 0.1f);
+            Capture(screen, "54-dang-nhac");
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(empty));
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(empty));
+            Step(screen, 0.4f);
+
+            // The jam pot dropped on the teapot: the two swap tiles.
+            Hex jam = s.Grid.TileOf(GardenGrid.StationId(defs[2])).Value;
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(jam));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(teapot));
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(teapot));
+            Step(screen, 0.5f);
+            Capture(screen, "54-sau-hoan-doi");
+            screen.ExitLayoutMode();
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0f, -80f));
+            Step(screen, 0.5f);
+            Capture(screen, "54-sau-xong");
+        }
+
+        /// <summary>
+        /// QA nits 2 (#79–#82): the welcome-back sheet coming up over the title on a day whose eight guests were all served,
+        /// a long kind's plate on a rabbit's own sheet and on its album page (in Vietnamese and English), and mushroom stools
+        /// on the decoration spot by a station's level plate.
+        /// </summary>
+        static void RenderQaNits2()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            for (int i = 0; i < defs.Count; i++) s.Levels[i] = 30 - 2 * i;
+            s.Plots = defs.Count;
+            s.GardenXp = Garden.XpForLevel(9);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e7);
+            s.GoldenCarrots = 500;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-den-ong-sao", "Đèn").Id, 0);
+            Rabbits.Arrive(s, 1, "Mây", 0.4);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            Step(screen, 0.4f);
+
+            // #79 and #80: today's eight guests have all been served, then three hours away; the sheet comes up over the title.
+            s.OrderDay = runner.TodayNumber;
+            s.OrdersToday = Orders.PerDay;
+            long now = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            s.LastSeenUnixSeconds = now - 3 * 3600;
+            AwayReport away = Away.Claim(runner.Defs, s, now, runner.Mods);
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 0.5f);
+            Capture(screen, "79-di-vang-tren-tieu-de");
+            screen.AwayCard.Close();
+            Step(screen, 0.4f);
+            screen.Shell.StartGame();
+            Step(screen, 0.5f);
+
+            // #81: a gold kind with a long name on its rabbit's own sheet, the red kind's album page, then the sheet in English.
+            Rabbit lantern = s.Rabbits[0];
+            screen.Detail.Open(runner.Defs, s, lantern.Id);
+            Step(screen, 0.5f);
+            Capture(screen, "81-the-tho-ten-dai");
+            screen.Detail.OpenKind(runner.Defs, s, "tho-chom-sao");
+            Step(screen, 0.5f);
+            Capture(screen, "81-so-tho-ten-dai");
+            screen.Detail.Close();
+            Step(screen, 0.4f);
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            screen.Detail.Open(runner.Defs, s, lantern.Id);
+            Step(screen, 0.5f);
+            Capture(screen, "81-the-tho-ten-dai-en");
+            screen.Detail.Close();
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.4f);
+
+            // #82: mushroom stools on the first decoration spot whose stools reach a station's level plate.
+            for (int i = 0; i < Decor.Spots; i++) { Decor.Buy(s, "ghe-nam"); Decor.Place(s, i, "ghe-nam"); }
+            screen.RebuildUi();
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Canvas.ForceUpdateCanvases();
+            Transform street = screen.transform.Find("Canvas/Garden/Content");
+            // The highest plate on the lawn that a stool reaches, whatever the drawing order.
+            int spot = -1;
+            Vector2 look = screen.StationSpot(0);
+            foreach (RectTransform plate in street.GetComponentsInChildren<RectTransform>(false))
+            {
+                if (plate.name != "Level" || plate.parent == null || !plate.parent.name.StartsWith("Station ")) continue;
+                Rect p = StreetRectOf(plate, street);
+                if (spot >= 0 && p.center.y <= look.y) continue;
+                for (int i = 0; i < Decor.Spots; i++)
+                {
+                    Transform item = street.Find("Spot " + i + "/Item");
+                    if (item != null && item.gameObject.activeInHierarchy && StreetRectOf((RectTransform)item, street).Overlaps(p)) { spot = i; look = p.center; break; }
+                }
+            }
+            for (int i = 0; i < Decor.Spots; i++) if (i != spot) Decor.Store(s, i);
+            screen.RebuildUi();
+            screen.Refresh();
+            screen.LookAt(look + new Vector2(0f, 60f));
+            Step(screen, 0.5f);
+            Capture(screen, "82-ghe-nam-canh-tram");
+            if (spot < 0) Debug.LogWarning("[VuonTra] Preview #82: no decoration spot reaches a station plate");
+        }
+
+        static Rect StreetRectOf(RectTransform rt, Transform street)
+        {
+            var c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            Vector3 a = street.InverseTransformPoint(c[0]), b = street.InverseTransformPoint(c[2]);
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        /// <summary>
+        /// #58b the moon pond: the pond and its plate in the garden, its card waiting for a cast, the float going under, a
+        /// caught fish on its way to the basket, a rabbit's sheet just after "Cho ăn", the ten-heart banner, and the tile's badge.
+        /// </summary>
+        static void RenderPond(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(5);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbit may = Rabbits.Arrive(s, 1, "Mây", 0.4);
+            s.FreshKinds.Clear();
+            s.Fish[0] = 3; s.Fish[1] = 2; s.Fish[2] = 1; s.Fish[3] = 1;
+            const long now = 1_800_000_000L;
+            s.Baits = 3;
+            s.BaitAt = now - 300; // the next bait in 19 minutes
+            runner.Init(s);
+            runner.FishingClock = () => now;
+            screen.Raining = () => false;
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(GardenScreen.PondSpot + new Vector2(-120f, -300f));
+            Step(screen, 3f); // the garden level's banner comes and goes first
+            Capture(screen, "58-ao-vuon");
+
+            screen.OpenFishing();
+            Step(screen, 0.6f);
+            Capture(screen, "58-ao-cho");
+            screen.FishingCard.Cast();
+            Step(screen, 0.4f);
+            Capture(screen, "58-phao-noi"); // afloat, the rings of its landing spreading
+            for (int k = 0; k < 400 && runner.Cast != null && runner.Cast.Phase != CastPhase.Sinking; k++) screen.Advance(1f / 30f);
+            Step(screen, 0.2f);
+            Capture(screen, "58-phao-chim");
+            screen.FishingCard.TapWater();
+            Step(screen, FishingView.ShowSeconds + FishingView.FlySeconds * 0.45f);
+            Capture(screen, "58-ca-bay");
+            Step(screen, 1f);
+            Capture(screen, "58-ca-trong-gio");
+            screen.FishingCard.Close();
+            Step(screen, 0.4f);
+
+            may.Affection = 25;
+            screen.Detail.Open(defs, s, may.Id);
+            screen.Refresh();
+            Step(screen, 0.5f);
+            Press(screen, "Canvas/RabbitSheet/Card/Body/Feed");
+            Step(screen, 0.2f);
+            Capture(screen, "58-cho-an");
+            Step(screen, 1.2f);
+            Capture(screen, "58-cho-an-sau");
+
+            may.Affection = Rabbits.AffectionMax - 10;
+            s.Fish[5] = 1;
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Press(screen, "Canvas/RabbitSheet/Card/Body/Feed");
+            Step(screen, 0.4f);
+            Capture(screen, "58-tim-10-bang");
+            Step(screen, 2.5f);
+            screen.Detail.Close();
+            Step(screen, 0.4f);
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            Capture(screen, "58-tim-10-o");
+            screen.CloseSheet();
+            screen.Raining = null;
+            Step(screen, 0.4f);
+        }
+
+        /// <summary>
+        /// #54 follow-up: the arranging mode by the firefly jar, with the dashed rings on the free tiles beside it, a stone
+        /// lantern carried over the jar's tile, and the lantern let go there. Before the fix the jar's tile had a ring and the
+        /// lantern stood on the "Đom đóm · còn N lượt" plate; now the jar, the leaf basket and the plates keep their tiles.
+        /// </summary>
+        static void RenderReservedProps()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4, 6, 5, 3, 2 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = levels.Length;
+            GardenGrid.Settle(defs, s); // the lawn widens to five rings for the eight plots, out to the jar
+            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket and the jar are all out
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e6);
+            s.GoldenCarrots = 100;
+            Decor.Buy(s, "den-da");
+            Decor.Place(s, 7, "den-da"); // the spot by the tea shop, left of the jar
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            PlayerPrefs.SetInt(GardenScreen.LayoutHintKey, 1);
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            screen.Shell.StartGame();
+            Step(screen, 1.4f);
+            Hex lantern = s.Grid.TileOf(GardenGrid.DecorId(7)).Value, jar = GardenScreen.WorldToCell(GardenScreen.FireflyJarSpot);
+            screen.LookAt((GardenScreen.CellToWorld(lantern) + GardenScreen.CellToWorld(jar)) / 2f + new Vector2(0f, 60f));
+            Step(screen, 0.5f);
+            screen.EnterLayoutMode();
+            Step(screen, 0.3f);
+            Capture(screen, "54r-vong-canh-lo");
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(lantern));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            screen.SimulateLayoutDrag((screen.LayoutViewPoint(lantern) + screen.LayoutViewPoint(jar)) / 2f);
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(jar));
+            Step(screen, 0.1f);
+            Capture(screen, "54r-keo-len-lo");
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(jar));
+            Step(screen, 0.6f);
+            Capture(screen, "54r-tha-len-lo");
+            screen.ExitLayoutMode();
+            Step(screen, 0.5f);
+            Capture(screen, "54r-sau-xong");
+            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
     }
 }

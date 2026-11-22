@@ -24,6 +24,15 @@ namespace VuonTra.Game.UI
     public sealed class StationActorView
     {
         public RectTransform Root { get; private set; }
+        /// <summary>
+        /// The station's front (#82): its level plate, the empty pad's "Xếp thỏ +" button and the up arrow, on an object of
+        /// their own beside <see cref="Root"/>. The garden draws every front after everything that stands, so a decoration
+        /// on the next tile never covers them, wherever the arranging mode puts things. It follows the root's place, size and
+        /// visibility (<see cref="SyncFront"/>).
+        /// </summary>
+        public RectTransform Front { get; private set; }
+        /// <summary>The level plate, which is also the price sign before the station is built.</summary>
+        public RectTransform Plate => _chipRect;
 
         readonly int _index;
         RectTransform _rabbit, _fill, _prop, _pad, _chipRect;
@@ -75,6 +84,7 @@ namespace VuonTra.Game.UI
         public void Build(Transform parent, GameCatalog catalog, StationData data, Action<int> onTap, Action<int> onPad, Action<int> onStroke = null, ScrollRect scroll = null)
         {
             Root = UiKit.Rect("Station " + data.Id, parent);
+            Front = UiKit.Rect("Station " + data.Id + " Front", parent);
 
             Image hit = Root.AddImage(null, new Color(0, 0, 0, 0));
             hit.raycastTarget = true;
@@ -150,7 +160,7 @@ namespace VuonTra.Game.UI
             _halo.SetActive(false);
 
             // Where a rabbit stands when nobody does: a cushion with a dotted edge and a plus, which is a button.
-            _pad = UiKit.Rect("Pad", Root).Place(0.5f, 0.5f, -72, -134, 250, 156);
+            _pad = UiKit.Rect("Pad", Front).Place(0.5f, 0.5f, -72, -134, 250, 156);
             _pad.pivot = new Vector2(0.5f, 0f);
             Image padImage = _pad.AddImage(catalog.Pad, Color.white);
             padImage.preserveAspect = true;
@@ -195,7 +205,7 @@ namespace VuonTra.Game.UI
             _tool.gameObject.SetActive(false);
 
             // Shown only while the station can be afforded: the one hint on the scene that says "tap me".
-            _upArrowRect = UiKit.Rect("CanUp", Root).Place(0.5f, 0.5f, 150, -118, 56, 56);
+            _upArrowRect = UiKit.Rect("CanUp", Front).Place(0.5f, 0.5f, 150, -118, 56, 56);
             _upArrowRect.AddImage(catalog.IconUp, Color.white).preserveAspect = true;
             _upArrow = _upArrowRect.gameObject;
             _upArrow.SetActive(false);
@@ -208,7 +218,7 @@ namespace VuonTra.Game.UI
 
             // Level and cycle progress share one plate, centred under the station. Before the station is
             // built the same plate is the price sign.
-            _chipRect = UiKit.Rect("Level", Root).Place(0.5f, 0.5f, 16, -152, 236, 58);
+            _chipRect = UiKit.Rect("Level", Front).Place(0.5f, 0.5f, 16, -152, 236, 58);
             _chipHome = _chipRect.anchoredPosition;
             _chip = _chipRect.AddImage(catalog.Panel, Palette.Paper, true);
             var barBg = UiKit.Rect("Bar", _chipRect).Band(18, 18, 9, 10);
@@ -223,6 +233,20 @@ namespace VuonTra.Game.UI
             _label.resizeTextMinSize = 16;
             _label.resizeTextMaxSize = 27;
             _label.verticalOverflow = VerticalWrapMode.Truncate;
+        }
+
+        /// <summary>Puts the front where the root is, at its size and scale, shown when the root is.</summary>
+        public void SyncFront()
+        {
+            if (Front == null) return;
+            bool on = Root.gameObject.activeSelf;
+            if (Front.gameObject.activeSelf != on) Front.gameObject.SetActive(on);
+            Front.anchorMin = Root.anchorMin;
+            Front.anchorMax = Root.anchorMax;
+            Front.pivot = Root.pivot;
+            Front.sizeDelta = Root.sizeDelta;
+            Front.anchoredPosition = Root.anchoredPosition;
+            Front.localScale = Root.localScale;
         }
 
         /// <summary>Where the level plate rests and how large it reads; the sign's bob starts from here.</summary>

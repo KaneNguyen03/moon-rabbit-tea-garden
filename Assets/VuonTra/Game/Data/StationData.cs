@@ -15,6 +15,8 @@ namespace VuonTra.Game
         public double CostGrowth = 1.1;
         public double BaseIncome = 1;
         public double CycleSeconds = 2;
+        [Tooltip("The garden level this station asks for before it can be opened (#67); 0 asks for none.")]
+        public int NeedGardenLevel;
         [Tooltip("Ingredient only: the Brew stations this one makes more valuable.")]
         public StationData[] Boosts = new StationData[0];
         public Sprite Prop;
@@ -36,7 +38,8 @@ namespace VuonTra.Game
                 BaseCost = BaseCost, CostGrowth = CostGrowth,
                 BaseIncome = BaseIncome, CycleSeconds = CycleSeconds,
                 BoostsIds = ids,
-                Trade = Trade
+                Trade = Trade,
+                NeedGardenLevel = NeedGardenLevel
             };
         }
     }

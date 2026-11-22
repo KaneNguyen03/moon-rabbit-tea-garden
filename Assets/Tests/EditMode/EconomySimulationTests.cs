@@ -46,6 +46,18 @@ namespace VuonTra.Core.Tests
         BigNum earnedFrogs;
         int frogsMet, cloversFrogs;
         System.Random frogRng;
+        /// <summary>
+        /// The moon pond (#58), off by default so the tables above keep this one seed's path: every sitting opens with
+        /// every bait that came back since the last one cast, four in five caught (the rest tapped too late), every fish
+        /// fed to the rabbit at the station that earns most, which is also stroked once a day. The casts have their own
+        /// dice. What the ten-heart gift paid is kept apart. On this seed any lift of 2 % or more to the first rabbit
+        /// (one stroke's heart is enough, pond or not) sends the week down another path with a Purple rabbit at minute 13,
+        /// so the pond is measured over seventeen seeds in <see cref="Fishing_And_Feeding_Keep_The_Hard_Pacing_Rules"/>.
+        /// </summary>
+        bool goFishing;
+        const double FishCatchRate = 0.8;
+        int casts, fishCaught, fishPoints, goldenHearts;
+        System.Random fishRng;
         // Where the clovers and golden carrots came from.
         int cloversQuests, cloversGames, cloversOrders, goldenGift, goldenPhoto, goldenQuests, goldenGames, goldenTray, goldenSpent;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
@@ -61,7 +73,7 @@ namespace VuonTra.Core.Tests
         // When things happened (seconds on the clock; -1 = not yet).
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
         readonly Dictionary<int, double> plotsAt = new Dictionary<int, double>();
-        readonly double[] waveLevelAt = new double[4], waveRabbitsAt = new double[4], waveTakenAt = new double[4];
+        readonly double[] waveLevelAt = new double[Expansion.Rings.Length], waveRabbitsAt = new double[Expansion.Rings.Length], waveTakenAt = new double[Expansion.Rings.Length];
         double purpleAt = -1, goldAt = -1;
         readonly List<string> snapshots = new List<string>();
         readonly StringBuilder trace = new StringBuilder();
@@ -76,12 +88,15 @@ namespace VuonTra.Core.Tests
             quests = catalog.BuildQuests();
         }
 
-        void Reset(bool tireless)
+        /// <summary>The seed every table above is played on.</summary>
+        const int Seed = 20261122;
+
+        void Reset(bool tireless, int seed = Seed)
         {
             s = GameState.NewGame(defs, ups.Count);
             Rabbits.GiftFirst(s, "R"); // every new garden starts with its cotton rabbit at the teapot
             mods = Modifiers.From(ups, s);
-            rng = new System.Random(20261122);
+            rng = new System.Random(seed);
             clock = sessionClock = lastSale = 0;
             earnedTaps = earnedIdle = earnedBoost = earnedAway = earnedQuests = earnedTray = earnedGames = earnedOrders = earnedJars = BigNum.Zero;
             jarsOpened = jarsHeld = 0;
@@ -89,6 +104,9 @@ namespace VuonTra.Core.Tests
             earnedFrogs = BigNum.Zero;
             frogsMet = cloversFrogs = 0;
             frogRng = new System.Random(62);
+            goFishing = false;
+            casts = fishCaught = fishPoints = goldenHearts = 0;
+            fishRng = new System.Random(58);
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             takeFreeDouble = everyAd = false;
@@ -96,7 +114,7 @@ namespace VuonTra.Core.Tests
             goldenAds = extraRounds = 0;
             levelAt.Clear();
             plotsAt.Clear();
-            for (int i = 0; i < 4; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
+            for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
             purpleAt = goldAt = -1;
             snapshots.Clear();
             trace.Clear();
@@ -132,6 +150,35 @@ namespace VuonTra.Core.Tests
             if (Photos.Take(s, Today)) goldenPhoto += Photos.GiftGolden;
             if (everyAd) while (Ads.ClaimShopGolden(s, Today)) goldenAds += Ads.ShopGoldenReward; // the shop's two videos (#66)
             MeetFrog();
+            GoFishing();
+        }
+
+        /// <summary>The sitting opens at the pond (#58): every bait cast, most caught, every fish fed to the busiest station's rabbit, stroked once a day.</summary>
+        void GoFishing()
+        {
+            if (!goFishing) return;
+            long now = (long)clock;
+            FishingCast cast;
+            while ((cast = Fishing.Cast(s, now, fishRng.NextDouble)) != null)
+            {
+                casts++;
+                cast.Advance(cast.BobSeconds + (fishRng.NextDouble() < FishCatchRate ? 0.25 : 1d));
+                if (cast.Tap() == CastTap.Caught && Fishing.Land(s, cast)) fishCaught++;
+            }
+            Rabbit r = Rabbits.AtStation(s, BestToTap());
+            if (r == null) return;
+            int golden = s.GoldenCarrots;
+            Rabbits.Pet(s, r, Today);
+            for (int k = Fishing.Kinds - 1; k >= 0; k--)
+                while (s.Fish[k] > 0 && Fishing.Feed(s, r, k).Fed) fishPoints += Fishing.Points[k];
+            goldenHearts += s.GoldenCarrots - golden;
+        }
+
+        int MostHearts()
+        {
+            int most = 0;
+            foreach (Rabbit r in s.Rabbits) most = Math.Max(most, Rabbits.HeartsOf(r));
+            return most;
         }
 
         /// <summary>The sitting opens in the next shower of the day that still has its frog, which the player greets at once (#62).</summary>
@@ -217,9 +264,9 @@ namespace VuonTra.Core.Tests
 
         void BuyCheapest()
         {
-            if (Expansion.TryExpand(defs, s))
+            if (Expansion.Expand(defs, s))
             {
-                waveTakenAt[Expansion.WavesTaken(s.Plots) - 1] = clock;
+                if (Expansion.RingsTaken(s) <= waveTakenAt.Length) waveTakenAt[Expansion.RingsTaken(s) - 1] = clock; // the forest stepped back a ring (#53)
                 mods = Modifiers.From(ups, s); // one more place to rest (#60)
                 return;
             }
@@ -229,7 +276,7 @@ namespace VuonTra.Core.Tests
             s.BuyMode = 1;
             for (int i = 0; i < defs.Count; i++)
             {
-                if (s.Levels[i] == 0 && !Economy.CanUnlock(s, i)) continue;
+                if (s.Levels[i] == 0 && !Economy.CanUnlock(defs, s, i)) continue;
                 if (Economy.LevelsLeft(s.Levels[i]) <= 0) continue;
                 BigNum cost = Economy.CostOfNext(defs[i], s.Levels[i], 1);
                 if (best < 0 || cost < bestCost) { best = i; bestCost = cost; bestIsUpgrade = false; }
@@ -406,9 +453,9 @@ namespace VuonTra.Core.Tests
             for (int l = 2; l <= level; l++)
                 if (!levelAt.ContainsKey(l)) levelAt[l] = clock;
             if (!plotsAt.ContainsKey(s.Plots)) plotsAt[s.Plots] = clock;
-            for (int w = 0; w < Expansion.Waves.Length; w++)
+            for (int w = 0; w < Expansion.Rings.Length; w++)
             {
-                ExpansionWave wave = Expansion.Waves[w];
+                ForestRing wave = Expansion.Rings[w];
                 if (waveLevelAt[w] < 0 && level >= wave.NeedLevel) waveLevelAt[w] = clock;
                 if (waveRabbitsAt[w] < 0 && s.Rabbits.Count >= wave.NeedRabbits && s.SeenKinds.Count >= wave.NeedKinds) waveRabbitsAt[w] = clock;
             }
@@ -456,8 +503,8 @@ namespace VuonTra.Core.Tests
             return total.IsZero ? 0d : Math.Round((part / total).ToDouble() * 1000d) / 10d;
         }
 
-        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + GoldenFromLevels;
-        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds;
+        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + GoldenFromLevels;
+        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts;
         int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs;
 
         /// <summary>One row of the table: where the garden stands and where its carrots came from, so far.</summary>
@@ -480,11 +527,11 @@ namespace VuonTra.Core.Tests
             foreach (int level in new[] { 3, 5, 10, 15 })
                 sb.AppendLine("| Cấp vườn " + level + " | " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt") + " |");
             foreach (int plots in new[] { 6, 8, 10, 12 })
-                sb.AppendLine("| " + plots + " ô đất | " + (plotsAt.ContainsKey(plots) ? Clock(plotsAt[plots]) : "chưa đạt") + " |");
+                sb.AppendLine("| " + plots + " ô đất (R " + GardenGrid.RadiusForPlots(plots) + ") | " + (plotsAt.ContainsKey(plots) ? Clock(plotsAt[plots]) : "chưa đạt") + " |");
             sb.AppendLine("| Thỏ Tím đầu tiên | " + Clock(purpleAt) + " |");
             sb.AppendLine("| Thỏ Vàng đầu tiên | " + Clock(goldAt) + " |");
-            for (int w = 0; w < 4; w++)
-                sb.AppendLine("| Đợt đất " + (w + 1) + " | đủ cấp " + Clock(waveLevelAt[w]) + ", đủ thỏ " + Clock(waveRabbitsAt[w]) + ", mở " + Clock(waveTakenAt[w]) + " |");
+            for (int w = 0; w < waveLevelAt.Length; w++)
+                sb.AppendLine("| Vòng rừng R " + Expansion.Rings[w].RadiusAfter + " | đủ cấp " + Clock(waveLevelAt[w]) + ", đủ thỏ " + Clock(waveRabbitsAt[w]) + ", mở " + Clock(waveTakenAt[w]) + " |");
             return sb.ToString();
         }
 
@@ -494,6 +541,8 @@ namespace VuonTra.Core.Tests
                 + "Cà rốt vàng: " + goldenGift + " quà ngày, " + goldenPhoto + " ảnh, " + GoldenFromLevels + " cấp vườn, " + goldenQuests + " nhiệm vụ, " + goldenGames + " trò chơi, " + goldenTray + " khay; tiêu " + goldenSpent
                 + " (" + goldenCalls + " lượt gọi vàng, " + visitorsBought + " thỏ ghé tiệm); còn " + s.GoldenCarrots + ".\n"
                 + "Hũ trăng (#64): " + FreeJars() + " hũ miễn phí (nhiều nhất " + MostFreeJarsInADay() + " trong một ngày), mở " + jarsOpened + " hũ ngay khi ví cho mở, không mua hũ; còn " + s.MoonJars + ".\n"
+                + "Câu cá (#58): thả " + casts + " lần, được " + fishCaught + " con (" + (int)(FishCatchRate * 100) + " % chạm đúng lúc), cho thỏ ở trạm thu nhiều nhất ăn " + fishPoints + " điểm, vuốt nó mỗi ngày; tim cao nhất "
+                + MostHearts() + " (×" + Rabbits.HeartMultipliers[MostHearts()] + "), " + goldenHearts + " cà rốt vàng từ quà 10 tim.\n"
                 + "Thỏ Ếch (#62): gặp " + frogsMet + " lần (mọi buổi chơi mở đầu trong mưa khi ngày còn ếch), " + earnedFrogs.ToShortString() + " cà rốt, " + cloversFrogs + " cỏ.\n"
                 + "Khác: " + gamesPlayed + " ván chơi, " + ordersDelivered + " đơn giao, " + rabbitLevels + " cấp thỏ mua, " + boosts + " lần trà lực, " + s.Claimed.Count + " nhiệm vụ đang nhận.\n";
         }
@@ -574,7 +623,7 @@ namespace VuonTra.Core.Tests
             report.AppendLine();
             // Not asserted: a player who buys four levels a second earns a point for each, so the level that opens the last
             // plots comes in minutes however the carrots are priced. Whether that experience should be capped is the owner's call.
-            report.AppendLine("Người chơi không nghỉ tay mở đủ 12 ô đất lúc " + Clock(plots12Tireless) + " (mục tiêu: không trước ~2 giờ; chưa đạt vì mỗi cấp trạm mua đều cho 1 điểm, 4 lần mua mỗi giây).");
+            report.AppendLine("Người chơi không nghỉ tay mở đủ 12 ô đất (R 7) lúc " + Clock(plots12Tireless) + " (mục tiêu: không trước ~2 giờ; chưa đạt vì mỗi cấp trạm mua đều cho 1 điểm, 4 lần mua mỗi giây).");
 
             System.IO.Directory.CreateDirectory("Logs");
             System.IO.File.WriteAllText("Logs/economy-pacing.txt", report.ToString());
@@ -585,7 +634,7 @@ namespace VuonTra.Core.Tests
             Assert.LessOrEqual(level5, 12 * 60, "garden level 5 should come within twelve minutes\n" + report);
             Assert.GreaterOrEqual(levelDayOne, 10, "garden level 10 should come within day one\n" + report);
             Assert.GreaterOrEqual(level10, 2 * 3600, "garden level 10 should not come in the first sitting\n" + report);
-            Assert.IsTrue(plots12Casual < 0 || plots12Casual >= 2 * Day, "all twelve plots should wait for day three\n" + report);
+            Assert.IsTrue(plots12Casual < 0 || plots12Casual >= 2 * Day, "the seventh ring (R 7, all twelve plots) should wait for day three\n" + report);
             for (int w = 0; w < 3; w++) Assert.LessOrEqual(waitCasual[w], 300, "wave " + (w + 1) + " waited on rabbits\n" + report);
             Assert.Less(questShare1, 35, "quests should not dominate day one\n" + report);
             Assert.GreaterOrEqual(playShare1, 15, "the games and the guests should matter on day one\n" + report);
@@ -602,6 +651,90 @@ namespace VuonTra.Core.Tests
             Assert.Pass(report.ToString());
         }
 
+        // ----- the moon pond and the hearts it feeds (#58) -----
+
+        /// <summary>The shipped seed and sixteen more: the day-one share of games and guests swings from 6 % to 24 % between seeds in the game as it was, so it is judged on their mean.</summary>
+        static readonly int[] ShareSeeds = { Seed, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+
+        /// <summary>
+        /// The casual week as above without fishing and with every bait cast each sitting, four in five caught and every
+        /// fish fed to the busiest station's rabbit (stroked once a day too), and the tireless player's two hours both ways.
+        /// On the shipped seed the hard rules hold with fishing and level 10 comes no more than 30 % sooner (#58). The
+        /// day-one share of games and guests is held on its mean over <see cref="ShareSeeds"/>: on the shipped seed alone a
+        /// lift of 2 % to the first rabbit flips it from 19.5 % to 7.4 % (a Purple rabbit at minute 13 doubles the day's
+        /// income, and one late guest's order is most of the share), while six of those seeds were under 15 % before the
+        /// pond. The table goes to Logs/economy-fishing.txt.
+        /// </summary>
+        [Test]
+        public void Fishing_And_Feeding_Keep_The_Hard_Pacing_Rules()
+        {
+            Week before = CasualWeek(false, false, false);
+            Week after = CasualWeek(false, false, true);
+            var tireless = new double[2];
+            for (int k = 0; k < 2; k++)
+            {
+                Reset(true);
+                goFishing = k == 1;
+                Play(2 * 3600);
+                tireless[k] = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            }
+
+            var report = new StringBuilder();
+            report.AppendLine("# Câu cá và cho thỏ ăn (#58)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi thong thả với EconomySimulationTests. Có câu cá: mỗi buổi chơi thả hết số mồi đã hồi, " + (int)(FishCatchRate * 100) + " % lần chạm đúng lúc, cho hết cá vào thỏ ở trạm thu nhiều nhất và vuốt nó mỗi ngày.");
+            report.AppendLine();
+            report.AppendLine("| Cách chơi | Cấp vườn 5 | Cấp vườn 10 | Cấp hết ngày 1 | 12 ô đất | Cấp hết ngày 7 | Ô đất ngày 7 | Thỏ ngày 7 | Lượt gọi vàng + thỏ ghé tiệm | Trò chơi + khách ngày 1 % | Cá câu được | Tim cao nhất |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|");
+            foreach (var row in new[] { ("Không câu cá", before), ("Câu cá mỗi buổi", after) })
+            {
+                Week w = row.Item2;
+                report.AppendLine("| " + row.Item1 + " | " + Clock(w.Level5) + " | " + Clock(w.Level10) + " | " + w.LevelDayOne + " | " + Clock(w.Plots12) + " | " + w.LevelEnd + " | " + w.Plots + " | " + w.Rabbits
+                    + " | " + (w.GoldenCalls + w.Visitors) + " | " + Math.Round(w.PlayShare, 1) + " | " + w.FishCaught + " | " + w.MostHearts + " |");
+            }
+            report.AppendLine();
+            report.AppendLine("Người chơi không nghỉ tay, 2 giờ: cấp 10 lúc " + Clock(tireless[0]) + " không câu, " + Clock(tireless[1]) + " có câu.");
+            report.AppendLine();
+
+            // The day-one share over seventeen seeds, with the pond and without.
+            report.AppendLine("Trò chơi + khách ngày 1 theo hạt ngẫu nhiên (không câu → có câu), và lúc đủ 12 ô đất:");
+            double sumBefore = 0d, sumAfter = 0d;
+            int under15Before = 0, under15After = 0, plotsEarlyBefore = 0, plotsEarlyAfter = 0;
+            foreach (int seed in ShareSeeds)
+            {
+                Week b = seed == Seed ? before : CasualWeek(false, false, false, seed);
+                Week a = seed == Seed ? after : CasualWeek(false, false, true, seed);
+                sumBefore += b.PlayShare; sumAfter += a.PlayShare;
+                if (b.PlayShare < 15) under15Before++;
+                if (a.PlayShare < 15) under15After++;
+                if (b.Plots12 >= 0 && b.Plots12 < 2 * Day) plotsEarlyBefore++;
+                if (a.Plots12 >= 0 && a.Plots12 < 2 * Day) plotsEarlyAfter++;
+                report.AppendLine("  hạt " + seed + ": " + Math.Round(b.PlayShare, 1) + " % → " + Math.Round(a.PlayShare, 1) + " %; 12 ô đất " + Clock(b.Plots12) + " → " + Clock(a.Plots12) + "; cấp 10 " + Clock(b.Level10) + " → " + Clock(a.Level10));
+            }
+            double meanBefore = sumBefore / ShareSeeds.Length, meanAfter = sumAfter / ShareSeeds.Length;
+            report.AppendLine("  trung bình " + Math.Round(meanBefore, 1) + " % → " + Math.Round(meanAfter, 1) + " %; dưới 15 %: " + under15Before + " → " + under15After + " hạt; đủ 12 ô đất trước ngày 3: " + plotsEarlyBefore + " → " + plotsEarlyAfter + " hạt (trên " + ShareSeeds.Length + ").");
+            report.AppendLine();
+            report.AppendLine("Mốc khi câu cá:");
+            report.AppendLine(after.Table);
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-fishing.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            Assert.GreaterOrEqual(after.Level10, 0.7 * before.Level10, "level 10 no more than 30 % sooner\n" + report);
+            Assert.GreaterOrEqual(after.Level5, 5 * 60, "garden level 5 should not come in the first five minutes\n" + report);
+            Assert.LessOrEqual(after.Level5, 12 * 60, "garden level 5 should come within twelve minutes\n" + report);
+            Assert.GreaterOrEqual(after.LevelDayOne, 10, "garden level 10 should come within day one\n" + report);
+            Assert.GreaterOrEqual(after.Level10, 2 * 3600, "garden level 10 should not come in the first sitting\n" + report);
+            Assert.IsTrue(after.Plots12 < 0 || after.Plots12 >= 2 * Day, "all twelve plots should wait for day three\n" + report);
+            for (int w = 0; w < 3; w++) Assert.LessOrEqual(after.Wait[w], 300, "wave " + (w + 1) + " waited on rabbits\n" + report);
+            Assert.GreaterOrEqual(meanAfter, 15, "the games and the guests should matter on day one, over the seeds\n" + report);
+            Assert.LessOrEqual(plotsEarlyAfter, plotsEarlyBefore, "the pond brings all twelve plots early on no more seeds than before\n" + report);
+            Assert.LessOrEqual(after.GoldenCalls + after.Visitors, 6, "golden calls stay a few a week\n" + report);
+            Assert.Greater(after.FishCaught, 0, "the casual player does catch fish\n" + report);
+            Assert.Greater(tireless[0], 0, report.ToString());
+            Assert.GreaterOrEqual(tireless[1], 0.7 * tireless[0], "nor for the tireless player\n" + report);
+        }
+
         // ----- a player who watches every video (#66) -----
 
         /// <summary>Where one casual week ended up: the milestones the asserts hold, and what the ×2s and the videos paid.</summary>
@@ -611,13 +744,16 @@ namespace VuonTra.Core.Tests
             public int LevelDayOne, GoldenCalls, Visitors, Summoned, GoldenAds, ExtraRounds, Plots, Rabbits, LevelEnd;
             public readonly double[] Wait = new double[3];
             public double DoubleShare, AdShare;
+            public double PlayShare;
+            public int MostHearts, FishCaught;
             public string Table;
         }
 
         /// <summary>The casual week of the test above, played with or without the free ×2 and the videos.</summary>
-        Week CasualWeek(bool freeDouble, bool watchEveryAd)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed)
         {
-            Reset(false);
+            Reset(false, seed);
+            goFishing = fishing;
             takeFreeDouble = freeDouble;
             everyAd = watchEveryAd;
             var w = new Week();
@@ -627,7 +763,12 @@ namespace VuonTra.Core.Tests
                 Away(8 * 3600);
                 Play(10 * 60);
                 Away(Day - 8 * 3600 - 30 * 60);
-                if (day == 1) w.LevelDayOne = Garden.Level(s);
+                if (day == 1)
+                {
+                    w.LevelDayOne = Garden.Level(s);
+                    BigNum active = TotalEarned - earnedAway - earnedJars - earnedFrogs - earnedDoubles - earnedAds;
+                    w.PlayShare = active.IsZero ? 0 : ((earnedGames + earnedOrders) / active).ToDouble() * 100d;
+                }
             }
             w.Level5 = levelAt.ContainsKey(5) ? levelAt[5] : -1;
             w.Level10 = levelAt.ContainsKey(10) ? levelAt[10] : -1;
@@ -637,6 +778,7 @@ namespace VuonTra.Core.Tests
             w.GoldenAds = goldenAds; w.ExtraRounds = extraRounds;
             w.Plots = s.Plots; w.Rabbits = s.Rabbits.Count; w.LevelEnd = Garden.Level(s);
             w.DoubleShare = Share(earnedDoubles); w.AdShare = Share(earnedAds);
+            w.MostHearts = MostHearts(); w.FishCaught = fishCaught;
             w.Table = Milestones();
             return w;
         }

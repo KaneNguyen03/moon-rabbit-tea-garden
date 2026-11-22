@@ -26,7 +26,7 @@ namespace VuonTra.Core
             for (int i = 0; i < defs.Count; i++)
             {
                 var d = defs[i];
-                if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d) continue;
+                if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d || Layout.IsStored(defs, s, i)) continue; // stored: at rest (#54)
 
                 Tray.Advance(s, i, work * m.SpeedMultiplier, roll, onProduct);
                 double p = s.Progress[i] + work * m.SpeedMultiplier / d.CycleSeconds;
@@ -94,7 +94,7 @@ namespace VuonTra.Core
         {
             if (index < 0 || index >= defs.Count) return false;
             int level = s.Levels[index];
-            if (level == 0 && !Economy.CanUnlock(s, index)) return false;
+            if (level == 0 && !Economy.CanUnlock(defs, s, index)) return false;
 
             int count = BuyCount(defs, s, index);
             if (count <= 0) return false; // at the cap

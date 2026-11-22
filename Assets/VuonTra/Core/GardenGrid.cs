@@ -22,7 +22,9 @@ namespace VuonTra.Core
         ForestBorder,
         /// <summary>On the lawn with nothing standing on it.</summary>
         UnlockedEmpty,
-        Occupied
+        Occupied,
+        /// <summary>On the lawn, kept clear for a prop that stands off the grid or for its plate (#54 follow-up): nothing is placed here.</summary>
+        Reserved
     }
 
     public struct TileData
@@ -69,9 +71,19 @@ namespace VuonTra.Core
             new Hex(0, -4),  //  9 mooncake bakery: top left
             new Hex(0, 4),   // 10 flower spring: bottom right
             new Hex(-3, 5),  // 11 star observatory: bottom left, within reach of the flower spring it feeds
+            // The four after the star observatory (#67b) stand in a row above the shop and the pond, on land the eighth and
+            // ninth rings make room for: the garden is a tall lawn one screen wide, so the far rings only reach it at the top.
+            new Hex(1, -6),  // 12 lotus garden: top left, just above the mooncake bakery it feeds
+            new Hex(3, -6),  // 13 malt candy kiln: top middle
+            new Hex(5, -6),  // 14 sticky rice paddy: top right, beside the candy kiln it feeds
+            new Hex(4, -8),  // 15 night tea boat: the top of the garden
         };
-        /// <summary>The places to rest: the two stumps by the tea table at the bottom, the rug by the pond, the stools, the hammock, the swing.</summary>
-        static readonly Hex[] RestTiles = { new Hex(-1, 5), new Hex(-3, 6), new Hex(3, -4), new Hex(0, 5), new Hex(-5, 6), new Hex(-1, 6) };
+        /// <summary>
+        /// The places to rest: the two stumps by the tea table at the bottom, the picnic rug on the grass between the jam pot and the teapot, the
+        /// stools, the hammock, the swing. The rug stood on the pond's bank at (3,-4) until the pond and its "Câu cá" plate were
+        /// kept clear (#58): it covered the plate.
+        /// </summary>
+        static readonly Hex[] RestTiles = { new Hex(-1, 5), new Hex(-3, 6), new Hex(-2, 2), new Hex(0, 5), new Hex(-5, 6), new Hex(-1, 6) };
         /// <summary>The eight decoration spots: two in the resting corner, then up the sides and the middle, one by the tea shop.</summary>
         static readonly Hex[] DecorTiles = { new Hex(-3, 7), new Hex(-5, 7), new Hex(-3, 3), new Hex(1, 3), new Hex(-1, 2), new Hex(-3, 1), new Hex(-2, -1), new Hex(0, -3) };
         static readonly Hex MortarTile = new Hex(1, -1), ShopTile = new Hex(2, -4), CounterTile = new Hex(3, -3);
@@ -147,7 +159,7 @@ namespace VuonTra.Core
             var h = new Hex(q, r);
             var t = new TileData { Q = q, R = r };
             if (_occupantAt.TryGetValue(h, out string id)) { t.State = TileState.Occupied; t.OccupantId = id; }
-            else t.State = InLawn(h) ? TileState.UnlockedEmpty : TileState.ForestBorder;
+            else t.State = !InLawn(h) ? TileState.ForestBorder : IsReserved(h) ? TileState.Reserved : TileState.UnlockedEmpty;
             return t;
         }
 
@@ -168,7 +180,8 @@ namespace VuonTra.Core
         /// <summary>Stands something on a lawn tile; something already standing elsewhere moves. False when the tile is off the lawn or taken by another.</summary>
         public bool Place(string id, int q, int r)
         {
-            if (!InLawn(q, r)) return false;
+            if (!InLawn(q, r) || IsStored(id)) return false; // a stored station comes out with TakeOut (#54)
+            if (IsReserved(q, r) && !IsProp(id)) return false; // kept clear for a prop or its plate
             return Seat(id, new Hex(q, r));
         }
 
@@ -196,7 +209,7 @@ namespace VuonTra.Core
 
         public void Clear() { _tileOf.Clear(); _occupantAt.Clear(); }
 
-        /// <summary>The empty lawn tile nearest the centre, in spiral order. False when the lawn is full.</summary>
+        /// <summary>The empty lawn tile nearest the centre, in spiral order; never a reserved one. False when the lawn is full.</summary>
         public bool NearestEmpty(out Hex found) => NearestEmpty(new Hex(0, 0), out found);
 
         /// <summary>The empty lawn tile nearest a given tile; ties go to the one nearer the centre, then spiral order.</summary>
@@ -206,7 +219,7 @@ namespace VuonTra.Core
             int best = int.MaxValue;
             foreach (Hex h in Spiral(Radius))
             {
-                if (_occupantAt.ContainsKey(h)) continue;
+                if (_occupantAt.ContainsKey(h) || IsReserved(h)) continue;
                 int d = Distance(h, near);
                 if (d < best) { best = d; found = h; }
             }
@@ -263,7 +276,8 @@ namespace VuonTra.Core
             GardenGrid g = s.Grid ?? (s.Grid = new GardenGrid());
             g.Radius = Math.Max(g.Radius, RadiusForPlots(s.Plots));
             var wanted = new List<string>();
-            for (int i = 0; i < defs.Count && i < s.Plots; i++) wanted.Add(StationId(defs[i]));
+            g.KeepStored(defs, s); // #54: only open stations with a plot stay in storage
+            for (int i = 0; i < defs.Count && i < s.Plots; i++) if (!g.IsStored(StationId(defs[i]))) wanted.Add(StationId(defs[i]));
             for (int n = 0; n < Math.Min(s.RestSpots, RestSpots.Max); n++) wanted.Add(RestId(n));
             wanted.Add(MortarId); wanted.Add(ShopId); wanted.Add(CounterId);
             for (int n = 0; n < s.DecorSpots.Length; n++) if (s.DecorSpots[n] != null) wanted.Add(DecorId(n));
@@ -271,6 +285,7 @@ namespace VuonTra.Core
             var gone = new List<string>();
             foreach (string id in g._tileOf.Keys) if (!keep.Contains(id)) gone.Add(id);
             foreach (string id in gone) g.Remove(id);
+            g.LeaveReserved();
             foreach (string id in wanted)
             {
                 if (g._tileOf.ContainsKey(id)) continue;
@@ -289,6 +304,139 @@ namespace VuonTra.Core
                 string id = DecorId(n);
                 if (s.DecorSpots[n] == null) g.Remove(id);
                 else if (!g._tileOf.ContainsKey(id) && !g.Seat(id, DefaultDecorTile(n)) && g.NearestEmpty(DefaultDecorTile(n), out Hex spare)) g.Seat(id, spare);
+            }
+        }
+
+        // ----- Ring expansion of the forest (#53) -----
+
+        /// <summary>The tiles of the lawn with nothing standing on them, nearest the centre first.</summary>
+        public List<Hex> EmptyTiles()
+        {
+            var empty = new List<Hex>();
+            foreach (Hex h in Spiral(Radius)) if (!_occupantAt.ContainsKey(h) && !IsReserved(h)) empty.Add(h);
+            return empty;
+        }
+
+        /// <summary>
+        /// The empty lawn tile nearest the centre that keeps at least <paramref name="spacing"/> tiles from every station, for a
+        /// station the player did not place themselves; the plain nearest empty tile when no tile keeps that far. False when the lawn is full.
+        /// </summary>
+        public bool NearestEmptyApart(int spacing, out Hex found)
+        {
+            foreach (Hex h in Spiral(Radius))
+            {
+                if (_occupantAt.ContainsKey(h) || IsReserved(h)) continue;
+                bool apart = true;
+                foreach (KeyValuePair<string, Hex> o in _tileOf)
+                    if (o.Key.StartsWith("station:") && Distance(o.Value, h) < spacing) { apart = false; break; }
+                if (apart) { found = h; return true; }
+            }
+            return NearestEmpty(out found);
+        }
+
+        // ----- Arranging the garden (#54) -----
+
+        readonly HashSet<string> _stored = new HashSet<string>();
+
+        /// <summary>The stations put away in storage: off the lawn, keeping their levels, earning nothing.</summary>
+        public IEnumerable<string> Stored => _stored;
+        public int StoredCount => _stored.Count;
+        public bool IsStored(string id) => id != null && _stored.Contains(id);
+
+        /// <summary>What the player may pick up and stand elsewhere: stations, places to rest and decorations; the props stay.</summary>
+        public static bool Movable(string id) => id != null && (id.StartsWith("station:") || id.StartsWith("rest:") || id.StartsWith("decor:"));
+
+        /// <summary>Moves what stands on one tile to an empty lawn tile. False when nothing movable stands there, or the other tile is taken, reserved or off the lawn.</summary>
+        public bool Move(Hex from, Hex to)
+        {
+            if (from == to || !InLawn(to) || IsReserved(to) || _occupantAt.ContainsKey(to)) return false;
+            if (!_occupantAt.TryGetValue(from, out string id) || !Movable(id)) return false;
+            return Seat(id, to);
+        }
+
+        /// <summary>Exchanges what stands on two tiles. False unless both hold something movable.</summary>
+        public bool Swap(Hex a, Hex b)
+        {
+            if (a == b || IsReserved(a) || IsReserved(b)) return false;
+            if (!_occupantAt.TryGetValue(a, out string first) || !_occupantAt.TryGetValue(b, out string second)) return false;
+            if (!Movable(first) || !Movable(second)) return false;
+            _occupantAt[a] = second; _occupantAt[b] = first;
+            _tileOf[first] = b; _tileOf[second] = a;
+            return true;
+        }
+
+        /// <summary>Takes a station standing on the grid off it and into storage. False for anything that is not a station on the grid.</summary>
+        public bool Store(string id)
+        {
+            if (id == null || !id.StartsWith("station:") || !_tileOf.ContainsKey(id)) return false;
+            Remove(id);
+            _stored.Add(id);
+            return true;
+        }
+
+        /// <summary>Brings a stored station back onto the empty lawn tile nearest the centre. False when it is not stored or the lawn is full.</summary>
+        public bool TakeOut(string id)
+        {
+            if (!IsStored(id) || !NearestEmpty(out Hex tile)) return false;
+            _stored.Remove(id);
+            return Seat(id, tile);
+        }
+
+        /// <summary>Puts a station in storage as a save remembers it, with no tile; Settle drops it again if it may not be stored.</summary>
+        public void Restore(string id)
+        {
+            if (id == null || !id.StartsWith("station:")) return;
+            Remove(id);
+            _stored.Add(id);
+        }
+
+        /// <summary>Lets go of stored stations that are no longer open stations with a plot (a new moon, a save that does not fit).</summary>
+        void KeepStored(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            if (_stored.Count == 0) return;
+            var keep = new HashSet<string>();
+            for (int i = 0; i < defs.Count && i < s.Plots && i < s.Levels.Length; i++) if (s.Levels[i] > 0) keep.Add(StationId(defs[i]));
+            _stored.RemoveWhere(id => !keep.Contains(id));
+            foreach (string id in _stored) Remove(id);
+        }
+
+        // ----- Tiles kept clear for the props (#54 follow-up) -----
+
+        /// <summary>
+        /// The lawn tiles kept clear for the props that stand off the grid or reach past their own tile, so nothing the player
+        /// arranges covers them: the firefly jar by the pond and its "Đom đóm · còn N lượt" plate, the leaf-catching basket past the
+        /// leaf station's home tile and the plate hung on its left, the mortar's plate above the mortar, and the moon pond with its
+        /// "Câu cá N/5" plate on the left bank (#58). They are the tiles whose cell the prop or its plate reaches more than 16 units
+        /// into, as the garden draws them (GardenScreen's JarSpot, BasketSpot, MortarSpot, PondSpot).
+        /// The mortar, the shop and the counter stand on tiles of their own and hold them; the shop and the counter have no plate.
+        /// The pond's plate reaches into the shop's own tile (2,-4) too, which the shop holds.
+        /// </summary>
+        static readonly Hex[] ReservedTable =
+        {
+            new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),                 // the mortar's plate
+            new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),                 // the leaf-catching basket and its plate
+            new Hex(4, -4), new Hex(4, -3), new Hex(5, -4), new Hex(5, -3), // the firefly jar and its plate
+            new Hex(3, -4), new Hex(4, -5), new Hex(5, -5), new Hex(6, -5), // the moon pond and its "Câu cá" plate (#58), with (4,-4) and (5,-4) above
+        };
+        static readonly HashSet<Hex> ReservedSet = new HashSet<Hex>(ReservedTable);
+
+        /// <summary>Every tile kept clear for a prop or its plate, beyond the lawn's rings or on them.</summary>
+        public static IReadOnlyList<Hex> ReservedTiles => ReservedTable;
+        /// <summary>True for a tile kept clear for a prop or its plate: nothing is placed, moved, swapped or settled there.</summary>
+        public static bool IsReserved(Hex h) => ReservedSet.Contains(h);
+        public static bool IsReserved(int q, int r) => IsReserved(new Hex(q, r));
+        /// <summary>The props that come with the garden: they stand where the garden puts them.</summary>
+        static bool IsProp(string id) => id == MortarId || id == ShopId || id == CounterId;
+
+        /// <summary>What stands on a reserved tile (a save from before the tiles were kept) moves to the empty tile nearest it.</summary>
+        void LeaveReserved()
+        {
+            var moving = new List<KeyValuePair<string, Hex>>();
+            foreach (KeyValuePair<string, Hex> o in _tileOf) if (IsReserved(o.Value) && !IsProp(o.Key)) moving.Add(o);
+            foreach (KeyValuePair<string, Hex> o in moving)
+            {
+                Remove(o.Key);
+                if (NearestEmpty(o.Value, out Hex spare)) Seat(o.Key, spare);
             }
         }
     }

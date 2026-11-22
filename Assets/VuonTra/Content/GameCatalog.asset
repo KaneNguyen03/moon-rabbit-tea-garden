@@ -25,6 +25,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: e6fb321e741614ef294b3df42a7b3ff2, type: 2}
   - {fileID: 11400000, guid: f886672d5b9a64dab87b2c96e62bc085, type: 2}
   - {fileID: 11400000, guid: 546d92101d7d84719a00b7af13c9dd4d, type: 2}
+  - {fileID: 11400000, guid: 6ef77d267e3bb4e43be230dec1efa62e, type: 2}
+  - {fileID: 11400000, guid: f591702b032e044bea2ce4ff03a43012, type: 2}
+  - {fileID: 11400000, guid: c073e142e0e634c89bcc246ebc8e4c31, type: 2}
+  - {fileID: 11400000, guid: 8ed019b060ddd4744aa31b321dcb983a, type: 2}
   Upgrades:
   - {fileID: 11400000, guid: 9f5a056710c9b4905b120a8bec0b7f74, type: 2}
   - {fileID: 11400000, guid: 105226df78b1b45e68293ce618dcafc8, type: 2}
@@ -39,6 +43,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: ff4c7f4a0c4f44d2984d4ef08581de8c, type: 2}
   - {fileID: 11400000, guid: 1bfe1a351be964861b372ff1f2282a57, type: 2}
   - {fileID: 11400000, guid: e1473368064694eb8bfe11e118852e18, type: 2}
+  - {fileID: 11400000, guid: ec08fb1869e7d4c91907ca4f963ad424, type: 2}
+  - {fileID: 11400000, guid: 8ed29598fa2044553b64ed71230ef577, type: 2}
   - {fileID: 11400000, guid: 999f92bd42a384ecaaa8f4de9cc330a7, type: 2}
   - {fileID: 11400000, guid: fbaadc51d7687473d961081a96adb85f, type: 2}
   - {fileID: 11400000, guid: 63640cfc1f2bb4d169ba2d827aaedbaf, type: 2}
@@ -79,6 +85,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f8f85ef6046e847a3bfee8579a2764c0, type: 2}
   - {fileID: 11400000, guid: 789c29475a211477ead5ae912d5cf468, type: 2}
   - {fileID: 11400000, guid: cf6e8c3708ab643718a0342301329bd9, type: 2}
+  - {fileID: 11400000, guid: 9ada002c3a0dc4550ae3c3d760661e36, type: 2}
+  - {fileID: 11400000, guid: f4a28d944861c459cbf72fd8bbbc3dc3, type: 2}
   Items:
   - {fileID: 11400000, guid: e46dc0e7d6d184c26808df57b4f2fcf0, type: 2}
   - {fileID: 11400000, guid: 7e3b63f42c6394a0baae4dc3f01d4ca9, type: 2}
@@ -146,6 +154,21 @@ MonoBehaviour:
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}
   MoonJar: {fileID: 21300000, guid: 1aadbf024f880476abd8fee425b49775, type: 3}
+  Fish:
+  - {fileID: 21300000, guid: 7b77409eb478f4bd6942b8e795390cd1, type: 3}
+  - {fileID: 21300000, guid: b71fd794eed8c4dd18c9333f1ae255a4, type: 3}
+  - {fileID: 21300000, guid: edd46491663284c50bd91626b0ff1958, type: 3}
+  - {fileID: 21300000, guid: 885a94deb8e2f49bc96bca40db2b033a, type: 3}
+  - {fileID: 21300000, guid: ab48508a3e7b541baa8dbff259d996c8, type: 3}
+  - {fileID: 21300000, guid: 68a28226560c841c0a035fac8e10d474, type: 3}
+  FishBasket: {fileID: 21300000, guid: dea691aae7f2247138d5fa77a3c1c5cb, type: 3}
+  FloatUp: {fileID: 21300000, guid: e617c8cfac10e4c57bd37bebce3eac86, type: 3}
+  FloatDown: {fileID: 21300000, guid: b113c19cfbc57491ea8f6e0814471cbc, type: 3}
+  PondWater: {fileID: 21300000, guid: 7d503d224d157441a943edfb0707be53, type: 3}
+  Ripples:
+  - {fileID: 21300000, guid: ce5212c8137ad4aba89680093d801201, type: 3}
+  - {fileID: 21300000, guid: 15523da6e918847e6a62d4cdb29e734b, type: 3}
+  - {fileID: 21300000, guid: 9aa2f04c2db4e4856916812f3af527a3, type: 3}
   Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Shadow: {fileID: 21300000, guid: 4621549ce2eb646a7ace069e96763f27, type: 3}
   IconUp: {fileID: 21300000, guid: e227213dacd474a26ad7da377889306b, type: 3}

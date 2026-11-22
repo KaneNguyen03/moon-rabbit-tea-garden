@@ -137,6 +137,18 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>
+        /// Keeps a label's words on one line inside <paramref name="width"/>: the size steps down until they fit, no smaller
+        /// than <paramref name="least"/> (#81). Best fit would rather wrap them onto a second line in a short pill.
+        /// </summary>
+        public static Text FitOneLine(this Text text, float width, int least)
+        {
+            text.resizeTextForBestFit = false;
+            text.horizontalOverflow = HorizontalWrapMode.Overflow;
+            while (text.fontSize > least && text.preferredWidth > width) text.fontSize--;
+            return text;
+        }
+
+        /// <summary>
         /// A tier's stars on a small paper pill, in ink: the rarity cue that does not depend on colour.
         /// Sits at the given spot of its parent (anchor and offset), one star for silver up to six for red.
         /// </summary>

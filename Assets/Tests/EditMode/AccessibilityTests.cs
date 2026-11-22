@@ -154,6 +154,12 @@ namespace VuonTra.Core.Tests
             Layout();
             measure("shop");
             screen.Shop.Close();
+            // The moon pond's card (#58b); the Feed button on a rabbit's sheet is measured on its own below.
+            screen.OpenFishing();
+            screen.Refresh();
+            Layout();
+            measure("pond");
+            screen.FishingCard.Close();
             screen.Shell.OpenPause();
             Layout();
             measure("pause");
@@ -263,6 +269,125 @@ namespace VuonTra.Core.Tests
             Text row = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Level/Text").GetComponent<Text>();
             Assert.AreEqual(L10n.StationLevel(Economy.MaxLevel), row.text);
             Assert.IsNull(OneLine(row));
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void Every_Kind_And_Tier_Pill_Fits_On_One_Line_On_The_Rabbits_Sheet_And_The_Album_Page(string code, bool large)
+        {
+            // #81: "Thỏ Đèn Lồng · bậc Vàng ★★★★★" wrapped in its pill and the stars fell out below it.
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            GameState s = runner.State;
+            var wrong = new List<string>();
+            int pills = 0;
+            foreach (RabbitKind kind in RabbitKinds.All)
+            {
+                Rabbit r = Rabbits.ArriveKind(s, kind.Id, "Bông");
+                screen.Detail.Open(runner.Defs, s, r.Id);
+                Layout();
+                Text own = root.transform.Find("Canvas/RabbitSheet/Card/Body/Kind/Text").GetComponent<Text>();
+                Assert.AreEqual(L10n.T("detail.kind", L10n.Kind(r), L10n.Rarity(r.Tier)), own.text);
+                string line = OneLine(own);
+                if (line != null) wrong.Add(line);
+                screen.Detail.OpenKind(runner.Defs, s, kind.Id);
+                Layout();
+                line = OneLine(root.transform.Find("Canvas/RabbitSheet/Card/Body/Tier/Text").GetComponent<Text>());
+                if (line != null) wrong.Add(line);
+                pills += 2;
+            }
+            screen.Detail.Close();
+            Assert.AreEqual(2 * RabbitKinds.All.Count, pills);
+            Assert.IsEmpty(wrong, wrong.Count + " pills run onto a second line in " + code + (large ? " (large text)" : "") + ":\n" + string.Join("\n", wrong));
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Pond_Card_The_Feed_Button_And_The_Heart_Badge_Read_On_One_Line_And_Are_Big_Enough(string code, bool large)
+        {
+            // #58b: every line the pond's card and the Feed button can show, in both languages and large text.
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            const long now = 1_800_000_000L;
+            runner.FishingClock = () => now;
+            runner.State.Baits = 0;
+            runner.State.BaitAt = now; // no bait: the countdown is out
+            Rabbit r = Rabbits.Arrive(runner.State, 3, "Thỏ Tím Rất Dài Tên", 0.5);
+            Rabbit full = Rabbits.Arrive(runner.State, 0, "Mây", 0.2);
+            full.Affection = Rabbits.AffectionMax;
+            for (int i = 0; i < Fishing.Kinds; i++) runner.State.Fish[i] = 12;
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.OpenFishing();
+            screen.Refresh();
+            Layout();
+            var wrong = new List<string>();
+            var small = new HashSet<string>();
+            void Check(Text text) { string bad = OneLine(text); if (bad != null) wrong.Add(bad); }
+            Transform card = root.transform.Find("Canvas/Pond/Card");
+            foreach (Text text in card.GetComponentsInChildren<Text>(false)) if (!string.IsNullOrEmpty(text.text)) Check(text);
+            foreach (Button button in card.GetComponentsInChildren<Button>(false)) Measure(button, small);
+            Text status = card.Find("Status").GetComponent<Text>();
+            foreach (string key in new[] { "pond.hint", "pond.wait", "pond.sink", "pond.early", "pond.lost", "fish.nobait" })
+            {
+                status.text = L10n.T(key);
+                Check(status);
+            }
+            for (int i = 0; i < Fishing.Kinds; i++)
+            {
+                status.text = L10n.T("pond.caught", L10n.T("fish." + i)) + " · " + L10n.T("fish.points", Fishing.Points[i]);
+                Check(status);
+            }
+            status.text = L10n.T("pond.lost") + " · " + L10n.T("fish.nobait");
+            Check(status);
+            Text cast = card.Find("Cast/Face/Text").GetComponent<Text>();
+            foreach (string key in new[] { "pond.cast", "pond.casting", "pond.nobait" })
+            {
+                cast.text = L10n.T(key);
+                Check(cast);
+            }
+            Text plate = root.transform.Find("Canvas/Garden/Content/PondTap/Plate/Text").GetComponent<Text>();
+            plate.text = L10n.T("pond.plate", 5, 5);
+            Check(plate);
+            screen.FishingCard.Close();
+
+            screen.Detail.Open(runner.Defs, runner.State, r.Id);
+            screen.Refresh();
+            Layout();
+            Transform feed = root.transform.Find("Canvas/RabbitSheet/Card/Body/Feed");
+            Measure(feed.GetComponent<Button>(), small);
+            Check(feed.Find("Face/Top").GetComponent<Text>());
+            Text sub = feed.Find("Face/Sub").GetComponent<Text>(), points = feed.Find("Face/Points").GetComponent<Text>();
+            for (int i = 0; i < Fishing.Kinds; i++)
+            {
+                sub.text = L10n.T("feed.with", L10n.T("fish." + i), 12);
+                Check(sub);
+                points.text = L10n.T("feed.points", Fishing.Points[i]);
+                Check(points);
+            }
+            Rect top = WorldRect(feed.Find("Face/Top").GetComponent<RectTransform>()), pts = WorldRect(points.rectTransform);
+            if (top.Overlaps(pts)) wrong.Add("the Feed button's word runs into its points");
+            foreach (string key in new[] { "feed.empty", "feed.full" })
+            {
+                sub.text = L10n.T(key);
+                Check(sub);
+            }
+            screen.Detail.Close();
+
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Layout();
+            Transform badge = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit " + full.Id + "/Tile/TenHearts");
+            Assert.IsNotNull(badge, "the full rabbit wears its heart badge");
+            Check(badge.Find("Text").GetComponent<Text>());
+            Assert.IsEmpty(wrong, string.Join("\n", wrong));
+            Assert.IsEmpty(small, string.Join("\n", small));
         }
 
         [Test]
@@ -531,6 +656,222 @@ namespace VuonTra.Core.Tests
                 if (plate != null && plate.gameObject.activeInHierarchy) plates.Add((RectTransform)plate);
             }
             return plates;
+        }
+
+        /// <summary>The child of <paramref name="street"/> that holds <paramref name="t"/>: what the garden draws in order.</summary>
+        static Transform OnStreet(Transform t, Transform street)
+        {
+            while (t != null && t.parent != street) t = t.parent;
+            return t;
+        }
+
+        [Test]
+        public void No_Decoration_On_Any_Tile_By_A_Station_Covers_Its_Level_Plate_Or_Its_Pad()
+        {
+            // #82: mushroom stools on the tile below a station drew over its plate ("Cấ…") and its "Xếp thỏ +" pad. Every
+            // kind is stood on every free tile next to a station, as the arranging mode (#54) may leave it.
+            GameState s = runner.State;
+            for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
+            s.Plots = runner.Defs.Count;
+            s.GardenXp = Garden.XpForLevel(9);
+            GardenGrid.Settle(runner.Defs, s); // every station takes its tile
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.Refresh();
+            GardenGrid grid = s.Grid;
+            var near = new List<Hex>();
+            for (int i = 0; i < runner.Defs.Count; i++)
+                foreach (Hex h in GardenGrid.Neighbours(grid.TileOf(GardenGrid.StationId(runner.Defs[i])).Value))
+                    if (grid.OccupantAt(h.Q, h.R) == null && grid.InLawn(h.Q, h.R) && !GardenGrid.IsReserved(h) && !near.Contains(h)) near.Add(h); // a reserved tile takes nothing (#54 follow-up)
+            Assert.Greater(near.Count, Decor.Spots, "free tiles by the stations");
+
+            var covered = new List<string>();
+            int reaching = 0;
+            foreach (DecorKind kind in Decor.Kinds)
+                for (int start = 0; start < near.Count; start += Decor.Spots)
+                {
+                    for (int n = 0; n < Decor.Spots; n++) { s.DecorSpots[n] = null; grid.Remove(GardenGrid.DecorId(n)); }
+                    for (int n = 0; n < Decor.Spots && start + n < near.Count; n++)
+                    {
+                        s.DecorSpots[n] = kind.Id;
+                        Assert.IsTrue(grid.Place(GardenGrid.DecorId(n), near[start + n].Q, near[start + n].R));
+                    }
+                    screen.RebuildUi();
+                    screen.Refresh();
+                    Layout();
+                    Transform street = root.transform.Find("Canvas/Garden/Content");
+                    // Each station's level plate and its "Xếp thỏ +" pad (the jar's, basket's and mortar's plates are not stations').
+                    var plates = new List<RectTransform>();
+                    foreach (Transform child in street)
+                    {
+                        if (!child.name.StartsWith("Station ") || !child.gameObject.activeInHierarchy) continue;
+                        foreach (string part in new[] { "Level", "Pad" })
+                        {
+                            Transform t = child.Find(part);
+                            if (t != null && t.gameObject.activeInHierarchy) plates.Add((RectTransform)t);
+                        }
+                    }
+                    Assert.GreaterOrEqual(plates.Count, runner.Defs.Count, "every station's plate was measured");
+                    for (int n = 0; n < Decor.Spots && start + n < near.Count; n++)
+                    {
+                        var item = (RectTransform)street.Find("Spot " + n + "/Item");
+                        Assert.IsTrue(item.gameObject.activeInHierarchy, kind.Id + " stands on spot " + n);
+                        Rect art = WorldRect(item);
+                        foreach (RectTransform plate in plates)
+                        {
+                            if (!art.Overlaps(WorldRect(plate))) continue;
+                            reaching++;
+                            if (OnStreet(item, street).GetSiblingIndex() > OnStreet(plate, street).GetSiblingIndex())
+                                covered.Add(kind.Id + " at " + near[start + n].Q + "," + near[start + n].R + " covers " + Path(plate));
+                        }
+                    }
+                }
+            Assert.Greater(reaching, 0, "some decoration reaches a plate or a pad, so the drawing order is what keeps them readable");
+            Assert.IsEmpty(covered, covered.Count + " covered:\n" + string.Join("\n", covered));
+        }
+
+        // ----- Tiles kept clear for the props off the grid (#54 follow-up) -----
+
+        /// <summary>The props off the grid and their plates, as the garden draws them.</summary>
+        static readonly string[] OffGridProps = { "Jar", "Jar/Plate", "Basket", "Basket/Plate", "Mortar", "Mortar/Plate", "PondTap", "PondTap/Plate" }; // the pond and its "Câu cá" plate (#58)
+
+        /// <summary>A rect of the garden in garden units: the ones CellToWorld and the spots use.</summary>
+        static Rect GardenRect(RectTransform rt, RectTransform street)
+        {
+            Rect r = RectIn(rt, street);
+            r.position -= street.rect.min;
+            return r;
+        }
+
+        [Test]
+        public void Every_Tile_Under_The_Jar_The_Basket_Or_The_Mortar_Or_Their_Plates_Is_Reserved_And_No_Other()
+        {
+            // The grid keeps a fixed list of tiles (GardenGrid.ReservedTiles); this holds it to what the garden draws. Every tile
+            // whose cell a prop or its plate reaches into, past a hair at the rim, is reserved (or is the prop's own tile), and
+            // every reserved tile has a prop or a plate in its cell.
+            GameState s = runner.State;
+            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket and the jar are all out
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Layout();
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Rect jar = GardenRect((RectTransform)street.Find("Jar"), street);
+            Assert.AreEqual(GardenScreen.FireflyJarSpot.x, jar.center.x, 0.5f, "garden units: the jar stands on its spot");
+            Assert.AreEqual(GardenScreen.FireflyJarSpot.y + 80f, jar.center.y, 0.5f);
+
+            const float Hair = 16f; // the soft rim of the art and the plates' rounded ends
+            var depth = new Dictionary<Hex, float>();
+            var under = new Dictionary<Hex, string>();
+            var basketBefore = new Rect();
+            foreach (string path in OffGridProps)
+            {
+                var rt = (RectTransform)street.Find(path);
+                Assert.IsTrue(rt.gameObject.activeInHierarchy, path + " is out");
+                Rect r = GardenRect(rt, street);
+                if (path == "Basket") basketBefore = r;
+                for (float x = r.xMin; x <= r.xMax; x += 2f)
+                    for (float y = r.yMin; y <= r.yMax; y += 2f)
+                    {
+                        float d = Mathf.Min(Mathf.Min(x - r.xMin, r.xMax - x), Mathf.Min(y - r.yMin, r.yMax - y));
+                        Hex h = GardenScreen.WorldToCell(new Vector2(x, y));
+                        if (!depth.TryGetValue(h, out float was) || d > was) { depth[h] = d; under[h] = path; }
+                    }
+            }
+            var missing = new List<string>();
+            foreach (KeyValuePair<Hex, float> cell in depth)
+            {
+                Hex h = cell.Key;
+                if (cell.Value <= Hair || GardenGrid.IsReserved(h)) continue;
+                string holder = s.Grid.OccupantAt(h.Q, h.R);
+                if (holder == GardenGrid.MortarId || holder == GardenGrid.CounterId || holder == GardenGrid.ShopId) continue; // a prop's own tile
+                missing.Add(h + " under " + under[h] + " by " + cell.Value);
+            }
+            Assert.IsEmpty(missing, "not reserved:\n" + string.Join("\n", missing));
+            foreach (Hex h in GardenGrid.ReservedTiles)
+                Assert.IsTrue(depth.ContainsKey(h), h + " is reserved, but no prop or plate reaches its cell");
+            Assert.AreEqual(GardenGrid.MortarId, s.Grid.OccupantAt(1, -1), "the mortar holds its own tile");
+
+            // The basket stands by the leaf station's home tile, so its reserved tiles hold when the leaf station is moved.
+            int leaf = -1;
+            for (int i = 0; i < runner.Defs.Count; i++) if (runner.Defs[i].Id == "gio-la") leaf = i;
+            Hex home = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[leaf])).Value;
+            Assert.IsTrue(s.Grid.NearestEmpty(new Hex(-2, 2), out Hex elsewhere));
+            Assert.IsTrue(s.Grid.Move(home, elsewhere));
+            screen.RebuildUi();
+            screen.Refresh();
+            Layout();
+            street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Rect basketAfter = GardenRect((RectTransform)street.Find("Basket"), street);
+            Assert.Less(Vector2.Distance(basketBefore.center, basketAfter.center), 0.5f, "the basket stays under its tea tree: " + basketBefore + " then " + basketAfter);
+        }
+
+        [Test]
+        public void No_Decoration_On_Any_Droppable_Tile_Or_Spot_Covers_The_Jar_The_Basket_Or_The_Mortar_s_Plate()
+        {
+            // Found while fixing #82: a decoration on (4,-3), right of the firefly jar, stood on its "Đom đóm · còn N lượt" plate.
+            GameState s = runner.State;
+            for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
+            s.Plots = runner.Defs.Count; // the whole garden, the top rows of #67 too
+            s.GardenXp = Garden.XpForLevel(9);
+            GardenGrid.Settle(runner.Defs, s);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.Refresh();
+            GardenGrid grid = s.Grid;
+            // Every tile the arranging mode offers near the props (nothing further can reach them), and the eight spots' own tiles.
+            var tiles = new List<Hex>();
+            foreach (Hex h in screen.LayoutEmptyTiles())
+                foreach (Hex kept in GardenGrid.ReservedTiles)
+                    if (GardenGrid.Distance(h, kept) <= 2 && !tiles.Contains(h)) { tiles.Add(h); break; }
+            for (int n = 0; n < Decor.Spots; n++)
+            {
+                Hex spot = GardenGrid.DefaultDecorTile(n);
+                if (grid.OccupantAt(spot.Q, spot.R) == null && !tiles.Contains(spot)) tiles.Add(spot);
+            }
+            Assert.Greater(tiles.Count, Decor.Spots, "free tiles by the props");
+            foreach (Hex h in tiles) Assert.IsFalse(GardenGrid.IsReserved(h), h + " is offered");
+
+            List<string> Covered(List<Hex> on, bool beyondRules)
+            {
+                var covered = new List<string>();
+                foreach (DecorKind kind in Decor.Kinds)
+                    for (int start = 0; start < on.Count; start += Decor.Spots)
+                    {
+                        for (int n = 0; n < Decor.Spots; n++) { s.DecorSpots[n] = null; grid.Remove(GardenGrid.DecorId(n)); }
+                        for (int n = 0; n < Decor.Spots && start + n < on.Count; n++)
+                        {
+                            s.DecorSpots[n] = kind.Id;
+                            Assert.IsTrue(grid.Place(GardenGrid.DecorId(n), on[start + n].Q, on[start + n].R, beyondRules), "placed on " + on[start + n]);
+                        }
+                        screen.RebuildUi();
+                        screen.Refresh();
+                        Layout();
+                        Transform street = root.transform.Find("Canvas/Garden/Content");
+                        var plates = new List<RectTransform>();
+                        foreach (string path in new[] { "Jar", "Jar/Plate", "Basket/Plate", "Mortar/Plate", "PondTap/Plate" })
+                        {
+                            var rt = (RectTransform)street.Find(path);
+                            Assert.IsTrue(rt.gameObject.activeInHierarchy, path + " is out");
+                            plates.Add(rt);
+                        }
+                        for (int n = 0; n < Decor.Spots && start + n < on.Count; n++)
+                        {
+                            var item = (RectTransform)street.Find("Spot " + n + "/Item");
+                            Assert.IsTrue(item.gameObject.activeInHierarchy, kind.Id + " stands on spot " + n);
+                            Rect art = WorldRect(item);
+                            foreach (RectTransform plate in plates)
+                                if (art.Overlaps(WorldRect(plate)) && OnStreet(item, street).GetSiblingIndex() > OnStreet(plate, street).GetSiblingIndex())
+                                    covered.Add(kind.Id + " at " + on[start + n] + " covers " + Path(plate));
+                        }
+                    }
+                return covered;
+            }
+
+            List<string> onPlates = Covered(tiles, false);
+            Assert.IsEmpty(onPlates, onPlates.Count + " covered:\n" + string.Join("\n", onPlates));
+            // The check sees what the bug was: stood on the reserved tiles anyway, as a save from before had it, they do cover.
+            var reserved = new List<Hex>(GardenGrid.ReservedTiles);
+            Assert.IsNotEmpty(Covered(reserved, true), "a decoration on (4,-3) covers the jar's plate");
         }
 
         [Test]

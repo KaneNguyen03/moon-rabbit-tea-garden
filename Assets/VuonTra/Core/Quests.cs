@@ -52,7 +52,11 @@ namespace VuonTra.Core
         /// <summary>How many every-day kinds the album holds (#61): the album's milestones.</summary>
         KindsMet,
         /// <summary>Frog Rabbits greeted in the rain, in all (#62).</summary>
-        FrogsMet
+        FrogsMet,
+        /// <summary>Fish caught at the moon pond, in all (#58).</summary>
+        FishCaught,
+        /// <summary>The most hearts any one rabbit holds now (#58).</summary>
+        MostHearts
     }
 
     /// <summary>
@@ -166,6 +170,14 @@ namespace VuonTra.Core
                     return AlbumSets.KindsMet(s);
                 case QuestMetric.FrogsMet:
                     return s.FrogsMet;
+                case QuestMetric.FishCaught:
+                    return s.FishCaught;
+                case QuestMetric.MostHearts:
+                {
+                    int most = 0;
+                    foreach (Rabbit r in s.Rabbits) most = Math.Max(most, Rabbits.HeartsOf(r));
+                    return most;
+                }
                 case QuestMetric.OrdersDelivered:
                     return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:

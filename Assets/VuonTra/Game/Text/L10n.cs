@@ -103,11 +103,12 @@ namespace VuonTra.Game
             int n = Rabbits.Stars(rabbit);
             return n == 0 ? "" : " " + new string('☆', n);
         }
-        /// <summary>The rabbit's hearts (full ones only) with a leading space, or nothing while it has none.</summary>
+        /// <summary>The rabbit's hearts (full ones only) with a leading space, or nothing while it has none; past five, one heart and the count (#58).</summary>
         public static string Hearts(Rabbit rabbit)
         {
-            int n = Math.Max(0, Math.Min(Rabbits.AffectionMax, rabbit.Affection));
-            return n == 0 ? "" : " " + new string('♥', n);
+            int n = Rabbits.HeartsOf(rabbit);
+            if (n == 0) return "";
+            return n <= Rabbits.GiftHearts ? " " + new string('♥', n) : " ♥" + n;
         }
         public static string ItemName(Item item) => T("item." + item.DefId);
     }

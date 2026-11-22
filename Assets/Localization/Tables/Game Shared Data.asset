@@ -3079,6 +3079,206 @@ MonoBehaviour:
     m_Key: quest.ech-5
     m_Metadata:
       m_Items: []
+  - m_Id: 406865048494080
+    m_Key: forest.expand
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882688
+    m_Key: forest.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882689
+    m_Key: moment.forest.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026325442560
+    m_Key: layout.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831168
+    m_Key: layout.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831169
+    m_Key: layout.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831170
+    m_Key: layout.store
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831171
+    m_Key: layout.store.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831172
+    m_Key: layout.stored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831173
+    m_Key: layout.cannot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831174
+    m_Key: layout.stored.row
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831175
+    m_Key: layout.takeout
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831176
+    m_Key: layout.full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723350331392
+    m_Key: quest.ca-50
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720000
+    m_Key: quest.tim-10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720001
+    m_Key: fish.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720002
+    m_Key: fish.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720003
+    m_Key: fish.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720004
+    m_Key: fish.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720005
+    m_Key: fish.4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720006
+    m_Key: fish.5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720007
+    m_Key: fish.points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720008
+    m_Key: fish.baits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720009
+    m_Key: fish.next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720010
+    m_Key: fish.nobait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720011
+    m_Key: bond.ten.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 412723358720012
+    m_Key: bond.ten.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720798867456
+    m_Key: station.ho-sen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256064
+    m_Key: station.lo-keo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256065
+    m_Key: station.ruong-nep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256066
+    m_Key: station.thuyen-tra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256067
+    m_Key: quest.mo-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256068
+    m_Key: quest.mo-16
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256069
+    m_Key: row.needlevel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308916662272
+    m_Key: pond.plate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050880
+    m_Key: pond.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050881
+    m_Key: pond.cast
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050882
+    m_Key: pond.casting
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050883
+    m_Key: pond.nobait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050884
+    m_Key: pond.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050885
+    m_Key: pond.wait
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050886
+    m_Key: pond.sink
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050887
+    m_Key: pond.early
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050888
+    m_Key: pond.lost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050889
+    m_Key: pond.caught
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050890
+    m_Key: feed.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050891
+    m_Key: feed.with
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050892
+    m_Key: feed.points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050893
+    m_Key: feed.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 427308925050894
+    m_Key: feed.full
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

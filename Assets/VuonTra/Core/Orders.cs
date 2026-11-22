@@ -112,7 +112,7 @@ namespace VuonTra.Core
         {
             var open = new List<int>();
             for (int i = 0; i < defs.Count && i < s.Levels.Length; i++)
-                if (s.Levels[i] > 0 && defs[i].Kind == StationKind.Brew && defs[i].CycleSeconds > 0d) open.Add(i);
+                if (s.Levels[i] > 0 && defs[i].Kind == StationKind.Brew && defs[i].CycleSeconds > 0d && !Layout.IsStored(defs, s, i)) open.Add(i);
             if (open.Count == 0) return null;
 
             int lines = open.Count >= 2 && Next(roll) >= 0.5d ? Math.Min(MaxLines, open.Count) : 1;

@@ -105,9 +105,9 @@ namespace VuonTra.Core.Tests
         [Test]
         public void CanUnlock_Requires_Previous()
         {
-            Assert.IsTrue(Economy.CanUnlock(s, 1));
-            Assert.IsFalse(Economy.CanUnlock(s, 2));
-            Assert.IsFalse(Economy.CanUnlock(s, 99));
+            Assert.IsTrue(Economy.CanUnlock(defs, s, 1));
+            Assert.IsFalse(Economy.CanUnlock(defs, s, 2));
+            Assert.IsFalse(Economy.CanUnlock(defs, s, 99));
         }
 
         [Test]

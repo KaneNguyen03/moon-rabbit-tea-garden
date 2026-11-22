@@ -1514,6 +1514,156 @@ Sau khi sửa cả bốn xanh.
 - Tiếng mưa theo thanh Âm thanh (như issue), còn nền ambient vẫn theo thanh Nhạc.
 - Chưa có mũ ếch vẽ (Antigravity); chưa có ảnh Thỏ Ếch trong mưa đêm; bài "Mưa" chưa tự bật khi trời mưa.
 
+## #53 — Mở rộng rừng theo vòng (agent song song, nhánh agent-53)
+
+- **Test:** 946/947 qua (1 inconclusive, 0 lỗi), thêm 29 test (ForestRingTests 18, ForestRingScreenTests 10, GardenLevelTests +1). tools/verify.sh: RESULT GREEN.
+- **Commit:** 3041061, merge 30f2ce1. Main sau gộp: 1022/1023.
+- **Đã làm:** Đất không còn mở theo đợt mà theo vòng rừng: R3 → 4 → 5 → 6 → 7, mỗi vòng thêm 2 ô trạm, 1 chỗ nghỉ và 6R + 6 ô lưới. Khi đủ điều kiện, biển "Mở rộng rừng" hiện ở mép bãi cỏ cạnh đất sắp mở; bấm thì vành rừng (#51) lùi ra, cỏ mới mọc từng búi ở chỗ cây vừa đứng và trên ô trống của vòng mới; Giảm chuyển động thì hiện ngay. Bảng tên đất trống và thẻ trong tab Trạm đổi thành "Mở rộng rừng · vòng N". Save vẫn version 14; save cũ đổi số ô đất thành R. GardenGrid chỉ thêm `EmptyTiles` và `NearestEmptyApart`.
+- **Nhịp:** mọi mốc giữ nguyên (thong thả: vòng 1 phút 4, vòng 2 phút 11, vòng 3 giờ 4–8, vòng 4 ngày 2–3; không nghỉ tay: vòng 4 phút 9).
+- **Ảnh:** docs/anh/po-53/ — 53-vong-1-truoc/giua/sau, 53-vong-2-truoc/sau, 53-vong-1-xa-truoc, 53-vong-2-xa-sau.
+
+### Chưa đạt / cần PO quyết
+- Giá vòng: giữ 25 % giá hai trạm (như đợt cũ). Giá 25 % một trạm làm vòng 1 mở lúc 1:33 nhưng hỏng hai luật kinh tế (trò chơi + đơn khách 11,7 % < 15 %, R7 về ngày 2). Muốn rẻ hơn thì phải chỉnh lại kinh tế.
+- Luật "R7 chờ ngày 3" mong manh: cấp 15 rơi lúc 32h35 hoặc 48h07 tùy seed. Cho R7 cần cấp 16 thì qua mọi seed, nhưng đổi bảng của issue.
+- `ClampView` không đổi (vườn đã rộng hơn R7; vòng 6–7 phần lớn nằm ngoài bề ngang bãi cỏ dọc).
+- Chỗ dạo của thỏ (#55) chưa lấy từ ô trống của lưới.
+- Ba khóa chữ cũ (`land.expand`, `plot.title`, `moment.plot.title`) không còn dùng nhưng vẫn để trong L10nStrings.
+
+## #54 — Chế độ Bố trí: kéo thả trạm sang ô trống, hoán đổi, cất vào kho (agent song song, nhánh agent-54)
+
+
+- **Test:** 943/944 (0 hỏng; 26 test mới: 12 Core `LayoutTests`, 14 màn hình `LayoutModeTests`). `tools/verify.sh` GREEN, 157 khung xem trước.
+- **Commit:** 3be8974, merge 582cd5b (sau #53). Main sau gộp: 1048/1049.
+
+**Đã làm**
+- Nút "Bố trí" (tổ ong 7 ô) ở đầu trái thanh tab, cạnh tab Trạm. Bật lên: HUD và thanh tab ẩn, mỗi ô trống có vòng nét đứt màu kem, dưới đáy có thanh với ô "Cất vào kho" và nút "Xong". Lần đầu hiện một dòng hướng dẫn.
+- Giữ 0,3 giây trên trạm, chỗ nghỉ hoặc đồ trang trí để nhấc lên (to 1,06, có bóng); nó đi theo ngón và ô đích sáng vàng. Thả lên ô trống thì đặt, lên thứ khác thì đổi chỗ, ra ngoài thì trượt về. Giảm chuyển động thì đặt tức thì. Cối, tiệm và quầy không di chuyển.
+- Cất vào kho: trạm giữ cấp, không sinh cà rốt, không làm hàng cho khay, khách không gọi món của nó, không tiếp sức trạm khác; thỏ ở đó về nghỉ. Đồ trang trí cất thì về kho trang trí cũ (#11). Lấy ra ở cuối tab Trạm, trạm đứng lên ô trống gần tâm nhất.
+- Core: `GardenGrid.Move/Swap/Store/TakeOut`, `Place` từ chối trạm đang cất, `Settle` chừa trạm đang cất; `Core/Layout.cs` (Drop, Store, TakeOut, IsStored). Save vẫn v14, thêm danh sách "stored" trong khối "grid", chỉ ghi khi có. Mùa trăng mới thì kho trống lại.
+- Bấm "Xong" sau khi có thay đổi thì dựng lại vườn để cảnh vật theo chỗ mới.
+
+- **Ảnh:** docs/anh/po-54/54-bo-tri-bat.png (chế độ bật, vòng nét đứt), 54-dang-nhac.png (đang nhấc giỏ lá), 54-sau-hoan-doi.png (nồi mứt đổi chỗ với ấm trà), 54-sau-xong.png (vườn sau "Xong")
+
+### Chưa đạt / cần PO quyết
+- Ấm trà chỉ dời được, không cất được, để vườn không bao giờ về 0 thu nhập. PO có muốn cho cất không?
+- Trạm mới mua vẫn về ô mặc định (#52), chỉ khi ô đó bị chiếm mới sang ô trống gần đó, chứ không phải "ô trống gần tâm nhất". Để sau khi gộp #53 mới quyết, vì #53 đổi cách mở đất.
+- Cảnh vật cố định (đường đá, đèn lối đi) dựng theo chỗ trạm khi dựng vườn: sau khi dời, có đèn đứng trước trạm (ảnh 54-sau-xong). Lấy trạm ra từ tab Trạm thì cảnh vật chưa dựng lại ngay.
+- Ô trống sát trạm có vòng đè lên mép đế trạm, vì ô cách nhau 150 đơn vị mà đế trạm rộng hơn.
+- "+5 % khi trạm tiếp sức đứng kề trạm được tiếp sức" để làm issue sau.
+
+## #58a — Tim thân thiết thành điểm, 10 tim cộng hệ số, luật ao câu (agent song song, nhánh agent-58a)
+
+
+- **Test:** 1017/1018 qua, 0 lỗi (24 test mới), `tools/verify.sh` GREEN.
+- **Commit:** `1ba7649`, merge `bd032e7`. Main sau gộp: 1072/1073.
+
+**Đã làm**
+- `Core/Fishing.cs`: 5 mồi, mỗi mồi hồi sau 24 phút; lùi đồng hồ không thêm mồi và không trả lại phút đã chờ. Một lần câu: phao nổi 2–6 giây, chìm 0,5 giây; chạm khi chìm được cá, chạm sớm phao nổi lại, không chạm mất mồi. 6 loại cá (1 / 3 / 5 / 8 / 12 / 30 điểm; 45 / 25 / 15 / 9 / 5 / 1 %), giỏ cá lưu trong save.
+- Tim thành điểm, 10 tim (mốc 10 … 8.880 và 18.880). Tim cũ đổi đúng mốc. Vuốt +10 điểm/ngày. Câu thoại ở 3 tim, cỏ ở 5 tim. 10 tim tặng 3 cà rốt vàng một lần.
+- Hệ số theo tim trong `Rabbits.Multiplier`, tới ×2,6.
+- Thành tựu "Câu 50 con cá" (2 cỏ) và "Một bé thỏ đạt 10 tim" (3 cà rốt vàng).
+- API `GameRunner` cho 58b; ô thỏ hiện "♥7" khi quá 5 tim; tấm thỏ hiện 10 tim vừa một dòng.
+
+**Nhịp** (mỗi buổi thả hết mồi, chạm đúng 80 %, cho hết cá vào thỏ ở trạm thu nhiều nhất và vuốt nó mỗi ngày): cấp 5, cấp 10, cấp 15 và 12 ô đất gần như không đổi ở cả bốn người chơi. Tim cao nhất sau một tuần 3–4 (×1,2–1,3 ở một trạm).
+
+### Chưa đạt / cần PO quyết
+- Tim thứ 10 ở 18.880 điểm: đề xuất chỉ có 9 mốc cho 10 tim.
+- Câu thoại 3 tim và cỏ 5 tim tới muộn hơn nếu chỉ vuốt (ngày 8 và ngày 38 thay vì ngày 3 và ngày 5).
+- "Trò chơi + khách ngày 1 ≥ 15 %" giờ được đo bằng trung bình 17 hạt. Ở hạt cũ, chỉ một lần vuốt thỏ đầu tiên đã đẩy tỉ lệ từ 19,5 % xuống 7,2 %; ngay trong game hiện tại 6/17 hạt đã dưới 15 %.
+- Đủ 12 ô đất ở ngày 2 trên 9/17 hạt, có từ trước #58: luật "chờ ngày 3" chỉ đúng ở hạt cũ.
+- Bảng quảng cáo (#66) cho kết quả khác nhau giữa các lần chạy giống hệt (129 hoặc 132 thỏ).
+- Phần 58b chưa làm.
+
+## #67 — Bốn trạm mới sau Đài ngắm sao, đất là hai vòng rừng mới (67a + 67b, agent song song, nhánh agent-67a)
+
+- Test: 1065/1066 qua (1 inconclusive, 0 lỗi), 17 test mới so với main (16 trong `FourStationsTests`, 1 trong `GardenPacingTests`); `tools/verify.sh` RESULT GREEN.
+- Commit: 63091ac (67a), 69414ef (gộp main 1840323 cùng 67b), merge vào main 21748d8. Main sau gộp: 1089/1090.
+- Đã làm:
+  - Bốn trạm: Vườn hoa sen (`ho-sen`, tiếp sức, 3e14, tiếp sức Tiệm bánh trung thu và Đài ngắm sao), Lò kẹo mạch nha (`lo-keo`, pha chế, Làm bánh, 4,5e15, 60 giây, 1,2e10), Ruộng lúa nếp (`ruong-nep`, tiếp sức, 6,5e16, tiếp sức Lò kẹo và Trà sữa trăng), Thuyền trà đêm (`thuyen-tra`, pha chế, Pha trà, 1e18, 75 giây, 1,8e11). Growth 1,16–1,17. Mỗi trạm cần cấp vườn 16 / 18 / 20 / 23.
+  - Đất: vòng rừng R 8 (cấp 16) cho hai trạm đầu, R 9 (cấp 20) cho hai trạm sau, giá ¼ giá hai trạm như #53. Bốn trạm đứng thành hàng phía trên tiệm trà và ao; vườn cao thêm 800 ở trên.
+  - Bấm dòng trạm trong tab Trạm thì vườn cuộn tới trạm đó. Nhìn xa giờ thấy bãi cỏ tới tiệm trà; hàng trạm mới cần cuộn lên một chút.
+  - Hình thật cho bốn trạm và hai món; món Lò kẹo và Thuyền trà hiện trong khay và trong đơn khách.
+  - Nhiệm vụ "Cả 12 bé thỏ đều thức" và "Có 16 trạm", mỗi cái 5 cỏ.
+  - Tiếng riêng, tên vi/en; save cũ nhận thêm 4 trạm cấp 0 mà không lệch dữ liệu nào; Mùa trăng mới đưa 4 trạm về 0.
+- Nhịp (so với main): người thong thả không đổi ở cấp 5 / cấp 10 / R 7; mở trạm 13 ngày 5, trạm 14 ngày 6, trạm 15 ngày 7, trạm 16 ngày 9; cuối ngày 7 cấp 21 với 16 ô đất. Người chơi chăm hơn mở R 8 ngày 3, R 9 ngày 4, thu nhập cuối ngày 7 tăng khoảng ×94, gọi bằng cà rốt vàng 6 lần một tuần. Không mô phỏng nào tới cấp 30.
+- Ảnh: `docs/anh/po-67/67-tram-moi-cho.png` (tab Trạm, bốn trạm chờ), `67-xa-truoc-vong-8.png` (nhìn xa, biển "Mở rộng rừng" trước R 8), `67-vong-moi.png` (hàng trạm mới ở đầu vườn), `67-xa-sau-vong-9.png` (nhìn xa sau R 9), `67-tram-moi-mo.png` (tab Trạm sau khi mở), `67-khay-keo.png` (món Lò kẹo trong khay).
+
+### Chưa đạt / cần PO quyết
+- Cấp vườn 16 / 18 / 20 / 23 thay cho 18 / 22 / 26 / 30 của issue; R 8 / R 9 hỏi cấp 16 / 20 thay vì 20 / 25 theo luật +5 của #53. Theo luật cũ người thong thả không mở được trạm 15–16 trước ngày 14 (đứng ở cấp 23 từ ngày 9).
+- Hai nhiệm vụ mới chỉ thưởng 5 cỏ, bỏ 5 cà rốt vàng: có cà rốt vàng thì người chơi chăm hơn gọi bằng cà rốt vàng 7–8 lần một tuần, quá luật 6. Hiện là đúng 6.
+- Thu nhập tăng mạnh vì hai trạm tiếp sức mới rẻ, được nâng cấp cao và nhân giá các trạm chúng tiếp sức (người chơi chăm: khoảng ×94 cuối ngày 7; người không nghỉ tay: khoảng ×600 sau 2 giờ). Nhịp đi theo cấp vườn nên các mốc gần như không đổi.
+- Vườn hoa sen tiếp sức hai trạm một ở đầu vườn một ở cuối vườn, nên chỉ đứng gần Tiệm bánh. Luật "trạm tiếp sức đứng gần" được nới cho bốn trạm mới: gần ít nhất một trạm chúng tiếp sức.
+- Nhìn xa không còn thấy cả vườn: thấy bãi cỏ tới tiệm trà, hàng trạm mới cần cuộn lên; nếu thấy cả vườn thì các trạm dưới cùng bị thanh tab che.
+- Người thong thả không tới cấp 30 trong 14 ngày nên Mùa trăng mới đầu tiên không đến (đã như vậy trên main).
+
+## #79–#82 — Bốn lỗi nhẹ QA hồi quy 23/11 (agent qa-nits-2)
+
+
+- **Test:** verify GREEN, 1056/1057 (1 bỏ qua như trước), thêm 8 ca test.
+- **Commit:** `1245a6b` (#79), `1d792c2` (#80), `e24be3c` (#81), `b5d8391` (#82) — nhánh `qa-nits-2`, merge `d1889cc`. Main sau gộp: 1098/1099.
+
+- #79: tấm "Mừng bạn quay lại" vẽ trên màn tiêu đề, dòng "CHẠM ĐỂ BẮT ĐẦU" nằm dưới tấm; nút Nhận nhận chạm ngay.
+- #80: số khách lỡ không vượt số khách còn lại hôm nay, bằng 0 khi vườn chưa có món để bán; qua ngày mới thì tính khách ngày mới, đồng hồ lùi không thêm khách.
+- #81: viên loài · bậc trên tấm thỏ và viên bậc ở sổ thỏ co chữ để luôn một dòng, sao nằm trong viên (vi/en, chữ to).
+- #82: nhãn cấp, nút "Xếp thỏ +" và mũi tên nâng cấp của trạm luôn vẽ trên đồ trang trí, ở mọi ô, kể cả sau khi bố trí lại.
+
+
+- **Ảnh:** `docs/anh/qa-79/`, `qa-80/`, `qa-81/`, `qa-82/` (trước–sau, thêm ảnh cận cho #81, #82).
+
+### Chưa đạt / cần PO quyết
+- Lọ đom đóm (có thể cả giỏ lá, cối) không nằm trên lưới lục giác: chế độ bố trí cho đặt đồ trang trí ở ô 4,-3 cạnh lọ và đồ đó che nhãn "Đom đóm · còn N lượt". Ngoài phạm vi #82; cần quyết có giữ chỗ cho lọ trên lưới không.
+- Nhãn tên thỏ trên trạm vẫn thuộc trạm; đèn đá cao đặt ô bên trái trạm có thể chạm mép nhãn (chưa đo).
+- #80: thời gian vắng qua nửa đêm tính trọn cho ngày mới, không chia; khách đang chờ ở quầy lúc rời game không tính riêng.
+
+## #58b — Tấm câu cá ở ao, nút Cho ăn, 10 tim (agent song song, nhánh agent-58b)
+
+
+- **Test:** 1086/1087 xanh (tools/verify.sh RESULT GREEN; 194 khung ảnh). Mới: 9 test `PondScreenTests` (mở tấm, câu trúng rồi cá bay vào giỏ, chạm sớm, mất mồi, hết mồi và đếm ngược, giảm chuyển động, không mở khi Bố trí, ao nằm dưới Thỏ Ếch và hũ đom đóm, cho ăn tăng điểm và tim, 10 tim có băng rôn + 3 cà rốt vàng + huy hiệu, vuốt tới 10 tim) và 1 test chữ/nút ở `AccessibilityTests` (vi/en × chữ lớn). Tấm câu cá cũng được thêm vào các lần đo nút và chữ có sẵn.
+- **Commit:** 16e0513, merge a901c01. Main sau gộp: 1112/1113.
+
+Đã làm:
+- Chạm mặt ao trăng mở tấm "Câu cá ở ao trăng" trượt từ dưới lên: 5 chấm mồi, số mồi, đếm ngược mồi tiếp theo, mặt nước có trăng, phao (vẽ bằng code) nhấp nhô 2–6 giây rồi chìm 0,5 giây. Chạm mặt nước lúc phao chìm thì được cá: hình cá thật hiện lên rồi bay vào giỏ, số cá trong giỏ chờ cá bay tới mới tăng. Chạm sớm thì phao nổi lại; không chạm thì mất mồi. Đóng tấm giữa chừng thì phao đứng yên, mồi còn nguyên.
+- Bảng "Câu cá N/5" trên bờ ao. Ao nằm dưới mọi thứ đứng cạnh nó nên Thỏ Ếch và hũ đom đóm vẫn chạm được riêng; khi đang Bố trí thì ao không mở.
+- Tấm thỏ có nút "Cho ăn" (300×100): cho con cá điểm cao nhất, ghi số điểm và tên cá ×số còn lại; cá bay tới hàng tim, "+N điểm thân thiết" bay lên, tim và thanh tới tim kế cập nhật ngay. Giỏ trống hoặc đủ 10 tim thì nút nằm phẳng và ghi lý do.
+- Đủ 10 tim (do cho ăn hoặc vuốt): băng rôn có sẵn, 3 cà rốt vàng bay về ô của nó, ô thỏ trong tab Thỏ đeo huy hiệu "♥10".
+- Giảm chuyển động: phao không nhấp nhô, khi chìm thì đổi màu vàng và nhỏ lại, luật thời gian giữ nguyên.
+- Hình cá 1–6 và giỏ cá từ docs/anh/po-58 đã chép vào Art/Final và nối vào GameCatalog (thiếu hình thì hiện vòng tròn tô màu).
+- Không đổi kinh tế hay phần thưởng.
+
+
+- **Ảnh:** docs/anh/po-58/58-ao-vuon.png, 58-ao-cho.png, 58-phao-chim.png, 58-ca-bay.png, 58-ca-trong-gio.png, 58-cho-an.png, 58-cho-an-sau.png, 58-tim-10-bang.png, 58-tim-10-o.png
+
+### Chưa đạt / cần PO quyết
+- Cho ăn luôn dùng con cá điểm cao nhất; có cần bảng chọn từng loại cá không?
+- Phao, mặt nước và trăng trong tấm đang vẽ bằng code; có cần vẽ tay không?
+- Bảng "Câu cá N/5" nằm trên bờ trái ao, gần hũ đom đóm (chỗ trống duy nhất không đụng tiệm trà, cổng Thỏ Ếch và hàng cây); PO xem ảnh 58-ao-vuon.
+- Đóng tấm khi phao còn ngoài nước thì không mất mồi; PO có muốn mất mồi không?
+- 10 tim cần 18.880 điểm (mốc do 58a đặt), nên cảnh 10 tim rất hiếm khi chơi thật.
+- Chưa có tiếng riêng cho câu cá; chưa chạy bản build trên máy thật.
+
+## #54 (sửa tiếp) — Ô giữ chỗ cho lọ đom đóm, giỏ lá, cối, tiệm, quầy (agent-54r)
+
+
+- **Test:** 1104/1105 (1 test mùa không kết luận do ngày chạy), verify GREEN; 6 test mới.
+- **Commit:** 800bc82, merge a88c7f1. Main sau gộp: 1118/1119.
+- **Đã làm:** Lưới vườn có thêm trạng thái ô "giữ chỗ" cho 10 ô dưới lọ đom đóm, giỏ hứng lá và bảng của cối. Chế độ bố trí không vẽ vòng chấm và không nhận đồ thả lên các ô này; việc đặt, dời, đổi chỗ, cất ra và mở rừng đều bỏ qua chúng. Save cũ có đồ trên ô giữ chỗ thì đồ được dời sang ô trống gần nhất khi tải. Giỏ hứng lá đứng cố định cạnh ô nhà của trạm Giỏ lá trà. Khi mở rừng, trạm nào có ô nhà trống được đặt trước, rồi mới tìm chỗ cho trạm bị chiếm ô, nên trạm mới vẫn cách các trạm khác. Tiệm và quầy đã có ô riêng, không có bảng. Không đổi kinh tế.
+- **Ảnh:** docs/anh/po-54/54r-truoc.png (vòng chấm trên ô bảng lọ, đèn đá thả lên bảng lọ) · docs/anh/po-54/54r-sau.png (không còn vòng, đèn đá quay về chỗ cũ).
+
+### Chưa đạt / cần PO quyết
+- Giỏ hứng lá không còn đi theo trạm Giỏ lá trà khi trạm bị dời; nó ở yên dưới cây trà cạnh ô nhà (2,0). PO xem có ổn không.
+- Mái tiệm trà chồm lên hai ô phía sau (2,-5) (3,-5); chưa giữ chỗ vì đồ ở đó đứng sau tiệm và không che gì.
+
+## #58 (sửa tiếp) — Tiếng câu cá (agent-58s)
+- **Test:** 1125/1126 (1 test bỏ qua có sẵn), tools/verify.sh RESULT GREEN. Mới: FishingSoundTests (4 test), 3 test hình trong PondScreenTests; mở rộng test #54 cho ao và bảng "Câu cá" trong GardenGridTests, AccessibilityTests, LayoutModeTests; test dạo chơi trong GardenScreenTests nay tính cả chỗ nghỉ thứ ba.
+- **Commit:** 3f3887e (tiếng), be6ee3b (hình), 139f172 (gộp main), b3b682a (ô giữ chỗ) trên nhánh agent-58s, main fast-forward tới b3b682a. Main sau gộp: 1125/1126.
+- **Đã làm:** sáu tiếng tạo bằng code trong Sfx: thả câu (gió + tõm), phao chìm (bloop), giật trúng (nước bắn), kéo cá về giỏ (tách tách cao dần + bộp giỏ), mất mồi ("ôi" hai nốt đi xuống), chạm sớm (bọt nhỏ đi lên). Tất cả theo thanh Âm thanh, về 0 là im; thay các tiếng mượn cũ trong thẻ câu cá. Hình vẽ tay: mặt ao, phao nổi/chìm, ba vòng sóng (một vòng đứng yên khi giảm chuyển động); ảnh trước/sau ở docs/anh/po-58/58s-truoc.png và 58s-sau.png. Ô giữ chỗ mới cho ao và bảng "Câu cá N/5": (3,-4), (4,-5), (5,-5), (6,-5); không thả được đồ vào, không có vòng nét đứt, bản lưu cũ được dời sang ô trống gần nhất. Thảm picnic chuyển từ (3,-4) bên bờ ao (đè lên bảng "Câu cá") xuống (-2,2) giữa nồi mứt và ấm trà.
+
+### Chưa đạt / cần PO quyết
+- Cần nghe thử trên bản Mac: âm lượng so với nhạc, tiếng "ôi" mất mồi có đủ nhẹ không, tiếng guồng dây có quá dày không.
+- Chỗ mới của thảm picnic: vườn trong bán kính 4 không còn ô nào trống hẳn; (-2,2) là ô ít chồng lấn nhất, nhưng bọt nồi mứt vẫn chạm nhẹ đầu trái bảng tên "Sữa". PO có thể chọn chỗ khác (ảnh Logs/preview/17-rest-bottom.png).
+- Phao đứng trước mặt trăng của hình ao và dây câu đi ngang mặt trăng; nếu vướng thì dời phao sang trái hoặc xuống dưới một chút.
+- Ảnh "trước" không có khung phao đang nổi vì khung đó mới thêm trong lần chụp sau.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
