@@ -2948,6 +2948,18 @@ MonoBehaviour:
     m_Localized: Rain
     m_Metadata:
       m_Items: []
+  - m_Id: 402925791731712
+    m_Localized: Widen the forest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402925808508928
+    m_Localized: "Widen the forest \xB7 ring {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402925808508929
+    m_Localized: The forest steps back!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

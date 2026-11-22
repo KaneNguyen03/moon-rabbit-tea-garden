@@ -710,6 +710,10 @@ namespace VuonTra.EditorTools
             { "tune.moon", "Đêm trăng", "Moonlit night" },
             { "tune.dawn", "Rạng sáng", "Daybreak" },
             { "tune.rain", "Mưa", "Rain" },
+            // ----- ring expansion of the forest (#53) -----
+            { "forest.expand", "Mở rộng rừng", "Widen the forest" },
+            { "forest.title", "Mở rộng rừng · vòng {0}", "Widen the forest · ring {0}" },
+            { "moment.forest.title", "Rừng lùi ra một vòng!", "The forest steps back!" },
         };
     }
 }
