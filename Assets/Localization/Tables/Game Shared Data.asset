@@ -2939,6 +2939,58 @@ MonoBehaviour:
     m_Key: tune.rain
     m_Metadata:
       m_Items: []
+  - m_Id: 400213503107072
+    m_Key: ad.away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689984
+    m_Key: ad.away.now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689985
+    m_Key: ad.round
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689986
+    m_Key: ad.round.now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689987
+    m_Key: ad.shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689988
+    m_Key: ad.shop.now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689989
+    m_Key: ad.shop.float
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689990
+    m_Key: ad.busy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689991
+    m_Key: ad.failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689992
+    m_Key: noads.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689993
+    m_Key: noads.active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689994
+    m_Key: noads.paid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689995
+    m_Key: noads.float
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

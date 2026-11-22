@@ -2948,6 +2948,58 @@ MonoBehaviour:
     m_Localized: Rain
     m_Metadata:
       m_Items: []
+  - m_Id: 400213503107072
+    m_Localized: "Watch 30 s \xB7 collect \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689984
+    m_Localized: "Collect \xD72 now"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689985
+    m_Localized: "Watch 30 s \xB7 one more round"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689986
+    m_Localized: One more round now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689987
+    m_Localized: Watch for 1 golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689988
+    m_Localized: Get 1 golden carrot now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689989
+    m_Localized: +1 golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689990
+    m_Localized: "Opening\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689991
+    m_Localized: Not watched to the end, so nothing yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689992
+    m_Localized: "No ads \xB7 30 days"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689993
+    m_Localized: "No ads \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689994
+    m_Localized: 'No ads for {0} days: every watch button now pays at once.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 400213515689995
+    m_Localized: No ads for {0} days
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

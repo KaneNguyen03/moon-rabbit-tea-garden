@@ -1166,6 +1166,7 @@ namespace VuonTra.Game.UI
                 if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
                 Jar.ShowPaid(result);
             });
+            BuildAdSeams(catalog); // the three rewarded-ad places and the no-ads pass (#66)
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -3738,6 +3739,7 @@ namespace VuonTra.Game.UI
             // The tray lives in the plain garden view; a sheet or a station card covers its place.
             bool trayShown = Shell.State == ShellState.Playing && !SheetOpen && Selected < 0 && !PhotoMode && (s.Tray.Count > 0 || Tray.IsFull(s));
             if (ProductTray.Root.gameObject.activeSelf != trayShown) ProductTray.Root.gameObject.SetActive(trayShown);
+            RefreshAdSeams();
         }
 
         void RefreshEnergy(GameState s, bool boosting)
@@ -5644,6 +5646,111 @@ namespace VuonTra.Game.UI
                 if (d < bestDistance) { bestDistance = d; best = i; }
             }
             return best >= 0 ? defs[best].Id : null;
+        }
+
+        #endregion
+
+        #region Rewarded ad seams (#66)
+
+        /// <summary>The extra round's ad button on each little game's result card (#66).</summary>
+        public AdButton PoundAd { get; private set; }
+        public AdButton LeavesAd { get; private set; }
+        public AdButton JarAd { get; private set; }
+
+        /// <summary>
+        /// The three places a rewarded video may be offered, each a secondary button shown only while it offers
+        /// something: ×2 on the welcome-back sheet once the free one is spent, one more round on a game's result card
+        /// once its rounds are spent, and a golden carrot in the shop's golden row. The no-ads pass goes on the packs
+        /// card, only while ads are switched on. Nothing here at the rabbit call, and no ad ever interrupts.
+        /// </summary>
+        void BuildAdSeams(GameCatalog catalog)
+        {
+            AwayCard.AttachAd(() => Runner.AdOfferFor(Ads.AwayDouble), () => Runner.AdShowing, OnAwayAd);
+            Shop.AttachAd(() => Runner.AdOfferFor(Ads.ShopGolden), () => Runner.AdShowing, OnShopAd);
+            PoundAd = ExtraRoundButton(catalog, Pound.ResultCard, Ads.GamePounding, () => { Pound.Close(); OpenPounding(); });
+            LeavesAd = ExtraRoundButton(catalog, Basket.ResultCard, Ads.GameLeaves, () => { Basket.Close(); OpenLeaves(); });
+            JarAd = ExtraRoundButton(catalog, Jar.ResultCard, Ads.GameFireflies, () => { Jar.Close(); OpenFireflies(); });
+            GoldenPacks.AttachPass(catalog, () => Runner.AdsOn, () => Runner.NoAdsDaysLeft, OnBuyNoAdsPass);
+        }
+
+        /// <summary>A secondary button hung just under a result card: one more round once the day's are spent.</summary>
+        AdButton ExtraRoundButton(GameCatalog catalog, RectTransform card, string game, System.Action startAgain)
+        {
+            var rt = UiKit.Rect("ExtraRound", card).Place(0.5f, 0f, 0, -80, 560, UiKit.MinTouch);
+            return new AdButton(rt, catalog, "ad.round", "ad.round.now", () => Runner.AdOfferFor(Ads.ExtraRound, game), () => Runner.AdShowing, () =>
+                WatchAd(Ads.ExtraRound, game, ok => { if (ok) startAgain(); }));
+        }
+
+        /// <summary>The ad buttons as things stand (the shop's pill is refreshed with the shop).</summary>
+        void RefreshAdSeams()
+        {
+            AwayCard?.Ad?.Refresh();
+            Shop?.RefreshAd();
+            PoundAd?.Refresh();
+            LeavesAd?.Refresh();
+            JarAd?.Refresh();
+        }
+
+        /// <summary>Asks the runner for a video (or the pass's instant claim), with the buttons saying "opening" meanwhile.</summary>
+        void WatchAd(string placement, string game, System.Action<bool> paid)
+        {
+            Runner.WatchAd(placement, game, ok =>
+            {
+                if (!ok)
+                {
+                    Sfx.Deny();
+                    if (Feel != null) Feel.FloatText(new Vector2(0, 300), L10n.T("ad.failed"), Palette.Ink, 34);
+                }
+                paid(ok);
+                Refresh(-1f);
+            });
+            if (Runner.AdShowing) RefreshAdSeams(); // "opening" while the video plays
+        }
+
+        /// <summary>The welcome-back sheet's ad option: the latest time away paid once more, as the ×2 button does.</summary>
+        void OnAwayAd()
+        {
+            BigNum paid = Runner.LastAway.Paid;
+            WatchAd(Ads.AwayDouble, null, ok =>
+            {
+                if (!ok) { AwayCard.RefreshDouble(); return; }
+                Sfx.Reward();
+                Haptics.Medium();
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + paid.Short(), Palette.Carrot, 44);
+                Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 16, 520f, 46f);
+                AwayCard.Close();
+            });
+        }
+
+        /// <summary>The shop's golden carrot for a watched video: it flies to the golden chip.</summary>
+        void OnShopAd()
+        {
+            WatchAd(Ads.ShopGolden, null, ok =>
+            {
+                if (!ok) return;
+                Sfx.Reward();
+                Haptics.Light();
+                GameCatalog catalog = Runner.Catalog;
+                Vector2 from = Shop.Ad != null ? Feel.PointOf(Shop.Ad.Root) : new Vector2(0, 600);
+                Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, 1, 44f);
+                Feel.FloatText(from + new Vector2(0, -90), L10n.T("ad.shop.float"), Palette.Lantern, 40);
+            });
+        }
+
+        /// <summary>The no-ads pass bought through the store: thirty days in which every ad button pays at once.</summary>
+        void OnBuyNoAdsPass(System.Action<PurchaseResult> done)
+        {
+            Runner.BuyNoAdsPass(result =>
+            {
+                if (result.Outcome == PurchaseOutcome.Paid)
+                {
+                    Sfx.Reward();
+                    Haptics.Light();
+                    Feel.FloatText(new Vector2(0, 420), L10n.T("noads.float", Ads.PassDays), Palette.Lantern, 44);
+                    Refresh(-1f);
+                }
+                done?.Invoke(result);
+            });
         }
 
         #endregion

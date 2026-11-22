@@ -710,6 +710,20 @@ namespace VuonTra.EditorTools
             { "tune.moon", "Đêm trăng", "Moonlit night" },
             { "tune.dawn", "Rạng sáng", "Daybreak" },
             { "tune.rain", "Mưa", "Rain" },
+            // ----- rewarded ad seams and the no-ads pass (#66) -----
+            { "ad.away", "Xem 30 giây · nhận ×2", "Watch 30 s · collect ×2" },
+            { "ad.away.now", "Nhận ngay ×2", "Collect ×2 now" },
+            { "ad.round", "Xem 30 giây · thêm 1 lượt", "Watch 30 s · one more round" },
+            { "ad.round.now", "Nhận ngay 1 lượt nữa", "One more round now" },
+            { "ad.shop", "Xem để nhận 1 cà rốt vàng", "Watch for 1 golden carrot" },
+            { "ad.shop.now", "Nhận ngay 1 cà rốt vàng", "Get 1 golden carrot now" },
+            { "ad.shop.float", "+1 cà rốt vàng", "+1 golden carrot" },
+            { "ad.busy", "Đang mở…", "Opening…" },
+            { "ad.failed", "Chưa xem hết nên chưa nhận được", "Not watched to the end, so nothing yet" },
+            { "noads.title", "Bỏ quảng cáo · 30 ngày", "No ads · 30 days" },
+            { "noads.active", "Bỏ quảng cáo · còn {0} ngày", "No ads · {0} days left" },
+            { "noads.paid", "Đã bỏ quảng cáo, còn {0} ngày: mọi nút xem thành Nhận ngay.", "No ads for {0} days: every watch button now pays at once." },
+            { "noads.float", "Bỏ quảng cáo {0} ngày", "No ads for {0} days" },
         };
     }
 }

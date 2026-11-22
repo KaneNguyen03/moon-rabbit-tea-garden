@@ -40,6 +40,8 @@ namespace VuonTra.Game.UI
 
         public LeavesRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
+        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
+        public RectTransform ResultCard => _resultCard;
         /// <summary>Seconds into the game, the same clock the rules are settled on.</summary>
         public double Time => _time;
         /// <summary>Where the basket stands, 0 at the left edge of the field and 1 at the right.</summary>

@@ -167,6 +167,7 @@ namespace VuonTra.Game
             }
 
             if (!Paused) State.PlaySeconds += dt;
+            (_adProvider as FakeRewardedAds)?.Advance(dt); // the editor's pretend videos (#66)
             _sinceSync += dt;
             if (_sinceSync >= SyncTimerSeconds) SyncNow(SyncReason.Timer);
             PlatformServices.Tick(this, dt);
@@ -966,6 +967,90 @@ namespace VuonTra.Game
             bool ok = MoonJars.Buy(State, TodayNumber);
             if (ok) Changed();
             return ok;
+        }
+
+        // ----- rewarded ad seams and the no-ads pass (#66) -----
+
+        /// <summary>
+        /// THE switch for rewarded ads (#66). False (today): every player build, the Mac one included, runs on
+        /// <see cref="NoAds"/>, so no ad button and no no-ads pass is ever shown. The Unity Editor always runs on
+        /// <see cref="FakeRewardedAds"/> so the three places can be tried. When the owner decides the game has ads,
+        /// set this to true and return the real provider (LevelPlay) from <see cref="DefaultAds"/>.
+        /// </summary>
+        public static bool AdsInPlayerBuilds = false;
+
+        IRewardedAds _adProvider;
+        /// <summary>Where rewarded videos come from; tests and previews may set their own.</summary>
+        public IRewardedAds AdProvider
+        {
+            get { if (_adProvider == null) _adProvider = DefaultAds(); return _adProvider; }
+            set => _adProvider = value ?? new NoAds();
+        }
+
+        static IRewardedAds DefaultAds()
+        {
+#if UNITY_EDITOR
+            return new FakeRewardedAds();
+#else
+            return AdsInPlayerBuilds ? (IRewardedAds)new FakeRewardedAds() : new NoAds();
+#endif
+        }
+
+        /// <summary>Ads are switched on here: the no-ads pass is for sale only then.</summary>
+        public bool AdsOn => !(AdProvider is NoAds);
+        /// <summary>A video is playing; ad buttons wait.</summary>
+        public bool AdShowing { get; private set; }
+
+        /// <summary>What the ad button at a place offers right now (the away one only while the latest time away is still to double).</summary>
+        public AdOffer AdOfferFor(string placement, string game = null)
+        {
+            if (placement == Ads.AwayDouble && (LastAwayDoubled || LastAway.Paid < BigNum.One)) return AdOffer.None;
+            return Ads.Offer(State, TodayNumber, AdProvider, placement, game);
+        }
+
+        /// <summary>
+        /// The ad button at a place was pressed: with the pass the reward comes at once, otherwise after a video
+        /// watched to the end. <paramref name="done"/> gets whether it was paid.
+        /// </summary>
+        public void WatchAd(string placement, string game, Action<bool> done)
+        {
+            AdOffer offer = AdShowing ? AdOffer.None : AdOfferFor(placement, game);
+            if (offer == AdOffer.None) { done?.Invoke(false); return; }
+            if (offer == AdOffer.Instant) { done?.Invoke(ClaimAd(placement, game)); return; }
+            AdShowing = true;
+            AdProvider.Show(placement, watched =>
+            {
+                AdShowing = false;
+                done?.Invoke(watched && ClaimAd(placement, game));
+            });
+        }
+
+        bool ClaimAd(string placement, string game)
+        {
+            long day = TodayNumber;
+            bool ok;
+            switch (placement)
+            {
+                case Ads.AwayDouble:
+                    ok = !LastAwayDoubled && Ads.ClaimAwayDouble(State, day, LastAway.Paid);
+                    if (ok) LastAwayDoubled = true;
+                    break;
+                case Ads.ExtraRound: ok = Ads.ClaimExtraRound(State, day, game); break;
+                case Ads.ShopGolden: ok = Ads.ClaimShopGolden(State, day); break;
+                default: ok = false; break;
+            }
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>Days the no-ads pass still runs, 0 without one.</summary>
+        public int NoAdsDaysLeft => Ads.PassDaysLeft(State, TodayNumber);
+
+        /// <summary>Buys the no-ads pass through the store; it is granted from today's clamped day.</summary>
+        public void BuyNoAdsPass(Action<PurchaseResult> done)
+        {
+            Seasons.Clamp(State, Today); // the pass counts from today
+            BuyGolden(Storefront.NoAdsPass, done);
         }
 
         /// <summary>For tests and previews: as if the player had just come back with this report.</summary>

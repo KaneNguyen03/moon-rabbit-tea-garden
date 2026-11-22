@@ -162,8 +162,25 @@ namespace VuonTra.Game.UI
                 : L10n.T("away.double.short", cost - golden);
             _double.SetEnabled(can);
             _doubleLabel.color = ChunkyButton.InkFor(can);
+            Ad?.Refresh();
         }
 
         public void Close() => Sheet.Close();
+
+        // ----- rewarded ad seam (#66) -----
+
+        /// <summary>The secondary "Xem 30 giây" for ×2 once the day's free doubling is spent; null until attached.</summary>
+        public AdButton Ad { get; private set; }
+
+        /// <summary>
+        /// Adds the ad option above the ×2 button: a secondary button, shown only while <paramref name="offer"/> offers
+        /// something. The free and golden ×2 stay as they are.
+        /// </summary>
+        public AdButton AttachAd(Func<AdOffer> offer, Func<bool> busy, Action onWatch)
+        {
+            var rt = UiKit.Rect("Ad", Sheet.Card).Place(1f, 0f, -300, 259, 520, UiKit.MinTouch);
+            Ad = new AdButton(rt, _catalog, "ad.away", "ad.away.now", offer, busy, onWatch);
+            return Ad;
+        }
     }
 }

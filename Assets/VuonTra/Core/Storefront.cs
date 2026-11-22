@@ -68,7 +68,8 @@ namespace VuonTra.Core
         /// <summary>Placeholder prices, so the shelf can be looked at; the real ones are set on the stores by the owner.</summary>
         public readonly Dictionary<string, string> Prices = new Dictionary<string, string>
         {
-            { Storefront.Small, "25.000 ₫" }, { Storefront.Medium, "69.000 ₫" }, { Storefront.Large, "199.000 ₫" }
+            { Storefront.Small, "25.000 ₫" }, { Storefront.Medium, "69.000 ₫" }, { Storefront.Large, "199.000 ₫" },
+            { Storefront.NoAdsPass, "75.000 ₫" } // the no-ads pass (#66), about 2,99 $
         };
 
         public event Action<PurchaseResult> Delivered;
@@ -77,7 +78,7 @@ namespace VuonTra.Core
 
         public void Buy(string packId, Action<PurchaseResult> done)
         {
-            if (!Ready || Storefront.Find(packId) == null) { done?.Invoke(PurchaseResult.Of(PurchaseOutcome.Unavailable, packId)); return; }
+            if (!Ready || !Storefront.Sells(packId)) { done?.Invoke(PurchaseResult.Of(PurchaseOutcome.Unavailable, packId)); return; }
             if (NextOutcome.HasValue && NextOutcome.Value != PurchaseOutcome.Paid)
             {
                 PurchaseOutcome outcome = NextOutcome.Value;
@@ -115,6 +116,15 @@ namespace VuonTra.Core
             new GoldenPack { Id = Large, Golden = 500 },
         };
 
+        /// <summary>
+        /// The no-ads pass (#66): thirty days in which every rewarded-ad button pays at once, with the same daily caps.
+        /// Sold only while ads are switched on (see GameRunner.AdsInPlayerBuilds); not a pack, it pays no golden carrots.
+        /// </summary>
+        public const string NoAdsPass = "vuontra.noads.30";
+
+        /// <summary>Whether the store sells this id here: one of the golden packs, or the no-ads pass.</summary>
+        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass;
+
         /// <summary>How many paid transaction ids the save remembers, so a purchase the store delivers again is not paid out twice.</summary>
         public const int ReceiptMemory = 64;
 
@@ -132,12 +142,18 @@ namespace VuonTra.Core
         public static bool Grant(GameState s, string packId, string transactionId)
         {
             GoldenPack pack = Find(packId);
-            if (pack == null) return false;
+            if (pack == null && packId != NoAdsPass) return false;
             if (!string.IsNullOrEmpty(transactionId))
             {
                 if (s.PaidTransactions.Contains(transactionId)) return false;
                 s.PaidTransactions.Add(transactionId);
                 while (s.PaidTransactions.Count > ReceiptMemory) s.PaidTransactions.RemoveAt(0);
+            }
+            if (pack == null)
+            {
+                // The no-ads pass, from the clamped day the save last saw (#66).
+                Ads.GrantPass(s, s.MaxDaySeen);
+                return true;
             }
             s.GoldenCarrots += pack.Golden;
             s.PacksBought++;

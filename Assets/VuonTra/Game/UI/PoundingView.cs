@@ -29,6 +29,8 @@ namespace VuonTra.Game.UI
 
         public PoundingRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
+        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
+        public RectTransform ResultCard => _resultCard;
         /// <summary>Seconds into the game, the same clock the rules are scored on.</summary>
         public double Time => _time;
 
