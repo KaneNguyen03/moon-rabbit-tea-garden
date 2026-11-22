@@ -1918,6 +1918,78 @@ MonoBehaviour:
     m_Localized: "L\u1EA5y b\u1EA3n tr\xEAn m\xE2y"
     m_Metadata:
       m_Items: []
+  - m_Id: 216545128079360
+    m_Localized: "\u0110\xEAm \u0111om \u0111\xF3m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439488
+    m_Localized: "Ch\u1EA1m \u0111\u1EC3 b\u1EAFt \u0111om \u0111\xF3m bay qua v\u01B0\u1EDDn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439489
+    m_Localized: "{0} \u0111i\u1EC3m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439490
+    m_Localized: "C\xF2n {0} gi\xE2y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439491
+    m_Localized: +1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439492
+    m_Localized: "+3 v\xE0ng!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439493
+    m_Localized: "Th\xF4i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439494
+    m_Localized: Xong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439495
+    m_Localized: "L\u1ECD s\xE1ng r\u1ED3i!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439496
+    m_Localized: "B\u1EAFt \u0111\u01B0\u1EE3c {0} con"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439497
+    m_Localized: "+{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439498
+    m_Localized: "+{0} c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439499
+    m_Localized: "+1 c\xE0 r\u1ED1t v\xE0ng (3 sao)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439500
+    m_Localized: "\u0110\xE3 t\u1EDBi tr\u1EA7n h\xF4m nay, mai th\u01B0\u1EDFng ti\u1EBFp"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439501
+    m_Localized: "\u0110om \u0111\xF3m \xB7 c\xF2n {0} l\u01B0\u1EE3t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439502
+    m_Localized: "Mai b\u1EAFt ti\u1EBFp"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439503
+    m_Localized: "B\u1EAFt \u0111om \u0111\xF3m 3 sao l\u1EA7n \u0111\u1EA7u"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439504
+    m_Localized: "B\u1EAFt \u0111om \u0111\xF3m 30 \u0111\xEAm"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
