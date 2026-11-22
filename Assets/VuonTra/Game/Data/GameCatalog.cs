@@ -75,8 +75,13 @@ namespace VuonTra.Game
 
         [Tooltip("Bare ground with a signpost: a plot that has nothing built on it yet.")]
         public Sprite PlotSign;
-        [Tooltip("An empty cushion with a dotted edge and a plus: where a rabbit could stand at a station.")]
+        [Tooltip("An empty woven mat: where a rabbit could stand at a station.")]
         public Sprite Pad;
+        [Tooltip("Painted ground a working station stands on (earth, a deck, flagstones, flowers), taken in turn by station index.")]
+        public Sprite[] StationPads = new Sprite[0];
+
+        /// <summary>The painted ground under station <paramref name="index"/>, or null when there is none.</summary>
+        public Sprite StationPad(int index) => StationPads == null || StationPads.Length == 0 ? null : StationPads[index % StationPads.Length];
 
         [Tooltip("Furniture for the places to rest, indexed by seat; null where the seat is a stump that is already in the garden.")]
         public Sprite[] RestProps = new Sprite[0];

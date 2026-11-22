@@ -28,7 +28,13 @@ namespace VuonTra.Game.UI
         RectTransform _rabbit, _fill, _prop, _pad, _chipRect;
         Image _rabbitImage, _propImage, _chip, _groundImage;
         Text _label;
-        GameObject _bar, _glow, _shadow, _ground;
+        GameObject _bar, _glow, _shadow, _ground, _floor;
+        /// <summary>The painted ground's centre and box, under the prop and the pad together.</summary>
+        public static readonly Vector2 FloorAt = new Vector2(20f, -128f), FloorSize = new Vector2(460f, 230f);
+        /// <summary>The contact shadow's strongest opacity (skill: ink at 25–30%).</summary>
+        public const float ShadowAlpha = 0.3f;
+        /// <summary>The floors are painted in daylight; under the moon they take on the night, like the scenery around them.</summary>
+        public static readonly Color FloorTint = Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.38f), 0.92f);
         float _squish, _shownProgress, _propPop, _hop, _bump, _flash, _yawn;
         RectTransform _glowRect;
 
@@ -77,8 +83,15 @@ namespace VuonTra.Game.UI
             _glow = glow.gameObject;
             _glowRect = glow;
 
-            var shadow = UiKit.Rect("Shadow", Root).Place(0.5f, 0.5f, 10, -112, 330, 62);
-            shadow.AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.4f));
+            // A working station stands on its own painted ground, so it reads apart from the grass.
+            Sprite floorArt = catalog.StationPad(_index);
+            var floor = UiKit.Rect("Floor", Root).Place(0.5f, 0.5f, FloorAt.x, FloorAt.y, FloorSize.x, FloorSize.y);
+            if (floorArt != null) floor.AddImage(floorArt, FloorTint).preserveAspect = true;
+            _floor = floor.gameObject;
+
+            // A soft contact shadow under the prop and the rabbit: ink, blurred at the edge.
+            var shadow = UiKit.Rect("Shadow", Root).Place(0.5f, 0.5f, 10, -110, 380, 84);
+            shadow.AddImage(catalog.Glow, Palette.Alpha(Palette.Ink, ShadowAlpha));
             _shadow = shadow.gameObject;
 
             // Bare earth with a signpost, under everything, for a place with nothing built yet.
@@ -216,6 +229,7 @@ namespace VuonTra.Game.UI
             _ground.SetActive(!open);
             _groundImage.color = look == StationLook.Land ? Palette.Alpha(Color.white, 0.62f) : Color.white;
             _shadow.SetActive(open);
+            _floor.SetActive(open);
             _prop.gameObject.SetActive(look != StationLook.Land);
             // On bare earth the prop that will stand here is a pale ghost, not a dark shadow that sinks into the ground.
             _propImage.color = open ? Color.white : Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Ink, 0.25f), 0.55f);

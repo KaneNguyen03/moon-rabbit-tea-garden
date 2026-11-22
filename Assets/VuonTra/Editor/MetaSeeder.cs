@@ -213,6 +213,7 @@ namespace VuonTra.EditorTools
             catalog.GiftBox = FinalArt.Find("icon_hop-qua");
             catalog.ShopProp = FinalArt.Find("prop_tiem");
             catalog.Pad = FinalArt.Load("pad");
+            catalog.StationPads = System.Array.FindAll(new[] { FinalArt.Find("pad_dat"), FinalArt.Find("pad_san-go"), FinalArt.Find("pad_vong-da"), FinalArt.Find("pad_hoa") }, s => s != null);
             // Seats 0 and 1 are the stumps; the rest bring a rug, stools, a hammock and a swing.
             catalog.RestProps = new[] { null, null, FinalArt.Find("decor_tham-picnic"), FinalArt.Find("decor_ghe-nam"), FinalArt.Find("decor_vong"), FinalArt.Find("decor_xich-du") };
             catalog.IconCharm = PlaceholderArt.Load("icon_charm");

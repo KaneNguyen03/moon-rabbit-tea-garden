@@ -1978,6 +1978,8 @@ namespace VuonTra.Game.UI
                 raw.texture = catalog.BgVignette;
                 raw.raycastTarget = false;
             }
+            // Last over the garden, under the HUD: the painting's paper shows through.
+            PaperGrain.Add(_canvas, ScreenW, ScreenH);
         }
 
         /// <summary>The rim of light comes up in 0,4 s when a burst starts, breathes while it runs, and goes the same way.</summary>

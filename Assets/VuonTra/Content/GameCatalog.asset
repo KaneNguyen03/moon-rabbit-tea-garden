@@ -156,7 +156,12 @@ MonoBehaviour:
   Mist: {fileID: 21300000, guid: 437ed326802354b89b1c96324c064b76, type: 3}
   MoonGate: {fileID: 21300000, guid: 25316d01279b24813930fb8846e6dc5b, type: 3}
   PlotSign: {fileID: 21300000, guid: 93c411d89546e4181930735900e7c315, type: 3}
-  Pad: {fileID: 21300000, guid: 85b25bb0020a447c580f8e915d5b4c6c, type: 3}
+  Pad: {fileID: 21300000, guid: 4115c464c241148e9b5f00cc7a9dab4b, type: 3}
+  StationPads:
+  - {fileID: 21300000, guid: 629c34c4cf78e48e6af9fbbb2a131445, type: 3}
+  - {fileID: 21300000, guid: 2624d58b18e3d4bbcb8d8abf5331f5dc, type: 3}
+  - {fileID: 21300000, guid: 694efd19a379c4820995c9a8b1cfb300, type: 3}
+  - {fileID: 21300000, guid: c9104c278d6b04975adf7dc39fb932be, type: 3}
   RestProps:
   - {fileID: 0}
   - {fileID: 0}
