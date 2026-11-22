@@ -1275,7 +1275,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 81178458578948
-    m_Localized: 'Today''s photo gift: +{0} clover'
+    m_Localized: 'Today''s photo gift: +{0} golden carrot'
     m_Metadata:
       m_Items: []
   - m_Id: 81178458578949
@@ -1520,6 +1520,90 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 182816871538697
     m_Localized: The garden is yours. Happy brewing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545496752128
+    m_Localized: Meet your first Purple kind
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140736
+    m_Localized: Meet your first Gold kind
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140737
+    m_Localized: Meet your first Red kind
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140738
+    m_Localized: Own all 12 plots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140739
+    m_Localized: A rabbit reaches its level cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140740
+    m_Localized: Tea Shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140741
+    m_Localized: Today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140742
+    m_Localized: Collect day {0}'s gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140743
+    m_Localized: +{0} golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140744
+    m_Localized: "Today's gift collected \xB7 tomorrow +{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140745
+    m_Localized: "{0} days in a row \xB7 miss a day and it starts over"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140746
+    m_Localized: Golden call
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140747
+    m_Localized: Call a rabbit with golden carrots, rarer tiers more likely
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140748
+    m_Localized: "Call \xB7 {0} golden"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140749
+    m_Localized: '{0} more golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140750
+    m_Localized: 'Clover call: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140751
+    m_Localized: 'Golden call: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140752
+    m_Localized: You have {0} golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140753
+    m_Localized: 'Earned from: the daily gift, golden batches, the day''s first photo, every 5th garden level, achievements'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140754
+    m_Localized: +{0} golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140755
+    m_Localized: Garden level {0}
     m_Metadata:
       m_Items: []
   references:

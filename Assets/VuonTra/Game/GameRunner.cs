@@ -39,6 +39,9 @@ namespace VuonTra.Game
 
         static long Now => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
+        /// <summary>The day number the daily things turn over on, for screens that show "today".</summary>
+        public long TodayNumber => Today;
+
         /// <summary>The player's local calendar day as a number, so daily quests turn over at their midnight.</summary>
         static long Today
         {
@@ -205,6 +208,25 @@ namespace VuonTra.Game
             BigNum paid = Tray.SellAll(Defs, State, Mods, out clovers);
             if (paid > BigNum.Zero || clovers > 0) Changed();
             return paid;
+        }
+
+        /// <summary>True while the shop's gift for today is still to be had.</summary>
+        public bool GiftWaiting => Shop.GiftWaiting(State, Today);
+
+        /// <summary>Takes today's gift at the shop. How many golden carrots it brought; 0 when there was none to take.</summary>
+        public int ClaimDailyGift()
+        {
+            int gift = Shop.ClaimDailyGift(State, Today);
+            if (gift > 0) Changed();
+            return gift;
+        }
+
+        /// <summary>Calls a rabbit with golden carrots at the shop's odds; null when there are not enough.</summary>
+        public Rabbit SummonGoldenRabbit()
+        {
+            Rabbit rabbit = Shop.SummonGolden(State, _rng.NextDouble(), PickName(), _rng.NextDouble());
+            if (rabbit != null) Changed();
+            return rabbit;
         }
 
         /// <summary>A photo of the garden was taken. True when it brought today's gift.</summary>

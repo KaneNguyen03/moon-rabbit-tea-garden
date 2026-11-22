@@ -89,6 +89,13 @@ namespace VuonTra.Game.UI
             _clovers.resizeTextMaxSize = 26;
             var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -164, 4, 290, 92);
             Summon = UiKit.Chunky(button, _catalog.Panel, () => _onSummon());
+            // The odds, for both ways of calling, right where a rabbit is called.
+            var odds = UiKit.Rect("Odds", _content);
+            odds.gameObject.AddComponent<LayoutElement>().preferredHeight = 60;
+            Text oddsText = odds.AddText(L10n.T("shop.odds.clover", ShopView.Odds(Rabbits.Odds)) + "\n" + L10n.T("shop.odds.golden", ShopView.Odds(Shop.GoldenOdds)), UiKit.TextSmall, Quiet, TextAnchor.MiddleLeft);
+            oddsText.resizeTextForBestFit = true;
+            oddsText.resizeTextMinSize = 12;
+            oddsText.resizeTextMaxSize = UiKit.TextSmall;
             _summonLabel = UiKit.Rect("Text", Summon.FaceRect).Stretch(0, 0, 1, 1)
                 .AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
         }

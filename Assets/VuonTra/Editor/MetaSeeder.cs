@@ -32,7 +32,7 @@ namespace VuonTra.EditorTools
             }
         }
 
-        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers; public bool Daily; }
+        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; }
 
         public static void Seed(GameCatalog catalog)
         {
@@ -88,6 +88,12 @@ namespace VuonTra.EditorTools
                 new Q { Id = "anh-1",     Title = "Chụp tấm ảnh đầu tiên",          Metric = QuestMetric.PhotosTaken,         Target = 1, Seconds = 120, Carrots = 100 },
                 new Q { Id = "anh-vang",  Title = "Chụp ảnh có một thỏ bậc Vàng",   Metric = QuestMetric.PhotosWithGoldRabbit, Target = 1, Seconds = 600, Carrots = 1000, Clovers = 2 },
                 new Q { Id = "anh-nghi",  Title = "Chụp ảnh khi đủ 6 chỗ nghỉ",     Metric = QuestMetric.PhotosWithFullRest,   Target = 1, Seconds = 900, Carrots = 2000, Clovers = 2 },
+                // Golden carrots, once each (#44).
+                new Q { Id = "loai-tim",  Title = "Gặp loài thỏ bậc Tím đầu tiên",   Metric = QuestMetric.RarestKindMet, Target = 4,  Seconds = 600,  Carrots = 1000, Golden = 5 },
+                new Q { Id = "loai-vang", Title = "Gặp loài thỏ bậc Vàng đầu tiên",  Metric = QuestMetric.RarestKindMet, Target = 5,  Seconds = 900,  Carrots = 3000, Golden = 5 },
+                new Q { Id = "loai-do",   Title = "Gặp loài thỏ bậc Đỏ đầu tiên",    Metric = QuestMetric.RarestKindMet, Target = 6,  Seconds = 1800, Carrots = 9000, Golden = 5 },
+                new Q { Id = "dat-12",    Title = "Mở đủ 12 ô đất",                  Metric = QuestMetric.PlotsOwned,    Target = 12, Seconds = 1800, Carrots = 9000, Golden = 5 },
+                new Q { Id = "tho-max",   Title = "Một bé thỏ đạt cấp tối đa",       Metric = QuestMetric.RabbitsAtCap,  Target = 1,  Seconds = 900,  Carrots = 3000, Golden = 5 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)
@@ -96,7 +102,7 @@ namespace VuonTra.EditorTools
                 data.Id = row.Id; data.Title = row.Title; data.Metric = row.Metric;
                 data.Station = row.Station != null ? stations[row.Station] : null;
                 data.Target = row.Target; data.Daily = row.Daily; data.RewardSeconds = row.Seconds;
-                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers;
+                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden;
                 EditorUtility.SetDirty(data);
                 quests.Add(data);
             }
@@ -172,6 +178,9 @@ namespace VuonTra.EditorTools
             catalog.PlotSign = FinalArt.Load("plot_sign");
             catalog.Clover = FinalArt.Load("icon_clover");
             catalog.Hand = FinalArt.Load("icon_hand");
+            catalog.GoldenCarrot = FinalArt.Find("icon_ca-rot-vang");
+            catalog.GiftBox = FinalArt.Find("icon_hop-qua");
+            catalog.ShopProp = FinalArt.Find("prop_tiem");
             catalog.Pad = FinalArt.Load("pad");
             // Seats 0 and 1 are the stumps; the rest bring a rug, stools, a hammock and a swing.
             catalog.RestProps = new[] { null, null, FinalArt.Find("decor_tham-picnic"), FinalArt.Find("decor_ghe-nam"), FinalArt.Find("decor_vong"), FinalArt.Find("decor_xich-du") };

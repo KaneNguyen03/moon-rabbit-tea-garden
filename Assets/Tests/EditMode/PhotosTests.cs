@@ -10,12 +10,12 @@ namespace VuonTra.Core.Tests
             GameState s = GameState.NewGame(Fixture.Defs());
             Assert.IsTrue(Photos.GiftWaiting(s, 100));
             Assert.IsTrue(Photos.Take(s, 100));
-            Assert.AreEqual(Photos.GiftClovers, s.Clovers);
+            Assert.AreEqual(Photos.GiftGolden, s.GoldenCarrots);
             Assert.IsFalse(Photos.GiftWaiting(s, 100));
             Assert.IsFalse(Photos.Take(s, 100), "the same day again");
-            Assert.AreEqual(Photos.GiftClovers, s.Clovers);
+            Assert.AreEqual(Photos.GiftGolden, s.GoldenCarrots);
             Assert.IsTrue(Photos.Take(s, 101), "a new day, a new gift");
-            Assert.AreEqual(2 * Photos.GiftClovers, s.Clovers);
+            Assert.AreEqual(2 * Photos.GiftGolden, s.GoldenCarrots);
             Assert.AreEqual(3, s.PhotosTaken);
         }
 

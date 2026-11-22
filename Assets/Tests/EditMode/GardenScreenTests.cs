@@ -1870,7 +1870,8 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, runner.State.Tray.Count, "too short to be a sweep");
             screen.SweepTray(-200f);
             Assert.AreEqual(0, runner.State.Tray.Count);
-            Assert.AreEqual(1, runner.State.Clovers);
+            Assert.AreEqual(1, runner.State.GoldenCarrots, "a golden batch pays a golden carrot");
+            Assert.IsTrue(root.transform.Find("Canvas/Hud/Golden").gameObject.activeSelf, "the chip shows once there is one");
         }
 
         [Test]
@@ -1950,14 +1951,14 @@ namespace VuonTra.Core.Tests
                 StringAssert.EndsWith(".png", screen.LastPhotoPath);
                 Assert.IsTrue(review.gameObject.activeSelf);
                 Assert.IsNotNull(review.Find("Card/Frame/Picture").GetComponent<Image>().sprite);
-                Assert.AreEqual(1, runner.State.Clovers, "the day's gift");
+                Assert.AreEqual(1, runner.State.GoldenCarrots, "the day's gift");
                 StringAssert.Contains("+1", review.Find("Card/Gift").GetComponent<Text>().text);
 
                 Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
                 Assert.IsFalse(review.gameObject.activeSelf);
                 Assert.IsTrue(photoBar.gameObject.activeSelf, "back to framing");
                 Find("Canvas/PhotoBar/Snap").onClick.Invoke();
-                Assert.AreEqual(1, runner.State.Clovers, "one gift a day");
+                Assert.AreEqual(1, runner.State.GoldenCarrots, "one gift a day");
                 Assert.AreEqual("Hôm nay đã nhận quà chụp ảnh rồi", review.Find("Card/Gift").GetComponent<Text>().text);
                 Assert.AreEqual(2, System.IO.Directory.GetFiles(dir, "*.png").Length);
                 Assert.AreEqual(2, runner.State.PhotosTaken);
@@ -2325,6 +2326,60 @@ namespace VuonTra.Core.Tests
             runner.State.BoostSecondsLeft = 0d;
             for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(rim.gameObject.activeSelf, "gone within half a second of the burst ending");
+        }
+
+        // ----- #44 round 1: golden carrots and the shop -----
+
+        [Test]
+        public void The_Shop_By_The_Pond_Gives_Todays_Gift_And_Calls_With_Gold()
+        {
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Transform shop = root.transform.Find("Canvas/Garden/Content/Shop");
+            Assert.IsNotNull(shop, "the shop stands in the garden from the first day");
+            Assert.IsTrue(shop.Find("Badge").gameObject.activeSelf, "a gift waits");
+            Assert.IsFalse(root.transform.Find("Canvas/Hud/Golden").gameObject.activeSelf, "no golden carrots yet: no chip");
+
+            Find("Canvas/Garden/Content/Shop").onClick.Invoke();
+            Assert.IsTrue(screen.Shop.IsOpen);
+            Transform card = root.transform.Find("Canvas/Shop/Card");
+            StringAssert.Contains("60%", card.Find("Golden/Odds").GetComponent<Text>().text, "the clover odds");
+            StringAssert.Contains("35%", card.Find("Golden/Odds").GetComponent<Text>().text, "and the golden odds, side by side");
+            Assert.IsTrue(Find("Canvas/Shop/Card/Today/Gift").interactable);
+            Assert.IsFalse(Find("Canvas/Shop/Card/Golden/Call").interactable, "ten golden carrots are needed");
+            Find("Canvas/Shop/Card/Today/Gift").onClick.Invoke();
+            Assert.AreEqual(1, runner.State.GoldenCarrots);
+            Assert.AreEqual(1, runner.State.GiftStreak);
+            Assert.Greater(screen.Feel.Flying, 0, "the gift flies to its chip");
+            screen.Refresh();
+            Assert.IsFalse(Find("Canvas/Shop/Card/Today/Gift").interactable, "once a day");
+            Assert.IsFalse(shop.Find("Badge").gameObject.activeSelf);
+            Assert.IsTrue(root.transform.Find("Canvas/Hud/Golden").gameObject.activeSelf);
+            Assert.AreEqual("1", root.transform.Find("Canvas/Hud/Golden/Text").GetComponent<Text>().text);
+
+            runner.State.GoldenCarrots = Shop.GoldenSummonCost;
+            screen.Refresh();
+            Assert.IsTrue(Find("Canvas/Shop/Card/Golden/Call").interactable);
+            int before = runner.State.Rabbits.Count;
+            Find("Canvas/Shop/Card/Golden/Call").onClick.Invoke();
+            Assert.AreEqual(before + 1, runner.State.Rabbits.Count);
+            Assert.AreEqual(0, runner.State.GoldenCarrots);
+            StringAssert.StartsWith("summon-", Sfx.Last);
+            Assert.IsFalse(screen.Shop.IsOpen, "the moon gate takes over");
+        }
+
+        [Test]
+        public void The_Rabbits_Tab_Shows_Both_Calls_Odds_And_Golden_Quests_Show_A_Golden_Chip()
+        {
+            Transform odds = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Odds");
+            Assert.IsNotNull(odds);
+            StringAssert.Contains("25%", odds.GetComponent<Text>().text);
+            Transform quest = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest loai-tim");
+            Assert.IsNotNull(quest, "the golden achievements are in the list");
+            Assert.IsTrue(quest.Find("Golden").gameObject.activeSelf);
+            Assert.AreEqual("+5", quest.Find("Golden/Text").GetComponent<Text>().text);
+            Assert.IsFalse(quest.Find("Clovers").gameObject.activeSelf);
+            Assert.IsFalse(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Golden").gameObject.activeSelf);
         }
 
         [Test]

@@ -28,6 +28,8 @@ namespace VuonTra.Game
         public Sprite Clover;
         [Tooltip("The pointing hand of the first minute's guidance.")]
         public Sprite Hand;
+        [Tooltip("The golden carrot, the gift box and the tea shop by the pond.")]
+        public Sprite GoldenCarrot, GiftBox, ShopProp;
         public Sprite Gear;
         public Sprite Shadow;
         public Sprite IconUp;

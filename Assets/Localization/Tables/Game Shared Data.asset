@@ -1515,6 +1515,90 @@ MonoBehaviour:
     m_Key: tut.done.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 192545496752128
+    m_Key: quest.loai-tim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140736
+    m_Key: quest.loai-vang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140737
+    m_Key: quest.loai-do
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140738
+    m_Key: quest.dat-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140739
+    m_Key: quest.tho-max
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140740
+    m_Key: shop.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140741
+    m_Key: shop.today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140742
+    m_Key: shop.gift.claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140743
+    m_Key: shop.gift.amount
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140744
+    m_Key: shop.gift.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140745
+    m_Key: shop.gift.streak
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140746
+    m_Key: shop.golden.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140747
+    m_Key: shop.golden.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140748
+    m_Key: shop.golden.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140749
+    m_Key: shop.golden.need
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140750
+    m_Key: shop.odds.clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140751
+    m_Key: shop.odds.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140752
+    m_Key: shop.have
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140753
+    m_Key: shop.earn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140754
+    m_Key: moment.golden.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 192545505140755
+    m_Key: moment.golden.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

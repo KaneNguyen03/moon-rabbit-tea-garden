@@ -186,13 +186,16 @@ namespace VuonTra.Core
         public static readonly double[] Odds = { 0.60, 0.25, 0.10, 0.04, 0.009, 0.001 };
 
         /// <summary>Turns a number in [0, 1) into a tier using the odds table.</summary>
-        public static int RollTier(double roll)
+        public static int RollTier(double roll) => RollTier(roll, Odds);
+
+        /// <summary>Turns a number in [0, 1) into a tier using any odds table that adds up to 1.</summary>
+        public static int RollTier(double roll, double[] odds)
         {
             if (double.IsNaN(roll) || roll < 0d) roll = 0d;
             double edge = 0d;
-            for (int tier = 0; tier < TierCount; tier++)
+            for (int tier = 0; tier < TierCount && tier < odds.Length; tier++)
             {
-                edge += Odds[tier];
+                edge += odds[tier];
                 if (roll < edge) return tier;
             }
             return 0; // a roll of 1 or more: never hand out the rarest by accident
@@ -204,7 +207,13 @@ namespace VuonTra.Core
         {
             if (s.Clovers < SummonCost) return null;
             s.Clovers -= SummonCost;
-            int tier = RollTier(roll);
+            return Arrive(s, RollTier(roll), name, kindRoll);
+        }
+
+        /// <summary>A new rabbit of a tier joins the garden, whatever paid for it.</summary>
+        public static Rabbit Arrive(GameState s, int tier, string name, double kindRoll)
+        {
+            tier = ClampTier(tier);
             var rabbit = new Rabbit { Id = ++s.NextRabbitId, Tier = tier, Kind = RabbitKinds.Pick(tier, kindRoll), Name = name };
             rabbit.FirstOfKind = See(s, rabbit.Kind);
             s.Rabbits.Add(rabbit);

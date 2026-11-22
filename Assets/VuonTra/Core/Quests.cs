@@ -18,7 +18,13 @@ namespace VuonTra.Core
         /// <summary>Pictures taken while a gold-or-rarer rabbit lived in the garden.</summary>
         PhotosWithGoldRabbit,
         /// <summary>Pictures taken while every place to rest was open.</summary>
-        PhotosWithFullRest
+        PhotosWithFullRest,
+        /// <summary>One more than the rarest tier in the album (so a target of 4 means "a Purple kind met").</summary>
+        RarestKindMet,
+        /// <summary>How many plots the garden has.</summary>
+        PlotsOwned,
+        /// <summary>How many rabbits stand at their tier's level cap.</summary>
+        RabbitsAtCap
     }
 
     /// <summary>
@@ -39,6 +45,7 @@ namespace VuonTra.Core
         /// <summary>…but never less than this.</summary>
         public double RewardCarrots;
         public int RewardClovers;
+        public int RewardGolden;
     }
 
     public static class Quests
@@ -83,6 +90,24 @@ namespace VuonTra.Core
                     return s.PhotosWithGoldRabbit;
                 case QuestMetric.PhotosWithFullRest:
                     return s.PhotosWithFullRest;
+                case QuestMetric.RarestKindMet:
+                {
+                    int rarest = 0;
+                    foreach (string kindId in s.SeenKinds)
+                    {
+                        RabbitKind kind = RabbitKinds.Find(kindId);
+                        if (kind != null && kind.Tier + 1 > rarest) rarest = kind.Tier + 1;
+                    }
+                    return rarest;
+                }
+                case QuestMetric.PlotsOwned:
+                    return s.Plots;
+                case QuestMetric.RabbitsAtCap:
+                {
+                    int capped = 0;
+                    foreach (Rabbit r in s.Rabbits) if (Rabbits.IsMaxLevel(r)) capped++;
+                    return capped;
+                }
                 default:
                     return 0;
             }
@@ -116,6 +141,7 @@ namespace VuonTra.Core
             paid = RewardOf(q, defs, s, m);
             s.Coins += paid;
             s.Clovers += q.RewardClovers;
+            s.GoldenCarrots += q.RewardGolden;
             s.Claimed.Add(q.Id);
             Garden.AddXp(s, Garden.XpQuest);
             return true;

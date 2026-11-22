@@ -55,7 +55,11 @@ namespace VuonTra.Core
             int before = Level(s);
             s.GardenXp += amount;
             int gained = Level(s) - before;
-            if (gained > 0) s.Clovers += gained * CloversPerLevel;
+            if (gained > 0)
+            {
+                s.Clovers += gained * CloversPerLevel;
+                s.GoldenCarrots += Shop.GoldenForLevels(before, Level(s)); // every fifth level brings golden carrots
+            }
             return gained;
         }
 

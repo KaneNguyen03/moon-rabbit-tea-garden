@@ -153,7 +153,7 @@ namespace VuonTra.Core.Tests
             {
                 Tray.Advance(s, 0, Tray.ProductEvery, Always);
                 Tray.SellAll(defs, s, Modifiers.None, out int clovers);
-                Assert.AreEqual(k < Tray.GoldenPerDay ? Tray.GoldenClovers : 0, clovers, "batch " + k);
+                Assert.AreEqual(k < Tray.GoldenPerDay ? Tray.GoldenCarrotsEach : 0, clovers, "batch " + k);
             }
             Assert.AreEqual(Tray.GoldenPerDay, s.GoldenToday);
             Assert.AreEqual(Tray.GoldenPerDay, rolls, "past the day's cap the dice are not even rolled");

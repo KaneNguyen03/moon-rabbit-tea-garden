@@ -20,6 +20,11 @@ namespace VuonTra.Core
         public int[] UpgradeLevels = new int[0];
         /// <summary>Rare currency from quests; spent on new rabbits in a later milestone.</summary>
         public int Clovers;
+        /// <summary>The third currency: earned in play and at the shop, spent at the shop, never traded for carrots.</summary>
+        public int GoldenCarrots;
+        /// <summary>The day the shop's daily gift was last paid, and how many days in a row by then.</summary>
+        public long GiftDay = -1;
+        public int GiftStreak;
 
         // Lifetime counters that quests read.
         public long TotalTaps;

@@ -28,8 +28,8 @@ namespace VuonTra.Core
         /// <summary>The chance a batch comes out golden, and how many golden ones a day can bring at most.</summary>
         public const double GoldenChance = 0.04;
         public const int GoldenPerDay = 2;
-        /// <summary>What a golden product pays on top of its carrots.</summary>
-        public const int GoldenClovers = 1;
+        /// <summary>What a golden product pays on top of its carrots: golden carrots.</summary>
+        public const int GoldenCarrotsEach = 1;
 
         static void Size(GameState s)
         {
@@ -120,30 +120,30 @@ namespace VuonTra.Core
             return Economy.IncomePerCycle(defs, s, station) / d.CycleSeconds * (ProductSeconds * m.IncomeMultiplier * m.SpeedMultiplier);
         }
 
-        /// <summary>Sells the whole stack in a slot. Returns the carrots paid; golden stacks also pay clovers.</summary>
-        public static BigNum Sell(IReadOnlyList<StationDef> defs, GameState s, int slot, Modifiers m, out int clovers)
+        /// <summary>Sells the whole stack in a slot. Returns the carrots paid; golden stacks also pay golden carrots.</summary>
+        public static BigNum Sell(IReadOnlyList<StationDef> defs, GameState s, int slot, Modifiers m, out int golden)
         {
-            clovers = 0;
+            golden = 0;
             if (slot < 0 || slot >= s.Tray.Count) return BigNum.Zero;
             Product p = s.Tray[slot];
             BigNum paid = Price(defs, s, p.Station, m) * p.Count;
-            if (p.Golden) clovers = GoldenClovers * p.Count;
+            if (p.Golden) golden = GoldenCarrotsEach * p.Count;
             s.Coins += paid;
             s.TotalEarned += paid;
-            s.Clovers += clovers;
+            s.GoldenCarrots += golden;
             s.Tray.RemoveAt(slot);
             return paid;
         }
 
         /// <summary>Sells everything in the tray at once.</summary>
-        public static BigNum SellAll(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, out int clovers)
+        public static BigNum SellAll(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, out int golden)
         {
-            clovers = 0;
+            golden = 0;
             BigNum total = BigNum.Zero;
             while (s.Tray.Count > 0)
             {
                 total += Sell(defs, s, s.Tray.Count - 1, m, out int some);
-                clovers += some;
+                golden += some;
             }
             return total;
         }

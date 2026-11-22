@@ -5,7 +5,8 @@ namespace VuonTra.Core
     /// <summary>Taking a picture of the garden: the first one each day brings a small gift, and the album keeps the latest.</summary>
     public static class Photos
     {
-        public const int GiftClovers = 1;
+        /// <summary>The first photo of the day brings this many golden carrots.</summary>
+        public const int GiftGolden = 1;
         /// <summary>How many pictures the album remembers; older ones fall off, the files stay where they were saved.</summary>
         public const int AlbumSize = 12;
         /// <summary>A rabbit of this tier or above in the garden makes a photo count as "with a gold rabbit".</summary>
@@ -31,7 +32,7 @@ namespace VuonTra.Core
             }
             if (s.PhotoDay == day) return false;
             s.PhotoDay = day;
-            s.Clovers += GiftClovers;
+            s.GoldenCarrots += GiftGolden;
             return true;
         }
 

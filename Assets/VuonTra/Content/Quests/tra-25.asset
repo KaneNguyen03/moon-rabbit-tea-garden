@@ -21,3 +21,4 @@ MonoBehaviour:
   RewardSeconds: 600
   RewardCarrots: 500
   RewardClovers: 1
+  RewardGolden: 0

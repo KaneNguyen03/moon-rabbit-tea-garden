@@ -45,6 +45,11 @@ namespace VuonTra.Game.UI
         public TrayView ProductTray { get; private set; }
         /// <summary>The first minute's guidance.</summary>
         public TutorialView Guide { get; private set; }
+        /// <summary>The tea shop by the pond: the daily gift and the golden call.</summary>
+        public ShopView Shop { get; private set; }
+        RectTransform _shopProp, _goldenChip;
+        GameObject _shopBadge;
+        Text _goldenText;
         int _guideStep = -1;
 
         // ----- photo mode -----
@@ -736,6 +741,7 @@ namespace VuonTra.Game.UI
             ProductTray = null;
             Guide = null;
             _guideStep = -1;
+            Shop = null;
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
@@ -816,6 +822,7 @@ namespace VuonTra.Game.UI
             UpgradeAll = new UpgradeAllView(_canvas, catalog, Tweens, share => Runner.SetSpendShare(share), OnUpgradeAll);
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
+            Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, OnDailyGift, OnSummonGolden);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
@@ -1033,6 +1040,25 @@ namespace VuonTra.Game.UI
                 standing.Add(new KeyValuePair<float, Transform>(float.MaxValue, rt)); // drawn first, so a walker never covers a level plate
             }
 
+            // The tea shop stands at the edge of the pond from the first day; a touch opens it.
+            if (catalog.ShopProp != null)
+            {
+                Vector2 shopAt = PondSpot + new Vector2(-330f, -150f);
+                float shopHeight = 300f * DecorScale, shopWidth = shopHeight * catalog.ShopProp.rect.width / catalog.ShopProp.rect.height;
+                _shopProp = UiKit.Rect("Shop", _street).Place(0f, 0f, shopAt.x, shopAt.y + shopHeight / 2f, shopWidth, shopHeight);
+                Image shopImage = _shopProp.AddImage(catalog.ShopProp, Color.white);
+                shopImage.raycastTarget = true;
+                var shopButton = _shopProp.gameObject.AddComponent<Button>();
+                shopButton.transition = Selectable.Transition.None;
+                shopButton.targetGraphic = shopImage;
+                shopButton.onClick.AddListener(() => { Sfx.Click(); OpenShop(); });
+                var shopBadge = UiKit.Rect("Badge", _shopProp).Place(1f, 1f, -30, -20, 52, 52);
+                shopBadge.AddImage(catalog.Round, Palette.CarrotLip);
+                UiKit.Rect("Text", shopBadge).Stretch(0, 0, 1, 1).AddText("!", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _shopBadge = shopBadge.gameObject;
+                _shopBadge.SetActive(false);
+                standing.Add(new KeyValuePair<float, Transform>(shopAt.y, _shopProp));
+            }
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
 
@@ -1522,7 +1548,7 @@ namespace VuonTra.Game.UI
             Feel.Flash(Color.white, 0.18f);
             bool gift = Runner.TakePhoto(path);
             _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
-            _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftClovers) : L10n.T("photo.again");
+            _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftGolden) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
             _photoReview.SetActive(true);
         }
@@ -1895,6 +1921,13 @@ namespace VuonTra.Game.UI
             }
             _levelBadge = badge;
 
+            // Golden carrots, under the purse, only once there is at least one: nothing strange for a new player.
+            _goldenChip = UiKit.Rect("Golden", _hud).Place(0f, 1f, 210, -154, 170, 52);
+            _goldenChip.AddShadow(10f, 6f, 0.25f);
+            _goldenChip.AddImage(catalog.Panel, Palette.Paper, true);
+            if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", _goldenChip).Place(0f, 0.5f, 28, 0, 38, 38).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
+            _goldenText = UiKit.Rect("Text", _goldenChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _goldenChip.gameObject.SetActive(false);
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
@@ -2644,6 +2677,11 @@ namespace VuonTra.Game.UI
                 _modeLabels[i].Value.color = on ? Palette.Card : Palette.InkSoft;
             }
             UpgradeAll.Refresh(defs, s);
+            Shop.Refresh(s);
+            bool anyGolden = s.GoldenCarrots > 0;
+            if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
+            _goldenText.text = s.GoldenCarrots.ToString();
+            if (_shopBadge != null && _shopBadge.activeSelf != Runner.GiftWaiting) _shopBadge.SetActive(Runner.GiftWaiting);
             ProductTray.Refresh(s);
             // The tray lives in the plain garden view; a sheet or a station card covers its place.
             bool trayShown = Shell.State == ShellState.Playing && !SheetOpen && Selected < 0 && !PhotoMode && (s.Tray.Count > 0 || Tray.IsFull(s));
@@ -3098,6 +3136,37 @@ namespace VuonTra.Game.UI
             Welcome(merged);
         }
 
+        public void OpenShop()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Shop.Open(Runner.State);
+        }
+
+        /// <summary>Today's gift from the shop: golden carrots fly from the gift box up to their place on the HUD.</summary>
+        void OnDailyGift()
+        {
+            int gift = Runner.ClaimDailyGift();
+            if (gift <= 0) return;
+            Sfx.Reward();
+            Haptics.Light();
+            GameCatalog catalog = Runner.Catalog;
+            Vector2 from = Feel.PointOf(Shop.Sheet.Card, new Vector2(0, 200));
+            Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, Mathf.Min(gift, 5), 44f,
+                () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+        }
+
+        void OnSummonGolden()
+        {
+            Rabbit rabbit = Runner.SummonGoldenRabbit();
+            if (rabbit == null) return;
+            Shop.Close();
+            Sfx.Summon(rabbit.Tier);
+            Haptics.Medium();
+            Welcome(rabbit);
+        }
+
         /// <summary>A rabbit has just arrived, called or merged: it steps out of the moon gate.</summary>
         void Welcome(Rabbit rabbit)
         {
@@ -3283,9 +3352,9 @@ namespace VuonTra.Game.UI
             PaySale(from, paid, clovers);
         }
 
-        void PaySale(Vector2 from, BigNum paid, int clovers)
+        void PaySale(Vector2 from, BigNum paid, int golden)
         {
-            if (paid <= BigNum.Zero && clovers <= 0) return;
+            if (paid <= BigNum.Zero && golden <= 0) return;
             Sfx.Reward();
             Haptics.Light();
             GameCatalog catalog = Runner.Catalog;
@@ -3296,9 +3365,13 @@ namespace VuonTra.Game.UI
                 Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
-            if (clovers > 0)
-                Feel.Fly(from, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
-                    () => Tweens.Add(0.22f, t => _tabPop[3] = 0.14f * Ease.Pop(t), Ease.Linear, 0f, () => _tabPop[3] = 0f));
+            if (golden > 0)
+            {
+                // A golden batch pays golden carrots: they fly to their chip under the purse.
+                if (!_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
+                Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, golden, 38f,
+                    () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+            }
         }
 
         /// <summary>A finger sweeping across the tray by this many canvas units, as the drag handler sees it.</summary>

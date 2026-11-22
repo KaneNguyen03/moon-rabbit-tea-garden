@@ -384,6 +384,13 @@ namespace VuonTra.EditorTools
             screen.CloseSheet();
             Step(screen, 0.4f);
 
+            // The tea shop by the pond: today's gift and the golden call.
+            state.GoldenCarrots = 12;
+            screen.OpenShop();
+            Step(screen, 0.4f);
+            Capture(screen, "44-tiem");
+            screen.Shop.Close();
+            Step(screen, 0.3f);
             // The same garden at noon and at dusk; night is every other frame.
             screen.SelectStation(-1);
             screen.LookAt(GardenScreen.StationSpot(0));
