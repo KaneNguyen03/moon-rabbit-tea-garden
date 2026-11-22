@@ -133,6 +133,7 @@ namespace VuonTra.EditorTools
             { "photo.album.title", "Album · {0} ảnh gần nhất", "Album · the last {0} photos" },
             { "photo.album.empty", "Chưa có ảnh nào. Chụp tấm đầu tiên nhé.", "No photos yet. Take the first one." },
             { "photo.logo", "Vườn Trà Thỏ Trăng", "Moon Rabbit Tea Garden" },
+            { "photo.ask.paid", "{0} cảm ơn vì tấm ảnh! +{1} cà rốt", "{0} loves the photo! +{1} carrots" },
             { "mode.milestone", "Tới mốc", "To ×2" },
             { "upgradeall.title", "Nâng tất cả", "Upgrade everything" },
             { "upgradeall.row", "Dùng cà rốt đang có để nâng nhiều trạm một lượt", "Spend what you have across every station at once" },
@@ -583,6 +584,7 @@ namespace VuonTra.EditorTools
             { "order.done.clover", "+{0} cà rốt · +1 cỏ bốn lá", "+{0} carrots · +1 clover" },
             { "order.gone", "Khách đã đi", "The guest has left" },
             { "quest.ngay-don", "Giao 2 đơn trà cho khách", "Deliver 2 tea orders" },
+            { "quest.ngay-anh", "Chụp 3 tấm thỏ xin ảnh", "Take 3 photos rabbits ask for" },
             { "quest.don-20", "Giao 20 đơn trà", "Deliver 20 tea orders" },
             // The new moon (#1).
             { "pause.newmoon", "Mùa trăng mới", "New moon" },

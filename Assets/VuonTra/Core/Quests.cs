@@ -44,7 +44,9 @@ namespace VuonTra.Core
         /// <summary>1 while a rabbit of the running season works at a station of its trade.</summary>
         SeasonKindInTrade,
         /// <summary>Pictures taken with a rabbit of the running season in the garden.</summary>
-        PhotosWithSeasonRabbit
+        PhotosWithSeasonRabbit,
+        /// <summary>Pictures taken for a rabbit that asked for one (#56).</summary>
+        PhotoAsksAnswered
     }
 
     /// <summary>
@@ -148,6 +150,8 @@ namespace VuonTra.Core
                     return Seasons.SeasonRabbitInTrade(defs, s, Seasons.SeasonOf(s.MaxDaySeen)) ? 1 : 0;
                 case QuestMetric.PhotosWithSeasonRabbit:
                     return s.PhotosWithSeasonRabbit;
+                case QuestMetric.PhotoAsksAnswered:
+                    return q.Daily ? Math.Max(0, s.PhotoAsksAnswered - s.DailyPhotoAsksBase) : s.PhotoAsksAnswered;
                 case QuestMetric.OrdersDelivered:
                     return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:
@@ -214,6 +218,7 @@ namespace VuonTra.Core
             s.DailyLevelsBase = s.LevelsBought;
             s.DailyEarnedBase = s.TotalEarned;
             s.DailyOrdersBase = s.OrdersDelivered;
+            s.DailyPhotoAsksBase = s.PhotoAsksAnswered;
             s.GoldenToday = 0;
             BigNum goal = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * DailyCarrotSeconds);
             var floor = new BigNum(DailyCarrotMinimum);
