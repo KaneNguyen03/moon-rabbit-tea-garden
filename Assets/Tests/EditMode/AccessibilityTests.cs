@@ -464,5 +464,31 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(covered, "the guest pill " + p + " covers: " + string.Join(", ", covered));
         }
 
+        [TestCase(GardenScreen.ZoomLevel.Default)]
+        [TestCase(GardenScreen.ZoomLevel.Near)]
+        public void The_Top_Edge_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot(GardenScreen.ZoomLevel zoom)
+        {
+            // #71's last point: the "▲ N" pill at the top edge sat on the mortar's "Giã bánh" plate.
+            screen.Shell.StartGame();
+            runner.State.GardenXp = Garden.XpForLevel(5); // the mortar, the basket and the jar are all out
+            screen.Refresh();
+            screen.SetZoom(zoom, false);
+            screen.LookAt(GardenScreen.StationSpot(0));
+            Layout();
+            var pill = (RectTransform)root.transform.Find("Canvas/EdgeUp");
+            pill.gameObject.SetActive(true); // as when a station waits above the view
+            Layout();
+            var canvas = (RectTransform)root.transform.Find("Canvas");
+            var view = (RectTransform)root.transform.Find("Canvas/Garden");
+            Rect p = OnPhone(pill, canvas, Vector2.zero);
+            var covered = new List<string>();
+            foreach (RectTransform plate in GardenPlates())
+            {
+                Rect r = OnPhone(plate, view, Vector2.zero);
+                if (r.Overlaps(p)) covered.Add(Path(plate) + " " + r);
+            }
+            Assert.IsEmpty(covered, "the top edge pill " + p + " covers: " + string.Join(", ", covered));
+        }
+
     }
 }
