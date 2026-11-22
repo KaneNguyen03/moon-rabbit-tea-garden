@@ -264,6 +264,30 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(OneLine(row));
         }
 
+        [Test]
+        public void The_Photo_Bar_Leaves_The_Frames_Name_And_Date_In_View()
+        {
+            bool frameBefore = GardenScreen.PhotoFrameOn;
+            GardenScreen.PhotoFrameOn = true;
+            try
+            {
+                runner.State.Profile.GardenName = "Vườn Trà Mây Trắng";
+                screen.Shell.StartGame();
+                screen.Refresh();
+                screen.EnterPhotoMode();
+                Layout();
+                Transform frame = root.transform.Find("Canvas/PhotoFrame");
+                Assert.IsTrue(frame.gameObject.activeSelf, "the frame is on");
+                var words = new List<RectTransform> { (RectTransform)frame.Find("GardenName"), (RectTransform)frame.Find("Date"), (RectTransform)frame.Find("Logo") };
+                var covered = new List<string>();
+                foreach (RectTransform part in root.transform.Find("Canvas/PhotoBar").GetComponentsInChildren<RectTransform>(false))
+                    foreach (RectTransform word in words)
+                        if (WorldRect(part).Overlaps(WorldRect(word))) covered.Add(Path(part) + " over " + word.name);
+                Assert.IsEmpty(covered, string.Join("\n", covered));
+            }
+            finally { screen.ExitPhotoMode(); GardenScreen.PhotoFrameOn = frameBefore; }
+        }
+
         // ----- contrast -----
 
         static double Luminance(Color c)

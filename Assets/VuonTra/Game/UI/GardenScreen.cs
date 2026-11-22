@@ -1719,8 +1719,9 @@ namespace VuonTra.Game.UI
 
         void BuildPhotoMode(GameCatalog catalog)
         {
-            // A small plate at the foot of the screen while framing: snap, or done.
-            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 150, 860, 130);
+            // A small plate at the foot of the screen while framing: snap, or done. It stands above the paper frame's
+            // foot, shadow and all, so the garden's name and the date show in the preview as they will in the picture (#75).
+            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 240, 860, 130);
             bar.AddShadow(18f, 10f, 0.3f);
             UiKit.Rect("Lip", bar).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Plate", bar).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
