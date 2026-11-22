@@ -56,8 +56,8 @@ namespace VuonTra.Game.UI
             _content = UiKit.Rect("Content", scrollRt).Stretch(0, 1, 1, 1);
             _content.pivot = new Vector2(0.5f, 1f);
             var list = _content.gameObject.AddComponent<VerticalLayoutGroup>();
-            list.padding = new RectOffset(28, 28, 4, 30);
-            list.spacing = 12;
+            list.padding = new RectOffset((int)UiKit.CardPad, (int)UiKit.CardPad, 4, 30);
+            list.spacing = UiKit.CardGap;
             list.childControlWidth = true;
             list.childControlHeight = true;
             list.childForceExpandWidth = true;

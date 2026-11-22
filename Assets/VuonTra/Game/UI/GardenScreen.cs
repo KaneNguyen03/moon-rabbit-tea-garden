@@ -946,7 +946,7 @@ namespace VuonTra.Game.UI
                 var chip = UiKit.Rect("Tier", actor.Root).Place(0.5f, 0.5f, -72, 122 + 40f / StationSize(i), 200, 44);
                 chip.localScale = Vector3.one * (0.78f / StationSize(i));
                 _tierChips.Add(chip.AddImage(catalog.Panel, Palette.Paper, true));
-                _tierLabels.Add(UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 34, 0, 6, 0).AddText("", 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold));
+                _tierLabels.Add(UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 34, 0, 6, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold));
                 // The rabbit's trade, at the head of its name: gold when this is a station of that trade, grey when not.
                 var badge = UiKit.Rect("Trade", chip).Place(0f, 0.5f, 4, 0, 50, 50);
                 _tierTradeBadges.Add(badge.AddImage(catalog.Round, Palette.Lantern));
@@ -1007,7 +1007,7 @@ namespace VuonTra.Game.UI
                 // Resting looks different from working: a slow sway, and now and then a doze.
                 var nap = UiKit.Rect("Nap", rt).Place(1f, 1f, 6, -6, 60, 34);
                 nap.AddImage(catalog.Panel, Palette.Paper, true);
-                UiKit.Rect("Text", nap).Stretch(0, 0, 1, 1).AddText("z z", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                UiKit.Rect("Text", nap).Stretch(0, 0, 1, 1).AddText("z z", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 nap.gameObject.SetActive(false);
                 _seatNaps.Add(nap.gameObject);
                 _seats.Add(rt);
@@ -1043,7 +1043,7 @@ namespace VuonTra.Game.UI
             var hint = UiKit.Rect("Hint", _canvas).Place(0.5f, 1f, 0, -196, 940, 60);
             hint.AddShadow(14f, 8f, 0.28f);
             UiKit.Rect("Body", hint).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Text", hint).Stretch(0, 0, 1, 1).AddText(L10n.T("hint"), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", hint).Stretch(0, 0, 1, 1).AddText(L10n.T("hint"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _hint = hint.gameObject;
             _hintGroup = hint.gameObject.AddComponent<CanvasGroup>();
             _hintGroup.blocksRaycasts = false;
@@ -1087,13 +1087,13 @@ namespace VuonTra.Game.UI
             face.gameObject.AddComponent<CardSwipe>().Stepped = StepStation;
 
             _cardName = UiKit.Rect("Name", _card).Stretch(0, 1, 1, 1, 32, -70, 200, 14)
-                .AddText("", 36, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardName.horizontalOverflow = HorizontalWrapMode.Overflow;
             var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -104, -42, 160, 46);
             _cardLevelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _cardInfo = UiKit.Rect("Info", _card).Stretch(0, 1, 1, 1, 32, -138, 32, 74)
-                .AddText("", 24, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             // The same buy modes as the Stations tab; one choice, remembered in both places.
             _cardModes = UiKit.Rect("Modes", _card).Stretch(0, 1, 1, 1, 0, -202, 0, 142);
             BuildModeBar(_cardModes, catalog, -32, 0, 60);
@@ -1111,10 +1111,10 @@ namespace VuonTra.Game.UI
             _cardWorkerArt = UiKit.Rect("Art", portrait).Stretch(0, 0, 1, 1, 6, 6, 6, 6).AddImage(null, Color.white);
             _cardWorkerArt.preserveAspect = true;
             _cardWorkerName = UiKit.Rect("Name", _cardWorker).Stretch(0, 0.5f, 1, 1, 104, 2, 12, 8)
-                .AddText("", 26, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             _cardWorkerName.horizontalOverflow = HorizontalWrapMode.Overflow;
             _cardWorkerSub = UiKit.Rect("Sub", _cardWorker).Stretch(0, 0, 1, 0.5f, 104, 10, 12, 4)
-                .AddText("", 20, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
             _cardWorkerSub.resizeTextForBestFit = true;
             _cardWorkerSub.resizeTextMinSize = 13;
             _cardWorkerSub.resizeTextMaxSize = 20;
@@ -1129,9 +1129,9 @@ namespace VuonTra.Game.UI
                 if (Selected >= 0 && Selected < s.Plots && s.Levels[Selected] > 0) OnBuy(Selected);
             };
             _cardBuyTop = UiKit.Rect("Top", _cardBuy.FaceRect).Stretch(0, 0, 0.5f, 1, 24, 0, 0, 0)
-                .AddText("", 28, Palette.Card, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardBuyCost = UiKit.Rect("Cost", _cardBuy.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 64, 0)
-                .AddText("", 32, Palette.Card, TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.Card, TextAnchor.MiddleRight, FontStyle.Bold);
             UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42).AddImage(catalog.Currency, Color.white).preserveAspect = true;
 
             _card.gameObject.SetActive(false);
@@ -1300,8 +1300,8 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Inner", photoFrame).Stretch(0, 0, 1, 1, Edge, Foot, Edge, Edge).AddImage(catalog.Panel, new Color(0, 0, 0, 0), true);
             _frameName = UiKit.Rect("GardenName", photoFrame).Stretch(0, 0, 0.6f, 0, Edge + 16, 70, 0, -(Foot - 10)).AddText("", 40, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _frameName.horizontalOverflow = HorizontalWrapMode.Overflow;
-            _frameDate = UiKit.Rect("Date", photoFrame).Stretch(0.5f, 0, 1, 0, 0, 70, Edge + 16, -(Foot - 10)).AddText("", 30, Palette.InkSoft, TextAnchor.MiddleRight);
-            UiKit.Rect("Logo", photoFrame).Stretch(0, 0, 1, 0, Edge + 16, 24, Edge + 16, -66).AddText(L10n.T("photo.logo"), 24, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _frameDate = UiKit.Rect("Date", photoFrame).Stretch(0.5f, 0, 1, 0, 0, 70, Edge + 16, -(Foot - 10)).AddText("", UiKit.TextTitle, Palette.InkSoft, TextAnchor.MiddleRight);
+            UiKit.Rect("Logo", photoFrame).Stretch(0, 0, 1, 0, Edge + 16, 24, Edge + 16, -66).AddText(L10n.T("photo.logo"), UiKit.TextBody, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
             photoFrame.SetSiblingIndex(bar.GetSiblingIndex()); // under the snap bar, over the garden
             _photoFrame = photoFrame.gameObject;
             _photoFrame.SetActive(false);
@@ -1821,7 +1821,7 @@ namespace VuonTra.Game.UI
                 UiKit.Rect("Rim", badge).Stretch(0, 0, 1, 1, 1, 1, 1, 1).AddImage(catalog.Round, Palette.Mix(Palette.Night, Palette.Ink, 0.5f));
                 UiKit.Rect("Art", badge).Stretch(0, 0, 1, 1, -4, -4, -4, -4).AddImage(catalog.LevelBadge, Color.white).preserveAspect = true;
                 // The number sits in the lower half, which the picture leaves clear for it.
-                _levelText = UiKit.Rect("Text", badge).Place(0.5f, 0.5f, 0, -15, 70, 44).AddText("1", 34, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _levelText = UiKit.Rect("Text", badge).Place(0.5f, 0.5f, 0, -15, 70, 44).AddText("1", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
             else
             {
@@ -1854,7 +1854,7 @@ namespace VuonTra.Game.UI
             _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 78, 0, 10, 6)
                 .AddText("0", 38, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _perSecond = UiKit.Rect("PerSecond", _purse).Stretch(0, 0, 1, 0.46f, 78, 14, 10, 0)
-                .AddText(L10n.T("persec", "0"), 22, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(L10n.T("persec", "0"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
 
             // "Trà lực": the bar and the boost button are one control.
             var energy = UiKit.Rect("Energy", _hud).Place(0f, 1f, 632, -76, 396, 100);
@@ -1868,9 +1868,9 @@ namespace VuonTra.Game.UI
                 Feel.FloatText(Feel.PointOf(energyRect, new Vector2(0, 70)), L10n.T("energy.wait", Span(Energy.SecondsUntilBoost(Runner.State))), Palette.Lantern, 32);
             };
             _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.55f, 1, 22, 0, 0, 6)
-                .AddText("", 25, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _energyAction = UiKit.Rect("Action", _energyButton.FaceRect).Stretch(0.45f, 0.46f, 1, 1, 0, 0, 22, 6)
-                .AddText("", 23, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
             var track = UiKit.Rect("Track", _energyButton.FaceRect).Band(22, 22, 16, 18);
             track.AddImage(catalog.Panel, Palette.Track, true);
             _energyFill = UiKit.Rect("Fill", track).Stretch(0, 0, 0, 1);
@@ -1914,7 +1914,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Rim", zoomButton.FaceRect).Place(0.5f, 0.5f, -6, 6, 46, 46).AddImage(catalog.Round, Palette.Ink);
             UiKit.Rect("Glass", zoomButton.FaceRect).Place(0.5f, 0.5f, -6, 6, 32, 32).AddImage(catalog.Round, Palette.Paper);
             _zoomMark = UiKit.Rect("Mark", zoomButton.FaceRect).Place(0.5f, 0.5f, -6, 7, 32, 32)
-                .AddText("", 22, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var gear = UiKit.Rect("Settings", _hud).Place(1f, 1f, -76, -76, 96, 96);
             gear.AddShadow(14f, 10f, 0.3f);
@@ -1987,17 +1987,17 @@ namespace VuonTra.Game.UI
             // The count of quest rewards waiting, on the corner of the quest tab's icon.
             _barBadgeRect = UiKit.Rect("Badge", _tabBar).Place(2.5f / TabCount, 0f, 46, 140, 48, 48);
             _barBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
-            _barBadgeText = UiKit.Rect("Text", _barBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _barBadgeText = UiKit.Rect("Text", _barBadgeRect).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _barBadge = _barBadgeRect.gameObject;
             // How many open stations still have nobody working, on the corner of the rabbits tab.
             _rabbitBadgeRect = UiKit.Rect("RabbitsBadge", _tabBar).Place(3.5f / TabCount, 0f, 46, 140, 48, 48);
             _rabbitBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
-            _rabbitBadgeText = UiKit.Rect("Text", _rabbitBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _rabbitBadgeText = UiKit.Rect("Text", _rabbitBadgeRect).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _rabbitBadgeRect.gameObject.SetActive(false);
             // How many stations could be opened right now, on the corner of the stations tab.
             _stationBadgeRect = UiKit.Rect("StationsBadge", _tabBar).Place(0.5f / TabCount, 0f, 46, 140, 48, 48);
             _stationBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
-            _stationBadgeText = UiKit.Rect("Text", _stationBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _stationBadgeText = UiKit.Rect("Text", _stationBadgeRect).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _stationBadgeRect.gameObject.SetActive(false);
             _shownClaimable = -1;
             _safeBottom = -1f;
@@ -2146,7 +2146,7 @@ namespace VuonTra.Game.UI
             // Finished quests gather up here, under one button that collects them all.
             _questReady = UiKit.Rect("Ready", quests);
             _questReady.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
-            UiKit.Rect("Text", _questReady).Stretch(0, 0, 0.5f, 1).AddText(L10n.T("quests.ready"), 30, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UiKit.Rect("Text", _questReady).Stretch(0, 0, 0.5f, 1).AddText(L10n.T("quests.ready"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var claimAll = UiKit.Rect("ClaimAll", _questReady).Place(1f, 0.5f, -130, 0, 260, 68);
             _claimAll = UiKit.Chunky(claimAll, catalog.Panel, OnClaimAll);
             UiKit.Rect("Text", _claimAll.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("quests.claimall"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -2195,16 +2195,16 @@ namespace VuonTra.Game.UI
             layout.minHeight = 176;
             UiKit.Rect("Card", _plotRow).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Mix(Palette.Moss, Palette.Paper, 0.6f), true);
             _plotTitle = UiKit.Rect("Title", _plotRow).Stretch(0, 0.55f, 1, 1, 36, 4, 330, 20)
-                .AddText("", 34, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             _plotSub = UiKit.Rect("Sub", _plotRow).Stretch(0, 0.14f, 1, 0.55f, 36, 0, 330, 6)
-                .AddText("", 25, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             var buy = UiKit.Rect("Buy", _plotRow).Place(1f, 0.5f, -166, 4, 284, 120);
             _plotBuy = UiKit.Chunky(buy, catalog.Panel, OnBuyPlot);
             _plotBuy.Dip.Denied = () => Deny(_plotBuy, !Expansion.HasCarrots(Runner.Defs, Runner.State));
             UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 10)
-                .AddText(L10n.T("plot.buy"), 23, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("plot.buy"), UiKit.TextSmall, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _plotCost = UiKit.Rect("Cost", _plotBuy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 10, 8, 0)
-                .AddText("", 36, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>A scrolling column of cards under the sheet's header; returns where the cards go.</summary>
@@ -2227,8 +2227,8 @@ namespace VuonTra.Game.UI
             var content = UiKit.Rect("Content", scrollRt).Stretch(0, 1, 1, 1);
             content.pivot = new Vector2(0.5f, 1f);
             var list = content.gameObject.AddComponent<VerticalLayoutGroup>();
-            list.padding = new RectOffset(28, 28, 4, 40);
-            list.spacing = 18;
+            list.padding = new RectOffset((int)UiKit.CardPad, (int)UiKit.CardPad, 4, 40);
+            list.spacing = UiKit.CardGap;
             list.childControlWidth = true;
             list.childControlHeight = true;
             list.childForceExpandWidth = true;
@@ -2279,7 +2279,7 @@ namespace VuonTra.Game.UI
                     Sfx.Click();
                     Runner.SetBuyMode(mode);
                 });
-                _modeLabels.Add(new KeyValuePair<int, Text>(mode, UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(labels[i], 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)));
+                _modeLabels.Add(new KeyValuePair<int, Text>(mode, UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1).AddText(labels[i], UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)));
                 _modeButtons.Add(new KeyValuePair<int, Image>(mode, img));
                 x += widths[i] + Gap;
             }
@@ -2456,12 +2456,12 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", card).Stretch(0, 0.80f, 1, 1, 40, 0, 40, 40)
                 .AddText(L10n.T("away.title"), 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             UiKit.Rect("Body", card).Stretch(0, 0.62f, 1, 0.80f, 60, 0, 60, 0)
-                .AddText(L10n.T("away.body"), 30, Palette.InkSoft);
+                .AddText(L10n.T("away.body"), UiKit.TextTitle, Palette.InkSoft);
             UiKit.Rect("Carrot", card).Place(0.5f, 0.5f, -200, 4, 110, 110).AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _awayAmount = UiKit.Rect("Amount", card).Place(0.5f, 0.5f, 60, 4, 420, 110)
                 .AddText("+0", 84, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
             _awayTime = UiKit.Rect("Time", card).Stretch(0, 0.29f, 1, 0.40f)
-                .AddText("", 28, Palette.InkSoft);
+                .AddText("", UiKit.TextBody, Palette.InkSoft);
 
             var ok = UiKit.Rect("Ok", card).Place(0.5f, 0f, 0, 120, 580, 130);
             ChunkyButton okButton = null;
@@ -2832,7 +2832,7 @@ namespace VuonTra.Game.UI
             button.transition = Selectable.Transition.None;
             button.targetGraphic = back;
             button.onClick.AddListener(() => onTap());
-            text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             pill.gameObject.SetActive(false);
             return pill;
         }

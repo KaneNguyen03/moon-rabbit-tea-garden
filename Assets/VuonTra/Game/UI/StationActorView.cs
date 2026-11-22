@@ -148,6 +148,11 @@ namespace VuonTra.Game.UI
             _fill.AddImage(catalog.Panel, Palette.Carrot, true);
             _label = UiKit.Rect("Text", _chipRect).Stretch(0, 0, 1, 1, 0, 14, 0, 0)
                 .AddText("", 27, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            // "Widen the garden" is longer than "Mở rộng vườn": the plate's words shrink to fit on one line.
+            _label.resizeTextForBestFit = true;
+            _label.resizeTextMinSize = 16;
+            _label.resizeTextMaxSize = 27;
+            _label.verticalOverflow = VerticalWrapMode.Truncate;
         }
 
         /// <summary>Where the level plate rests and how large it reads; the sign's bob starts from here.</summary>

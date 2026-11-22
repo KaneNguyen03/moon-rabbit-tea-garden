@@ -51,7 +51,7 @@ namespace VuonTra.Game.UI
             _bannerTitle = UiKit.Rect("Title", _banner).Stretch(0, 0.45f, 1, 1, 30, 0, 30, 24)
                 .AddText("", 52, Palette.Carrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _bannerSub = UiKit.Rect("Sub", _banner).Stretch(0, 0, 1, 0.5f, 30, 30, 30, 0)
-                .AddText("", 30, Palette.Ink, TextAnchor.MiddleCenter);
+                .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleCenter);
             _banner.gameObject.SetActive(false);
         }
 

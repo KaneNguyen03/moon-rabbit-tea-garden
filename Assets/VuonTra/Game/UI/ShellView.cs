@@ -54,9 +54,9 @@ namespace VuonTra.Game.UI
             name.lineSpacing = 0.9f;
             name.AddShadow(0.85f, 8f);
             UiKit.Rect("Tagline", title).Place(0.5f, 0.895f, 0, -168, 1000, 60)
-                .AddText(L10n.T("title.tagline"), 34, Palette.Alpha(Palette.Paper, 0.9f)).AddShadow();
+                .AddText(L10n.T("title.tagline"), UiKit.TextTitle, Palette.Alpha(Palette.Paper, 0.9f)).AddShadow();
             _prompt = UiKit.Rect("Prompt", title).Place(0.5f, 0.17f, 0, 0, 900, 60)
-                .AddText(L10n.T("title.prompt"), 32, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("title.prompt"), UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             _prompt.AddShadow();
 
             // ----- Pause and settings -----
@@ -84,10 +84,10 @@ namespace VuonTra.Game.UI
             _profileArt = UiKit.Rect("Art", avatar).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(catalog.Rabbit, Color.white);
             _profileArt.preserveAspect = true;
             _profileName = UiKit.Rect("Name", profile).Stretch(0, 0.5f, 1, 1, 124, 0, 70, 10)
-                .AddText("", 32, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             _profileName.horizontalOverflow = HorizontalWrapMode.Overflow;
             _profileCode = UiKit.Rect("Code", profile).Stretch(0, 0, 1, 0.5f, 124, 12, 70, 0)
-                .AddText("", 24, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             UiKit.Rect("Chevron", profile).Place(1f, 0.5f, -40, 0, 40, 60).AddText("›", 44, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             AddVolumeRow(catalog, "Music", L10n.T("pause.music"), -350, Sfx.MusicGain, Sfx.SetMusic);
@@ -99,7 +99,7 @@ namespace VuonTra.Game.UI
 
             // Language: two pills; the package does the switching and the screen rebuilds itself.
             UiKit.Rect("Language Label", _pauseCard).Place(0.5f, 1f, -200, -570, 300, 60)
-                .AddText(L10n.T("pause.language"), 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(L10n.T("pause.language"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             UiKit.Rect("Language Track", _pauseCard).Place(0.5f, 1f, 130, -570, 440, 76).AddImage(catalog.Panel, Palette.Track, true);
             AddLanguageButton(catalog, "vi", 22);
             AddLanguageButton(catalog, "en", 238);
@@ -125,7 +125,7 @@ namespace VuonTra.Game.UI
             var resetButton = reset.gameObject.AddComponent<Button>();
             resetButton.transition = Selectable.Transition.None;
             resetButton.onClick.AddListener(OnResetPressed);
-            _resetLabel = UiKit.Rect("Text", reset).Stretch(0, 0, 1, 1).AddText(L10n.T("pause.reset"), 30, Palette.InkSoft);
+            _resetLabel = UiKit.Rect("Text", reset).Stretch(0, 0, 1, 1).AddText(L10n.T("pause.reset"), UiKit.TextTitle, Palette.InkSoft);
 
             _pause.SetActive(false);
         }
@@ -134,11 +134,11 @@ namespace VuonTra.Game.UI
         void AddToggleRow(GameCatalog catalog, string id, string label, float y, Func<bool> get, Action<bool> set)
         {
             UiKit.Rect(id + " Label", _pauseCard).Place(0.5f, 1f, -120, y, 460, 60)
-                .AddText(label, 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(label, UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var pill = UiKit.Rect(id, _pauseCard).Place(0.5f, 1f, 262, y, 176, 68);
             Image plate = pill.AddImage(catalog.Panel, Palette.Track, true);
             plate.raycastTarget = true;
-            Text text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1).AddText("", 28, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Text text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
             Action show = () =>
             {
                 bool on = get();
@@ -174,7 +174,7 @@ namespace VuonTra.Game.UI
                 L10n.SetLocale(code);
             });
             UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1)
-                .AddText(L10n.T("lang." + code), 28, current ? Palette.Card : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("lang." + code), UiKit.TextBody, current ? Palette.Card : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>Fills the profile row on the pause card.</summary>
@@ -197,7 +197,7 @@ namespace VuonTra.Game.UI
         void AddVolumeRow(GameCatalog catalog, string id, string label, float y, float value, Action<float> onChange)
         {
             UiKit.Rect(id + " Label", _pauseCard).Place(0.5f, 1f, -200, y, 300, 60)
-                .AddText(label, 34, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText(label, UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var slider = UiKit.Rect(id, _pauseCard).Place(0.5f, 1f, 130, y, 420, 60);
             UiKit.AddSlider(slider, catalog.Panel, catalog.Round, value, onChange);
         }
