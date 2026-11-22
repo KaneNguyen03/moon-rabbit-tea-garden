@@ -65,6 +65,8 @@ namespace VuonTra.Core
         public HashSet<string> SeenKinds = new HashSet<string>();
         /// <summary>Kinds that arrived and have not been looked at in the album yet: the "new" marks.</summary>
         public HashSet<string> FreshKinds = new HashSet<string>();
+        /// <summary>The album's milestones (#61, kinds met: 10, 20, 40, 72) whose gifts have been given, so each is given once.</summary>
+        public HashSet<int> AlbumMilestonesClaimed = new HashSet<int>();
         /// <summary>How many places resting rabbits have to sit in the garden.</summary>
         public int RestSpots = VuonTra.Core.RestSpots.Starting;
         /// <summary>The garden's experience; its level follows from this.</summary>

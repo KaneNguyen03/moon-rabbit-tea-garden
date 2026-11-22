@@ -198,6 +198,7 @@ namespace VuonTra.Core.Tests
             int levelDayOne = Garden.Level(s);
             double activeDayOne = (20 + 4 * 5) * 60;
             int rabbitsDayOne = s.Rabbits.Count, kindsDayOne = s.SeenKinds.Count, plotsDayOne = s.Plots;
+            List<AlbumSet> setsDayOne = AlbumSets.Completed(s); // the album's sets (#61)
 
             // Days two to seven: three visits of five minutes each, dailies renewed each morning.
             for (int day = 2; day <= 7; day++)
@@ -218,6 +219,7 @@ namespace VuonTra.Core.Tests
                 report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt trong 7 ngày"));
             report.AppendLine("Cuối ngày 1: cấp " + levelDayOne + ", " + rabbitsDayOne + " thỏ, " + kindsDayOne + " loài đã gặp, " + plotsDayOne + " ô đất");
             report.AppendLine("Cuối ngày 7: cấp " + Garden.Level(s) + ", " + s.Rabbits.Count + " thỏ, " + s.SeenKinds.Count + " loài đã gặp, " + s.Plots + " ô đất, đã gọi " + summoned + " lần");
+            report.AppendLine("Sổ thỏ: cuối ngày 1 đủ " + setsDayOne.Count + " bộ (" + string.Join(", ", setsDayOne.ConvertAll(x => x.Key)) + "), cuối ngày 7 đủ " + AlbumSets.Completed(s).Count + " bộ (" + string.Join(", ", AlbumSets.Completed(s).ConvertAll(x => x.Key)) + ")");
             for (int w = 0; w < 4; w++)
                 report.AppendLine("  đợt " + (w + 1) + ": đủ cấp lúc " + Clock(waveLevelAt[w]) + ", đủ thỏ lúc " + Clock(waveRabbitsAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
             report.AppendLine("Diễn biến:");
@@ -230,6 +232,7 @@ namespace VuonTra.Core.Tests
             Assert.LessOrEqual(levelAt[5], 12 * 60, "level 5 should come in about the first ten minutes");
             Assert.GreaterOrEqual(levelAt[5], 5 * 60, "but not in the first moments either");
             Assert.GreaterOrEqual(levelDayOne, 10, "level 10 should come within the first day");
+            Assert.LessOrEqual(setsDayOne.Count, 2, "the album's sets come slowly: at most one or two on the first day (#61)");
             for (int w = 0; w < 3; w++)
             {
                 Assert.GreaterOrEqual(waveLevelAt[w], 0, "wave " + (w + 1) + " level was never reached");

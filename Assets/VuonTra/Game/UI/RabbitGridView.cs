@@ -15,6 +15,8 @@ namespace VuonTra.Game.UI
     {
         public const int Columns = 3;
         const float CellW = 318f, CellGap = 15f, CellH = 322f, AlbumH = 290f;
+        /// <summary>A set of the album (#61): its line on top, then its kinds; how far the gold outline reaches past the cells.</summary>
+        const float SetLineH = 56f, SetPad = 10f, SetOutline = 8f;
 
         /// <summary>Secondary text: never paler than this, so it stays readable on cream.</summary>
         public static readonly Color Quiet = Palette.Mix(Palette.Ink, Palette.Paper, 0.34f);
@@ -149,7 +151,7 @@ namespace VuonTra.Game.UI
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             if (_isFresh != null && Album)
                 foreach (string seen in s.SeenKinds) if (_isFresh(seen)) sb.Append('*').Append(seen);
-            sb.Append('|').Append(s.SeenKinds.Count).Append('|').Append(s.RestSpots);
+            sb.Append('|').Append(s.SeenKinds.Count).Append('|').Append(s.RestSpots).Append('|').Append(s.AlbumMilestonesClaimed.Count);
             return sb.ToString();
         }
 
@@ -365,6 +367,7 @@ namespace VuonTra.Game.UI
         /// <summary>Every kind, tier by tier. A kind you have met shows itself; one you have not is a shadow with a question.</summary>
         void BuildAlbum(GameState s)
         {
+            if (AlbumSets.HasFullFrame(s)) AddFullFrame();
             for (int tier = 0; tier < Rabbits.TierCount; tier++)
             {
                 IReadOnlyList<RabbitKind> kinds = RabbitKinds.OfTier(tier);
@@ -378,12 +381,8 @@ namespace VuonTra.Game.UI
                     .AddText(L10n.T("album.tier", L10n.Rarity(tier), met, kinds.Count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
                 _dynamic.Add(head.gameObject);
 
-                RectTransform row = null;
-                for (int i = 0; i < kinds.Count; i++)
-                {
-                    if (i % Columns == 0) row = AddRow("Kinds " + tier + "-" + i / Columns, AlbumH);
-                    AddKind(row, i % Columns, kinds[i], s.SeenKinds.Contains(kinds[i].Id));
-                }
+                // The tier's kinds, one group per trade: each group is a set (#61).
+                foreach (AlbumSet set in AlbumSets.OfTier(tier)) AddSet(s, set);
             }
 
             // The seasons' kinds (#8), after the tiers: met ones kept for good, the others marked with their season.
@@ -415,10 +414,57 @@ namespace VuonTra.Game.UI
             }
         }
 
-        void AddKind(RectTransform row, int column, RabbitKind kind, bool met)
+        /// <summary>
+        /// One set of the album (#61): a line with how much of it has been met and what it pays, then its kinds.
+        /// A complete set is drawn inside a gold outline and its line says what it now adds.
+        /// </summary>
+        void AddSet(GameState s, AlbumSet set)
+        {
+            int met = AlbumSets.Met(s, set);
+            bool done = met == set.Kinds.Count;
+            int rows = (set.Kinds.Count + Columns - 1) / Columns;
+            var group = UiKit.Rect("Set " + set.Key, _content);
+            group.gameObject.AddComponent<LayoutElement>().preferredHeight = SetLineH + rows * AlbumH + SetPad;
+            _dynamic.Add(group.gameObject);
+            float width = Columns * CellW + (Columns - 1) * CellGap;
+            if (done)
+            {
+                var outline = UiKit.Rect("Outline", group);
+                outline.anchorMin = new Vector2(0f, 0f);
+                outline.anchorMax = new Vector2(0f, 1f);
+                outline.offsetMin = new Vector2(-SetOutline, 0f);
+                outline.offsetMax = new Vector2(width + SetOutline, 0f);
+                outline.AddImage(_catalog.Panel, Palette.Lantern, true);
+                UiKit.Rect("Inside", outline).Stretch(0, 0, 1, 1, 6, 6, 6, 6).AddImage(_catalog.Panel, Palette.Mix(Palette.Lantern, Palette.Paper, 0.72f), true);
+            }
+            string percent = RabbitGridView.Percent(AlbumSets.BonusPerSet);
+            Text line = UiKit.Rect("Line", group).Stretch(0, 1, 0, 1, 14, -SetLineH, -width + 14, 0)
+                .AddText(done ? L10n.T("album.set.done", L10n.Trade(set.Trade), percent) : L10n.T("album.set", L10n.Trade(set.Trade), met, set.Kinds.Count, percent),
+                    UiKit.TextBody, done ? Palette.Ink : InkFor(met), TextAnchor.MiddleLeft, FontStyle.Bold);
+            line.horizontalOverflow = HorizontalWrapMode.Overflow;
+            for (int i = 0; i < set.Kinds.Count; i++)
+                AddKind(group, i % Columns, set.Kinds[i], s.SeenKinds.Contains(set.Kinds[i].Id), 1f, -(SetLineH + (i / Columns) * AlbumH + AlbumH / 2f));
+        }
+
+        /// <summary>A set line's ink: full once any of it is met, quieter while none is.</summary>
+        static Color InkFor(int met) => met > 0 ? Palette.Ink : Quiet;
+
+        /// <summary>The album's last milestone (#61, every kind met): a gold "complete" frame at the top of the album.</summary>
+        void AddFullFrame()
+        {
+            var frame = UiKit.Rect("FullFrame", _content);
+            frame.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
+            frame.AddImage(_catalog.Panel, Palette.Lantern, true);
+            UiKit.Rect("Inside", frame).Stretch(0, 0, 1, 1, 8, 8, 8, 8).AddImage(_catalog.Panel, Palette.Mix(Palette.Lantern, Palette.Paper, 0.6f), true);
+            UiKit.Rect("Text", frame).Stretch(0, 0, 1, 1, 24, 0, 24, 0)
+                .AddText(L10n.T("album.frame", AlbumSets.EveryDayKinds), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _dynamic.Add(frame.gameObject);
+        }
+
+        void AddKind(RectTransform row, int column, RabbitKind kind, bool met, float anchorY = 0.5f, float y = 0f)
         {
             string id = kind.Id;
-            var cell = UiKit.Rect("Kind " + kind.Id, row).Place(0f, 0.5f, CellX(column), 0, CellW, AlbumH - 12f);
+            var cell = UiKit.Rect("Kind " + kind.Id, row).Place(0f, anchorY, CellX(column), y, CellW, AlbumH - 12f);
             Image hit = cell.AddImage(_catalog.Panel, met ? Palette.Card : Palette.Track, true);
             hit.raycastTarget = met;
             if (met)
@@ -451,5 +497,49 @@ namespace VuonTra.Game.UI
                 UiKit.Rect("Text", fresh).Stretch(0, 0, 1, 1).AddText(L10n.T("album.fresh"), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
         }
+    }
+}
+
+namespace VuonTra.Game.UI
+{
+    /// <summary>
+    /// The album's banners (#61): a set just completed, or a milestone with a gift of its own, raises the milestone
+    /// moment with its sound. Attached once per built screen; attaching again lets go of the screen before.
+    /// </summary>
+    public static class AlbumBanner
+    {
+        static GameRunner _runner;
+        static Action<AlbumSet> _onSet;
+        static Action<int, int> _onMilestone;
+
+        public static void Attach(GardenScreen screen)
+        {
+            if (_runner != null)
+            {
+                _runner.AlbumSetCompleted -= _onSet;
+                _runner.AlbumMilestoneReached -= _onMilestone;
+            }
+            _runner = screen.Runner;
+            if (_runner == null) return;
+            _onSet = set =>
+            {
+                if (screen == null || screen.Feel == null) return;
+                Sfx.Milestone();
+                screen.Feel.Moment(SetTitle(set), L10n.T("album.set.banner.sub", L10n.Trade(set.Trade), RabbitGridView.Percent(AlbumSets.BonusPerSet)));
+            };
+            _onMilestone = (milestone, golden) =>
+            {
+                if (screen == null || screen.Feel == null) return;
+                Sfx.Milestone();
+                string sub = milestone == AlbumSets.FrameMilestone ? L10n.T("album.milestone.frame")
+                    : golden > 0 ? L10n.T("album.milestone.hat.golden", golden) : L10n.T("album.milestone.hat");
+                screen.Feel.Moment(L10n.T("album.milestone.title", milestone), sub);
+            };
+            _runner.AlbumSetCompleted += _onSet;
+            _runner.AlbumMilestoneReached += _onMilestone;
+        }
+
+        /// <summary>"Đủ bộ Pha chế bậc Tím!"</summary>
+        public static string SetTitle(AlbumSet set) => L10n.T("album.set.banner", L10n.Trade(set.Trade), L10n.Tier(set.Tier));
     }
 }

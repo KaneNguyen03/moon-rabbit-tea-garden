@@ -2663,6 +2663,58 @@ MonoBehaviour:
     m_Key: quest.nghi-6
     m_Metadata:
       m_Items: []
+  - m_Id: 371606227509248
+    m_Key: album.set
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092160
+    m_Key: album.set.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092161
+    m_Key: album.set.banner
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092162
+    m_Key: album.set.banner.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092163
+    m_Key: album.milestone.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092164
+    m_Key: album.milestone.hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092165
+    m_Key: album.milestone.hat.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092166
+    m_Key: album.milestone.frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092167
+    m_Key: album.frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092168
+    m_Key: quest.loai-10
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092169
+    m_Key: quest.loai-20
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092170
+    m_Key: quest.loai-40
+    m_Metadata:
+      m_Items: []
+  - m_Id: 371606240092171
+    m_Key: quest.loai-72
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

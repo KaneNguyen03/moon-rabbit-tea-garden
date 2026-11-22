@@ -531,5 +531,33 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(covered, "the top edge pill " + p + " covers: " + string.Join(", ", covered));
         }
 
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Album_Set_Lines_And_The_Gold_Frame_Fit(string code, bool large)
+        {
+            // #61: every set line, half met or complete, and the frame at the top, in both languages and large text.
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            foreach (AlbumSet set in AlbumSets.All)
+                for (int i = 0; i < set.Kinds.Count; i++)
+                    if (set.Tier % 2 == 0 || i == 0) Rabbits.See(runner.State, set.Kinds[i].Id);
+            runner.State.AlbumMilestonesClaimed.Add(AlbumSets.FrameMilestone);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.OpenSheet(3);
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Layout();
+            var spills = new List<string>();
+            Spills("album", spills);
+            var lines = new List<string>();
+            foreach (Text text in root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content").GetComponentsInChildren<Text>(false))
+                if (text.name == "Line" || text.transform.parent.name == "FullFrame") { string bad = OneLine(text); if (bad != null) lines.Add(bad); }
+            Assert.IsEmpty(spills, string.Join("\n", spills));
+            Assert.IsEmpty(lines, string.Join("\n", lines));
+            Assert.Greater(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content").GetComponentsInChildren<Text>(false).Length, 24);
+        }
     }
 }

@@ -5517,5 +5517,77 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("0 / 3", quest.Find("Count").GetComponent<Text>().text);
             Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham"), "the taps daily stays beside it");
         }
+
+        // ----- The album pays (#61) -----
+
+        [Test]
+        public void The_Album_Shows_Each_Set_With_Its_Progress_And_Outlines_A_Complete_One_In_Gold()
+        {
+            AlbumSet partial = AlbumSets.Find(3, RabbitTrade.Baker), done = AlbumSets.Find(0, RabbitTrade.Stargazer);
+            Rabbits.See(runner.State, partial.Kinds[0].Id);
+            Rabbits.See(runner.State, partial.Kinds[1].Id);
+            foreach (RabbitKind k in done.Kinds) Rabbits.See(runner.State, k.Id);
+            screen.OpenSheet(3);
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content");
+            foreach (AlbumSet set in AlbumSets.All) Assert.IsNotNull(content.Find("Set " + set.Key), set.Key + " has its group");
+
+            Transform half = content.Find("Set " + partial.Key);
+            Assert.AreEqual(L10n.T("album.set", L10n.Trade(RabbitTrade.Baker), 2, partial.Kinds.Count, "3"), half.Find("Line").GetComponent<Text>().text);
+            StringAssert.StartsWith("Bộ Bếp bánh 2/" + partial.Kinds.Count + " · +3 % khi đủ", half.Find("Line").GetComponent<Text>().text);
+            Assert.IsNull(half.Find("Outline"), "not complete: no gold");
+            foreach (RabbitKind k in partial.Kinds) Assert.IsNotNull(half.Find("Kind " + k.Id), k.Id + " sits in its set");
+
+            Transform full = content.Find("Set " + done.Key);
+            Assert.IsNotNull(full.Find("Outline"), "complete: outlined in gold");
+            Assert.AreEqual(Palette.Lantern, full.Find("Outline").GetComponent<Image>().color);
+            Assert.AreEqual(L10n.T("album.set.done", L10n.Trade(RabbitTrade.Stargazer), "3"), full.Find("Line").GetComponent<Text>().text);
+            Assert.IsNull(content.Find("FullFrame"), "the gold frame waits for every kind");
+        }
+
+        [Test]
+        public void A_Set_Just_Completed_Raises_Its_Banner_Once()
+        {
+            AlbumSet set = AlbumSets.Find(3, RabbitTrade.Brewer);
+            for (int i = 0; i < set.Kinds.Count - 1; i++) Rabbits.See(runner.State, set.Kinds[i].Id);
+            runner.AutoAssignRabbits(); // any change the runner makes looks at the album
+            Text title = root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>();
+            title.text = "";
+            Rabbits.See(runner.State, set.Kinds[set.Kinds.Count - 1].Id);
+            runner.AutoAssignRabbits();
+            Assert.AreEqual("Đủ bộ Pha chế bậc Tím!", title.text);
+            Assert.AreEqual(AlbumBanner.SetTitle(set), title.text);
+            Assert.IsTrue(screen.Feel.BannerVisible);
+            StringAssert.Contains("3 %", root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
+            title.text = "";
+            runner.AutoAssignRabbits();
+            Assert.AreEqual("", title.text, "a set already complete says nothing again");
+        }
+
+        [Test]
+        public void Meeting_Forty_Kinds_Gives_The_Starry_Hat_And_Seventy_Two_The_Gold_Frame()
+        {
+            int n = 0;
+            foreach (RabbitKind k in RabbitKinds.All)
+                if (k.Season == Season.None && !k.NewMoonOnly && n < 40) { Rabbits.See(runner.State, k.Id); n++; }
+            runner.AutoAssignRabbits();
+            Assert.IsTrue(Items.Owns(runner.State, AlbumSets.MilestoneHat));
+            Assert.AreEqual(L10n.T("album.milestone.title", 40), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+            screen.OpenSheet(2);
+            screen.Refresh();
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest loai-40"), "the milestone is a quest row");
+
+            foreach (RabbitKind k in RabbitKinds.All) if (k.Season == Season.None && !k.NewMoonOnly) Rabbits.See(runner.State, k.Id);
+            runner.AutoAssignRabbits();
+            Assert.IsTrue(AlbumSets.HasFullFrame(runner.State));
+            Assert.AreEqual(1, runner.State.Items.FindAll(i => i.DefId == AlbumSets.MilestoneHat).Count, "one hat, given once");
+            screen.OpenSheet(3);
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Transform frame = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/FullFrame");
+            Assert.IsNotNull(frame, "the gold frame tops the album");
+            StringAssert.Contains("Đủ bộ", frame.Find("Text").GetComponent<Text>().text);
+        }
     }
 }

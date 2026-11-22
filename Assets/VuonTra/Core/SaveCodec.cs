@@ -261,6 +261,16 @@ namespace VuonTra.Core
             sb.Append(",\"answered\":").Append(s.PhotoAsksAnswered.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"dailyBase\":").Append(s.DailyPhotoAsksBase.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
+            // The album's milestones whose gifts were given (#61), an additive list.
+            sb.Append(",\"albumMilestones\":[");
+            first = true;
+            foreach (int milestone in s.AlbumMilestonesClaimed)
+            {
+                if (!first) sb.Append(',');
+                first = false;
+                sb.Append(milestone.ToString(CultureInfo.InvariantCulture));
+            }
+            sb.Append(']');
             // Decorating the garden (#11), an additive block: what is owned by kind, what stands on each spot, the lantern colour.
             sb.Append(",\"decor\":{\"owned\":{");
             for (int i = 0; i < Decor.Kinds.Length; i++)
@@ -643,6 +653,11 @@ namespace VuonTra.Core
                 s.PhotoAsksAnswered = Math.Max(0L, ToLong(ReadNumber(ask, "answered")));
                 s.DailyPhotoAsksBase = Math.Max(0L, Math.Min(s.PhotoAsksAnswered, ToLong(ReadNumber(ask, "dailyBase"))));
             }
+
+            // The album's milestones (#61). A save from before them has given none; only the milestones the game has count.
+            if (root.TryGetValue("albumMilestones", out object milestonesObj) && milestonesObj is List<object> milestones)
+                foreach (object item in milestones)
+                    if (item is double m && Array.IndexOf(AlbumSets.Milestones, (int)m) >= 0 && m == Math.Floor(m)) s.AlbumMilestonesClaimed.Add((int)m);
 
             result.Status = LoadStatus.Ok;
             return result;

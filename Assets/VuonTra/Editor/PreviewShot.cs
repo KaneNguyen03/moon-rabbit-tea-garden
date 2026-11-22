@@ -668,6 +668,7 @@ namespace VuonTra.EditorTools
             RenderLandWaves(runner, screen);
             RenderPhotoAsk(runner, screen);
             RenderRestShare(runner, screen);
+            RenderAlbumSets(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -789,6 +790,46 @@ namespace VuonTra.EditorTools
             Capture(screen, "60-tab-tho");
             screen.CloseSheet();
             Step(screen, 0.3f);
+        }
+
+        /// <summary>#61: the album with its set lines and one set complete in gold, then the banner as the next set completes.</summary>
+        static void RenderAlbumSets(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 30, 12, 8 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 6;
+            s.GardenXp = Garden.XpForLevel(6);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e4);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            foreach (RabbitKind k in AlbumSets.Find(0, RabbitTrade.Brewer).Kinds) Rabbits.See(s, k.Id);
+            AlbumSet baker = AlbumSets.Find(0, RabbitTrade.Baker);
+            for (int i = 0; i < baker.Kinds.Count - 1; i++) Rabbits.ArriveKind(s, baker.Kinds[i].Id, "Mè");
+            Rabbits.See(s, "tho-cat");
+            Rabbits.See(s, "tho-matcha");
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.OpenSheet(3);
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Step(screen, 0.5f);
+            screen.DragSheet(GardenScreen.SheetFull); // the sheet at full height: a complete set and the next line both show
+            screen.ReleaseSheet();
+            Step(screen, 0.6f);
+            Capture(screen, "61-so-tho-bo");
+            // The last baker of the Silver tier arrives: the set is complete and the banner goes up.
+            Rabbits.ArriveKind(s, baker.Kinds[baker.Kinds.Count - 1].Id, "Ca Cao");
+            runner.AutoAssignRabbits();
+            screen.Refresh();
+            Step(screen, 0.45f);
+            Capture(screen, "61-du-bo");
+            screen.ShowRabbitAlbum(false);
+            screen.CloseSheet();
+            Step(screen, 1.6f);
         }
 
         /// <summary>A brand-new garden for the guidance frames: the first step, then the card step, then the sheet step.</summary>
