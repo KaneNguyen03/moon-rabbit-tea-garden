@@ -1244,6 +1244,14 @@ Sau khi sửa cả bốn xanh.
 - Từ B: `Palette.OnCarrot` và `ChunkyButton.InkFor` trả màu mực cho nút cam; `ICloudSave.MaxBytes`, `SyncOutcome.TooLarge`, `CloudStatus.SignedOut`; `GameRunner.Init` gọi `PlatformServices.Install` + `Platform.AndroidServices.Install` trước `SyncNow(Open)`; `GardenScreen.SimulatePinch` cho test chụm.
 - Vẽ loài thỏ: tấm 3×2 nền `#2E5E49` theo `docs/anh/VE-BANG-ANTIGRAVITY.md`, cắt bằng `/tmp/agy-art/cat-tam-tho-nocorner.py` (bản không xoá góc) ra khung 320×343; hình có vầng sáng (đèn, ánh trăng) để lại viền xanh của nền, chọn ứng viên không có vầng sáng.
 
+## Rà soát tối 22/11 — các commit trong ngày (#1, #9, #39, #40)
+
+- Rà bằng skill code-review mức medium trên b53d5a4 (#1), và đọc tay cdde124 (#9, phần UnityStorefront chỉ biên dịch iOS/Android), 59d075c (#39), 6ae4d55 (#40). Verify sau khi sửa: 710/711 EditMode (1 Inconclusive có chủ ý của #8).
+- Sửa (commit `5b552c4`): ghép ba thỏ có thể nuốt Thỏ Trăng Non — `Rabbits.Merge` lấy thỏ đang nghỉ trước, không phân biệt loài, mà thỏ trăng non vừa đến thì đang nghỉ và chỉ đến đúng một lần. Nay `Rabbits.Mergeable` loại loài `NewMoonOnly`, `CountOfTier`/`CanMerge` không đếm nó; thêm test `A_Merge_Never_Uses_Up_The_Moon_Rabbit`.
+- Sửa (commit `763c48a`): `UnityStorefront.OnPurchaseFailed` truy `product.definition.id` khi cửa hàng báo lỗi cho sản phẩm không biết (`product` null) → thêm chốt null, chỉ ghi warning. Không có test (file chỉ biên dịch trên điện thoại).
+- Không sửa, ghi lại: (1) `GameRunner.BeginNewMoon` cuộn lại ngày nên bốn nhiệm vụ ngày đã nhận có thể nhận lần nữa cùng ngày (tối đa 7 lần, mỗi mùa một lần) — chờ PO; (2) chip "Mùa N" trên HUD chạm mép chip cà rốt vàng vài đơn vị — chỉnh vị trí khi có ảnh thật; (3) `UnityStorefront` từ chối biên lai → `Complete` (cửa hàng giữ tiền, không trả cà rốt) — hợp lý khi `RECEIPT_VALIDATION` tắt, cân nhắc `Pending` khi bật; (4) `CloudSync` không chặn hai lần đồng bộ chồng nhau trên Android (Pull bất đồng bộ) — chưa thấy hậu quả, theo dõi khi thử máy thật.
+- Sạch, không sửa: lõi NewMoon (reset, save, cap 7 mùa), NewMoonView (giữ 1,5 s rồi bấm), PlatformServices/GameCenterAccount (nhớ đăng nhập, tên mặc định), ICloudKvsCloudSave + CloudKvs.mm (đo 1 MB trước khi gửi, free chuỗi), SavedGamesCloudSave (không ghi đè bản chưa đọc, trần 3 MB), AndroidServices (đổi tên vườn chỉ khi chưa đặt).
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
