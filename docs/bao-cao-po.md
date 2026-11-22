@@ -1414,6 +1414,24 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt / cần PO quyết
 - Giữ mốc cấp 15 cho nhiệm vụ và đom đóm, hay nới mốc 12 ô đất. Chưa có thông báo "đã đầy"; hũ mốc cấp mất im lặng khi đã có hũ hôm nay hoặc kệ đầy. Hình hũ chờ vẽ tay. Chưa thử tay.
 
+## #63 — Tiếng trạm khi zoom gần, thanh Tiếng trạm, chọn nhạc
+
+- Test: 889/890 EditMode qua, 0 hỏng (1 test mùa vụ không kết luận, có từ trước, không liên quan). 22 test mới trong `StationSoundTests`. `tools/verify.sh --build` xanh, Player.log không có lỗi âm thanh.
+- Commit: `7badf52`, merge `24b5fd9`, bảng chuỗi `6ee9679`. Main sau gộp: 902/903.
+- Ảnh (docs/anh/po-63/): `63-tieng-tram.png` (thẻ Tạm nghỉ, nút Nhạc ở Rạng sáng), `10-pause.png`, `14-pause-en.png`.
+
+### Đã làm
+- Zoom gần thì trạm giữa màn (hoặc trạm đang mở thẻ) phát vòng tiếng riêng: lên trong 0,5 giây, đổi trạm thì chéo 0,5 giây, về mức mặc định thì tắt. Trà lực đang chạy thì nhanh hơn 10 %.
+- 9 vòng tổng hợp bằng code, 5–6 giây, tạo một lần. Ấm trà sôi; nồi mứt sánh; hai lò lách tách; trà sữa lắc đá; bình ủ sao và đài ngắm sao leng keng; cối giã hoa thịch thịch; tổ mật nhỏ giọt có tiếng ong; suối hoa chảy; giỏ lá và giàn nho lá xào xạc.
+- Thẻ Tạm nghỉ thêm thanh "Tiếng trạm" (mặc định 0,7) và nút "Nhạc" bấm vòng: Tự động / Đêm trăng / Rạng sáng / Mưa. Tự động: Rạng sáng 5–17 giờ, Đêm trăng các giờ còn lại.
+- Thêm hai bài nhạc: Rạng sáng (nhanh hơn, sáng hơn) và Mưa (chậm, buồn nhẹ, có tiếng mưa).
+- Sửa kèm: trước đây lần mở game đầu tiên, thanh Nhạc nền và Âm thanh hiện giá trị mặc định thay vì giá trị đã lưu. Nay hiện đúng.
+
+### Chưa đạt
+- Chưa ai nghe thật: chủ project cần mở bản Mac, zoom gần từng trạm và ghi tiếng nào chói.
+- Chưa có file ghi âm; mới có chỗ gắn `Sfx.SupplyStationClip`, seeder chưa nạp `sfx_<id>.ogg`.
+- Game chưa có mưa, nên bài Mưa chỉ phát khi người chơi chọn.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
