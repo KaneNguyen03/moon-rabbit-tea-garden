@@ -1209,6 +1209,18 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt (cần chủ project)
 - Play Console (app, Play Games Services, OAuth client + SHA-1, bật Saved Games, tester), Android Setup trong Unity có module Android, Resolve EDM4U, build AAB thử nội bộ. Ảnh bìa có thể trống nếu ảnh chụp > 800 KB. Thành tựu và bảng xếp hạng chưa làm.
 
+## #9 phần code — Mua cà rốt vàng bằng tiền thật: seam cửa hàng, ba gói, thẻ mua, khôi phục (mặc định, chờ chủ project duyệt)
+
+- Test: 709/710 EditMode qua. Thêm `StorefrontTests` (4 test: ba gói 50/150/500 và gói hời; cộng một lần cho mỗi mã giao dịch, gói lạ không cộng; save nhớ 64 mã gần nhất và đọc lại không cộng lặp; cửa hàng giả trả tiền ngay, có thể bắt huỷ/lỗi, không sẵn sàng thì Unavailable, khôi phục, giao lại sau khởi động) và 2 test màn hình (nút "Mua thêm" ở hàng ví trong Tiệm mở thẻ gói với giá của cửa hàng, mua gói 1 cộng 50 và bay về chip, huỷ không cộng, cửa hàng giao lại cùng mã không cộng lặp, nút Khôi phục; cửa hàng chưa sẵn sàng thì gói mờ, giá "—", dòng trạng thái nói rõ).
+- Commit `cdde124`, đã push. Comment lên #9 bảng tiêu chí; nhãn giữ cần-chủ-project (tài khoản và giá thật), thêm chờ-PO-duyệt.
+- Lõi (`Core/Storefront.cs`): `GoldenPack` × 3 (`vuontra.golden.50/150/500`, gói giữa là "Hời nhất"), `IStorefront` (Ready, PriceOf, Buy, Restore, sự kiện Delivered cho giao dịch cửa hàng tự giao sau khởi động), `FakeStorefront` (giá giữ chỗ 25.000/69.000/199.000 ₫, chỉ để nhìn), `Storefront.Grant` cộng cà rốt vàng một lần cho mỗi mã giao dịch (save: `packs`, `paid` 64 mã gần nhất). Chỉ cà rốt vàng bán bằng tiền; cà rốt thường, thỏ, cỏ không bao giờ.
+- `GameRunner.Store` (mặc định cửa hàng giả ở editor, test, bản Mac), `BuyGolden`, `RestorePurchases`; bản iOS/Android lắp `Game/Store/UnityStorefront.cs` (Unity IAP 4.15 đang cài: `IDetailedStoreListener`, ba consumable, `InitiatePurchase`, Pending khi chưa ai nhận, Restore qua `IAppleExtensions`/`IGooglePlayStoreExtensions`), seam `IReceiptCheck`: mặc định nhận mọi hoá đơn có nội dung; `TangleReceiptCheck` dùng `CrossPlatformValidator` chỉ biên dịch khi bật define `RECEIPT_VALIDATION` sau khi chủ project tạo tangle (Services > In-App Purchasing > Receipt Validation Obfuscator với khoá Google Play). `VuonTra.Game.asmdef` tham chiếu `UnityEngine.Purchasing(.Stores/.Security)` và define `UNITY_PURCHASING` theo gói.
+- Màn hình: Tiệm có nút "Mua thêm" cuối hàng ví → thẻ `GoldenPacksView` "Mua cà rốt vàng": dòng nói cà rốt vàng dùng vào đâu và tỉ lệ gọi đã in ở Tiệm, ba hàng gói (icon, số, giá của cửa hàng, huy hiệu Hời nhất), dòng trạng thái (đang mở cửa hàng / đã cộng / đã huỷ / lỗi / đã cộng từ trước / chưa sẵn sàng), nút "Khôi phục giao dịch" (App Store yêu cầu), Đóng. Mua xong: tiếng thưởng, cà rốt bay về chip, chữ "+N cà rốt vàng".
+- Ảnh: `docs/anh/po-9/9-tiem-mua-them.png`, `9-goi-ca-rot-vang.png`, `9-da-mua.png` (giá giữ chỗ của cửa hàng giả).
+
+### Chưa đạt (cần chủ project)
+- Tài khoản Apple Developer và Google Play Console, ba sản phẩm consumable khai trên hai cửa hàng với đúng ba id trên và giá thật; khoá Google Play → tangle → bật `RECEIPT_VALIDATION`; chạy thử trên máy thật (sandbox). Nâng gói lên Unity IAP 5 (viết lại `UnityStorefront` theo `StoreController`) là việc sau, khi đã có tài khoản.
+
 ## Bàn giao (22/11 ~17:40, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
