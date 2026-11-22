@@ -662,6 +662,24 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: hai ý trên.
 
+## #23 — Ba ý còn lại: tab không chọn rõ hơn, tấm trạm sát thanh tab, huy hiệu tab Trạm và tab Thỏ
+
+- Test: 430/430 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test màn hình.
+- Commit `9cff4c9`, đã push. Issue #23 để mở (còn: xem vùng an toàn trên máy thật có tai thỏ), đã comment, nhãn chờ-PO-duyệt.
+- `TabCover` tính từ thanh tab (khe 16 + cao 170 + 10). Không chuỗi mới.
+- Ảnh (docs/anh/po-23/): `23-truoc-tam-tram.png`, `23-sau-tam-tram.png`, `23-sau-thanh-tab.png`.
+
+### Đã làm (đối chiếu với mục "Còn lại" trong #23)
+- Tab không được chọn: icon giữ 68% thay vì 55%, nhãn đậm màu hơn (test: trong khoảng 0,6–0,7).
+- Tấm trạm hạ sát thanh tab: đáy tấm cách đỉnh thanh ≤ 16 px (test); khay sản phẩm vẫn ẩn khi có tấm trạm.
+- Huy hiệu tab Trạm: số trạm mở được ngay với số cà rốt đang có. Huy hiệu tab Thỏ: trạm thiếu thỏ + số bậc ghép được + loài mới chưa xem (test).
+
+### Chưa đạt so với #23
+- Vùng an toàn trên máy thật có tai thỏ: cần chủ project.
+
+### Tồn đọng
+- tồn đọng: ý trên.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -760,12 +778,13 @@ Sau khi sửa cả bốn xanh.
 - #31 hai ý nữa (`57b1541`, commit gộp với quà liên kết #17 của session kia): chạm một lần ở zoom xa phóng vào; nhớ vị trí và zoom (save v12).
 - #31 ý cuối (`3567671`): vuốt trái/phải trên tấm trạm sang trạm kế. #31 đủ năm ý.
 - #22 hai ý còn lại (`1c59ccd`): vuốt xuống ở đâu trên tấm cũng kéo tấm khi danh sách ở đầu; vườn phía trên tấm chạm và kéo được. Còn các hộp giữa màn chưa thành tấm trượt.
+- #23 ba ý còn lại (`9cff4c9`): tab không chọn rõ hơn; tấm trạm sát thanh tab; huy hiệu tab Trạm và tab Thỏ. Còn vùng an toàn trên máy thật.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (phần còn lại của #32, #22 (hộp giữa màn), #23, #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (phần còn lại của #32, #22 (hộp giữa màn), #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
