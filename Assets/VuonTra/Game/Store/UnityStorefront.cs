@@ -87,9 +87,11 @@ namespace VuonTra.Game.Store
             Product p = args.purchasedProduct;
             if (!_check.Accept(p))
             {
-                Debug.LogWarning("Store: receipt refused for " + p.definition.id);
+                // Not paid out, and not finished either: the store keeps the transaction and hands it over again
+                // at the next open, when the receipt is checked once more (a sandbox hiccup must not eat money).
+                Debug.LogWarning("Store: receipt refused for " + p.definition.id + "; left pending");
                 Tell(p.definition.id, PurchaseResult.Of(PurchaseOutcome.Failed, p.definition.id));
-                return PurchaseProcessingResult.Complete;
+                return PurchaseProcessingResult.Pending;
             }
             if (Delivered == null && !_waiting.ContainsKey(p.definition.id))
             {
