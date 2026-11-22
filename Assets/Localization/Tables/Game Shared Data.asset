@@ -1471,6 +1471,50 @@ MonoBehaviour:
     m_Key: purse.full
     m_Metadata:
       m_Items: []
+  - m_Id: 182816863150080
+    m_Key: tut.progress
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538688
+    m_Key: tut.skip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538689
+    m_Key: tut.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538690
+    m_Key: tut.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538691
+    m_Key: tut.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538692
+    m_Key: tut.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538693
+    m_Key: tut.4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538694
+    m_Key: tut.5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538695
+    m_Key: tut.clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538696
+    m_Key: tut.done.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538697
+    m_Key: tut.done.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

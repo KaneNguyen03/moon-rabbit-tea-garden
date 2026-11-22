@@ -266,6 +266,14 @@ namespace VuonTra.EditorTools
             up.Box(48, 40, 10, 24, 7, Hex("6fbf8a"), 0);
             up.Save("icon_up");
 
+            var hand = new Painter(96, 96, 2); // a pointing hand for the first minute's guidance
+            hand.Blob(48, 36, 26, 22, 0, Hex("fff4e0"));
+            hand.Box(58, 64, 8, 24, 7, Hex("fff4e0"));
+            hand.Box(34, 40, 7, 14, 6, Hex("fff4e0"), 0); hand.Box(44, 46, 7, 14, 6, Hex("fff4e0"), 0);
+            hand.Blob(58, 84, 9, 9, 0, Hex("fff4e0"), 2.6f);
+            hand.Ellipse(44, 30, 10, 6, 0, Hex("f6a5b8", 0.6f));
+            hand.Save("icon_hand");
+
             // One white picture per trade; the game tints them (gold in the right place, grey elsewhere).
             Color white = Color.white;
             var cup = new Painter(96, 96, 2); // brewing: a cup with steam

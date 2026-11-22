@@ -41,6 +41,7 @@ namespace VuonTra.EditorTools
             state.Plots = 6;
             state.GardenXp = Garden.XpForLevel(5) + 90;
             state.HintSeen = true; // the first-run hint would cover the garden in every frame
+            state.TutorialStep = Tutorial.Steps; // and so would the guidance; it gets frames of its own at the end
             state.Coins = new BigNum(5.2e6);
             state.Energy = 73;
             // A few things waiting in the tray, one of them golden.
@@ -374,9 +375,33 @@ namespace VuonTra.EditorTools
             screen.CloseSheet();
             Step(screen, 0.4f);
 
+            RenderGuidance(runner, screen);
+
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        }
+
+        /// <summary>A brand-new garden for the guidance frames: the first step, then the card step, then the sheet step.</summary>
+        static void RenderGuidance(GameRunner runner, GardenScreen screen)
+        {
+            GameState fresh = GameState.NewGame(runner.Catalog.BuildDefs());
+            Rabbits.GiftFirst(fresh, "Bông");
+            runner.Init(fresh);
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(GardenScreen.StationSpot(0));
+            Step(screen, 0.6f);
+            Capture(screen, "30-buoc-1");
+            Press(screen, "Canvas/Garden/Content/Station am-tra");
+            fresh.Coins = new BigNum(1000);
+            Step(screen, 0.4f);
+            Capture(screen, "30-buoc-2");
+            Press(screen, "Canvas/Card/Buy");
+            screen.OpenSheet(0);
+            Step(screen, 0.5f);
+            Capture(screen, "30-buoc-3");
+            screen.CloseSheet();
         }
 
         static void Press(GardenScreen screen, string path)

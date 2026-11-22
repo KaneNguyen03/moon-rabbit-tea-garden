@@ -228,6 +228,8 @@ namespace VuonTra.Game.UI
 
         /// <summary>True while one of the player's rabbits stands here.</summary>
         public bool HasGuest => _guest;
+        /// <summary>The empty pad, for things that point at it.</summary>
+        public RectTransform Pad => _pad;
 
         /// <summary>The rabbit, or the pad in its place: only one of them, and neither off an open station.</summary>
         void ShowWho()

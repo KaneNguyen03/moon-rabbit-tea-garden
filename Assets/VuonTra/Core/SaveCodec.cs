@@ -115,6 +115,8 @@ namespace VuonTra.Core
             sb.Append(",\"goldenToday\":").Append(s.GoldenToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photoDay\":").Append(s.PhotoDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosTaken\":").Append(s.PhotosTaken.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"tutorial\":").Append(s.TutorialStep.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"tutorialClover\":").Append(s.TutorialCloverGiven ? "true" : "false");
             sb.Append(",\"photosGold\":").Append(s.PhotosWithGoldRabbit.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosRest\":").Append(s.PhotosWithFullRest.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"album\":[");
@@ -370,6 +372,10 @@ namespace VuonTra.Core
             s.GoldenToday = TryNumber(root, "goldenToday", out double goldenToday) ? (int)Math.Max(0d, Math.Min(goldenToday, Tray.GoldenPerDay)) : 0;
             s.PhotoDay = TryNumber(root, "photoDay", out double photoDay) ? ToLong(photoDay) : -1;
             s.PhotosTaken = TryNumber(root, "photosTaken", out double photosTaken) ? Math.Max(0, ToLong(photosTaken)) : 0;
+            // The first minute's guidance. A save from before it that has played at all is not shown it.
+            if (TryNumber(root, "tutorial", out double tutorial)) s.TutorialStep = (int)Math.Max(0, Math.Min(tutorial, Tutorial.Steps));
+            else s.TutorialStep = s.HintSeen || (s.Levels.Length > 0 && s.Levels[0] > 1) || s.TotalTaps > 0 ? Tutorial.Steps : 0;
+            s.TutorialCloverGiven = root.TryGetValue("tutorialClover", out object tutClover) && tutClover is bool tc && tc;
             s.PhotosWithGoldRabbit = TryNumber(root, "photosGold", out double photosGold) ? Math.Max(0, ToLong(photosGold)) : 0;
             s.PhotosWithFullRest = TryNumber(root, "photosRest", out double photosRest) ? Math.Max(0, ToLong(photosRest)) : 0;
             if (root.TryGetValue("album", out object albumObj) && albumObj is List<object> album)

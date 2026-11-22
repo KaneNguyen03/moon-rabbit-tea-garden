@@ -135,7 +135,25 @@ namespace VuonTra.Game
         public bool Tap(int index)
         {
             if (!State.HintSeen) State.HintSeen = true;
-            return Simulation.Tap(Defs, State, index, Mods);
+            bool ok = Simulation.Tap(Defs, State, index, Mods);
+            // Taps do not save or refresh by themselves; the guidance's first step is the one thing that watches them.
+            if (ok && !Tutorial.IsDone(State) && Tutorial.Advance(State) > 0) StateChanged?.Invoke();
+            return ok;
+        }
+
+        /// <summary>The player skips the first minute's guidance.</summary>
+        public void SkipTutorial()
+        {
+            Tutorial.Skip(State);
+            Changed();
+        }
+
+        /// <summary>The call step's clover, once, when the purse has none.</summary>
+        public bool GrantTutorialClover()
+        {
+            bool given = Tutorial.GrantCallClover(State);
+            if (given) Changed();
+            return given;
         }
 
         public bool BuyUpgrade(int index)
@@ -387,6 +405,7 @@ namespace VuonTra.Game
 
         void Changed()
         {
+            if (!Tutorial.IsDone(State)) Tutorial.Advance(State);
             // Upgrades, working rabbits and their items all feed the modifiers.
             Mods = Modifiers.From(UpgradeDefs, State);
             StateChanged?.Invoke();

@@ -1478,6 +1478,50 @@ MonoBehaviour:
     m_Localized: '{0} carrots'
     m_Metadata:
       m_Items: []
+  - m_Id: 182816863150080
+    m_Localized: '{0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538688
+    m_Localized: Skip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538689
+    m_Localized: Tap the rabbit at the teapot to brew faster
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538690
+    m_Localized: Open the teapot's card and raise it to level 2 when you can
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538691
+    m_Localized: Open the second station in the Stations tab
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538692
+    m_Localized: Collect your first quest in the Quests tab
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538693
+    m_Localized: Call your first rabbit in the Rabbits tab and watch it step through the moon gate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538694
+    m_Localized: "Put it to work: touch an empty pad. Its own trade pays \xD71,5"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538695
+    m_Localized: The moon gate gives you 1 clover to call a rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538696
+    m_Localized: You know it all now!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538697
+    m_Localized: The garden is yours. Happy brewing.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

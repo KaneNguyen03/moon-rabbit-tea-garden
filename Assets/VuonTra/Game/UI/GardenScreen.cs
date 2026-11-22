@@ -43,6 +43,9 @@ namespace VuonTra.Game.UI
         public UpgradeAllView UpgradeAll { get; private set; }
         /// <summary>The product tray above the tab bar.</summary>
         public TrayView ProductTray { get; private set; }
+        /// <summary>The first minute's guidance.</summary>
+        public TutorialView Guide { get; private set; }
+        int _guideStep = -1;
 
         // ----- photo mode -----
         /// <summary>The HUD and the tab bar are away so the garden can be framed and snapped.</summary>
@@ -252,6 +255,7 @@ namespace VuonTra.Game.UI
             Shell.Update(_clock);
             UpdateWorld(dt);
             UpdateFireflies();
+            UpdateGuide(dt);
 
             // The counter counts up instead of snapping.
             double target = s.Coins.ToDouble();
@@ -729,6 +733,8 @@ namespace VuonTra.Game.UI
             _modeButtons.Clear(); _modeLabels.Clear();
             UpgradeAll = null;
             ProductTray = null;
+            Guide = null;
+            _guideStep = -1;
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
@@ -808,6 +814,7 @@ namespace VuonTra.Game.UI
             Workers = new WorkerPickerView(_canvas, catalog, Tweens, (rabbitId, station) => { Sfx.Blip(); Runner.AssignRabbit(rabbitId, station); });
             UpgradeAll = new UpgradeAllView(_canvas, catalog, Tweens, share => Runner.SetSpendShare(share), OnUpgradeAll);
             BuildAwayPopup(catalog);
+            Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
@@ -1544,6 +1551,62 @@ namespace VuonTra.Game.UI
                 _photoNote.text = L10n.T("photo.copied");
             }
             catch (System.Exception e) { Debug.LogWarning("Không chép được ảnh: " + e.Message); }
+        }
+
+        /// <summary>
+        /// Keeps the guidance on the right step and the hand on the right thing: the teapot, then its card's
+        /// button, then the tab that leads to the next thing and the button inside it, then the empty pad.
+        /// </summary>
+        void UpdateGuide(float dt)
+        {
+            GameState s = Runner.State;
+            bool shown = Shell.State == ShellState.Playing && !PhotoMode && !Tutorial.IsDone(s);
+            if (!shown)
+            {
+                // Done by doing the last step (not by skipping): a word of congratulation.
+                if (_guideStep == Tutorial.PlaceRabbit && Tutorial.IsDone(s) && Shell.State == ShellState.Playing)
+                {
+                    Feel.Moment(L10n.T("tut.done.title"), L10n.T("tut.done.sub"));
+                    Sfx.Sting();
+                }
+                _guideStep = -1;
+                Guide.Hide();
+                return;
+            }
+            int step = s.TutorialStep;
+            if (step != _guideStep)
+            {
+                _guideStep = step;
+                Guide.Show(step);
+                if (step == Tutorial.CallRabbit && Runner.GrantTutorialClover())
+                    Feel.FloatText(new Vector2(0, 200), L10n.T("tut.clover"), Palette.Lantern, 40);
+            }
+            Guide.Follow(GuideTarget(step), dt);
+        }
+
+        RectTransform GuideTarget(int step)
+        {
+            switch (step)
+            {
+                case Tutorial.TapRabbit:
+                    return _actors.Count > 0 ? _actors[0].Root : null;
+                case Tutorial.RaiseTeapot:
+                    return Selected == 0 ? _cardBuy.Root : (_actors.Count > 0 ? _actors[0].Root : null);
+                case Tutorial.OpenSecond:
+                    return SheetOpen && Tab == 0 && _rows.Count > 1 ? _rows[1].Buy.Root : _tabIcons[0].rectTransform;
+                case Tutorial.CollectQuest:
+                    if (!SheetOpen || Tab != 2) return _tabIcons[2].rectTransform;
+                    foreach (QuestRowView row in _questRows) if (row.CanClaim) return row.Claim.Root;
+                    return _questReady;
+                case Tutorial.CallRabbit:
+                    return SheetOpen && Tab == 3 ? _rabbitList.Summon.Root : _tabIcons[3].rectTransform;
+                case Tutorial.PlaceRabbit:
+                    for (int i = 0; i < _actors.Count; i++)
+                        if (Runner.State.Levels[i] > 0 && !_actors[i].HasGuest && _actors[i].Root.gameObject.activeSelf) return _actors[i].Pad;
+                    return null;
+                default:
+                    return null;
+            }
         }
 
         /// <summary>Moonlight and darkened corners over the garden, under the HUD.</summary>
@@ -2467,7 +2530,8 @@ namespace VuonTra.Game.UI
 
             BigNum perSecond = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));
             _perSecond.text = L10n.T("persec", perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
-            if (!_hintFading) _hint.SetActive(!s.HintSeen && Shell.State == ShellState.Playing && !SheetOpen);
+            // The one-line hint is for gardens from before the guidance; a new garden gets the guidance instead.
+            if (!_hintFading) _hint.SetActive(!s.HintSeen && Tutorial.IsDone(s) && Shell.State == ShellState.Playing && !SheetOpen);
             if (dt < 0f) _shownCoins = s.Coins.ToDouble();
 
             RefreshEnergy(s, boosting);

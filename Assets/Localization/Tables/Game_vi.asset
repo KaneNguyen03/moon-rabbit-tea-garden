@@ -1474,6 +1474,50 @@ MonoBehaviour:
     m_Localized: "{0} c\xE0 r\u1ED1t"
     m_Metadata:
       m_Items: []
+  - m_Id: 182816863150080
+    m_Localized: '{0}/{1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538688
+    m_Localized: "B\u1ECF qua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538689
+    m_Localized: "Ch\u1EA1m con th\u1ECF \u1EDF \u1EA5m tr\xE0 \u0111\u1EC3 pha nhanh h\u01A1n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538690
+    m_Localized: "M\u1EDF t\u1EA5m \u1EA5m tr\xE0 v\xE0 n\xE2ng l\xEAn c\u1EA5p 2 khi \u0111\u1EE7 c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538691
+    m_Localized: "M\u1EDF tr\u1EA1m th\u1EE9 hai trong tab Tr\u1EA1m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538692
+    m_Localized: "Nh\u1EADn nhi\u1EC7m v\u1EE5 \u0111\u1EA7u ti\xEAn trong tab Nhi\u1EC7m v\u1EE5"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538693
+    m_Localized: "G\u1ECDi con th\u1ECF \u0111\u1EA7u ti\xEAn trong tab Th\u1ECF, xem n\xF3 b\u01B0\u1EDBc ra t\u1EEB c\u1ED5ng tr\u0103ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538694
+    m_Localized: "X\u1EBFp b\xE9 v\xE0o m\u1ED9t tr\u1EA1m: ch\u1EA1m t\u1EA5m \u0111\u1EC7m. \u0110\xFAng ngh\u1EC1 \u0111\u01B0\u1EE3c \xD71,5"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538695
+    m_Localized: "C\u1ED5ng tr\u0103ng t\u1EB7ng b\u1EA1n 1 c\u1ECF b\u1ED1n l\xE1 \u0111\u1EC3 g\u1ECDi th\u1ECF"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538696
+    m_Localized: "B\u1EA1n \u0111\xE3 bi\u1EBFt h\u1EBFt r\u1ED3i!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 182816871538697
+    m_Localized: "V\u01B0\u1EDDn l\xE0 c\u1EE7a b\u1EA1n. Ch\xFAc pha tr\xE0 vui."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

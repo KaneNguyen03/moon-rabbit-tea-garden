@@ -2128,6 +2128,111 @@ namespace VuonTra.Core.Tests
             }
         }
 
+        // ----- #30: the first minute's guidance -----
+
+        [Test]
+        public void The_Guidance_Points_At_One_Thing_At_A_Time_And_Follows_The_Player_Through_Six_Steps()
+        {
+            Rabbits.GiftFirst(runner.State, "Bông");
+            screen.Shell.StartGame();
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
+            Transform guide = root.transform.Find("Canvas/Tutorial");
+            Text text = guide.Find("Plate/Text").GetComponent<Text>();
+            Assert.IsTrue(guide.gameObject.activeSelf);
+            Assert.AreEqual("1/6", guide.Find("Plate/Progress").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("tut.0"), text.text);
+            Assert.AreEqual("Station am-tra", screen.Guide.Target.name, "the hand points at the teapot");
+            Assert.IsTrue(guide.Find("Hand").gameObject.activeSelf);
+            Assert.IsTrue(guide.Find("DimTop").gameObject.activeSelf, "the rest is dimmed");
+            Assert.IsFalse(guide.Find("DimTop").GetComponent<Image>().raycastTarget, "but nothing is locked");
+            Assert.IsFalse(root.transform.Find("Canvas/Hint").gameObject.activeSelf, "the old one-line hint stays away");
+
+            // 1: a tap on the teapot.
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(L10n.T("tut.1"), text.text);
+            Assert.AreEqual("Buy", screen.Guide.Target.name, "the card opened with the tap: the hand moves to its button");
+
+            // 2: raise it to level 2.
+            runner.State.Coins = new BigNum(1000);
+            Find("Canvas/Card/Buy").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(L10n.T("tut.2"), text.text);
+            Assert.AreEqual("Icon", screen.Guide.Target.name, "the sheet is closed: the hand points at the Stations tab");
+            screen.OpenSheet(0);
+            screen.Advance(1f / 30f);
+            Assert.AreEqual("Row gio-la", screen.Guide.Target.parent.name, "open: the hand points at the second station's button");
+
+            // 3: open the second station.
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(L10n.T("tut.3"), text.text);
+            screen.OpenSheet(2);
+            screen.Advance(1f / 30f);
+            Assert.AreEqual("Quest mo-2", screen.Guide.Target.parent.name, "the finished quest's button");
+
+            // 4: collect it.
+            Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Claim").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(L10n.T("tut.4"), text.text);
+            Assert.AreEqual(1, runner.State.Clovers, "the call step brought the clover it needs");
+            Assert.IsTrue(runner.State.TutorialCloverGiven);
+            screen.OpenSheet(3);
+            screen.Advance(1f / 30f);
+            Assert.AreEqual("Button", screen.Guide.Target.name);
+            Assert.AreEqual("Summon", screen.Guide.Target.parent.name);
+
+            // 5: call a rabbit.
+            Find("Canvas/Sheet/Panel/Rabbits/Content/Summon/Button").onClick.Invoke();
+            screen.Arrival.Close();
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(L10n.T("tut.5"), text.text);
+            Assert.AreEqual("Pad", screen.Guide.Target.name, "the empty pad of the open station");
+            Assert.AreEqual("Station gio-la", screen.Guide.Target.parent.name);
+
+            // 6: put it to work.
+            long called = runner.State.Rabbits[runner.State.Rabbits.Count - 1].Id;
+            runner.AssignRabbit(called, 1);
+            screen.Advance(1f / 30f);
+            Assert.IsTrue(Tutorial.IsDone(runner.State));
+            Assert.IsFalse(guide.gameObject.activeSelf);
+            Assert.IsTrue(screen.Feel.BannerVisible, "a word of congratulation");
+        }
+
+        [Test]
+        public void The_Guidance_Can_Be_Skipped_And_Never_Comes_Back()
+        {
+            screen.Shell.StartGame();
+            screen.Advance(1f / 30f);
+            Transform guide = root.transform.Find("Canvas/Tutorial");
+            Assert.IsTrue(guide.gameObject.activeSelf);
+            Find("Canvas/Tutorial/Plate/Skip").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.IsFalse(guide.gameObject.activeSelf);
+            Assert.IsTrue(Tutorial.IsDone(runner.State));
+            Assert.IsFalse(screen.Feel.BannerVisible, "skipping is not finishing");
+            GameState r = SaveCodec.Decode(runner.Defs, SaveCodec.Encode(runner.Defs, runner.State)).State;
+            Assert.IsTrue(Tutorial.IsDone(r));
+        }
+
+        [Test]
+        public void The_Guidance_Stays_Out_Of_Photo_Mode_And_The_Pause_Card()
+        {
+            screen.Shell.StartGame();
+            screen.Advance(1f / 30f);
+            Transform guide = root.transform.Find("Canvas/Tutorial");
+            Assert.IsTrue(guide.gameObject.activeSelf);
+            screen.EnterPhotoMode();
+            screen.Advance(1f / 30f);
+            Assert.IsFalse(guide.gameObject.activeSelf);
+            screen.ExitPhotoMode();
+            screen.Advance(1f / 30f);
+            Assert.IsTrue(guide.gameObject.activeSelf);
+            Find("Canvas/Hud/Settings").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.IsFalse(guide.gameObject.activeSelf);
+        }
+
         [Test]
         public void Away_Popup_Shows_And_Closes()
         {
