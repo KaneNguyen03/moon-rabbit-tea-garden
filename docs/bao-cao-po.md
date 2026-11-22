@@ -1084,13 +1084,346 @@ Sau khi sửa cả bốn xanh.
 - Bảy `product_<id>.png` chép vào Art/Final, seed tự gán `StationData.Product`; khay dùng `khay_go` làm đĩa dưới từng món (khung khay vẫn tấm giấy chuẩn vì khay gỗ tròn không kéo dài được thành khung 5 ô).
 - Ảnh (docs/anh/po-37/): `37-khay-hinh.png`.
 
-## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
+## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
-- main = origin/main (tới commit này), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
-- `tools/verify.sh --build` xanh lúc 06:29 trên đúng HEAD code (`ceca860`): seed, 76 ảnh preview, biên dịch, 417/417 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369). Chưa ai bấm thử.
-- Sáng 22/11 (từ ~11:45) session "Issue GitHub còn mở" chạy lại cùng lúc với session này; hai bên luân phiên từng issue qua tin nhắn (không cùng sửa, không cùng chạy Unity); commit `57b1541` gộp việc của cả hai vì hunk xen kẽ.
-- Hai session code chạy cùng lúc trong đêm: session "Issue GitHub còn mở" làm #43, #25, #27, #36, #37 (một phần), #18 (một phần) và tạo #44, #45 (mục Bàn giao 05:40 ngay trên); session này dựng `tools/verify.sh`, chờ session kia dừng, rồi làm tiếp. Từ giờ chỉ còn một session.
+- main = origin/main (tới commit này, ngay sau `025eaf5`), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
+- `tools/verify.sh --build` xanh lúc 14:51 trên HEAD `025eaf5`: seed, 105 ảnh preview, biên dịch, 618/618 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369; mốc 06:30 là 417/417). Chưa ai bấm thử.
+- Trong ngày 22/11 ba session chạy cùng lúc: session này (code), session "Issue GitHub còn mở" (code, luân phiên checkout với session này qua tin nhắn "xong lượt"/"checkout rảnh"; làm #44 ba lượt, #33, và #19, #10 Hứng lá + Đêm đom đóm, #20 bằng agent song song trong worktree riêng `../VuonTraNam-19`, `-10a`, `-10b`, `-20` rồi gộp qua nhánh `integrate-1` `4a48d81`…`adf9827` và `integrate-2` `e282242`…`d2b1390`), và session điều phối "Agent sửa lỗi GitHub" (giao hàng đợi, không sửa Assets; vẽ hình bằng Antigravity, commit docs `8d85900`, cách vẽ ở `docs/anh/VE-BANG-ANTIGRAVITY.md`).
+- Quy ước mới của chủ project từ 22/11: không mở issue mới cho việc; dòng chưa có issue trong #16 thì comment đối chiếu vào #16, tick dòng, ghi mục ở file này. #49 (mốc trạm) mở trước khi có quy ước, để PO đóng hoặc gộp.
+- Save hiện ở v14 (`pounding`), sau đó thêm khối `leaves`, `fireflies`, `orders`, `playSeconds`, `visitorBought/Seen` không tăng version; save cũ mở lên được (test).
+
+### Việc session này làm (sau mục 05:40)
+- `tools/verify.sh` (`822a8e9`): một lệnh kiểm hết; `--build` thêm bản Mac và đọc Player.log; đỏ là thoát khác 0.
+- Mở lại #43, #25, #27, #36 (session kia đã đóng) và gắn nhãn `chờ-PO-duyệt`: theo quy trình PO là bên đóng. Tạo hai nhãn `chờ-PO-duyệt`, `cần-chủ-project`.
+- #17 phần làm được ngay (`691d3fa`): hồ sơ người chơi (tên vườn, thỏ đại diện, mã `THO-XXXXXX`), màn hồ sơ sau hàng đầu tấm Tạm nghỉ, lớp `IAccountService` + `LocalOnlyAccount`. Save v11.
+- #46 Thang độ hiếm chung (`7bb0528`, issue mới): `Rarity` 6 bậc, mỗi bậc một số sao; tên bậc kèm sao ở mọi chỗ; dải sao trên mọi khung theo bậc.
+- #47 Trần cấp trạm 500 (`283c820`, issue mới): mọi chế độ nâng và Nâng tất cả dừng ở 500; nút ghi "Cấp tối đa".
+- #48 Sao của thỏ mỗi 10 cấp (`6b7b075`, issue mới): sao rỗng ☆ sau cấp ở ô lưới, tấm thỏ, nhãn trong vườn; băng rôn khi qua mốc.
+- #26 phần còn lại (`a754d5f`): thẻ bùa ghi hiệu lực hiện tại → sau một cấp; thanh cấp bằng chấm.
+- #32 hai ý đầu (`386be8e`): chạm ví mở bảng "Cà rốt đến từ đâu"; thanh Trà lực nói còn bao lâu và thở khi đủ.
+- #31 hai ý (`ceca860`): viên ▲/▼ ở mép đếm trạm nâng được hoặc thỏ ngủ gật ngoài tầm nhìn, chạm bay tới; nút ấm trà về tâm vườn.
+- #31 hai ý nữa (`57b1541`, commit gộp với quà liên kết #17 của session kia): chạm một lần ở zoom xa phóng vào; nhớ vị trí và zoom (save v12).
+- #31 ý cuối (`3567671`): vuốt trái/phải trên tấm trạm sang trạm kế. #31 đủ năm ý.
+- #22 hai ý còn lại (`1c59ccd`): vuốt xuống ở đâu trên tấm cũng kéo tấm khi danh sách ở đầu; vườn phía trên tấm chạm và kéo được. Còn các hộp giữa màn chưa thành tấm trượt.
+- #23 ba ý còn lại (`9cff4c9`): tab không chọn rõ hơn; tấm trạm sát thanh tab; huy hiệu tab Trạm và tab Thỏ. Còn vùng an toàn trên máy thật.
+- #32 hai ý còn lại (`40443d7`): chạm giữ ví xem số đầy đủ; cụm nút góc phải trên một tấm. Còn viền sáng khi tăng tốc.
+- #24 hai ý còn lại (`3cebd43`): thang chữ cho màn vườn, khung ngoài, băng thông báo; khoảng cách thẻ dùng chung; biển "Widen the garden" hết tràn. Còn soi tràn toàn bộ (#33).
+- #28 bốn ý còn lại (`33f9b5a`): thỏ nảy và ♥ khi chạm; cà rốt bay về ví, ví phồng khi nhận; ánh sáng loé khi nâng; vòng sao qua mốc. Còn chớp mắt/vẫy tai (cần hình), thỏ đi tới trạm, cảnh nền đung đưa.
+- #22 ý cuối (`bdf2647`): tấm chi tiết thỏ, chọn đồ, chọn thỏ thành tấm trượt dùng chung (`BottomSheet`). #22 chỉ còn thử tay.
+- #45 Giã bánh trăng (`7ce83c9`): trò chơi nhỏ đầu tiên theo đề xuất đã duyệt; save v14; hai thành tựu. Còn hình chày/bánh ba trạng thái.
+- #28 phần code còn lại (`fcf3f64`): cây, đèn lồng, ao, đom đóm theo đàn chuyển động; thỏ đi dạo từ ghế ra lối và về; thỏ được xếp đi bộ tới trạm. Còn chớp mắt/vẫy tai (cần hình).
+- #34 (`ab2aab2`): lớp đất (đất mòn, đá lát, thảm hoa, vệt trăng), bóng đổ dưới mọi đồ vật, tán cây viền trượt 0,9, trang trí có chủ đích quanh từng trạm với bồn hoa và đèn đá; cối giã dời lên trên ấm trà.
+- #38 lõi lưu mây (`d88b60c`): phong bì có mã kiểm, `CloudSync` (khi nào đồng bộ, chọn bản, không tự ghi đè), sao lưu trên máy trước khi thay, tấm chọn bản, trạng thái + Lưu ngay + Khôi phục trong Hồ sơ, thời gian chơi trong save. Còn nhà cung cấp thật (#39/#40).
+- Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
+- #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
+- #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`, `po-49`, `po-41`; #16 đã tick.
+
+### Chưa đụng tới (theo thứ tự trong #16)
+- Màn "lúc bạn đi vắng": tấm `Canvas/Away` (Mừng bạn quay lại, số cà rốt, thời gian) đã có từ `ba1cd71`; chưa rõ PO muốn thêm gì (thỏ làm gì lúc vắng, món trong khay…). Chưa tick vì chưa có mô tả.
+- Mọi dòng khác trong #16 đã tick hoặc đang chờ PO duyệt. Hàng đợi của cả hai session code đã hết việc không cần chủ project quyết.
+
+### Cần chủ project thử tay hoặc quyết
+- Đóng các issue đã gắn `chờ-PO-duyệt` sau khi xem (#13, #14, #17, #19, #21–#28, #31–#38, #41, #43–#49), hoặc gắn `PO-trả-lại` kèm ý chưa đạt.
+- Thử trong bản Mac `Build/Mac/VuonTraTho.app`: ván Giã bánh trăng (nhịp ±80/±160 ms có vừa không, hình chày/bột mới), khay sản phẩm với hình món và đĩa gỗ, thỏ đi bộ tới trạm khi xếp, cảnh nền đung đưa, lớp đất và tán cây trượt (#34), tấm chọn bản lưu mây (#38, cần mây giả: `MemoryCloudSave`), mốc trạm ở cấp 25/100/300 (#49: kiểu dây đèn/đèn đá/vầng sáng hay băng cờ như điều phối gợi ý), Hồ sơ với Lưu ngay/Khôi phục từ mây (nói rõ "chưa có nơi lưu mây").
+- #41: cài module iOS và Android cho Unity 6000.6.10f1 qua Unity Hub, Xcode, Android SDK/NDK/JDK; rồi `tools/build.sh ios` / `tools/build.sh android`, seed lại một lần để gán icon theo cỡ; icon và màn hình chờ nên vẽ riêng thay bản ghép.
+- Quyết: #17 phần Unity Cloud hay đi theo #39/#40; #39, #40, #42, #9, #15 (các issue `question`); #28 chớp mắt/vẫy tai cần khung hình vẽ; "Màn lúc bạn đi vắng" muốn gì thêm.
+
+### Lưu ý kỹ thuật mới
+- Trong test EditMode, `GameRunner.StateChanged` không nối tới màn hình (nối trong `Start()`, không chạy ở edit mode): sau khi đổi state phải gọi `screen.Refresh()` tay trước khi đọc nhãn.
+- Nút chunky giờ đi `Button.onClick → PressDip.Fire → Pressed`; test gọi `onClick.Invoke()` vẫn chạy. Giữ tay lặp: `PressDip.Repeat`.
+- `FeelLayer.Fly(from, to, sprite, ...)` dùng chung cho mọi thứ bay (thưởng, món, cà rốt bán); hai đầu cố định lúc bắt đầu.
+- `docs/issues-po.md` là bản chép do session PO giữ, đêm nay không sửa; GitHub là nguồn đúng (đóng 25, 27, 36, 43; mới 44, 45).
+- Lệnh test/seed/chụp/build như mục Bàn giao trước.
+
+## #17 — Bổ sung: quà liên kết tài khoản và lớp lưu mây "chỉ trên máy"
+
+- Test: 425/425 EditMode qua (verify.sh của session kia chạy trên cây gộp). Thêm 4 test core (`ProfileTests.cs`) và 1 test màn hình.
+- Commit `57b1541` (gộp với #31 phần 2 của session "Issue và kiểm thử Unity", vì hunk hai bên xen kẽ trong `SaveCodec.cs`, `GardenScreen.cs`, `GardenScreenTests.cs`). Issue #17 đã comment, vẫn mở cho phần cần chủ project.
+- Bảng chuỗi seed lại (`backup.reward`, `backup.rewarded`). Save vẫn v11, khối `profile` thêm `linkRewarded`.
+
+### Đã làm (đối chiếu với nguyên văn #17)
+- `Profile.OnLinked(s)`: tặng `LinkRewardClovers` (3) đúng một lần cho mỗi vườn; `GameRunner.LinkAccount(onDone(ok, gift))` gọi `Account.Link` rồi trả quà; `GardenScreen` hiện "+3 cỏ bốn lá vì đã liên kết"; `ProfileView` ghi quà sắp có dưới nút Liên kết (ẩn khi đã nhận hoặc đã liên kết).
+- `ICloudSave` + `LocalOnlyCloudSave`, `GameRunner.Cloud`; `SaveSummary.Of`, `SaveSync.Choose` (Same / KeepLocal / KeepRemote / Ask) để #38 và màn hỏi người chơi dùng chung một luật.
+
+### Chưa đạt so với #17
+- Như trước: phần Unity Cloud / nhà cung cấp / chính sách cần chủ project; đồng bộ thật thuộc #38.
+- Chưa có màn "giữ bản nào" vì chưa có bản thứ hai để so; luật đã sẵn.
+
+### Tồn đọng
+- tồn đọng: số cỏ thưởng liên kết (3) là mình chọn, chủ project duyệt.
+
+## #18 — Phần còn lại của bản Mac: khung ảnh, công tắc, album, nhiệm vụ
+
+- Test: 436/436 EditMode qua (verify.sh: seed, 78 ảnh, biên dịch, test). Thêm 3 test core (`PhotosTests.cs`) và 3 test màn hình.
+- Commit `8ba94fd`, đã push. Issue #18 đã comment; vẫn mở cho quà cà rốt vàng (#44) và phần mobile.
+- Ba quest asset mới `Content/Quests/anh-*.asset` (seed); `QuestMetric` thêm PhotosTaken, PhotosWithGoldRabbit, PhotosWithFullRest; save thêm `photosGold`, `photosRest`, `album` (vẫn v12). Bảng chuỗi seed lại (3 key quest, 8 key photo.*).
+- Ảnh (docs/anh/po-18/): `18-sau-khung-anh.png`, `18-sau-xem-co-khung.png`, `18-sau-album.png`.
+
+### Đã làm (đối chiếu với nguyên văn #18)
+- Khung: lớp `PhotoFrame` trong canvas (dưới thanh chụp, trên vườn): viền giấy kem, đường mực, tên vườn, ngày, logo chữ. Ảnh chụp mang khung vì chụp qua camera của game.
+- Công tắc: `GardenScreen.PhotoFrameOn/PhotoNamesOn/PhotoFirefliesOn` (PlayerPrefs); `ApplyPhotoOptions` tắt lớp "Fireflies" và nhãn "Tier" của thỏ ở trạm trong chế độ chụp.
+- Album: `Photos.Take(s, day, path)` giữ 12 đường dẫn mới nhất; `GardenScreen.OpenAlbum` đọc file bằng `Texture2D.LoadImage`, `Photos.Tidy` bỏ file mất; chạm mở tấm xem lại.
+- Nhiệm vụ: `Photos.Take` đếm ảnh có thỏ bậc ≥ Vàng (`Photos.GoldTier` = 4) và ảnh khi `RestSpots == Max`; ba thành tựu trong `MetaSeeder`.
+
+### Chưa đạt so với #18
+- Quà cà rốt vàng (#44); phần mobile (#41).
+
+### Tồn đọng
+- tồn đọng: album đọc lại file mỗi lần mở (12 ảnh, nhanh); nếu sau này album dài hơn thì nên cache thumbnail.
+
+## #30 — Hướng dẫn 60 giây đầu
+
+- Test: 450/450 EditMode qua (verify.sh: seed, 81 ảnh, biên dịch, test). Thêm 5 test core (`TutorialTests.cs`, file mới) và 3 test màn hình.
+- Commit `c7c629d`, đã push. Issue #30 đã comment (bảng đối chiếu), để chủ project duyệt.
+- File mới: `Core/Tutorial.cs`, `UI/TutorialView.cs`, hình giữ chỗ `icon_hand.png` (catalog `Hand`). Save thêm `tutorial`, `tutorialClover` (vẫn v12). Bảng chuỗi seed lại (12 key `tut.*`).
+- Ảnh (docs/anh/po-30/): `30-buoc-1.png` (bàn tay chỉ ấm trà, lỗ mờ), `30-buoc-2.png` (nút Nâng trên tấm), `30-buoc-3.png` (nút Mở trạm trong tab).
+
+### Đã làm (đối chiếu với nguyên văn #30)
+- `Tutorial.Met/Advance/Skip/GrantCallClover`: sáu bước đọc từ state; `GameRunner.Changed` và `Tap` gọi `Advance`; `SkipTutorial`, `GrantTutorialClover`.
+- `TutorialView`: dòng trên đỉnh ("1/6 · …", Bỏ qua), bàn tay bám mục tiêu (`GetWorldCorners` → lỗ bốn tấm), không tấm nào bắt chạm. `GardenScreen.UpdateGuide/GuideTarget` chọn mục tiêu theo bước và theo tấm đang mở.
+- Thứ tự bước 4 và 5 đổi so với nguyên văn (nhận nhiệm vụ trước, gọi thỏ sau) và bước gọi tặng 1 cỏ khi ví trống: ghi trên issue để chủ project duyệt.
+
+### Chưa đạt so với #30
+- Không có: mọi ý đều có mặt; hai điểm lệch (thứ tự, cỏ tặng) chờ duyệt.
+
+### Tồn đọng
+- tồn đọng: trong batch preview, nhãn "Bỏ qua" dựng lúc màn hình đang tiếng Anh nên khung 30-buoc hiện "Skip" (quirk đã ghi ở mục Bàn giao của session kia); trong game không ảnh hưởng.
+
+## #14 — Màu Thỏ Việt Quất và Thỏ Dâu Tây
+
+- Commit `aae36e3`, đã push; verify.sh xanh 452/452 (chung lượt với #13). Issue đã comment, nhãn chờ-PO-duyệt.
+- Nguyên nhân: xoay màu toàn ảnh cho thỏ Khoai Môn làm lông kem và má đổi theo. Script mới `docs/anh/po-loai-tho/30-bien-the/sua-14-viet-quat-dau-tay.py` chỉ đổi vùng tím của tai và lưng, nén dải màu quanh màu đích. Hai file trong `Art/Final` và bản sao trong docs đã thay; `Art/Generated` tự sinh lại khi seed.
+
+## #13 — Khoảnh khắc gọi thỏ: tiếng theo bậc, dấu Mới lưu
+
+- Test: 452/452 EditMode qua (verify.sh). Thêm 1 test core, 1 test màn hình.
+- Commit `38ef8b7`, đã push. Issue đã comment, nhãn chờ-PO-duyệt.
+- `Sfx.Summon(tier)`: sáu clip (2 + bậc nốt, mỗi bậc cao hơn một cung, Vàng/Đỏ dày hơn); `OnSummon` và `OnMerge` dùng nó thay `Sting`.
+- `GameState.FreshKinds` (save `freshKinds`, chỉ giữ loài có trong sổ); `Rabbits.See` thêm, `Rabbits.LookAt` bỏ; `GameRunner.LookAtKind`; `GardenScreen.IsFreshKind` đọc từ state. Sửa `SaveCodec` không gọi `See` khi đọc sổ (nếu không mọi loài thành mới sau khi mở lại).
+
+### Chưa đạt
+- Tiếng chưa ai nghe (mình không nghe được); cần chủ project nghe trong bản Mac.
+
+## #21 — Ngày và đêm theo giờ thật (phần hình ảnh)
+
+- Test: 470/470 EditMode qua (verify.sh: seed, 86 ảnh, biên dịch, test). Thêm 3 test core (`DaylightTests.cs`, file mới), 1 test màn hình.
+- Commit `79a6558`, đã push. Issue #21 đã comment, nhãn chờ-PO-duyệt. #5 chỉ comment (cần bundle gốc macOS, để ưu tiên thấp như issue ghi).
+- File mới: `Core/Daylight.cs` (PhaseAt, NightAt với sàn 0,35, FirefliesAt). `GardenScreen.ClockHours` (đồng hồ thay được), `UpdateDaylight` gọi trong `Refresh`: lớp "Daylight" dưới HUD, quầng trăng mờ dần, số đom đóm. PreviewShot đặt giờ 22 cho mọi khung, thêm `21-ban-ngay`, `21-hoang-hon`.
+- Ảnh (docs/anh/po-21/): `21-dem.png`, `21-hoang-hon.png`, `21-ban-ngay.png`.
+
+### Chưa đạt
+- Thỏ hiếm ghé tiệm ban đêm: chờ #44. Độ đậm lớp phủ chưa ai xem bằng mắt vào ban ngày thật.
+
+## #32 — Ý cuối: viền sáng khi tăng tốc (và kiểm #29)
+
+- Test: 472/472 EditMode qua (verify.sh). Thêm 1 test màn hình.
+- Commit `6d65055`, đã push. #32 đã comment (đủ bốn ý, chờ duyệt). #29: comment xác nhận hai thanh âm lượng đã có sẵn, không sửa.
+- `GardenScreen`: lớp "BoostEdge" (bốn dải `UiKit.FadeUp` màu rêu, hai dải dọc xoay ±90°), `UpdateBoostEdge` trong `Advance`: lên/xuống 0,4 giây, thở khi chạy, tắt thở khi Giảm chuyển động.
+- Ảnh (docs/anh/po-32/): `32-sau-vien-sang.png`.
+
+## #44 lượt 1 — Cà rốt vàng và Tiệm (quà ngày, Gọi vàng)
+
+- Test: 481/481 EditMode qua (verify.sh: seed, 87 ảnh, biên dịch, test; GardenPacingTests vẫn qua). Thêm 7 test core (`ShopTests.cs`, file mới), 2 test màn hình.
+- Commit `4fc84eb`, đã push. Issue #44 đã comment (bảng đối chiếu lượt 1), nhãn chờ-PO-duyệt. Save lên v13.
+- File mới: `Core/Shop.cs`, `UI/ShopView.cs`; Art/Final thêm `prop_tiem.png`, `icon_ca-rot-vang.png`, `icon_hop-qua.png` (từ docs/anh/po-do-vat); catalog `GoldenCarrot`, `GiftBox`, `ShopProp`; 5 quest asset mới (loai-tim, loai-vang, loai-do, dat-12, tho-max). Bảng chuỗi seed lại (~22 key).
+- `Rabbits.Arrive` tách từ `Summon` để hai cách gọi chung một đường; `Rabbits.RollTier(roll, odds)`. `Tray.Sell/SellAll` giờ trả `golden`; `Photos.GiftGolden`; `Quests.RewardGolden` + ba metric mới; `Garden.AddXp` cộng cà rốt vàng mỗi 5 cấp.
+- `GardenScreen`: quầy "Shop" trong `_street` cạnh ao (thêm vào `standing` để xếp lớp), chip "Hud/Golden", `OpenShop/OnDailyGift/OnSummonGolden`, `PaySale` bay cà rốt vàng về chip. `GameRunner.TodayNumber`, `GiftWaiting`, `ClaimDailyGift`, `SummonGoldenRabbit`.
+- Ảnh (docs/anh/po-44/): `44-sau-tiem.png`, `44-sau-quay-tiem-mep-ao.png`.
+
+### Chưa đạt
+- Lượt 2 (thỏ ghé tiệm) và lượt 3 (mũ, nhuộm) chưa làm. Chưa thử tay.
+
+## #45 — Giã bánh trăng: trò chơi nhỏ đầu tiên
+
+- Test: 507/507 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 25 test luật (`PoundingTests.cs`) và 1 test màn hình.
+- Commit `7ce83c9`, đã push. Issue #45 để mở, đã comment đối chiếu từng ý đã duyệt, nhãn chờ-PO-duyệt. Save v14 (khối `pounding`); save cũ mở ra còn đủ 3 lượt, 0 ván.
+- Luật trong `Core/Pounding.cs`: lịch nhịp là hàm của chỉ số nhịp (1 giây, mỗi 5 nhịp nhanh thêm 10 %, ván ~25 giây), chấm Chuẩn ±80 ms / Được ±160 ms / Méo, chuỗi Dẻo sau 5 Chuẩn (+5, rồi 4 điểm mỗi nhịp, Được giữ Dẻo, Méo đứt), tối đa 120, sao 40/75/105, 3 lượt/ngày làm mới theo ngày (lùi đồng hồ không thêm lượt), mở ở cấp vườn 3, thưởng = thu nhập/giây × hệ số × 60 × điểm/120, thỏ Bếp bánh cấp cao nhất đang làm giã cùng ×1,5, lượt có sao đầu ngày +1 cỏ, ván 3 sao đầu ngày +1 cà rốt vàng.
+- Màn hình `PoundingView`: cối đứng giữa, vòng thu nhỏ về bánh theo nhịp, chạm đâu cũng tính, cối nén xuống khi giã, chữ Chuẩn/Được/Méo, pill "Dẻo!", bánh sạm khi Méo, rung ngang 0,25 giây khi Méo (tắt khi Giảm chuyển động), tấm kết quả sao/điểm/cà rốt/cỏ/vàng/thỏ giã cùng. Cối trong vườn (`Canvas/Garden/Content/Mortar`) cạnh ấm trà, biển "Giã bánh · còn N lượt" / "Mai giã tiếp".
+- Hai thành tựu mới: `gia-3sao` (Giã bánh 3 sao lần đầu), `gia-30` (Giã 30 ván). Hình: `prop_coi-gia-banh.png` đã có; chày tách, bánh ba trạng thái, bánh méo chưa vẽ (cối hiện dùng hình có sẵn chày, bánh là đĩa vàng).
+- Ảnh (docs/anh/po-45/): `45-vong-chay.png` (vòng đang khép về bánh), `45-deo.png` (sau 6 Chuẩn, Dẻo!), `45-ket-qua.png` (tấm kết quả). Chuỗi en ngắn hơn vi, cùng khung.
+
+### Đã làm (đối chiếu với đề xuất đã duyệt trong #45)
+- Bấm theo nhịp, ván 25 giây 30 nhịp, vòng thu nhỏ về bánh, nhanh dần, Chuẩn/Được/Méo, Dẻo!, 120 điểm, 3 sao: đủ, có test.
+- Cối cạnh ấm trà, hiện từ cấp vườn 3, chạm cối để chơi, không nút HUD: đủ.
+- 3 lượt/ngày, thưởng 60 giây thu nhập × điểm/120, cỏ cho lượt có sao đầu ngày, cà rốt vàng cho ván 3 sao đầu ngày: đủ, có test.
+- Thỏ Bếp bánh cấp cao nhất đang làm giã cùng ×1,5, hiện bên cối: đủ, có test.
+- Tắt rung khi Giảm chuyển động: đủ, có test.
+
+### Chưa đạt so với #45
+- Hình chày tách khỏi cối, bánh ba trạng thái và bánh méo (cần vẽ). Thử tay nhịp có cảm giác đúng chưa (cửa sổ ±80/±160 ms là số đề xuất).
+
+## #44 lượt 2 — Thỏ ghé tiệm
+
+- Test: 511/511 EditMode qua (verify.sh: seed, 90 ảnh, biên dịch, test). Thêm 3 test luật (`ShopTests.cs`), 1 test màn hình.
+- Commit `5119c0a`, đã push. Issue #44 đã comment (bảng đối chiếu lượt 2), nhãn chờ-PO-duyệt. Save không đổi phiên bản, thêm `visitorBought`, `visitorSeen` (save cũ mở ra: chưa mua, chưa xem).
+- Luật trong `Core/Shop.cs`: `VisitorFor(state, ngày)` băm ngày và mã người chơi nên cùng ngày luôn ra cùng một bé; bậc 60/30/9/1 từ Xanh dương lên Đỏ; `PickKind` chọn loài trong bậc, loài chưa có trong sổ nặng ×3; giá 15/40/120/400; `BuyVisitor` chỉ mua đúng ngày, một lần, trả thỏ qua `Rabbits.ArriveKind` (mới, `Arrive` giờ gọi qua nó).
+- Tấm Tiệm cao 1230: mục "Thỏ ghé tiệm hôm nay" giữa quà ngày và Gọi vàng, có chân dung (dùng `RabbitGridView.Portrait`), tên loài, bậc với sao, nghề, giờ còn lại, nhãn "Loài chưa gặp!", nút Mua / Còn thiếu / Đã về vườn. Huy hiệu "!" trên quầy khi có quà chưa nhận hoặc thỏ hôm nay chưa xem; mở tiệm là xem (`GameRunner.MarkVisitorSeen`). Mua xong bé ra cổng trăng như thỏ gọi bằng cỏ.
+- Ảnh (docs/anh/po-44/): `44-sau-tiem-tho-ghe.png` (tiệm với thỏ ghé, 12 cà rốt vàng, còn thiếu 3).
+
+### Chưa đạt
+- Lượt 3 (mũ, nhuộm) chờ 6 hình vẽ. Chưa thử tay trên máy thật.
+
+## #28 — Cảnh nền đung đưa, thỏ đi thật
+
+- Test: 514/514 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 3 test màn hình; 4 test cũ chờ thỏ đi tới trạm rồi mới soi.
+- Commit `fcf3f64`, đã push. Issue #28 để mở (còn chớp mắt/vẫy tai cần hình, thử tay), đã comment, nhãn chờ-PO-duyệt.
+- Cảnh nền (`GardenScreen.UpdateScenery`): cây nghiêng từ gốc ±1,6° chậm (có thêm run nhỏ ±0,4°), đèn lồng treo từ móc lắc ±3° và ánh đèn chập chờn 72–100 %, mặt ao thở nhẹ và hai vòng sáng loang ra rồi tan mỗi 2,8 giây, đom đóm bay theo 6 đàn, mỗi đàn trôi từ đèn này sang đèn kế rồi về trong 26 giây. Bật Giảm chuyển động thì tất cả đứng yên (test).
+- Thỏ đi dạo: từ ghế đi ra đầu lối, dọc lối đi về, rồi về ghế, cùng một tốc độ suốt đường (`StrollPoint`); chu kỳ 48 giây, nửa đầu đi dạo. Không còn hiện và biến tức thì (test: lúc bắt đầu đứng đúng chỗ ghế, 2 giây sau đã đi xa nhưng không nhảy cóc).
+- Thỏ được xếp vào trạm: đi bộ từ ghế (hoặc trạm cũ) tới chỗ đứng ở trạm (`Traveler`, 300 px/giây, 0,4–2,4 giây), nhún theo bước, tới nơi thì hiện ra và nhảy một cái; trong lúc đi trạm không hiện pad lẫn thỏ. Giảm chuyển động: có mặt ngay (test). `StationActorView.SetAway`.
+- Ảnh (docs/anh/po-28/): `28-tho-di-tram.png` (thỏ tím đang đi từ ghế lên ấm trà, vẽ dưới các biển cấp).
+
+### Đã làm (đối chiếu với mục "Còn lại" trong #28)
+- Thỏ đi dạo đi thật theo lối từ chỗ nghỉ ra rồi quay về, nhún theo nhịp bước: đủ.
+- Thỏ được xếp thì đi tới trạm: đủ.
+- Tán cây đung đưa chậm, đèn lồng lắc và chập chờn, mặt ao gợn, đom đóm bay theo đàn: đủ (vòng gợn dùng ảnh ánh sáng có sẵn, chưa có hình gợn nước riêng).
+
+### Chưa đạt so với #28
+- Thỏ chớp mắt, vẫy tai (cần khung hình vẽ); hình ngôi sao riêng cho vòng sao; thử tay trên máy thật.
+
+## #33 — Dễ đọc và dễ dùng: chữ to, vùng chạm, vùng an toàn, tương phản
+
+- Test: 522/522 EditMode qua (verify.sh: seed, 92 ảnh, biên dịch, test). File mới `AccessibilityTests.cs` (10 test: chữ to, vùng an toàn, vùng chạm, tràn chữ vi/en × thường/chữ to, tương phản WCAG).
+- Commit `d48ede5`, đã push. Issue #33 đã comment (bảng đối chiếu 6 ý), nhãn chờ-PO-duyệt.
+- Chữ to: `UiKit.LargeText` (PlayerPrefs `text.large`), `UiKit.TextScale` 1,2 nhân vào mọi `AddText`; công tắc "Chữ to" trên thẻ Tạm nghỉ (thẻ cao 1290), `UiKit.TextChanged` → `GardenScreen.RebuildUi` như đổi ngôn ngữ. Pill chế độ mua, biển "Thêm thỏ", nhãn Trà lực, nhãn "Loài chưa gặp" nới theo (best fit).
+- Vùng chạm: `UiKit.MinTouch = 88`; `UiKit.Touchable(rt, w, h)` đặt tấm bắt chạm ẩn cho pill nằm trong dải chật. 40 nút dưới mức đã sửa (đóng, nút phụ, pill chế độ / ảnh / tỷ lệ / ngôn ngữ / bỏ qua / mép cuộn, tab con Thỏ).
+- Vùng an toàn: `GardenScreen.SafeInsets` (dưới, trên) thay `SafeBottom`; HUD hạ theo tai thỏ trong `PlaceTabBar`.
+- Tương phản: `Palette.InkSoft` 64 % → 70 % mực (4,4:1 → 5,2:1 trên thẻ). Chữ kem trên nút cam 2,0:1 để PO quyết (mực trên cam được 6,2:1).
+- Ảnh (docs/anh/po-33/): `33-truoc-tam-nghi.png`, `33-sau-tam-nghi.png`, `33-sau-chu-to.png`, `33-sau-vuon.png`. PreviewShot thêm khung `33-chu-to`.
+
+### Chưa đạt
+- Màu chữ trên nút chính (chờ PO). Chưa thử tay trên máy thật, chưa đo trên máy có tai thỏ thật.
+
+## #34 — Mặt đất có lớp lang, bóng đổ, tán cây trượt chậm, vệt trăng, trang trí có chủ đích
+
+- Test: 526/526 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 4 test màn hình.
+- Commit `ab2aab2`, đã push. Issue #34 để mở (còn hình gợn nước riêng, thử tay), đã comment đối chiếu từng ý, nhãn chờ-PO-duyệt.
+- Lớp đất (`GardenScreen.BuildGroundLayers`, vẽ trước mọi thứ đứng): dải đất mòn dưới các viên đá bước của mỗi lối; vòng 14 phiến đá lát quanh ấm trà và 6 phiến bên trong; thảm hoa nhỏ ở 6 chỗ cỏ thoáng nhất (quét lưới, chọn chỗ xa trạm và ghế nhất, cách nhau ≥ 260); vệt trăng chéo (`bg_moonbeam`) đổ xuống ấm trà và vũng sáng dưới chân, thở nhẹ (đứng yên khi Giảm chuyển động).
+- Bóng đổ mềm (`Shade`, 28 % đêm) dưới mọi cây, bụi, đèn lồng, nấm, gốc, bàn trà, bồn hoa, đèn đá; vẽ ngay sau vật theo cùng thứ tự xa gần (test).
+- Tán cây viền (hàng trên, hàng dưới, hai cột bên) nằm trên lớp `Canopy` riêng, trượt bằng 0,9 lần mặt đất tính từ góc nhìn nghỉ ở ấm trà (test đo đúng 0,9). Hàng trên hạ 90 để thấy tán chứ không chỉ thân.
+- Trang trí có chủ đích: mỗi trạm thử lần lượt 12 chỗ ưu tiên rồi một vành 200–320 quanh trạm, lấy chỗ đầu tiên không đè prop/pad/biển cấp/tên của trạm nào, ghế, ao, cối, tiệm: bồn hoa (`decor_bon-hoa`), nấm, đá; hai đèn đá (`decor_den-da`) ở góc nghỉ. Rải ngẫu nhiên còn 24 thay vì 60.
+- Cối giã dời lên trên tên ấm trà (`Heart + (-10, 300)`), không còn đè biển cấp của giỏ lá (test).
+- Ảnh (docs/anh/po-34/): `34-nen-tam.png` (quanh ấm trà: đá lát, vũng trăng, thảm hoa, bồn hoa), `34-nen-tren.png` (đầu vườn: tán cây, bóng, vệt trăng, bồn hoa cạnh tiệm), `34-vuon.png` (khung vườn chung).
+
+### Đã làm (đối chiếu với #34)
+- Mặt đất có lớp lang: cỏ, lối mòn đất, thảm hoa, đá lát quanh ấm trà: đủ.
+- Vật ở dưới che vật ở trên theo thứ tự xa gần; bóng đổ mềm dưới thỏ và đồ vật: đủ (thỏ đã có bóng từ trước; đồ vật thêm bóng).
+- Tán cây viền quanh trượt chậm hơn mặt đất khi kéo: đủ (0,9).
+- Vệt sáng trăng chiếu xuống ấm trà: đủ.
+- Trang trí rải có chủ đích quanh từng cụm trạm; dùng đèn đá, bồn hoa trong po-do-vat: đủ.
+
+### Chưa đạt so với #34
+- Chưa có hình gợn nước riêng (vòng gợn dùng ảnh ánh sáng); thử tay cảm giác chiều sâu khi kéo trên máy thật.
+
+## #19 — Chạm và vuốt thỏ, mức thân thiết (agent song song, nhánh agent-19)
+
+- Test: 559/559 EditMode qua trên main sau khi gộp (verify.sh: seed, 98 ảnh, biên dịch, test). Nhánh riêng 533/533: +5 test luật (`RabbitsTests.cs`), +1 save, +5 màn hình.
+- Commit `5a76632` (nhánh agent-19), gộp vào main qua `4a48d81`…`23cf0c1`, đã push. Issue #19 đã comment (bảng đối chiếu 8 ý), nhãn chờ-PO-duyệt. Save không đổi phiên bản, mỗi thỏ thêm `affection`, `petDay`.
+- Luật trong `Core/Rabbits.cs`: `Rabbit.Affection` 0–5, `PetDay`; `Rabbits.Pet(s, r, ngày, wake)`: lần vuốt đầu mỗi ngày +1 tim và +5 Trà lực (`PetEnergy`), đánh thức thỏ gật trả 8 (`DozeEnergy`, dời từ GardenScreen) và tính là lần vuốt của ngày; tới 3 tim mở câu nói (`AffectionLine`), tới 5 tim tặng 1 cỏ đúng một lần (`AffectionGiftClovers`); ghép ba giữ mức cao nhất; `Rabbits.Hearts(n)`.
+- Màn hình: `UiKit.Strokable` (kéo qua hình thỏ = một lần vuốt, vẫn cuộn vườn, nhấc tay không tính chạm); chạm/vuốt thỏ ở trạm, chỗ nghỉ (`Seat n/Art`) và đang đi dạo (`Walker n/Art`); tim bay lên, "+5 trà lực"; thỏ ngáp vươn người 0,6 s (`Motion.Yawn`) trước khi gật, tắt khi Giảm chuyển động; bong bóng câu nói `Canvas/Garden/Content/BondLine` 3 s (`Motion.Speech`), câu theo nghề `bond.line.<nghề>`; tấm khoảnh khắc tặng cỏ. Ô tim trên thẻ thỏ (`RabbitSheet/Card/Body/Bond`) và ô thỏ ("Cấp 3 ☆ ♥♥").
+- Ảnh (docs/anh/po-19/): `19-sau-vuot-tho.png`, `19-sau-tim-the.png`.
+
+### Chưa đạt
+- Cảnh thỏ ngồi uống trà (cần tranh). Mới 1 câu nói mỗi nghề; quà chỉ là cỏ bốn lá. Chưa thử tay trên máy thật.
+
+## #10 phần 1 — Hứng lá trà (agent song song, nhánh agent-10a)
+
+- Test: 559/559 EditMode qua trên main sau khi gộp. Nhánh riêng 544/544: +21 test luật (`LeavesTests.cs`), +1 màn hình.
+- Commit `aa7215f` (nhánh agent-10a), gộp vào main qua `4a48d81`…`23cf0c1`, đã push. Issue #10 đã comment phần 1 (để mở chờ phần 2). Save vẫn v14, thêm khối `leaves` sau `pounding`; save cũ mở ra đủ 3 lượt.
+- Luật trong `Core/Leaves.cs`: ván 30 giây, 48 vật rơi theo lịch từ seed (ngày × 1000003 + số ván): 36 lá (+1), 4 lá vàng (+2), 8 quả thông (−3, sàn 0, choáng 0,5 s); rơi 2,8 → 2,0 s nhanh dần; bề rộng hứng ±0,12; tối đa 44, sao 15/29/38; `MiniGameRecord` (khối lượt/ngày dùng chung cho từng trò: 3 lượt, làm mới theo ngày, lùi đồng hồ không thêm); mở ở cấp vườn 4; thưởng = thu nhập/giây × hệ số × 60 × điểm/44; lượt có sao đầu ngày +1 cỏ (cờ riêng); không cà rốt vàng.
+- Màn hình `LeavesView` (`Canvas/Leaves`): tán cây, lá/quả thông đặt theo đồng hồ mỗi khung (bể 12 hình), giỏ kéo theo ngón hoặc chạm để trượt, +1 / +2 lá vàng! / Ui! −3, giỏ lắc sạm khi dính quả thông (tắt khi Giảm chuyển động), tấm kết quả. Giỏ trong vườn (`Canvas/Garden/Content/Basket`) cạnh trạm Giỏ lá trà, biển "Hứng lá · còn N lượt" / "Mai hứng tiếp". Thành tựu `la-3sao`, `la-30`; `QuestMetric.LeavesThreeStar`, `LeavesGames` cuối enum.
+- Ảnh (docs/anh/po-10/): `10-sau-hung-la.png`, `10-sau-hung-la-ket-qua.png`.
+
+### Chưa đạt
+- Lá, lá vàng, quả thông là hình tròn tô màu; tán cây và giỏ dùng hình sẵn có. Chưa thử tay. Phần 2 "Đêm đom đóm" đang làm trên nhánh agent-10b.
+
+## #38 — Lưu mây: lõi đồng bộ save, không phụ thuộc nhà cung cấp
+
+- Test: 578/578 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 16 test lõi (`CloudSaveTests.cs`) và 3 test màn hình.
+- Commit `d88b60c`, đã push. Issue #38 để mở (phần nhà cung cấp thật là #39/#40), đã comment đối chiếu từng ý, nhãn chờ-PO-duyệt.
+- Lõi (`Core/CloudSave.cs`): bản trên mây là phong bì `{cloud, version, savedAt, level, rabbits, kinds, played, seen, code, check, save}`; `check` là FNV-1a trên phiên bản + thời điểm + nội dung; bản cắt cụt, sửa tay, không phải phong bì → Corrupt (bỏ qua, báo, ghi lại bản trên máy); phiên bản mới hơn → để yên, không ghi đè. `CloudSync` quyết bằng `SaveSync.Choose`: giống hệt → không làm gì; máy tiến xa hơn → đẩy lên; mây tiến xa hơn hoặc mỗi bên hơn một điểm → `NeedsChoice`, gợi ý bản cấp vườn cao hơn, rồi nhiều thỏ hơn, rồi mới hơn; không bao giờ tự thay bản trên máy. Lúc nào: mở game, ra nền, mốc lớn (thêm đất, thỏ Vàng trở lên, mua ở Tiệm), hẹn giờ tối đa 180 giây một lần; nâng cấp thường không đồng bộ (test). Mất mạng: Offline, bản trên máy nguyên, lần sau thử lại (test). `MemoryCloudSave` (mây trong bộ nhớ, bật/tắt mạng) cho test, preview và bản chưa có nhà cung cấp.
+- Không mất save trên máy: `SaveStore.Backup/WriteBackup/ReadBackup` (`save.backup.json`); trước khi lấy bản trên mây, bản trên máy được chép sang sao lưu; "Khôi phục bản sao lưu trên máy" trong Hồ sơ đổi chỗ hai bản (không mất bản nào).
+- Màn hình: tấm `CloudChoice` ("Hai bản vườn khác nhau") hai cột Trên máy / Trên mây với cấp vườn, số thỏ · loài, đã chơi, lần cuối; pill "Gợi ý" và nút màu cam ở bản được gợi ý; hai nút "Giữ bản trên máy" / "Lấy bản trên mây". Hồ sơ (mục Sao lưu) thêm dòng trạng thái ("Chưa có nơi lưu mây trên bản này" / "Chưa lưu lên mây" / "Đã lưu lên mây lúc HH:mm dd/MM" / "Không có mạng…" / "Bản trên mây hỏng…" / "…bản game mới hơn…"), nút "Lưu ngay", "Khôi phục từ mây", và dòng khôi phục sao lưu trên máy khi có.
+- Save: thêm `playSeconds` (tổng thời gian chơi, cộng mỗi khung khi không tạm nghỉ; save cũ = 0), không tăng version. `SaveSummary` thêm Kinds, PlaySeconds.
+- Ảnh (docs/anh/po-38/): `38-chon-ban.png` (tấm chọn bản, mây tiến xa hơn được gợi ý), `38-ho-so-may.png` (Hồ sơ sau khi Lưu ngay).
+
+### Đã làm (đối chiếu với #38)
+- Lớp `ICloudSave` tải lên/tải xuống, thông tin bản trên mây (thời điểm, cấp vườn, số thỏ, số loài, tổng thời gian chơi): đủ (phong bì + `SaveSummary`).
+- Khi nào đồng bộ (mở game, ra nền, mốc lớn, tối đa vài phút một lần, không mỗi lần nâng cấp): đủ, có test.
+- Hai bản lệch: không tự ghi đè, tấm so hai bản, gợi ý bản tiến xa hơn: đủ, có test.
+- Không bao giờ mất save trên máy, khôi phục được trong Cài đặt: đủ (sao lưu trước khi thay; dòng khôi phục trong Hồ sơ, mở từ Tạm nghỉ).
+- Không có mạng: đủ, có test.
+- Chống gian lận nhẹ (phiên bản + mã kiểm, bản hỏng bỏ qua và báo): đủ, có test.
+- Cài đặt: trạng thái, Lưu ngay, Khôi phục từ mây: đủ (đặt ở Hồ sơ, mục Sao lưu, vì tấm Tạm nghỉ đã đầy).
+- Test lõi: chọn bản khi lệch, khứ hồi qua mây giả, bản hỏng, save cũ phiên bản thấp, mất mạng giữa chừng: đủ.
+
+### Chưa đạt so với #38
+- Chưa có nhà cung cấp thật (Game Center / Play Games là #39/#40): `Cloud` mặc định vẫn `LocalOnlyCloudSave`, mọi nút nói rõ "Chưa có nơi lưu mây trên bản này". Thử tay tấm chọn bản trên máy thật.
+
+## Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (#16; issue #49 mở trước khi có quy ước mới)
+
+- Test: 584/584 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test màn hình; 2 test cũ đổi sang `L10n.StationLevel` vì biển cấp nay mang dấu bậc.
+- Commit `f2ca812`, đã push. Comment đối chiếu trong #16 (dòng đã tick); #49 để mở cho PO đóng hoặc gộp, nhãn chờ-PO-duyệt.
+- `Economy.Ranks = {25, 100, 300}`, `Economy.Rank(level)` 0–3. `StationActorView.SetRank`: bậc 1 dây 5 đèn nhỏ xen màu treo trên đạo cụ; bậc 2 thêm hai đèn đá nhỏ hai bên và biển cấp ánh vàng; bậc 3 thêm vầng sáng sau đạo cụ thở chậm (đứng yên khi Giảm chuyển động). `L10n.StationLevel`: "Cấp 120 ✦✦" trên biển trong vườn, tấm trạm và hàng tab Trạm. Vừa qua bậc: băng rôn "Trạm lên bậc N!" (thay băng rôn ×2 ở cùng cấp), vòng sao lớn hơn, bậc mặc lên ngay không chờ refresh. Trạm chưa mở không mang bậc. Save cũ ở cấp cao mở ra đã có bậc (bậc đọc từ cấp, không lưu thêm).
+- Ảnh (docs/anh/po-49/): `49-bac-tram.png` (ấm trà bậc 1, giỏ lá bậc 2, nồi mứt bậc 3).
+
+### Chưa đạt / cần PO quyết
+- Chủ project chưa chọn kiểu: điều phối gợi ý băng cờ theo accent trạm; mình làm dây đèn/đèn đá/vầng sáng vì không cần hình mới. Đổi kiểu chỉ chạm `SetRank`. Chưa thử tay.
+
+## #41 — Bản build iOS và Android, phần chuẩn bị không cần SDK
+
+- Test: 584/584 EditMode qua. Thêm `BuildSettingsTests.cs` (4 test đọc lại cài đặt từ project).
+- Commit `b9a7a62`, đã push. #41 để mở, đã tick các ô làm được và ghi rõ phần cần chủ project; nhãn chờ-PO-duyệt + cần-chủ-project.
+- Máy này chỉ có module MacStandalone và WebGL (`PlaybackEngines`), không có iOS/Android: không build mobile được. Đã làm phần code: `BuildScript.BuildIOS` (Xcode project ở `Build/iOS`), `BuildAndroid` (APK ở `Build/Android/VuonTraTho.apk`), chung một hàm với bản Mac; thiếu module thì dừng ngay với thông báo cài module (exit 2). `tools/build.sh mac|ios|android`.
+- `ContentSeeder.ApplyMobileSettings` (chạy khi seed): bundle id `com.vuontratho.game` cho iOS và Android (cùng Standalone), `bundleVersion` 0.1.0 và số build 1 cho cả ba (`BuildScript.Version/BuildNumber`, một chỗ để tăng), chỉ dọc (tắt xoay ngang và lộn ngược), ẩn thanh trạng thái, iPhone+iPad, Android minSdk 26, IL2CPP + ARM64. Icon mặc định cho mọi nền tảng và màn hình chờ (nền đêm của art bible, hình 2 giây) từ `icon_app.png` vẽ ghép từ thỏ trắng có sẵn + trăng + đồi cỏ (docs/anh/po-41/41-icon-app.png). Icon theo từng cỡ của iOS/Android chỉ gán được khi có module (có try/catch, seed lại sau khi cài).
+- Chưa làm (cần chủ project): cài module iOS và Android qua Unity Hub cùng Xcode và Android SDK/NDK/JDK; chạy build thật; chạm thật, hiệu năng, dung lượng, TestFlight/Internal testing. Icon và màn hình chờ nên có hình vẽ riêng theo art bible thay cho bản ghép.
+
+## #10 phần 2 — Đêm đom đóm (agent song song, nhánh agent-10b)
+
+- Test: 617/617 EditMode qua trên main sau khi gộp (verify.sh: seed, 105 ảnh, biên dịch, test). Nhánh riêng 561/561: +15 test luật (`FirefliesTests.cs`), +1 màn hình.
+- Commit `1227642` (nhánh agent-10b), gộp vào main qua `e282242`, đã push. Issue #10 đã comment phần 2, nhãn chờ-PO-duyệt (cả hai trò xong về luật và màn hình). Save vẫn v14, thêm khối `fireflies` sau `leaves`; `MiniGameRecord` thêm `CloversToday`, `GoldenToday`.
+- Luật trong `Core/Fireflies.cs`: 20 giây, đàn 24 con (3 vàng) theo seed = ngày × 1000003 + số ván; mỗi con hiện trong một cửa sổ 4–7 giây, bay ngang với sóng sin riêng, vị trí là hàm thuần `PositionAt(fly, t)`; `Catch(x, y, now)` bắt con gần nhất trong bán kính 0,09, thường +1, vàng +3, trượt không mất; tối đa 30, sao 10/20/26; 3 lượt/ngày; mở ở cấp vườn 5; thưởng cà rốt = thu nhập/giây × hệ số × 20 × điểm/30; cỏ = điểm/10 (tối đa 3), 3 sao +1 cà rốt vàng; trần ngày 3 cỏ và 1 vàng, ván bị trần vẫn nhận cà rốt và tấm kết quả ghi rõ.
+- Màn hình `FirefliesView` (`Canvas/Fireflies`): màn đêm phủ vườn, đom đóm là chấm sáng đặt theo đồng hồ mỗi khung (pool 24), nhấp nháy lệch pha (tắt khi Giảm chuyển động), chạm đâu cũng tính, con bị bắt phồng rồi mờ kèm "+1" / "+3 vàng!", lọ dưới đáy sáng dần, tấm kết quả. Lọ trong vườn (`Canvas/Garden/Content/Jar`) trên gốc cây cạnh ao, biển "Đom đóm · còn N lượt" / "Mai bắt tiếp". Thành tựu `dom-3sao`, `dom-30`.
+- Ảnh (docs/anh/po-10/): `10-sau-dom-dom.png`, `10-sau-dom-dom-ket-qua.png`.
+
+### Chưa đạt
+- Chưa có hình lọ và đom đóm riêng. Chưa thử tay bán kính chạm trên máy thật.
+
+## #20 — Khách ghé vườn và đơn hàng trà (agent song song, nhánh agent-20)
+
+- Test: 617/617 EditMode qua trên main sau khi gộp. Nhánh riêng 538/538: +13 test luật (`OrdersTests.cs`), +3 màn hình.
+- Commit `f1c35a7` (nhánh agent-20), gộp vào main qua `e282242`, đã push. Issue #20 đã comment (bảng 7 ý), nhãn chờ-PO-duyệt. Save vẫn v14, thêm khối `orders`; save cũ: khách đầu đến sau 1 phút. Khi gộp, `OrdersDelivered` dời xuống cuối enum (sau các metric đom đóm) nên seed viết lại hai quest asset; dòng mở hồ sơ trong `GardenScreen` giữ lại tham số `Runner.CloudStatus` của #38.
+- Luật trong `Core/Orders.cs`: khách đầu sau 60 giây mở game, rồi mỗi 240 giây khi không có khách (đồng hồ chỉ chạy lúc đang chơi); đơn 1–2 dòng từ các trạm pha đang mở, mỗi món 1–3 (không quá một chồng ở khay); khách là một loài thỏ, loài chưa gặp nặng ×3; chờ 180 giây rồi đi, không phạt; tối đa 8 khách/ngày. Giao đủ: lấy món thường ở khay (món vàng giữ lại), trả giá bán các món + 90 giây thu nhập × hệ số, tính là đã thu; 1/3 đơn kèm 1 cỏ (quyết lúc đặt, ghi trên tấm).
+- Màn hình (`GardenScreen` vùng `#region Guests…`, `OrderView`): bé thỏ (hình đúng loài) đi từ mép trái tới trước quầy tiệm (2,4 s; Giảm chuyển động thì tức thì), bong bóng ghi món × số (xanh khi khay đủ), pill "Khách!" trên HUD (chạm: lướt tới khách, mở tấm). Tấm `Canvas/Order/Card`: chân dung, "Chờ thêm m:ss", từng dòng có/cần, phần thưởng, nút "Giao" chỉ sáng khi đủ. Giao xong: cà rốt về ví, cỏ về tab Thỏ, băng rôn "Khách hài lòng!", thỏ cúi chào rồi đi. Mở lại game khi khách đang chờ: khách đứng sẵn.
+- Nhiệm vụ: `ngay-don` "Giao 2 đơn trà cho khách" (ngày, +1 cỏ), `don-20` (+2 cỏ); `QuestMetric.OrdersDelivered` cuối enum; `DailyOrdersBase` chốt trong `RollDaily`. Đom đóm vàng (đã có) là thành viên cùng họ, không đổi code.
+- Ảnh (docs/anh/po-20/): `20-sau-khach.png`, `20-sau-don.png`.
+
+### Chưa đạt
+- Chưa thử tay trên máy thật; bong bóng chưa có hình riêng; một khách một lúc (chưa có hàng).
+
+## #45 nối hình — chày, bột, bánh, cối trống
+
+- Test: 618/618 EditMode qua. Thêm 1 test màn hình (bột → đang giã → méo một lúc sau Méo → bánh xong trên tấm kết quả; chày hạ xuống rồi về chỗ).
+- Commit `7ca9091`, đã push. Comment lên #45; nhãn chờ-PO-duyệt giữ nguyên.
+- Catalog thêm MortarEmpty, Pestle, Dough, DoughPounded, Cake, CakeDented (seed từ `prop_coi-trong`, `prop_chay`, `banh_bot`, `banh_dang-gia`, `banh_xong`, `banh_meo`). Trong ván: cối trống, chày riêng nghiêng 10° treo trên bột, hạ 60 đơn vị khi giã rồi về (hai mốc cố định); bột thô tới nhịp 15, đang giã từ nhịp 15, méo 0,6 giây sau mỗi Méo, bánh xong khi hết ván; tấm kết quả có hình bánh (xong từ 1 sao, méo khi 0 sao). Cối trong vườn vẫn `prop_coi-gia-banh`.
+- Ảnh (docs/anh/po-45/): `45-vong-chay.png`, `45-deo.png`, `45-ket-qua.png` cập nhật.
+
+## #37 nối hình — bảy món và khay gỗ
+
+- Test: 618/618 EditMode qua; test khay cũ đổi sang kiểm đúng hình món (`product_am-tra`) và đĩa gỗ (`khay_go`).
+- Commit `a7897ba`, đã push. Comment đối chiếu lên #37, nhãn chờ-PO-duyệt (mọi ý làm được bằng code đã có; còn chạm/vuốt thật).
+- Bảy `product_<id>.png` chép vào Art/Final, seed tự gán `StationData.Product`; khay dùng `khay_go` làm đĩa dưới từng món (khung khay vẫn tấm giấy chuẩn vì khay gỗ tròn không kéo dài được thành khung 5 ô).
+- Ảnh (docs/anh/po-37/): `37-khay-hinh.png`.
+
+## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
+
+### Trạng thái
+- main = origin/main (tới commit này, ngay sau `025eaf5`), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
+- `tools/verify.sh --build` xanh lúc 14:51 trên HEAD `025eaf5`: seed, 105 ảnh preview, biên dịch, 618/618 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369; mốc 06:30 là 417/417). Chưa ai bấm thử.
+- Trong ngày 22/11 ba session chạy cùng lúc: session này (code), session "Issue GitHub còn mở" (code, luân phiên checkout với session này qua tin nhắn "xong lượt"/"checkout rảnh"; làm #44 ba lượt, #33, và #19, #10 Hứng lá + Đêm đom đóm, #20 bằng agent song song trong worktree riêng `../VuonTraNam-19`, `-10a`, `-10b`, `-20` rồi gộp qua nhánh `integrate-1` `4a48d81`…`adf9827` và `integrate-2` `e282242`…`d2b1390`), và session điều phối "Agent sửa lỗi GitHub" (giao hàng đợi, không sửa Assets; vẽ hình bằng Antigravity, commit docs `8d85900`, cách vẽ ở `docs/anh/VE-BANG-ANTIGRAVITY.md`).
+- Quy ước mới của chủ project từ 22/11: không mở issue mới cho việc; dòng chưa có issue trong #16 thì comment đối chiếu vào #16, tick dòng, ghi mục ở file này. #49 (mốc trạm) mở trước khi có quy ước, để PO đóng hoặc gộp.
+- Save hiện ở v14 (`pounding`), sau đó thêm khối `leaves`, `fireflies`, `orders`, `playSeconds`, `visitorBought/Seen` không tăng version; save cũ mở lên được (test).
 
 ### Việc session này làm (sau mục 05:40)
 - `tools/verify.sh` (`822a8e9`): một lệnh kiểm hết; `--build` thêm bản Mac và đọc Player.log; đỏ là thoát khác 0.
@@ -1136,3 +1469,8 @@ Sau khi sửa cả bốn xanh.
 - Trong `GardenScreen` có thuộc tính `Profile` nên gọi lớp tĩnh phải viết `VuonTra.Core.Profile`.
 - Kịch bản `PreviewShot` đổi về `vi` cuối phần tiếng Anh nhưng không dựng lại tấm, nên vài khung cuối trộn hai ngôn ngữ trong tấm trượt; không ảnh hưởng game.
 - Lệnh test/seed/chụp/build như các mục Bàn giao trước; `tools/verify.sh` gom tất cả.
+- Hai session code trên một checkout: luân phiên bằng tin nhắn; trước khi sửa xem `list_sessions` và `git status`; Unity ở worktree khác (projectPath khác) chỉ làm verify chậm, không chặn.
+- `tools/verify.sh --build` cần Unity rảnh trên project này; `tools/build.sh mac|ios|android` cho bản chơi; thiếu module thì dừng với exit 2.
+- `StationActorView`: bậc trạm là `SetRank` (đổi kiểu hình ở một chỗ); thỏ đi tới trạm là `Traveler` trong `GardenScreen` (ẩn thỏ ở trạm tới 2,4 giây, test nào xếp thỏ rồi soi ngay cần `Advance` hoặc `Motion.SetReduced(true)`).
+- Mây: `GameRunner.Cloud` là seam (`ICloudSave`); `MemoryCloudSave` cho test/preview; không bao giờ thay save trên máy ngoài `ResolveSync`/`RestoreFromCloud`, và luôn `SaveStore.Backup()` trước.
+
