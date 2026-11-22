@@ -393,6 +393,11 @@ namespace VuonTra.Game.UI
         /// </summary>
         void OnGroundTap()
         {
+            if (SheetOpen)
+            {
+                CloseSheet(); // a touch on the garden above the sheet puts the sheet away
+                return;
+            }
             SelectStation(-1);
             Vector2 at = new Vector2(ScreenW / 2f, ScreenH / 2f);
             var mouse = UnityEngine.InputSystem.Mouse.current;
@@ -1804,12 +1809,8 @@ namespace VuonTra.Game.UI
             _sheetGroup = _sheet.AddComponent<CanvasGroup>();
             SheetOpen = false; // a rebuilt screen starts closed; RebuildUi opens it again if it was open
 
-            // A touch on the garden above the sheet closes it. Nothing is drawn here: the garden stays as it is.
-            var outside = UiKit.Rect("Outside", sheet).Stretch(0, 0, 1, 1);
-            outside.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
-            var outsideButton = outside.gameObject.AddComponent<Button>();
-            outsideButton.transition = Selectable.Transition.None;
-            outsideButton.onClick.AddListener(CloseSheet);
+            // Nothing covers the garden above the sheet: it can still be dragged, a touch on open ground closes
+            // the sheet, and a touch on a station closes it and opens that station's card.
 
             // Bottom-anchored: its height is how far it stands up, its position is the slide in and out.
             _panel = UiKit.Rect("Panel", sheet).Stretch(0, 0, 1, 0);
@@ -1968,6 +1969,12 @@ namespace VuonTra.Game.UI
             scroll.horizontal = false;
             scroll.scrollSensitivity = 40f;
             scrollRt.gameObject.AddComponent<RectMask2D>();
+            // With the list at its top, a pull down anywhere on it drags the sheet, and letting go decides.
+            var pull = scrollRt.gameObject.AddComponent<SheetPull>();
+            pull.List = scroll;
+            pull.Scale = () => { Canvas c = _canvas != null ? _canvas.GetComponent<Canvas>() : null; return c != null ? c.scaleFactor : 1f; };
+            pull.Dragged = DragSheet;
+            pull.Released = ReleaseSheet;
 
             var content = UiKit.Rect("Content", scrollRt).Stretch(0, 1, 1, 1);
             content.pivot = new Vector2(0.5f, 1f);
@@ -2065,7 +2072,7 @@ namespace VuonTra.Game.UI
                 _panel.anchoredPosition = new Vector2(0, -SheetHalf);
             }
             _sheetGroup.blocksRaycasts = true;
-            if (_scroll != null) { _scroll.StopMovement(); _scroll.enabled = false; } // the garden is moved by the sheet for now
+            if (_scroll != null) _scroll.StopMovement(); // the garden stays live under the sheet; it only lets go of its momentum
             _glideRun++;
             SlideSheet(0f, Motion.Time(Motion.Panel), Motion.Curve(Ease.OutBackLight), null);
             StaggerRows();
@@ -2622,6 +2629,7 @@ namespace VuonTra.Game.UI
 
         void OnTap(int index)
         {
+            if (SheetOpen) CloseSheet(); // the station was touched through the open garden: the sheet gives way to its card
             if (Zoom == ZoomLevel.Far)
             {
                 // From far away the station would sit behind its own card: come in to the usual zoom on it first.

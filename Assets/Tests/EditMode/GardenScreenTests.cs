@@ -405,7 +405,8 @@ namespace VuonTra.Core.Tests
             screen.Shell.StartGame();
             screen.OpenSheet(2);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
-            Find("Canvas/Sheet/Outside").onClick.Invoke();
+            Assert.IsNull(root.transform.Find("Canvas/Sheet/Outside"), "nothing covers the garden above the sheet");
+            Find("Canvas/Garden").onClick.Invoke(); // a touch on open ground
             Assert.IsFalse(screen.SheetOpen);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(root.transform.Find("Canvas/Sheet").gameObject.activeSelf);
@@ -2378,6 +2379,60 @@ namespace VuonTra.Core.Tests
             screen.SelectStation(-1);
             swipe.OnEndDrag(left);
             Assert.AreEqual(-1, screen.Selected, "no card, nothing to step");
+        }
+
+        [Test]
+        public void A_Pull_Down_Anywhere_On_A_List_At_Its_Top_Drags_The_Sheet_And_Can_Close_It()
+        {
+            screen.Shell.StartGame();
+            screen.OpenSheet(0);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            var list = root.transform.Find("Canvas/Sheet/Panel/Scroll").GetComponent<ScrollRect>();
+            var pull = list.GetComponent<SheetPull>();
+            Assert.IsNotNull(pull, "every list can pull the sheet");
+            pull.Scale = () => 1f;
+
+            // Scrolled down into the list, a drag is the list's own.
+            list.verticalNormalizedPosition = 0.5f;
+            pull.OnBeginDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -6f) });
+            pull.OnDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -300f) });
+            pull.OnEndDrag(new UnityEngine.EventSystems.PointerEventData(null));
+            Assert.IsFalse(pull.Pulling);
+            Assert.AreEqual(GardenScreen.SheetHalf, screen.SheetHeight, 0.5f, "the sheet did not move");
+            Assert.IsTrue(screen.SheetOpen);
+
+            // At the top of the list, the same drag takes the sheet down with it and closes it when let go low.
+            list.verticalNormalizedPosition = 1f;
+            pull.OnBeginDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -6f) });
+            Assert.IsTrue(pull.Pulling);
+            Assert.IsFalse(list.enabled, "the list holds still while the sheet moves");
+            pull.OnDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -400f) });
+            Assert.AreEqual(GardenScreen.SheetHalf - 400f, screen.SheetHeight, 0.5f);
+            pull.OnEndDrag(new UnityEngine.EventSystems.PointerEventData(null));
+            Assert.IsTrue(list.enabled, "and scrolls again afterwards");
+            Assert.IsFalse(screen.SheetOpen, "let go well down, the sheet closes");
+
+            // An upward drag at the top is still the list's (nothing to pull up).
+            screen.OpenSheet(0);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            list.verticalNormalizedPosition = 1f;
+            pull.OnBeginDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, 6f) });
+            Assert.IsFalse(pull.Pulling);
+        }
+
+        [Test]
+        public void The_Garden_Above_The_Sheet_Stays_Live_And_A_Touched_Station_Takes_Over_From_The_Sheet()
+        {
+            runner.State.Levels[1] = 1;
+            screen.Shell.StartGame();
+            screen.Refresh();
+            screen.OpenSheet(0);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.IsTrue(root.transform.Find("Canvas/Garden").GetComponent<ScrollRect>().enabled, "the garden can be dragged while the sheet is up");
+
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.IsFalse(screen.SheetOpen, "the sheet gives way");
+            Assert.AreEqual(0, screen.Selected, "to the station's own card");
         }
     }
 }
