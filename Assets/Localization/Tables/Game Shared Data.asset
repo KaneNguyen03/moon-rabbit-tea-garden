@@ -2635,6 +2635,14 @@ MonoBehaviour:
     m_Key: shop.gift.big.golden
     m_Metadata:
       m_Items: []
+  - m_Id: 363105828724736
+    m_Key: photo.ask.paid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 363105845501952
+    m_Key: quest.ngay-anh
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
