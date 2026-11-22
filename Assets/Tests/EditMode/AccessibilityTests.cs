@@ -567,6 +567,78 @@ namespace VuonTra.Core.Tests
             return plates;
         }
 
+        /// <summary>The child of <paramref name="street"/> that holds <paramref name="t"/>: what the garden draws in order.</summary>
+        static Transform OnStreet(Transform t, Transform street)
+        {
+            while (t != null && t.parent != street) t = t.parent;
+            return t;
+        }
+
+        [Test]
+        public void No_Decoration_On_Any_Tile_By_A_Station_Covers_Its_Level_Plate_Or_Its_Pad()
+        {
+            // #82: mushroom stools on the tile below a station drew over its plate ("Cấ…") and its "Xếp thỏ +" pad. Every
+            // kind is stood on every free tile next to a station, as the arranging mode (#54) may leave it.
+            GameState s = runner.State;
+            for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
+            s.Plots = runner.Defs.Count;
+            s.GardenXp = Garden.XpForLevel(9);
+            GardenGrid.Settle(runner.Defs, s); // every station takes its tile
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.Refresh();
+            GardenGrid grid = s.Grid;
+            var near = new List<Hex>();
+            for (int i = 0; i < runner.Defs.Count; i++)
+                foreach (Hex h in GardenGrid.Neighbours(grid.TileOf(GardenGrid.StationId(runner.Defs[i])).Value))
+                    if (grid.OccupantAt(h.Q, h.R) == null && grid.InLawn(h.Q, h.R) && !near.Contains(h)) near.Add(h);
+            Assert.Greater(near.Count, Decor.Spots, "free tiles by the stations");
+
+            var covered = new List<string>();
+            int reaching = 0;
+            foreach (DecorKind kind in Decor.Kinds)
+                for (int start = 0; start < near.Count; start += Decor.Spots)
+                {
+                    for (int n = 0; n < Decor.Spots; n++) { s.DecorSpots[n] = null; grid.Remove(GardenGrid.DecorId(n)); }
+                    for (int n = 0; n < Decor.Spots && start + n < near.Count; n++)
+                    {
+                        s.DecorSpots[n] = kind.Id;
+                        Assert.IsTrue(grid.Place(GardenGrid.DecorId(n), near[start + n].Q, near[start + n].R));
+                    }
+                    screen.RebuildUi();
+                    screen.Refresh();
+                    Layout();
+                    Transform street = root.transform.Find("Canvas/Garden/Content");
+                    // Each station's level plate and its "Xếp thỏ +" pad (the jar's, basket's and mortar's plates are not stations').
+                    var plates = new List<RectTransform>();
+                    foreach (Transform child in street)
+                    {
+                        if (!child.name.StartsWith("Station ") || !child.gameObject.activeInHierarchy) continue;
+                        foreach (string part in new[] { "Level", "Pad" })
+                        {
+                            Transform t = child.Find(part);
+                            if (t != null && t.gameObject.activeInHierarchy) plates.Add((RectTransform)t);
+                        }
+                    }
+                    Assert.GreaterOrEqual(plates.Count, runner.Defs.Count, "every station's plate was measured");
+                    for (int n = 0; n < Decor.Spots && start + n < near.Count; n++)
+                    {
+                        var item = (RectTransform)street.Find("Spot " + n + "/Item");
+                        Assert.IsTrue(item.gameObject.activeInHierarchy, kind.Id + " stands on spot " + n);
+                        Rect art = WorldRect(item);
+                        foreach (RectTransform plate in plates)
+                        {
+                            if (!art.Overlaps(WorldRect(plate))) continue;
+                            reaching++;
+                            if (OnStreet(item, street).GetSiblingIndex() > OnStreet(plate, street).GetSiblingIndex())
+                                covered.Add(kind.Id + " at " + near[start + n].Q + "," + near[start + n].R + " covers " + Path(plate));
+                        }
+                    }
+                }
+            Assert.Greater(reaching, 0, "some decoration reaches a plate or a pad, so the drawing order is what keeps them readable");
+            Assert.IsEmpty(covered, covered.Count + " covered:\n" + string.Join("\n", covered));
+        }
+
         [Test]
         public void The_Guest_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot()
         {

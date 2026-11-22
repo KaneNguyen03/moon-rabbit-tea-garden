@@ -353,6 +353,7 @@ namespace VuonTra.Game.UI
             _energyButton.FaceRect.localScale = Vector3.one * (_energyReady ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
 
             Tweens.Update(dt);
+            SyncFronts(); // after the arranging mode's glides moved a station this frame
             PlaceTabBar();
             ShowTabBar(dt);
             if (Arrival != null) Arrival.Update(dt);
@@ -510,7 +511,7 @@ namespace VuonTra.Game.UI
             if (_zoomMark != null) _zoomMark.text = _shownZoom == ZoomLevel.Far ? "–" : (_shownZoom == ZoomLevel.Near ? "+" : "");
             for (int i = 0; i < _actors.Count; i++)
             {
-                Transform plate = _actors[i].Root.Find("Level");
+                Transform plate = _actors[i].Plate;
                 if (plate != null) plate.gameObject.SetActive(_shownZoom != ZoomLevel.Far);
             }
             if (Runner != null && Runner.State != null && _built) RefreshStreet(Runner.Defs, Runner.State);
@@ -1260,6 +1261,7 @@ namespace VuonTra.Game.UI
                 actor.Root.Place(0f, 0f, spot.x, spot.y, 440, 360);
                 actor.BaseScale = StationSize(i);
                 actor.Root.localScale = Vector3.one * StationSize(i);
+                actor.SyncFront();
                 // Every station's level reads at the same size, clear of the rabbit's feet and the prop.
                 actor.PlacePlate(0.78f / StationSize(i), new Vector2(0, -26f));
                 _actors.Add(actor);
@@ -1458,6 +1460,9 @@ namespace VuonTra.Game.UI
             BuildDecorSpots(catalog, standing);
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
+            // Every station's front (its level plate and "Xếp thỏ +" button) over everything that stands, so a decoration
+            // on a neighbouring tile never covers them, wherever things are arranged (#82).
+            foreach (StationActorView actor in _actors) actor.Front.SetAsLastSibling();
 
             BuildFireflies(catalog);
             CenterOn(StationSpot(0));
@@ -3750,6 +3755,13 @@ namespace VuonTra.Game.UI
             if (ProductTray.Root.gameObject.activeSelf != trayShown) ProductTray.Root.gameObject.SetActive(trayShown);
             RefreshAdSeams();
             RefreshLayout(s);
+            SyncFronts();
+        }
+
+        /// <summary>Each station's front follows its station: place, size and whether it is shown (#82).</summary>
+        void SyncFronts()
+        {
+            for (int i = 0; i < _actors.Count; i++) _actors[i].SyncFront();
         }
 
         void RefreshEnergy(GameState s, bool boosting)
@@ -6835,6 +6847,7 @@ namespace VuonTra.Game.UI
             if (index >= 0)
             {
                 l.Actor = _actors[index];
+                l.Actor.Front.SetAsLastSibling(); // and its plate over itself, where it always is
                 l.BaseScale = l.Actor.BaseScale;
                 l.Actor.BaseScale = l.BaseScale * 1.06f; // the actor keeps its own scale every frame from this
             }
