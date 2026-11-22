@@ -1131,6 +1131,7 @@ Sau khi sửa cả bốn xanh.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
 - #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
 - Hai chỗ chữ bị che (`ac9a9d0`, sau verify --build; verify thường xanh 618/618): thanh Trà lực ngắn lại (288, kết thúc trước tấm nút góc) nên "Tăng tốc!" đọc đủ; giỏ Hứng lá nhỏ lại (110×95), dời sang phải (StationSpot(giỏ lá) + (104, 130)) và biển của nó treo bên trái (240 rộng, một dòng), không còn đè "Mở rộng vườn" hay tên trạm; ảnh `docs/anh/po-37/37-khay-hinh.png` cập nhật.
+- Nhãn tăng tốc đè số Trà lực (`994a396`, verify thường xanh 626/626): tên và đếm ngược mỗi bên một nửa hàng trên của thanh, cùng co chữ về một dòng (min 16/14); test 4 trường hợp vi/en × thường/chữ to đo hai ô không giao nhau và mỗi chữ vừa nửa của nó ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-tang-toc-sau.png`.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`, `po-49`, `po-41`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
