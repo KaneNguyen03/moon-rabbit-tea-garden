@@ -18,7 +18,7 @@ MonoBehaviour:
   Station: {fileID: 0}
   Target: 1
   Daily: 0
-  RewardSeconds: 60
+  RewardSeconds: 6
   RewardCarrots: 100
   RewardClovers: 0
   RewardGolden: 3
