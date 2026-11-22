@@ -3102,6 +3102,83 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Jar_Opens_The_Firefly_Night_From_Garden_Level_Five_And_A_Finished_Night_Is_Paid_Under_The_Days_Caps()
+        {
+            runner.State.Coins = new BigNum(1000);
+            screen.Shell.StartGame();
+            runner.State.GardenXp = Garden.XpForLevel(4);
+            screen.Refresh();
+            GameObject jar = root.transform.Find("Canvas/Garden/Content/Jar").gameObject;
+            Assert.IsFalse(jar.activeSelf, "no jar at garden level four, where the basket is already out");
+            Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Basket").gameObject.activeSelf);
+            runner.State.GardenXp = Garden.XpForLevel(5);
+            screen.Refresh();
+            Assert.IsTrue(jar.activeSelf);
+            Assert.AreEqual(L10n.T("jar.plays", 3), jar.transform.Find("Plate/Text").GetComponent<Text>().text);
+
+            Find("Canvas/Garden/Content/Jar").onClick.Invoke();
+            Assert.IsTrue(screen.Jar.IsOpen);
+            Assert.IsFalse(screen.Basket.IsOpen);
+            Assert.IsFalse(screen.Pound.IsOpen);
+            Assert.AreEqual(2, Fireflies.PlaysLeft(runner.State, runner.TodayNumber), "a play is spent on starting");
+            Assert.AreEqual(3, Leaves.PlaysLeft(runner.State, runner.TodayNumber), "and none of the basket's");
+            FirefliesRun run = screen.Jar.Run;
+            Assert.AreEqual(Fireflies.SeedFor(runner.TodayNumber, 0), run.Seed, "the first night");
+            Transform field = root.transform.Find("Canvas/Fireflies/Field");
+            Assert.IsFalse(field.Find("Fly 0").gameObject.activeSelf, "nothing is out before the lead");
+
+            // Play it through under reduced motion: every fly tapped where it is just after it appears.
+            Motion.SetReduced(true);
+            BigNum before = runner.State.Coins;
+            foreach (Firefly fly in run.Schedule)
+            {
+                screen.Advance((float)(fly.Appears + 0.2 - screen.Jar.Time));
+                Assert.IsTrue(field.Find("Fly " + fly.Index).gameObject.activeSelf, "the fly is drawn while it is out");
+                Assert.AreEqual(Vector3.one, field.Find("Fly " + fly.Index).localScale, "no pulse with reduced motion");
+                FlySpot spot = Fireflies.PositionAt(fly, screen.Jar.Time);
+                screen.Jar.Tap((float)spot.X, (float)spot.Y);
+                Assert.IsTrue(run.IsCaught(fly.Index));
+            }
+            Assert.AreEqual(Fireflies.MaxScore, run.Score);
+            Assert.AreEqual(L10n.T("fireflies.score", Fireflies.MaxScore), root.transform.Find("Canvas/Fireflies/Score").GetComponent<Text>().text);
+            Assert.IsFalse(root.transform.Find("Canvas/Fireflies/Result").gameObject.activeSelf, "the clock still runs");
+            for (int i = 0; i < 20; i++) screen.Advance(0.5f);
+            Assert.IsTrue(root.transform.Find("Canvas/Fireflies/Result").gameObject.activeSelf, "the result card is up");
+            Assert.AreEqual(1, runner.State.Fireflies.Games, "paid once");
+            Assert.AreEqual(0, runner.State.Leaves.Games);
+            Assert.Greater(runner.State.Coins.ToDouble(), before.ToDouble());
+            Assert.AreEqual(Fireflies.CloversMost, runner.State.Clovers, "a full night brings the most clovers");
+            Assert.AreEqual(1, runner.State.GoldenCarrots, "and three stars a golden carrot");
+            Assert.AreEqual("★★★", root.transform.Find("Canvas/Fireflies/Result/Card/Stars").GetComponent<Text>().text);
+            string extra = root.transform.Find("Canvas/Fireflies/Result/Card/Extra").GetComponent<Text>().text;
+            StringAssert.Contains(L10n.T("fireflies.clovers", Fireflies.CloversMost), extra);
+            StringAssert.Contains(L10n.T("fireflies.goldenCarrot"), extra);
+            StringAssert.DoesNotContain(L10n.T("fireflies.capped"), extra, "nothing was held back");
+            Find("Canvas/Fireflies/Result/Card/Done").onClick.Invoke();
+            Assert.IsFalse(screen.Jar.IsOpen);
+            Assert.AreEqual(L10n.T("jar.plays", 2), jar.transform.Find("Plate/Text").GetComponent<Text>().text);
+
+            // The second full night of the day: the caps hold the clovers and the golden carrot back, and the card says so.
+            Find("Canvas/Garden/Content/Jar").onClick.Invoke();
+            Assert.IsTrue(screen.Jar.IsOpen);
+            run = screen.Jar.Run;
+            foreach (Firefly fly in run.Schedule)
+            {
+                screen.Advance((float)(fly.Appears + 0.2 - screen.Jar.Time));
+                FlySpot spot = Fireflies.PositionAt(fly, screen.Jar.Time);
+                screen.Jar.Tap((float)spot.X, (float)spot.Y);
+            }
+            Assert.AreEqual(Fireflies.MaxScore, run.Score);
+            for (int i = 0; i < 20; i++) screen.Advance(0.5f);
+            Assert.IsTrue(root.transform.Find("Canvas/Fireflies/Result").gameObject.activeSelf);
+            Assert.AreEqual(Fireflies.CloversMost, runner.State.Clovers, "the day's clovers are given");
+            Assert.AreEqual(1, runner.State.GoldenCarrots, "and so is the day's golden carrot");
+            StringAssert.Contains(L10n.T("fireflies.capped"), root.transform.Find("Canvas/Fireflies/Result/Card/Extra").GetComponent<Text>().text);
+            Find("Canvas/Fireflies/Result/Card/Done").onClick.Invoke();
+            Assert.AreEqual(L10n.T("jar.plays", 1), jar.transform.Find("Plate/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
         public void A_Rabbit_Put_To_Work_Walks_From_Its_Seat_To_The_Station_Unless_Motion_Is_Reduced()
         {
             screen.Shell.StartGame();

@@ -99,6 +99,9 @@ namespace VuonTra.EditorTools
                 // The leaf-catching game (#10).
                 new Q { Id = "la-3sao",   Title = "Hứng lá 3 sao lần đầu",           Metric = QuestMetric.LeavesThreeStar, Target = 1,  Seconds = 600,  Carrots = 1000, Clovers = 2 },
                 new Q { Id = "la-30",     Title = "Hứng lá 30 ván",                  Metric = QuestMetric.LeavesGames,     Target = 30, Seconds = 1800, Carrots = 3000, Clovers = 3 },
+                // The firefly night (#10).
+                new Q { Id = "dom-3sao",  Title = "Bắt đom đóm 3 sao lần đầu",       Metric = QuestMetric.FirefliesThreeStar, Target = 1,  Seconds = 600,  Carrots = 1000, Clovers = 2 },
+                new Q { Id = "dom-30",    Title = "Bắt đom đóm 30 đêm",              Metric = QuestMetric.FirefliesGames,     Target = 30, Seconds = 1800, Carrots = 3000, Clovers = 3 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)

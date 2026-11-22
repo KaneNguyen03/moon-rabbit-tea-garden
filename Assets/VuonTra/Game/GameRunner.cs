@@ -363,6 +363,22 @@ namespace VuonTra.Game
             return result;
         }
 
+        /// <summary>Spends one of today's firefly plays and hands back the night, seeded by the day and the games so far; null when none is left.</summary>
+        public FirefliesRun StartFireflies()
+        {
+            if (!Fireflies.Start(State, Today)) return null;
+            Changed();
+            return FirefliesRun.FromSeed(Fireflies.SeedFor(Today, State.Fireflies.Games));
+        }
+
+        /// <summary>Pays a finished firefly night.</summary>
+        public FirefliesResult FinishFireflies(FirefliesRun run)
+        {
+            FirefliesResult result = Fireflies.Finish(Defs, State, Mods, run);
+            Changed();
+            return result;
+        }
+
         /// <summary>Makes the next rabbit the player's avatar; null when there are none.</summary>
         public Rabbit NextAvatar()
         {

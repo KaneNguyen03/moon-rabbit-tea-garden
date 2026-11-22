@@ -1783,6 +1783,78 @@ MonoBehaviour:
     m_Key: quest.la-30
     m_Metadata:
       m_Items: []
+  - m_Id: 214123932540928
+    m_Key: fireflies.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706752
+    m_Key: fireflies.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706753
+    m_Key: fireflies.score
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706754
+    m_Key: fireflies.time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706755
+    m_Key: fireflies.plain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706756
+    m_Key: fireflies.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706757
+    m_Key: fireflies.quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706758
+    m_Key: fireflies.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706759
+    m_Key: fireflies.result
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706760
+    m_Key: fireflies.caught
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706761
+    m_Key: fireflies.reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706762
+    m_Key: fireflies.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706763
+    m_Key: fireflies.goldenCarrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706764
+    m_Key: fireflies.capped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706765
+    m_Key: jar.plays
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706766
+    m_Key: jar.tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706767
+    m_Key: quest.dom-3sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706768
+    m_Key: quest.dom-30
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

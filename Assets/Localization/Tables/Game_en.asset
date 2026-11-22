@@ -1790,6 +1790,78 @@ MonoBehaviour:
     m_Localized: Catch leaves thirty times
     m_Metadata:
       m_Items: []
+  - m_Id: 214123932540928
+    m_Localized: Firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706752
+    m_Localized: Tap the fireflies as they cross the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706753
+    m_Localized: '{0} points'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706754
+    m_Localized: '{0} s left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706755
+    m_Localized: +1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706756
+    m_Localized: +3 golden!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706757
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706758
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706759
+    m_Localized: The jar is lit!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706760
+    m_Localized: '{0} caught'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706761
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706762
+    m_Localized: +{0} clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706763
+    m_Localized: +1 golden carrot (three stars)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706764
+    m_Localized: Today's cap is reached; more tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706765
+    m_Localized: "Fireflies \xB7 {0} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706766
+    m_Localized: More tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706767
+    m_Localized: First three-star firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 214123957706768
+    m_Localized: Catch fireflies thirty nights
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
