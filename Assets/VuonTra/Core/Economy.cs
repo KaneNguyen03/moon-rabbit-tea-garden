@@ -24,6 +24,18 @@ namespace VuonTra.Core
             return m;
         }
 
+        /// <summary>The levels at which a station visibly changes rank: bunting, stone lanterns, then a golden halo (#49).</summary>
+        public static readonly int[] Ranks = { 25, 100, 300 };
+
+        /// <summary>How many of the three visible ranks a station of this level has reached, 0 to 3.</summary>
+        public static int Rank(int level)
+        {
+            int rank = 0;
+            for (int i = 0; i < Ranks.Length; i++)
+                if (level >= Ranks[i]) rank++;
+            return rank;
+        }
+
         /// <summary>The next milestone above this level, or 0 when none is left.</summary>
         public static int NextMilestone(int level)
         {

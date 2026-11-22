@@ -164,7 +164,69 @@ namespace VuonTra.EditorTools
             PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = true;
             // Fixes where saves live on desktop; changing it later would orphan existing saves.
-            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Standalone, "com.vuontratho.game");
+            PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Standalone, BuildScript.BundleId);
+            ApplyMobileSettings();
+        }
+
+        /// <summary>
+        /// What the phone builds need before anyone can build them (#41): the same bundle id on both stores, the
+        /// version and build number, portrait only, the app icon and the splash screen from the game's own art.
+        /// Nothing here needs the iOS or Android module to be installed; the builds themselves do.
+        /// </summary>
+        static void ApplyMobileSettings()
+        {
+            var ios = UnityEditor.Build.NamedBuildTarget.iOS;
+            var android = UnityEditor.Build.NamedBuildTarget.Android;
+            PlayerSettings.SetApplicationIdentifier(ios, BuildScript.BundleId);
+            PlayerSettings.SetApplicationIdentifier(android, BuildScript.BundleId);
+            PlayerSettings.bundleVersion = BuildScript.Version;
+            PlayerSettings.iOS.buildNumber = BuildScript.BuildNumber.ToString();
+            PlayerSettings.Android.bundleVersionCode = BuildScript.BuildNumber;
+            PlayerSettings.macOS.buildNumber = BuildScript.BuildNumber.ToString();
+
+            // Portrait only: the garden is a tall scroll, and the HUD and tab bar are laid out for it (#23, #33).
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
+            PlayerSettings.allowedAutorotateToPortrait = true;
+            PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
+            PlayerSettings.allowedAutorotateToLandscapeLeft = false;
+            PlayerSettings.allowedAutorotateToLandscapeRight = false;
+            PlayerSettings.statusBarHidden = true;
+            PlayerSettings.iOS.targetDevice = iOSTargetDevice.iPhoneAndiPad;
+            PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
+            PlayerSettings.SetScriptingBackend(ios, ScriptingImplementation.IL2CPP);
+            PlayerSettings.SetScriptingBackend(android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+
+            // The icon: the moon rabbit on its hill under the moon. The default icon serves every platform
+            // that has no icon of its own; the phone stores take it from here and make their sizes.
+            var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FinalArt.Folder + "/icon_app.png");
+            if (icon != null)
+            {
+                PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
+                foreach (UnityEditor.Build.NamedBuildTarget platform in new[] { ios, android })
+                {
+                    // Per-size icons exist only once the platform's module is installed; without it this is a no-op.
+                    try
+                    {
+                        foreach (PlatformIconKind kind in PlayerSettings.GetSupportedIconKinds(platform))
+                        {
+                            PlatformIcon[] icons = PlayerSettings.GetPlatformIcons(platform, kind);
+                            foreach (PlatformIcon slot in icons) slot.SetTextures(icon);
+                            PlayerSettings.SetPlatformIcons(platform, kind, icons);
+                        }
+                    }
+                    catch (System.Exception e) { Debug.Log("[VuonTra] Icon " + platform.TargetName + ": " + e.Message + " (cài module rồi seed lại)"); }
+                }
+            }
+
+            // The splash: the night of the bible behind the same picture, two seconds, then the game.
+            var splash = AssetDatabase.LoadAssetAtPath<Sprite>(FinalArt.Folder + "/icon_app.png");
+            PlayerSettings.SplashScreen.show = true;
+            PlayerSettings.SplashScreen.showUnityLogo = true; // the licence decides; left on so a Personal licence builds
+            PlayerSettings.SplashScreen.backgroundColor = VuonTra.Game.UI.Palette.Night;
+            PlayerSettings.SplashScreen.drawMode = PlayerSettings.SplashScreen.DrawMode.AllSequential;
+            PlayerSettings.SplashScreen.unityLogoStyle = PlayerSettings.SplashScreen.UnityLogoStyle.LightOnDark;
+            if (splash != null) PlayerSettings.SplashScreen.logos = new[] { PlayerSettings.SplashScreenLogo.Create(2f, splash) };
         }
     }
 }

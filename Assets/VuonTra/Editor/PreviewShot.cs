@@ -73,6 +73,16 @@ namespace VuonTra.EditorTools
             screen.LookAt(new Vector2(540f, 2800f));
             Step(screen, 0.3f);
             Capture(screen, "34-nen-tren");
+            // Station ranks (#49): the basket at rank 2 and the jam pot at rank 3 beside the rank-1 teapot.
+            state.Levels[1] = 100;
+            state.Levels[2] = 300;
+            screen.Refresh();
+            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+            Step(screen, 0.3f);
+            Capture(screen, "49-bac-tram");
+            state.Levels[1] = 12;
+            state.Levels[2] = 9;
+            screen.Refresh();
             screen.LookAt(GardenScreen.StationSpot(0));
             Step(screen, 0.3f);
             // A payout: two carrots fly from the teapot to the purse, three frames 0.15 s apart.

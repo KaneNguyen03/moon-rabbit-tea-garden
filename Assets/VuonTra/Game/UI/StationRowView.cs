@@ -134,7 +134,7 @@ namespace VuonTra.Game.UI
                 BigNum cost = Economy.CostOfNext(d, level, count);
                 int toNext = Economy.NextMilestone(level);
                 int prev = Economy.PreviousMilestone(level);
-                _level.text = L10n.T("station.level", level);
+                _level.text = L10n.StationLevel(level);
                 _levelChip.color = Palette.Moss;
                 bool capped = count <= 0; // level 500: nothing left to buy
                 canAfford = !capped && s.Coins >= cost;

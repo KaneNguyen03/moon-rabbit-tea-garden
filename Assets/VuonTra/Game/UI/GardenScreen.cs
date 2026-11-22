@@ -1513,7 +1513,7 @@ namespace VuonTra.Game.UI
             int i = Selected, level = s.Levels[i];
             bool needsPlot = i >= s.Plots;
             _cardName.text = L10n.Station(defs[i].Id);
-            _cardLevel.text = needsPlot ? L10n.T("station.empty") : (level <= 0 ? L10n.T("row.locked") : L10n.T("station.level", level));
+            _cardLevel.text = needsPlot ? L10n.T("station.empty") : (level <= 0 ? L10n.T("row.locked") : L10n.StationLevel(level));
             // Green would read as "all good"; a station that is not open yet is a quiet grey-purple.
             _cardLevelChip.color = level <= 0 || needsPlot ? Palette.Mix(Palette.Night, Palette.Paper, 0.45f) : Palette.Moss;
 
@@ -3269,6 +3269,7 @@ namespace VuonTra.Game.UI
             {
                 StationLook look = i >= s.Plots ? StationLook.Land : (s.Levels[i] <= 0 ? StationLook.Unbuilt : StationLook.Open);
                 _actors[i].SetLook(look, s.Levels[i], defs[i].Kind == StationKind.Brew);
+                _actors[i].SetRank(look == StationLook.Open ? Economy.Rank(s.Levels[i]) : 0);
                 if (look == StationLook.Land)
                 {
                     _actors[i].SetSign(L10n.T("land.expand"), Expansion.CanExpand(defs, s));
@@ -3587,6 +3588,7 @@ namespace VuonTra.Game.UI
             GameState s = Runner.State;
             int before = s.Levels[index];
             double multiplierBefore = Economy.MilestoneMultiplier(before);
+            int rankBefore = Economy.Rank(before);
             if (!Runner.Buy(index)) return;
 
             _rows[index].Buy.Press(Tweens);
@@ -3603,6 +3605,15 @@ namespace VuonTra.Game.UI
             {
                 Sfx.Unlock();
                 Feel.Moment(L10n.T("moment.unlock"), L10n.Station(catalog.Stations[index].Id));
+            }
+            else if (Economy.Rank(after) > rankBefore)
+            {
+                // A new rank: the station now looks different for good, so this moment names the rank, not just the doubling.
+                Sfx.Milestone();
+                Haptics.Medium();
+                _actors[index].SetRank(Economy.Rank(after)); // worn at once, not on the next refresh
+                Feel.Moment(L10n.T("moment.rank.title", Economy.Rank(after)), L10n.T("moment.rank.sub", L10n.Station(catalog.Stations[index].Id), after));
+                if (OnScreen(actor)) Feel.Burst(Feel.PointOf(actor, new Vector2(0, 60)), catalog.Round, new[] { Palette.Lantern, Palette.Paper, Palette.Blush }, 18, 520f, 24f);
             }
             else if (Economy.MilestoneMultiplier(after) > multiplierBefore)
             {

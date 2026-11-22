@@ -40,6 +40,10 @@ namespace VuonTra.Game.UI
         StationLook _look = StationLook.Open;
         Vector2 _rabbitHome, _chipHome;
         GameObject _upArrow, _dozeBubble, _halo;
+        /// <summary>What a station of rank 1, 2 and 3 wears (#49): bunting, two stone lanterns, a breathing halo.</summary>
+        GameObject _bunting, _rankLanterns, _rankHalo;
+        RectTransform _rankHaloRect;
+        int _rank;
         Image _hatImage, _charmImage;
         bool _guest, _haloWanted, _signBob;
         int _level = -1;
@@ -85,10 +89,42 @@ namespace VuonTra.Game.UI
             _ground = ground.gameObject;
             _ground.SetActive(false);
 
+            // Rank 3: a warm halo behind the prop; it sits right after the station's own glow, under everything else.
+            var rankHalo = UiKit.Rect("RankHalo", Root).Place(0.5f, 0.5f, 112, -30, 320, 320);
+            rankHalo.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.6f));
+            rankHalo.SetSiblingIndex(_glowRect.GetSiblingIndex() + 1);
+            _rankHaloRect = rankHalo;
+            _rankHalo = rankHalo.gameObject;
+            _rankHalo.SetActive(false);
+
             _prop = UiKit.Rect("Prop", Root).Place(0.5f, 0.5f, 112, -122, 168, 168);
             _prop.pivot = new Vector2(0.5f, 0f);
             _propImage = _prop.AddImage(data.Prop, Color.white);
             _propImage.preserveAspect = true;
+
+            // Rank 2: two small stone lanterns either side of the prop.
+            var lanterns = UiKit.Rect("RankLanterns", Root).Place(0.5f, 0.5f, 112, -122, 0, 0);
+            foreach (float lx in new[] { -98f, 98f })
+            {
+                var lantern = UiKit.Rect("Lantern", lanterns).Place(0.5f, 0.5f, lx, 0, 44, 64);
+                lantern.pivot = new Vector2(0.5f, 0f);
+                Image lanternImage = lantern.AddImage(catalog.StoneLantern != null ? catalog.StoneLantern : catalog.Round, Color.white);
+                lanternImage.preserveAspect = true;
+            }
+            _rankLanterns = lanterns.gameObject;
+            _rankLanterns.SetActive(false);
+
+            // Rank 1: a string of five little lights hung above the prop, sagging in the middle.
+            var bunting = UiKit.Rect("Bunting", Root).Place(0.5f, 0.5f, 112, 66, 230, 40);
+            Color[] bulbs = { Palette.Lantern, Palette.Blush, Palette.Paper, Palette.Moss, Palette.Lantern };
+            for (int k = 0; k < bulbs.Length; k++)
+            {
+                float bx = -92f + k * 46f, by = k == 0 || k == 4 ? 10f : (k == 2 ? -10f : -2f);
+                UiKit.Rect("Bulb " + k, bunting).Place(0.5f, 0.5f, bx, by, 36, 36).AddImage(catalog.Glow, Palette.Alpha(bulbs[k], 0.7f));
+                UiKit.Rect("Core " + k, bunting).Place(0.5f, 0.5f, bx, by, 14, 14).AddImage(catalog.Round, bulbs[k]);
+            }
+            _bunting = bunting.gameObject;
+            _bunting.SetActive(false);
 
             // A warm light behind a gold or red rabbit, so a dark coat does not sink into the night grass.
             var halo = UiKit.Rect("Halo", Root).Place(0.5f, 0.5f, -76, 16, 330, 330);
@@ -191,12 +227,12 @@ namespace VuonTra.Game.UI
                 if (_level < 0 || level < _level || was != look)
                 {
                     _shownLevel = level;
-                    _label.text = L10n.T("station.level", level);
+                    _label.text = L10n.StationLevel(level);
                 }
                 else if (level != _level) _levelRun = (level - _shownLevel) / Motion.Time(Motion.Panel);
                 _level = level;
                 _label.color = Palette.Ink;
-                _chip.color = Palette.Paper;
+                _chip.color = ChipColor();
                 _signBob = false;
             }
             else _level = -1;
@@ -238,6 +274,22 @@ namespace VuonTra.Game.UI
             Show(_charmImage, _guest ? charm : null);
             ShowWho();
         }
+
+        /// <summary>The station's visible rank (#49): 0 plain, 1 bunting, 2 stone lanterns and a golden plate, 3 a halo too. Only an open station shows any.</summary>
+        public void SetRank(int rank)
+        {
+            _rank = rank;
+            bool open = _look == StationLook.Open;
+            if (_bunting.activeSelf != (open && rank >= 1)) _bunting.SetActive(open && rank >= 1);
+            if (_rankLanterns.activeSelf != (open && rank >= 2)) _rankLanterns.SetActive(open && rank >= 2);
+            if (_rankHalo.activeSelf != (open && rank >= 3)) _rankHalo.SetActive(open && rank >= 3);
+            if (open) _chip.color = ChipColor();
+        }
+
+        public int Rank => _rank;
+
+        /// <summary>The level plate: paper, or paper warmed with gold from rank 2.</summary>
+        Color ChipColor() => _rank >= 2 ? Palette.Mix(Palette.Paper, Palette.Lantern, 0.5f) : Palette.Paper;
 
         /// <summary>True while one of the player's rabbits stands here.</summary>
         public bool HasGuest => _guest;
@@ -364,8 +416,10 @@ namespace VuonTra.Game.UI
             if (open && _shownLevel < _level)
             {
                 _shownLevel = Mathf.Min(_level, _shownLevel + _levelRun * deltaTime);
-                _label.text = L10n.T("station.level", Mathf.FloorToInt(_shownLevel));
+                _label.text = L10n.StationLevel(Mathf.FloorToInt(_shownLevel));
             }
+            // The rank-3 halo breathes slowly, between fixed sizes; still under reduced motion.
+            if (_rankHalo.activeSelf) _rankHaloRect.localScale = Vector3.one * (Motion.Reduced ? 1f : 1f + 0.06f * Mathf.Sin(time * 1.1f + _index));
             // The empty pad breathes a little, so it reads as something waiting rather than part of the ground.
             if (_pad.gameObject.activeSelf) _pad.localScale = Vector3.one * (1f + 0.03f * Mathf.Sin(time * 2.2f + _index));
             // A price sign that can be paid bobs on its spot; everything else about it stays put.

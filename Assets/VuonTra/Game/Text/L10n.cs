@@ -72,6 +72,15 @@ namespace VuonTra.Game
         public static string Full(this BigNum value) => value.ToFullString(Code.StartsWith("en", StringComparison.Ordinal) ? ',' : '.');
 
         public static string Station(string id) => T("station." + id);
+
+        /// <summary>"Cấp 120 ✦✦": the level, then one mark per rank reached (25, 100, 300), the same on the plate, the card and the row.</summary>
+        public static string StationLevel(int level) => T("station.level", level) + RankMarks(level);
+
+        public static string RankMarks(int level)
+        {
+            int rank = Economy.Rank(level);
+            return rank > 0 ? " " + new string('✦', rank) : "";
+        }
         public static string Tier(int tier) => T("tier." + tier);
         /// <summary>The tier's name followed by its stars, "Vàng ★★★★★": rarity that reads without colour.</summary>
         public static string Rarity(int tier) => Tier(tier) + " " + VuonTra.Core.Rarity.Marks(tier);
