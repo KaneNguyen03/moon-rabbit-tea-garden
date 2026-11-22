@@ -1,4 +1,4 @@
-# Bản iOS: Game Center và iCloud (#39, #41)
+# Bản iOS: Game Center, iCloud và mua cà rốt vàng (#39, #41, #9)
 
 Máy đang dùng chỉ có module Mac và WebGL, nên phần dưới đây là việc chủ project làm trên máy có module iOS và Xcode. Code đã sẵn: `Assets/VuonTra/Game/Platform/` (Game Center, iCloud key-value store, nối vào `GameRunner`), plugin native `Assets/Plugins/iOS/CloudKvs.mm`, và bước hậu kỳ Xcode `IOSCapabilities` trong `Assets/VuonTra/Editor/BuildScript.cs`.
 
@@ -41,3 +41,13 @@ Nếu bước này không chạy (xem `Logs/build-ios.log` thiếu dòng `[VuonT
 - iCloud key-value store: 1 MB cho cả store và 1 MB cho một khoá (Apple đếm 1 000 000 byte). Game dùng một khoá `vuontra.save`. Test `PlatformTests.A_Full_Garden_Wrapped_For_The_Cloud_Stays_Far_Under_The_iCloud_Limit` dựng vườn tối đa (12 ô đất, 12 trạm cấp 500, 60 thỏ có đồ, album 12 ảnh, mọi nhiệm vụ, đơn hàng, trang trí) và buộc phong bì dưới 512 KB; kích thước đo được ghi trong `TestResults.xml` (output của test).
 - Bản lưu vượt giới hạn: không gửi, dòng mây ghi "Bản lưu quá lớn cho iCloud, chưa gửi lên", bản trên máy nguyên.
 - Game Center không có đăng xuất: "bỏ liên kết" chỉ quên trên máy (`GameCenterAccount.Unlink`), chưa có nút trên màn hình.
+
+## 5. Mua cà rốt vàng bằng tiền thật (#9)
+
+Code đã có: `Core/Storefront.cs` (ba gói consumable `vuontra.golden.50`, `vuontra.golden.150` (gói hời), `vuontra.golden.500`), `Game/Store/UnityStorefront.cs` (Unity IAP 4.15, chỉ biên dịch khi có `UNITY_PURCHASING` và nền iOS/Android; `GameRunner` lắp nó trên máy thật, còn editor, test và bản Mac dùng cửa hàng giả với giá giữ chỗ).
+
+1. **App Store Connect → ứng dụng → In-App Purchases**: tạo ba sản phẩm **Consumable** với đúng ba Product ID trên (phân biệt hoa thường), tên, mô tả, giá theo bậc; thêm ảnh xét duyệt. Ký **Paid Apps Agreement** trong Agreements, Tax, and Banking, nếu chưa thì cửa hàng trả lỗi "chưa sẵn sàng" và thẻ "Mua cà rốt vàng" ghi không tải được giá.
+2. **Capability In-App Purchase** trên App ID (Apple tự bật cho app có IAP; kiểm trong Xcode → Signing & Capabilities).
+3. **Unity**: Window → Services → In-App Purchasing phải bật và đúng project Unity Gaming Services (gói `com.unity.purchasing` 4.15.0 đã có trong `Packages/manifest.json`).
+4. **Xác minh biên lai**: Services → In-App Purchasing → **Receipt Validation Obfuscator**, dán Google Play public key (lấy ở bước Android), bấm Obfuscate: Unity sinh `GooglePlayTangle` và `AppleTangle` vào `Assets/`. Rồi thêm define **`RECEIPT_VALIDATION`** (Player Settings → Scripting Define Symbols, cho iOS và Android) để `TangleReceiptCheck` được biên dịch và thay `AcceptAllReceipts`. Chưa có tangle thì để nguyên define tắt: mọi biên lai được chấp nhận (chỉ dùng khi thử).
+5. **Thử sandbox**: tạo Sandbox Tester trong Users and Access, đăng nhập tài khoản đó trong Cài đặt → App Store → Sandbox Account trên máy thử; mua một gói, thấy cà rốt vàng cộng đúng một lần; đóng app giữa chừng rồi mở lại: giao dịch dang dở tự giao (`Delivered`); "Khôi phục mua hàng" không cộng lặp (save nhớ 64 mã giao dịch gần nhất).

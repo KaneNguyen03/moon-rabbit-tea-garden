@@ -1,4 +1,4 @@
-# Bản build Android: Google Play Games và Saved Games (#40)
+# Bản build Android: Google Play Games, Saved Games và mua cà rốt vàng (#40, #9)
 
 Phần code của #40 đã có trên nhánh `agent-40`; máy phát triển hiện không có module Android nên **chưa chạy thử trên máy thật**. Trang này ghi đúng những việc chủ project phải làm để bản Android đăng nhập Play Games và lưu vườn lên Saved Games.
 
@@ -48,3 +48,12 @@ Xung đột snapshot giữa hai máy: `OpenWithAutomaticConflictResolution` vớ
 - Ảnh chụp vườn là PNG toàn màn hình, thường quá 800 KB; khi đó snapshot không có ảnh bìa. Nếu muốn luôn có bìa thì cần thu nhỏ ảnh trước khi gửi.
 - Thành tựu và bảng xếp hạng (phần "về sau" của #40) chưa làm.
 - Tài khoản đăng nhập lặng không tính là "liên kết" để nhận quà 3 cỏ bốn lá; chỉ nút Liên kết trong Hồ sơ mới trả quà, như luật của #38.
+
+## 5. Mua cà rốt vàng bằng tiền thật (#9)
+
+Code đã có: `Core/Storefront.cs` (ba gói consumable `vuontra.golden.50`, `vuontra.golden.150` (gói hời), `vuontra.golden.500`), `Game/Store/UnityStorefront.cs` (Unity IAP 4.15, chỉ biên dịch khi có `UNITY_PURCHASING` và nền iOS/Android; `GameRunner` lắp nó trên máy thật, còn editor, test và bản Mac dùng cửa hàng giả với giá giữ chỗ).
+
+1. **Play Console → Monetize → Products → In-app products**: tạo ba sản phẩm với đúng ba Product ID trên, tên, mô tả, giá; **Activate** từng cái. Cần tài khoản thanh toán (Payments profile) đã liên kết.
+2. **Google Play public key**: Monetize → Monetization setup → **Licensing**, chép khoá Base64 RSA. Trong Unity: Services → In-App Purchasing → **Receipt Validation Obfuscator**, dán khoá, Obfuscate → sinh `GooglePlayTangle`/`AppleTangle`; rồi thêm define **`RECEIPT_VALIDATION`** (Player Settings → Scripting Define Symbols) để biên lai được kiểm; chưa có tangle thì define tắt và mọi biên lai được chấp nhận (chỉ khi thử).
+3. **Build và thử**: sản phẩm chỉ mua được từ bản tải qua Play (Internal testing là đủ), cùng tài khoản là **License tester** (Settings → License testing) để không bị tính tiền thật. Kiểm: giá hiện đúng tiền tệ trên thẻ "Mua cà rốt vàng"; mua một gói cộng đúng một lần; đóng app giữa chừng rồi mở lại: giao dịch dang dở tự giao; "Khôi phục mua hàng" không cộng lặp.
+4. Gói `com.unity.purchasing` 4.15.0 đã có trong `Packages/manifest.json`; không cần EDM4U cho IAP (Unity IAP tự mang thư viện Billing).
