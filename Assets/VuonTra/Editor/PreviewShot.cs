@@ -670,6 +670,7 @@ namespace VuonTra.EditorTools
             RenderRestShare(runner, screen);
             RenderChatter(runner, screen);
             RenderAlbumSets(runner, screen);
+            RenderMoonJars(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -890,6 +891,43 @@ namespace VuonTra.EditorTools
             screen.ShowRabbitAlbum(false);
             screen.CloseSheet();
             Step(screen, 1.6f);
+        }
+
+        /// <summary>#64: the purse's card with three moon jars and the button that opens one, then the jar on the shop's shelf.</summary>
+        static void RenderMoonJars(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 60, 30, 18, 12 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 8;
+            s.RestSpots = 3;
+            s.GardenXp = Garden.XpForLevel(12);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.6e6);
+            s.GoldenCarrots = 30;
+            s.MoonJars = 3;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.4f);
+            Press(screen, "Canvas/Hud/Purse");
+            Step(screen, 0.4f);
+            Capture(screen, "64-vi-hu");
+            screen.Income.Close();
+            // One jar bought today already: two left, and the price on the chip.
+            s.MoonJarBuyDay = runner.TodayNumber;
+            s.MoonJarsBoughtToday = 1;
+            screen.OpenShop();
+            screen.Refresh();
+            Step(screen, 0.5f);
+            Capture(screen, "64-ke-hu");
+            screen.Shop.Close();
+            Step(screen, 0.4f);
         }
 
         /// <summary>A brand-new garden for the guidance frames: the first step, then the card step, then the sheet step.</summary>

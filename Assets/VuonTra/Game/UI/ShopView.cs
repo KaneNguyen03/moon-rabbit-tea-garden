@@ -48,12 +48,19 @@ namespace VuonTra.Game.UI
         /// <summary>The lantern colour dots: each a button, each with a ring that shows when its colour is hung.</summary>
         readonly List<Button> _lanternDots = new List<Button>();
         readonly List<GameObject> _lanternRings = new List<GameObject>();
+        /// <summary>The moon jar on the shelf (#64), at the far end of the decorations' row: the same two taps buy it.</summary>
+        sealed class JarTile { public Button Button; public Image Plate, PriceChip; public Text Price, LeftText; public GameObject Left; }
+        JarTile _jar;
+        readonly Action _onBuyJar;
+        public const string JarKey = "jar";
         /// <summary>How tall the sheet stands: everything down to the note on where golden carrots come from, under the HUD.</summary>
         public const float Height = 1770f;
 
         public ShopView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<long> today, Func<double> hoursLeft, Action onGift, Action onGoldenSummon, Action onBuyVisitor,
-            IReadOnlyList<ItemDef> items = null, Action<string> onBuyItem = null, Action<string> onBuyDecor = null, Action<int> onLanternColor = null, Action onBuyMore = null)
+            IReadOnlyList<ItemDef> items = null, Action<string> onBuyItem = null, Action<string> onBuyDecor = null, Action<int> onLanternColor = null, Action onBuyMore = null,
+            Action onBuyJar = null)
         {
+            _onBuyJar = onBuyJar;
             _catalog = catalog;
             _today = today;
             _hoursLeft = hoursLeft;
@@ -280,7 +287,81 @@ namespace VuonTra.Game.UI
                 _decor.Add(tile);
             }
 
+            _jar = BuildJar(decorRow, catalog, tileW, tileH);
+
             UiKit.Rect("Earn", card).Stretch(0, 1, 1, 1, 40, -1730, 40, 1650).AddText(L10n.T("shop.earn"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+        }
+
+        /// <summary>The moon jar's tile (#64): the jar, its name, its price chip, and how many the shop still sells today.</summary>
+        JarTile BuildJar(RectTransform row, GameCatalog catalog, float tileW, float tileH)
+        {
+            var tile = new JarTile();
+            var rt = UiKit.Rect("Jar", row).Place(1f, 0.5f, -15f - tileW / 2f, 0, tileW, tileH);
+            tile.Plate = rt.AddImage(catalog.Panel, Palette.Mix(Palette.Paper, Palette.Lantern, 0.25f), true);
+            tile.Plate.raycastTarget = true;
+            tile.Button = rt.gameObject.AddComponent<Button>();
+            tile.Button.transition = Selectable.Transition.None;
+            tile.Button.targetGraphic = tile.Plate;
+            tile.Button.onClick.AddListener(OnJarTap);
+            IncomeView.JarIcon(rt, catalog, "Icon", 100f, 0.5f, 1f, 0, -66);
+            Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -138, tileW - 12f, 32).AddText(L10n.T("shop.jar.name"), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            name.resizeTextForBestFit = true;
+            name.resizeTextMinSize = 11;
+            name.resizeTextMaxSize = UiKit.Scaled(18);
+            name.horizontalOverflow = HorizontalWrapMode.Wrap;
+            name.verticalOverflow = VerticalWrapMode.Truncate;
+            var price = UiKit.Rect("Price", rt).Place(0.5f, 0f, 0, 30, tileW - 24f, 40);
+            tile.PriceChip = price.AddImage(catalog.Panel, Palette.Lantern, true);
+            float priceInset = 8f;
+            if (catalog.GoldenCarrot != null)
+            {
+                UiKit.Rect("Carrot", price).Place(0f, 0.5f, 20, 0, 26, 26).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
+                priceInset = 34f;
+            }
+            tile.Price = UiKit.Rect("Text", price).Stretch(0, 0, 1, 1, priceInset, 0, 6, 0).AddText(MoonJars.Price.ToString(), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            tile.Price.resizeTextForBestFit = true;
+            tile.Price.resizeTextMinSize = 11;
+            tile.Price.resizeTextMaxSize = UiKit.TextSmall;
+            // How many the shop still sells today, as a small moss badge over the top corner, like the decorations' count.
+            var left = UiKit.Rect("Left", rt).Place(0f, 1f, 50, -22, 96, 32);
+            left.AddImage(catalog.Panel, Palette.Moss, true);
+            tile.LeftText = UiKit.Rect("Text", left).Stretch(0, 0, 1, 1, 4, 0, 4, 0).AddText("", 16, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            tile.LeftText.resizeTextForBestFit = true;
+            tile.LeftText.resizeTextMinSize = 10;
+            tile.LeftText.resizeTextMaxSize = UiKit.Scaled(16);
+            tile.Left = left.gameObject;
+            return tile;
+        }
+
+        /// <summary>The jar's tile tapped: the same two taps as a hat or a decoration, sharing the one asking tile.</summary>
+        void OnJarTap()
+        {
+            bool confirmed = _armed == JarKey && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
+            _armed = confirmed ? null : JarKey;
+            _armedAt = Time.realtimeSinceStartup;
+            Sfx.Click();
+            if (confirmed) { if (_onBuyJar != null) _onBuyJar(); }
+            else if (_last != null) RefreshJar(_last, _today());
+        }
+
+        /// <summary>The price while one can be bought, "Kệ đầy" while the shelf is full, "Mai mua tiếp" once today's three are sold; hidden below garden level 3.</summary>
+        void RefreshJar(GameState s, long day)
+        {
+            _last = s;
+            // Like the purse's button, the jar waits for garden level 3: nothing strange for a new player.
+            bool shown = MoonJars.Shown(s);
+            if (_jar.Button.gameObject.activeSelf != shown) _jar.Button.gameObject.SetActive(shown);
+            if (!shown) return;
+            MoonJars.BuyCheck check = MoonJars.CanBuy(s, day);
+            bool can = check == MoonJars.BuyCheck.Ok;
+            bool armed = can && _armed == JarKey && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
+            _jar.Button.interactable = can;
+            _jar.LeftText.text = L10n.T("shop.jar.left", MoonJars.BuyLeft(s, day), MoonJars.BuyPerDay);
+            _jar.Price.text = check == MoonJars.BuyCheck.Full ? L10n.T("shop.jar.full")
+                : check == MoonJars.BuyCheck.SoldOut ? L10n.T("shop.jar.soldout")
+                : armed ? L10n.T("shop.hats.confirm") : MoonJars.Price.ToString();
+            _jar.PriceChip.color = armed ? Palette.Carrot : (can ? Palette.Lantern : Palette.Track);
+            _jar.Plate.color = armed ? Palette.Mix(Palette.Paper, Palette.Lantern, 0.5f) : Palette.Mix(Palette.Paper, Palette.Lantern, 0.25f);
         }
 
         /// <summary>
@@ -488,6 +569,7 @@ namespace VuonTra.Game.UI
             _odds.text = OddsText();
             RefreshHats(s);
             RefreshDecor(s);
+            RefreshJar(s, day);
         }
     }
 }

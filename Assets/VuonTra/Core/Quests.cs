@@ -72,6 +72,8 @@ namespace VuonTra.Core
         public double RewardCarrots;
         public int RewardClovers;
         public int RewardGolden;
+        /// <summary>Moon jars (#64), each in place of a clover: the day's free jar when it can still come, the clover when it cannot.</summary>
+        public int RewardJars;
         /// <summary>A quest of a season shows only while that season runs (#8); None is every day.</summary>
         public Season Season;
     }
@@ -190,6 +192,12 @@ namespace VuonTra.Core
             return bySeconds > flat ? bySeconds : flat;
         }
 
+        /// <summary>Moon jars a claim would pay now (#64): one at most, the day's free jar, while it can still come (from garden level 15).</summary>
+        public static int JarsNow(QuestDef q, GameState s) => q.RewardJars > 0 && MoonJars.DailyWaiting(s, s.DailyDay) ? 1 : 0;
+
+        /// <summary>Clovers a claim would pay now: its own, and one for each of its jars that cannot come.</summary>
+        public static int CloversNow(QuestDef q, GameState s) => q.RewardClovers + q.RewardJars - JarsNow(q, s);
+
         /// <summary>Pays a finished quest once. Rewards are a gift, so they do not count as earned carrots.</summary>
         public static bool TryClaim(QuestDef q, IReadOnlyList<StationDef> defs, GameState s, Modifiers m, out BigNum paid)
         {
@@ -197,7 +205,9 @@ namespace VuonTra.Core
             if (!CanClaim(q, defs, s)) return false;
             paid = RewardOf(q, defs, s, m);
             s.Coins += paid;
-            s.Clovers += q.RewardClovers;
+            int clovers = CloversNow(q, s);
+            if (JarsNow(q, s) > 0) MoonJars.GiveFree(s, s.DailyDay);
+            s.Clovers += clovers;
             s.GoldenCarrots += q.RewardGolden;
             s.Claimed.Add(q.Id);
             Garden.AddXp(s, Garden.XpQuest);

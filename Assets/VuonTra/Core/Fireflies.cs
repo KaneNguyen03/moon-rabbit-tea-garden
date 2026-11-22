@@ -33,6 +33,8 @@ namespace VuonTra.Core
         public int Score, Stars;
         public BigNum Carrots;
         public int Clovers, Golden;
+        /// <summary>The moon jar (#64) the day's three-star prize became, in place of the golden carrot: 0 or 1.</summary>
+        public int Jars;
         /// <summary>Clovers or the golden carrot were earned but the day's cap held some or all of them back.</summary>
         public bool CloversCapped, GoldenCapped;
     }
@@ -122,7 +124,7 @@ namespace VuonTra.Core
         public const double RewardSeconds = 20d;
         /// <summary>The prize is clovers: one for every ten points, three at most, and three a day in all.</summary>
         public const int PointsPerClover = 10, CloversMost = 3, CloverCapPerDay = 3;
-        /// <summary>Three stars bring a golden carrot, once a day.</summary>
+        /// <summary>Three stars bring a golden carrot, once a day; the day's free moon jar in its place while that can still come, from garden level 15 (#64).</summary>
         public const int GoldenForThreeStars = 1, GoldenCapPerDay = 1;
 
         /// <summary>A number in [0, 1) from the seed and a salt, the same every time it is asked for.</summary>
@@ -239,9 +241,12 @@ namespace VuonTra.Core
             s.Clovers += result.Clovers;
 
             int golden = result.Stars >= 3 ? GoldenForThreeStars : 0;
-            result.Golden = Math.Min(golden, Math.Max(0, GoldenCapPerDay - record.GoldenToday));
-            result.GoldenCapped = golden > result.Golden;
-            record.GoldenToday += result.Golden;
+            int prize = Math.Min(golden, Math.Max(0, GoldenCapPerDay - record.GoldenToday));
+            result.GoldenCapped = golden > prize;
+            record.GoldenToday += prize;
+            // The day's three-star prize is the day's free moon jar while that can still come (#64, from garden level 15); otherwise the golden carrot as before.
+            if (prize > 0 && MoonJars.DailyWaiting(s, record.Day) && MoonJars.GiveFree(s, record.Day)) result.Jars = 1;
+            else result.Golden = prize;
             s.GoldenCarrots += result.Golden;
 
             if (result.Stars >= 1) record.StarToday = true;

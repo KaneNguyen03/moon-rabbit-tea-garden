@@ -143,6 +143,12 @@ namespace VuonTra.Core
         public int PacksBought;
         public List<string> PaidTransactions = new List<string>();
 
+        /// <summary>Moon jars (#64): how many are on the shelf (at most <see cref="VuonTra.Core.MoonJars.Cap"/>); the day the shop last sold one and how many it sold that day; the day the one free jar a day was last given.</summary>
+        public int MoonJars;
+        public long MoonJarBuyDay = -1;
+        public int MoonJarsBoughtToday;
+        public long MoonJarFreeDay = -1;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

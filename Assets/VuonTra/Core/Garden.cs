@@ -50,7 +50,7 @@ namespace VuonTra.Core
             return Math.Max(0d, Math.Min(1d, into / XpToNext(level)));
         }
 
-        /// <summary>Adds experience; each level gained brings its clover. Returns how many levels were gained.</summary>
+        /// <summary>Adds experience; each level gained brings its clover, every fifth golden carrots, every tenth a moon jar. Returns how many levels were gained.</summary>
         public static int AddXp(GameState s, double amount)
         {
             if (!(amount > 0d)) return 0;
@@ -61,6 +61,8 @@ namespace VuonTra.Core
             {
                 s.Clovers += gained * CloversPerLevel;
                 s.GoldenCarrots += Shop.GoldenForLevels(before, Level(s)); // every fifth level brings golden carrots
+                // Every tenth level brings the day's free moon jar (#64), when it has not come today and the shelf has room.
+                if (MoonJars.TenthLevels(before, Level(s)) > 0) MoonJars.GiveFree(s, s.DailyDay);
             }
             return gained;
         }

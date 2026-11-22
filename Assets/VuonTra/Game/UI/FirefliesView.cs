@@ -269,6 +269,7 @@ namespace VuonTra.Game.UI
             var extra = new List<string>(3);
             if (result.Clovers > 0) extra.Add(L10n.T("fireflies.clovers", result.Clovers));
             if (result.Golden > 0) extra.Add(L10n.T("fireflies.goldenCarrot"));
+            if (result.Jars > 0) extra.Add(L10n.T("fireflies.jar"));
             if (result.CloversCapped || result.GoldenCapped) extra.Add(L10n.T("fireflies.capped"));
             _resultExtra.text = string.Join("\n", extra);
             _result.SetActive(true);

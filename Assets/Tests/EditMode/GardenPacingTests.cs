@@ -25,6 +25,15 @@ namespace VuonTra.Core.Tests
         int summoned;
         /// <summary>How the simulated player plays: taps a second, seconds between purchases, seconds between looking at quests.</summary>
         int tapsPerSecond = 1, buyEvery = 3, buysAtOnce = 1, questEvery = 30;
+        /// <summary>
+        /// Moon jars (#64): the player opens every jar the moment the purse shows them (garden level 3), the plainest rule.
+        /// With <see cref="OldRules"/> the game is played as before jars: the harvest quest pays its clover and no jar is opened.
+        /// </summary>
+        bool openJars = true;
+        long today = 1;
+        int jarsHeld, jarsOpened;
+        BigNum earnedJars;
+        readonly Dictionary<long, int> freeJars = new Dictionary<long, int>();
 
         [SetUp]
         public void SetUp()
@@ -42,7 +51,52 @@ namespace VuonTra.Core.Tests
             summoned = 0;
             for (int i = 0; i < 4; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
             trace.Clear();
+            openJars = true;
+            today = 1;
+            jarsHeld = jarsOpened = 0;
+            earnedJars = BigNum.Zero;
+            freeJars.Clear();
             Quests.RollDaily(quests, defs, s, 1, mods);
+        }
+
+        /// <summary>The game as it was before moon jars (#64): the harvest quest's clover, and jars never opened.</summary>
+        void OldRules()
+        {
+            openJars = false;
+            foreach (QuestDef quest in quests)
+                if (quest.RewardJars > 0) { quest.RewardClovers += quest.RewardJars; quest.RewardJars = 0; }
+        }
+
+        /// <summary>Counts the jars that came since the last look (all free here: this player buys none) and opens them while the purse shows them.</summary>
+        void Jars()
+        {
+            if (s.MoonJars > jarsHeld)
+            {
+                freeJars.TryGetValue(today, out int n);
+                freeJars[today] = n + s.MoonJars - jarsHeld;
+            }
+            while (openJars && MoonJars.Shown(s) && s.MoonJars > 0)
+            {
+                earnedJars += MoonJars.Open(defs, s, mods);
+                jarsOpened++;
+            }
+            jarsHeld = s.MoonJars;
+        }
+
+        int MostFreeJarsInADay()
+        {
+            int most = 0;
+            foreach (int n in freeJars.Values) if (n > most) most = n;
+            return most;
+        }
+
+        string JarLine()
+        {
+            int got = 0;
+            foreach (int n in freeJars.Values) got += n;
+            double total = s.TotalEarned.ToDouble() + earnedJars.ToDouble();
+            return "Hũ trăng (#64): nhận " + got + " hũ miễn phí (nhiều nhất " + MostFreeJarsInADay() + " trong một ngày), mở " + jarsOpened + " hũ = "
+                + earnedJars.ToShortString() + " cà rốt (" + (total > 0 ? System.Math.Round(earnedJars.ToDouble() / total * 1000d) / 10d : 0d) + " % so với cà rốt kiếm được), còn " + s.MoonJars + " hũ";
         }
 
         /// <summary>One second of an attentive player: a few taps, then spend on the cheapest useful thing.</summary>
@@ -84,6 +138,7 @@ namespace VuonTra.Core.Tests
 
             if ((int)clock % questEvery == 0)
                 foreach (QuestDef quest in quests) Quests.TryClaim(quest, defs, s, mods, out _);
+            Jars();
             // Every clover calls a rabbit, and nobody is ever merged away: the plainest way to play.
             bool called = false;
             while (s.Clovers >= Rabbits.SummonCost)
@@ -185,25 +240,23 @@ namespace VuonTra.Core.Tests
             Assert.Pass(report.ToString());
         }
 
-        [Test]
-        public void A_Casual_Player_Reaches_Level_Five_In_About_Ten_Minutes_And_Ten_In_A_Day_Without_Waiting_On_Rabbits()
+        /// <summary>
+        /// The casual player's week: on the first day twenty minutes at the start, then four visits of five minutes, two
+        /// hours apart; on days two to seven three visits of five minutes each, dailies renewed each morning.
+        /// </summary>
+        void CasualWeek(System.Action endOfDayOne = null)
         {
-            // The first day: twenty minutes at the start, then four visits of five minutes, two hours apart.
             Play(20 * 60);
             for (int visit = 0; visit < 4; visit++)
             {
                 Away(2 * 3600);
                 Play(5 * 60);
             }
-            int levelDayOne = Garden.Level(s);
-            double activeDayOne = (20 + 4 * 5) * 60;
-            int rabbitsDayOne = s.Rabbits.Count, kindsDayOne = s.SeenKinds.Count, plotsDayOne = s.Plots;
-            List<AlbumSet> setsDayOne = AlbumSets.Completed(s); // the album's sets (#61)
-
-            // Days two to seven: three visits of five minutes each, dailies renewed each morning.
+            endOfDayOne?.Invoke();
             for (int day = 2; day <= 7; day++)
             {
                 Away(8 * 3600);
+                today = day;
                 Quests.RollDaily(quests, defs, s, day, mods);
                 for (int visit = 0; visit < 3; visit++)
                 {
@@ -211,6 +264,20 @@ namespace VuonTra.Core.Tests
                     Away(2 * 3600);
                 }
             }
+        }
+
+        [Test]
+        public void A_Casual_Player_Reaches_Level_Five_In_About_Ten_Minutes_And_Ten_In_A_Day_Without_Waiting_On_Rabbits()
+        {
+            int levelDayOne = 0, rabbitsDayOne = 0, kindsDayOne = 0, plotsDayOne = 0;
+            double activeDayOne = (20 + 4 * 5) * 60;
+            List<AlbumSet> setsDayOne = null;
+            CasualWeek(() =>
+            {
+                levelDayOne = Garden.Level(s);
+                rabbitsDayOne = s.Rabbits.Count; kindsDayOne = s.SeenKinds.Count; plotsDayOne = s.Plots;
+                setsDayOne = AlbumSets.Completed(s); // the album's sets (#61)
+            });
 
             var report = new StringBuilder();
             report.AppendLine("Người chơi thong thả (1 chạm/giây, 3 giây mua một lần thứ rẻ nhất, 30 giây xem nhiệm vụ một lần, không ghép thỏ)");
@@ -222,6 +289,7 @@ namespace VuonTra.Core.Tests
             report.AppendLine("Sổ thỏ: cuối ngày 1 đủ " + setsDayOne.Count + " bộ (" + string.Join(", ", setsDayOne.ConvertAll(x => x.Key)) + "), cuối ngày 7 đủ " + AlbumSets.Completed(s).Count + " bộ (" + string.Join(", ", AlbumSets.Completed(s).ConvertAll(x => x.Key)) + ")");
             for (int w = 0; w < 4; w++)
                 report.AppendLine("  đợt " + (w + 1) + ": đủ cấp lúc " + Clock(waveLevelAt[w]) + ", đủ thỏ lúc " + Clock(waveRabbitsAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
+            report.AppendLine(JarLine() + "; mở ngay khi ví cho mở (cấp vườn 3)");
             report.AppendLine("Diễn biến:");
             report.Append(trace);
             System.IO.Directory.CreateDirectory("Logs");
@@ -240,6 +308,41 @@ namespace VuonTra.Core.Tests
                 // Rabbits must be ready by the time the level is; a short lag while a quest is claimed is fine.
                 Assert.LessOrEqual(waveRabbitsAt[w] - waveLevelAt[w], 300, "wave " + (w + 1) + " waited on rabbits");
             }
+        }
+
+        /// <summary>
+        /// Moon jars (#64): the casual week played twice, as before jars and with them opened the moment the purse shows
+        /// them. The free sources bring at most one a day, and level 10 comes no more than a fifth sooner.
+        /// </summary>
+        [Test]
+        public void Moon_Jars_Come_Free_At_Most_One_A_Day_And_Bring_Level_Ten_No_More_Than_A_Fifth_Sooner()
+        {
+            OldRules();
+            CasualWeek();
+            double tenBefore = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            double fiveBefore = levelAt.ContainsKey(5) ? levelAt[5] : -1;
+            int summonedBefore = summoned;
+            Assert.AreEqual(0, jarsOpened);
+
+            SetUp();
+            CasualWeek();
+            double tenAfter = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            double fiveAfter = levelAt.ContainsKey(5) ? levelAt[5] : -1;
+            string report = "Trước hũ: cấp 5 lúc " + Clock(fiveBefore) + ", cấp 10 lúc " + Clock(tenBefore) + ", gọi " + summonedBefore + " thỏ.\n"
+                + "Có hũ: cấp 5 lúc " + Clock(fiveAfter) + ", cấp 10 lúc " + Clock(tenAfter) + ", gọi " + summoned + " thỏ.\n" + JarLine();
+            TestContext.WriteLine(report);
+            Assert.GreaterOrEqual(tenBefore, 0, report);
+            Assert.GreaterOrEqual(tenAfter, 0, report);
+            Assert.GreaterOrEqual(tenAfter, 0.8 * tenBefore, "level 10 no more than a fifth sooner\n" + report);
+            Assert.Greater(jarsOpened, 0, "the casual player does get jars\n" + report);
+            Assert.LessOrEqual(MostFreeJarsInADay(), MoonJars.FreePerDay, "at most one free jar a day\n" + report);
+
+            // The tireless player's day, too.
+            SetUp();
+            tapsPerSecond = 3; buyEvery = 1; buysAtOnce = 4; questEvery = 1;
+            Play(20 * 60);
+            for (int visit = 0; visit < 4; visit++) { Away(2 * 3600); Play(5 * 60); }
+            Assert.LessOrEqual(MostFreeJarsInADay(), MoonJars.FreePerDay, "the tireless player too\n" + JarLine());
         }
     }
 }
