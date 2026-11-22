@@ -684,6 +684,7 @@ namespace VuonTra.EditorTools
             RenderAdSeams(runner, screen);
             RenderForestRings(runner, screen); // #53
             RenderLayout(runner, screen);
+            RenderPond(runner, screen); // #58b
             RenderQaNits2(); // #79–#82, on a freshly opened scene so the title shows again
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
@@ -1518,6 +1519,82 @@ namespace VuonTra.EditorTools
             rt.GetWorldCorners(c);
             Vector3 a = street.InverseTransformPoint(c[0]), b = street.InverseTransformPoint(c[2]);
             return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        /// <summary>
+        /// #58b the moon pond: the pond and its plate in the garden, its card waiting for a cast, the float going under, a
+        /// caught fish on its way to the basket, a rabbit's sheet just after "Cho ăn", the ten-heart banner, and the tile's badge.
+        /// </summary>
+        static void RenderPond(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(5);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbit may = Rabbits.Arrive(s, 1, "Mây", 0.4);
+            s.FreshKinds.Clear();
+            s.Fish[0] = 3; s.Fish[1] = 2; s.Fish[2] = 1; s.Fish[3] = 1;
+            const long now = 1_800_000_000L;
+            s.Baits = 3;
+            s.BaitAt = now - 300; // the next bait in 19 minutes
+            runner.Init(s);
+            runner.FishingClock = () => now;
+            screen.Raining = () => false;
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(GardenScreen.PondSpot + new Vector2(-120f, -300f));
+            Step(screen, 3f); // the garden level's banner comes and goes first
+            Capture(screen, "58-ao-vuon");
+
+            screen.OpenFishing();
+            Step(screen, 0.6f);
+            Capture(screen, "58-ao-cho");
+            screen.FishingCard.Cast();
+            for (int k = 0; k < 400 && runner.Cast != null && runner.Cast.Phase != CastPhase.Sinking; k++) screen.Advance(1f / 30f);
+            Step(screen, 0.2f);
+            Capture(screen, "58-phao-chim");
+            screen.FishingCard.TapWater();
+            Step(screen, FishingView.ShowSeconds + FishingView.FlySeconds * 0.45f);
+            Capture(screen, "58-ca-bay");
+            Step(screen, 1f);
+            Capture(screen, "58-ca-trong-gio");
+            screen.FishingCard.Close();
+            Step(screen, 0.4f);
+
+            may.Affection = 25;
+            screen.Detail.Open(defs, s, may.Id);
+            screen.Refresh();
+            Step(screen, 0.5f);
+            Press(screen, "Canvas/RabbitSheet/Card/Body/Feed");
+            Step(screen, 0.2f);
+            Capture(screen, "58-cho-an");
+            Step(screen, 1.2f);
+            Capture(screen, "58-cho-an-sau");
+
+            may.Affection = Rabbits.AffectionMax - 10;
+            s.Fish[5] = 1;
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Press(screen, "Canvas/RabbitSheet/Card/Body/Feed");
+            Step(screen, 0.4f);
+            Capture(screen, "58-tim-10-bang");
+            Step(screen, 2.5f);
+            screen.Detail.Close();
+            Step(screen, 0.4f);
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            Capture(screen, "58-tim-10-o");
+            screen.CloseSheet();
+            screen.Raining = null;
+            Step(screen, 0.4f);
         }
     }
 }

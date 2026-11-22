@@ -55,6 +55,9 @@ namespace VuonTra.Game.UI
             _banner.gameObject.SetActive(false);
         }
 
+        /// <summary>Lifts the layer over every card opened so far, so what it shows reads over a rabbit's open sheet (#58b).</summary>
+        public void BringToFront() => _root.SetAsLastSibling();
+
         /// <summary>Where a UI object sits, in this layer's coordinates.</summary>
         public Vector2 PointOf(RectTransform target, Vector2 offset = default)
         {

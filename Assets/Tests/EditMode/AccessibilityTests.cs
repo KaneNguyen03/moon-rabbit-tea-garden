@@ -154,6 +154,12 @@ namespace VuonTra.Core.Tests
             Layout();
             measure("shop");
             screen.Shop.Close();
+            // The moon pond's card (#58b); the Feed button on a rabbit's sheet is measured on its own below.
+            screen.OpenFishing();
+            screen.Refresh();
+            Layout();
+            measure("pond");
+            screen.FishingCard.Close();
             screen.Shell.OpenPause();
             Layout();
             measure("pause");
@@ -297,6 +303,91 @@ namespace VuonTra.Core.Tests
             screen.Detail.Close();
             Assert.AreEqual(2 * RabbitKinds.All.Count, pills);
             Assert.IsEmpty(wrong, wrong.Count + " pills run onto a second line in " + code + (large ? " (large text)" : "") + ":\n" + string.Join("\n", wrong));
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Pond_Card_The_Feed_Button_And_The_Heart_Badge_Read_On_One_Line_And_Are_Big_Enough(string code, bool large)
+        {
+            // #58b: every line the pond's card and the Feed button can show, in both languages and large text.
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            const long now = 1_800_000_000L;
+            runner.FishingClock = () => now;
+            runner.State.Baits = 0;
+            runner.State.BaitAt = now; // no bait: the countdown is out
+            Rabbit r = Rabbits.Arrive(runner.State, 3, "Thỏ Tím Rất Dài Tên", 0.5);
+            Rabbit full = Rabbits.Arrive(runner.State, 0, "Mây", 0.2);
+            full.Affection = Rabbits.AffectionMax;
+            for (int i = 0; i < Fishing.Kinds; i++) runner.State.Fish[i] = 12;
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.OpenFishing();
+            screen.Refresh();
+            Layout();
+            var wrong = new List<string>();
+            var small = new HashSet<string>();
+            void Check(Text text) { string bad = OneLine(text); if (bad != null) wrong.Add(bad); }
+            Transform card = root.transform.Find("Canvas/Pond/Card");
+            foreach (Text text in card.GetComponentsInChildren<Text>(false)) if (!string.IsNullOrEmpty(text.text)) Check(text);
+            foreach (Button button in card.GetComponentsInChildren<Button>(false)) Measure(button, small);
+            Text status = card.Find("Status").GetComponent<Text>();
+            foreach (string key in new[] { "pond.hint", "pond.wait", "pond.sink", "pond.early", "pond.lost", "fish.nobait" })
+            {
+                status.text = L10n.T(key);
+                Check(status);
+            }
+            for (int i = 0; i < Fishing.Kinds; i++)
+            {
+                status.text = L10n.T("pond.caught", L10n.T("fish." + i)) + " · " + L10n.T("fish.points", Fishing.Points[i]);
+                Check(status);
+            }
+            status.text = L10n.T("pond.lost") + " · " + L10n.T("fish.nobait");
+            Check(status);
+            Text cast = card.Find("Cast/Face/Text").GetComponent<Text>();
+            foreach (string key in new[] { "pond.cast", "pond.casting", "pond.nobait" })
+            {
+                cast.text = L10n.T(key);
+                Check(cast);
+            }
+            Text plate = root.transform.Find("Canvas/Garden/Content/PondTap/Plate/Text").GetComponent<Text>();
+            plate.text = L10n.T("pond.plate", 5, 5);
+            Check(plate);
+            screen.FishingCard.Close();
+
+            screen.Detail.Open(runner.Defs, runner.State, r.Id);
+            screen.Refresh();
+            Layout();
+            Transform feed = root.transform.Find("Canvas/RabbitSheet/Card/Body/Feed");
+            Measure(feed.GetComponent<Button>(), small);
+            Check(feed.Find("Face/Top").GetComponent<Text>());
+            Text sub = feed.Find("Face/Sub").GetComponent<Text>(), points = feed.Find("Face/Points").GetComponent<Text>();
+            for (int i = 0; i < Fishing.Kinds; i++)
+            {
+                sub.text = L10n.T("feed.with", L10n.T("fish." + i), 12);
+                Check(sub);
+                points.text = L10n.T("feed.points", Fishing.Points[i]);
+                Check(points);
+            }
+            Rect top = WorldRect(feed.Find("Face/Top").GetComponent<RectTransform>()), pts = WorldRect(points.rectTransform);
+            if (top.Overlaps(pts)) wrong.Add("the Feed button's word runs into its points");
+            foreach (string key in new[] { "feed.empty", "feed.full" })
+            {
+                sub.text = L10n.T(key);
+                Check(sub);
+            }
+            screen.Detail.Close();
+
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Layout();
+            Transform badge = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit " + full.Id + "/Tile/TenHearts");
+            Assert.IsNotNull(badge, "the full rabbit wears its heart badge");
+            Check(badge.Find("Text").GetComponent<Text>());
+            Assert.IsEmpty(wrong, string.Join("\n", wrong));
+            Assert.IsEmpty(small, string.Join("\n", small));
         }
 
         [Test]

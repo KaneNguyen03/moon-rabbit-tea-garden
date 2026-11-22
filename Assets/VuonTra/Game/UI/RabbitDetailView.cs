@@ -27,6 +27,11 @@ namespace VuonTra.Game.UI
         /// <summary>The sliding card this view lives on.</summary>
         public BottomSheet Sheet { get; private set; }
         public long RabbitId => _rabbitId;
+        /// <summary>The "Cho ăn" button was pressed for this rabbit (#58b): set by the screen, which feeds it the best fish in the basket.</summary>
+        public Action<long> OnFeed;
+        /// <summary>The feed button and the bond chip of the rabbit shown now (#58b), where a fed fish flies from and to; null on an album page.</summary>
+        public RectTransform FeedButton { get; private set; }
+        public RectTransform BondChip { get; private set; }
 
         public RabbitDetailView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long> onLevelUp, Action<long> onLevelMax, Action<long> onRename,
             Action<long, ItemSlot> onSlot, Action<long, int> onAssign, Action<long> onRest, Action<long, int> onDye, Action<long> onWash)
@@ -89,6 +94,7 @@ namespace VuonTra.Game.UI
         {
             _rabbitId = 0;
             _kindId = null;
+            FeedButton = BondChip = null;
         }
 
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s)
@@ -111,6 +117,7 @@ namespace VuonTra.Game.UI
                 if (Application.isPlaying) UnityEngine.Object.Destroy(child);
                 else UnityEngine.Object.DestroyImmediate(child);
             }
+            FeedButton = BondChip = null;
             if (_kindId != null) BuildKind(defs, RabbitKinds.Find(_kindId));
             else BuildRabbit(defs, s, r);
         }
@@ -122,6 +129,8 @@ namespace VuonTra.Game.UI
             sb.Append(':').Append(Rabbits.LevelsAffordable(r, Simulation.Budget(s), out _)); // the max button's count
             sb.Append(s.Coins >= Rabbits.LevelCost(r) ? '+' : '-');
             sb.Append(':').Append(r.Dye).Append(s.GoldenCarrots >= Shop.DyeCost ? '+' : '-'); // the dye row
+            int best = Fishing.BestInBasket(s);
+            sb.Append(":f").Append(best).Append('x').Append(best >= 0 ? s.Fish[best] : 0); // the feed button (#58b)
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
             // Who stands where, and which stations are open, decide the list of places.
             for (int i = 0; i < defs.Count; i++)
@@ -189,8 +198,10 @@ namespace VuonTra.Game.UI
             // The bond (#19): full hearts for the bond so far, hollow for the ones still to come; ten since #58, so in the small size to fit on one line.
             var bond = UiKit.Rect("Bond", _body).Place(0f, 1f, 420 + 300 + 20 + 110, -272, 220, 44);
             bond.AddImage(_catalog.Panel, Palette.Alpha(Palette.Paper, 0.92f), true);
-            UiKit.Rect("Text", bond).Stretch(0, 0, 1, 1, 6, 0, 6, 0)
+            UiKit.Rect("Text", bond).Stretch(0, 0, 1, 1, 6, 8, 6, 0)
                 .AddText(Rabbits.Hearts(r.Affection), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            BondChip = bond;
+            BondBar(bond, r);
 
             List<int> suited = Rabbits.SuitedStations(defs, s, r);
             if (suited.Count > 0)
@@ -203,6 +214,7 @@ namespace VuonTra.Game.UI
             // What it wears.
             AddSlot(s, r, ItemSlot.Hat, 420 + 50);
             AddSlot(s, r, ItemSlot.Charm, 420 + 180);
+            AddFeed(s, r);
 
             // Levelling, the full width of the sheet.
             bool maxed = Rabbits.IsMaxLevel(r);
@@ -335,6 +347,62 @@ namespace VuonTra.Game.UI
                 rowNote.resizeTextMinSize = 14;
                 rowNote.resizeTextMaxSize = 22;
             }
+        }
+
+        /// <summary>The way to the next heart (#58b): a thin bar along the bond chip's foot, full once all ten are there.</summary>
+        void BondBar(RectTransform bond, Rabbit r)
+        {
+            int hearts = Rabbits.HeartsOf(r);
+            float share = 1f;
+            if (hearts < Rabbits.HeartMax)
+            {
+                int from = Rabbits.PointsFor(hearts), to = Rabbits.PointsFor(hearts + 1);
+                share = Mathf.Clamp01((Mathf.Max(0, r.Affection) - from) / (float)Mathf.Max(1, to - from));
+            }
+            var track = UiKit.Rect("Bar", bond).Stretch(0, 0, 1, 0, 14, 4, 14, -11);
+            track.AddImage(_catalog.Panel, Palette.Mix(Palette.Track, Palette.Ink, 0.15f), true);
+            UiKit.Rect("Fill", track).Stretch(0, 0, share, 1).AddImage(_catalog.Panel, Palette.Blush, true);
+        }
+
+        /// <summary>
+        /// "Cho ăn" (#58b): feeds the best fish in the basket, with the points it gives beside the word and the fish and how many
+        /// are left under it. Flat with the reason when the basket is empty or the hearts are all there.
+        /// </summary>
+        void AddFeed(GameState s, Rabbit r)
+        {
+            long id = r.Id;
+            int best = Fishing.BestInBasket(s);
+            bool full = Rabbits.FullHearts(r) || r.Affection >= Rabbits.AffectionMax;
+            bool can = best >= 0 && !full;
+            var feed = UiKit.Rect("Feed", _body).Place(1f, 1f, -194, -394, 300, 100);
+            FeedButton = feed;
+            ChunkyButton button = UiKit.Chunky(feed, _catalog.Panel, () => OnFeed?.Invoke(id));
+            button.SetEnabled(can);
+            Color ink = ChunkyButton.InkFor(can);
+            Sprite fish = best >= 0 ? _catalog.FishSprite(best) : null;
+            float textLeft = 14f;
+            if (fish != null)
+            {
+                UiKit.Rect("Fish", button.FaceRect).Place(0f, 0.5f, 46, 0, 68, 56).AddImage(fish, Color.white).preserveAspect = true;
+                textLeft = 84f;
+            }
+            // The top line: the word, and what the fish gives at its right; under it, which fish and how many, on one line.
+            Text label = UiKit.Rect("Top", button.FaceRect).Stretch(0, 1, 1, 1, textLeft, -50, can ? 122 : 12, 8)
+                .AddText(L10n.T("feed.button"), UiKit.TextBody, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = 16;
+            label.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            Text points = UiKit.Rect("Points", button.FaceRect).Stretch(1, 1, 1, 1, -116, -42, 12, 16) // one line tall
+                .AddText(can ? L10n.T("feed.points", Fishing.Points[best]) : "", UiKit.TextSmall, ink, TextAnchor.MiddleRight, FontStyle.Bold);
+            points.resizeTextForBestFit = true;
+            points.resizeTextMinSize = 13;
+            points.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            string sub = full ? L10n.T("feed.full") : best < 0 ? L10n.T("feed.empty") : L10n.T("feed.with", L10n.T("fish." + best), s.Fish[best]);
+            Text subText = UiKit.Rect("Sub", button.FaceRect).Stretch(0, 0, 1, 0, textLeft, 10, 12, -36)
+                .AddText(sub, 18, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            subText.resizeTextForBestFit = true; // a box one line tall: a long name shrinks rather than wraps
+            subText.resizeTextMinSize = 13;
+            subText.resizeTextMaxSize = UiKit.Scaled(18);
         }
 
         void AddSlot(GameState s, Rabbit r, ItemSlot slot, float x)

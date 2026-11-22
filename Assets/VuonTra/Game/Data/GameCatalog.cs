@@ -40,6 +40,12 @@ namespace VuonTra.Game
         public Sprite GoldenCarrot, GiftBox, ShopProp;
         /// <summary>The moon jar (#64), drawn by hand; the jar is drawn in code while this is empty.</summary>
         public Sprite MoonJar;
+        /// <summary>The six fish of the moon pond (#58), commonest first, drawn by hand; each is a tinted circle while its picture is missing.</summary>
+        public Sprite[] Fish = new Sprite[0];
+        /// <summary>The basket the caught fish go into (#58).</summary>
+        public Sprite FishBasket;
+        /// <summary>Fish <paramref name="i"/>'s picture, or null.</summary>
+        public Sprite FishSprite(int i) => Fish != null && i >= 0 && i < Fish.Length ? Fish[i] : null;
         public Sprite Gear;
         public Sprite Shadow;
         public Sprite IconUp;

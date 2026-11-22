@@ -786,6 +786,23 @@ namespace VuonTra.EditorTools
             { "fish.nobait", "Hết mồi rồi, chờ chút nhé", "Out of bait, back soon" },
             { "bond.ten.title", "Bé {0} thân thiết đủ 10 tim!", "{0} has all 10 hearts!" },
             { "bond.ten.sub", "Bạn thân nhất · +{0} cà rốt vàng", "Best of friends · +{0} golden carrots" },
+            // ----- the pond card and feeding (#58b) -----
+            { "pond.plate", "Câu cá {0}/{1}", "Fishing {0}/{1}" },
+            { "pond.title", "Câu cá ở ao trăng", "Fishing at the moon pond" },
+            { "pond.cast", "Thả câu", "Cast" },
+            { "pond.casting", "Đang câu…", "Line's out…" },
+            { "pond.nobait", "Hết mồi", "No bait" },
+            { "pond.hint", "Thả câu, chờ phao chìm rồi chạm mặt nước", "Cast, wait for the float to sink, then tap the water" },
+            { "pond.wait", "Chờ phao chìm nhé…", "Wait for the float to sink…" },
+            { "pond.sink", "Phao chìm rồi! Chạm ngay!", "It's sinking! Tap now!" },
+            { "pond.early", "Sớm quá, phao lại nổi lên", "Too soon, the float bobs back up" },
+            { "pond.lost", "Mất mồi rồi", "The bait is gone" },
+            { "pond.caught", "Câu được {0}!", "Caught: {0}!" },
+            { "feed.button", "Cho ăn", "Feed" },
+            { "feed.with", "{0} ×{1}", "{0} ×{1}" },
+            { "feed.points", "+{0} điểm", "+{0} pts" },
+            { "feed.empty", "Giỏ trống · câu ở ao", "Basket empty · fish at the pond" },
+            { "feed.full", "Đã đủ 10 tim", "All 10 hearts" },
         };
     }
 }
