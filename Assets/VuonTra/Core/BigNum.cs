@@ -156,6 +156,24 @@ namespace VuonTra.Core
             return digits.Replace('.', ',') + Suffix(group);
         }
 
+        /// <summary>
+        /// Every digit, in groups of three ("13.912.345" with '.' as the group mark), for a hold on the purse.
+        /// Past fifteen digits a double no longer knows its last digits, so the short form stands in.
+        /// </summary>
+        public string ToFullString(char group)
+        {
+            if (IsZero || Exponent < 0) return "0";
+            if (Exponent >= 15) return ToShortString();
+            string digits = Math.Floor(Mantissa * Math.Pow(10d, Exponent) + 1e-6).ToString("0", CultureInfo.InvariantCulture);
+            var sb = new System.Text.StringBuilder(digits.Length + digits.Length / 3);
+            for (int i = 0; i < digits.Length; i++)
+            {
+                if (i > 0 && (digits.Length - i) % 3 == 0) sb.Append(group);
+                sb.Append(digits[i]);
+            }
+            return sb.ToString();
+        }
+
         static string Suffix(long group)
         {
             if (group < SmallSuffixes.Length) return SmallSuffixes[group];

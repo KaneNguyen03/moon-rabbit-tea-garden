@@ -117,5 +117,22 @@ namespace VuonTra.Core.Tests
         {
             Assert.AreEqual(double.MaxValue, BigNum.FromParts(1, 5000).ToDouble());
         }
+
+        [TestCase(0d, "0")]
+        [TestCase(999d, "999")]
+        [TestCase(13912345d, "13.912.345")]
+        [TestCase(1000d, "1.000")]
+        public void The_Full_Form_Groups_Every_Digit(double value, string text)
+        {
+            Assert.AreEqual(text, new BigNum(value).ToFullString('.'));
+            Assert.AreEqual(text.Replace('.', ','), new BigNum(value).ToFullString(','));
+        }
+
+        [Test]
+        public void Past_Fifteen_Digits_The_Full_Form_Is_The_Short_One()
+        {
+            var huge = new BigNum(1e30);
+            Assert.AreEqual(huge.ToShortString(), huge.ToFullString('.'));
+        }
     }
 }

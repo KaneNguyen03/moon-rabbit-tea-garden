@@ -1467,6 +1467,10 @@ MonoBehaviour:
     m_Key: quest.anh-nghi
     m_Metadata:
       m_Items: []
+  - m_Id: 181326123622400
+    m_Key: purse.full
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

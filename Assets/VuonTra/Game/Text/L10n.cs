@@ -68,6 +68,8 @@ namespace VuonTra.Game
         }
 
         public static string Short(this BigNum value) => Number(value.ToShortString());
+        /// <summary>Every digit with the language's own group mark: "13.912.345" in Vietnamese, "13,912,345" in English.</summary>
+        public static string Full(this BigNum value) => value.ToFullString(Code.StartsWith("en", StringComparison.Ordinal) ? ',' : '.');
 
         public static string Station(string id) => T("station." + id);
         public static string Tier(int tier) => T("tier." + tier);

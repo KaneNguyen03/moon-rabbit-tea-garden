@@ -1470,6 +1470,10 @@ MonoBehaviour:
     m_Localized: "Ch\u1EE5p \u1EA3nh khi \u0111\u1EE7 6 ch\u1ED7 ngh\u1EC9"
     m_Metadata:
       m_Items: []
+  - m_Id: 181326123622400
+    m_Localized: "{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

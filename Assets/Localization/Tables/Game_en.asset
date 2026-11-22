@@ -1474,6 +1474,10 @@ MonoBehaviour:
     m_Localized: Take a photo with all 6 resting places
     m_Metadata:
       m_Items: []
+  - m_Id: 181326123622400
+    m_Localized: '{0} carrots'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

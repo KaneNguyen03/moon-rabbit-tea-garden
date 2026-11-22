@@ -2583,5 +2583,35 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.AreEqual("2", rabbits.Find("Text").GetComponent<Text>().text, "and three silver rabbits can be merged");
         }
+
+        [Test]
+        public void A_Finger_Resting_On_The_Purse_Shows_Every_Digit_And_Is_Not_A_Tap()
+        {
+            runner.State.Coins = new BigNum(13912345);
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Assert.AreEqual("13.912.345", runner.State.Coins.Full());
+            L10n.SetLocale("en");
+            Assert.AreEqual("13,912,345", runner.State.Coins.Full());
+            L10n.SetLocale("vi");
+
+            int before = screen.Feel.ParticleCount;
+            screen.PursePointer(true);
+            screen.Advance(0.2f);
+            Assert.AreEqual(before, screen.Feel.ParticleCount, "a short touch shows nothing yet");
+            screen.Advance(0.3f);
+            Assert.Greater(screen.Feel.ParticleCount, before, "held long enough, the whole number floats up");
+            Transform gain = root.transform.Find("Canvas/Feel/Gain");
+            Assert.IsNotNull(gain);
+            StringAssert.Contains("13.912.345", gain.GetComponent<Text>().text);
+            screen.PursePointer(false);
+            Find("Canvas/Hud/Purse").onClick.Invoke(); // letting go after a hold
+            Assert.IsFalse(screen.Income.IsOpen, "a hold is not a tap");
+            Find("Canvas/Hud/Purse").onClick.Invoke(); // a plain tap
+            Assert.IsTrue(screen.Income.IsOpen);
+            screen.Income.Close();
+
+            Assert.IsNotNull(root.transform.Find("Canvas/Hud/Corner"), "the corner buttons stand on one plate");
+        }
     }
 }

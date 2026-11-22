@@ -95,6 +95,7 @@ namespace VuonTra.EditorTools
             { "income.speed", "Tốc độ cả vườn: ×{0}", "Garden speed: ×{0}" },
             { "income.boost", "Đang tăng tốc: ×{0}", "Boosting: ×{0}" },
             { "income.total", "Tổng cộng +{0}/giây", "Total +{0}/s" },
+            { "purse.full", "{0} cà rốt", "{0} carrots" },
             { "quick.plot", "Mua đất · {0}", "Land · {0}" },
             { "quick.open", "Mở · {0}", "Open · {0}" },
             { "quick.upgrade", "Nâng +{0} · {1}", "Up +{0} · {1}" },

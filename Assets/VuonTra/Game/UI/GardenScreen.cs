@@ -73,6 +73,10 @@ namespace VuonTra.Game.UI
         readonly float[] _tabShown = new float[TabCount], _tabPop = new float[TabCount];
         float _tabFade = 1f, _badgePop, _safeBottom = -1f;
         bool _energyReady;
+        // A finger resting on the purse: after a moment the whole number shows, and that touch is not a tap.
+        bool _purseDown, _purseHeld;
+        float _purseDownFor;
+        const float PurseHoldSeconds = 0.45f;
         // Pills at the top and bottom edges that count what waits out of view, and the way home to the teapot.
         RectTransform _edgeUp, _edgeDown;
         Text _edgeUpText, _edgeDownText;
@@ -220,6 +224,16 @@ namespace VuonTra.Game.UI
             bool boosting = s.BoostSecondsLeft > 0d;
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
             UpdateEdges();
+            if (_purseDown && !_purseHeld)
+            {
+                _purseDownFor += dt;
+                if (_purseDownFor >= PurseHoldSeconds)
+                {
+                    _purseHeld = true;
+                    Sfx.Blip();
+                    Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -70)), L10n.T("purse.full", s.Coins.Full()), Palette.Ink, 34);
+                }
+            }
             if (Shell.State == ShellState.Playing)
             {
                 // Remember where the player is looking, so the next opening glides back here.
@@ -1762,7 +1776,16 @@ namespace VuonTra.Game.UI
             var purseButton = _purse.gameObject.AddComponent<Button>();
             purseButton.transition = Selectable.Transition.None;
             purseButton.targetGraphic = purseFace;
-            purseButton.onClick.AddListener(() => { Sfx.Click(); Income.Open(Runner.Defs, Runner.State, Runner.Mods); });
+            purseButton.onClick.AddListener(() =>
+            {
+                if (_purseHeld) { _purseHeld = false; return; } // the hold already answered; letting go is not a tap
+                Sfx.Click();
+                Income.Open(Runner.Defs, Runner.State, Runner.Mods);
+            });
+            var purseTrigger = _purse.gameObject.AddComponent<EventTrigger>();
+            AddDrag(purseTrigger, EventTriggerType.PointerDown, _ => PursePointer(true));
+            AddDrag(purseTrigger, EventTriggerType.PointerUp, _ => PursePointer(false));
+            AddDrag(purseTrigger, EventTriggerType.PointerExit, _ => PursePointer(false));
             _currency = UiKit.Rect("Currency", _purse).Place(0f, 0.5f, 44, 4, 60, 60);
             _currency.AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _coins = UiKit.Rect("Coins", _purse).Stretch(0, 0.42f, 1, 1, 78, 0, 10, 6)
@@ -1790,6 +1813,8 @@ namespace VuonTra.Game.UI
             _energyFill = UiKit.Rect("Fill", track).Stretch(0, 0, 0, 1);
             _energyFill.AddImage(catalog.Panel, Palette.Moss, true);
 
+            // The three round buttons in the corner stand on one plate, so they read as one cluster and a fourth has a place to go.
+            UiKit.Rect("Corner", _hud).Place(1f, 1f, -184, -76, 340, 112).AddImage(catalog.Panel, Palette.Alpha(Palette.Paper, 0.55f), true);
             // A visible way to zoom, for players who would never guess at pinching or double-tapping.
             var camera = UiKit.Rect("Camera", _hud).Place(1f, 1f, -292, -76, 96, 96);
             camera.AddShadow(14f, 10f, 0.3f);
@@ -2816,6 +2841,13 @@ namespace VuonTra.Game.UI
             _actors[index].Squish();
             Sfx.Pet();
             DismissHint();
+        }
+
+        /// <summary>A finger went down on or came off the purse. Held long enough, the whole number floats up.</summary>
+        public void PursePointer(bool down)
+        {
+            _purseDown = down;
+            if (down) { _purseDownFor = 0f; _purseHeld = false; }
         }
 
         /// <summary>The empty pad at a station, or the card's "who works here", was touched: choose a rabbit for it.</summary>
