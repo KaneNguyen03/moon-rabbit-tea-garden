@@ -273,5 +273,26 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0d, old.PlaySeconds);
             Assert.AreEqual(0, SaveSummary.Of(old).Kinds);
         }
+
+        [Test]
+        public void A_Sync_Asked_For_While_One_Is_Waiting_On_The_Cloud_Is_Skipped()
+        {
+            cloud.Hold = true;
+            SyncReport first = null, second = null;
+            sync.Sync(SyncReason.Open, Save(local), Sum(local), r => first = r);
+            Assert.IsTrue(sync.InFlight);
+            Assert.IsNull(first, "still waiting on the cloud");
+            sync.Sync(SyncReason.Milestone, Save(local), Sum(local), r => second = r);
+            Assert.IsNotNull(second);
+            Assert.AreEqual(SyncOutcome.Skipped, second.Outcome, "not run on top of the first");
+            Assert.AreEqual(1, cloud.Pulls);
+            cloud.Hold = false;
+            cloud.Release();
+            Assert.IsNotNull(first);
+            Assert.AreEqual(SyncOutcome.Pushed, first.Outcome);
+            Assert.IsFalse(sync.InFlight);
+            Assert.AreEqual(SyncOutcome.Same, Run(SyncReason.Manual).Outcome, "and the next one runs");
+        }
+
     }
 }
