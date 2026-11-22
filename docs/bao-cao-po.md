@@ -696,6 +696,22 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: ý trên; giữ ngón thật trên bản Mac chưa ai thử.
 
+## #24 — Hai ý còn lại: thang chữ cho màn vườn, khung ngoài, băng thông báo; khoảng cách thẻ dùng chung
+
+- Test: 450/450 EditMode qua (chạy sau lần sửa cuối trong Assets). Không thêm test: đổi cỡ chữ và khoảng cách, không đổi hành vi; kiểm bằng mắt trên ảnh hai thứ tiếng.
+- Commit `3cebd43`, đã push. Issue #24 đã comment, nhãn chờ-PO-duyệt. Còn "soi tràn chữ tiếng Anh với chuỗi dài nhất" thuộc #33.
+- 40 chỗ `AddText` trong `GardenScreen`, `ShellView`, `FeelLayer` đổi từ số cứng sang `UiKit.TextSmall/Body/Title` (20–23 → 22; 24–28 → 26; 30–36 → 36); cỡ hiển thị lớn (38+: số ví, tiêu đề băng, tên game) giữ nguyên. Mọi danh sách (tấm trượt, bảng chọn đồ, chọn thỏ, thu nhập) dùng `UiKit.CardPad`/`CardGap`.
+- Ảnh (docs/anh/po-24/): `24-truoc-10-pause.png`, `24-truoc-2-garden.png`, `24-sau-10-pause.png`, `24-sau-14-pause-en.png`, `24-sau-2-garden.png`, `24-sau-11-garden-en.png`.
+
+### Đã làm (đối chiếu với mục "Còn lại" trong #24)
+- Mỗi dòng một ý chính, số chính to, chip: đã làm trong #25 và #27 (không thuộc commit này).
+- Áp thang chữ cho màn vườn, khung ngoài và các băng thông báo: xong như trên.
+- Khoảng cách và bo góc thẻ dùng chung: các danh sách dùng hằng số chung; bo góc đi theo sprite `panel` dùng chung từ trước.
+- Soi tràn chữ tiếng Anh: đã xem các khung vi/en sau khi đổi cỡ (liệt kê bên dưới); soi toàn bộ với chuỗi dài nhất để cho #33.
+
+### Tồn đọng
+- tồn đọng: #33 (soi tràn toàn bộ, chữ to tuỳ chọn).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -833,12 +849,13 @@ Sau khi sửa cả bốn xanh.
 - #22 hai ý còn lại (`1c59ccd`): vuốt xuống ở đâu trên tấm cũng kéo tấm khi danh sách ở đầu; vườn phía trên tấm chạm và kéo được. Còn các hộp giữa màn chưa thành tấm trượt.
 - #23 ba ý còn lại (`9cff4c9`): tab không chọn rõ hơn; tấm trạm sát thanh tab; huy hiệu tab Trạm và tab Thỏ. Còn vùng an toàn trên máy thật.
 - #32 hai ý còn lại (`40443d7`): chạm giữ ví xem số đầy đủ; cụm nút góc phải trên một tấm. Còn viền sáng khi tăng tốc.
+- #24 hai ý còn lại (`3cebd43`): thang chữ cho màn vườn, khung ngoài, băng thông báo; khoảng cách thẻ dùng chung; biển "Widen the garden" hết tràn. Còn soi tràn toàn bộ (#33).
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (#22 (hộp giữa màn), #24, #28 phần còn lại); hướng dẫn 60 giây (#30) session kia đang lấy.
+- Lượt UI 2 (#22 (hộp giữa màn), #28 phần còn lại); #30 xong (session kia, `c7c629d`).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
