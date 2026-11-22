@@ -34,6 +34,15 @@ namespace VuonTra.Core.Tests
         int jarsHeld, jarsOpened;
         BigNum earnedJars;
         readonly Dictionary<long, int> freeJars = new Dictionary<long, int>();
+        /// <summary>
+        /// The Frog Rabbit (#62), modelled at its most: every sitting that opens while the day still has a frog opens in
+        /// the rain, and the player greets it at once, so the casual player meets both of each day's frogs. Its clover
+        /// roll has its own dice, so the rest of the week plays out the same with frogs or without.
+        /// </summary>
+        bool meetFrogs = true;
+        int frogsMet, frogClovers;
+        BigNum earnedFrogs;
+        System.Random frogRng;
 
         [SetUp]
         public void SetUp()
@@ -56,6 +65,10 @@ namespace VuonTra.Core.Tests
             jarsHeld = jarsOpened = 0;
             earnedJars = BigNum.Zero;
             freeJars.Clear();
+            meetFrogs = true;
+            frogsMet = frogClovers = 0;
+            earnedFrogs = BigNum.Zero;
+            frogRng = new System.Random(62);
             Quests.RollDaily(quests, defs, s, 1, mods);
         }
 
@@ -81,6 +94,34 @@ namespace VuonTra.Core.Tests
                 jarsOpened++;
             }
             jarsHeld = s.MoonJars;
+        }
+
+        /// <summary>A sitting opens in the next shower of the day that still has its frog, which the player greets at once (#62).</summary>
+        void MeetFrog()
+        {
+            if (!meetFrogs) return;
+            Tutorial.Advance(s); // as the game does on every change: the frog waits for the first minute's guidance
+            double[] showers = Weather.ShowerStarts(today);
+            for (int k = 0; k < showers.Length; k++)
+            {
+                if ((s.FrogShowers & (1 << k)) != 0 && s.FrogDay == today) continue;
+                double hour = showers[k] + 1d / 60d;
+                if (FrogRabbit.Advance(s, 1d, today, hour) != FrogEvent.Arrived) return;
+                if (FrogRabbit.Greet(defs, s, mods, today, hour, frogRng.NextDouble(), out BigNum paid, out int clovers))
+                {
+                    frogsMet++;
+                    frogClovers += clovers;
+                    earnedFrogs += paid;
+                }
+                return;
+            }
+        }
+
+        string FrogLine()
+        {
+            double total = s.TotalEarned.ToDouble() + earnedJars.ToDouble() + earnedFrogs.ToDouble();
+            return "Thỏ Ếch (#62): gặp " + frogsMet + " lần (mọi buổi chơi mở đầu trong mưa khi ngày còn ếch), " + earnedFrogs.ToShortString() + " cà rốt ("
+                + (total > 0 ? System.Math.Round(earnedFrogs.ToDouble() / total * 1000d) / 10d : 0d) + " % so với cà rốt kiếm được), " + frogClovers + " cỏ";
         }
 
         int MostFreeJarsInADay()
@@ -170,6 +211,7 @@ namespace VuonTra.Core.Tests
 
         void Play(double seconds)
         {
+            MeetFrog();
             for (int i = 0; i < seconds; i++)
             {
                 ActiveSecond();
@@ -230,6 +272,7 @@ namespace VuonTra.Core.Tests
             for (int visit = 0; visit < 4; visit++) { Away(2 * 3600); Play(5 * 60); }
             var report = new StringBuilder();
             report.AppendLine("Người chơi không nghỉ tay (3 chạm/giây, 4 lần mua mỗi giây, nhận nhiệm vụ ngay)");
+            report.AppendLine(FrogLine());
             report.AppendLine("  sau 20 phút: xp " + (int)xp20 + " (cấp " + at20 + "); cuối ngày 1: xp " + (int)s.GardenXp + " (cấp " + Garden.Level(s) + "), " + s.Rabbits.Count + " thỏ, " + s.Plots + " ô đất");
             foreach (int level in new[] { 3, 5, 6, 10, 15 })
                 report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt"));
@@ -290,6 +333,7 @@ namespace VuonTra.Core.Tests
             for (int w = 0; w < 4; w++)
                 report.AppendLine("  đợt " + (w + 1) + ": đủ cấp lúc " + Clock(waveLevelAt[w]) + ", đủ thỏ lúc " + Clock(waveRabbitsAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
             report.AppendLine(JarLine() + "; mở ngay khi ví cho mở (cấp vườn 3)");
+            report.AppendLine(FrogLine());
             report.AppendLine("Diễn biến:");
             report.Append(trace);
             System.IO.Directory.CreateDirectory("Logs");
@@ -343,6 +387,35 @@ namespace VuonTra.Core.Tests
             Play(20 * 60);
             for (int visit = 0; visit < 4; visit++) { Away(2 * 3600); Play(5 * 60); }
             Assert.LessOrEqual(MostFreeJarsInADay(), MoonJars.FreePerDay, "the tireless player too\n" + JarLine());
+        }
+
+        /// <summary>
+        /// The Frog Rabbit (#62): the casual week played without it and with both of each day's frogs greeted. The frogs
+        /// bring level 10 no more than a fifth sooner, the ten-minute mark still holds, and nobody meets more than two a day.
+        /// </summary>
+        [Test]
+        public void Frog_Rabbits_Greeted_Twice_A_Day_Bring_Level_Ten_No_More_Than_A_Fifth_Sooner()
+        {
+            meetFrogs = false;
+            CasualWeek();
+            double tenBefore = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            double fiveBefore = levelAt.ContainsKey(5) ? levelAt[5] : -1;
+            int summonedBefore = summoned;
+            Assert.AreEqual(0, frogsMet);
+
+            SetUp();
+            CasualWeek();
+            double tenAfter = levelAt.ContainsKey(10) ? levelAt[10] : -1;
+            double fiveAfter = levelAt.ContainsKey(5) ? levelAt[5] : -1;
+            string report = "Không Thỏ Ếch: cấp 5 lúc " + Clock(fiveBefore) + ", cấp 10 lúc " + Clock(tenBefore) + ", gọi " + summonedBefore + " thỏ.\n"
+                + "Có Thỏ Ếch: cấp 5 lúc " + Clock(fiveAfter) + ", cấp 10 lúc " + Clock(tenAfter) + ", gọi " + summoned + " thỏ.\n" + FrogLine();
+            TestContext.WriteLine(report);
+            Assert.GreaterOrEqual(tenBefore, 0, report);
+            Assert.GreaterOrEqual(tenAfter, 0, report);
+            Assert.GreaterOrEqual(tenAfter, 0.8 * tenBefore, "level 10 no more than a fifth sooner\n" + report);
+            Assert.GreaterOrEqual(fiveAfter, 5 * 60, "level 5 still not in the first five minutes\n" + report);
+            Assert.Greater(frogsMet, 0, "the casual player does meet frogs\n" + report);
+            Assert.LessOrEqual(frogsMet, 7 * FrogRabbit.PerDay, "two a day at most\n" + report);
         }
     }
 }

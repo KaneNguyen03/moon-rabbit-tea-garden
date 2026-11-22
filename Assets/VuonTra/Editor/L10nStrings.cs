@@ -742,6 +742,12 @@ namespace VuonTra.EditorTools
             { "noads.active", "Bỏ quảng cáo · còn {0} ngày", "No ads · {0} days left" },
             { "noads.paid", "Đã bỏ quảng cáo, còn {0} ngày: mọi nút xem thành Nhận ngay.", "No ads for {0} days: every watch button now pays at once." },
             { "noads.float", "Bỏ quảng cáo {0} ngày", "No ads for {0} days" },
+            // ----- rain and the Frog Rabbit (#62) -----
+            { "frog.name", "Thỏ Ếch", "Frog Rabbit" },
+            { "frog.title", "Thỏ Ếch ghé chơi!", "The Frog Rabbit says hello!" },
+            { "frog.sub", "Quà mưa: {0} cà rốt", "A rainy-day gift: {0} carrots" },
+            { "frog.sub.clover", "Quà mưa: {0} cà rốt và 1 cỏ", "A rainy-day gift: {0} carrots and a clover" },
+            { "quest.ech-5", "Gặp Thỏ Ếch 5 lần", "Meet the Frog Rabbit 5 times" },
         };
     }
 }

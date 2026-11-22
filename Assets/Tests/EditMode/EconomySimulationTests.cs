@@ -39,6 +39,13 @@ namespace VuonTra.Core.Tests
         BigNum earnedJars;
         int jarsOpened, jarsHeld;
         readonly Dictionary<long, int> freeJars = new Dictionary<long, int>();
+        /// <summary>
+        /// The Frog Rabbit (#62), at its most: every sitting that opens while the day still has a frog opens in the rain and
+        /// the player greets it at once, so both of each day's frogs are met. Its clover roll has its own dice.
+        /// </summary>
+        BigNum earnedFrogs;
+        int frogsMet, cloversFrogs;
+        System.Random frogRng;
         // Where the clovers and golden carrots came from.
         int cloversQuests, cloversGames, cloversOrders, goldenGift, goldenPhoto, goldenQuests, goldenGames, goldenTray, goldenSpent;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
@@ -79,6 +86,9 @@ namespace VuonTra.Core.Tests
             earnedTaps = earnedIdle = earnedBoost = earnedAway = earnedQuests = earnedTray = earnedGames = earnedOrders = earnedJars = BigNum.Zero;
             jarsOpened = jarsHeld = 0;
             freeJars.Clear();
+            earnedFrogs = BigNum.Zero;
+            frogsMet = cloversFrogs = 0;
+            frogRng = new System.Random(62);
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             takeFreeDouble = everyAd = false;
@@ -121,6 +131,28 @@ namespace VuonTra.Core.Tests
             goldenGift += Shop.ClaimDailyGift(s, Today, null, BigGiftHat, out _, out _); // the first seventh day brings the hat and a clover (#57)
             if (Photos.Take(s, Today)) goldenPhoto += Photos.GiftGolden;
             if (everyAd) while (Ads.ClaimShopGolden(s, Today)) goldenAds += Ads.ShopGoldenReward; // the shop's two videos (#66)
+            MeetFrog();
+        }
+
+        /// <summary>The sitting opens in the next shower of the day that still has its frog, which the player greets at once (#62).</summary>
+        void MeetFrog()
+        {
+            long day = Today;
+            Tutorial.Advance(s); // as the game does on every change: the frog waits for the first minute's guidance
+            double[] showers = Weather.ShowerStarts(day);
+            for (int k = 0; k < showers.Length; k++)
+            {
+                if ((s.FrogShowers & (1 << k)) != 0 && s.FrogDay == day) continue;
+                double hour = showers[k] + 1d / 60d;
+                if (FrogRabbit.Advance(s, 1d, day, hour) != FrogEvent.Arrived) return;
+                if (FrogRabbit.Greet(defs, s, mods, day, hour, frogRng.NextDouble(), out BigNum paid, out int clovers))
+                {
+                    frogsMet++;
+                    cloversFrogs += clovers;
+                    earnedFrogs += paid;
+                }
+                return;
+            }
         }
 
         /// <summary>The open brew station that earns most: where a tap is worth most.</summary>
@@ -352,6 +384,7 @@ namespace VuonTra.Core.Tests
             // As in the game, who works and who rests feeds the modifiers (#60).
             if (s.Rabbits.Count != rabbitsBefore) mods = Modifiers.From(ups, s);
             if ((int)sessionClock % gameEvery == 0 && PlayAGame()) Note();
+            if ((int)sessionClock % 600 == 0) MeetFrog(); // a long sitting may run into a shower too
             OpenJars();
             Note();
             int t = (int)clock;
@@ -415,7 +448,7 @@ namespace VuonTra.Core.Tests
             return total >= 3600 ? (total / 3600) + " giờ " + (total % 3600 / 60) + " phút" : (total / 60) + " phút " + (total % 60) + " giây";
         }
 
-        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders + earnedJars + earnedDoubles + earnedAds;
+        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders + earnedJars + earnedDoubles + earnedAds + earnedFrogs;
 
         double Share(BigNum part)
         {
@@ -425,7 +458,7 @@ namespace VuonTra.Core.Tests
 
         int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + GoldenFromLevels;
         int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds;
-        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders;
+        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs;
 
         /// <summary>One row of the table: where the garden stands and where its carrots came from, so far.</summary>
         void Snapshot(string label)
@@ -434,10 +467,10 @@ namespace VuonTra.Core.Tests
             for (int k = 0; k < defs.Count; k++) if (s.Levels[k] > 0) open++;
             snapshots.Add("| " + label + " | " + Income.ToShortString() + " | " + s.Coins.ToShortString() + " | " + Garden.Level(s) + " (" + (int)s.GardenXp + ") | " + s.Plots + " | " + open + " | " + s.Rabbits.Count
                 + " | " + Share(earnedTaps) + " | " + Share(earnedIdle) + " | " + Share(earnedBoost) + " | " + Share(earnedAway) + " | " + Share(earnedQuests) + " | " + Share(earnedTray)
-                + " | " + Share(earnedGames) + " | " + Share(earnedOrders) + " | " + Share(earnedJars) + " | " + GoldenEarned + " / " + goldenSpent + " |");
+                + " | " + Share(earnedGames) + " | " + Share(earnedOrders) + " | " + Share(earnedJars) + " | " + Share(earnedFrogs) + " | " + GoldenEarned + " / " + goldenSpent + " |");
         }
 
-        const string SnapshotHeader = "| Lúc | Thu/giây | Cà rốt | Cấp vườn (điểm) | Ô đất | Trạm | Thỏ | Chạm % | Trạm tự chạy % | Trà lực % | Vắng mặt % | Nhiệm vụ % | Khay % | Trò chơi % | Đơn khách % | Hũ trăng % | Vàng kiếm / tiêu |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|";
+        const string SnapshotHeader = "| Lúc | Thu/giây | Cà rốt | Cấp vườn (điểm) | Ô đất | Trạm | Thỏ | Chạm % | Trạm tự chạy % | Trà lực % | Vắng mặt % | Nhiệm vụ % | Khay % | Trò chơi % | Đơn khách % | Hũ trăng % | Thỏ Ếch % | Vàng kiếm / tiêu |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|";
 
         string Milestones()
         {
@@ -457,10 +490,11 @@ namespace VuonTra.Core.Tests
 
         string Extras()
         {
-            return "Cỏ: " + cloversQuests + " từ nhiệm vụ, " + CloversFromLevels + " từ cấp vườn, " + cloversGames + " từ trò chơi, " + cloversOrders + " từ đơn khách; gọi " + summoned + " thỏ.\n"
+            return "Cỏ: " + cloversQuests + " từ nhiệm vụ, " + CloversFromLevels + " từ cấp vườn, " + cloversGames + " từ trò chơi, " + cloversOrders + " từ đơn khách, " + cloversFrogs + " từ Thỏ Ếch; gọi " + summoned + " thỏ.\n"
                 + "Cà rốt vàng: " + goldenGift + " quà ngày, " + goldenPhoto + " ảnh, " + GoldenFromLevels + " cấp vườn, " + goldenQuests + " nhiệm vụ, " + goldenGames + " trò chơi, " + goldenTray + " khay; tiêu " + goldenSpent
                 + " (" + goldenCalls + " lượt gọi vàng, " + visitorsBought + " thỏ ghé tiệm); còn " + s.GoldenCarrots + ".\n"
                 + "Hũ trăng (#64): " + FreeJars() + " hũ miễn phí (nhiều nhất " + MostFreeJarsInADay() + " trong một ngày), mở " + jarsOpened + " hũ ngay khi ví cho mở, không mua hũ; còn " + s.MoonJars + ".\n"
+                + "Thỏ Ếch (#62): gặp " + frogsMet + " lần (mọi buổi chơi mở đầu trong mưa khi ngày còn ếch), " + earnedFrogs.ToShortString() + " cà rốt, " + cloversFrogs + " cỏ.\n"
                 + "Khác: " + gamesPlayed + " ván chơi, " + ordersDelivered + " đơn giao, " + rabbitLevels + " cấp thỏ mua, " + boosts + " lần trà lực, " + s.Claimed.Count + " nhiệm vụ đang nhận.\n";
         }
 
@@ -493,7 +527,7 @@ namespace VuonTra.Core.Tests
                     Snapshot("hết ngày 1");
                     levelDayOne = Garden.Level(s);
                     // Moon jars (#64) are an hour of income at a stretch, like time away, so they are left out of what play earned too.
-                    quests1 = earnedQuests; games1 = earnedGames; orders1 = earnedOrders; active1 = TotalEarned - earnedAway - earnedJars;
+                    quests1 = earnedQuests; games1 = earnedGames; orders1 = earnedOrders; active1 = TotalEarned - earnedAway - earnedJars - earnedFrogs; // the frog's ten minutes are a gift at a stretch too (#62)
                     goldenEarnedDayOne = GoldenEarned;
                 }
                 if (day == 2) Snapshot("hết ngày 2");
@@ -510,6 +544,7 @@ namespace VuonTra.Core.Tests
             double playShare1 = active1.IsZero ? 0 : ((games1 + orders1) / active1).ToDouble() * 100d;
             int goldenCallsCasual = goldenCalls, visitorsCasual = visitorsBought;
             int mostJarsCasual = MostFreeJarsInADay(), jarsOpenedCasual = jarsOpened;
+            int frogsMetCasual = frogsMet;
             report.AppendLine(Milestones());
             report.AppendLine(SnapshotHeader);
             foreach (string row in snapshots) report.AppendLine(row);
@@ -561,6 +596,9 @@ namespace VuonTra.Core.Tests
             Assert.Greater(jarsOpenedCasual, 0, "the casual player gets and opens jars\n" + report);
             Assert.LessOrEqual(mostJarsCasual, MoonJars.FreePerDay, "at most one free jar a day\n" + report);
             Assert.LessOrEqual(mostJarsTireless, MoonJars.FreePerDay, "the tireless player too\n" + report);
+            // The Frog Rabbit (#62): met by the casual player, two a day at most.
+            Assert.Greater(frogsMetCasual, 0, "the casual player meets the Frog Rabbit\n" + report);
+            Assert.LessOrEqual(frogsMetCasual, 7 * FrogRabbit.PerDay, "two a day at most\n" + report);
             Assert.Pass(report.ToString());
         }
 
