@@ -1111,6 +1111,17 @@ Sau khi sửa cả bốn xanh.
 
 - Commit `fb68262`, đã push; 632/632. `BuildScript.ProductName = "Moon Rabbit Tea Garden"`, seed ghi vào `PlayerSettings.productName`; màn tiêu đề tiếng Việt giữ "Vườn Trà Thỏ Trăng". Thư mục log Mac đổi theo (`~/Library/Logs/VuonTraTho/Moon Rabbit Tea Garden/`), `tools/verify.sh --build` đọc đúng chỗ mới; save không đổi chỗ (theo bundle id). Test `BuildSettingsTests` kiểm tên.
 
+## #42 phần code — Quyền riêng tư: chính sách, xoá dữ liệu, liên hệ (mặc định, chờ chủ project duyệt)
+
+- Test: 633/633 EditMode qua. Thêm 1 test màn hình (mở chính sách, dòng liên hệ, xoá sau hai lần xác nhận: bản mây, save, sao lưu đi hết, vườn bắt đầu lại).
+- Commit `18c21d1`, đã push. Comment lên #42 tick ba ô; điều phối tick trên issue; nhãn chờ-PO-duyệt.
+- Bản nháp chính sách (vi + en) ở `docs/chinh-sach-quyen-rieng-tu.md`: game không thu thập gì, không máy chủ riêng, lưu mây là tài khoản của chính người chơi, xoá và xuất dữ liệu, trẻ em, liên hệ. Chủ project duyệt nội dung và đặt lên một địa chỉ công khai rồi ghi vào `AppInfo.PrivacyUrl` (đang trỏ vào file trong repo private, chỉ là giữ chỗ). `AppInfo.SupportEmail` giữ chỗ `hotro@vuontratho.game`.
+- Hồ sơ (thẻ cao 1580): mục "Quyền riêng tư" với nút "Đọc chính sách quyền riêng tư" (`ProfileView.OpenUrl`), dòng "Cần giúp? Gửi mã người chơi tới …" (mã đã có nút Chép mã), "Xoá dữ liệu của tôi": chạm 1 → "Chạm lần nữa…", chạm 2 → "Không hoàn tác được. Chạm lần cuối…", chạm 3 → `GameRunner.DeleteMyData`: `ICloudSave.Delete` (mới, `LocalOnlyCloudSave`/`MemoryCloudSave` có), `SaveStore.DeleteAll` (save, tmp, backup, bad), `ResetGame`; nửa chừng bỏ 6 giây thì quên.
+- Ảnh: `docs/anh/po-42/42-ho-so.png`.
+
+### Chưa đạt (cần chủ project)
+- Khai báo dữ liệu thu thập cho hai cửa hàng và nhóm tuổi mục tiêu; địa chỉ công khai của chính sách và email hỗ trợ thật.
+
 ## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -1145,7 +1156,7 @@ Sau khi sửa cả bốn xanh.
 - Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
 - #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
-- Chiều 22/11 chủ project giao điều phối hoàn thiện mọi issue: #2 + #3 bản code (`8438799`), #15 đổi tên app (`fb68262`); B làm #6 rồi #11; điều phối đóng nhóm A, mặc định cho #7/#9/#39/#40, #8 hình và đề xuất, #1 đề xuất.
+- Chiều 22/11 chủ project giao điều phối hoàn thiện mọi issue: #2 + #3 bản code (`8438799`), #15 đổi tên app (`fb68262`); #42 phần code (`18c21d1`, chính sách bản nháp, xoá dữ liệu, liên hệ); B làm #6 rồi #11; điều phối đóng nhóm A, mặc định cho #7/#9/#39/#40, #8 hình và đề xuất, #1 đề xuất.
 - Hai chỗ chữ bị che (`ac9a9d0`, sau verify --build; verify thường xanh 618/618): thanh Trà lực ngắn lại (288, kết thúc trước tấm nút góc) nên "Tăng tốc!" đọc đủ; giỏ Hứng lá nhỏ lại (110×95), dời sang phải (StationSpot(giỏ lá) + (104, 130)) và biển của nó treo bên trái (240 rộng, một dòng), không còn đè "Mở rộng vườn" hay tên trạm; ảnh `docs/anh/po-37/37-khay-hinh.png` cập nhật.
 - Nhãn tăng tốc đè số Trà lực (`994a396`, verify thường xanh 626/626): tên và đếm ngược mỗi bên một nửa hàng trên của thanh, cùng co chữ về một dòng (min 16/14); test 4 trường hợp vi/en × thường/chữ to đo hai ô không giao nhau và mỗi chữ vừa nửa của nó ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-tang-toc-sau.png`.
 - Biển "Đom đóm · còn N lượt" bị tán cây viền (lớp Canopy, vẽ trên vườn) che đuôi (`22fc554`, verify thường xanh 630/630): lọ đom đóm dời vào trong (PondSpot + (-5, -290)), biển kết thúc trước `GardenScreen.ReadableRight` = 1000; test 4 trường hợp vi/en × thường/chữ to đo biển nằm trọn trong màn (cách mép ≥ 24), không vượt 1000, chữ vừa một dòng ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-lo-dom-dom-sau.png`.
