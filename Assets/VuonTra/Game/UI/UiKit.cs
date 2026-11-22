@@ -360,8 +360,8 @@ namespace VuonTra.Game.UI
         public PressDip Dip;
 
         /// <summary>Carrot when it can be pressed, washed-out paper when it cannot.</summary>
-        /// <summary>The colour for words on this button: cream on the orange button, ink on the flat plate.</summary>
-        public static Color InkFor(bool on) => on ? Palette.Card : Palette.Ink;
+        /// <summary>The colour for words on this button: ink on the orange button and on the flat plate alike (#33).</summary>
+        public static Color InkFor(bool on) => on ? Palette.OnCarrot : Palette.Ink;
 
         public void SetEnabled(bool on)
         {

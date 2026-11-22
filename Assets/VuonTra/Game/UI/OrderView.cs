@@ -74,7 +74,7 @@ namespace VuonTra.Game.UI
 
             var deliverButton = UiKit.Rect("Deliver", card).Place(0.5f, 1f, 0, -800, 460, 110);
             _deliver = UiKit.Chunky(deliverButton, catalog.Panel, () => { Sfx.Blip(); onDeliver(); });
-            _deliverLabel = UiKit.Rect("Text", _deliver.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _deliverLabel = UiKit.Rect("Text", _deliver.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _deliverLabel.resizeTextForBestFit = true;
             _deliverLabel.resizeTextMinSize = 16;
             _deliverLabel.resizeTextMaxSize = UiKit.TextTitle;

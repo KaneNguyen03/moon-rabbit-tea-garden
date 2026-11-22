@@ -98,7 +98,7 @@ namespace VuonTra.Game.UI
             oddsText.resizeTextMinSize = 12;
             oddsText.resizeTextMaxSize = UiKit.TextSmall;
             _summonLabel = UiKit.Rect("Text", Summon.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         Image AddSubTab(RectTransform tabs, string name, float from, string label, bool album, out Text text)
@@ -132,7 +132,7 @@ namespace VuonTra.Game.UI
             _mineTab.color = Album ? Palette.Alpha(Palette.Carrot, 0f) : Palette.Carrot;
             _albumTab.color = Album ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
             _mineLabel.color = Album ? Quiet : Palette.Card;
-            _albumLabel.color = Album ? Palette.Card : Quiet;
+            _albumLabel.color = Album ? Palette.OnCarrot : Quiet;
 
             string signature = Signature(defs, s);
             if (signature == _signature) return;

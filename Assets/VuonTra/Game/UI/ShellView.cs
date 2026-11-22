@@ -119,7 +119,7 @@ namespace VuonTra.Game.UI
                 Resume();
             });
             UiKit.Rect("Text", resumeButton.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(L10n.T("pause.resume"), 42, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("pause.resume"), 42, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var reset = UiKit.Rect("Reset", _pauseCard).Place(0.5f, 0f, 0, 120, 700, UiKit.MinTouch);
             Image resetHit = reset.AddImage(null, new Color(0, 0, 0, 0));
@@ -145,7 +145,7 @@ namespace VuonTra.Game.UI
             {
                 bool on = get();
                 plate.color = on ? Palette.Carrot : Palette.Track;
-                text.color = on ? Palette.Card : Palette.InkSoft;
+                text.color = on ? Palette.OnCarrot : Palette.InkSoft;
                 text.text = L10n.T(on ? "toggle.on" : "toggle.off");
             };
             show();
@@ -177,7 +177,7 @@ namespace VuonTra.Game.UI
                 L10n.SetLocale(code);
             });
             UiKit.Rect("Text", rt).Stretch(0, 0, 1, 1)
-                .AddText(L10n.T("lang." + code), UiKit.TextBody, current ? Palette.Card : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("lang." + code), UiKit.TextBody, current ? Palette.OnCarrot : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>Fills the profile row on the pause card.</summary>

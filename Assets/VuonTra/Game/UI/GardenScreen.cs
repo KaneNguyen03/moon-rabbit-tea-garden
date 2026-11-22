@@ -1537,9 +1537,9 @@ namespace VuonTra.Game.UI
                 if (Selected >= 0 && Selected < s.Plots && s.Levels[Selected] > 0) OnBuy(Selected);
             };
             _cardBuyTop = UiKit.Rect("Top", _cardBuy.FaceRect).Stretch(0, 0, 0.5f, 1, 24, 0, 0, 0)
-                .AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardBuyCost = UiKit.Rect("Cost", _cardBuy.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 64, 0)
-                .AddText("", UiKit.TextTitle, Palette.Card, TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleRight, FontStyle.Bold);
             UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42).AddImage(catalog.Currency, Color.white).preserveAspect = true;
 
             _card.gameObject.SetActive(false);
@@ -1692,7 +1692,7 @@ namespace VuonTra.Game.UI
             UiKit.Secondary(done, catalog.Panel, L10n.T("photo.done"), () => { Sfx.Click(); ExitPhotoMode(); });
             var snap = UiKit.Rect("Snap", bar).Place(1f, 0.5f, -170, 4, 280, 96);
             ChunkyButton snapButton = UiKit.Chunky(snap, catalog.Panel, Snap);
-            UiKit.Rect("Text", snapButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("photo.snap"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", snapButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("photo.snap"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _photoBar = bar.gameObject;
             _photoBar.SetActive(false);
 
@@ -1759,7 +1759,7 @@ namespace VuonTra.Game.UI
             UiKit.Secondary(share, catalog.Panel, L10n.T("photo.share"), () => { Sfx.Click(); CopyPhoto(); });
             var close = UiKit.Rect("Close", card).Place(1f, 0f, -190, 150, 280, 96);
             ChunkyButton closeButton = UiKit.Chunky(close, catalog.Panel, () => { Sfx.Click(); _photoReview.SetActive(false); _photoBar.SetActive(true); });
-            UiKit.Rect("Text", closeButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("photo.close"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", closeButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("photo.close"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _photoReview = overlay.gameObject;
             _photoReview.SetActive(false);
         }
@@ -1794,7 +1794,7 @@ namespace VuonTra.Game.UI
             {
                 bool on = pair.Key == "Frame" ? PhotoFrameOn : (pair.Key == "Names" ? PhotoNamesOn : PhotoFirefliesOn);
                 pair.Value.color = on ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
-                _photoToggleLabels[pair.Key].color = on ? Palette.Card : Palette.InkSoft;
+                _photoToggleLabels[pair.Key].color = on ? Palette.OnCarrot : Palette.InkSoft;
             }
             RefreshStreet(Runner.Defs, Runner.State); // the name plates follow the option
         }
@@ -2972,7 +2972,7 @@ namespace VuonTra.Game.UI
             upgradeAllNote.resizeTextMaxSize = UiKit.TextBody;
             var upgradeAllButton = UiKit.Rect("Button", _upgradeAllRow).Place(1f, 0.5f, -166, 4, 284, UiKit.MinTouch);
             ChunkyButton upgradeAllChunky = UiKit.Chunky(upgradeAllButton, catalog.Panel, () => { Sfx.Click(); UpgradeAll.Open(Runner.Defs, Runner.State); });
-            UiKit.Rect("Text", upgradeAllChunky.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("upgradeall.title"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", upgradeAllChunky.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("upgradeall.title"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             for (int i = 0; i < catalog.Stations.Length; i++)
             {
                 int index = i;
@@ -3002,7 +3002,7 @@ namespace VuonTra.Game.UI
             var claimAll = UiKit.Rect("ClaimAll", _questReady).Place(1f, 0.5f, -130, 0, 260, 68);
             UiKit.Touchable(claimAll, 260, 68);
             _claimAll = UiKit.Chunky(claimAll, catalog.Panel, OnClaimAll);
-            UiKit.Rect("Text", _claimAll.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("quests.claimall"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", _claimAll.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("quests.claimall"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _questReady.gameObject.SetActive(false);
             _clovers = AddNote(quests, "");
             _questToday = AddNote(quests, L10n.T("quests.today"), true);
@@ -3055,9 +3055,9 @@ namespace VuonTra.Game.UI
             _plotBuy = UiKit.Chunky(buy, catalog.Panel, OnBuyPlot);
             _plotBuy.Dip.Denied = () => Deny(_plotBuy, !Expansion.HasCarrots(Runner.Defs, Runner.State));
             UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 10)
-                .AddText(L10n.T("plot.buy"), UiKit.TextSmall, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("plot.buy"), UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _plotCost = UiKit.Rect("Cost", _plotBuy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 10, 8, 0)
-                .AddText("", UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <summary>A scrolling column of cards under the sheet's header; returns where the cards go.</summary>
@@ -3327,7 +3327,7 @@ namespace VuonTra.Game.UI
                 Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
                 _away.SetActive(false);
             });
-            UiKit.Rect("Text", okButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("away.ok"), 40, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", okButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("away.ok"), 40, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             _away.SetActive(false);
         }
@@ -3452,7 +3452,7 @@ namespace VuonTra.Game.UI
             {
                 bool on = _modeButtons[i].Key == s.BuyMode;
                 _modeButtons[i].Value.color = on ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
-                _modeLabels[i].Value.color = on ? Palette.Card : Palette.InkSoft;
+                _modeLabels[i].Value.color = on ? Palette.OnCarrot : Palette.InkSoft;
             }
             UpgradeAll.Refresh(defs, s);
             Shop.Refresh(s);

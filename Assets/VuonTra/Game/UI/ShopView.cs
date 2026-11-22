@@ -73,7 +73,7 @@ namespace VuonTra.Game.UI
             _giftSub.resizeTextMaxSize = UiKit.TextSmall;
             var giftButton = UiKit.Rect("Gift", today_).Place(1f, 0.5f, -150, 0, 260, 100);
             _gift = UiKit.Chunky(giftButton, catalog.Panel, () => { Sfx.Blip(); onGift(); });
-            _giftLabel = UiKit.Rect("Text", _gift.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _giftLabel = UiKit.Rect("Text", _gift.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _giftLabel.resizeTextForBestFit = true;
             _giftLabel.resizeTextMinSize = 14;
             _giftLabel.resizeTextMaxSize = UiKit.TextBody;
@@ -99,7 +99,7 @@ namespace VuonTra.Game.UI
             newPlate.transform.SetAsFirstSibling();
             var buyButton = UiKit.Rect("Buy", visitor).Place(1f, 0.5f, -150, 0, 260, 100);
             _buy = UiKit.Chunky(buyButton, catalog.Panel, () => { Sfx.Blip(); onBuyVisitor(); });
-            _visitorLabel = UiKit.Rect("Text", _buy.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _visitorLabel = UiKit.Rect("Text", _buy.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _visitorLabel.resizeTextForBestFit = true;
             _visitorLabel.resizeTextMinSize = 14;
             _visitorLabel.resizeTextMaxSize = UiKit.TextBody;
@@ -115,7 +115,7 @@ namespace VuonTra.Game.UI
             sub.resizeTextMaxSize = UiKit.TextSmall;
             var goldenButton = UiKit.Rect("Call", golden).Place(1f, 0.5f, -150, 10, 260, 100);
             _golden = UiKit.Chunky(goldenButton, catalog.Panel, () => { Sfx.Blip(); onGoldenSummon(); });
-            _goldenLabel = UiKit.Rect("Text", _golden.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _goldenLabel = UiKit.Rect("Text", _golden.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _goldenLabel.resizeTextForBestFit = true;
             _goldenLabel.resizeTextMinSize = 14;
             _goldenLabel.resizeTextMaxSize = UiKit.TextBody;

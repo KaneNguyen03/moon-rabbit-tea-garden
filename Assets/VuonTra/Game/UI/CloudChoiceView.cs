@@ -73,7 +73,7 @@ namespace VuonTra.Game.UI
                 Close();
                 _onChoose(remote);
             });
-            UiKit.Rect("Text", button.FaceRect).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText(label, UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", button.FaceRect).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText(label, UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             return button;
         }
 
@@ -106,7 +106,7 @@ namespace VuonTra.Game.UI
         {
             button.Face.color = suggested ? Palette.Carrot : Palette.Track;
             button.Lip.color = suggested ? Palette.CarrotLip : Palette.Mix(Palette.Track, Palette.Ink, 0.2f);
-            button.FaceRect.GetComponentInChildren<Text>().color = suggested ? Palette.Card : Palette.Ink;
+            button.FaceRect.GetComponentInChildren<Text>().color = suggested ? Palette.OnCarrot : Palette.Ink;
         }
 
         public void Close()

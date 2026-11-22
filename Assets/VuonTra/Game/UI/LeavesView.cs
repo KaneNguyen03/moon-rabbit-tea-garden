@@ -138,7 +138,7 @@ namespace VuonTra.Game.UI
             var done = UiKit.Rect("Done", _resultCard).Place(0.5f, 0f, 0, 100, 420, 110);
             ChunkyButton doneButton = null;
             doneButton = UiKit.Chunky(done, catalog.Panel, () => { doneButton.Press(_tweens); Sfx.Blip(); Close(); _onQuit(); });
-            UiKit.Rect("Text", doneButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("leaves.done"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", doneButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("leaves.done"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _result.SetActive(false);
 
             _root.SetActive(false);

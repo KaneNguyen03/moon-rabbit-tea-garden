@@ -59,7 +59,7 @@ namespace VuonTra.Game.UI
                 saveButton.Press(_tweens);
                 Save();
             });
-            UiKit.Rect("Text", saveButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.save"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", saveButton.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("rename.save"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var cancel = UiKit.Rect("Cancel", _card).Place(0.5f, 0f, -230, 110, 300, 120);
             ChunkyButton cancelButton = UiKit.Chunky(cancel, catalog.Panel, Close);

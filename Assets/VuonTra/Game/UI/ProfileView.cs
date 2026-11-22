@@ -104,7 +104,7 @@ namespace VuonTra.Game.UI
                 _copyLabel.text = L10n.T("profile.copied");
             });
             _copyLabel = UiKit.Rect("Text", copyButton.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(L10n.T("profile.copy"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("profile.copy"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             // Backup: where the save lives, and the link button that waits for a store sign-in.
             UiKit.Rect("BackupTitle", _card).Place(0.5f, 1f, 0, -790, 740, 44)
@@ -114,7 +114,7 @@ namespace VuonTra.Game.UI
             var link = UiKit.Rect("Link", _card).Place(0.5f, 1f, 0, -930, 620, 110);
             _link = UiKit.Chunky(link, catalog.Panel, () => { Sfx.Blip(); onLink(); });
             UiKit.Rect("Text", _link.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(L10n.T("backup.link"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("backup.link"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _linkNote = UiKit.Rect("LinkNote", _card).Place(0.5f, 1f, 0, -1010, 740, 60)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
 
@@ -124,10 +124,10 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
             var push = UiKit.Rect("CloudPush", _card).Place(0.5f, 1f, -170, -1160, 320, 100);
             _push = UiKit.Chunky(push, catalog.Panel, () => { Sfx.Blip(); onPushCloud?.Invoke(); });
-            UiKit.Rect("Text", _push.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("cloud.push"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", _push.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("cloud.push"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             var restore = UiKit.Rect("CloudRestore", _card).Place(0.5f, 1f, 170, -1160, 320, 100);
             _restore = UiKit.Chunky(restore, catalog.Panel, () => { Sfx.Blip(); onRestoreCloud?.Invoke(); });
-            UiKit.Rect("Text", _restore.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("cloud.restore"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", _restore.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("cloud.restore"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             var restoreLocal = UiKit.Rect("RestoreLocal", _card).Place(0.5f, 1f, 0, -1250, 740, UiKit.MinTouch);
             Image restoreHit = restoreLocal.AddImage(null, new Color(0, 0, 0, 0));
             restoreHit.raycastTarget = true;

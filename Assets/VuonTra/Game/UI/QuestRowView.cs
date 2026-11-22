@@ -67,7 +67,7 @@ namespace VuonTra.Game.UI
             var claim = UiKit.Rect("Claim", Root).Place(1f, 0.5f, -146, 4, 236, 116);
             Claim = UiKit.Chunky(claim, catalog.Panel, () => onClaim(_index));
             _claimLabel = UiKit.Rect("Text", Claim.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(L10n.T("quest.claim"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("quest.claim"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             // A daily that has been collected says so and waits for tomorrow.
             var done = UiKit.Rect("Done", Root).Place(1f, 1f, -146, -48, 236, 56);

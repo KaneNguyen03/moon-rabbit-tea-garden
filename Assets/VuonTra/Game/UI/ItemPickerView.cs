@@ -175,7 +175,7 @@ namespace VuonTra.Game.UI
                 else _onEquip(itemId, _rabbitId);
             });
             Text label = UiKit.Rect("Text", chunky.FaceRect).Stretch(0, 0, 1, 1)
-                .AddText(wornHere ? L10n.T("picker.remove") : L10n.T("picker.wear"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(wornHere ? L10n.T("picker.remove") : L10n.T("picker.wear"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             if (wornHere)
             {
                 chunky.Lip.color = Palette.OffLip;

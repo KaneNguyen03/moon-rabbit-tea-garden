@@ -242,8 +242,10 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(Contrast(Palette.InkSoft, Palette.Paper), 4.5, "secondary text on paper");
             Assert.GreaterOrEqual(Contrast(Palette.InkSoft, Palette.Track), 3.0, "secondary bold text on a track");
             Assert.GreaterOrEqual(Contrast(Palette.Ink, Palette.Lantern), 4.5, "ink on the lantern colour");
-            // Cream on carrot (primary buttons) is 2.0:1 today; ink on carrot would be 6.2:1. The owner decides (#33).
-            Assert.GreaterOrEqual(Contrast(Palette.Ink, Palette.Carrot), 4.5);
+            // Primary buttons: the owner chose ink on carrot (6.2:1) over cream (2.0:1) in #33.
+            Assert.AreEqual(Palette.Ink, Palette.OnCarrot);
+            Assert.GreaterOrEqual(Contrast(Palette.OnCarrot, Palette.Carrot), 4.5, "words on a primary button");
+            Assert.AreEqual(Palette.OnCarrot, ChunkyButton.InkFor(true), "every raised button writes in it");
         }
     }
 }

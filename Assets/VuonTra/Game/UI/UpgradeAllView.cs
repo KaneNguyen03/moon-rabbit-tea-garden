@@ -108,7 +108,7 @@ namespace VuonTra.Game.UI
             UiKit.Secondary(cancel, catalog.Panel, L10n.T("upgradeall.cancel"), Close);
             var confirm = UiKit.Rect("Confirm", _card).Place(1f, 0f, -250, 86, 420, 96);
             _confirm = UiKit.Chunky(confirm, catalog.Panel, () => _onConfirm());
-            UiKit.Rect("Text", _confirm.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("upgradeall.confirm"), UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", _confirm.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("upgradeall.confirm"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             _root.SetActive(false);
         }
@@ -142,7 +142,7 @@ namespace VuonTra.Game.UI
             {
                 bool on = pair.Key == s.SpendShare;
                 pair.Value.color = on ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
-                _shareLabels[pair.Key].color = on ? Palette.Card : Palette.InkSoft;
+                _shareLabels[pair.Key].color = on ? Palette.OnCarrot : Palette.InkSoft;
             }
 
             foreach (GameObject go in _rows)

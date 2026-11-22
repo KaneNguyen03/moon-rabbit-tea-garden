@@ -96,9 +96,9 @@ namespace VuonTra.Game.UI
             var buy = UiKit.Rect("Buy", Root).Place(1f, 0.5f, -166, 4, 284, 132);
             Buy = UiKit.Chunky(buy, catalog.Panel, () => onBuy(_index));
             _buyTop = UiKit.Rect("Top", Buy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 12)
-                .AddText("", UiKit.TextSmall, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _buyCost = UiKit.Rect("Cost", Buy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 12, 8, 0)
-                .AddText("", UiKit.TextTitle, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
         /// <param name="deltaTime">Seconds since the last refresh; negative jumps bars straight to their value.</param>

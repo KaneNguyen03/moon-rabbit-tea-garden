@@ -46,7 +46,7 @@ namespace VuonTra.Game.UI
             _here.resizeTextMaxSize = UiKit.TextBody;
             var storeButton = UiKit.Rect("Store", card).Place(1f, 1f, -40 - 140, -235, 280, 88);
             _store = UiKit.Chunky(storeButton, catalog.Panel, () => { if (Spot >= 0) onStore(Spot); });
-            _storeLabel = UiKit.Rect("Text", _store.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(L10n.T("decor.store"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _storeLabel = UiKit.Rect("Text", _store.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(L10n.T("decor.store"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _storeLabel.resizeTextForBestFit = true;
             _storeLabel.resizeTextMinSize = 13;
             _storeLabel.resizeTextMaxSize = UiKit.TextBody;
@@ -72,7 +72,7 @@ namespace VuonTra.Game.UI
                 var useButton = UiKit.Rect("Use", row).Place(1f, 0.5f, -118, 0, 212, 88);
                 string kindId = kind.Id;
                 _uses[i] = UiKit.Chunky(useButton, catalog.Panel, () => { if (Spot >= 0) onPlace(Spot, kindId); });
-                _useLabels[i] = UiKit.Rect("Text", _uses[i].FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _useLabels[i] = UiKit.Rect("Text", _uses[i].FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _useLabels[i].resizeTextForBestFit = true;
                 _useLabels[i].resizeTextMinSize = 13;
                 _useLabels[i].resizeTextMaxSize = UiKit.TextBody;
