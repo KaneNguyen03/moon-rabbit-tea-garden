@@ -154,6 +154,21 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             Capture(screen, "32-income");
             screen.Income.Close();
+            // The mooncake game: the ring closing on the cake, a perfect pound, the dough gone chewy, and the result.
+            screen.OpenPounding();
+            Step(screen, 1.2f);
+            Capture(screen, "45-gia-1");
+            for (int b = 0; b < 6; b++)
+            {
+                Step(screen, (float)(Pounding.BeatTime(b) - screen.Pound.Time));
+                screen.Pound.Tap();
+            }
+            Step(screen, 0.12f);
+            Capture(screen, "45-gia-2");
+            Step(screen, 30f);
+            Capture(screen, "45-gia-ket-qua");
+            screen.Pound.Close();
+            screen.Refresh();
 
             // The sheet's slide in, frame by frame (30 frames a second), then at rest.
             Capture(screen, "22-open-0");

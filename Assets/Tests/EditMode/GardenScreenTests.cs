@@ -2967,5 +2967,46 @@ namespace VuonTra.Core.Tests
             screen.Workers.Sheet.Release(-2000f);
             Assert.IsFalse(screen.Workers.IsOpen, "a flick down closes it too");
         }
+
+        [Test]
+        public void The_Mortar_Opens_A_Game_From_Garden_Level_Three_And_A_Finished_Game_Is_Paid()
+        {
+            runner.State.Coins = new BigNum(1000);
+            screen.Shell.StartGame();
+            screen.Refresh();
+            GameObject mortar = root.transform.Find("Canvas/Garden/Content/Mortar").gameObject;
+            Assert.IsFalse(mortar.activeSelf, "no mortar before garden level three");
+            runner.State.GardenXp = Garden.XpForLevel(3);
+            screen.Refresh();
+            Assert.IsTrue(mortar.activeSelf);
+            Assert.AreEqual(L10n.T("mortar.plays", 3), mortar.transform.Find("Plate/Text").GetComponent<Text>().text);
+
+            Find("Canvas/Garden/Content/Mortar").onClick.Invoke();
+            Assert.IsTrue(screen.Pound.IsOpen);
+            Assert.AreEqual(2, Pounding.PlaysLeft(runner.State, runner.TodayNumber), "a play is spent on starting");
+            Assert.AreEqual(0, screen.Pound.Run.Beat);
+
+            // Tap right on the first beat, anywhere on the screen.
+            screen.Advance((float)Pounding.BeatTime(0) - (float)screen.Pound.Time);
+            Find("Canvas/Pound").onClick.Invoke();
+            Assert.AreEqual(1, screen.Pound.Run.Beat);
+            Assert.AreEqual(3, screen.Pound.Run.Score, "a perfect pound");
+            Assert.AreEqual(L10n.T("pound.perfect"), root.transform.Find("Canvas/Pound/Shake/Judge").GetComponent<Text>().text);
+
+            // Let the rest go by: misses, a shake, then the result and the pay.
+            Motion.SetReduced(true);
+            screen.Advance(0.5f);
+            Assert.AreEqual(Vector2.zero, ((RectTransform)root.transform.Find("Canvas/Pound/Shake")).anchoredPosition, "no shake with reduced motion");
+            BigNum before = runner.State.Coins;
+            for (int i = 0; i < 60; i++) screen.Advance(0.5f);
+            Assert.IsTrue(screen.Pound.Run.Finished);
+            Assert.IsTrue(root.transform.Find("Canvas/Pound/Result").gameObject.activeSelf, "the result card is up");
+            Assert.AreEqual(1, runner.State.PoundingGames, "paid once");
+            Assert.Greater(runner.State.Coins.ToDouble(), before.ToDouble(), "three points still pay something");
+            StringAssert.Contains("☆☆☆", root.transform.Find("Canvas/Pound/Result/Card/Stars").GetComponent<Text>().text);
+            Find("Canvas/Pound/Result/Card/Done").onClick.Invoke();
+            Assert.IsFalse(screen.Pound.IsOpen);
+            Assert.AreEqual(L10n.T("mortar.plays", 2), mortar.transform.Find("Plate/Text").GetComponent<Text>().text);
+        }
     }
 }

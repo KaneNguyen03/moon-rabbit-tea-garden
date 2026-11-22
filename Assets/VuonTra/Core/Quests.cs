@@ -19,6 +19,10 @@ namespace VuonTra.Core
         PhotosWithGoldRabbit,
         /// <summary>Pictures taken while every place to rest was open.</summary>
         PhotosWithFullRest,
+        /// <summary>1 once a mooncake game has earned three stars.</summary>
+        PoundingThreeStar,
+        /// <summary>Mooncake games played, in all.</summary>
+        PoundingGames,
         /// <summary>One more than the rarest tier in the album (so a target of 4 means "a Purple kind met").</summary>
         RarestKindMet,
         /// <summary>How many plots the garden has.</summary>
@@ -102,6 +106,10 @@ namespace VuonTra.Core
                 }
                 case QuestMetric.PlotsOwned:
                     return s.Plots;
+                case QuestMetric.PoundingThreeStar:
+                    return s.PoundingBestStars >= 3 ? 1 : 0;
+                case QuestMetric.PoundingGames:
+                    return s.PoundingGames;
                 case QuestMetric.RabbitsAtCap:
                 {
                     int capped = 0;

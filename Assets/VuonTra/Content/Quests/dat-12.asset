@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
   Id: dat-12
   Title: "M\u1EDF \u0111\u1EE7 12 \xF4 \u0111\u1EA5t"
-  Metric: 10
+  Metric: 12
   Station: {fileID: 0}
   Target: 12
   Daily: 0

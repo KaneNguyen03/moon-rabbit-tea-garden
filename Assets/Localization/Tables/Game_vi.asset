@@ -1602,6 +1602,86 @@ MonoBehaviour:
     m_Localized: "V\u01B0\u1EDDn l\xEAn c\u1EA5p {0}"
     m_Metadata:
       m_Items: []
+  - m_Id: 195730802204672
+    m_Localized: "Gi\xE3 b\xE1nh 3 sao l\u1EA7n \u0111\u1EA7u"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593280
+    m_Localized: "Gi\xE3 30 v\xE1n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593281
+    m_Localized: "Gi\xE3 b\xE1nh tr\u0103ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593282
+    m_Localized: "Ch\u1EA1m \u0111\xFAng l\xFAc v\xF2ng ch\u1EA1m b\xE1nh"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593283
+    m_Localized: "Chu\u1EA9n!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593284
+    m_Localized: "\u0110\u01B0\u1EE3c"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593285
+    m_Localized: "M\xE9o"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593286
+    m_Localized: "D\u1EBBo!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593287
+    m_Localized: "{0} \u0111i\u1EC3m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593288
+    m_Localized: "Nh\u1ECBp {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593289
+    m_Localized: "Th\xF4i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593290
+    m_Localized: Xong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593291
+    m_Localized: "B\xE1nh xong!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593292
+    m_Localized: "+{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593293
+    m_Localized: "{0} gi\xE3 c\xF9ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593294
+    m_Localized: "Th\u1ECF B\u1EBFp b\xE1nh gi\xE3 c\xF9ng: \xD71,5"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593295
+    m_Localized: "+1 c\u1ECF b\u1ED1n l\xE1 (l\u01B0\u1EE3t \u0111\u1EA7u trong ng\xE0y c\xF3 sao)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593296
+    m_Localized: "+1 c\xE0 r\u1ED1t v\xE0ng (v\xE1n 3 sao \u0111\u1EA7u ng\xE0y)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593297
+    m_Localized: "Gi\xE3 b\xE1nh \xB7 c\xF2n {0} l\u01B0\u1EE3t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593298
+    m_Localized: "Mai gi\xE3 ti\u1EBFp"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

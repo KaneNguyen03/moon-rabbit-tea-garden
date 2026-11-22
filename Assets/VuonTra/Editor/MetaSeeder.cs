@@ -86,6 +86,8 @@ namespace VuonTra.EditorTools
                 new Q { Id = "thu-1b",    Title = "Thu tổng cộng 1 tỉ cà rốt",      Metric = QuestMetric.CarrotsEarned, Target = 1e9, Seconds = 1800, Carrots = 1e8, Clovers = 3 },
                 // Pictures of the garden (#18).
                 new Q { Id = "anh-1",     Title = "Chụp tấm ảnh đầu tiên",          Metric = QuestMetric.PhotosTaken,         Target = 1, Seconds = 120, Carrots = 100 },
+                new Q { Id = "gia-3sao",  Title = "Giã bánh 3 sao lần đầu",         Metric = QuestMetric.PoundingThreeStar,   Target = 1,  Seconds = 600,  Carrots = 1000, Clovers = 2 },
+                new Q { Id = "gia-30",    Title = "Giã 30 ván",                      Metric = QuestMetric.PoundingGames,       Target = 30, Seconds = 1800, Carrots = 3000, Clovers = 3 },
                 new Q { Id = "anh-vang",  Title = "Chụp ảnh có một thỏ bậc Vàng",   Metric = QuestMetric.PhotosWithGoldRabbit, Target = 1, Seconds = 600, Carrots = 1000, Clovers = 2 },
                 new Q { Id = "anh-nghi",  Title = "Chụp ảnh khi đủ 6 chỗ nghỉ",     Metric = QuestMetric.PhotosWithFullRest,   Target = 1, Seconds = 900, Carrots = 2000, Clovers = 2 },
                 // Golden carrots, once each (#44).
@@ -178,6 +180,7 @@ namespace VuonTra.EditorTools
             catalog.PlotSign = FinalArt.Load("plot_sign");
             catalog.Clover = FinalArt.Load("icon_clover");
             catalog.Hand = FinalArt.Load("icon_hand");
+            catalog.Mortar = FinalArt.Find("prop_coi-gia-banh");
             catalog.GoldenCarrot = FinalArt.Find("icon_ca-rot-vang");
             catalog.GiftBox = FinalArt.Find("icon_hop-qua");
             catalog.ShopProp = FinalArt.Find("prop_tiem");

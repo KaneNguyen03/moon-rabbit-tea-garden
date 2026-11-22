@@ -309,6 +309,22 @@ namespace VuonTra.Game
             if (Rabbits.LookAt(State, kindId)) Changed();
         }
 
+        /// <summary>Spends one of today's mooncake plays and hands back the game to score; null when none is left.</summary>
+        public PoundingRun StartPounding()
+        {
+            if (!Pounding.Start(State, Today)) return null;
+            Changed();
+            return new PoundingRun();
+        }
+
+        /// <summary>Pays a finished mooncake game.</summary>
+        public PoundingResult FinishPounding(PoundingRun run)
+        {
+            PoundingResult result = Pounding.Finish(Defs, State, Mods, run);
+            Changed();
+            return result;
+        }
+
         /// <summary>Makes the next rabbit the player's avatar; null when there are none.</summary>
         public Rabbit NextAvatar()
         {

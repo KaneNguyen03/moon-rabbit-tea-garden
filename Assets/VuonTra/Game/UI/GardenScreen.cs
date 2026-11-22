@@ -47,7 +47,10 @@ namespace VuonTra.Game.UI
         public TutorialView Guide { get; private set; }
         /// <summary>The tea shop by the pond: the daily gift and the golden call.</summary>
         public ShopView Shop { get; private set; }
-        RectTransform _shopProp, _goldenChip;
+        RectTransform _shopProp, _goldenChip, _mortarProp;
+        Text _mortarPlate;
+        /// <summary>The mooncake game, opened from the mortar beside the teapot.</summary>
+        public PoundingView Pound { get; private set; }
         GameObject _shopBadge;
         Text _goldenText;
         int _guideStep = -1;
@@ -232,6 +235,7 @@ namespace VuonTra.Game.UI
             bool boosting = s.BoostSecondsLeft > 0d;
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
             UpdateEdges();
+            Pound.Update(dt);
             if (_purseDown && !_purseHeld)
             {
                 _purseDownFor += dt;
@@ -754,6 +758,7 @@ namespace VuonTra.Game.UI
             Rename = null;
             Profile = null;
             Income = null;
+            Pound = null;
             Detail = null;
             Arrival = null;
             Shell = null;
@@ -839,6 +844,12 @@ namespace VuonTra.Game.UI
                     if (gift) Feel.FloatText(Feel.PointOf(Profile.Root), L10n.T("backup.rewarded", VuonTra.Core.Profile.LinkRewardClovers), Palette.Lantern, 44);
                 }));
             Income = new IncomeView(_canvas, catalog, Tweens);
+            Pound = new PoundingView(_canvas, catalog, Tweens, () => Refresh(-1f), run =>
+            {
+                PoundingResult result = Runner.FinishPounding(run);
+                if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
+                Pound.ShowPaid(result);
+            });
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -1058,6 +1069,26 @@ namespace VuonTra.Game.UI
                 _shopBadge = shopBadge.gameObject;
                 _shopBadge.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(shopAt.y, _shopProp));
+            }
+            // The mortar for the mooncake game stands near the teapot from garden level three; a touch starts a game.
+            {
+                Vector2 mortarAt = Heart + new Vector2(290f, -210f);
+                _mortarProp = UiKit.Rect("Mortar", _street).Place(0f, 0f, mortarAt.x, mortarAt.y + 80f, 170, 170);
+                Image mortarImage = _mortarProp.AddImage(catalog.Mortar != null ? catalog.Mortar : catalog.Round, catalog.Mortar != null ? Color.white : Palette.Mix(Palette.Ink, Palette.Paper, 0.4f));
+                mortarImage.preserveAspect = true;
+                mortarImage.raycastTarget = true;
+                var mortarButton = _mortarProp.gameObject.AddComponent<Button>();
+                mortarButton.transition = Selectable.Transition.None;
+                mortarButton.targetGraphic = mortarImage;
+                mortarButton.onClick.AddListener(OpenPounding);
+                var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 0f, 0, -26, 250, 44);
+                plate.AddImage(catalog.Panel, Palette.Paper, true);
+                _mortarPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _mortarPlate.resizeTextForBestFit = true;
+                _mortarPlate.resizeTextMinSize = 14;
+                _mortarPlate.resizeTextMaxSize = 20;
+                _mortarProp.gameObject.SetActive(false);
+                standing.Add(new KeyValuePair<float, Transform>(mortarAt.y, _mortarProp));
             }
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
@@ -2648,6 +2679,13 @@ namespace VuonTra.Game.UI
             Workers.Refresh(defs, s);
             Profile.Refresh(defs, s, Runner.Account);
             Income.Refresh(defs, s, m);
+            bool mortar = Pounding.Unlocked(s);
+            if (_mortarProp.gameObject.activeSelf != mortar) _mortarProp.gameObject.SetActive(mortar);
+            if (mortar)
+            {
+                int left = Pounding.PlaysLeft(s, Runner.TodayNumber);
+                _mortarPlate.text = left > 0 ? L10n.T("mortar.plays", left) : L10n.T("mortar.tomorrow");
+            }
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
@@ -3134,6 +3172,26 @@ namespace VuonTra.Game.UI
             if (merged == null) return;
             Sfx.Summon(merged.Tier);
             Welcome(merged);
+        }
+
+        /// <summary>The mortar was touched: a game starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
+        public void OpenPounding()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen) return;
+            if (!Pounding.CanPlay(Runner.State, Runner.TodayNumber))
+            {
+                Sfx.Deny();
+                Feel.FloatText(Feel.PointOf(_mortarProp, new Vector2(0, 120)), L10n.T("mortar.tomorrow"), Palette.Lantern, 36);
+                return;
+            }
+            PoundingRun run = Runner.StartPounding();
+            if (run == null) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Sfx.Click();
+            Rabbit helper = Pounding.Helper(Runner.State);
+            Pound.Open(run, helper != null ? Runner.Catalog.RabbitArt(helper) : null, helper != null ? helper.Name : "");
+            Refresh(-1f);
         }
 
         public void OpenShop()

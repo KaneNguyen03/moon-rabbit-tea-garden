@@ -79,6 +79,13 @@ namespace VuonTra.Core
         public bool TutorialCloverGiven;
         /// <summary>Photos taken while a gold-or-rarer rabbit lived here, and while every place to rest was open: what two quests count.</summary>
         public long PhotosWithGoldRabbit, PhotosWithFullRest;
+
+        /// <summary>The mooncake game: today's plays, the day's once-only gifts, and the lifetime counts.</summary>
+        public long PoundingDay = -1;
+        public int PoundingPlays;
+        public bool PoundingStarToday, PoundingThreeToday;
+        public long PoundingGames;
+        public int PoundingBestStars;
         /// <summary>Where the latest pictures were written, oldest first; at most <see cref="Photos.AlbumSize"/>.</summary>
         public List<string> Album = new List<string>();
 

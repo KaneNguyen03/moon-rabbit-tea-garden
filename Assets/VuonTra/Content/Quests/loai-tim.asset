@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
   Id: loai-tim
   Title: "G\u1EB7p lo\xE0i th\u1ECF b\u1EADc T\xEDm \u0111\u1EA7u ti\xEAn"
-  Metric: 9
+  Metric: 11
   Station: {fileID: 0}
   Target: 4
   Daily: 0

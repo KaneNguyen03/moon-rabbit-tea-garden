@@ -1606,6 +1606,86 @@ MonoBehaviour:
     m_Localized: Garden level {0}
     m_Metadata:
       m_Items: []
+  - m_Id: 195730802204672
+    m_Localized: First three-star mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593280
+    m_Localized: Pound thirty mooncakes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593281
+    m_Localized: Pound the mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593282
+    m_Localized: Tap when the ring meets the cake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593283
+    m_Localized: Perfect!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593284
+    m_Localized: Good
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593285
+    m_Localized: Dented
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593286
+    m_Localized: Chewy!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593287
+    m_Localized: '{0} points'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593288
+    m_Localized: Beat {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593289
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593290
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593291
+    m_Localized: Cake done!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593292
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593293
+    m_Localized: '{0} pounds along'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593294
+    m_Localized: "A baker pounded along: \xD71.5"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593295
+    m_Localized: +1 clover (first starred game today)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593296
+    m_Localized: +1 golden carrot (first three-star game today)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593297
+    m_Localized: "Pound \xB7 {0} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 195730810593298
+    m_Localized: More tomorrow
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

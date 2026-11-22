@@ -48,6 +48,8 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 3feb2a7b9b9284784ae6e004f22ab26f, type: 2}
   - {fileID: 11400000, guid: cc0d6dd2a1d5d417c87cfdcc1664b943, type: 2}
   - {fileID: 11400000, guid: e65a296f47787461dbc3d920c52abbd3, type: 2}
+  - {fileID: 11400000, guid: 34fe4a2e69e414787a11254dd7400157, type: 2}
+  - {fileID: 11400000, guid: e9a9b84d6514948cd8438c96c31137c8, type: 2}
   - {fileID: 11400000, guid: 24dd9e414fd0447e19cc17e408287770, type: 2}
   - {fileID: 11400000, guid: 7c4d56c29122c499a8b5e7cc8a3d6538, type: 2}
   - {fileID: 11400000, guid: 91584d058121a491e913c97fa8e36dbc, type: 2}
@@ -102,6 +104,7 @@ MonoBehaviour:
   Currency: {fileID: 21300000, guid: fb571cae86e654db8acbea625933a94d, type: 3}
   Clover: {fileID: 21300000, guid: 18a371d3f9b11408899105bcdf27f585, type: 3}
   Hand: {fileID: 21300000, guid: 63355055a10d94d8797f2d657c053943, type: 3}
+  Mortar: {fileID: 21300000, guid: a8282103e51d547919f3af4b49750b0f, type: 3}
   GoldenCarrot: {fileID: 21300000, guid: 574b012909f2f4f5fb4499600cb84a82, type: 3}
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}
