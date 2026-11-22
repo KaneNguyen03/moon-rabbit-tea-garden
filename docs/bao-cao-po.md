@@ -1029,6 +1029,24 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt so với #38
 - Chưa có nhà cung cấp thật (Game Center / Play Games là #39/#40): `Cloud` mặc định vẫn `LocalOnlyCloudSave`, mọi nút nói rõ "Chưa có nơi lưu mây trên bản này". Thử tay tấm chọn bản trên máy thật.
 
+## Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (#16; issue #49 mở trước khi có quy ước mới)
+
+- Test: 584/584 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 2 test màn hình; 2 test cũ đổi sang `L10n.StationLevel` vì biển cấp nay mang dấu bậc.
+- Commit `f2ca812`, đã push. Comment đối chiếu trong #16 (dòng đã tick); #49 để mở cho PO đóng hoặc gộp, nhãn chờ-PO-duyệt.
+- `Economy.Ranks = {25, 100, 300}`, `Economy.Rank(level)` 0–3. `StationActorView.SetRank`: bậc 1 dây 5 đèn nhỏ xen màu treo trên đạo cụ; bậc 2 thêm hai đèn đá nhỏ hai bên và biển cấp ánh vàng; bậc 3 thêm vầng sáng sau đạo cụ thở chậm (đứng yên khi Giảm chuyển động). `L10n.StationLevel`: "Cấp 120 ✦✦" trên biển trong vườn, tấm trạm và hàng tab Trạm. Vừa qua bậc: băng rôn "Trạm lên bậc N!" (thay băng rôn ×2 ở cùng cấp), vòng sao lớn hơn, bậc mặc lên ngay không chờ refresh. Trạm chưa mở không mang bậc. Save cũ ở cấp cao mở ra đã có bậc (bậc đọc từ cấp, không lưu thêm).
+- Ảnh (docs/anh/po-49/): `49-bac-tram.png` (ấm trà bậc 1, giỏ lá bậc 2, nồi mứt bậc 3).
+
+### Chưa đạt / cần PO quyết
+- Chủ project chưa chọn kiểu: điều phối gợi ý băng cờ theo accent trạm; mình làm dây đèn/đèn đá/vầng sáng vì không cần hình mới. Đổi kiểu chỉ chạm `SetRank`. Chưa thử tay.
+
+## #41 — Bản build iOS và Android, phần chuẩn bị không cần SDK
+
+- Test: 584/584 EditMode qua. Thêm `BuildSettingsTests.cs` (4 test đọc lại cài đặt từ project).
+- Commit `b9a7a62`, đã push. #41 để mở, đã tick các ô làm được và ghi rõ phần cần chủ project; nhãn chờ-PO-duyệt + cần-chủ-project.
+- Máy này chỉ có module MacStandalone và WebGL (`PlaybackEngines`), không có iOS/Android: không build mobile được. Đã làm phần code: `BuildScript.BuildIOS` (Xcode project ở `Build/iOS`), `BuildAndroid` (APK ở `Build/Android/VuonTraTho.apk`), chung một hàm với bản Mac; thiếu module thì dừng ngay với thông báo cài module (exit 2). `tools/build.sh mac|ios|android`.
+- `ContentSeeder.ApplyMobileSettings` (chạy khi seed): bundle id `com.vuontratho.game` cho iOS và Android (cùng Standalone), `bundleVersion` 0.1.0 và số build 1 cho cả ba (`BuildScript.Version/BuildNumber`, một chỗ để tăng), chỉ dọc (tắt xoay ngang và lộn ngược), ẩn thanh trạng thái, iPhone+iPad, Android minSdk 26, IL2CPP + ARM64. Icon mặc định cho mọi nền tảng và màn hình chờ (nền đêm của art bible, hình 2 giây) từ `icon_app.png` vẽ ghép từ thỏ trắng có sẵn + trăng + đồi cỏ (docs/anh/po-41/41-icon-app.png). Icon theo từng cỡ của iOS/Android chỉ gán được khi có module (có try/catch, seed lại sau khi cài).
+- Chưa làm (cần chủ project): cài module iOS và Android qua Unity Hub cùng Xcode và Android SDK/NDK/JDK; chạy build thật; chạm thật, hiệu năng, dung lượng, TestFlight/Internal testing. Icon và màn hình chờ nên có hình vẽ riêng theo art bible thay cho bản ghép.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -1059,7 +1077,9 @@ Sau khi sửa cả bốn xanh.
 - #28 phần code còn lại (`fcf3f64`): cây, đèn lồng, ao, đom đóm theo đàn chuyển động; thỏ đi dạo từ ghế ra lối và về; thỏ được xếp đi bộ tới trạm. Còn chớp mắt/vẫy tai (cần hình).
 - #34 (`ab2aab2`): lớp đất (đất mòn, đá lát, thảm hoa, vệt trăng), bóng đổ dưới mọi đồ vật, tán cây viền trượt 0,9, trang trí có chủ đích quanh từng trạm với bồn hoa và đèn đá; cối giã dời lên trên ấm trà.
 - #38 lõi lưu mây (`d88b60c`): phong bì có mã kiểm, `CloudSync` (khi nào đồng bộ, chọn bản, không tự ghi đè), sao lưu trên máy trước khi thay, tấm chọn bản, trạng thái + Lưu ngay + Khôi phục trong Hồ sơ, thời gian chơi trong save. Còn nhà cung cấp thật (#39/#40).
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`; #16 đã tick.
+- Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
+- #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`, `po-49`, `po-41`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
