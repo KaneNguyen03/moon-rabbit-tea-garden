@@ -33,3 +33,5 @@ Trung thu theo âm lịch thực tế rơi trong tháng 9 hoặc đầu tháng 1
 - [ ] Ba khoảng ngày.
 - [ ] Ba cách gặp và giá 120 cà rốt vàng khi ghé tiệm.
 - [ ] Nhiệm vụ mùa thưởng 3/5/10 cà rốt vàng.
+
+Ghi chú cắt hình: `cat-tam-tho.py` xoá góc dưới phải 190×190 (dấu của trình tạo ảnh cũ); tấm vẽ bằng Antigravity không có dấu đó nên phải bỏ hai dòng `[H - 190:, W - 190:]` trước khi cắt, nếu không con ở ô cuối bị khuyết (đã gặp với Thỏ Tuần Lộc).
