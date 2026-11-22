@@ -1096,6 +1096,21 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Chưa thử tay trên máy thật (hai chạm trong 2 giây; màu nhuộm nhẹ trên thỏ tối).
 
+## #2 và #3 — Thỏ cầm dụng cụ nghề; thỏ nghỉ ngồi, nằm, đội mũ, có tên (bản code, chờ hình vẽ)
+
+- Test: 632/632 EditMode qua. Thêm 2 test màn hình.
+- Commit `8438799`, đã push. Comment đối chiếu lên #2 và #3, nhãn chờ-PO-duyệt (chủ project đồng ý làm bản code trước, hình vẽ sau).
+- #2: `StationActorView` có "Tool" (icon nghề của TRẠM, `catalog.TradeIcon(defs[i].Trade)`) treo ở tay gần của thỏ, đi theo thỏ khi nhún/nhảy; `MoveTool`: Brewer khuấy (xoay ±22° quanh tay), Baker nhào (ấn xuống 10), Gatherer vung giỏ (±12°), nghề còn lại nghiêng chậm ±8°; thỏ ngủ gật thì hạ dụng cụ; Giảm chuyển động thì đứng yên. 72 loài đều có vì dụng cụ nằm ngoài hình thỏ.
+- #3: `PoseSeated`: ghế gốc cây, thảm, ghế nấm, xích đu → dáng ngồi (ép 1,06×0,86, hạ 6); võng → nằm (xoay −72°, 0,92, dời 12/26); mũ đặt lên đầu theo đúng cách tấm thỏ đặt (`RabbitGridView.PlaceHat`), xoay theo dáng; biển tên dưới ghế.
+- Ảnh: `docs/anh/po-2/2-dung-cu-nghe.png`, `docs/anh/po-3/3-dang-nghi.png`.
+
+### Chưa đạt
+- Hình vẽ dáng ngồi/nằm và khung động tác nghề cho từng dáng thân (#2, #3 ghi "hoặc"); khi có hình thì thay ở `PoseSeated` và `MoveTool`.
+
+## #15 — Đổi tên app sang Moon Rabbit Tea Garden (mặc định, chờ chủ project duyệt)
+
+- Commit `fb68262`, đã push; 632/632. `BuildScript.ProductName = "Moon Rabbit Tea Garden"`, seed ghi vào `PlayerSettings.productName`; màn tiêu đề tiếng Việt giữ "Vườn Trà Thỏ Trăng". Thư mục log Mac đổi theo (`~/Library/Logs/VuonTraTho/Moon Rabbit Tea Garden/`), `tools/verify.sh --build` đọc đúng chỗ mới; save không đổi chỗ (theo bundle id). Test `BuildSettingsTests` kiểm tên.
+
 ## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -1130,6 +1145,7 @@ Sau khi sửa cả bốn xanh.
 - Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
 - #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
+- Chiều 22/11 chủ project giao điều phối hoàn thiện mọi issue: #2 + #3 bản code (`8438799`), #15 đổi tên app (`fb68262`); B làm #6 rồi #11; điều phối đóng nhóm A, mặc định cho #7/#9/#39/#40, #8 hình và đề xuất, #1 đề xuất.
 - Hai chỗ chữ bị che (`ac9a9d0`, sau verify --build; verify thường xanh 618/618): thanh Trà lực ngắn lại (288, kết thúc trước tấm nút góc) nên "Tăng tốc!" đọc đủ; giỏ Hứng lá nhỏ lại (110×95), dời sang phải (StationSpot(giỏ lá) + (104, 130)) và biển của nó treo bên trái (240 rộng, một dòng), không còn đè "Mở rộng vườn" hay tên trạm; ảnh `docs/anh/po-37/37-khay-hinh.png` cập nhật.
 - Nhãn tăng tốc đè số Trà lực (`994a396`, verify thường xanh 626/626): tên và đếm ngược mỗi bên một nửa hàng trên của thanh, cùng co chữ về một dòng (min 16/14); test 4 trường hợp vi/en × thường/chữ to đo hai ô không giao nhau và mỗi chữ vừa nửa của nó ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-tang-toc-sau.png`.
 - Biển "Đom đóm · còn N lượt" bị tán cây viền (lớp Canopy, vẽ trên vườn) che đuôi (`22fc554`, verify thường xanh 630/630): lọ đom đóm dời vào trong (PondSpot + (-5, -290)), biển kết thúc trước `GardenScreen.ReadableRight` = 1000; test 4 trường hợp vi/en × thường/chữ to đo biển nằm trọn trong màn (cách mép ≥ 24), không vượt 1000, chữ vừa một dòng ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-lo-dom-dom-sau.png`.
