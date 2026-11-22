@@ -684,6 +684,7 @@ namespace VuonTra.EditorTools
             RenderAdSeams(runner, screen);
             RenderForestRings(runner, screen); // #53
             RenderLayout(runner, screen);
+            RenderQaNits2(); // #79–#82, on a freshly opened scene so the title shows again
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1414,6 +1415,109 @@ namespace VuonTra.EditorTools
             screen.LookAt(screen.StationSpot(0) + new Vector2(0f, -80f));
             Step(screen, 0.5f);
             Capture(screen, "54-sau-xong");
+        }
+
+        /// <summary>
+        /// QA nits 2 (#79–#82): the welcome-back sheet coming up over the title on a day whose eight guests were all served,
+        /// a long kind's plate on a rabbit's own sheet and on its album page (in Vietnamese and English), and mushroom stools
+        /// on the decoration spot by a station's level plate.
+        /// </summary>
+        static void RenderQaNits2()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            for (int i = 0; i < defs.Count; i++) s.Levels[i] = 30 - 2 * i;
+            s.Plots = defs.Count;
+            s.GardenXp = Garden.XpForLevel(9);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e7);
+            s.GoldenCarrots = 500;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-den-ong-sao", "Đèn").Id, 0);
+            Rabbits.Arrive(s, 1, "Mây", 0.4);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            Step(screen, 0.4f);
+
+            // #79 and #80: today's eight guests have all been served, then three hours away; the sheet comes up over the title.
+            s.OrderDay = runner.TodayNumber;
+            s.OrdersToday = Orders.PerDay;
+            long now = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            s.LastSeenUnixSeconds = now - 3 * 3600;
+            AwayReport away = Away.Claim(runner.Defs, s, now, runner.Mods);
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 0.5f);
+            Capture(screen, "79-di-vang-tren-tieu-de");
+            screen.AwayCard.Close();
+            Step(screen, 0.4f);
+            screen.Shell.StartGame();
+            Step(screen, 0.5f);
+
+            // #81: a gold kind with a long name on its rabbit's own sheet, the red kind's album page, then the sheet in English.
+            Rabbit lantern = s.Rabbits[0];
+            screen.Detail.Open(runner.Defs, s, lantern.Id);
+            Step(screen, 0.5f);
+            Capture(screen, "81-the-tho-ten-dai");
+            screen.Detail.OpenKind(runner.Defs, s, "tho-chom-sao");
+            Step(screen, 0.5f);
+            Capture(screen, "81-so-tho-ten-dai");
+            screen.Detail.Close();
+            Step(screen, 0.4f);
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            screen.Detail.Open(runner.Defs, s, lantern.Id);
+            Step(screen, 0.5f);
+            Capture(screen, "81-the-tho-ten-dai-en");
+            screen.Detail.Close();
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.4f);
+
+            // #82: mushroom stools on the first decoration spot whose stools reach a station's level plate.
+            for (int i = 0; i < Decor.Spots; i++) { Decor.Buy(s, "ghe-nam"); Decor.Place(s, i, "ghe-nam"); }
+            screen.RebuildUi();
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Canvas.ForceUpdateCanvases();
+            Transform street = screen.transform.Find("Canvas/Garden/Content");
+            // The highest plate on the lawn that a stool reaches, whatever the drawing order.
+            int spot = -1;
+            Vector2 look = screen.StationSpot(0);
+            foreach (RectTransform plate in street.GetComponentsInChildren<RectTransform>(false))
+            {
+                if (plate.name != "Level" || plate.parent == null || !plate.parent.name.StartsWith("Station ")) continue;
+                Rect p = StreetRectOf(plate, street);
+                if (spot >= 0 && p.center.y <= look.y) continue;
+                for (int i = 0; i < Decor.Spots; i++)
+                {
+                    Transform item = street.Find("Spot " + i + "/Item");
+                    if (item != null && item.gameObject.activeInHierarchy && StreetRectOf((RectTransform)item, street).Overlaps(p)) { spot = i; look = p.center; break; }
+                }
+            }
+            for (int i = 0; i < Decor.Spots; i++) if (i != spot) Decor.Store(s, i);
+            screen.RebuildUi();
+            screen.Refresh();
+            screen.LookAt(look + new Vector2(0f, 60f));
+            Step(screen, 0.5f);
+            Capture(screen, "82-ghe-nam-canh-tram");
+            if (spot < 0) Debug.LogWarning("[VuonTra] Preview #82: no decoration spot reaches a station plate");
+        }
+
+        static Rect StreetRectOf(RectTransform rt, Transform street)
+        {
+            var c = new Vector3[4];
+            rt.GetWorldCorners(c);
+            Vector3 a = street.InverseTransformPoint(c[0]), b = street.InverseTransformPoint(c[2]);
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
         }
     }
 }

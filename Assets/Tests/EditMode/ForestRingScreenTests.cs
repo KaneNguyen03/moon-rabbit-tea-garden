@@ -159,7 +159,7 @@ namespace VuonTra.Core.Tests
                     Rect at = GardenRect((RectTransform)tuft, street);
                     for (int i = 0; i < runner.Defs.Count; i++)
                     {
-                        Rect level = GardenRect((RectTransform)street.Find("Station " + runner.Defs[i].Id + "/Level"), street);
+                        Rect level = GardenRect((RectTransform)street.Find("Station " + runner.Defs[i].Id + " Front/Level"), street);
                         Assert.IsFalse(at.Overlaps(level), tuft.name + " lies on " + runner.Defs[i].Id + "'s plate");
                     }
                 }

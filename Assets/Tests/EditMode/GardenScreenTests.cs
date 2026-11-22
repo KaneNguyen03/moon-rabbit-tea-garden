@@ -601,7 +601,8 @@ namespace VuonTra.Core.Tests
             {
                 Transform station = street.Find("Station " + runner.Defs[i].Id);
                 var parts = new List<RectTransform>();
-                foreach (string part in new[] { "Level", "Pad", "Floor", "Prop", "Rabbit", "Tier", "Ground" }) parts.Add((RectTransform)station.Find(part));
+                Transform front = street.Find("Station " + runner.Defs[i].Id + " Front");
+                foreach (string part in new[] { "Level", "Pad", "Floor", "Prop", "Rabbit", "Tier", "Ground" }) parts.Add((RectTransform)(part == "Level" || part == "Pad" ? front : station).Find(part));
                 if (i >= Plots.Starting) parts.Add((RectTransform)street.Find("Ring " + i));
                 bool open = i < plots;
                 foreach (RectTransform part in parts)
@@ -1261,7 +1262,7 @@ namespace VuonTra.Core.Tests
         public void Zooming_Out_Shows_The_Whole_Garden_And_Hides_The_Small_Print()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            var plate = world.Find("Station am-tra/Level").gameObject;
+            var plate = world.Find("Station am-tra Front/Level").gameObject;
             Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
             Assert.IsTrue(plate.activeSelf);
 
@@ -1415,7 +1416,7 @@ namespace VuonTra.Core.Tests
             foreach (string[] parts in new[] { new[] { "Level" }, new[] { "Pad" }, new[] { "Pad", "Tag" }, new[] { "Floor" }, new[] { "Prop" }, new[] { "Rabbit" }, new[] { "Tier" } })
                 for (int i = 0; i < runner.Defs.Count; i++)
                 {
-                    Transform t = street.Find("Station " + runner.Defs[i].Id);
+                    Transform t = street.Find("Station " + runner.Defs[i].Id + (parts[0] == "Level" || parts[0] == "Pad" ? " Front" : ""));
                     foreach (string part in parts) t = t.Find(part);
                     Assert.IsNotNull(t, runner.Defs[i].Id + " has " + string.Join("/", parts));
                     read.Add(new System.Collections.Generic.KeyValuePair<string, Rect>(runner.Defs[i].Id + " " + string.Join("/", parts), GardenRect((RectTransform)t, street)));
@@ -1912,7 +1913,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.SheetOpen);
             Assert.AreEqual(1, screen.Tab);
             Assert.AreEqual("Dew Teapot", root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Name").GetComponent<Text>().text);
-            Assert.AreEqual("Lv 7", root.transform.Find("Canvas/Garden/Content/Station am-tra/Level/Text").GetComponent<Text>().text);
+            Assert.AreEqual("Lv 7", root.transform.Find("Canvas/Garden/Content/Station am-tra Front/Level/Text").GetComponent<Text>().text);
             Assert.AreEqual("Warm Hands", root.transform.Find("Canvas/Sheet/Panel/Upgrades/Content/Upgrade tay-am/Name").GetComponent<Text>().text);
             StringAssert.StartsWith("Tap rabbits", root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Title").GetComponent<Text>().text);
             Assert.AreEqual(7, runner.State.Levels[0]);
@@ -1941,13 +1942,13 @@ namespace VuonTra.Core.Tests
         [Test]
         public void An_Arrow_Marks_Stations_That_Can_Be_Afforded()
         {
-            GameObject arrow = root.transform.Find("Canvas/Garden/Content/Station am-tra/CanUp").gameObject;
+            GameObject arrow = root.transform.Find("Canvas/Garden/Content/Station am-tra Front/CanUp").gameObject;
             screen.Refresh();
             Assert.IsFalse(arrow.activeSelf, "broke");
             runner.State.Coins = new BigNum(50);
             screen.Refresh();
             Assert.IsTrue(arrow.activeSelf);
-            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station gio-la/CanUp").gameObject.activeSelf, "120 to open, only 50 in hand");
+            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station gio-la Front/CanUp").gameObject.activeSelf, "120 to open, only 50 in hand");
         }
 
         [Test]
@@ -2059,6 +2060,8 @@ namespace VuonTra.Core.Tests
         // ----- #43: a rabbit is drawn only where one of the player's rabbits really stands -----
 
         Transform Station(string id) => root.transform.Find("Canvas/Garden/Content/Station " + id);
+        /// <summary>A station's level plate and its pad live on its front, drawn over everything that stands (#82).</summary>
+        Transform Front(string id) => root.transform.Find("Canvas/Garden/Content/Station " + id + " Front");
 
         [Test]
         public void Nobody_Stands_At_A_Station_Until_One_Of_Your_Rabbits_Is_Put_There()
@@ -2066,25 +2069,25 @@ namespace VuonTra.Core.Tests
             // Open, nobody there: the prop works in full colour and an empty pad with a plus marks the rabbit's place.
             Transform teapot = Station("am-tra");
             Assert.IsFalse(teapot.Find("Rabbit").gameObject.activeSelf);
-            Assert.IsTrue(teapot.Find("Pad").gameObject.activeSelf);
+            Assert.IsTrue(Front("am-tra").Find("Pad").gameObject.activeSelf);
             Assert.IsFalse(teapot.Find("Ground").gameObject.activeSelf);
             Assert.AreEqual(Color.white, teapot.Find("Prop").GetComponent<Image>().color);
-            Assert.AreEqual("Cấp 1", teapot.Find("Level/Text").GetComponent<Text>().text);
+            Assert.AreEqual("Cấp 1", Front("am-tra").Find("Level/Text").GetComponent<Text>().text);
 
             // A plot you own with nothing built: bare ground with a sign, the prop as a shadow, no rabbit, no pad.
             Transform basket = Station("gio-la");
             Assert.IsFalse(basket.Find("Rabbit").gameObject.activeSelf);
-            Assert.IsFalse(basket.Find("Pad").gameObject.activeSelf);
+            Assert.IsFalse(Front("gio-la").Find("Pad").gameObject.activeSelf);
             Assert.IsTrue(basket.Find("Ground").gameObject.activeSelf);
             Assert.IsTrue(basket.Find("Prop").gameObject.activeSelf);
             Assert.Less(basket.Find("Prop").GetComponent<Image>().color.a, 0.6f, "only a shadow of what will stand here");
             Assert.IsFalse(basket.Find("Doze").gameObject.activeSelf, "no sleeping rabbit on empty land");
-            Text sign = basket.Find("Level/Text").GetComponent<Text>();
+            Text sign = Front("gio-la").Find("Level/Text").GetComponent<Text>();
             Assert.AreEqual("Còn thiếu 120", sign.text, "short of carrots: the sign says how many");
             runner.State.Coins = new BigNum(1000);
             screen.Refresh();
             Assert.AreEqual("Xây · 120", sign.text);
-            Assert.AreEqual(Palette.Carrot, basket.Find("Level").GetComponent<Image>().color, "lit when it can be paid for");
+            Assert.AreEqual(Palette.Carrot, Front("gio-la").Find("Level").GetComponent<Image>().color, "lit when it can be paid for");
 
             // Land the garden has not grown into: only a sign on its dashed ring, nothing else.
             for (int i = 1; i < 4; i++) runner.State.Levels[i] = 1;
@@ -2092,9 +2095,9 @@ namespace VuonTra.Core.Tests
             Transform oven = Station("lo-banh");
             Assert.IsTrue(oven.gameObject.activeSelf, "the plot after the last one owned stands as land");
             Assert.IsFalse(oven.Find("Rabbit").gameObject.activeSelf);
-            Assert.IsFalse(oven.Find("Pad").gameObject.activeSelf);
+            Assert.IsFalse(Front("lo-banh").Find("Pad").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Prop").gameObject.activeSelf);
-            Assert.AreEqual("Mở rộng rừng", oven.Find("Level/Text").GetComponent<Text>().text); // #53
+            Assert.AreEqual("Mở rộng rừng", Front("lo-banh").Find("Level/Text").GetComponent<Text>().text); // #53
 
             // One of your rabbits arrives: the rabbit shows and the pad goes.
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
@@ -2102,7 +2105,7 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
             Assert.IsTrue(teapot.Find("Rabbit").gameObject.activeSelf);
-            Assert.IsFalse(teapot.Find("Pad").gameObject.activeSelf);
+            Assert.IsFalse(Front("am-tra").Find("Pad").gameObject.activeSelf);
         }
 
         [Test]
@@ -2122,7 +2125,7 @@ namespace VuonTra.Core.Tests
 
             Transform picker = root.transform.Find("Canvas/WorkerPicker");
             Assert.IsFalse(picker.gameObject.activeSelf);
-            Find("Canvas/Garden/Content/Station am-tra/Pad").onClick.Invoke();
+            Find("Canvas/Garden/Content/Station am-tra Front/Pad").onClick.Invoke();
             Assert.IsTrue(picker.gameObject.activeSelf);
             StringAssert.Contains("Ấm trà sương", picker.Find("Card/Title").GetComponent<Text>().text);
             Transform content = picker.Find("Card/Scroll/Content");
@@ -2139,13 +2142,13 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
             Assert.IsTrue(Station("am-tra").Find("Rabbit").gameObject.activeSelf);
-            Assert.IsFalse(Station("am-tra").Find("Pad").gameObject.activeSelf);
+            Assert.IsFalse(Front("am-tra").Find("Pad").gameObject.activeSelf);
         }
 
         [Test]
         public void The_Pad_Says_So_When_You_Have_No_Rabbits_Yet()
         {
-            Find("Canvas/Garden/Content/Station am-tra/Pad").onClick.Invoke();
+            Find("Canvas/Garden/Content/Station am-tra Front/Pad").onClick.Invoke();
             Transform picker = root.transform.Find("Canvas/WorkerPicker");
             Assert.IsTrue(picker.gameObject.activeSelf);
             Assert.IsNotNull(picker.Find("Card/Scroll/Content/Empty"));
@@ -2454,7 +2457,7 @@ namespace VuonTra.Core.Tests
             runner.State.Coins = new BigNum(1e12);
             runner.SetBuyMode(Simulation.BuyMax);
             screen.Refresh();
-            Text chip = root.transform.Find("Canvas/Garden/Content/Station am-tra/Level/Text").GetComponent<Text>();
+            Text chip = root.transform.Find("Canvas/Garden/Content/Station am-tra Front/Level/Text").GetComponent<Text>();
             Assert.AreEqual("Cấp 1", chip.text);
             Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
             int level = runner.State.Levels[0];
@@ -2898,7 +2901,7 @@ namespace VuonTra.Core.Tests
             screen.Advance(1f / 30f);
             Assert.AreEqual(L10n.T("tut.5"), text.text);
             Assert.AreEqual("Pad", screen.Guide.Target.name, "the empty pad of the open station");
-            Assert.AreEqual("Station gio-la", screen.Guide.Target.parent.name);
+            Assert.AreEqual("Station gio-la Front", screen.Guide.Target.parent.name);
 
             // 6: put it to work.
             long called = runner.State.Rabbits[runner.State.Rabbits.Count - 1].Id;
@@ -3407,6 +3410,26 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Welcome_Back_Sheet_Comes_Up_Over_The_Title_And_Its_Tap_To_Start_Line()
+        {
+            // #79: the game opens on the title, and the sheet for the time away comes up at once.
+            Assert.AreEqual(ShellState.Title, screen.Shell.State);
+            var away = new AwayReport { Paid = new BigNum(5000), Seconds = 3 * 3600, Capped = true, GuestsMissed = 3 };
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Transform canvas = root.transform.Find("Canvas");
+            Transform title = canvas.Find("Title"), sheet = canvas.Find("Away");
+            Assert.IsTrue(title.gameObject.activeSelf && title.Find("Prompt").gameObject.activeSelf, "the title and its blinking line are still up");
+            Assert.IsTrue(sheet.gameObject.activeSelf);
+            Assert.Greater(sheet.GetSiblingIndex(), title.GetSiblingIndex(), "the sheet draws over the title, so \"tap to start\" is under it");
+
+            // Collect is pressed on the sheet, not on the title behind it; the title waits for its own tap.
+            Find("Canvas/Away/Card/Ok").onClick.Invoke();
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+            Assert.AreEqual(ShellState.Title, screen.Shell.State);
+        }
+
+        [Test]
         public void Under_Five_Minutes_Away_There_Is_No_Sheet_Only_Carrots_To_The_Purse()
         {
             screen.Shell.StartGame();
@@ -3524,7 +3547,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").interactable);
             Assert.AreEqual(L10n.T("row.maxlevel"), T("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy/Face/Top").text);
             Assert.AreEqual("", T("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy/Face/Cost").text);
-            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station am-tra/CanUp").gameObject.activeSelf, "no 'tap me' arrow at the cap");
+            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station am-tra Front/CanUp").gameObject.activeSelf, "no 'tap me' arrow at the cap");
 
             screen.CloseSheet();
             screen.FocusStation(0);
@@ -4295,7 +4318,7 @@ namespace VuonTra.Core.Tests
             runner.State.NextRabbitId = 2;
             screen.Refresh();
             Transform world = root.transform.Find("Canvas/Garden/Content");
-            Transform station = world.Find("Station " + runner.Defs[0].Id);
+            Transform station = world.Find("Station " + runner.Defs[0].Id), front = world.Find("Station " + runner.Defs[0].Id + " Front");
             Assert.IsNull(world.Find("Traveler"));
 
             Assert.IsTrue(runner.AssignRabbit(1, 0));
@@ -4304,13 +4327,13 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(traveler, "the rabbit sets off");
             Assert.AreEqual("kind_tho-me", traveler.Find("Art").GetComponent<Image>().sprite.name);
             Assert.IsFalse(station.Find("Rabbit").gameObject.activeSelf, "not at the station until it gets there");
-            Assert.IsFalse(station.Find("Pad").gameObject.activeSelf, "and the pad does not show either");
+            Assert.IsFalse(front.Find("Pad").gameObject.activeSelf, "and the pad does not show either");
             Assert.AreEqual(world.Find("Seat 0").GetComponent<RectTransform>().anchoredPosition, traveler.anchoredPosition, "from its seat");
             screen.Advance(0.5f);
             Assert.AreNotEqual(world.Find("Seat 0").GetComponent<RectTransform>().anchoredPosition, traveler.anchoredPosition, "on its way");
             for (int k = 0; k < 8; k++) screen.Advance(0.5f);
             Assert.IsNull(world.Find("Traveler"), "arrived");
-            Assert.IsTrue(station.Find("Rabbit").gameObject.activeSelf, "walking=" + screen.TravelersWalking + " pad=" + station.Find("Pad").gameObject.activeSelf + " at=" + Rabbits.Find(runner.State, 1).Station + " name=" + station.name);
+            Assert.IsTrue(station.Find("Rabbit").gameObject.activeSelf, "walking=" + screen.TravelersWalking + " pad=" + front.Find("Pad").gameObject.activeSelf + " at=" + Rabbits.Find(runner.State, 1).Station + " name=" + station.name);
 
             // Under reduced motion the newcomer is simply there: the other rabbit takes over the teapot at once.
             Motion.SetReduced(true);
@@ -5015,8 +5038,8 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Station_Wears_Its_Rank_From_25_100_And_300_And_Every_Level_Text_Says_So()
         {
-            Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra");
-            Text plate = station.Find("Level/Text").GetComponent<Text>();
+            Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra"), front = Front("am-tra");
+            Text plate = front.Find("Level/Text").GetComponent<Text>();
             Motion.SetReduced(true); // the level number lands in one frame instead of running up
             void Show() { screen.Refresh(); screen.Advance(0.1f); }
             runner.State.Levels[0] = 24;
@@ -5029,12 +5052,12 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(station.Find("Bunting").gameObject.activeSelf, "bunting from 25");
             Assert.IsFalse(station.Find("RankLanterns").gameObject.activeSelf);
             Assert.AreEqual(L10n.T("station.level", 25) + " ✦", plate.text);
-            Assert.AreEqual(Palette.Paper, station.Find("Level").GetComponent<Image>().color);
+            Assert.AreEqual(Palette.Paper, front.Find("Level").GetComponent<Image>().color);
 
             runner.State.Levels[0] = 100;
             Show();
             Assert.IsTrue(station.Find("RankLanterns").gameObject.activeSelf, "stone lanterns from 100");
-            Assert.AreNotEqual(Palette.Paper, station.Find("Level").GetComponent<Image>().color, "and a golden plate");
+            Assert.AreNotEqual(Palette.Paper, front.Find("Level").GetComponent<Image>().color, "and a golden plate");
             Assert.IsFalse(station.Find("RankHalo").gameObject.activeSelf);
             StringAssert.EndsWith("✦✦", plate.text);
 
