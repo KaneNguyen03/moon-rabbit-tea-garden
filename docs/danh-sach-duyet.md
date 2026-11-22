@@ -25,6 +25,8 @@ Mọi việc dưới đây đã có trên `main` và đã push; bản Mac mới 
 | #1 Mùa trăng mới | Mở ở cấp vườn 30, +25 % mỗi mùa cộng dồn, ô đất và chỗ nghỉ về đầu, Thỏ Trăng Non bậc Tím lần đầu | `po-1/1-mua-trang-*.png` | Bốn ô trong `docs/de-xuat-1.md` |
 | #8 Thỏ theo mùa | Ba loài Vàng (đèn ông sao, áo dài, Noel), khoảng ngày 1/9–30/9, 15/1–28/2, 1/12–31/12, ghé tiệm 120 cà rốt vàng, nhiệm vụ mùa 3/5/10, trang trí cổng | `po-8/8-cong-*.png`, `8-so-tho-mua.png`; ứng viên 2 trong `po-8/_tong-hop.png` | Có dùng ứng viên 2 mỗi mùa (bậc Tím) không |
 | #45 Giã bánh trăng | Bấm theo nhịp, 3 lượt/ngày, thưởng 60 giây thu nhập, hình chày và bánh đã vẽ | `po-45/` | Cửa sổ ±80/±160 ms có vừa tay không (chơi thử) |
+| #1 Huy hiệu mùa (hình, chưa nối) | Chip "Mùa N" ở HUD và hồ sơ đang vẽ bằng code; bốn ứng viên tròn để thay, số do game vẽ đè lên | `po-1/badge_mua-giay.png`, `badge_mua-dem.png`, `badge_mua-go.png`, `badge_mua-tim.png` (cả tấm: `po-1/_tong-hop-huy-hieu.png`) | Chọn một trong bốn (giấy viền vàng, men xanh đêm, gỗ có ruy băng, trăng tím), hoặc giữ chip vẽ bằng code |
+| #49 Dấu mốc trạm (hình, chưa nối; #49 đã đóng) | Đang dùng dây đèn, đèn đá và vầng sáng vẽ bằng code; ba kiểu ứng viên, mỗi kiểu ba bậc cho cấp 25/100/300, cắt cùng tỉ lệ nên bậc 1 nhỏ hơn bậc 3 | `po-49/rank_co-1..3.png` (dây cờ), `rank_bien-1..3.png` (biển gỗ có sao), `rank_den-1..3.png` (dây đèn lồng); cả tấm `po-49/_tong-hop-dau-moc.png` | Chọn một kiểu, hoặc giữ kiểu hiện tại |
 
 ## C. Cần bạn nghe hoặc chơi thử trên bản Mac
 
