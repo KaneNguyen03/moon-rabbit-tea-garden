@@ -2954,6 +2954,28 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Card_Button_Of_A_Station_At_Its_Cap_Shows_No_Carrot()
+        {
+            runner.State.Levels[0] = Economy.MaxLevel - 1;
+            runner.State.Coins = new BigNum(1e300);
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Transform carrot = root.transform.Find("Canvas/Card/Buy/Face/Carrot");
+            Assert.IsNotNull(carrot);
+            Assert.IsTrue(carrot.gameObject.activeSelf, "one level left: the button still costs carrots");
+
+            runner.State.Levels[0] = Economy.MaxLevel;
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("row.maxlevel"), root.transform.Find("Canvas/Card/Buy/Face/Top").GetComponent<Text>().text);
+            Assert.IsFalse(carrot.gameObject.activeSelf, "at the cap nothing is paid, so no carrot either");
+
+            runner.State.Levels[0] = Economy.MaxLevel - 1; // a reset save, say: the price is back
+            screen.Refresh();
+            Assert.IsTrue(carrot.gameObject.activeSelf, "and with it the carrot");
+        }
+
+        [Test]
         public void A_Rabbit_Wears_A_Hollow_Star_For_Every_Ten_Levels_And_Passing_A_Mark_Is_A_Moment()
         {
             string blue = RabbitKinds.OfTier(2)[0].Id;

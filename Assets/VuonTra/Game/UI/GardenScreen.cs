@@ -227,6 +227,7 @@ namespace VuonTra.Game.UI
         RectTransform _card;
         Text _cardName, _cardLevel, _cardInfo, _cardBuyTop, _cardBuyCost;
         ChunkyButton _cardBuy;
+        GameObject _cardBuyCarrot;
         // Small events: a golden firefly to catch, and rabbits that nod off.
         RectTransform _gold;
         float _goldTimer = 25f, _goldAge, _dozeTimer = 18f;
@@ -1581,7 +1582,9 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardBuyCost = UiKit.Rect("Cost", _cardBuy.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 64, 0)
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleRight, FontStyle.Bold);
-            UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42).AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            var carrot = UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42);
+            carrot.AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            _cardBuyCarrot = carrot.gameObject;
 
             _card.gameObject.SetActive(false);
         }
@@ -1707,6 +1710,7 @@ namespace VuonTra.Game.UI
             bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
             if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
             _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
+            if (_cardBuyCarrot.activeSelf == capped) _cardBuyCarrot.SetActive(!capped); // at the cap nothing is paid, so no carrot (#74)
             Color ink = ChunkyButton.InkFor(can);
             _cardBuyTop.color = ink;
             _cardBuyCost.color = ink;
