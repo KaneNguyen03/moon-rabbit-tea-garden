@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
+using VuonTra.Game.Platform;
 
 namespace VuonTra.Game.UI
 {
@@ -73,7 +74,7 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1400);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1500);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
@@ -118,6 +119,9 @@ namespace VuonTra.Game.UI
             AddToggleRow(catalog, "Haptics", L10n.T("pause.haptics"), -780, () => Haptics.On, Haptics.SetOn);
             // Every label a fifth bigger; the screen builds itself again, as for a language change.
             AddToggleRow(catalog, "Text", L10n.T("pause.text"), -880, () => UiKit.LargeText, UiKit.SetLargeText);
+            // Reminders on the phone (#65): off until the player turns them on, which is when permission is asked.
+            Action showRemind = AddToggleRow(catalog, "Remind", L10n.T("pause.remind"), -980, () => Notifications.On, Notifications.SetOn);
+            Notifications.Watch(_pauseCard.gameObject, showRemind);
 
             // The new moon (#1): a warm button with a badge once the garden is far enough; until then one line says the level it asks for.
             var newMoon = UiKit.Rect("NewMoon", _pauseCard).Place(0.5f, 0f, 0, 420, 700, 100);
@@ -179,7 +183,7 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>A setting that is either on or off: its name on the left, a pill that says which on the right.</summary>
-        void AddToggleRow(GameCatalog catalog, string id, string label, float y, Func<bool> get, Action<bool> set)
+        Action AddToggleRow(GameCatalog catalog, string id, string label, float y, Func<bool> get, Action<bool> set)
         {
             UiKit.Rect(id + " Label", _pauseCard).Place(0.5f, 1f, -120, y, 460, 60)
                 .AddText(label, UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -204,6 +208,7 @@ namespace VuonTra.Game.UI
                 set(!get());
                 show();
             });
+            return show;
         }
 
         void AddLanguageButton(GameCatalog catalog, string code, float x)

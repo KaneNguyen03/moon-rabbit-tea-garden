@@ -9,7 +9,10 @@
         "Google.Play.Games",
         "UnityEngine.Purchasing",
         "UnityEngine.Purchasing.Stores",
-        "UnityEngine.Purchasing.Security"
+        "UnityEngine.Purchasing.Security",
+        "Unity.Notifications.Unified",
+        "Unity.Notifications.iOS",
+        "Unity.Notifications.Android"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -28,6 +31,11 @@
             "name": "com.unity.purchasing",
             "expression": "4.0.0",
             "define": "UNITY_PURCHASING"
+        },
+        {
+            "name": "com.unity.mobile.notifications",
+            "expression": "2.0.0",
+            "define": "VUONTRA_NOTIFICATIONS"
         }
     ],
     "noEngineReferences": false

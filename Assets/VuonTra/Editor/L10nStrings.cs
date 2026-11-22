@@ -684,6 +684,15 @@ namespace VuonTra.EditorTools
             { "quest.loai-20", "Gặp 20 loài thỏ", "Meet 20 kinds of rabbit" },
             { "quest.loai-40", "Gặp 40 loài thỏ · tặng Mũ sao", "Meet 40 kinds · a Starry Hat" },
             { "quest.loai-72", "Gặp đủ 72 loài · khung Đủ bộ", "Meet all 72 kinds · Complete frame" },
+            // ----- device reminders, "Nhắc tôi" on the pause card (#65) -----
+            { "pause.remind", "Nhắc tôi", "Remind me" },
+            { "remind.app", "Vườn Trà Thỏ Trăng", "Moon Rabbit Tea Garden" },
+            { "remind.tray", "Khay đã đầy và các bé thỏ đã nghỉ đủ, ghé vườn bán bánh nhé!", "The tray is full and the rabbits are rested. Come sell the treats!" },
+            { "remind.gift", "Quà ngày mới đang chờ, và có bé thỏ mới ghé tiệm.", "A new daily gift is waiting, and a new rabbit is visiting the shop." },
+            { "remind.season", "Mùa {0} đã về! Ghé vườn đón bạn mới nhé.", "{0} is here! Come meet a new friend in the garden." },
+            { "remind.missyou", "Đã lâu không thấy bạn, các bé thỏ nhớ bạn lắm.", "We haven't seen you for a while. The rabbits miss you." },
+            { "remind.channel", "Nhắc nhở", "Reminders" },
+            { "remind.channel.sub", "Khay đầy, quà ngày, mùa mới", "Full tray, daily gift, new season" },
         };
     }
 }
