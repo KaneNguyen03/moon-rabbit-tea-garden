@@ -693,6 +693,13 @@ namespace VuonTra.EditorTools
             { "remind.missyou", "Đã lâu không thấy bạn, các bé thỏ nhớ bạn lắm.", "We haven't seen you for a while. The rabbits miss you." },
             { "remind.channel", "Nhắc nhở", "Reminders" },
             { "remind.channel.sub", "Khay đầy, quà ngày, mùa mới", "Full tray, daily gift, new season" },
+            // ----- station sounds up close and the choice of tune, on the pause card (#63) -----
+            { "pause.station", "Tiếng trạm", "Stations" },
+            { "pause.tune", "Nhạc", "Tune" },
+            { "tune.auto", "Tự động", "Auto" },
+            { "tune.moon", "Đêm trăng", "Moonlit night" },
+            { "tune.dawn", "Rạng sáng", "Daybreak" },
+            { "tune.rain", "Mưa", "Rain" },
         };
     }
 }

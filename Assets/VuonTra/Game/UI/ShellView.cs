@@ -74,7 +74,7 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1500);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.5f, 0, 0, 820, 1720);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
@@ -122,6 +122,9 @@ namespace VuonTra.Game.UI
             // Reminders on the phone (#65): off until the player turns them on, which is when permission is asked.
             Action showRemind = AddToggleRow(catalog, "Remind", L10n.T("pause.remind"), -980, () => Notifications.On, Notifications.SetOn);
             Notifications.Watch(_pauseCard.gameObject, showRemind);
+            // Station sounds up close (#63): a slider of their own, apart from the blips; and which tune plays.
+            AddVolumeRow(catalog, "Station", L10n.T("pause.station"), -1080, Sfx.StationGain, Sfx.SetStation);
+            AddTuneRow(catalog, -1180);
 
             // The new moon (#1): a warm button with a badge once the garden is far enough; until then one line says the level it asks for.
             var newMoon = UiKit.Rect("NewMoon", _pauseCard).Place(0.5f, 0f, 0, 420, 700, 100);
@@ -210,6 +213,30 @@ namespace VuonTra.Game.UI
             });
             return show;
         }
+
+        /// <summary>Which tune plays: one pill that steps Tự động → Đêm trăng → Rạng sáng → Mưa and round again.</summary>
+        void AddTuneRow(GameCatalog catalog, float y)
+        {
+            UiKit.Rect("Tune Label", _pauseCard).Place(0.5f, 1f, -200, y, 300, 60)
+                .AddText(L10n.T("pause.tune"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var pill = UiKit.Rect("Tune", _pauseCard).Place(0.5f, 1f, 130, y, 420, UiKit.MinTouch);
+            Image plate = pill.AddImage(catalog.Panel, Palette.Track, true);
+            plate.raycastTarget = true;
+            Text text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1, 48, 0, 48, 0)
+                .AddText(TuneName(Sfx.CurrentTune), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Next", pill).Place(1f, 0.5f, -32, 0, 40, 60).AddText("›", 44, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var button = pill.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = plate;
+            button.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                Sfx.SetTune((Sfx.Tune)(((int)Sfx.CurrentTune + 1) % 4));
+                text.text = TuneName(Sfx.CurrentTune);
+            });
+        }
+
+        static string TuneName(Sfx.Tune tune) => L10n.T("tune." + tune.ToString().ToLowerInvariant());
 
         void AddLanguageButton(GameCatalog catalog, string code, float x)
         {

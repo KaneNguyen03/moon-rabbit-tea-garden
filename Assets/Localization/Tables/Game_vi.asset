@@ -2882,6 +2882,30 @@ MonoBehaviour:
     m_Localized: "Khay \u0111\u1EA7y, qu\xE0 ng\xE0y, m\xF9a m\u1EDBi"
     m_Metadata:
       m_Items: []
+  - m_Id: 382520548909056
+    m_Localized: "Ti\u1EBFng tr\u1EA1m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297664
+    m_Localized: "Nh\u1EA1c"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297665
+    m_Localized: "T\u1EF1 \u0111\u1ED9ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297666
+    m_Localized: "\u0110\xEAm tr\u0103ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297667
+    m_Localized: "R\u1EA1ng s\xE1ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297668
+    m_Localized: "M\u01B0a"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

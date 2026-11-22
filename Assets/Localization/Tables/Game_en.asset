@@ -2888,6 +2888,30 @@ MonoBehaviour:
     m_Localized: Full tray, daily gift, new season
     m_Metadata:
       m_Items: []
+  - m_Id: 382520548909056
+    m_Localized: Stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297664
+    m_Localized: Tune
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297665
+    m_Localized: Auto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297666
+    m_Localized: Moonlit night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297667
+    m_Localized: Daybreak
+    m_Metadata:
+      m_Items: []
+  - m_Id: 382520557297668
+    m_Localized: Rain
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

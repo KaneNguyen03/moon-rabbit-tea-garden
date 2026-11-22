@@ -382,6 +382,7 @@ namespace VuonTra.Game.UI
             UpdateGuide(dt);
             UpdateChatter(dt);
             UpdateBoostEdge(boosting, dt);
+            UpdateSounds(boosting, dt);
 
             // The counter counts up instead of snapping.
             double target = s.Coins.ToDouble();
@@ -5560,6 +5561,42 @@ namespace VuonTra.Game.UI
             _chatText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
             _chatText.horizontalOverflow = HorizontalWrapMode.Wrap;
             _chatLine.gameObject.SetActive(false);
+        }
+
+        #endregion
+
+        #region Station sounds up close and the tune of the hour (#63)
+
+        StationLoopPlayer _stationSound;
+        /// <summary>The loop of the station looked at up close: its clip, volume and pitch, for tests.</summary>
+        public StationLoopPlayer StationSound => _stationSound ?? (_stationSound = new StationLoopPlayer(gameObject));
+
+        /// <summary>The tune follows the clock; up close the station in view plays its loop, a tenth faster while the boost runs.</summary>
+        void UpdateSounds(bool boosting, float dt)
+        {
+            Sfx.UpdateTune(ClockHours());
+            StationSound.Update(Zoom == ZoomLevel.Near ? HeardStation() : null, boosting, dt);
+        }
+
+        /// <summary>The station whose card is open, else the open station nearest the point the view centres on, if it is on screen.</summary>
+        string HeardStation()
+        {
+            GameState s = Runner.State;
+            IReadOnlyList<StationDef> defs = Runner.Defs;
+            bool Heard(int i) => i >= 0 && i < _actors.Count && i < defs.Count && i < s.Plots && s.Levels[i] > 0 && _actors[i].Root.gameObject.activeSelf;
+            if (Heard(Selected)) return defs[Selected].Id;
+            var centre = new Vector2(ScreenW / 2f, ScreenH * 0.6f);
+            int best = -1;
+            float bestDistance = float.MaxValue;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                if (!Heard(i)) continue;
+                Vector2 at = ViewPointOf(i);
+                if (at.x < 0f || at.x > ScreenW || at.y < 0f || at.y > ScreenH) continue;
+                float d = (at - centre).sqrMagnitude;
+                if (d < bestDistance) { bestDistance = d; best = i; }
+            }
+            return best >= 0 ? defs[best].Id : null;
         }
 
         #endregion
