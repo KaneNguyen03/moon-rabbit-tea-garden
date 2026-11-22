@@ -922,6 +922,17 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt so với #45
 - Hình chày tách khỏi cối, bánh ba trạng thái và bánh méo (cần vẽ). Thử tay nhịp có cảm giác đúng chưa (cửa sổ ±80/±160 ms là số đề xuất).
 
+## #44 lượt 2 — Thỏ ghé tiệm
+
+- Test: 511/511 EditMode qua (verify.sh: seed, 90 ảnh, biên dịch, test). Thêm 3 test luật (`ShopTests.cs`), 1 test màn hình.
+- Commit `5119c0a`, đã push. Issue #44 đã comment (bảng đối chiếu lượt 2), nhãn chờ-PO-duyệt. Save không đổi phiên bản, thêm `visitorBought`, `visitorSeen` (save cũ mở ra: chưa mua, chưa xem).
+- Luật trong `Core/Shop.cs`: `VisitorFor(state, ngày)` băm ngày và mã người chơi nên cùng ngày luôn ra cùng một bé; bậc 60/30/9/1 từ Xanh dương lên Đỏ; `PickKind` chọn loài trong bậc, loài chưa có trong sổ nặng ×3; giá 15/40/120/400; `BuyVisitor` chỉ mua đúng ngày, một lần, trả thỏ qua `Rabbits.ArriveKind` (mới, `Arrive` giờ gọi qua nó).
+- Tấm Tiệm cao 1230: mục "Thỏ ghé tiệm hôm nay" giữa quà ngày và Gọi vàng, có chân dung (dùng `RabbitGridView.Portrait`), tên loài, bậc với sao, nghề, giờ còn lại, nhãn "Loài chưa gặp!", nút Mua / Còn thiếu / Đã về vườn. Huy hiệu "!" trên quầy khi có quà chưa nhận hoặc thỏ hôm nay chưa xem; mở tiệm là xem (`GameRunner.MarkVisitorSeen`). Mua xong bé ra cổng trăng như thỏ gọi bằng cỏ.
+- Ảnh (docs/anh/po-44/): `44-sau-tiem-tho-ghe.png` (tiệm với thỏ ghé, 12 cà rốt vàng, còn thiếu 3).
+
+### Chưa đạt
+- Lượt 3 (mũ, nhuộm) chờ 6 hình vẽ. Chưa thử tay trên máy thật.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
