@@ -2151,6 +2151,98 @@ MonoBehaviour:
     m_Key: dye.than
     m_Metadata:
       m_Items: []
+  - m_Id: 252085642715136
+    m_Key: shop.decor.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686656
+    m_Key: shop.decor.owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686657
+    m_Key: shop.decor.full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686658
+    m_Key: shop.lantern.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686659
+    m_Key: decor.den-da
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686660
+    m_Key: decor.bon-hoa
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686661
+    m_Key: decor.ghe-nam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686662
+    m_Key: decor.tham-picnic
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686663
+    m_Key: lantern.giay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686664
+    m_Key: lantern.hong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686665
+    m_Key: lantern.bac-ha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686666
+    m_Key: lantern.oai-huong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686667
+    m_Key: decor.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686668
+    m_Key: decor.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686669
+    m_Key: decor.here
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686670
+    m_Key: decor.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686671
+    m_Key: decor.left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686672
+    m_Key: decor.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686673
+    m_Key: decor.place
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686674
+    m_Key: decor.swap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686675
+    m_Key: decor.store
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686676
+    m_Key: float.decor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252085663686677
+    m_Key: float.lantern
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

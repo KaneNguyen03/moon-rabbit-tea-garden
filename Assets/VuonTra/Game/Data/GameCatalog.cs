@@ -131,6 +131,19 @@ namespace VuonTra.Game
         }
 
         /// <summary>The picture for an item kind, or null when it has none.</summary>
+        /// <summary>The drawing of a decoration the shop sells (#11): the same art the garden already dresses with.</summary>
+        public Sprite DecorArt(string kindId)
+        {
+            switch (kindId)
+            {
+                case "den-da": return StoneLantern;
+                case "bon-hoa": return Planter;
+                case "ghe-nam": return RestProps != null && RestProps.Length > 3 ? RestProps[3] : null;
+                case "tham-picnic": return RestProps != null && RestProps.Length > 2 ? RestProps[2] : null;
+            }
+            return null;
+        }
+
         public Sprite ItemIcon(string defId)
         {
             foreach (ItemData item in Items)

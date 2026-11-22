@@ -236,6 +236,22 @@ namespace VuonTra.Core
                 }
                 sb.Append("]}");
             }
+            sb.Append('}');
+            // Decorating the garden (#11), an additive block: what is owned by kind, what stands on each spot, the lantern colour.
+            sb.Append(",\"decor\":{\"owned\":{");
+            for (int i = 0; i < Decor.Kinds.Length; i++)
+            {
+                if (i > 0) sb.Append(',');
+                WriteString(sb, Decor.Kinds[i].Id);
+                sb.Append(':').Append((i < s.DecorOwned.Length ? s.DecorOwned[i] : 0).ToString(CultureInfo.InvariantCulture));
+            }
+            sb.Append("},\"spots\":[");
+            for (int i = 0; i < s.DecorSpots.Length; i++)
+            {
+                if (i > 0) sb.Append(',');
+                if (s.DecorSpots[i] == null) sb.Append("null"); else WriteString(sb, s.DecorSpots[i]);
+            }
+            sb.Append("],\"lantern\":").Append(s.LanternColor.ToString(CultureInfo.InvariantCulture));
             sb.Append("}}");
             return sb.ToString();
         }
@@ -524,6 +540,23 @@ namespace VuonTra.Core
                 s.ViewY = ReadNumber(view, "y");
             }
 
+            // Decorating the garden (#11). A save from before it owns nothing, stands nothing, and hangs paper lanterns.
+            if (root.TryGetValue("decor", out object decorObj) && decorObj is Dictionary<string, object> decor)
+            {
+                if (decor.TryGetValue("owned", out object ownedObj) && ownedObj is Dictionary<string, object> owned)
+                    for (int i = 0; i < Decor.Kinds.Length; i++)
+                        s.DecorOwned[i] = (int)Math.Max(0d, Math.Min(ReadNumber(owned, Decor.Kinds[i].Id), Decor.Spots));
+                if (decor.TryGetValue("spots", out object spotsObj) && spotsObj is List<object> spots)
+                    for (int i = 0; i < Decor.Spots && i < spots.Count; i++)
+                    {
+                        // Only a kind the shop sells, and never more standing than are owned: the extras go back to storage.
+                        string kind = spots[i] as string;
+                        if (kind == null || Decor.IndexOf(kind) < 0 || Decor.Available(s, kind) <= 0) continue;
+                        s.DecorSpots[i] = kind;
+                    }
+                double lantern = ReadNumber(decor, "lantern");
+                s.LanternColor = lantern >= 0d && lantern < Decor.LanternColors.Length ? (int)lantern : 0;
+            }
             // Guests' orders (#20). A save from before them: the first guest comes a minute after opening, nothing delivered.
             if (root.TryGetValue("orders", out object ordersObj) && ordersObj is Dictionary<string, object> orders)
             {
