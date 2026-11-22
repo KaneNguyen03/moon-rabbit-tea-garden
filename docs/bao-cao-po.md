@@ -693,6 +693,23 @@ Sau khi sửa cả bốn xanh.
 - `docs/issues-po.md` là bản chép do session PO giữ, đêm nay không sửa; GitHub là nguồn đúng (đóng 25, 27, 36, 43; mới 44, 45).
 - Lệnh test/seed/chụp/build như mục Bàn giao trước.
 
+## #17 — Bổ sung: quà liên kết tài khoản và lớp lưu mây "chỉ trên máy"
+
+- Test: 425/425 EditMode qua (verify.sh của session kia chạy trên cây gộp). Thêm 4 test core (`ProfileTests.cs`) và 1 test màn hình.
+- Commit `57b1541` (gộp với #31 phần 2 của session "Issue và kiểm thử Unity", vì hunk hai bên xen kẽ trong `SaveCodec.cs`, `GardenScreen.cs`, `GardenScreenTests.cs`). Issue #17 đã comment, vẫn mở cho phần cần chủ project.
+- Bảng chuỗi seed lại (`backup.reward`, `backup.rewarded`). Save vẫn v11, khối `profile` thêm `linkRewarded`.
+
+### Đã làm (đối chiếu với nguyên văn #17)
+- `Profile.OnLinked(s)`: tặng `LinkRewardClovers` (3) đúng một lần cho mỗi vườn; `GameRunner.LinkAccount(onDone(ok, gift))` gọi `Account.Link` rồi trả quà; `GardenScreen` hiện "+3 cỏ bốn lá vì đã liên kết"; `ProfileView` ghi quà sắp có dưới nút Liên kết (ẩn khi đã nhận hoặc đã liên kết).
+- `ICloudSave` + `LocalOnlyCloudSave`, `GameRunner.Cloud`; `SaveSummary.Of`, `SaveSync.Choose` (Same / KeepLocal / KeepRemote / Ask) để #38 và màn hỏi người chơi dùng chung một luật.
+
+### Chưa đạt so với #17
+- Như trước: phần Unity Cloud / nhà cung cấp / chính sách cần chủ project; đồng bộ thật thuộc #38.
+- Chưa có màn "giữ bản nào" vì chưa có bản thứ hai để so; luật đã sẵn.
+
+### Tồn đọng
+- tồn đọng: số cỏ thưởng liên kết (3) là mình chọn, chủ project duyệt.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
