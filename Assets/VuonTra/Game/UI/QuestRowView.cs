@@ -14,7 +14,7 @@ namespace VuonTra.Game.UI
     {
         readonly int _index;
         GameObject _root, _track, _done;
-        Text _count, _carrots, _clovers, _golden, _claimLabel;
+        Text _count, _carrots, _clovers, _golden, _jars, _claimLabel;
         Image _face;
         RectTransform _fill;
         float _shown;
@@ -25,6 +25,8 @@ namespace VuonTra.Game.UI
         public RectTransform CarrotChip { get; private set; }
         public RectTransform CloverChip { get; private set; }
         public RectTransform GoldenChip { get; private set; }
+        /// <summary>The moon jar a quest pays (#64), where the clover chip would be; the clover shows instead when no jar can come today.</summary>
+        public RectTransform JarChip { get; private set; }
         public bool Visible => _root.activeSelf;
         /// <summary>Finished and not yet collected.</summary>
         public bool CanClaim { get; private set; }
@@ -63,6 +65,8 @@ namespace VuonTra.Game.UI
             CarrotChip = Chip(Root, catalog, "Carrots", 36, 224, catalog.Currency, Color.white, out _carrots);
             CloverChip = Chip(Root, catalog, "Clovers", 272, 136, catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, out _clovers);
             GoldenChip = Chip(Root, catalog, "Golden", 420, 136, catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, catalog.GoldenCarrot != null ? Color.white : Palette.Lantern, out _golden);
+            JarChip = Chip(Root, catalog, "Jars", 272, 136, null, new Color(0, 0, 0, 0), out _jars);
+            IncomeView.JarIcon(JarChip, catalog, "Jar", 42f, 0f, 0.5f, 28, 0);
 
             var claim = UiKit.Rect("Claim", Root).Place(1f, 0.5f, -146, 4, 236, 116);
             Claim = UiKit.Chunky(claim, catalog.Panel, () => onClaim(_index));
@@ -110,11 +114,15 @@ namespace VuonTra.Game.UI
             _count.text = claimed ? L10n.T("quest.done") : new BigNum(progress).Short() + " / " + new BigNum(target).Short();
 
             _carrots.text = "+" + Quests.RewardOf(q, defs, s, m).Short();
-            _clovers.text = "+" + q.RewardClovers;
-            if (CloverChip.gameObject.activeSelf != (q.RewardClovers > 0)) CloverChip.gameObject.SetActive(q.RewardClovers > 0);
+            // A quest that pays a moon jar shows it in the clover's place, and the clover it replaced when no jar can come today (#64).
+            int clovers = Quests.CloversNow(q, s), jars = Quests.JarsNow(q, s);
+            _clovers.text = "+" + clovers;
+            if (CloverChip.gameObject.activeSelf != (clovers > 0)) CloverChip.gameObject.SetActive(clovers > 0);
+            _jars.text = "+" + jars;
+            if (JarChip.gameObject.activeSelf != (jars > 0)) JarChip.gameObject.SetActive(jars > 0);
             _golden.text = "+" + q.RewardGolden;
             // A quest that pays golden carrots and no clovers shows its golden chip where the clover chip would be.
-            if (q.RewardClovers == 0) GoldenChip.anchoredPosition = new Vector2(272 + 68, 44); else GoldenChip.anchoredPosition = new Vector2(420 + 68, 44);
+            if (clovers == 0 && jars == 0) GoldenChip.anchoredPosition = new Vector2(272 + 68, 44); else GoldenChip.anchoredPosition = new Vector2(420 + 68, 44);
             if (GoldenChip.gameObject.activeSelf != (q.RewardGolden > 0)) GoldenChip.gameObject.SetActive(q.RewardGolden > 0);
 
             // Finished: the button, and nothing else to measure. Not finished: the bar and the count. Collected: a note.

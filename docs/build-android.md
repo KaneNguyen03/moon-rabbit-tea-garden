@@ -58,3 +58,10 @@ Code đã có: `Core/Storefront.cs` (ba gói consumable `vuontra.golden.50`, `vu
 3. **Build và thử**: sản phẩm chỉ mua được từ bản tải qua Play (Internal testing là đủ), cùng tài khoản là **License tester** (Settings → License testing) để không bị tính tiền thật. Kiểm: giá hiện đúng tiền tệ trên thẻ "Mua cà rốt vàng"; mua một gói cộng đúng một lần; đóng app giữa chừng rồi mở lại: giao dịch dang dở tự giao; "Khôi phục mua hàng" không cộng lặp.
 4. Gói `com.unity.purchasing` 4.15.0 đã có trong `Packages/manifest.json`; không cần EDM4U cho IAP (Unity IAP tự mang thư viện Billing).
 5. **Biên lai bị từ chối** (khi bật `RECEIPT_VALIDATION`): game báo "mua không thành" nhưng KHÔNG hoàn tất giao dịch (`PurchaseProcessingResult.Pending`), nên lần mở app sau Google Play đưa lại giao dịch đó để kiểm biên lai lần nữa; tiền không bị nuốt (Play tự hoàn tiền sau 3 ngày nếu vẫn không được xác nhận).
+
+## 6. Nhắc tôi: thông báo tại máy (#65)
+
+- Gói `com.unity.mobile.notifications` 2.5.0 đã có trong `Packages/manifest.json`; `VuonTra.Game.asmdef` bật `VUONTRA_NOTIFICATIONS` khi có gói; code gọi gói nằm trong `MobileNotifier` (`Assets/VuonTra/Game/Platform/Notifications.cs`), chỉ biên dịch trên máy thật.
+- Kênh thông báo `reminders` ("Nhắc nhở" / "Reminders") được tạo lần đầu cần dùng. Android 13 trở lên: quyền `POST_NOTIFICATIONS` do gói thêm vào manifest; game chỉ hỏi khi người chơi bật "Nhắc tôi".
+- Project Settings → Mobile Notifications → Android: để mặc định (không cần *Reschedule on Device Restart*, vì danh sách được đăng ký lại mỗi lần game vào nền; khởi động lại máy thì mất nhắc cho tới lần chơi sau). Có thể đặt icon nhỏ riêng ở đó; không đặt thì dùng icon app.
+- Thử trên máy (sau #41) như mục iOS.

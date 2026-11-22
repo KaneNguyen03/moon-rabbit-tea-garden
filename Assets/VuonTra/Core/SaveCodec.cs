@@ -29,7 +29,7 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view.</summary>
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view. The hex grid under the garden (#52) is an additive block, no new version.</summary>
         public const int CurrentVersion = 14;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
@@ -132,6 +132,8 @@ namespace VuonTra.Core
             sb.Append(",\"golden\":").Append(s.GoldenCarrots.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftDay\":").Append(s.GiftDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftStreak\":").Append(s.GiftStreak.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"giftBig\":").Append(s.GiftBigDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"giftBigGolden\":").Append(s.GiftBigGolden ? "true" : "false");
             sb.Append(",\"visitorBought\":").Append(s.VisitorBoughtDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"visitorSeen\":").Append(s.VisitorSeenDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"tutorialClover\":").Append(s.TutorialCloverGiven ? "true" : "false");
@@ -250,6 +252,25 @@ namespace VuonTra.Core
                 sb.Append("]}");
             }
             sb.Append('}');
+            // A rabbit asking for its picture (#56), an additive block: the clock, the bubble if any, today's count and the totals.
+            sb.Append(",\"photoAsk\":{\"clock\":").Append(Sane(s.PhotoAskClock).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"left\":").Append(Sane(s.PhotoAskLeft).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"rabbit\":").Append(s.PhotoAskRabbit.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"today\":").Append(s.PhotoAsksToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"day\":").Append(s.PhotoAskDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"answered\":").Append(s.PhotoAsksAnswered.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"dailyBase\":").Append(s.DailyPhotoAsksBase.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            // The album's milestones whose gifts were given (#61), an additive list.
+            sb.Append(",\"albumMilestones\":[");
+            first = true;
+            foreach (int milestone in s.AlbumMilestonesClaimed)
+            {
+                if (!first) sb.Append(',');
+                first = false;
+                sb.Append(milestone.ToString(CultureInfo.InvariantCulture));
+            }
+            sb.Append(']');
             // Decorating the garden (#11), an additive block: what is owned by kind, what stands on each spot, the lantern colour.
             sb.Append(",\"decor\":{\"owned\":{");
             for (int i = 0; i < Decor.Kinds.Length; i++)
@@ -265,6 +286,75 @@ namespace VuonTra.Core
                 if (s.DecorSpots[i] == null) sb.Append("null"); else WriteString(sb, s.DecorSpots[i]);
             }
             sb.Append("],\"lantern\":").Append(s.LanternColor.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            // Moon jars (#64), an additive block: how many are held, the shop's day and count, the day of the last free jar.
+            sb.Append(",\"moonJars\":{\"held\":").Append(s.MoonJars.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"buyDay\":").Append(s.MoonJarBuyDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"bought\":").Append(s.MoonJarsBoughtToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"freeDay\":").Append(s.MoonJarFreeDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            // Rewarded-ad seams (#66), an additive block: the day the claims count for, each place's claims that day, and the pass's end day.
+            sb.Append(",\"ads\":{\"day\":").Append(s.AdsToday.Day.ToString(CultureInfo.InvariantCulture)).Append(",\"used\":{");
+            {
+                bool firstAd = true;
+                foreach (string key in Ads.Keys())
+                {
+                    if (!s.AdsToday.Used.TryGetValue(key, out int used) || used <= 0) continue;
+                    if (!firstAd) sb.Append(',');
+                    firstAd = false;
+                    WriteString(sb, key);
+                    sb.Append(':').Append(used.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+            sb.Append("},\"passUntil\":").Append(s.NoAdsUntilDay.ToString(CultureInfo.InvariantCulture)).Append('}');
+            // The hex grid (#52), an additive block: how wide the lawn is, and the tile of everything standing on it. Empty tiles follow.
+            sb.Append(",\"grid\":{\"radius\":").Append(s.Grid.Radius.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
+            {
+                var ids = new List<string>();
+                foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) ids.Add(o.Key);
+                ids.Sort(string.CompareOrdinal); // the same grid always writes the same text
+                for (int i = 0; i < ids.Count; i++)
+                {
+                    Hex h = s.Grid.TileOf(ids[i]).Value;
+                    if (i > 0) sb.Append(',');
+                    sb.Append("{\"q\":").Append(h.Q.ToString(CultureInfo.InvariantCulture)).Append(",\"r\":").Append(h.R.ToString(CultureInfo.InvariantCulture)).Append(",\"id\":");
+                    WriteString(sb, ids[i]);
+                    sb.Append('}');
+                }
+            }
+            sb.Append("]}");
+            // Gift codes and the mailbox (#68), additive: the codes used, then the letters and the day the box last looked.
+            sb.Append(",\"codesUsed\":[");
+            first = true;
+            foreach (string code in s.CodesUsed)
+            {
+                if (!first) sb.Append(',');
+                first = false;
+                WriteString(sb, code);
+            }
+            sb.Append("],\"mail\":{\"day\":").Append(s.MailDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"letters\":[");
+            for (int i = 0; i < s.Letters.Count; i++)
+            {
+                Letter letter = s.Letters[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":");
+                WriteString(sb, letter.Id);
+                sb.Append(",\"kind\":").Append(((int)letter.Kind).ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"season\":").Append(((int)letter.Season).ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"day\":").Append(letter.Day.ToString(CultureInfo.InvariantCulture));
+                // What it pays, for a reader of the file; the game pays by the kind.
+                sb.Append(",\"golden\":").Append(letter.Golden.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
+                sb.Append('}');
+            }
+            sb.Append("]}");
+            // The Frog Rabbit (#62), an additive block: the day counted, its showers' frogs, today's and all greetings, the one at the pond.
+            sb.Append(",\"frog\":{\"day\":").Append(s.FrogDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"showers\":").Append(s.FrogShowers.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"met\":").Append(s.FrogsMet.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"left\":").Append(Sane(s.FrogLeft).ToString("R", CultureInfo.InvariantCulture));
             sb.Append("}}");
             return sb.ToString();
         }
@@ -484,6 +574,9 @@ namespace VuonTra.Core
             s.GoldenCarrots = TryNumber(root, "golden", out double goldenCarrots) ? (int)Math.Max(0d, Math.Min(goldenCarrots, int.MaxValue)) : 0;
             s.GiftDay = TryNumber(root, "giftDay", out double giftDay) ? ToLong(giftDay) : -1;
             s.GiftStreak = TryNumber(root, "giftStreak", out double giftStreak) ? (int)Math.Max(0d, Math.Min(giftStreak, 100000)) : 0;
+            // The first week's big gift (#57), added within version 14: a save without it has the big gift still to come.
+            s.GiftBigDay = TryNumber(root, "giftBig", out double giftBig) ? Math.Max(-1L, ToLong(giftBig)) : -1;
+            s.GiftBigGolden = root.TryGetValue("giftBigGolden", out object bigGolden) && bigGolden is bool bg && bg;
             s.VisitorBoughtDay = TryNumber(root, "visitorBought", out double visitorBought) ? ToLong(visitorBought) : -1;
             s.VisitorSeenDay = TryNumber(root, "visitorSeen", out double visitorSeen) ? ToLong(visitorSeen) : -1;
             s.PhotosWithGoldRabbit = TryNumber(root, "photosGold", out double photosGold) ? Math.Max(0, ToLong(photosGold)) : 0;
@@ -614,6 +707,99 @@ namespace VuonTra.Core
                     if (order.Lines.Count > 0 && order.Left > 0d) s.Order = order;
                     if (order.Id > s.NextOrderId) s.NextOrderId = order.Id;
                 }
+            }
+
+            // A rabbit asking for its picture (#56). A save from before it: the clock starts from nothing, nobody asks.
+            if (root.TryGetValue("photoAsk", out object askObj) && askObj is Dictionary<string, object> ask)
+            {
+                s.PhotoAskClock = TryNumber(ask, "clock", out double askClock) ? Math.Max(0d, Math.Min(PhotoAsks.Interval, askClock)) : 0d;
+                s.PhotoAskLeft = Math.Max(0d, Math.Min(PhotoAsks.StaySeconds, ReadNumber(ask, "left")));
+                s.PhotoAskRabbit = Math.Max(0L, ToLong(ReadNumber(ask, "rabbit")));
+                // A bubble whose time is spent, or whose rabbit is not in this garden, is not kept.
+                if (s.PhotoAskLeft <= 0d || Rabbits.Find(s, s.PhotoAskRabbit) == null) { s.PhotoAskRabbit = 0; s.PhotoAskLeft = 0d; }
+                s.PhotoAsksToday = (int)Math.Max(0d, Math.Min(ReadNumber(ask, "today"), PhotoAsks.PerDay));
+                s.PhotoAskDay = TryNumber(ask, "day", out double askDay) ? ToLong(askDay) : -1;
+                s.PhotoAsksAnswered = Math.Max(0L, ToLong(ReadNumber(ask, "answered")));
+                s.DailyPhotoAsksBase = Math.Max(0L, Math.Min(s.PhotoAsksAnswered, ToLong(ReadNumber(ask, "dailyBase"))));
+            }
+
+            // The album's milestones (#61). A save from before them has given none; only the milestones the game has count.
+            if (root.TryGetValue("albumMilestones", out object milestonesObj) && milestonesObj is List<object> milestones)
+                foreach (object item in milestones)
+                    if (item is double m && Array.IndexOf(AlbumSets.Milestones, (int)m) >= 0 && m == Math.Floor(m)) s.AlbumMilestonesClaimed.Add((int)m);
+            // Moon jars (#64). A save from before them holds none, and today's jars are all still to come.
+            if (root.TryGetValue("moonJars", out object jarsObj) && jarsObj is Dictionary<string, object> jars)
+            {
+                s.MoonJars = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "held"), MoonJars.Cap));
+                s.MoonJarBuyDay = TryNumber(jars, "buyDay", out double jarBuyDay) ? ToLong(jarBuyDay) : -1;
+                s.MoonJarsBoughtToday = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "bought"), MoonJars.BuyPerDay));
+                s.MoonJarFreeDay = TryNumber(jars, "freeDay", out double jarFreeDay) ? ToLong(jarFreeDay) : -1;
+            }
+            // Gift codes and the mailbox (#68). A save from before them has used no code and holds no letter; its mailbox
+            // starts looking from the save's own last day, so a season missed since then still leaves its letter.
+            if (root.TryGetValue("codesUsed", out object codesObj) && codesObj is List<object> codes)
+                foreach (object item in codes)
+                    if (item is string code && code.Length > 0) s.CodesUsed.Add(code);
+            s.MailDay = s.MaxDaySeen;
+            if (root.TryGetValue("mail", out object mailObj) && mailObj is Dictionary<string, object> mail)
+            {
+                s.MailDay = TryNumber(mail, "day", out double mailDay) ? Math.Max(-1L, ToLong(mailDay)) : s.MaxDaySeen;
+                if (mail.TryGetValue("letters", out object lettersObj) && lettersObj is List<object> letters)
+                    foreach (object raw in letters)
+                    {
+                        if (!(raw is Dictionary<string, object> entry) || s.Letters.Count >= Mailbox.MaxLetters) continue;
+                        if (!(entry.TryGetValue("id", out object letterIdObj) && letterIdObj is string letterId && letterId.Length > 0)) continue;
+                        if (s.Letters.Exists(l => l.Id == letterId)) continue;
+                        double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season");
+                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season) continue;
+                        s.Letters.Add(new Letter
+                        {
+                            Id = letterId,
+                            Kind = (LetterKind)(int)letterKind,
+                            Season = letterSeason >= 0d && letterSeason <= (double)Season.Christmas && letterSeason == Math.Floor(letterSeason) ? (Season)(int)letterSeason : Season.None,
+                            Day = ToLong(ReadNumber(entry, "day")),
+                        });
+                    }
+            }
+
+            // Rewarded-ad seams (#66). A save from before has every claim of the day and no pass; counts are kept to the caps.
+            if (root.TryGetValue("ads", out object adsObj) && adsObj is Dictionary<string, object> ads)
+            {
+                s.AdsToday.Day = TryNumber(ads, "day", out double adsDay) ? ToLong(adsDay) : -1;
+                if (ads.TryGetValue("used", out object usedObj) && usedObj is Dictionary<string, object> used)
+                    foreach (string key in Ads.Keys())
+                    {
+                        int n = (int)Math.Max(0d, Math.Min(ReadNumber(used, key), Ads.CapOfKey(key)));
+                        if (n > 0) s.AdsToday.Used[key] = n;
+                    }
+                s.NoAdsUntilDay = TryNumber(ads, "passUntil", out double passUntil) ? Math.Max(-1L, ToLong(passUntil)) : -1;
+            }
+
+            // The hex grid (#52). A save from before stands on the default table: every plot's station, place to rest and
+            // decoration standing gets its tile, so nothing is lost. A tile claimed twice keeps its first claimant.
+            s.Grid = new GardenGrid(GardenGrid.RadiusForPlots(s.Plots));
+            if (root.TryGetValue("grid", out object gridObj) && gridObj is Dictionary<string, object> grid)
+            {
+                if (TryNumber(grid, "radius", out double radius)) s.Grid.Radius = (int)Math.Max(0d, Math.Min(radius, GardenGrid.MaxRadius));
+                if (grid.TryGetValue("tiles", out object tilesObj) && tilesObj is List<object> tiles)
+                    foreach (object raw in tiles)
+                    {
+                        if (!(raw is Dictionary<string, object> tile) || !TryNumber(tile, "q", out double q) || !TryNumber(tile, "r", out double r)) continue;
+                        if (!(tile.TryGetValue("id", out object idObj) && idObj is string id) || !GardenGrid.Known(id) || s.Grid.TileOf(id) != null) continue;
+                        if (Math.Abs(q) > GardenGrid.MaxRadius * 2 || Math.Abs(r) > GardenGrid.MaxRadius * 2 || s.Grid.OccupantAt((int)q, (int)r) != null) continue;
+                        s.Grid.Place(id, (int)q, (int)r, true);
+                    }
+            }
+            GardenGrid.Settle(defs, s);
+
+            // The Frog Rabbit (#62). A save from before the rain has met none, and today's frogs are still to come.
+            if (root.TryGetValue("frog", out object frogObj) && frogObj is Dictionary<string, object> frog)
+            {
+                s.FrogDay = TryNumber(frog, "day", out double frogDay) ? ToLong(frogDay) : -1;
+                s.FrogShowers = (int)Math.Max(0d, Math.Min(ReadNumber(frog, "showers"), (1 << Weather.ShowersPerDay) - 1));
+                s.FrogsToday = (int)Math.Max(0d, Math.Min(ReadNumber(frog, "today"), FrogRabbit.PerDay));
+                s.FrogsMet = Math.Max(0L, ToLong(ReadNumber(frog, "met")));
+                s.FrogLeft = Math.Max(0d, Math.Min(FrogRabbit.StaySeconds, ReadNumber(frog, "left")));
             }
 
             result.Status = LoadStatus.Ok;

@@ -29,6 +29,8 @@ namespace VuonTra.Game.UI
 
         public PoundingRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
+        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
+        public RectTransform ResultCard => _resultCard;
         /// <summary>Seconds into the game, the same clock the rules are scored on.</summary>
         public double Time => _time;
 
@@ -50,9 +52,10 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("pound.title"), 48, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold).AddShadow();
             UiKit.Rect("Hint", overlay).Place(0.5f, 1f, 0, -300, 900, 44)
                 .AddText(L10n.T("pound.hint"), UiKit.TextBody, Palette.Alpha(Palette.Paper, 0.85f), TextAnchor.MiddleCenter);
-            _score = UiKit.Rect("Score", overlay).Place(0f, 1f, 160, -400, 280, 60)
+            // The score and the count keep 24 from either edge of the screen (#77).
+            _score = UiKit.Rect("Score", overlay).Place(0f, 1f, 164, -400, 280, 60)
                 .AddText("", UiKit.TextTitle, Palette.Lantern, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _beats = UiKit.Rect("Beats", overlay).Place(1f, 1f, -160, -400, 280, 60)
+            _beats = UiKit.Rect("Beats", overlay).Place(1f, 1f, -164, -400, 280, 60)
                 .AddText("", UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleRight, FontStyle.Bold);
 
             // Everything that shakes on a miss hangs from one node, so the shake is one number.

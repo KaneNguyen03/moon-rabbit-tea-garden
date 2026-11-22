@@ -20,6 +20,19 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Clock_Turned_Back_Never_Pays_The_Photo_Gift_Again()
+        {
+            // #78: switching the device between two days used to pay a golden carrot every time.
+            GameState s = GameState.NewGame(Fixture.Defs());
+            Assert.IsTrue(Photos.Take(s, 101));
+            Assert.IsFalse(Photos.GiftWaiting(s, 100), "an earlier day has no gift waiting");
+            Assert.IsFalse(Photos.Take(s, 100), "nor does it pay one");
+            Assert.IsFalse(Photos.Take(s, 101));
+            Assert.AreEqual(Photos.GiftGolden, s.GoldenCarrots, "one golden carrot in all");
+            Assert.AreEqual(101, s.PhotoDay);
+        }
+
+        [Test]
         public void A_Photo_Counts_Gold_Rabbits_And_Full_Rest_And_Fills_The_Album_Newest_Last()
         {
             GameState s = GameState.NewGame(Fixture.Defs());

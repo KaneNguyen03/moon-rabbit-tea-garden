@@ -82,7 +82,12 @@ namespace VuonTra.Game.UI
 
             var chip = UiKit.Rect("Level", Root).Place(1f, 1f, -392, -52, 152, 46);
             _levelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _level = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _level = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            // "Cấp 500 ✦✦✦" is wider than the pill at full size: the words shrink to stay on one line (#73).
+            _level.resizeTextForBestFit = true;
+            _level.resizeTextMinSize = 14;
+            _level.resizeTextMaxSize = _level.fontSize;
+            _level.verticalOverflow = VerticalWrapMode.Truncate;
 
             // The way to the next doubling: a bar that says how many levels are left.
             var track = UiKit.Rect("Milestone", Root).Band(left, right, 22, 34);

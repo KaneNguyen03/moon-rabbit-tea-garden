@@ -32,7 +32,7 @@ namespace VuonTra.EditorTools
             }
         }
 
-        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; public Season Season; }
+        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; public Season Season; public int Jars; }
 
         public static void Seed(GameCatalog catalog)
         {
@@ -69,8 +69,10 @@ namespace VuonTra.EditorTools
                 // Daily: come back tomorrow.
                 new Q { Id = "ngay-cham", Title = "Chạm bé thỏ 50 lần",             Metric = QuestMetric.Taps,          Target = 50, Seconds = 30, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-nang", Title = "Nâng cấp trạm 20 lần",           Metric = QuestMetric.LevelsBought,  Target = 20, Seconds = 30, Carrots = 30,  Clovers = 1, Daily = true },
-                new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 60, Carrots = 60,  Clovers = 1, Daily = true },
+                // The harvest pays a moon jar in place of its clover (#64), the clover again when the day's free jar has come.
+                new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 60, Carrots = 60,  Jars = 1, Daily = true },
                 new Q { Id = "ngay-don",  Title = "Giao 2 đơn trà cho khách",      Metric = QuestMetric.OrdersDelivered, Target = 2, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
+                new Q { Id = "ngay-anh",  Title = "Chụp 3 tấm thỏ xin ảnh",        Metric = QuestMetric.PhotoAsksAnswered, Target = 3, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
                 // Achievements: once.
                 new Q { Id = "mo-2",      Title = "Đánh thức bé thỏ thứ hai",       Metric = QuestMetric.StationsOpen,  Target = 2,  Seconds = 12,  Carrots = 60 },
                 new Q { Id = "mo-4",      Title = "Có 4 trạm đang hoạt động",       Metric = QuestMetric.StationsOpen,  Target = 4,  Seconds = 90,  Carrots = 500,  Clovers = 2 },
@@ -101,6 +103,7 @@ namespace VuonTra.EditorTools
                 new Q { Id = "mua-anh-noel",       Title = "Chụp ảnh có Thỏ Noel",              Metric = QuestMetric.PhotosWithSeasonRabbit, Target = 1, Seconds = 6,  Carrots = 100, Golden = 10, Season = Season.Christmas },
                 new Q { Id = "anh-vang",  Title = "Chụp ảnh có một thỏ bậc Vàng",   Metric = QuestMetric.PhotosWithGoldRabbit, Target = 1, Seconds = 60, Carrots = 1000, Clovers = 2 },
                 new Q { Id = "anh-nghi",  Title = "Chụp ảnh khi đủ 6 chỗ nghỉ",     Metric = QuestMetric.PhotosWithFullRest,   Target = 1, Seconds = 90, Carrots = 2000, Clovers = 2 },
+                new Q { Id = "nghi-6",    Title = "Đủ 6 bé thỏ cùng nghỉ",          Metric = QuestMetric.RabbitsResting,       Target = 6, Seconds = 90, Carrots = 2000, Clovers = 2 },
                 // Golden carrots, once each (#44).
                 new Q { Id = "loai-tim",  Title = "Gặp loài thỏ bậc Tím đầu tiên",   Metric = QuestMetric.RarestKindMet, Target = 4,  Seconds = 60,  Carrots = 1000, Golden = 3 },
                 new Q { Id = "loai-vang", Title = "Gặp loài thỏ bậc Vàng đầu tiên",  Metric = QuestMetric.RarestKindMet, Target = 5,  Seconds = 90,  Carrots = 3000, Golden = 3 },
@@ -115,6 +118,17 @@ namespace VuonTra.EditorTools
                 new Q { Id = "dom-30",    Title = "Bắt đom đóm 30 đêm",              Metric = QuestMetric.FirefliesGames,     Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
                 // Guests' tea orders (#20).
                 new Q { Id = "don-20",    Title = "Giao 20 đơn trà",                 Metric = QuestMetric.OrdersDelivered, Target = 20, Seconds = 90, Carrots = 2000, Clovers = 2 },
+                // The album's milestones (#61): the quests pay the golden carrots and the clover; the hat (40) and the
+                // gold frame (72) are given by the album itself the moment the kinds are met (AlbumSets.ClaimMilestones).
+                // 10 and 20 kinds come in everyone's first hour, so they pay 1 and 2 golden carrots, not the 3 and 5 first
+                // proposed: those bought a casual player a second golden call on day one, a Gold rabbit on day two and all
+                // twelve plots a day early (EconomySimulationTests).
+                new Q { Id = "loai-10",   Title = "Gặp 10 loài thỏ",                 Metric = QuestMetric.KindsMet, Target = 10, Seconds = 30,  Carrots = 300,   Golden = 1 },
+                new Q { Id = "loai-20",   Title = "Gặp 20 loài thỏ",                 Metric = QuestMetric.KindsMet, Target = 20, Seconds = 60,  Carrots = 1000,  Golden = 2, Clovers = 1 },
+                new Q { Id = "loai-40",   Title = "Gặp 40 loài thỏ · tặng Mũ sao",   Metric = QuestMetric.KindsMet, Target = 40, Seconds = 120, Carrots = 5000,  Golden = 10 },
+                new Q { Id = "loai-72",   Title = "Gặp đủ 72 loài · khung Đủ bộ",    Metric = QuestMetric.KindsMet, Target = 72, Seconds = 300, Carrots = 20000, Golden = 20 },
+                // The Frog Rabbit in the rain (#62): five met, two clovers.
+                new Q { Id = "ech-5",     Title = "Gặp Thỏ Ếch 5 lần",               Metric = QuestMetric.FrogsMet, Target = 5, Seconds = 60, Carrots = 1000, Clovers = 2 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)
@@ -123,7 +137,7 @@ namespace VuonTra.EditorTools
                 data.Id = row.Id; data.Title = row.Title; data.Metric = row.Metric;
                 data.Station = row.Station != null ? stations[row.Station] : null;
                 data.Target = row.Target; data.Daily = row.Daily; data.RewardSeconds = row.Seconds;
-                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden; data.Season = row.Season;
+                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden; data.Season = row.Season; data.RewardJars = row.Jars;
                 EditorUtility.SetDirty(data);
                 quests.Add(data);
             }
@@ -224,6 +238,7 @@ namespace VuonTra.EditorTools
             catalog.Planter = FinalArt.Find("decor_bon-hoa");
             catalog.GoldenCarrot = FinalArt.Find("icon_ca-rot-vang");
             catalog.GiftBox = FinalArt.Find("icon_hop-qua");
+            catalog.MoonJar = FinalArt.Find("icon_hu-trang");
             catalog.ShopProp = FinalArt.Find("prop_tiem");
             catalog.Pad = FinalArt.Load("pad");
             catalog.StationPads = System.Array.FindAll(new[] { FinalArt.Find("pad_dat"), FinalArt.Find("pad_san-go"), FinalArt.Find("pad_vong-da"), FinalArt.Find("pad_hoa") }, s => s != null);

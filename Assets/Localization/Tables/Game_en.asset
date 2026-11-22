@@ -1563,7 +1563,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 192545505140745
-    m_Localized: "{0} days in a row \xB7 miss a day and it starts over"
+    m_Localized: "{0} days in a row \xB7 miss a day and it steps back one"
     m_Metadata:
       m_Items: []
   - m_Id: 192545505140746
@@ -2622,6 +2622,472 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 340555564310536
     m_Localized: "Collected \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216427225088
+    m_Localized: Day {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613696
+    m_Localized: "+{0} \xB7 big gift"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613697
+    m_Localized: Day 7 also brings a {0} and {1} clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613698
+    m_Localized: "Big gift: the {0} is in the wardrobe \xB7 +{1} clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613699
+    m_Localized: "You had the {0}, so +{1} golden carrots instead \xB7 +{2} clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 363105828724736
+    m_Localized: '{0} loves the photo! +{1} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 363105845501952
+    m_Localized: Take 3 photos rabbits ask for
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259223912448
+    m_Localized: "Resting \xB7 +{0}% garden"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301056
+    m_Localized: +{0}% garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301057
+    m_Localized: "Places to rest: {0}/{1} taken \xB7 garden income +{2}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301058
+    m_Localized: Resting rabbits ({0}) +{1}%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 366259232301059
+    m_Localized: Six rabbits resting together
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712551350272
+    m_Localized: The water just boiled, the tea is nearly ready!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738880
+    m_Localized: One more pinch of leaves should do it.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738881
+    m_Localized: This pot is for the whole garden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738882
+    m_Localized: "Mmm\u2026 smell that tea!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738883
+    m_Localized: The cakes are almost done, wait a moment!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738884
+    m_Localized: Kneading tires my paws, but it is fun.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738885
+    m_Localized: This batch rose so evenly!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738886
+    m_Localized: Who wants the first taste?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738887
+    m_Localized: The young leaves are so soft today.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738888
+    m_Localized: The basket is full, off to the kitchen!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738889
+    m_Localized: Pick gently and the plants stay happy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738890
+    m_Localized: There is still dew on the leaves.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738891
+    m_Localized: That star just winked at me!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738892
+    m_Localized: That makes a hundred stars counted.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738893
+    m_Localized: The moonlight fills the whole garden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738894
+    m_Localized: A little more starlight to sweeten it.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738895
+    m_Localized: The garden feels so peaceful today.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738896
+    m_Localized: Have some tea with me later!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738897
+    m_Localized: Such a cool breeze, I want to sing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738898
+    m_Localized: Your visit makes my day.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738899
+    m_Localized: The sunset turns the garden pink.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738900
+    m_Localized: Almost time to light the lanterns.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738901
+    m_Localized: The fireflies are out!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738902
+    m_Localized: It is late, have some warm tea.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738903
+    m_Localized: Good morning! The dew is still cold.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738904
+    m_Localized: The sun is nearly up, time to rise!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738905
+    m_Localized: Lovely sun, time to dry the leaves!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738906
+    m_Localized: It is midday, is anyone hungry?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738907
+    m_Localized: It is Mid-Autumn, shall we parade the lanterns?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738908
+    m_Localized: Happy New Year! Where is my red envelope?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738909
+    m_Localized: Merry Christmas to you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738910
+    m_Localized: Thanks to the {0}, this batch smells even better!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 370712559738911
+    m_Localized: Don't I look nice today?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703374651392
+    m_Localized: "{0} set {1}/{2} \xB7 +{3}% when complete"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817216
+    m_Localized: "{0} set complete \xB7 {0} stations +{1}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817217
+    m_Localized: '{1} {0} set complete!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817218
+    m_Localized: '{0} stations earn {1}% more for good'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817219
+    m_Localized: '{0} kinds met!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817220
+    m_Localized: 'The album''s gift: a Starry Hat'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817221
+    m_Localized: 'You have the Starry Hat: {0} golden carrots instead'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817222
+    m_Localized: The album earns its gold Complete frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817223
+    m_Localized: "Complete \xB7 all {0} kinds met"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817224
+    m_Localized: Meet 10 kinds of rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817225
+    m_Localized: Meet 20 kinds of rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817226
+    m_Localized: "Meet 40 kinds \xB7 a Starry Hat"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 375703399817227
+    m_Localized: "Meet all 72 kinds \xB7 Complete frame"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373560852480
+    m_Localized: Remind me
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824000
+    m_Localized: Moon Rabbit Tea Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824001
+    m_Localized: The tray is full and the rabbits are rested. Come sell the treats!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824002
+    m_Localized: A new daily gift is waiting, and a new rabbit is visiting the shop.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824003
+    m_Localized: '{0} is here! Come meet a new friend in the garden.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824004
+    m_Localized: We haven't seen you for a while. The rabbits miss you.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824005
+    m_Localized: Reminders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824006
+    m_Localized: Full tray, daily gift, new season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746075971584
+    m_Localized: Open a moon jar ({0})
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943104
+    m_Localized: No moon jars yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943105
+    m_Localized: "1 jar = an hour of income: +{0} \xB7 shelf {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943106
+    m_Localized: Moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943107
+    m_Localized: '{0}/{1} left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943108
+    m_Localized: Shelf full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943109
+    m_Localized: Back tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943110
+    m_Localized: "+1 moon jar \xB7 open it from the purse"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 384746096943111
+    m_Localized: +1 moon jar (three stars)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172349046784
+    m_Localized: Stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435392
+    m_Localized: Tune
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435393
+    m_Localized: Auto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435394
+    m_Localized: Moonlit night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435395
+    m_Localized: Daybreak
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435396
+    m_Localized: Rain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779362181120
+    m_Localized: Enter a gift code
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569728
+    m_Localized: Redeem
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569729
+    m_Localized: That code isn't right. Check it and try again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569730
+    m_Localized: This code has expired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569731
+    m_Localized: This garden has already used this code
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569732
+    m_Localized: Mail
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569733
+    m_Localized: Mailbox
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569734
+    m_Localized: 'No letters yet.
+
+      Make-up gifts and gifts for missed seasons arrive here.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569735
+    m_Localized: Up to {0} letters, each kept {1} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569736
+    m_Localized: 'Sorry gift: your old save could not be read'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569737
+    m_Localized: A gift for the {0} you missed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569738
+    m_Localized: +{0} golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569739
+    m_Localized: +{0} clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569740
+    m_Localized: '{0} days left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569741
+    m_Localized: last day today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569742
+    m_Localized: Claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 396779370569743
+    m_Localized: Claimed {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557395857408
+    m_Localized: "Watch 30 s \xB7 collect \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246016
+    m_Localized: "Collect \xD72 now"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246017
+    m_Localized: "Watch 30 s \xB7 one more round"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246018
+    m_Localized: One more round now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246019
+    m_Localized: Watch for 1 golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246020
+    m_Localized: Get 1 golden carrot now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246021
+    m_Localized: +1 golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246022
+    m_Localized: "Opening\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246023
+    m_Localized: Not watched to the end, so nothing yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246024
+    m_Localized: "No ads \xB7 30 days"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246025
+    m_Localized: "No ads \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246026
+    m_Localized: 'No ads for {0} days: every watch button now pays at once.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246027
+    m_Localized: No ads for {0} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840848687104
+    m_Localized: Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075712
+    m_Localized: The Frog Rabbit says hello!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075713
+    m_Localized: 'A rainy-day gift: {0} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075714
+    m_Localized: 'A rainy-day gift: {0} carrots and a clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075715
+    m_Localized: Meet the Frog Rabbit 5 times
     m_Metadata:
       m_Items: []
   references:

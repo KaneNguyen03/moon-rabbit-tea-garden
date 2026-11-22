@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8704501d219f436d93221f29ed4dd17, type: 3}
+  m_Name: nghi-6
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
+  Id: nghi-6
+  Title: "\u0110\u1EE7 6 b\xE9 th\u1ECF c\xF9ng ngh\u1EC9"
+  Metric: 23
+  Station: {fileID: 0}
+  Target: 6
+  Daily: 0
+  RewardSeconds: 90
+  RewardCarrots: 2000
+  RewardClovers: 2
+  RewardGolden: 0
+  RewardJars: 0
+  Season: 0

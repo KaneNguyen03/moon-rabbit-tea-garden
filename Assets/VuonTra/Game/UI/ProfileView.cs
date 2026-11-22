@@ -8,7 +8,7 @@ namespace VuonTra.Game.UI
 {
     /// <summary>
     /// The player's profile: the avatar rabbit (a touch picks the next), the garden's name, the player code
-    /// with a copy button, a line of numbers, and where the save is backed up to.
+    /// with a copy button, a field for gift codes (#68), a line of numbers, and where the save is backed up to.
     /// </summary>
     public sealed class ProfileView
     {
@@ -27,14 +27,21 @@ namespace VuonTra.Game.UI
         readonly ChunkyButton _link, _push, _restore;
         readonly GameObject _restoreLocal;
         readonly Action _onNextAvatar, _onRename;
+        readonly Func<string, GiftCodes.Result> _onRedeem;
+        readonly RectTransform _giftField;
+        readonly InputField _giftInput;
+        readonly Text _giftNote;
+        Vector2 _giftHome;
         float _copiedAt = -99f;
 
         public bool IsOpen => _root.activeSelf;
         public RectTransform Root => _card;
 
         public ProfileView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onNextAvatar, Action onRename, Action onLink,
-            Action onPushCloud = null, Action onRestoreCloud = null, Action onRestoreLocal = null, Action onDeleteData = null)
+            Action onPushCloud = null, Action onRestoreCloud = null, Action onRestoreLocal = null, Action onDeleteData = null,
+            Func<string, GiftCodes.Result> onRedeem = null)
         {
+            _onRedeem = onRedeem;
             _catalog = catalog;
             _tweens = tweens;
             _onNextAvatar = onNextAvatar;
@@ -47,7 +54,7 @@ namespace VuonTra.Game.UI
             scrim.transition = Selectable.Transition.None;
             scrim.onClick.AddListener(Close);
 
-            _card = UiKit.Rect("Card", overlay).Place(0.5f, 0.52f, 0, 0, 860, 1580);
+            _card = UiKit.Rect("Card", overlay).Place(0.5f, 0.5f, 0, 0, 860, 1680);
             _card.AddShadow(26f, 16f, 0.45f);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
@@ -106,29 +113,67 @@ namespace VuonTra.Game.UI
             _copyLabel = UiKit.Rect("Text", copyButton.FaceRect).Stretch(0, 0, 1, 1)
                 .AddText(L10n.T("profile.copy"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
+            // Gift codes (#68): a field under the player code, the button that tries what was typed, and a line that says why not.
+            _giftField = UiKit.Rect("GiftCode", _card).Place(0.5f, 1f, -120, -770, 500, UiKit.MinTouch);
+            _giftHome = _giftField.anchoredPosition;
+            Image giftPlate = _giftField.AddImage(catalog.Panel, Palette.Card, true);
+            giftPlate.raycastTarget = true;
+            Text giftText = UiKit.Rect("Text", _giftField).Stretch(0, 0, 1, 1, 28, 0, 28, 0)
+                .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            giftText.supportRichText = false; // a typed "<b>" is just text
+            Text giftHint = UiKit.Rect("Hint", _giftField).Stretch(0, 0, 1, 1, 28, 0, 28, 0)
+                .AddText(L10n.T("gift.hint"), UiKit.TextBody, Palette.OffInk, TextAnchor.MiddleLeft);
+            giftHint.resizeTextForBestFit = true;
+            giftHint.resizeTextMinSize = 14;
+            giftHint.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _giftInput = _giftField.gameObject.AddComponent<InputField>();
+            _giftInput.targetGraphic = giftPlate;
+            _giftInput.textComponent = giftText;
+            _giftInput.placeholder = giftHint;
+            _giftInput.lineType = InputField.LineType.SingleLine;
+            _giftInput.characterLimit = 24;
+            _giftInput.onEndEdit.AddListener(_ => { if (Application.isPlaying && SubmitPressed()) Redeem(); });
+            var redeem = UiKit.Rect("Redeem", _card).Place(0.5f, 1f, 250, -770, 200, UiKit.MinTouch);
+            ChunkyButton redeemButton = null;
+            redeemButton = UiKit.Chunky(redeem, catalog.Panel, () =>
+            {
+                redeemButton.Press(_tweens);
+                Redeem();
+            });
+            Text redeemLabel = UiKit.Rect("Text", redeemButton.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0)
+                .AddText(L10n.T("gift.redeem"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+            redeemLabel.resizeTextForBestFit = true;
+            redeemLabel.resizeTextMinSize = 14;
+            redeemLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _giftNote = UiKit.Rect("GiftNote", _card).Place(0.5f, 1f, 0, -836, 740, 40)
+                .AddText("", UiKit.TextSmall, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _giftNote.resizeTextForBestFit = true;
+            _giftNote.resizeTextMinSize = 12;
+            _giftNote.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+
             // Backup: where the save lives, and the link button that waits for a store sign-in.
-            UiKit.Rect("BackupTitle", _card).Place(0.5f, 1f, 0, -790, 740, 44)
+            UiKit.Rect("BackupTitle", _card).Place(0.5f, 1f, 0, -890, 740, 44)
                 .AddText(L10n.T("backup.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _backup = UiKit.Rect("Backup", _card).Place(0.5f, 1f, 0, -836, 740, 44)
+            _backup = UiKit.Rect("Backup", _card).Place(0.5f, 1f, 0, -936, 740, 44)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
-            var link = UiKit.Rect("Link", _card).Place(0.5f, 1f, 0, -930, 620, 110);
+            var link = UiKit.Rect("Link", _card).Place(0.5f, 1f, 0, -1030, 620, 110);
             _link = UiKit.Chunky(link, catalog.Panel, () => { Sfx.Blip(); onLink(); });
             UiKit.Rect("Text", _link.FaceRect).Stretch(0, 0, 1, 1)
                 .AddText(L10n.T("backup.link"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _linkNote = UiKit.Rect("LinkNote", _card).Place(0.5f, 1f, 0, -1010, 740, 60)
+            _linkNote = UiKit.Rect("LinkNote", _card).Place(0.5f, 1f, 0, -1110, 740, 60)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
 
             // The cloud: when the save last went up, a button to send it now, one to take what is up there,
             // and, once something has been replaced, the way back to the copy that was kept on the device.
-            _cloudStatus = UiKit.Rect("CloudStatus", _card).Place(0.5f, 1f, 0, -1080, 740, 44)
+            _cloudStatus = UiKit.Rect("CloudStatus", _card).Place(0.5f, 1f, 0, -1180, 740, 44)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
-            var push = UiKit.Rect("CloudPush", _card).Place(0.5f, 1f, -170, -1160, 320, 100);
+            var push = UiKit.Rect("CloudPush", _card).Place(0.5f, 1f, -170, -1260, 320, 100);
             _push = UiKit.Chunky(push, catalog.Panel, () => { Sfx.Blip(); onPushCloud?.Invoke(); });
             UiKit.Rect("Text", _push.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("cloud.push"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
-            var restore = UiKit.Rect("CloudRestore", _card).Place(0.5f, 1f, 170, -1160, 320, 100);
+            var restore = UiKit.Rect("CloudRestore", _card).Place(0.5f, 1f, 170, -1260, 320, 100);
             _restore = UiKit.Chunky(restore, catalog.Panel, () => { Sfx.Blip(); onRestoreCloud?.Invoke(); });
             UiKit.Rect("Text", _restore.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("cloud.restore"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
-            var restoreLocal = UiKit.Rect("RestoreLocal", _card).Place(0.5f, 1f, 0, -1250, 740, UiKit.MinTouch);
+            var restoreLocal = UiKit.Rect("RestoreLocal", _card).Place(0.5f, 1f, 0, -1350, 740, UiKit.MinTouch);
             Image restoreHit = restoreLocal.AddImage(null, new Color(0, 0, 0, 0));
             restoreHit.raycastTarget = true;
             var restoreLocalButton = restoreLocal.gameObject.AddComponent<Button>();
@@ -139,22 +184,22 @@ namespace VuonTra.Game.UI
             _restoreLocal.SetActive(false);
 
             // Privacy (#42): the policy, where to write for help, and the way to delete everything, which asks twice.
-            UiKit.Rect("PrivacyTitle", _card).Place(0.5f, 1f, 0, -1320, 740, 44)
+            UiKit.Rect("PrivacyTitle", _card).Place(0.5f, 1f, 0, -1420, 740, 44)
                 .AddText(L10n.T("privacy.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            var privacy = UiKit.Rect("Privacy", _card).Place(0.5f, 1f, 0, -1372, 740, UiKit.MinTouch);
+            var privacy = UiKit.Rect("Privacy", _card).Place(0.5f, 1f, 0, -1472, 740, UiKit.MinTouch);
             Image privacyHit = privacy.AddImage(null, new Color(0, 0, 0, 0));
             privacyHit.raycastTarget = true;
             var privacyButton = privacy.gameObject.AddComponent<Button>();
             privacyButton.transition = Selectable.Transition.None;
             privacyButton.onClick.AddListener(() => { Sfx.Click(); OpenUrl(AppInfo.PrivacyUrl); });
             UiKit.Rect("Text", privacy).Stretch(0, 0, 1, 1).AddText(L10n.T("privacy.open"), UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
-            Text support = UiKit.Rect("Support", _card).Place(0.5f, 1f, 0, -1430, 740, 44)
+            Text support = UiKit.Rect("Support", _card).Place(0.5f, 1f, 0, -1530, 740, 44)
                 .AddText(L10n.T("privacy.support", AppInfo.SupportEmail), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft);
             support.resizeTextForBestFit = true;
             support.resizeTextMinSize = 12;
             support.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
             support.verticalOverflow = VerticalWrapMode.Truncate;
-            var delete = UiKit.Rect("DeleteData", _card).Place(0.5f, 1f, 0, -1500, 740, UiKit.MinTouch);
+            var delete = UiKit.Rect("DeleteData", _card).Place(0.5f, 1f, 0, -1600, 740, UiKit.MinTouch);
             Image deleteHit = delete.AddImage(null, new Color(0, 0, 0, 0));
             deleteHit.raycastTarget = true;
             var deleteButton = delete.gameObject.AddComponent<Button>();
@@ -243,6 +288,9 @@ namespace VuonTra.Game.UI
 
         public void Open(IReadOnlyList<StationDef> defs, GameState s, IAccountService account, CloudStatus cloud = default)
         {
+            _giftInput.text = "";
+            _giftNote.text = "";
+            _giftField.anchoredPosition = _giftHome;
             _deletePresses = 0;
             if (_deleteLabel != null) _deleteLabel.text = L10n.T("privacy.delete");
             _copiedAt = -99f;
@@ -296,6 +344,44 @@ namespace VuonTra.Game.UI
             // What linking brings, until it has been brought; the honest "coming soon" above it while nothing can link.
             string reward = s.Profile.LinkRewarded ? "" : L10n.T("backup.reward", Profile.LinkRewardClovers);
             _linkNote.text = linked ? "" : (account.CanLink ? reward : L10n.T("backup.soon") + (reward.Length > 0 ? "\n" + reward : ""));
+        }
+
+        // ----- gift codes (#68) -----
+
+        /// <summary>The field a gift code is typed into.</summary>
+        public InputField GiftInput => _giftInput;
+
+        /// <summary>How many times a code was refused since the card was built: each one shook the field.</summary>
+        public int Refusals { get; private set; }
+
+        /// <summary>Tries what was typed. A refused code shakes the field, sounds "no" and says why; a code that paid clears the field.</summary>
+        public void Redeem()
+        {
+            string typed = _giftInput.text;
+            GiftCodes.Result result = _onRedeem != null && !string.IsNullOrWhiteSpace(typed) ? _onRedeem(typed) : GiftCodes.Result.Invalid;
+            if (result == GiftCodes.Result.Ok)
+            {
+                _giftInput.text = "";
+                _giftNote.text = "";
+                return;
+            }
+            Refusals++;
+            _giftNote.text = L10n.T(result == GiftCodes.Result.Expired ? "gift.expired" : result == GiftCodes.Result.Used ? "gift.used" : "gift.invalid");
+            Sfx.Deny();
+            Haptics.Light();
+            Vector2 home = _giftHome;
+            _tweens.Add(0.32f, t =>
+            {
+                if (_giftField == null) return;
+                _giftField.anchoredPosition = home + new Vector2(Mathf.Sin(t * Mathf.PI * 6f) * (1f - t) * 16f, 0f);
+            }, Ease.Linear, 0f, () => { if (_giftField != null) _giftField.anchoredPosition = home; });
+        }
+
+        /// <summary>Whether the edit ended because Enter was pressed (not because focus moved away).</summary>
+        static bool SubmitPressed()
+        {
+            var keyboard = UnityEngine.InputSystem.Keyboard.current;
+            return keyboard != null && (keyboard.enterKey.isPressed || keyboard.numpadEnterKey.isPressed);
         }
     }
 }

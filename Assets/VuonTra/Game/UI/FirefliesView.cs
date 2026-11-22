@@ -37,6 +37,8 @@ namespace VuonTra.Game.UI
 
         public FirefliesRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
+        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
+        public RectTransform ResultCard => _resultCard;
         /// <summary>Seconds into the night, the same clock the rules are settled on.</summary>
         public double Time => _time;
 
@@ -63,9 +65,10 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("fireflies.title"), 48, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold).AddShadow();
             UiKit.Rect("Hint", _overlay).Place(0.5f, 1f, 0, -300, 980, 44)
                 .AddText(L10n.T("fireflies.hint"), UiKit.TextBody, Palette.Alpha(Palette.Paper, 0.85f), TextAnchor.MiddleCenter);
-            _score = UiKit.Rect("Score", _overlay).Place(0f, 1f, 160, -400, 280, 60)
+            // The score and the count keep 24 from either edge of the screen (#77).
+            _score = UiKit.Rect("Score", _overlay).Place(0f, 1f, 164, -400, 280, 60)
                 .AddText("", UiKit.TextTitle, Palette.Lantern, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _timer = UiKit.Rect("Timer", _overlay).Place(1f, 1f, -160, -400, 320, 60)
+            _timer = UiKit.Rect("Timer", _overlay).Place(1f, 1f, -184, -400, 320, 60)
                 .AddText("", UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleRight, FontStyle.Bold);
 
             // The jar at the bottom: glass, a glow inside that grows with the catch, and a cork.
@@ -268,6 +271,7 @@ namespace VuonTra.Game.UI
             var extra = new List<string>(3);
             if (result.Clovers > 0) extra.Add(L10n.T("fireflies.clovers", result.Clovers));
             if (result.Golden > 0) extra.Add(L10n.T("fireflies.goldenCarrot"));
+            if (result.Jars > 0) extra.Add(L10n.T("fireflies.jar"));
             if (result.CloversCapped || result.GoldenCapped) extra.Add(L10n.T("fireflies.capped"));
             _resultExtra.text = string.Join("\n", extra);
             _result.SetActive(true);

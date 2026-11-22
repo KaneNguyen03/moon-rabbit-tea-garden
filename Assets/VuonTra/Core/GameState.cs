@@ -27,6 +27,10 @@ namespace VuonTra.Core
         /// <summary>The day the shop's daily gift was last paid, and how many days in a row by then.</summary>
         public long GiftDay = -1;
         public int GiftStreak;
+        /// <summary>The day the first week's big gift (#57) was paid, -1 while it is still to come; and whether golden carrots came in the hat's place.</summary>
+        public long GiftBigDay = -1;
+        public bool GiftBigGolden;
+        public bool GiftBigClaimed => GiftBigDay >= 0;
         /// <summary>The day the shop's visiting rabbit was bought, and the day it was last looked at.</summary>
         public long VisitorBoughtDay = -1, VisitorSeenDay = -1;
 
@@ -61,6 +65,8 @@ namespace VuonTra.Core
         public HashSet<string> SeenKinds = new HashSet<string>();
         /// <summary>Kinds that arrived and have not been looked at in the album yet: the "new" marks.</summary>
         public HashSet<string> FreshKinds = new HashSet<string>();
+        /// <summary>The album's milestones (#61, kinds met: 10, 20, 40, 72) whose gifts have been given, so each is given once.</summary>
+        public HashSet<int> AlbumMilestonesClaimed = new HashSet<int>();
         /// <summary>How many places resting rabbits have to sit in the garden.</summary>
         public int RestSpots = VuonTra.Core.RestSpots.Starting;
         /// <summary>The garden's experience; its level follows from this.</summary>
@@ -118,6 +124,13 @@ namespace VuonTra.Core
         public long OrderDay = -1;
         public long OrdersDelivered, DailyOrdersBase, NextOrderId;
 
+        /// <summary>A rabbit asking for its picture (#56): who (0 for nobody), the seconds its bubble has left, seconds of open play towards the next ask, today's answered asks and the day they count for, answers in all and at the day's start.</summary>
+        public long PhotoAskRabbit;
+        public double PhotoAskLeft, PhotoAskClock;
+        public int PhotoAsksToday;
+        public long PhotoAskDay = -1;
+        public long PhotoAsksAnswered, DailyPhotoAsksBase;
+
         /// <summary>Decorating the garden (#11): how many of each kind are owned (indexed like <see cref="Decor.Kinds"/>), what stands on each of the eight spots (a kind id or null), and the colour hung on the paper lanterns (0 = paper).</summary>
         public int[] DecorOwned = new int[Decor.Kinds.Length];
         public string[] DecorSpots = new string[Decor.Spots];
@@ -129,6 +142,29 @@ namespace VuonTra.Core
         /// <summary>Golden packs bought for money (#9): how many in all, and the store's ids of the latest paid-out transactions, oldest first, so a purchase delivered again is not paid twice.</summary>
         public int PacksBought;
         public List<string> PaidTransactions = new List<string>();
+
+        /// <summary>Moon jars (#64): how many are on the shelf (at most <see cref="VuonTra.Core.MoonJars.Cap"/>); the day the shop last sold one and how many it sold that day; the day the one free jar a day was last given.</summary>
+        public int MoonJars;
+        public long MoonJarBuyDay = -1;
+        public int MoonJarsBoughtToday;
+        public long MoonJarFreeDay = -1;
+        /// <summary>The hex grid the garden stands on (#52): how wide the lawn is and which tile each station, place to rest, decoration and prop has.</summary>
+        public GardenGrid Grid = new GardenGrid();
+        /// <summary>Rewarded-ad seams (#66): today's claims at each of the three places, and the first day the no-ads pass no longer covers (-1: never bought).</summary>
+        public AdsRecord AdsToday = new AdsRecord();
+        public long NoAdsUntilDay = -1;
+
+        /// <summary>Gift codes this garden has used (#68), as <see cref="GiftCodes.Normalize"/> writes them; each pays once.</summary>
+        public HashSet<string> CodesUsed = new HashSet<string>();
+        /// <summary>The mailbox (#68): unclaimed letters, oldest first, and the last day it looked for missed seasons (-1: not yet).</summary>
+        public List<Letter> Letters = new List<Letter>();
+        public long MailDay = -1;
+
+        /// <summary>The Frog Rabbit (#62): the day its counts are for, the showers of that day whose frog has come (one bit each), frogs greeted that day and in all, and the seconds the one at the pond has left (0 when none is here).</summary>
+        public long FrogDay = -1;
+        public int FrogShowers, FrogsToday;
+        public long FrogsMet;
+        public double FrogLeft;
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
@@ -143,6 +179,7 @@ namespace VuonTra.Core
             s.Plots = System.Math.Min(defs.Count, VuonTra.Core.Plots.Starting);
             s.TrayWork = new double[defs.Count];
             if (defs.Count > 0) s.Levels[0] = 1;
+            GardenGrid.Settle(defs, s);
             return s;
         }
     }

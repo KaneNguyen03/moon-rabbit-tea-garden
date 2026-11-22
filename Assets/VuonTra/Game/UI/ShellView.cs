@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
+using VuonTra.Game.Platform;
 
 namespace VuonTra.Game.UI
 {
@@ -34,11 +35,16 @@ namespace VuonTra.Game.UI
         readonly GameObject _newMoon;
         readonly Func<bool> _newMoonReady, _newMoonCapped;
         readonly Func<int> _newMoonLevel;
+        readonly Func<int> _mailCount;
+        readonly GameObject _mailBadge;
+        readonly Text _mailBadgeText;
         float _resetArmedAt = -99f;
 
         public ShellView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onReset, Action onProfile = null,
-            Func<bool> newMoonReady = null, Func<int> newMoonLevel = null, Action onNewMoon = null, Func<bool> newMoonCapped = null)
+            Func<bool> newMoonReady = null, Func<int> newMoonLevel = null, Action onNewMoon = null, Func<bool> newMoonCapped = null,
+            Action onMail = null, Func<int> mailCount = null)
         {
+            _mailCount = mailCount;
             _tweens = tweens;
             _onReset = onReset;
             _newMoonReady = newMoonReady;
@@ -73,11 +79,33 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1400);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.5f, 0, 0, 820, 1720);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
+            UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 440, 80)
                 .AddText(L10n.T("pause.title"), 60, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+
+            // The mailbox (#68): gifts the game wrote itself, in the card's top corner; a badge counts the letters waiting.
+            var mail = UiKit.Rect("Mail", _pauseCard).Place(0f, 1f, 115, -100, 150, UiKit.MinTouch);
+            Image mailPlate = mail.AddImage(catalog.Panel, Palette.Track, true);
+            mailPlate.raycastTarget = true;
+            var mailButton = mail.gameObject.AddComponent<Button>();
+            mailButton.transition = Selectable.Transition.None;
+            mailButton.targetGraphic = mailPlate;
+            mailButton.onClick.AddListener(() => { Sfx.Click(); onMail?.Invoke(); });
+            Text mailLabel = UiKit.Rect("Text", mail).Stretch(0, 0, 1, 1, 10, 0, 10, 0)
+                .AddText(L10n.T("pause.mail"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            mailLabel.resizeTextForBestFit = true;
+            mailLabel.resizeTextMinSize = 14;
+            mailLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            var mailBadge = UiKit.Rect("Badge", mail).Place(1f, 1f, -4, -4, 44, 44);
+            mailBadge.AddImage(catalog.Round, Palette.Carrot);
+            _mailBadgeText = UiKit.Rect("Text", mailBadge).Stretch(0, 0, 1, 1).AddText("", UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _mailBadgeText.resizeTextForBestFit = true;
+            _mailBadgeText.resizeTextMinSize = 12;
+            _mailBadgeText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _mailBadge = mailBadge.gameObject;
+            RefreshMail();
 
             // Who is playing: the avatar rabbit, the garden's name and the player code; a touch opens the profile.
             var profile = UiKit.Rect("Profile", _pauseCard).Place(0.5f, 1f, 0, -210, 700, 110);
@@ -118,6 +146,12 @@ namespace VuonTra.Game.UI
             AddToggleRow(catalog, "Haptics", L10n.T("pause.haptics"), -780, () => Haptics.On, Haptics.SetOn);
             // Every label a fifth bigger; the screen builds itself again, as for a language change.
             AddToggleRow(catalog, "Text", L10n.T("pause.text"), -880, () => UiKit.LargeText, UiKit.SetLargeText);
+            // Reminders on the phone (#65): off until the player turns them on, which is when permission is asked.
+            Action showRemind = AddToggleRow(catalog, "Remind", L10n.T("pause.remind"), -980, () => Notifications.On, Notifications.SetOn);
+            Notifications.Watch(_pauseCard.gameObject, showRemind);
+            // Station sounds up close (#63): a slider of their own, apart from the blips; and which tune plays.
+            AddVolumeRow(catalog, "Station", L10n.T("pause.station"), -1080, Sfx.StationGain, Sfx.SetStation);
+            AddTuneRow(catalog, -1180);
 
             // The new moon (#1): a warm button with a badge once the garden is far enough; until then one line says the level it asks for.
             var newMoon = UiKit.Rect("NewMoon", _pauseCard).Place(0.5f, 0f, 0, 420, 700, 100);
@@ -167,6 +201,14 @@ namespace VuonTra.Game.UI
             _pause.SetActive(false);
         }
 
+        /// <summary>The mailbox's badge: how many letters wait, hidden when none do.</summary>
+        public void RefreshMail()
+        {
+            int n = _mailCount != null ? _mailCount() : 0;
+            if (_mailBadge.activeSelf != n > 0) _mailBadge.SetActive(n > 0);
+            _mailBadgeText.text = n.ToString();
+        }
+
         /// <summary>The new-moon row as the garden stands: the button, or the line that says what it still needs.</summary>
         void ShowNewMoon()
         {
@@ -179,7 +221,7 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>A setting that is either on or off: its name on the left, a pill that says which on the right.</summary>
-        void AddToggleRow(GameCatalog catalog, string id, string label, float y, Func<bool> get, Action<bool> set)
+        Action AddToggleRow(GameCatalog catalog, string id, string label, float y, Func<bool> get, Action<bool> set)
         {
             UiKit.Rect(id + " Label", _pauseCard).Place(0.5f, 1f, -120, y, 460, 60)
                 .AddText(label, UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -204,7 +246,32 @@ namespace VuonTra.Game.UI
                 set(!get());
                 show();
             });
+            return show;
         }
+
+        /// <summary>Which tune plays: one pill that steps Tự động → Đêm trăng → Rạng sáng → Mưa and round again.</summary>
+        void AddTuneRow(GameCatalog catalog, float y)
+        {
+            UiKit.Rect("Tune Label", _pauseCard).Place(0.5f, 1f, -200, y, 300, 60)
+                .AddText(L10n.T("pause.tune"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var pill = UiKit.Rect("Tune", _pauseCard).Place(0.5f, 1f, 130, y, 420, UiKit.MinTouch);
+            Image plate = pill.AddImage(catalog.Panel, Palette.Track, true);
+            plate.raycastTarget = true;
+            Text text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1, 48, 0, 48, 0)
+                .AddText(TuneName(Sfx.CurrentTune), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Next", pill).Place(1f, 0.5f, -32, 0, 40, 60).AddText("›", 44, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            var button = pill.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = plate;
+            button.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                Sfx.SetTune((Sfx.Tune)(((int)Sfx.CurrentTune + 1) % 4));
+                text.text = TuneName(Sfx.CurrentTune);
+            });
+        }
+
+        static string TuneName(Sfx.Tune tune) => L10n.T("tune." + tune.ToString().ToLowerInvariant());
 
         void AddLanguageButton(GameCatalog catalog, string code, float x)
         {
@@ -269,6 +336,7 @@ namespace VuonTra.Game.UI
             _resetLabel.text = L10n.T("pause.reset");
             _resetLabel.color = Palette.InkSoft;
             ShowNewMoon();
+            RefreshMail();
             _pause.SetActive(true);
             _pauseGroup.alpha = 0f;
             _pauseGroup.blocksRaycasts = true;

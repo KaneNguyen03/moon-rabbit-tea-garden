@@ -67,7 +67,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             Capture(screen, "2-garden");
             // The ground's layers around the teapot, and the canopy drifting when the view is at the top.
-            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0, -120f));
             Step(screen, 0.3f);
             Capture(screen, "34-nen-tam");
             screen.LookAt(new Vector2(540f, 2800f));
@@ -77,13 +77,13 @@ namespace VuonTra.EditorTools
             state.Levels[1] = 100;
             state.Levels[2] = 300;
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0, -120f));
             Step(screen, 0.3f);
             Capture(screen, "49-bac-tram");
             state.Levels[1] = 12;
             state.Levels[2] = 9;
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.3f);
             // A payout: two carrots fly from the teapot to the purse, three frames 0.15 s apart.
             screen.PlayPayout(0, new BigNum(1200));
@@ -169,11 +169,11 @@ namespace VuonTra.EditorTools
             screen.Refresh();
             Step(screen, 3f);
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(-60f, 0f));
+            screen.LookAt(screen.StationSpot(0) + new Vector2(-60f, 0f));
             Step(screen, 0.6f);
             Capture(screen, "2-dung-cu-nghe");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.3f);
             Press(screen, "Canvas/Hud/Energy");
             Step(screen, 2.4f);
@@ -382,6 +382,14 @@ namespace VuonTra.EditorTools
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "10-pause");
+            // #63: the station-sound slider and the tune pill, turned to "Rạng sáng" for the picture and back after.
+            {
+                Sfx.Tune tuneBefore = Sfx.CurrentTune;
+                for (int i = 0; i < 4 && Sfx.CurrentTune != Sfx.Tune.Dawn; i++) Press(screen, "Canvas/Pause/Card/Tune");
+                Step(screen, 0.1f);
+                Capture(screen, "63-tieng-tram");
+                for (int i = 0; i < 4 && Sfx.CurrentTune != tuneBefore; i++) Press(screen, "Canvas/Pause/Card/Tune");
+            }
             // The profile behind the pause card's first row: avatar, garden name, code, backup.
             Press(screen, "Canvas/Pause/Card/Profile");
             Step(screen, 0.4f);
@@ -564,6 +572,29 @@ namespace VuonTra.EditorTools
             screen.CloseSheet();
             Step(screen, 0.4f);
 
+            // The gift calendar (#57): day one waiting, day four with three days ticked, and day seven's big gift with the hat and clover.
+            long giftDayBefore = state.GiftDay;
+            int giftStreakBefore = state.GiftStreak;
+            state.GoldenCarrots = 12;
+            state.GiftDay = -1;
+            state.GiftStreak = 0;
+            screen.OpenShop();
+            Step(screen, 0.4f);
+            Capture(screen, "57-ngay-1");
+            state.GiftDay = runner.TodayNumber - 1;
+            state.GiftStreak = 3;
+            screen.Refresh();
+            Step(screen, 0.2f);
+            Capture(screen, "57-ngay-4");
+            state.GiftStreak = 6;
+            screen.Refresh();
+            Step(screen, 0.2f);
+            Capture(screen, "57-ngay-7");
+            screen.Shop.Close();
+            Step(screen, 0.3f);
+            state.GiftDay = giftDayBefore;
+            state.GiftStreak = giftStreakBefore;
+
             // The tea shop by the pond: today's gift and the golden call.
             state.GoldenCarrots = 12;
             screen.OpenShop();
@@ -612,7 +643,7 @@ namespace VuonTra.EditorTools
             if (runner.State.Order == null) runner.PlaceOrder();
             if (runner.State.Order != null)
             {
-                screen.LookAt(GardenScreen.GuestSpot);
+                screen.LookAt(screen.GuestSpot);
                 Step(screen, GardenScreen.GuestWalkSeconds + 0.6f);
                 Capture(screen, "20-khach");
                 screen.OpenOrder();
@@ -631,7 +662,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             // The same garden at noon and at dusk; night is every other frame.
             screen.SelectStation(-1);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             screen.ClockHours = () => 13.0;
             Step(screen, 0.3f);
             Capture(screen, "21-ban-ngay");
@@ -642,10 +673,271 @@ namespace VuonTra.EditorTools
             Step(screen, 0.2f);
 
             RenderGuidance(runner, screen);
+            RenderLandWaves(runner, screen);
+            RenderPhotoAsk(runner, screen);
+            RenderRestShare(runner, screen);
+            RenderChatter(runner, screen);
+            RenderAlbumSets(runner, screen);
+            RenderMoonJars(runner, screen);
+            RenderGiftCodes(runner, screen);
+            RenderAdSeams(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        }
+
+        /// <summary>
+        /// #51: a new garden is clear grass with dashed rings on the land not bought and the forest rim at its edge; buying the
+        /// first wave steps the rim back. The opening view in Vietnamese, English and large text, the wave before, halfway
+        /// and after, and the whole garden from far away at each of the five land stages (4, 6, 8, 10 and 12 plots).
+        /// </summary>
+        static void RenderLandWaves(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            for (int i = 0; i < Plots.Starting; i++) s.Levels[i] = 6 - i;
+            Rabbits.GiftFirst(s, "Bông");
+            runner.Init(s);
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.LookAt(screen.StationSpot(0));
+            Step(screen, 0.4f);
+            Capture(screen, "51-mo-vuon");
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            Step(screen, 0.6f);
+            Capture(screen, "51-mo-vuon-en");
+            L10n.SetLocale("vi");
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            Step(screen, 0.6f);
+            Capture(screen, "51-mo-vuon-chu-to");
+            UiKit.SetLargeText(false);
+            screen.RebuildUi();
+            Step(screen, 0.6f);
+
+            // The first wave opens the two plots left of the teapot: the rim there steps back while the grass comes up.
+            Vector2 side = (screen.StationSpot(4) + screen.StationSpot(5)) / 2f;
+            screen.LookAt(side);
+            Step(screen, 0.3f);
+            Capture(screen, "51-mua-dot-1-truoc");
+            s.Plots = Expansion.Waves[0].PlotsAfter;
+            screen.Refresh();
+            Step(screen, GardenScreen.RimStep * 0.4f);
+            Capture(screen, "51-mua-dot-1-giua");
+            Step(screen, GardenScreen.RimStep + 0.4f);
+            Capture(screen, "51-mua-dot-1-sau");
+
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            for (int wave = 0; wave <= Expansion.Waves.Length; wave++)
+            {
+                int plots = wave == 0 ? Plots.Starting : Expansion.Waves[wave - 1].PlotsAfter;
+                for (int i = 0; i < s.Levels.Length; i++) s.Levels[i] = i < plots - 2 || i < Plots.Starting ? Mathf.Max(1, 6 - i) : 0;
+                s.Plots = plots;
+                screen.Refresh();
+                Step(screen, GardenScreen.RimStep + 0.4f);
+                Capture(screen, "51-dot-" + wave);
+            }
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+        }
+
+        /// <summary>#56: the rabbit at the teapot holds up its camera bubble, then the camera comes up framed on it.</summary>
+        static void RenderPhotoAsk(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = runner.State;
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            PhotoAsks.Decline(s);
+            if (!PhotoAsks.Ask(runner.Defs, s, runner.TodayNumber, () => 0d)) throw new System.Exception("Preview: nobody could ask for a photo");
+            screen.LookAt(screen.StationSpot(0));
+            Step(screen, 0.6f);
+            Capture(screen, "56-xin-chup");
+            Press(screen, "Canvas/Garden/Content/PhotoAsk");
+            Step(screen, 0.6f);
+            Capture(screen, "56-khung-thu");
+            screen.ExitPhotoMode();
+            Step(screen, 0.3f);
+        }
+
+        /// <summary>#60: four rabbits seated at the places to rest, the purse's card with their share, one's own sheet and the Rabbits tab.</summary>
+        static void RenderRestShare(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 40, 18, 12, 6, 3 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 7;
+            s.RestSpots = 4;
+            s.GardenXp = Garden.XpForLevel(8);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.1e5);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.1).Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 0, "Mè", 0.3).Id, 2);
+            Rabbits.Arrive(s, 4, "Sao", 0.5);
+            Rabbits.Arrive(s, 2, "Sương", 0.2);
+            Rabbits.Arrive(s, 1, "Cốm", 0.7);
+            Rabbits.Arrive(s, 0, "Bông", 0.4);
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(screen.StationSpot(0));
+            Step(screen, 0.5f);
+            Press(screen, "Canvas/Hud/Purse");
+            Step(screen, 0.4f);
+            Capture(screen, "60-thu-nhap");
+            screen.Income.Close();
+            screen.Detail.Open(runner.Defs, s, s.Rabbits[2].Id);
+            Step(screen, 0.5f);
+            Capture(screen, "60-tho-nghi");
+            screen.Detail.Close();
+            screen.OpenSheet(3);
+            Step(screen, 0.5f);
+            Capture(screen, "60-tab-tho");
+            screen.CloseSheet();
+            Step(screen, 0.3f);
+        }
+
+        /// <summary>#59: by day a rabbit at work says a line of its trade; by night a resting rabbit talks of the night.</summary>
+        static void RenderChatter(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = runner.State;
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            PhotoAsks.Decline(s); // no camera bubble and no guest: the line has the garden to itself
+            s.Order = null;
+            screen.SelectStation(-1);
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.ClockHours = () => 13.0;
+            screen.Refresh();
+            Step(screen, 4f); // the guest walks off
+            WakeEveryone(screen, s);
+            Step(screen, 2f); // the hearts of the wake float away before the frame
+            SayUntil(screen, s, key => Chatter.IsTradeLine(key), false);
+            Capture(screen, "59-noi-ngay");
+            // A rabbit resting on its seat for the night frame.
+            s.RestSpots = Mathf.Max(s.RestSpots, 2);
+            Rabbits.Arrive(s, 1, "Mây", 0d);
+            screen.ClockHours = () => 22.0;
+            screen.Refresh();
+            Step(screen, 3f); // the day's line has gone
+            WakeEveryone(screen, s);
+            Step(screen, 2f);
+            SayUntil(screen, s, key => key.StartsWith("chatter.phase.Night."), true);
+            Capture(screen, "59-noi-dem");
+            Step(screen, 3f);
+        }
+
+        /// <summary>Asks for lines until one is the wanted kind from a working (or resting) rabbit, then centres the view on it.</summary>
+        static void SayUntil(GardenScreen screen, GameState s, System.Func<string, bool> want, bool resting)
+        {
+            for (int i = 0; i < 600; i++)
+            {
+                screen.Advance(0.01f);
+                WakeEveryone(screen, s);
+                if (!screen.ChatterNow()) continue;
+                Rabbit r = Rabbits.Find(s, screen.ChatRabbitId);
+                if (r == null || (r.Station < 0) != resting || !want(screen.ChatKey)) continue;
+                var line = (RectTransform)screen.transform.Find("Canvas/Garden/Content/ChatLine");
+                screen.LookAt(line.anchoredPosition + new Vector2(0f, -120f));
+                Step(screen, 0.5f);
+                return;
+            }
+            throw new System.Exception("Preview: no " + (resting ? "resting" : "working") + " rabbit said the wanted line");
+        }
+
+        /// <summary>A rabbit that nodded off says nothing: a tap on its station wakes it, and the card it opens is closed again.</summary>
+        static void WakeEveryone(GardenScreen screen, GameState s)
+        {
+            for (int i = 0; i < screen.Runner.Defs.Count; i++)
+            {
+                Transform z = screen.transform.Find("Canvas/Garden/Content/Station " + screen.Runner.Defs[i].Id + "/Doze");
+                if (z == null || !z.gameObject.activeSelf) continue;
+                Press(screen, "Canvas/Garden/Content/Station " + screen.Runner.Defs[i].Id);
+                screen.SelectStation(-1);
+            }
+        }
+
+        /// <summary>#61: the album with its set lines and one set complete in gold, then the banner as the next set completes.</summary>
+        static void RenderAlbumSets(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 30, 12, 8 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 6;
+            s.GardenXp = Garden.XpForLevel(6);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e4);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            foreach (RabbitKind k in AlbumSets.Find(0, RabbitTrade.Brewer).Kinds) Rabbits.See(s, k.Id);
+            AlbumSet baker = AlbumSets.Find(0, RabbitTrade.Baker);
+            for (int i = 0; i < baker.Kinds.Count - 1; i++) Rabbits.ArriveKind(s, baker.Kinds[i].Id, "Mè");
+            Rabbits.See(s, "tho-cat");
+            Rabbits.See(s, "tho-matcha");
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.OpenSheet(3);
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Step(screen, 0.5f);
+            screen.DragSheet(GardenScreen.SheetFull); // the sheet at full height: a complete set and the next line both show
+            screen.ReleaseSheet();
+            Step(screen, 0.6f);
+            Capture(screen, "61-so-tho-bo");
+            // The last baker of the Silver tier arrives: the set is complete and the banner goes up.
+            Rabbits.ArriveKind(s, baker.Kinds[baker.Kinds.Count - 1].Id, "Ca Cao");
+            runner.AutoAssignRabbits();
+            screen.Refresh();
+            Step(screen, 0.45f);
+            Capture(screen, "61-du-bo");
+            screen.ShowRabbitAlbum(false);
+            screen.CloseSheet();
+            Step(screen, 1.6f);
+        }
+
+        /// <summary>#64: the purse's card with three moon jars and the button that opens one, then the jar on the shop's shelf.</summary>
+        static void RenderMoonJars(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 60, 30, 18, 12 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 8;
+            s.RestSpots = 3;
+            s.GardenXp = Garden.XpForLevel(12);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.6e6);
+            s.GoldenCarrots = 30;
+            s.MoonJars = 3;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.4f);
+            Press(screen, "Canvas/Hud/Purse");
+            Step(screen, 0.4f);
+            Capture(screen, "64-vi-hu");
+            screen.Income.Close();
+            // One jar bought today already: two left, and the price on the chip.
+            s.MoonJarBuyDay = runner.TodayNumber;
+            s.MoonJarsBoughtToday = 1;
+            screen.OpenShop();
+            screen.Refresh();
+            Step(screen, 0.5f);
+            Capture(screen, "64-ke-hu");
+            screen.Shop.Close();
+            Step(screen, 0.4f);
         }
 
         /// <summary>A brand-new garden for the guidance frames: the first step, then the card step, then the sheet step.</summary>
@@ -656,7 +948,7 @@ namespace VuonTra.EditorTools
             runner.Init(fresh);
             screen.SelectStation(-1);
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.6f);
             Capture(screen, "30-buoc-1");
             Press(screen, "Canvas/Garden/Content/Station am-tra");
@@ -722,6 +1014,49 @@ namespace VuonTra.EditorTools
             Capture(screen, "9-da-mua");
             screen.GoldenPacks.Close();
             screen.Shop.Close();
+
+            // #62 Rain: the garden in a day shower and a night one, what reduced motion keeps, the resting rabbits under a
+            // tree, and the Frog Rabbit at the pond in today's first shower.
+            {
+                GameState wet = runner.State;
+                wet.TutorialStep = Tutorial.Steps;
+                wet.GardenXp = System.Math.Max(wet.GardenXp, Garden.XpForLevel(FrogRabbit.FromLevel));
+                wet.RestSpots = RestSpots.Max;
+                for (int i = 0; i < 5; i++) Rabbits.Arrive(wet, i % 3, "Mưa " + i, 0.13 * i);
+                screen.Refresh();
+                bool reduced = VuonTra.Game.UI.Motion.Reduced;
+                VuonTra.Game.UI.Motion.Reduced = false;
+                screen.Raining = () => true;
+                screen.ClockHours = () => 10.5;
+                screen.LookAt(screen.StationSpot(0) + new Vector2(0, -120f));
+                Step(screen, 2f);
+                Capture(screen, "62-mua-ngay");
+                screen.ClockHours = () => 22.0;
+                Step(screen, 0.5f);
+                Capture(screen, "62-mua-dem");
+                VuonTra.Game.UI.Motion.Reduced = true;
+                Step(screen, 0.2f);
+                Capture(screen, "62-mua-giam-chuyen-dong");
+                VuonTra.Game.UI.Motion.Reduced = false;
+                screen.LookAt(GardenScreen.PondSpot + new Vector2(-150f, -150f));
+                Step(screen, 0.5f);
+                Capture(screen, "62-tho-tru-mua");
+                // The Frog Rabbit comes in a real shower: today's first, by the clamped day.
+                double shower = Weather.ShowerStarts(runner.TodayNumber)[0] + 1d / 60d;
+                screen.ClockHours = () => shower;
+                screen.Raining = null;
+                screen.LookAt(GardenScreen.FrogPondSpot + new Vector2(-200f, 0f));
+                Step(screen, 1.2f);
+                Capture(screen, "62-tho-ech-den");
+                Step(screen, GardenScreen.FrogWalkSeconds);
+                Capture(screen, "62-tho-ech");
+                wet.FrogLeft = 0d;
+                screen.ClockHours = () => 22.0;
+                screen.Raining = () => false;
+                Step(screen, 3.5f);
+                screen.Raining = null;
+                VuonTra.Game.UI.Motion.Reduced = reduced;
+            }
         }
 
         static void Press(GardenScreen screen, string path)
@@ -754,6 +1089,122 @@ namespace VuonTra.EditorTools
             File.WriteAllBytes(Path.Combine(Folder, name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             rt.Release();
+        }
+
+        /// <summary>
+        /// #68: the pause card with the mailbox's badge, the mailbox with a make-up letter and a missed season's letter,
+        /// the profile's gift-code field with a code typed, and the line a wrong code brings.
+        /// </summary>
+        static void RenderGiftCodes(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 30, 14, 8, 3 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 6;
+            s.GardenXp = Garden.XpForLevel(6);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(2.4e5);
+            s.GoldenCarrots = 6;
+            s.Profile.GardenName = "Vườn Mây";
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            long today = runner.TodayNumber;
+            Mailbox.Compensate(s, today);
+            s.Letters.Add(new Letter { Id = "season-MidAutumn-2026", Kind = LetterKind.Season, Season = Season.MidAutumn, Day = today - 12 });
+            if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
+            if (screen.Shell.State == ShellState.Paused) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.4f);
+            screen.Shell.OpenPause();
+            Step(screen, 0.5f);
+            Capture(screen, "68-tam-nghi-thu");
+            Press(screen, "Canvas/Pause/Card/Mail");
+            Step(screen, 0.4f);
+            Capture(screen, "68-hop-thu");
+            Press(screen, "Canvas/Mail/Card/Letter 0/Claim");
+            Step(screen, 0.3f);
+            Capture(screen, "68-hop-thu-da-nhan");
+            screen.Mail.Close();
+            Press(screen, "Canvas/Pause/Card/Profile");
+            Step(screen, 0.4f);
+            screen.Profile.GiftInput.text = "TRATHO-2026";
+            Step(screen, 0.1f);
+            Capture(screen, "68-ho-so-ma-qua");
+            screen.Profile.GiftInput.text = "TRATHO-2025";
+            screen.Profile.Redeem();
+            Step(screen, 0.1f);
+            Capture(screen, "68-ma-sai");
+            screen.Profile.Close();
+            screen.Shell.Resume();
+            Step(screen, 0.4f);
+        }
+
+        /// <summary>
+        /// #66: the rewarded-ad seams on the editor's pretend videos. The welcome-back sheet once the day's free ×2 is
+        /// spent (golden ×2 stays the main button, "Xem 30 giây" above it), the shop's golden row with its pill, the packs
+        /// card with the no-ads pass, and a mooncake result once the day's rounds are spent, first with a video to watch,
+        /// then with the pass ("Nhận ngay"). Player builds run on NoAds and show none of this.
+        /// </summary>
+        static void RenderAdSeams(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 60, 30, 18, 12 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 8;
+            s.RestSpots = 3;
+            s.GardenXp = Garden.XpForLevel(12);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.6e6);
+            s.GoldenCarrots = 12;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            runner.AdProvider = new FakeRewardedAds();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.4f);
+
+            s.AwayDoubleDay = runner.TodayNumber; // the free ×2 was taken this morning
+            var away = new AwayReport { Paid = new BigNum(8.4e8), Seconds = 2 * 3600, TrayAdded = 4, GuestsMissed = 2, SleepiestId = Away.Sleepiest(s) };
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 0.5f);
+            Capture(screen, "66-di-vang-xem");
+            screen.AwayCard.Close();
+            Step(screen, 0.4f);
+
+            screen.OpenShop();
+            screen.Refresh();
+            Step(screen, 0.5f);
+            Capture(screen, "66-tiem-xem");
+            Press(screen, "Canvas/Shop/Card/Have/BuyMore");
+            Step(screen, 0.4f);
+            Capture(screen, "66-ve-bo-quang-cao");
+            screen.GoldenPacks.Close();
+            screen.Shop.Close();
+            Step(screen, 0.4f);
+
+            s.PoundingDay = runner.TodayNumber;
+            s.PoundingPlays = Pounding.PlaysPerDay - 1; // this is the day's last round
+            screen.OpenPounding();
+            Step(screen, 30f);
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Capture(screen, "66-them-luot");
+            Ads.GrantPass(s, runner.TodayNumber);
+            screen.Refresh();
+            Step(screen, 0.2f);
+            Capture(screen, "66-them-luot-nhan-ngay");
+            screen.Pound.Close();
+            s.NoAdsUntilDay = -1;
+            screen.Refresh();
+            Step(screen, 0.4f);
         }
     }
 }

@@ -93,6 +93,8 @@ namespace VuonTra.Core
             if (s.Levels.Length > 0) s.Levels[0] = 1;
             s.Plots = Math.Min(defs.Count, Plots.Starting);
             s.RestSpots = RestSpots.Starting;
+            s.Grid.Radius = GardenGrid.StartingRadius; // the lawn is small again, and only the first plots and seats keep their tiles (#52)
+            GardenGrid.Settle(defs, s);
             s.GardenXp = 0d;
             s.Tray.Clear();
             s.GoldenToday = 0;

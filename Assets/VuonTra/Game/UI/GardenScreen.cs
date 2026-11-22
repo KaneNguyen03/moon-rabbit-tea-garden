@@ -23,8 +23,13 @@ namespace VuonTra.Game.UI
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
-        // The garden is as wide as the screen and only scrolls up and down.
+        // The lawn is as wide as the portrait screen and only scrolls up and down. At the usual zoom the screen is
+        // wider than the lawn, so it sits in the middle with open grass and, further out, the wood past both sides (#50).
         const float WorldW = 1080f, WorldH = 2970f; // room below the last station, so it can scroll clear of the docked card
+        /// <summary>The feet of the nearest trees of the wood stand this far past the lawn's sides: clear of every station by 200 and more.</summary>
+        const float RimLeft = -300f, RimRight = WorldW + 310f;
+        /// <summary>No tree of the wood comes nearer than this to a station's sign, pad, rabbit or prop, or to the props that must be read (#50).</summary>
+        public const float CanopyClearance = 200f;
         /// <summary>Stations are drawn at this size so four or five fit on one screen.</summary>
         const float StationScale = 0.7f;
         const float DecorScale = 0.7f;
@@ -158,24 +163,11 @@ namespace VuonTra.Game.UI
         static readonly float[] DecorHeights = { 132f, 92f, 110f, 84f };
 
         /// <summary>
-        /// The eight places a decoration can stand, placed by hand where the garden has room: two in the resting corner at the
-        /// bottom, one between each pair of station clusters up the sides and the middle, and one by the tea shop near the pond.
-        /// Every one keeps 200 units from every station and from the props that come with the garden.
+        /// Where decoration spot <paramref name="i"/> stands in the world: the feet of whatever is placed there. Each of the eight
+        /// spots has a tile of the grid (#52): two in the resting corner at the bottom, one between each pair of station clusters
+        /// up the sides and the middle, and one by the tea shop near the pond; every one clear of the stations and the props.
         /// </summary>
-        static readonly Vector2[] DecorSpots =
-        {
-            new Vector2(610f, 290f),   // 0 resting corner, by the tea table
-            new Vector2(340f, 300f),   // 1 resting corner, left
-            new Vector2(400f, 910f),   // 2 between the jam pot and the flower spring, left of the flower mortar's level plate
-            new Vector2(930f, 992f),   // 3 between the star jar and the flower spring, under the star jar's level plate
-            new Vector2(560f, 1290f),  // 4 between the teapot and the flower mortar
-            new Vector2(130f, 1400f),  // 5 between the jam pot and the beehive, under the beehive's level plate
-            new Vector2(120f, 1830f),  // 6 between the beehive and the chestnut oven
-            new Vector2(390f, 2190f),  // 7 by the tea shop, on the way to the pond
-        };
-
-        /// <summary>Where decoration spot <paramref name="i"/> stands in the world: the feet of whatever is placed there.</summary>
-        public static Vector2 DecorSpotAt(int i) => i >= 0 && i < DecorSpots.Length ? DecorSpots[i] : DecorSpots[0];
+        public Vector2 DecorSpotAt(int i) => CellToWorld(Grid != null && Grid.TryTileOf(GardenGrid.DecorId(i), out Hex tile) ? tile : GardenGrid.DefaultDecorTile(i));
 
         /// <summary>The tint a paper lantern's picture takes for a lantern colour: none for paper, a wash of the colour for the rest.</summary>
         public static Color LanternTint(int color)
@@ -192,14 +184,10 @@ namespace VuonTra.Game.UI
         const float MoonbeamAlpha = 0.9f, MoonPoolAlpha = 0.4f;
 
         /// <summary>
-        /// Where resting rabbits sit, as offsets from the teapot. The two stumps by the tea table come with the
+        /// Where resting rabbits sit: each place has a tile of the grid (#52). The two stumps by the tea table come with the
         /// garden; then a picnic rug by the pond, mushroom stools, a hammock and a swing, one for each place added.
         /// </summary>
-        static readonly Vector2[] Seats =
-        {
-            new Vector2(246, -1082), new Vector2(-60, -1116),
-            new Vector2(150, 880), new Vector2(402, -1052), new Vector2(-376, -1196), new Vector2(372, -1272),
-        };
+        public Vector2 RestSpot(int k) => CellToWorld(Grid != null && Grid.TryTileOf(GardenGrid.RestId(k), out Hex tile) ? tile : GardenGrid.DefaultRestTile(k));
         /// <summary>For the places that bring their own furniture: how tall it is drawn, and how far the rabbit sits above its foot.</summary>
         static readonly float[] SeatPropHeight = { 0, 0, 104, 124, 150, 196 };
         static readonly Vector2[] SeatPropLift = { default, default, new Vector2(0, 26), new Vector2(-38, 56), new Vector2(-4, 46), new Vector2(2, 60) };
@@ -227,6 +215,7 @@ namespace VuonTra.Game.UI
         RectTransform _card;
         Text _cardName, _cardLevel, _cardInfo, _cardBuyTop, _cardBuyCost;
         ChunkyButton _cardBuy;
+        GameObject _cardBuyCarrot;
         // Small events: a golden firefly to catch, and rabbits that nod off.
         RectTransform _gold;
         float _goldTimer = 25f, _goldAge, _dozeTimer = 18f;
@@ -374,7 +363,9 @@ namespace VuonTra.Game.UI
             UpdateWorld(dt);
             UpdateFireflies();
             UpdateGuide(dt);
+            UpdateChatter(dt);
             UpdateBoostEdge(boosting, dt);
+            UpdateSounds(boosting, dt);
 
             // The counter counts up instead of snapping.
             double target = s.Coins.ToDouble();
@@ -385,6 +376,7 @@ namespace VuonTra.Game.UI
 
             _sinceRefresh += dt;
             if (_sinceRefresh >= RefreshInterval) Refresh(_sinceRefresh);
+            UpdateRain(dt); // last: over the lanterns' flicker and the seats' poses of this frame (#62)
         }
 
         /// <summary>The teapot stands here, in the middle of the garden; everything else is placed around it.</summary>
@@ -402,29 +394,27 @@ namespace VuonTra.Game.UI
             new Vector2Int(4, 9), new Vector2Int(2, 11),
         };
 
-        static readonly Vector2[] Spots =
-        {
-            new Vector2(0, 0),       //  0 teapot: the heart
-            new Vector2(326, 70),    //  1 leaf basket: beside the teapot, below the milk tea stall
-            new Vector2(-276, -372), //  2 jam pot
-            new Vector2(12, -548),   //  3 flower mortar: between the jam pot and the star jar
-            new Vector2(-292, 408),  //  4 chestnut oven
-            new Vector2(-336, 20),   //  5 beehive: between the oven and the jam pot
-            new Vector2(270, 432),   //  6 moon milk tea
-            new Vector2(296, -366),  //  7 star jar
-            new Vector2(24, 690),    //  8 grape vine: between the milk tea and the bakery
-            new Vector2(-270, 850),  //  9 mooncake bakery
-            new Vector2(246, -770),  // 10 flower spring: between the star jar and the observatory
-            new Vector2(-214, -900), // 11 star observatory
-        };
+        /// <summary>The hex grid the garden stands on (#52): the player's own, or none before the runner is set.</summary>
+        GardenGrid Grid => Runner != null && Runner.State != null ? Runner.State.Grid : null;
 
-        /// <summary>Position of station <paramref name="i"/> in the world.</summary>
-        public static Vector2 StationSpot(int i)
+        /// <summary>Where a tile of the grid lies in the world: a pointy-top lattice from the heart, where the teapot stands, stretched tall for the portrait garden.</summary>
+        public static Vector2 CellToWorld(Hex tile) => Heart + new Vector2((float)GardenGrid.LocalX(tile.Q, tile.R), (float)GardenGrid.LocalY(tile.Q, tile.R));
+
+        /// <summary>
+        /// Position of station <paramref name="i"/> in the world: its tile on the grid, or the default table's tile for a
+        /// station that has no plot yet (a locked station still needs a place for its sign and its plot of mist).
+        /// </summary>
+        public Vector2 StationSpot(int i)
         {
-            if (i >= 0 && i < Spots.Length) return Heart + Spots[i];
-            // More stations than the table knows: carry on downward rather than stack them up.
-            return Heart + new Vector2((i % 2 == 0 ? -240f : 240f), -1000f - (i - Spots.Length) * 280f);
+            string id = Runner != null && i >= 0 && i < Runner.Defs.Count ? GardenGrid.StationId(Runner.Defs[i]) : null;
+            return CellToWorld(Grid != null && Grid.TryTileOf(id, out Hex tile) ? tile : GardenGrid.DefaultStationTile(i));
         }
+
+        /// <summary>Where a prop that comes with the garden stands: its tile on the grid, or the default table's.</summary>
+        Vector2 PropSpot(string id) => CellToWorld(Grid != null && Grid.TryTileOf(id, out Hex tile) ? tile : GardenGrid.DefaultTile(id, null));
+        /// <summary>Where the mortar for the mooncake game stands, and the tea shop: nothing else is placed on them.</summary>
+        public Vector2 MortarSpot => PropSpot(GardenGrid.MortarId);
+        public Vector2 ShopSpot => PropSpot(GardenGrid.ShopId);
 
         /// <summary>How large a station is drawn. The teapot is the centrepiece.</summary>
         public static float StationSize(int i) => i == 0 ? 1f : StationScale;
@@ -438,16 +428,22 @@ namespace VuonTra.Game.UI
 
         public enum ZoomLevel { Far, Default, Near }
 
-        /// <summary>Far shows the whole garden top to bottom; near is for looking at one rabbit.</summary>
-        public const float ZoomFar = ScreenH / WorldH, ZoomDefault = 1f, ZoomNear = 1.5f;
-        float _zoom = 1f;
+        /// <summary>
+        /// Far shows the whole garden top to bottom; near is for looking at one rabbit. The usual view stands back 17 %
+        /// (#50): the screen spans 1300 garden units, so three station columns and five or more plots are in view at once.
+        /// </summary>
+        public const float ZoomFar = ScreenH / WorldH, ZoomDefault = 0.83f, ZoomNear = 1.5f;
+        float _zoom = ZoomDefault;
         Text _zoomMark, _levelText;
         Image _levelRing;
         RectTransform _levelBadge;
         int _shownGardenLevel = -1;
-        readonly List<CanvasGroup> _fog = new List<CanvasGroup>();
-        readonly List<GameObject> _fogTrees = new List<GameObject>();
-        int _fogPlots = -1;
+        // #51: land not bought yet is a dashed ring on clear grass; the forest rim at the lawn's edge steps back as the land opens.
+        readonly List<CanvasGroup> _landRings = new List<CanvasGroup>(), _landBlooms = new List<CanvasGroup>();
+        readonly List<RimPiece> _rim = new List<RimPiece>();
+        /// <summary>What the rim keeps clear of whatever land is open, and by how much: the props with a plate to read by 200, the pond, seats and decoration spots by a hair.</summary>
+        readonly List<KeyValuePair<Rect, float>> _rimKeepOff = new List<KeyValuePair<Rect, float>>();
+        int _landPlots = -1;
         bool _wheelLatched;
         float _wheelQuiet;
         RectTransform _cardWorker;
@@ -466,7 +462,7 @@ namespace VuonTra.Game.UI
         public const float PinchGain = 1f;
 
         public float ZoomScale => _zoom;
-        public ZoomLevel Zoom => _zoom < 0.85f ? ZoomLevel.Far : (_zoom > 1.2f ? ZoomLevel.Near : ZoomLevel.Default);
+        public ZoomLevel Zoom => _zoom < (ZoomFar + ZoomDefault) / 2f ? ZoomLevel.Far : (_zoom > (ZoomDefault + ZoomNear) / 2f ? ZoomLevel.Near : ZoomLevel.Default);
 
         static float ScaleOf(ZoomLevel level) => level == ZoomLevel.Far ? ZoomFar : (level == ZoomLevel.Near ? ZoomNear : ZoomDefault);
 
@@ -904,6 +900,7 @@ namespace VuonTra.Game.UI
                 DozeSomeone();
             }
             UpdateOrders(dt);
+            UpdatePhotoAsk(dt);
         }
 
         /// <summary>
@@ -1058,12 +1055,14 @@ namespace VuonTra.Game.UI
             Haptics.Load();
             BuildWorld(catalog);
             BuildAtmosphere(catalog);
+            BuildRain(catalog); // the rain over the garden and the Frog Rabbit (#62)
             BuildStationCard(catalog);
             BuildEvents(catalog);
             BuildHud(catalog);
             BuildTabBar(catalog);
             ProductTray = new TrayView(_canvas, catalog, OnSellProduct, OnSellAllProducts);
             BuildPhotoMode(catalog);
+            BuildPhotoAsk(catalog);
             ProductTray.Root.anchoredPosition = new Vector2(0f, SafeBottom() + TabBarGap + TabBarHeight + 10f); // just above the tab bar
             BuildEdges(catalog);
             BuildSheet(catalog);
@@ -1084,11 +1083,12 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor,
-                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => GoldenPacks.Open(Runner.Store));
+                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => GoldenPacks.Open(Runner.Store), OnBuyMoonJar);
             DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus),
-                () => NewMoon.CanBegin(Runner.State), () => NewMoon.LevelNeeded(Runner.State.Season), () => NewMoonCard.Open(Runner.Defs, Runner.State), () => NewMoon.AtCap(Runner.State));
+                () => NewMoon.CanBegin(Runner.State), () => NewMoon.LevelNeeded(Runner.State.Season), () => NewMoonCard.Open(Runner.Defs, Runner.State), () => NewMoon.AtCap(Runner.State),
+                OpenMail, () => Runner.Letters.Count);
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
                 () => { Runner.NextAvatar(); Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus); },
@@ -1124,7 +1124,8 @@ namespace VuonTra.Game.UI
                     Shell.Resume();
                     Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
                     Refresh(-1f);
-                }));
+                }), OnRedeemCode);
+            BuildMail(catalog);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
             GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
@@ -1145,11 +1146,12 @@ namespace VuonTra.Game.UI
             if (_onSeasonArrived != null) Runner.SeasonArrived -= _onSeasonArrived;
             _onSeasonArrived = rabbit => { Sfx.Summon(rabbit.Tier); Welcome(rabbit); };
             Runner.SeasonArrived += _onSeasonArrived;
+            AlbumBanner.Attach(this); // a set of the album just completed, or a milestone's gift (#61)
             if (_onSyncChoice != null) Runner.SyncChoiceNeeded -= _onSyncChoice;
             _onSyncChoice = r => CloudChoice.Open(r);
             Runner.SyncChoiceNeeded += _onSyncChoice;
             if (Runner.Sync.Pending != null) CloudChoice.Open(Runner.Sync.Pending);
-            Income = new IncomeView(_canvas, catalog, Tweens);
+            Income = new IncomeView(_canvas, catalog, Tweens, OnOpenMoonJar);
             Pound = new PoundingView(_canvas, catalog, Tweens, () => Refresh(-1f), run =>
             {
                 PoundingResult result = Runner.FinishPounding(run);
@@ -1168,6 +1170,7 @@ namespace VuonTra.Game.UI
                 if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
                 Jar.ShowPaid(result);
             });
+            BuildAdSeams(catalog); // the three rewarded-ad places and the no-ads pass (#66)
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -1234,41 +1237,15 @@ namespace VuonTra.Game.UI
             // Everything that stands up is drawn back to front: the lower on screen, the nearer.
             var standing = new List<KeyValuePair<float, Transform>>();
 
-            // Land the garden has not grown into yet lies under mist with a few trees on it. The mist is on the
-            // ground, under everything that stands, so the outline of the next station still shows through.
-            _fog.Clear(); _fogTrees.Clear(); _fogPlots = -1;
-            Color mist = new Color(0.66f, 0.74f, 0.88f, 0.62f);
+            // Land the garden has not bought yet is clear grass with a faint dashed ring where the station will stand (#51);
+            // the forest rim at the lawn's edge is what is not opened. When the land is bought the ring goes and fresh grass
+            // and flowers come up on it. Both lie flat on the ground, under everything that stands.
+            _landRings.Clear(); _landBlooms.Clear(); _rim.Clear(); _rimKeepOff.Clear(); _landPlots = -1;
             for (int i = 0; i < count; i++)
             {
-                if (i < Plots.Starting) { _fog.Add(null); _fogTrees.Add(null); continue; }
-                Vector2 spot = StationSpot(i);
-                // Several banks of mist, each a different size and thickness, overlapping so no edge reads as a picture.
-                var bank = UiKit.Rect("Mist " + i, _street).Place(0f, 0f, spot.x, spot.y, 0, 0);
-                CanvasGroup veil = bank.gameObject.AddComponent<CanvasGroup>();
-                veil.blocksRaycasts = false;
-                if (catalog.Mist != null)
-                {
-                    float ratio = catalog.Mist.rect.height / catalog.Mist.rect.width;
-                    float[] dx = { -70f, 90f, 10f, -20f }, dy = { 30f, 10f, -70f, 110f }, wide = { 520f, 460f, 600f, 400f }, thick = { 0.7f, 0.58f, 0.74f, 0.46f };
-                    for (int k = 0; k < dx.Length; k++)
-                    {
-                        Image patch = UiKit.Rect("Patch", bank).Place(0.5f, 0.5f, dx[k] + (i % 2) * 24f, dy[k], wide[k], wide[k] * ratio)
-                            .AddImage(catalog.Mist, new Color(0.86f, 0.9f, 1f, thick[k]));
-                        if ((k + i) % 2 == 1) patch.rectTransform.localScale = new Vector3(-1f, 1f, 1f); // flipped, so neighbours differ
-                    }
-                }
-                else UiKit.Rect("Patch", bank).Place(0.5f, 0.5f, 6f, -10f, 620f, 470f).AddImage(catalog.Glow, mist);
-                _fog.Add(veil);
-                var grove = UiKit.Rect("Grove " + i, _street).Place(0f, 0f, 0, 0, 0, 0);
-                if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
-                {
-                    Color dim = Palette.Mix(Color.white, Palette.Night, 0.3f);
-                    // The trees stand on the station's own ground, so they never reach into a neighbour that is open.
-                    Rooted(AddDecor(grove, catalog.Decor[0], spot.x - 66f, spot.y - 40f, 190f, dim), "Tree", spot.x - 66f, spot.y - 40f, _swayTrees);
-                    Rooted(AddDecor(grove, catalog.Decor[0], spot.x + 84f, spot.y - 70f, 165f, dim), "Tree", spot.x + 84f, spot.y - 70f, _swayTrees);
-                }
-                _fogTrees.Add(grove.gameObject);
-                standing.Add(new KeyValuePair<float, Transform>(spot.y - 40f, grove));
+                if (i < Plots.Starting) { _landRings.Add(null); _landBlooms.Add(null); continue; }
+                _landBlooms.Add(BuildBloom(catalog, i));
+                _landRings.Add(BuildRing(catalog, i));
             }
             BuildDecor(catalog, count, standing);
 
@@ -1311,10 +1288,10 @@ namespace VuonTra.Game.UI
 
             // Resting rabbits sit about the garden. Each seat is a place a rabbit can be tapped.
             Color shade = Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f);
-            for (int k = 0; k < Seats.Length && k < RestSpots.Max; k++)
+            for (int k = 0; k < RestSpots.Max; k++)
             {
                 int seat = k;
-                Vector2 at = Heart + Seats[k];
+                Vector2 at = RestSpot(k);
                 // The later places bring their own furniture, which appears with the place.
                 RectTransform prop = UiKit.Rect("SeatProp " + k, _street);
                 Sprite propArt = catalog.RestProps != null && k < catalog.RestProps.Length ? catalog.RestProps[k] : null;
@@ -1367,8 +1344,8 @@ namespace VuonTra.Game.UI
                 _seats.Add(rt);
                 _seatArt.Add(art);
                 rt.gameObject.SetActive(false);
-                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y + 60f, cushion)); // the furniture is always behind whoever sits on it
-                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y, rt));
+                standing.Add(new KeyValuePair<float, Transform>(RestSpot(k).y + 60f, cushion)); // the furniture is always behind whoever sits on it
+                standing.Add(new KeyValuePair<float, Transform>(RestSpot(k).y, rt));
             }
 
             // Now and then a seated rabbit gets up and strolls to an empty spot of the lawn (#55).
@@ -1377,7 +1354,7 @@ namespace VuonTra.Game.UI
             // The tea shop stands at the edge of the pond from the first day; a touch opens it.
             if (catalog.ShopProp != null)
             {
-                Vector2 shopAt = PondSpot + new Vector2(-330f, -150f);
+                Vector2 shopAt = ShopSpot;
                 float shopHeight = 300f * DecorScale, shopWidth = shopHeight * catalog.ShopProp.rect.width / catalog.ShopProp.rect.height;
                 _shopProp = UiKit.Rect("Shop", _street).Place(0f, 0f, shopAt.x, shopAt.y + shopHeight / 2f, shopWidth, shopHeight);
                 Image shopImage = _shopProp.AddImage(catalog.ShopProp, Color.white);
@@ -1395,7 +1372,7 @@ namespace VuonTra.Game.UI
             }
             // The mortar for the mooncake game stands near the teapot from garden level three; a touch starts a game.
             {
-                Vector2 mortarAt = MortarSpot; // above the teapot's name, between the oven and the milk tea
+                Vector2 mortarAt = MortarSpot; // just above the teapot, a row under the grape vine; its plate hangs over it, clear of the teapot's name
                 _mortarProp = UiKit.Rect("Mortar", _street).Place(0f, 0f, mortarAt.x, mortarAt.y + 80f, 170, 170);
                 Image mortarImage = _mortarProp.AddImage(catalog.Mortar != null ? catalog.Mortar : catalog.Round, catalog.Mortar != null ? Color.white : Palette.Mix(Palette.Ink, Palette.Paper, 0.4f));
                 mortarImage.preserveAspect = true;
@@ -1404,7 +1381,7 @@ namespace VuonTra.Game.UI
                 mortarButton.transition = Selectable.Transition.None;
                 mortarButton.targetGraphic = mortarImage;
                 mortarButton.onClick.AddListener(OpenPounding);
-                var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 0f, 0, -26, 250, 44);
+                var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 1f, -80, 26, 250, 44); // a little to the left: the "▲ N" pill at the top edge stays clear of it (#71)
                 plate.AddImage(catalog.Panel, Palette.Paper, true);
                 _mortarPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _mortarPlate.resizeTextForBestFit = true;
@@ -1447,7 +1424,7 @@ namespace VuonTra.Game.UI
             // The jar for the firefly night waits on a stump by the pond from garden level five: glass, a glow inside, a cork.
             {
                 // Far enough from the right edge that its plate ends before the canopy's trees, which are drawn over the garden.
-                Vector2 jarAt = PondSpot + new Vector2(-5f, -290f);
+                Vector2 jarAt = JarSpot;
                 if (catalog.Decor != null && catalog.Decor.Length > 8 && catalog.Decor[8] != null)
                 {
                     Image stump = AddDecor(_street, catalog.Decor[8], jarAt.x, jarAt.y - 20f, 90f * DecorScale, Color.white);
@@ -1499,7 +1476,7 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>The ground a station takes up, plates included, in garden units.</summary>
-        static Rect StationBox(int i)
+        Rect StationBox(int i)
         {
             float size = StationSize(i);
             Vector2 spot = StationSpot(i);
@@ -1535,7 +1512,12 @@ namespace VuonTra.Game.UI
             _cardName.horizontalOverflow = HorizontalWrapMode.Overflow;
             var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -104, -42, 160, 46);
             _cardLevelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            // "Cấp 500 ✦✦✦" is wider than the pill at full size: the words shrink to stay on one line (#73).
+            _cardLevel.resizeTextForBestFit = true;
+            _cardLevel.resizeTextMinSize = 14;
+            _cardLevel.resizeTextMaxSize = _cardLevel.fontSize;
+            _cardLevel.verticalOverflow = VerticalWrapMode.Truncate;
             _cardInfo = UiKit.Rect("Info", _card).Stretch(0, 1, 1, 1, 32, -138, 32, 74)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             // The same buy modes as the Stations tab; one choice, remembered in both places.
@@ -1576,7 +1558,9 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleLeft, FontStyle.Bold);
             _cardBuyCost = UiKit.Rect("Cost", _cardBuy.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 64, 0)
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleRight, FontStyle.Bold);
-            UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42).AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            var carrot = UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42);
+            carrot.AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            _cardBuyCarrot = carrot.gameObject;
 
             _card.gameObject.SetActive(false);
         }
@@ -1702,6 +1686,7 @@ namespace VuonTra.Game.UI
             bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(s, i)));
             if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
             _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
+            if (_cardBuyCarrot.activeSelf == capped) _cardBuyCarrot.SetActive(!capped); // at the cap nothing is paid, so no carrot (#74)
             Color ink = ChunkyButton.InkFor(can);
             _cardBuyTop.color = ink;
             _cardBuyCost.color = ink;
@@ -1710,8 +1695,9 @@ namespace VuonTra.Game.UI
 
         void BuildPhotoMode(GameCatalog catalog)
         {
-            // A small plate at the foot of the screen while framing: snap, or done.
-            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 150, 860, 130);
+            // A small plate at the foot of the screen while framing: snap, or done. It stands above the paper frame's
+            // foot, shadow and all, so the garden's name and the date show in the preview as they will in the picture (#75).
+            var bar = UiKit.Rect("PhotoBar", _canvas).Place(0.5f, 0f, 0, 240, 860, 130);
             bar.AddShadow(18f, 10f, 0.3f);
             UiKit.Rect("Lip", bar).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Plate", bar).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
@@ -1789,6 +1775,13 @@ namespace VuonTra.Game.UI
             _photoNote.resizeTextForBestFit = true;
             _photoNote.resizeTextMinSize = 12;
             _photoNote.resizeTextMaxSize = UiKit.TextSmall;
+            // #56: the thanks of the rabbit that asked for this picture, and what it paid.
+            _photoAskLine = UiKit.Rect("Ask", card).Stretch(0, 0, 1, 0, 40, 344, 40, -396)
+                .AddText("", UiKit.TextBody, Palette.Mix(Palette.Carrot, Palette.Ink, 0.55f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            _photoAskLine.resizeTextForBestFit = true;
+            _photoAskLine.resizeTextMinSize = 16;
+            _photoAskLine.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _photoAskLine.gameObject.SetActive(false);
             var save = UiKit.Rect("Save", card).Place(0f, 0f, 190, 150, 280, UiKit.MinTouch);
             UiKit.Secondary(save, catalog.Panel, L10n.T("photo.save"), () => { Sfx.Click(); RevealPhoto(); });
             var share = UiKit.Rect("Share", card).Place(0.5f, 0f, 0, 150, 280, UiKit.MinTouch);
@@ -1904,6 +1897,7 @@ namespace VuonTra.Game.UI
             LastPhotoPath = path;
             _photoPreview.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = "";
+            _photoAskLine.gameObject.SetActive(false);
             _photoNote.text = path;
             CloseAlbum();
             _photoBar.SetActive(false);
@@ -1914,6 +1908,7 @@ namespace VuonTra.Game.UI
         {
             if (!PhotoMode) return;
             PhotoMode = false;
+            if (PhotoAskFraming) { PhotoAskFraming = false; Runner.DeclinePhotoAsk(); } // closed without the picture: that ask is gone (#56)
             _photoReview.SetActive(false);
             _photoAlbum.SetActive(false);
             _photoBar.SetActive(false);
@@ -1921,6 +1916,7 @@ namespace VuonTra.Game.UI
             _hud.gameObject.SetActive(true);
             _tabBar.gameObject.SetActive(true);
             Refresh();
+            CelebratePhotoAsk();
         }
 
         /// <summary>The garden alone, rendered through the game's own camera and written as a PNG.</summary>
@@ -1966,6 +1962,8 @@ namespace VuonTra.Game.UI
             Haptics.Medium();
             Feel.Flash(Color.white, 0.18f);
             bool gift = Runner.TakePhoto(path);
+            bool asked = PhotoAskFraming && AnswerPhotoAsk();
+            _photoAskLine.gameObject.SetActive(asked);
             _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftGolden) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
@@ -2192,9 +2190,9 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>True when a point lies on one of the player's decoration spots (#11): the garden's own dressing keeps off them.</summary>
-        static bool OnDecorSpot(float x, float y)
+        bool OnDecorSpot(float x, float y)
         {
-            foreach (Vector2 spot in DecorSpots) if (Vector2.Distance(spot, new Vector2(x, y)) < 150f) return true;
+            for (int i = 0; i < Decor.Spots; i++) if (Vector2.Distance(DecorSpotAt(i), new Vector2(x, y)) < 150f) return true;
             return false;
         }
 
@@ -2387,7 +2385,7 @@ namespace VuonTra.Game.UI
                         if (!OpenGrass(x, y, count)) continue;
                         float d = float.MaxValue;
                         for (int i = 0; i < count; i++) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), StationSpot(i)));
-                        foreach (Vector2 seat in Seats) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), Heart + seat));
+                        for (int k = 0; k < RestSpots.Max; k++) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), RestSpot(k)));
                         open.Add(new KeyValuePair<float, Vector2>(d, new Vector2(x, y)));
                     }
                 open.Sort((a, b) => b.Key.CompareTo(a.Key));
@@ -2426,12 +2424,145 @@ namespace VuonTra.Game.UI
             _moonbeam.raycastTarget = false;
         }
 
-        /// <summary>Where the mortar for the mooncake game stands, and the tea shop: nothing else is placed on them.</summary>
-        static Vector2 MortarSpot => Heart + new Vector2(-10f, 300f);
-        static Vector2 ShopSpot => PondSpot + new Vector2(-330f, -150f);
+        /// <summary>Where the firefly jar stands, by the pond.</summary>
+        static Vector2 JarSpot => PondSpot + new Vector2(-5f, -290f);
+
+        /// <summary>
+        /// The ground a station takes, sign, pad, rabbit box, name plate and prop included, at its drawn size: what the
+        /// wood keeps <see cref="CanopyClearance"/> away from. The offsets are the station actor's, at their widest.
+        /// </summary>
+        Rect StationReach(int i)
+        {
+            Vector2 spot = StationSpot(i);
+            float s = StationSize(i);
+            return Rect.MinMaxRect(spot.x - 210f * s, spot.y - 243f * s, spot.x + 250f * s, spot.y + 205f * s);
+        }
+
+        /// <summary>How far apart two rectangles stand: negative when they overlap.</summary>
+        static float Apart(Rect a, Rect b)
+        {
+            float dx = Mathf.Max(a.xMin - b.xMax, b.xMin - a.xMax), dy = Mathf.Max(a.yMin - b.yMax, b.yMin - a.yMax);
+            return Mathf.Max(dx, dy);
+        }
+
+        // ----- #51: the forest rim and the land not bought yet -----
+
+        /// <summary>The forest rim at its nearest comes to this line at the lawn's sides: its pieces end where the grass ends.</summary>
+        const float RimHugLeft = 40f, RimHugRight = WorldW - 40f;
+        /// <summary>How long a piece of the rim takes to step back when new land opens: it fades out, and in again further off.</summary>
+        public const float RimStep = 0.6f;
+
+        /// <summary>One piece of the forest rim: a tree, a sapling, a clump of mushrooms, a bush, stones or a stone lantern.</summary>
+        sealed class RimPiece
+        {
+            public RectTransform Art, Shade;
+            public Image Image, ShadeImage;
+            /// <summary>Where its foot stands up the lawn, its size, which side (-1 left, +1 right), and how far behind the edge line its row stands.</summary>
+            public float Y, Width, Height, Depth, ShadeAlpha;
+            public int Side;
+            public float X, Target = float.NaN;
+            public int Run;
+        }
+
+        /// <summary>
+        /// The plot a station takes, as a ring on the ground: the station's pad, centred where its floor is drawn.
+        /// The same shape as <see cref="StationReach"/> at its widest, so whatever keeps off the reach keeps off the ring.
+        /// </summary>
+        Rect PlotRing(int i)
+        {
+            Vector2 spot = StationSpot(i);
+            float s = StationSize(i);
+            Vector2 centre = spot + StationActorView.FloorAt * s, half = StationActorView.FloorSize * s / 2f;
+            return Rect.MinMaxRect(centre.x - half.x, centre.y - half.y * 0.7f, centre.x + half.x, centre.y + half.y * 0.7f);
+        }
+
+        /// <summary>A faint dashed ring on the grass where a station will stand once the land is bought.</summary>
+        CanvasGroup BuildRing(GameCatalog catalog, int i)
+        {
+            Rect at = PlotRing(i);
+            var ring = UiKit.Rect("Ring " + i, _street).Place(0f, 0f, at.center.x, at.center.y, at.width, at.height);
+            CanvasGroup group = ring.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            Color dash = Palette.Alpha(Palette.Paper, 0.42f);
+            const int Dashes = 22;
+            for (int k = 0; k < Dashes; k++)
+            {
+                float angle = k / (float)Dashes * Mathf.PI * 2f;
+                Vector2 o = new Vector2(Mathf.Cos(angle) * at.width / 2f, Mathf.Sin(angle) * at.height / 2f);
+                Vector2 along = new Vector2(-Mathf.Sin(angle) * at.width, Mathf.Cos(angle) * at.height);
+                var d = UiKit.Rect("Dash", ring).Place(0.5f, 0.5f, o.x, o.y, 24f, 7f);
+                d.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(along.y, along.x) * Mathf.Rad2Deg);
+                d.AddImage(catalog.Round, dash).raycastTarget = false;
+            }
+            return group;
+        }
+
+        /// <summary>Fresh grass and a few flowers on land just bought: hidden until then, and it stays.</summary>
+        CanvasGroup BuildBloom(GameCatalog catalog, int i)
+        {
+            Rect at = PlotRing(i);
+            var bloom = UiKit.Rect("Bloom " + i, _street).Place(0f, 0f, at.center.x, at.center.y, at.width, at.height);
+            CanvasGroup group = bloom.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            Color[] blades = { Palette.Alpha(Palette.Moss, 0.75f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Paper, 0.3f), 0.7f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Grass, 0.4f), 0.8f) };
+            Color[] petals = { Palette.Blush, Palette.Lantern, Palette.Paper };
+            for (int k = 0; k < 26; k++)
+            {
+                float seed = i * 7.3f + k * 1.9f;
+                float angle = Hash(seed) * Mathf.PI * 2f, r = 0.78f + Hash(seed + 1f) * 0.32f;
+                Vector2 o = new Vector2(Mathf.Cos(angle) * at.width / 2f * r, Mathf.Sin(angle) * at.height / 2f * r);
+                bool flower = k % 3 == 0;
+                float size = flower ? 12f + Hash(seed + 2f) * 8f : 26f + Hash(seed + 3f) * 16f;
+                var piece = UiKit.Rect(flower ? "Petal" : "Grass", bloom).Place(0.5f, 0.5f, o.x, o.y, size, flower ? size : size * 0.4f);
+                if (!flower) piece.localRotation = Quaternion.Euler(0, 0, 60f + Hash(seed + 4f) * 60f);
+                piece.AddImage(catalog.Round, flower ? Palette.Alpha(petals[k % petals.Length], 0.9f) : blades[k % blades.Length]).raycastTarget = false;
+            }
+            bloom.gameObject.SetActive(false);
+            return group;
+        }
+
+        /// <summary>
+        /// Where a piece of the rim stands when the garden has <paramref name="plots"/> plots: as near the lawn's edge as it may,
+        /// stepping out until it keeps <see cref="CanopyClearance"/> from every plot that is bought and from the props that must be
+        /// read, and stands on no plot at all, bought or not.
+        /// </summary>
+        float RimX(RimPiece p, int plots)
+        {
+            float x = 0f;
+            for (int n = 0; n < 60; n++)
+            {
+                float edge = p.Side < 0 ? RimHugLeft - p.Depth - n * 20f : RimHugRight + p.Depth + n * 20f;
+                x = edge + p.Side * p.Width / 2f;
+                if (RimClear(Rect.MinMaxRect(x - p.Width / 2f, p.Y, x + p.Width / 2f, p.Y + p.Height), plots)) return x;
+            }
+            return x;
+        }
+
+        bool RimClear(Rect piece, int plots)
+        {
+            for (int i = 0; i < _landRings.Count; i++)
+                if (Apart(piece, StationReach(i)) < (i < plots ? CanopyClearance + 4f : 4f)) return false;
+            foreach (KeyValuePair<Rect, float> keep in _rimKeepOff)
+                if (Apart(piece, keep.Key) < keep.Value) return false;
+            return true;
+        }
+
+        /// <summary>Stands a piece of the rim at <paramref name="x"/>, with its shadow, as clear as <paramref name="alpha"/>.</summary>
+        static void PlaceRim(RimPiece p, float x, float alpha)
+        {
+            p.X = x;
+            if (p.Art == null) return;
+            p.Art.anchoredPosition = new Vector2(x, p.Y);
+            p.Image.color = Palette.Alpha(p.Image.color, alpha);
+            if (p.Shade != null)
+            {
+                p.Shade.anchoredPosition = new Vector2(x + 6f, p.Y + 4f);
+                p.ShadeImage.color = Palette.Alpha(p.ShadeImage.color, p.ShadeAlpha * alpha);
+            }
+        }
 
         /// <summary>Open grass: off every station's prop, plates and name, off the seats, the pond, the mortar and the shop.</summary>
-        static bool OpenGrass(float x, float y, int stations)
+        bool OpenGrass(float x, float y, int stations)
         {
             if (x < 90f || x > WorldW - 90f || y < 160f || y > WorldH - 220f) return false;
             for (int i = 0; i < stations; i++)
@@ -2439,8 +2570,8 @@ namespace VuonTra.Game.UI
                 Vector2 spot = StationSpot(i);
                 if (Mathf.Abs(spot.x - x) < 200f && y > spot.y - 230f && y < spot.y + 230f) return false;
             }
-            foreach (Vector2 seat in Seats)
-                if (Vector2.Distance(Heart + seat, new Vector2(x, y)) < 150f) return false;
+            for (int k = 0; k < RestSpots.Max; k++)
+                if (Vector2.Distance(RestSpot(k), new Vector2(x, y)) < 150f) return false;
             var at = new Vector2(x, y);
             return Vector2.Distance(at, PondSpot) > 300f && Vector2.Distance(at, MortarSpot) > 180f && Vector2.Distance(at, ShopSpot) > 220f;
         }
@@ -2456,6 +2587,22 @@ namespace VuonTra.Game.UI
             Vector2 pondAt = PondSpot;
 
             var canopyStanding = new List<KeyValuePair<float, Transform>>();
+            // What the wood keeps clear of: every station as drawn, and the props with a plate to read (#50).
+            var keepOff = new List<Rect>();
+            for (int i = 0; i < stations; i++) keepOff.Add(StationReach(i));
+            {
+                int leafStation = 1;
+                for (int i = 0; i < stations; i++) if (catalog.Stations[i] != null && catalog.Stations[i].Id == "gio-la") { leafStation = i; break; }
+                Vector2 basketAt = StationSpot(leafStation) + new Vector2(104f, 130f);
+                keepOff.Add(Rect.MinMaxRect(basketAt.x - 245f, basketAt.y, basketAt.x + 60f, basketAt.y + 100f));
+                keepOff.Add(Rect.MinMaxRect(JarSpot.x - 140f, JarSpot.y - 40f, JarSpot.x + 140f, JarSpot.y + 160f));
+                keepOff.Add(Rect.MinMaxRect(MortarSpot.x - 130f, MortarSpot.y - 40f, MortarSpot.x + 130f, MortarSpot.y + 160f));
+            }
+            bool CanopyClear(Rect tree)
+            {
+                foreach (Rect r in keepOff) if (Apart(tree, r) < CanopyClearance + 4f) return false;
+                return true;
+            }
             // Everything that stands casts a soft shadow on the grass, drawn just behind it.
             void Shade(Transform parent, List<KeyValuePair<float, Transform>> into, float x, float y, float height)
             {
@@ -2481,6 +2628,21 @@ namespace VuonTra.Game.UI
                 height *= DecorScale;
                 // Nothing tall may stand in front of the pond: the moon in it has to stay in view.
                 if (kind == Tree && x > 120f && x < WorldW - 60f && Mathf.Abs(x - pondAt.x) < 200f && y > pondAt.y - 330f && y < pondAt.y + 30f) return;
+                if (canopy && (kind == Tree || kind == Bush) && d[kind] != null)
+                {
+                    // The wood never comes within CanopyClearance of a sign, a pad, a rabbit or a plate (#50). A tree of the
+                    // top rows that would come nearer is stood further up instead, clear of the highest stations; any other is left out.
+                    float w = height * d[kind].rect.width / d[kind].rect.height;
+                    Rect Foot(float at) => Rect.MinMaxRect(x - w / 2f, at, x + w / 2f, at + height);
+                    if (!CanopyClear(Foot(y)))
+                    {
+                        if (y < WorldH / 2f) return;
+                        float lifted = y;
+                        while (!CanopyClear(Foot(lifted)) && lifted < y + 320f) lifted += 20f;
+                        if (!CanopyClear(Foot(lifted))) return;
+                        y = lifted;
+                    }
+                }
                 if (kind == Lantern)
                 {
                     var at = new Vector2(x + 14f * DecorScale, y + 150f * DecorScale);
@@ -2522,10 +2684,11 @@ namespace VuonTra.Game.UI
                 _ripples.Add(UiKit.Rect("Ripple", _street).Place(0f, 0f, pondAt.x + 20f, pondAt.y + 6f, 260f, 180f).AddImage(catalog.Glow, new Color(0.85f, 0.93f, 1f, 0f)));
             _glowSpots.Add(pondAt + new Vector2(14, 28));
 
-            // Places to sit, in the corners the stations leave free.
-            Put(TeaTable, Heart.x + 90f, Heart.y - 1130f, 170f, Color.white);
-            Put(Stump, Heart.x + 246f, Heart.y - 1120f, 110f, Color.white);
-            Put(Stump, Heart.x - 60f, Heart.y - 1150f, 96f, Color.white);
+            // Places to sit, in the corners the stations leave free: the tea table between the two stumps, each at the foot of its seat.
+            Vector2 stumpA = RestSpot(0), stumpB = RestSpot(1), table = (stumpA + stumpB) / 2f + new Vector2(-3f, -31f);
+            Put(TeaTable, table.x, table.y, 170f, Color.white);
+            Put(Stump, stumpA.x, stumpA.y - 38f, 110f, Color.white);
+            Put(Stump, stumpB.x, stumpB.y - 34f, 96f, Color.white);
 
             // A lantern beside each path, halfway along.
             for (int n = 0; n < Paths.Length; n++)
@@ -2553,18 +2716,86 @@ namespace VuonTra.Game.UI
                 Put(Tree, x + jitter, -30f + Hash(x + 7) * 30f, 330f + Hash(x + 2) * 70f, soft, true);
                 Put(Bush, x + 75f - jitter, 30f + Hash(x + 3) * 30f, 130f, soft, true);
             }
-            // Beyond the edges the wood goes on, so zooming out shows forest and not the end of the world.
+            // The wood past both sides stands well out from the lawn (#50): its nearest crowns end 200 units and more
+            // short of every station, so at the usual zoom the sides are open grass and from far away the forest shows.
+            // Beyond the first row the wood goes on, dense, so zooming out shows forest and not the end of the world.
             for (float y = -120f; y < WorldH + 60f; y += 160f)
                 for (int row = 1; row <= 3; row++)
                 {
-                    float away = 60f + row * 105f + Hash(y + row) * 40f, lift = (row % 2) * 80f;
-                    Put(Tree, -away, y + lift, 330f + Hash(y + row * 3) * 90f, soft, true);
-                    Put(Tree, WorldW + away, y + 80f - lift, 330f + Hash(y + row * 5) * 90f, soft, true);
+                    float away = row * 80f + Hash(y + row) * 30f, lift = (row % 2) * 80f;
+                    Put(Tree, RimLeft - away, y + lift, 330f + Hash(y + row * 3) * 90f, soft, true);
+                    Put(Tree, RimRight + away, y + 80f - lift, 330f + Hash(y + row * 5) * 90f, soft, true);
                 }
             for (float y = 180f; y < WorldH - 330f; y += 150f)
             {
-                Put(Tree, -50f + Hash(y) * 40f, y, 340f + Hash(y + 4) * 80f, soft, true);
-                Put(Tree, WorldW + 10f + Hash(y + 2) * 40f, y + 60f, 340f + Hash(y + 6) * 80f, soft, true);
+                Put(Tree, RimLeft - 20f + Hash(y) * 40f, y, 340f + Hash(y + 4) * 80f, soft, true);
+                Put(Tree, RimRight - 20f + Hash(y + 2) * 40f, y + 60f, 340f + Hash(y + 6) * 80f, soft, true);
+            }
+            // Where the wood used to stand, a low hedge marks the lawn's sides without hiding anything behind it.
+            for (float y = 300f; y < WorldH - 500f; y += 190f)
+            {
+                Put(Bush, -70f + Hash(y + 8) * 30f, y + Hash(y + 9) * 60f, 120f, soft);
+                Put(Bush, WorldW + 40f + Hash(y + 10) * 30f, y + 90f + Hash(y + 11) * 60f, 120f, soft);
+            }
+
+            // The forest rim (#51): along both sides of the lawn, a row of trees and saplings just behind the edge and, at the edge
+            // itself, the low things of a wood's border. Each spot takes one of the templates by a fixed hash, so the rim never
+            // repeats and is the same every time. Beside land not yet bought the rim comes right up to the grass; beside land
+            // that is bought it stands back as far as the wood does (RefreshLand moves it).
+            _rimKeepOff.Clear();
+            for (int k = stations; k < keepOff.Count; k++) _rimKeepOff.Add(new KeyValuePair<Rect, float>(keepOff[k], CanopyClearance + 4f));
+            _rimKeepOff.Add(new KeyValuePair<Rect, float>(Rect.MinMaxRect(pondAt.x - 200f, pondAt.y - 110f, pondAt.x + 210f, pondAt.y + 120f), 4f));
+            for (int k = 0; k < RestSpots.Max; k++) { Vector2 seat = RestSpot(k); _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(seat.x - 80f, seat.y - 20f, 160f, 160f), 4f)); }
+            for (int k = 0; k < Decor.Spots; k++) { Vector2 spot = DecorSpotAt(k); _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(spot.x - 70f, spot.y, 140f, 160f), 4f)); }
+            Transform rimParent = _canopy != null ? _canopy : (Transform)_street;
+            List<KeyValuePair<float, Transform>> rimInto = _canopy != null ? canopyStanding : standing;
+            const int RimTree = 0, RimSapling = 1, RimMushrooms = 2, RimBush = 3, RimStones = 4, RimLantern = 5;
+            void AddRim(int template, int side, float y, float depth, float seed)
+            {
+                if (template == RimLantern && catalog.StoneLantern == null) template = RimBush;
+                Sprite sprite = template == RimLantern ? catalog.StoneLantern : d[template == RimTree || template == RimSapling ? Tree : template == RimMushrooms ? Mushrooms : template == RimBush ? Bush : Stones];
+                if (sprite == null) return;
+                string[] names = { "Rim Tree", "Rim Sapling", "Rim Mushrooms", "Rim Bush", "Rim Stones", "Rim Lantern" };
+                float[] low = { 380f, 230f, 92f, 130f, 74f, 150f / DecorScale }, high = { 460f, 280f, 110f, 150f, 86f, 150f / DecorScale };
+                float height = Mathf.Lerp(low[template], high[template], Hash(seed)) * DecorScale;
+                float width = height * sprite.rect.width / sprite.rect.height;
+                var piece = new RimPiece { Y = y, Width = width, Height = height, Depth = depth, Side = side };
+                if (template != RimStones)
+                {
+                    float sw = Mathf.Clamp(height * 0.55f, 50f, 260f);
+                    piece.Shade = UiKit.Rect("Rim Shade", rimParent).Place(0f, 0f, 0f, 0f, sw, sw * 0.34f);
+                    piece.ShadeAlpha = 0.28f;
+                    piece.ShadeImage = piece.Shade.AddImage(catalog.Glow, Palette.Alpha(Palette.Night, piece.ShadeAlpha));
+                    piece.ShadeImage.raycastTarget = false;
+                    rimInto.Add(new KeyValuePair<float, Transform>(y + 0.25f, piece.Shade));
+                }
+                // Mirrored on one side in two, so neighbours of the same kind differ.
+                piece.Image = AddDecor(rimParent, sprite, 0f, y, height, template == RimLantern ? Color.white : soft);
+                piece.Image.raycastTarget = false;
+                piece.Art = piece.Image.rectTransform;
+                piece.Art.name = names[template];
+                piece.Art.pivot = new Vector2(0.5f, 0f);
+                if (Hash(seed + 0.5f) < 0.5f) piece.Art.localScale = new Vector3(-1f, 1f, 1f);
+                if (template == RimTree || template == RimSapling) _swayTrees.Add(piece.Art);
+                rimInto.Add(new KeyValuePair<float, Transform>(y, piece.Art));
+                PlaceRim(piece, RimX(piece, Plots.Starting), 1f);
+                _rim.Add(piece);
+            }
+            for (int side = -1; side <= 1; side += 2)
+            {
+                int lastEdge = -1;
+                for (float y = 140f; y < WorldH - 340f; y += 115f)
+                {
+                    float seed = y * 0.37f + side * 11f;
+                    // Behind: a tree or a sapling.
+                    AddRim(Hash(seed + 2f) < 0.6f ? RimTree : RimSapling, side, y + 50f + Hash(seed + 1f) * 30f, 50f + Hash(seed + 3f) * 50f, seed + 4f);
+                    // At the edge: something low, so the grass reads where it ends. A lantern now and then, never two running.
+                    float pick = Hash(seed + 5f);
+                    int edge = pick < 0.3f ? RimSapling : pick < 0.56f ? RimMushrooms : pick < 0.8f ? RimBush : pick < 0.93f ? RimStones : RimLantern;
+                    if (edge == lastEdge) edge = edge == RimMushrooms ? RimBush : RimMushrooms;
+                    AddRim(edge, side, y + Hash(seed + 6f) * 30f, Hash(seed + 7f) * 16f, seed + 8f);
+                    lastEdge = edge;
+                }
             }
 
             // Around every station, the same small set, placed where it fits: a planter on one side, mushrooms by the
@@ -2575,8 +2806,11 @@ namespace VuonTra.Game.UI
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 250f) return false;
                 if (Vector2.Distance(new Vector2(x, y), MortarSpot) < 170f || Vector2.Distance(new Vector2(x, y), ShopSpot) < 220f) return false;
                 if (OnDecorSpot(x, y)) return false; // the player's own spots stay clear for what they buy (#11)
-                foreach (Vector2 seat in Seats)
-                    if (Mathf.Abs(Heart.x + seat.x - x) < 170f && y > Heart.y + seat.y - 170f && y < Heart.y + seat.y + 200f) return false;
+                for (int k = 0; k < RestSpots.Max; k++)
+                {
+                    Vector2 seat = RestSpot(k);
+                    if (Mathf.Abs(seat.x - x) < 170f && y > seat.y - 170f && y < seat.y + 200f) return false;
+                }
                 for (int j = 0; j < stations; j++)
                 {
                     // Prop, pad, level plate and name of every station, the item's own included: the teapot's are the tallest.
@@ -2592,7 +2826,8 @@ namespace VuonTra.Game.UI
                 float side = spot.x >= Heart.x ? 1f : -1f;
                 var tries = new List<Vector2>(offsets);
                 // Failing the preferred spots, a ring around the station, nearest first: the same for the same garden every time.
-                for (float r = 200f; r <= 320f; r += 60f)
+                // The rings start at 220, so a prop's picture (lifted half its height) still reads as beside the station, not on it.
+                foreach (float r in new[] { 220f, 260f, 300f })
                     for (int k = 0; k < 12; k++)
                         tries.Add(new Vector2(Mathf.Cos(k * Mathf.PI / 6f) * r, Mathf.Sin(k * Mathf.PI / 6f) * r));
                 foreach (Vector2 o in tries)
@@ -2620,21 +2855,23 @@ namespace VuonTra.Game.UI
             }
 
             // Inside: a few small things wherever there is still room that is not a station, a seat or the pond.
+            // All of it low (#50): no tree stands on the lawn, so nothing hides a station or a rabbit.
             for (int n = 0; n < 24; n++)
             {
                 float x = 150f + Hash(n * 3.1f + 1f) * (WorldW - 300f), y = 200f + Hash(n * 5.7f + 2f) * (WorldH - 560f);
                 float pick = Hash(n * 9.3f);
-                bool tall = pick < 0.10f;
-                if (!Free(x, y, 230f, tall ? 380f : 220f, 240f)) continue; // nothing may cover a level plate or a name
+                if (!Free(x, y, 230f, 220f, 240f)) continue; // nothing may cover a level plate or a name
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 240f) continue;
                 if (OnDecorSpot(x, y)) continue;
                 // Keep the places to rest in the open: nothing grows on a seat or in front of the tea table.
                 bool onSeat = false;
-                foreach (Vector2 seat in Seats)
-                    if (Mathf.Abs(Heart.x + seat.x - x) < 190f && y > Heart.y + seat.y - (tall ? 380f : 150f) && y < Heart.y + seat.y + 190f) onSeat = true;
+                for (int k = 0; k < RestSpots.Max; k++)
+                {
+                    Vector2 seat = RestSpot(k);
+                    if (Mathf.Abs(seat.x - x) < 190f && y > seat.y - 150f && y < seat.y + 190f) onSeat = true;
+                }
                 if (onSeat) continue;
-                if (tall) Put(Tree, x, y, 270f + Hash(n + 40f) * 90f, soft);
-                else if (pick < 0.46f) Put(Bush, x, y, 104f, soft);
+                if (pick < 0.46f) Put(Bush, x, y, 104f, soft);
                 else if (pick < 0.76f) Put(Mushrooms, x, y, 84f, soft);
                 else Put(Stones, x, y, 62f, soft);
             }
@@ -2706,6 +2943,7 @@ namespace VuonTra.Game.UI
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", _goldenChip).Place(0f, 0.5f, 28, 0, 38, 38).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
             _goldenText = UiKit.Rect("Text", _goldenChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _goldenChip.gameObject.SetActive(false);
+            BuildJarChip(catalog); // the moon jars on the shelf, beside the golden carrots (#64)
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
@@ -3498,12 +3736,14 @@ namespace VuonTra.Game.UI
             bool anyGolden = s.GoldenCarrots > 0;
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
             _goldenText.text = s.GoldenCarrots.ToString();
+            RefreshJarChip(s);
             bool shopNews = Runner.GiftWaiting || Runner.VisitorUnseen; // a gift to take, or a visitor not yet looked at
             if (_shopBadge != null && _shopBadge.activeSelf != shopNews) _shopBadge.SetActive(shopNews);
             ProductTray.Refresh(s);
             // The tray lives in the plain garden view; a sheet or a station card covers its place.
             bool trayShown = Shell.State == ShellState.Playing && !SheetOpen && Selected < 0 && !PhotoMode && (s.Tray.Count > 0 || Tray.IsFull(s));
             if (ProductTray.Root.gameObject.activeSelf != trayShown) ProductTray.Root.gameObject.SetActive(trayShown);
+            RefreshAdSeams();
         }
 
         void RefreshEnergy(GameState s, bool boosting)
@@ -3526,7 +3766,7 @@ namespace VuonTra.Game.UI
                 Tweens.Add(0.5f, t => { if (badge != null) badge.localScale = Vector3.one * (1f + 0.3f * Ease.Pop(t)); });
             }
             _shownGardenLevel = gardenLevel;
-            RefreshFog(s);
+            RefreshLand(s);
 
             _energyFill.anchorMax = new Vector2(Mathf.Clamp01((float)(s.Energy / Energy.Max)), 1f);
             _energyLabel.text = L10n.T("energy.label", Mathf.FloorToInt((float)s.Energy));
@@ -3613,47 +3853,63 @@ namespace VuonTra.Game.UI
             _worldSeen = true;
         }
 
-        /// <summary>The mist lies on every plot the garden does not have; when the garden widens it lifts.</summary>
-        void RefreshFog(GameState s)
+        /// <summary>
+        /// Land not bought is a dashed ring on clear grass, with the forest rim right up to the lawn beside it (#51). When the
+        /// garden widens the rings of the new plots go, grass and flowers come up on them and the rim beside them steps back:
+        /// its pieces fade out and in again further off. Under reduced motion, and when the screen first shows, all of it is
+        /// simply where it belongs.
+        /// </summary>
+        void RefreshLand(GameState s)
         {
-            // Trees grow only where no station is drawn at all; the next station's outline stands in mist alone.
-            int open = 0;
-            for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] > 0) open = i + 1;
-            int drawn = Mathf.Min(s.Levels.Length, Mathf.Min(s.Plots + 1, open + 2));
-            int key = s.Plots * 100 + drawn;
-            if (key == _fogPlots) return;
-            bool lifting = _fogPlots >= 0 && s.Plots > _fogPlots / 100;
-            for (int i = 0; i < _fog.Count; i++)
+            int plots = s.Plots;
+            if (plots == _landPlots) return;
+            bool growing = _landPlots >= 0 && plots > _landPlots && !Motion.Reduced;
+            for (int i = 0; i < _landRings.Count; i++)
             {
-                if (_fog[i] == null) continue;
-                bool misty = i >= s.Plots;
-                CanvasGroup fog = _fog[i];
-                GameObject grove = _fogTrees[i];
-                if (grove.activeSelf != (i >= drawn)) grove.SetActive(i >= drawn);
-                if (misty) fog.gameObject.SetActive(true);
-                else if (lifting && fog.gameObject.activeSelf)
+                CanvasGroup ring = _landRings[i], bloom = _landBlooms[i];
+                if (ring == null) continue;
+                if (i >= plots)
                 {
-                    // The banks drift apart to either side and thin away.
-                    var bank = (RectTransform)fog.transform;
-                    var homes = new Vector2[bank.childCount];
-                    for (int k = 0; k < homes.Length; k++) homes[k] = ((RectTransform)bank.GetChild(k)).anchoredPosition;
-                    Tweens.Add(1.4f, t =>
-                    {
-                        if (fog == null) return;
-                        fog.alpha = 1f - t;
-                        for (int k = 0; k < homes.Length && k < bank.childCount; k++)
-                            ((RectTransform)bank.GetChild(k)).anchoredPosition = homes[k] + new Vector2((k % 2 == 0 ? -1f : 1f) * 260f * t, 30f * t);
-                    }, Ease.OutCubic, 0f, () =>
-                    {
-                        if (fog == null) return;
-                        fog.gameObject.SetActive(false);
-                        fog.alpha = 1f;
-                        for (int k = 0; k < homes.Length && k < bank.childCount; k++) ((RectTransform)bank.GetChild(k)).anchoredPosition = homes[k];
-                    });
+                    ring.gameObject.SetActive(true);
+                    ring.alpha = 1f;
+                    bloom.gameObject.SetActive(false);
+                    continue;
                 }
-                else fog.gameObject.SetActive(false);
+                bloom.gameObject.SetActive(true);
+                if (!growing || i < _landPlots || !ring.gameObject.activeSelf)
+                {
+                    ring.gameObject.SetActive(false);
+                    bloom.alpha = 1f;
+                    bloom.transform.localScale = Vector3.one;
+                    continue;
+                }
+                Tweens.Add(RimStep / 2f, t => { if (ring != null) ring.alpha = 1f - t; }, null, 0f,
+                    () => { if (ring != null) { ring.gameObject.SetActive(false); ring.alpha = 1f; } });
+                bloom.alpha = 0f;
+                bloom.transform.localScale = Vector3.one * 0.6f;
+                Tweens.Add(RimStep, t =>
+                {
+                    if (bloom == null) return;
+                    bloom.alpha = Mathf.Clamp01(t);
+                    bloom.transform.localScale = Vector3.one * Mathf.LerpUnclamped(0.6f, 1f, t);
+                }, Ease.OutBack, RimStep / 3f);
             }
-            _fogPlots = key;
+            foreach (RimPiece p in _rim)
+            {
+                float to = RimX(p, plots);
+                if (to == p.Target) continue;
+                p.Target = to;
+                int run = ++p.Run;
+                float from = p.X;
+                if (!growing || Mathf.Abs(to - from) < 0.5f) { PlaceRim(p, to, 1f); continue; }
+                Tweens.Add(RimStep, t =>
+                {
+                    if (p.Run != run || p.Art == null) return;
+                    if (t < 0.5f) PlaceRim(p, from, 1f - 2f * t);
+                    else PlaceRim(p, to, 2f * t - 1f);
+                }, t => t);
+            }
+            _landPlots = plots;
         }
 
         /// <summary>Resting rabbits that have a place sit in the garden as themselves; the rest are not out.</summary>
@@ -4114,8 +4370,17 @@ namespace VuonTra.Game.UI
 
         void OnDailyGift()
         {
-            int gift = Runner.ClaimDailyGift();
+            int gift = Runner.ClaimDailyGift(out Shop.BigGift big);
             if (gift <= 0) return;
+            // Day 7 of the first week (#57): a moment of its own, saying what came beside the golden carrots.
+            if (big.Given)
+            {
+                Sfx.Sting();
+                string what = big.Hat != null
+                    ? L10n.T("shop.gift.big.hat", L10n.ItemName(big.Hat), big.Clovers)
+                    : L10n.T("shop.gift.big.golden", L10n.T("item." + VuonTra.Core.Shop.BigGiftHat), big.Golden, big.Clovers);
+                Feel.Moment(L10n.T("shop.gift.big", gift), what);
+            }
             Sfx.Reward();
             Haptics.Light();
             GameCatalog catalog = Runner.Catalog;
@@ -4238,6 +4503,9 @@ namespace VuonTra.Game.UI
             QuestRowView row = RowOfQuest(index);
             // Where the reward starts from is read before the claim, which reorders and may hide the row.
             Vector2 carrotsFrom = Feel.PointOf(row != null ? row.CarrotChip : _purse), cloversFrom = Feel.PointOf(row != null ? row.CloverChip : _purse);
+            Vector2 jarsFrom = Feel.PointOf(row != null ? row.JarChip : _purse);
+            // A moon jar comes in a clover's place while the day's free jar can still come (#64), read before the claim gives it.
+            int clovers = Quests.CloversNow(Runner.QuestDefs[index], Runner.State), jars = Quests.JarsNow(Runner.QuestDefs[index], Runner.State);
             if (!Runner.ClaimQuest(index, out BigNum paid)) return;
             if (row != null) row.Claim.Press(Tweens);
             Sfx.Reward();
@@ -4251,8 +4519,8 @@ namespace VuonTra.Game.UI
                 Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 8, 460f, 40f);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
+            if (jars > 0) JarArrived(jarsFrom);
             // Clovers fly to the rabbits tab, where they are spent.
-            int clovers = Runner.QuestDefs[index].RewardClovers;
             if (clovers > 0)
             {
                 Feel.Fly(cloversFrom, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
@@ -4518,10 +4786,10 @@ namespace VuonTra.Game.UI
 
         /// <summary>The guest's order card, opened from the guest or the HUD pill.</summary>
         public OrderView OrderCard { get; private set; }
-        /// <summary>Where a guest stands to order: in front of the tea shop, at the counter's open side.</summary>
-        public static Vector2 GuestSpot => PondSpot + new Vector2(-110f, -250f);
+        /// <summary>Where a guest stands to order: in front of the tea shop, at the counter's open side; the counter's tile of the grid (#52).</summary>
+        public Vector2 GuestSpot => PropSpot(GardenGrid.CounterId);
         /// <summary>Where a guest comes in from and goes back to: off the garden's left edge, at the counter's height.</summary>
-        static Vector2 GuestEntry => new Vector2(-90f, GuestSpot.y - 40f);
+        Vector2 GuestEntry => new Vector2(-90f, GuestSpot.y - 40f);
         /// <summary>How long the walk to the counter takes.</summary>
         public const float GuestWalkSeconds = 2.4f;
         enum GuestPhase { Away, Arriving, Waiting, Bowing, Leaving }
@@ -4577,7 +4845,8 @@ namespace VuonTra.Game.UI
             _guest.gameObject.SetActive(false);
 
             // The HUD pill that says a guest waits, wherever the player has scrolled: a touch goes to the guest and opens the card.
-            var badge = UiKit.Rect("Order", _hud).Place(1f, 1f, -184, -176, 230, 56);
+            // It sits just under the HUD row, where it covers none of the garden's plates as the view rests on the teapot (#71, re-checked after #50 moved the jar).
+            var badge = UiKit.Rect("Order", _hud).Place(1f, 1f, -184, -176, 230, 56); // just under the HUD row, clear of the jar plate since #50 moved it (#71)
             UiKit.Touchable(badge, 230, 56);
             badge.AddShadow(12f, 8f, 0.3f);
             Image badgeBack = badge.AddImage(catalog.Panel, Palette.Lantern, true);
@@ -4754,9 +5023,9 @@ namespace VuonTra.Game.UI
         /// </summary>
         static readonly Vector2[] Lawn =
         {
-            new Vector2(750f, 380f), new Vector2(310f, 500f), new Vector2(550f, 820f), new Vector2(250f, 1020f),
-            new Vector2(770f, 1060f), new Vector2(750f, 1480f), new Vector2(370f, 1500f), new Vector2(690f, 1840f),
-            new Vector2(390f, 1860f), new Vector2(590f, 2080f), new Vector2(230f, 2260f),
+            new Vector2(780f, 320f), new Vector2(220f, 760f), new Vector2(620f, 800f), new Vector2(410f, 870f),
+            new Vector2(540f, 1390f), new Vector2(340f, 1420f), new Vector2(740f, 1420f), new Vector2(380f, 1790f),
+            new Vector2(620f, 1990f), new Vector2(460f, 2060f),
         };
         static readonly Vec2[] LawnCore = System.Array.ConvertAll(Lawn, v => new Vec2(v.x, v.y));
         public static IReadOnlyList<Vector2> LawnSpots => Lawn;
@@ -4773,7 +5042,7 @@ namespace VuonTra.Game.UI
         {
             _standing = standing;
             Sprite cup = catalog.Stations.Length > 0 && catalog.Stations[0] != null && catalog.Stations[0].Product != null ? catalog.Stations[0].Product : catalog.Round;
-            for (int i = 0; i < Seats.Length && catalog.Rabbit != null; i++)
+            for (int i = 0; i < RestSpots.Max && catalog.Rabbit != null; i++)
             {
                 var rt = UiKit.Rect("Walker " + i, _street).Place(0f, 0f, 400, 400, 104, 110);
                 rt.pivot = new Vector2(0.5f, 0f);
@@ -4815,7 +5084,7 @@ namespace VuonTra.Game.UI
         {
             if (_standing == null || _standing.Count == 0) return;
             float key = feet.y;
-            for (int k = 0; k < Spots.Length; k++)
+            for (int k = 0; k < _actors.Count; k++)
             {
                 Vector2 s = StationSpot(k);
                 if (Mathf.Abs(s.x - feet.x) < 240f && feet.y > s.y - 280f && feet.y < s.y + 60f) { key = float.MaxValue; break; }
@@ -4905,8 +5174,8 @@ namespace VuonTra.Game.UI
             {
                 Outing o = _walkers[i].Out;
                 int n = StrollNumber(i, _clock);
-                var blocked = new List<Vec2>(Spots.Length + _walkers.Count);
-                for (int k = 0; k < Spots.Length; k++) { Vector2 at = StationSpot(k); blocked.Add(new Vec2(at.x, at.y)); }
+                var blocked = new List<Vec2>(_actors.Count + _walkers.Count);
+                for (int k = 0; k < _actors.Count; k++) { Vector2 at = StationSpot(k); blocked.Add(new Vec2(at.x, at.y)); }
                 int outNow = 0;
                 for (int j = 0; j < _walkers.Count && j < _seated; j++)
                 {
@@ -4938,7 +5207,7 @@ namespace VuonTra.Game.UI
             o.Number = n;
             Vector2 seatAt = seat < _seats.Count ? _seats[seat].anchoredPosition : Heart;
             var stations = new List<Vec2>();
-            for (int k = 0; k < Spots.Length; k++) { Vector2 at = StationSpot(k); stations.Add(new Vec2(at.x, at.y)); }
+            for (int k = 0; k < _actors.Count; k++) { Vector2 at = StationSpot(k); stations.Add(new Vec2(at.x, at.y)); }
             o.Spot = Strolls.PickSpot(LawnCore, stations, new Vec2(seatAt.x, seatAt.y), StrollRadius, 0d);
             o.Granted = o.Spot >= 0;
             float start = (n - seat * 0.37f) * StrollPeriod;
@@ -5001,6 +5270,856 @@ namespace VuonTra.Game.UI
                 w.Bubble.localScale = new Vector3(face, 1f, 1f); // the words read the right way round whichever way it faces
                 if (w.Fly.gameObject.activeSelf) w.Fly.localScale = Vector3.one * (0.8f + 0.3f * (0.5f + 0.5f * Mathf.Sin(since * 5f)));
             }
+        }
+
+        #endregion
+
+        #region A rabbit asks for its picture (#56)
+
+        RectTransform _askBubble;
+        Text _photoAskLine;
+        long _askShownId, _askRabbitId;
+        BigNum _askPaid;
+        bool _askCelebrate;
+
+        /// <summary>True while photo mode was opened from a rabbit's camera bubble: the next picture answers it.</summary>
+        public bool PhotoAskFraming { get; private set; }
+        /// <summary>True while a camera bubble shows over a rabbit in the garden.</summary>
+        public bool PhotoAskShown => _askBubble != null && _askBubble.gameObject.activeSelf;
+
+        /// <summary>Where the asking rabbit is on the screen (canvas units), or null when nobody asks or it is not in view.</summary>
+        public Vector2? AskingRabbitOnScreen
+        {
+            get
+            {
+                Rabbit r = PhotoAsks.Asking(Runner.State);
+                long id = r != null ? r.Id : _askRabbitId;
+                return AskSpot(id, out _, out Vector2 body) ? ToView(body) : (Vector2?)null;
+            }
+        }
+
+        /// <summary>A round paper bubble with a little camera drawn in it, like the HUD's camera button; it stands on the garden.</summary>
+        void BuildPhotoAsk(GameCatalog catalog)
+        {
+            _askBubble = UiKit.Rect("PhotoAsk", _street).Place(0f, 0f, 0, 0, 120, 120);
+            _askBubble.pivot = new Vector2(0.5f, 0f);
+            var tail = UiKit.Rect("Tail", _askBubble).Place(0.5f, 0f, 0, 10, 30, 30);
+            tail.localRotation = Quaternion.Euler(0, 0, 45f);
+            tail.AddImage(catalog.Panel, Palette.Paper, true);
+            UiKit.Rect("Shadow", _askBubble).Place(0.5f, 0.5f, 0, -6, 112, 112).AddImage(catalog.Round, Palette.Alpha(Palette.Night, 0.25f));
+            Image plate = UiKit.Rect("Plate", _askBubble).Place(0.5f, 0.5f, 0, 6, 112, 112).AddImage(catalog.Round, Palette.Paper);
+            plate.raycastTarget = true;
+            var button = _askBubble.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = plate;
+            button.onClick.AddListener(OnPhotoAskTap);
+            RectTransform cam = plate.rectTransform;
+            UiKit.Rect("Body", cam).Place(0.5f, 0.5f, 0, -4, 60, 42).AddImage(catalog.Panel, Palette.Ink, true);
+            UiKit.Rect("Bump", cam).Place(0.5f, 0.5f, -10, 20, 22, 14).AddImage(catalog.Panel, Palette.Ink, true);
+            UiKit.Rect("Lens", cam).Place(0.5f, 0.5f, 0, -4, 26, 26).AddImage(catalog.Round, Palette.Paper);
+            UiKit.Rect("Glint", cam).Place(0.5f, 0.5f, -3, -1, 8, 8).AddImage(catalog.Round, Palette.Ink);
+            UiKit.Rect("Flash", cam).Place(0.5f, 0.5f, 20, 10, 10, 8).AddImage(catalog.Round, Palette.Lantern);
+            _askBubble.gameObject.SetActive(false);
+            _askShownId = 0;
+        }
+
+        /// <summary>The ask's clock runs with the other open-play events, but stands still while the camera is up, so framing never costs the bubble.</summary>
+        void UpdatePhotoAsk(float dt)
+        {
+            if (!PhotoMode && Runner.AdvancePhotoAsks(dt) == PhotoAskEvent.Asked) Sfx.Blip();
+            PlacePhotoAsk();
+        }
+
+        /// <summary>The bubble over the asking rabbit's head, wherever it is; it springs up when it first shows and bobs while it waits. Never in a picture.</summary>
+        void PlacePhotoAsk()
+        {
+            if (_askBubble == null) return;
+            Rabbit r = PhotoAsks.Asking(Runner.State);
+            bool show = r != null && !PhotoMode && AskSpot(r.Id, out Vector2 head, out _);
+            if (_askBubble.gameObject.activeSelf != show) _askBubble.gameObject.SetActive(show);
+            if (!show) { if (r == null) _askShownId = 0; return; }
+            AskSpot(r.Id, out head, out _);
+            float bob = Motion.Reduced ? 0f : Mathf.Sin(_clock * 3f) * 6f;
+            _askBubble.anchoredPosition = head + new Vector2(0, bob);
+            if (_askBubble.GetSiblingIndex() != _askBubble.parent.childCount - 1) _askBubble.SetAsLastSibling();
+            if (_askShownId == r.Id) return;
+            _askShownId = r.Id;
+            RectTransform bubble = _askBubble;
+            bubble.localScale = Vector3.zero;
+            Tweens.Add(Motion.Time(Motion.Panel), t => { if (bubble != null) bubble.localScale = Vector3.one * t; }, Motion.Curve(Ease.OutBack));
+        }
+
+        /// <summary>
+        /// Where a rabbit stands in the garden: above its head for the bubble, and its middle for the camera. False when it is
+        /// not out where it can be seen (a closed station, resting with no seat).
+        /// </summary>
+        bool AskSpot(long id, out Vector2 head, out Vector2 body)
+        {
+            head = body = Vector2.zero;
+            if (id <= 0 || Runner == null || Runner.State == null) return false;
+            GameState s = Runner.State;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                Rabbit worker = Rabbits.AtStation(s, i);
+                if (worker == null || worker.Id != id || s.Levels[i] <= 0 || !_actors[i].Root.gameObject.activeSelf) continue;
+                float size = StationSize(i);
+                Vector2 feet = StationSpot(i) + _actors[i].RabbitHome * size;
+                body = feet + new Vector2(0, 128f * size);
+                head = feet + new Vector2(0, 350f * size); // above its name plate, clear of a doze's "z z z"
+                return true;
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length; k++)
+            {
+                if (_seatIds[k] != id) continue;
+                RectTransform near = k < _walkers.Count && _walkers[k].Rect.gameObject.activeSelf ? _walkers[k].Rect : _seats[k];
+                Vector2 feet = near.anchoredPosition;
+                body = feet + new Vector2(0, 60f);
+                head = feet + new Vector2(0, 175f); // above a walker's own little bubble
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>A touch on the bubble: the camera comes up, close in and centred on the rabbit that asked.</summary>
+        void OnPhotoAskTap()
+        {
+            Rabbit r = PhotoAsks.Asking(Runner.State);
+            if (r == null || !AskSpot(r.Id, out _, out Vector2 body)) return;
+            Sfx.Click();
+            EnterPhotoMode();
+            if (!PhotoMode) return;
+            PhotoAskFraming = true;
+            _askRabbitId = r.Id;
+            PlacePhotoAsk(); // the bubble is not in the picture
+            Vector2 to = new Vector2(ScreenW / 2f, ScreenH * 0.55f), fromAt = ToView(body);
+            float from = _zoom;
+            if (_scroll != null) _scroll.StopMovement();
+            if (Motion.Reduced) { PlaceView(body, to, ZoomNear); return; }
+            Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(body, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.InOutCubic);
+        }
+
+        /// <summary>The picture was taken for the rabbit: the reward is paid now and the review card says so; the thanks follow once the garden is back.</summary>
+        bool AnswerPhotoAsk()
+        {
+            PhotoAskFraming = false;
+            Rabbit r = Rabbits.Find(Runner.State, _askRabbitId);
+            if (!Runner.AnswerPhotoAsk(out BigNum paid)) return false;
+            _askPaid = paid;
+            _askCelebrate = true;
+            _photoAskLine.text = L10n.T("photo.ask.paid", r != null ? r.Name : "", paid.Short());
+            return true;
+        }
+
+        /// <summary>Back from the camera after answering: the rabbit hops, hearts rise, and the carrots fly from it to the purse.</summary>
+        void CelebratePhotoAsk()
+        {
+            if (!_askCelebrate) return;
+            _askCelebrate = false;
+            GameCatalog catalog = Runner.Catalog;
+            RectTransform near = null;
+            GameState s = Runner.State;
+            for (int i = 0; i < _actors.Count && near == null; i++)
+            {
+                Rabbit worker = Rabbits.AtStation(s, i);
+                if (worker == null || worker.Id != _askRabbitId) continue;
+                _actors[i].Hop();
+                near = _actors[i].Root;
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length && near == null; k++)
+            {
+                if (_seatIds[k] != _askRabbitId) continue;
+                near = k < _walkers.Count && _walkers[k].Rect.gameObject.activeSelf ? _walkers[k].Rect : _seats[k];
+                RectTransform seat = near;
+                Vector3 rest = seat.localScale;
+                Tweens.Add(Motion.Time(Motion.Tap), t => { if (seat != null) seat.localScale = new Vector3(rest.x, rest.y * (1f + 0.18f * Ease.Pop(t)), rest.z); }, Ease.Linear, 0f,
+                    () => { if (seat != null) seat.localScale = rest; });
+            }
+            Vector2 at = near != null ? Feel.PointOf(near, new Vector2(0, 120)) : new Vector2(0, 200);
+            Feel.FloatText(at + new Vector2(60, 30), "♥", Palette.Blush, 54);
+            Feel.FloatText(at + new Vector2(0, 80), "♥", Palette.Blush, 38);
+            Feel.FloatText(at + new Vector2(110, 90), "♥", Palette.Blush, 32);
+            Sfx.Reward();
+            Haptics.Light();
+            string gained = "+" + _askPaid.Short();
+            Feel.Fly(at, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            {
+                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+            });
+        }
+
+        #endregion
+
+        #region Rabbits say a line now and then (#59)
+
+        RectTransform _chatLine;
+        Text _chatText;
+        float _chatTimer = -1f, _chatLeft;
+        long _chatRabbitId;
+
+        /// <summary>True while an idle line shows over a rabbit's head.</summary>
+        public bool ChatShown => _chatLine != null && _chatLine.gameObject.activeSelf;
+        /// <summary>How many idle lines have been said since the screen was built.</summary>
+        public int ChatLines { get; private set; }
+        /// <summary>The string key of the last idle line.</summary>
+        public string ChatKey { get; private set; }
+        /// <summary>The rabbit that said the last idle line.</summary>
+        public long ChatRabbitId => _chatRabbitId;
+
+        /// <summary>A bond line or a guest outranks an idle line: while either is up, the idle line waits.</summary>
+        bool ChatBlocked => (_bondLine != null && _bondLine.gameObject.activeSelf) || GuestShown;
+
+        /// <summary>Every 40 to 70 seconds of open play one rabbit says a line; the bubble follows it and leaves after 2.5 seconds.</summary>
+        void UpdateChatter(float dt)
+        {
+            if (ChatShown)
+            {
+                _chatLeft -= dt;
+                if (_chatLeft <= 0f || ChatBlocked || PhotoMode || !AskSpot(_chatRabbitId, out Vector2 head, out _))
+                    _chatLine.gameObject.SetActive(false);
+                else
+                {
+                    _chatLine.anchoredPosition = head;
+                    float age = Chatter.Seconds - _chatLeft, grow = age / Motion.Panel, shrink = _chatLeft / Motion.PanelOut;
+                    float scale = Motion.Reduced ? 1f : grow < 1f ? Ease.OutBack(grow) : shrink < 1f ? Ease.OutCubic(shrink) : 1f;
+                    _chatLine.localScale = Vector3.one * scale;
+                }
+            }
+            if (Shell.State != ShellState.Playing || PhotoMode) return;
+            if (_chatTimer < 0f) _chatTimer = Chatter.Wait(Hash(_clock + 23f));
+            _chatTimer -= dt;
+            if (_chatTimer > 0f) return;
+            if (ChatBlocked) { _chatTimer = 0f; return; } // it waits for the bond line or the guest to go
+            _chatTimer = Chatter.Wait(Hash(_clock + 23f));
+            ChatterNow();
+        }
+
+        /// <summary>
+        /// One rabbit, picked from wherever the clock points, says a line now: an awake rabbit at work, or one resting on
+        /// its seat or out for a stroll. False when nobody is there to say one, or a bond line or a guest is up.
+        /// </summary>
+        public bool ChatterNow()
+        {
+            if (ChatBlocked || PhotoMode || Runner == null || Runner.State == null) return false;
+            GameState s = Runner.State;
+            Rabbit asking = PhotoAsks.Asking(s); // its camera bubble is over its head already
+            var who = new List<Rabbit>();
+            var where = new List<int>();
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                Rabbit r = Rabbits.AtStation(s, i);
+                if (r == null || s.Levels[i] <= 0 || _actors[i].Dozing || !_actors[i].Root.gameObject.activeSelf) continue;
+                if (asking != null && asking.Id == r.Id) continue;
+                who.Add(r);
+                where.Add(i);
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length; k++)
+            {
+                Rabbit r = _seatIds[k] > 0 ? Rabbits.Find(s, _seatIds[k]) : null;
+                if (r == null || (asking != null && asking.Id == r.Id)) continue;
+                who.Add(r);
+                where.Add(-1);
+            }
+            if (who.Count == 0) return false;
+            int pick = Mathf.Min(who.Count - 1, Mathf.FloorToInt(Hash(_clock + 5f) * who.Count));
+            Rabbit speaker = who[pick];
+            int station = where[pick];
+            bool resting = station < 0;
+            int booster = resting ? -1 : Chatter.BoosterOf(Runner.Defs, s, station);
+            bool dressed = speaker.Dye >= 0 || VuonTra.Core.Items.Worn(s, speaker.Id, ItemSlot.Hat) != null;
+            List<string> keys = Chatter.KeysFor(Rabbits.TradeOf(speaker), resting, Daylight.PhaseAt(ClockHours()),
+                Seasons.SeasonOf(Runner.TodayNumber), booster >= 0, dressed);
+            string key = Chatter.Pick(keys, Hash(_clock + 7f));
+            if (key == null || !AskSpot(speaker.Id, out Vector2 head, out _)) return false;
+            if (_chatLine == null) BuildChatLine();
+            _chatText.text = key == Chatter.BoostKey ? L10n.T(key, L10n.Station(Runner.Defs[booster].Id)) : L10n.T(key);
+            _chatRabbitId = speaker.Id;
+            _chatLeft = Chatter.Seconds;
+            _chatLine.anchoredPosition = head;
+            _chatLine.SetAsLastSibling();
+            _chatLine.localScale = Motion.Reduced ? Vector3.one : Vector3.zero; // reduced motion: it simply appears
+            _chatLine.gameObject.SetActive(true);
+            ChatKey = key;
+            ChatLines++;
+            return true;
+        }
+
+        /// <summary>A paper bubble like the bond line's, standing on the garden; it never takes a touch.</summary>
+        void BuildChatLine()
+        {
+            _chatLine = UiKit.Rect("ChatLine", _street).Place(0f, 0f, 0, 0, 560, 84);
+            _chatLine.pivot = new Vector2(0.5f, 0f);
+            _chatLine.AddShadow(10f, 6f, 0.25f);
+            _chatLine.AddImage(Runner.Catalog.Panel, Palette.Paper, true).raycastTarget = false;
+            _chatText = UiKit.Rect("Text", _chatLine).Stretch(0, 0, 1, 1, 20, 8, 20, 8)
+                .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _chatText.raycastTarget = false;
+            _chatText.resizeTextForBestFit = true; // the longest line in either language stays on its plate
+            _chatText.resizeTextMinSize = 18;
+            _chatText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _chatText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _chatLine.gameObject.SetActive(false);
+        }
+
+        #endregion
+
+        #region Moon jars (#64)
+
+        RectTransform _jarChip;
+        Text _jarText;
+
+        /// <summary>The jars on the shelf, as a chip beside the golden carrots under the purse: only from garden level 3 and while there is one.</summary>
+        void BuildJarChip(GameCatalog catalog)
+        {
+            _jarChip = UiKit.Rect("Jars", _hud).Place(0f, 1f, 392, -154, 118, 52);
+            _jarChip.AddShadow(10f, 6f, 0.25f);
+            _jarChip.AddImage(catalog.Panel, Palette.Paper, true);
+            IncomeView.JarIcon(_jarChip, catalog, "Icon", 42f, 0f, 0.5f, 30, 2);
+            _jarText = UiKit.Rect("Text", _jarChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _jarChip.gameObject.SetActive(false);
+        }
+
+        void RefreshJarChip(GameState s)
+        {
+            bool show = MoonJars.Shown(s) && s.MoonJars > 0;
+            if (_jarChip.gameObject.activeSelf != show) _jarChip.gameObject.SetActive(show);
+            _jarText.text = s.MoonJars.ToString();
+        }
+
+        /// <summary>"Mở hũ trăng" on the purse's card: an hour of income flies from the button to the purse, like a sale from the tray.</summary>
+        void OnOpenMoonJar()
+        {
+            Vector2 from = Feel.PointOf(Income.JarButton);
+            BigNum paid = Runner.OpenMoonJar();
+            if (paid <= BigNum.Zero) return;
+            PaySale(from, paid, 0);
+            Income.Refresh(Runner.Defs, Runner.State, Runner.Mods);
+        }
+
+        /// <summary>The jar on the shop's shelf, bought with the second tap.</summary>
+        void OnBuyMoonJar()
+        {
+            if (!Runner.BuyMoonJar()) return;
+            Sfx.Reward();
+            Haptics.Light();
+            Feel.FloatText(new Vector2(0, 420), L10n.T("float.jar.bought"), Palette.Lantern, 36);
+        }
+
+        /// <summary>A moon jar was won: a little moon flies from where it came to the purse, and the jars' chip swells.</summary>
+        void JarArrived(Vector2 from)
+        {
+            GameCatalog catalog = Runner.Catalog;
+            Feel.Fly(from, Feel.PointOf(_purse), catalog.Round, Palette.Lantern, 1, 44f, () =>
+            {
+                if (_purse == null) return;
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), L10n.T("float.jar.bought"), Palette.Lantern, 34);
+                if (_jarChip != null) Tweens.Add(Motion.Tap, t => { if (_jarChip != null) _jarChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_jarChip != null) _jarChip.localScale = Vector3.one; });
+            });
+        }
+
+        #endregion
+
+        #region Station sounds up close and the tune of the hour (#63)
+
+        StationLoopPlayer _stationSound;
+        /// <summary>The loop of the station looked at up close: its clip, volume and pitch, for tests.</summary>
+        public StationLoopPlayer StationSound => _stationSound ?? (_stationSound = new StationLoopPlayer(gameObject));
+
+        /// <summary>The tune follows the clock; up close the station in view plays its loop, a tenth faster while the boost runs.</summary>
+        void UpdateSounds(bool boosting, float dt)
+        {
+            Sfx.UpdateTune(ClockHours());
+            StationSound.Update(Zoom == ZoomLevel.Near ? HeardStation() : null, boosting, dt);
+        }
+
+        /// <summary>The station whose card is open, else the open station nearest the point the view centres on, if it is on screen.</summary>
+        string HeardStation()
+        {
+            GameState s = Runner.State;
+            IReadOnlyList<StationDef> defs = Runner.Defs;
+            bool Heard(int i) => i >= 0 && i < _actors.Count && i < defs.Count && i < s.Plots && s.Levels[i] > 0 && _actors[i].Root.gameObject.activeSelf;
+            if (Heard(Selected)) return defs[Selected].Id;
+            var centre = new Vector2(ScreenW / 2f, ScreenH * 0.6f);
+            int best = -1;
+            float bestDistance = float.MaxValue;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                if (!Heard(i)) continue;
+                Vector2 at = ViewPointOf(i);
+                if (at.x < 0f || at.x > ScreenW || at.y < 0f || at.y > ScreenH) continue;
+                float d = (at - centre).sqrMagnitude;
+                if (d < bestDistance) { bestDistance = d; best = i; }
+            }
+            return best >= 0 ? defs[best].Id : null;
+        }
+
+        #endregion
+
+        #region Gift codes and mailbox (#68)
+
+        /// <summary>The mailbox card, opened from the pause card's "Thư".</summary>
+        public MailView Mail { get; private set; }
+
+        /// <summary>Built after the profile, so it draws over the pause card it opens from.</summary>
+        void BuildMail(GameCatalog catalog)
+        {
+            Mail = new MailView(_canvas, catalog, Tweens, OnClaimLetter);
+        }
+
+        void OpenMail() => Mail.Open(Runner.Letters, Runner.TodayNumber);
+
+        /// <summary>
+        /// A gift code typed in the profile. When it pays, the profile and the pause card close so the gift is seen
+        /// flying to the purse; otherwise the profile shakes its field and says why.
+        /// </summary>
+        GiftCodes.Result OnRedeemCode(string typed)
+        {
+            GiftCodes.Redeemed r = Runner.RedeemCode(typed);
+            if (r.Result != GiftCodes.Result.Ok) return r.Result;
+            Vector2 from = Feel.PointOf(Profile.Root);
+            Profile.Close();
+            Shell.Resume();
+            Refresh(-1f);
+            GiftArrived(from, r.Golden, r.Clovers, r.Hat);
+            return r.Result;
+        }
+
+        /// <summary>A letter claimed in the mailbox: its gift is paid, the card says what came and the badge counts down.</summary>
+        void OnClaimLetter(string id)
+        {
+            Letter letter = Runner.ClaimLetter(id);
+            if (letter == null) return;
+            Sfx.Reward();
+            Haptics.Light();
+            Mail.ShowClaimed(L10n.T("mail.claimed", MailView.GiftOf(letter.Golden, letter.Clovers)));
+            Mail.Refresh(Runner.Letters, Runner.TodayNumber);
+            Shell.RefreshMail();
+            Refresh(-1f);
+        }
+
+        /// <summary>A gift from a code: golden carrots fly to their chip under the purse, clovers and a hat say so in words.</summary>
+        void GiftArrived(Vector2 from, int golden, int clovers, Item hat)
+        {
+            Sfx.Reward();
+            Haptics.Light();
+            GameCatalog catalog = Runner.Catalog;
+            if (golden > 0)
+            {
+                if (!_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
+                Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, Mathf.Min(golden, 5), 44f,
+                    () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+                Feel.FloatText(Feel.PointOf(_goldenChip, new Vector2(0, -70)), L10n.T("mail.golden", golden), Palette.Lantern, 34);
+            }
+            if (clovers > 0) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -150)), L10n.T("mail.clovers", clovers), Palette.Lantern, 34);
+            if (hat != null) Feel.FloatText(new Vector2(0, 420), L10n.T("float.hat", L10n.ItemName(hat)), Palette.Lantern, 40);
+        }
+
+        #endregion
+
+        #region Rewarded ad seams (#66)
+
+        /// <summary>The extra round's ad button on each little game's result card (#66).</summary>
+        public AdButton PoundAd { get; private set; }
+        public AdButton LeavesAd { get; private set; }
+        public AdButton JarAd { get; private set; }
+
+        /// <summary>
+        /// The three places a rewarded video may be offered, each a secondary button shown only while it offers
+        /// something: ×2 on the welcome-back sheet once the free one is spent, one more round on a game's result card
+        /// once its rounds are spent, and a golden carrot in the shop's golden row. The no-ads pass goes on the packs
+        /// card, only while ads are switched on. Nothing here at the rabbit call, and no ad ever interrupts.
+        /// </summary>
+        void BuildAdSeams(GameCatalog catalog)
+        {
+            AwayCard.AttachAd(() => Runner.AdOfferFor(Ads.AwayDouble), () => Runner.AdShowing, OnAwayAd);
+            Shop.AttachAd(() => Runner.AdOfferFor(Ads.ShopGolden), () => Runner.AdShowing, OnShopAd);
+            PoundAd = ExtraRoundButton(catalog, Pound.ResultCard, Ads.GamePounding, () => { Pound.Close(); OpenPounding(); });
+            LeavesAd = ExtraRoundButton(catalog, Basket.ResultCard, Ads.GameLeaves, () => { Basket.Close(); OpenLeaves(); });
+            JarAd = ExtraRoundButton(catalog, Jar.ResultCard, Ads.GameFireflies, () => { Jar.Close(); OpenFireflies(); });
+            GoldenPacks.AttachPass(catalog, () => Runner.AdsOn, () => Runner.NoAdsDaysLeft, OnBuyNoAdsPass);
+        }
+
+        /// <summary>A secondary button hung just under a result card: one more round once the day's are spent.</summary>
+        AdButton ExtraRoundButton(GameCatalog catalog, RectTransform card, string game, System.Action startAgain)
+        {
+            var rt = UiKit.Rect("ExtraRound", card).Place(0.5f, 0f, 0, -80, 560, UiKit.MinTouch);
+            return new AdButton(rt, catalog, "ad.round", "ad.round.now", () => Runner.AdOfferFor(Ads.ExtraRound, game), () => Runner.AdShowing, () =>
+                WatchAd(Ads.ExtraRound, game, ok => { if (ok) startAgain(); }));
+        }
+
+        /// <summary>The ad buttons as things stand (the shop's pill is refreshed with the shop).</summary>
+        void RefreshAdSeams()
+        {
+            AwayCard?.Ad?.Refresh();
+            Shop?.RefreshAd();
+            PoundAd?.Refresh();
+            LeavesAd?.Refresh();
+            JarAd?.Refresh();
+        }
+
+        /// <summary>Asks the runner for a video (or the pass's instant claim), with the buttons saying "opening" meanwhile.</summary>
+        void WatchAd(string placement, string game, System.Action<bool> paid)
+        {
+            Runner.WatchAd(placement, game, ok =>
+            {
+                if (!ok)
+                {
+                    Sfx.Deny();
+                    if (Feel != null) Feel.FloatText(new Vector2(0, 300), L10n.T("ad.failed"), Palette.Ink, 34);
+                }
+                paid(ok);
+                Refresh(-1f);
+            });
+            if (Runner.AdShowing) RefreshAdSeams(); // "opening" while the video plays
+        }
+
+        /// <summary>The welcome-back sheet's ad option: the latest time away paid once more, as the ×2 button does.</summary>
+        void OnAwayAd()
+        {
+            BigNum paid = Runner.LastAway.Paid;
+            WatchAd(Ads.AwayDouble, null, ok =>
+            {
+                if (!ok) { AwayCard.RefreshDouble(); return; }
+                Sfx.Reward();
+                Haptics.Medium();
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + paid.Short(), Palette.Carrot, 44);
+                Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 16, 520f, 46f);
+                AwayCard.Close();
+            });
+        }
+
+        /// <summary>The shop's golden carrot for a watched video: it flies to the golden chip.</summary>
+        void OnShopAd()
+        {
+            WatchAd(Ads.ShopGolden, null, ok =>
+            {
+                if (!ok) return;
+                Sfx.Reward();
+                Haptics.Light();
+                GameCatalog catalog = Runner.Catalog;
+                Vector2 from = Shop.Ad != null ? Feel.PointOf(Shop.Ad.Root) : new Vector2(0, 600);
+                Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, 1, 44f);
+                Feel.FloatText(from + new Vector2(0, -90), L10n.T("ad.shop.float"), Palette.Lantern, 40);
+            });
+        }
+
+        /// <summary>The no-ads pass bought through the store: thirty days in which every ad button pays at once.</summary>
+        void OnBuyNoAdsPass(System.Action<PurchaseResult> done)
+        {
+            Runner.BuyNoAdsPass(result =>
+            {
+                if (result.Outcome == PurchaseOutcome.Paid)
+                {
+                    Sfx.Reward();
+                    Haptics.Light();
+                    Feel.FloatText(new Vector2(0, 420), L10n.T("noads.float", Ads.PassDays), Palette.Lantern, 44);
+                    Refresh(-1f);
+                }
+                done?.Invoke(result);
+            });
+        }
+
+        #endregion
+
+        #region Rain and the Frog Rabbit (#62)
+
+        /// <summary>Whether it rains now. Unset, the screen asks the clamped day at the garden's clock; tests and previews pin it.</summary>
+        public System.Func<bool> Raining;
+        /// <summary>How hard it rains on screen, 0 to 1: it comes on and goes over a second and a half, at once under reduced motion.</summary>
+        public float RainLevel { get; private set; }
+        /// <summary>True while the rain's streaks are drawn (never under reduced motion, which keeps only the colour).</summary>
+        public bool RainStreaksShown => _rainStreaks != null && _rainStreaks.gameObject.activeInHierarchy;
+        /// <summary>How strong the rain's colour lies over the garden now.</summary>
+        public float RainTintAlpha => _rainTint != null ? _rainTint.color.a : 0f;
+        /// <summary>The lanterns burn a fifth brighter in the rain.</summary>
+        public const float RainLanternBoost = 1.2f;
+        /// <summary>The resting places whose rabbits run under a tree when it rains: the picnic rug and the hammock.</summary>
+        public static readonly int[] RainShelterSeats = { 2, 4 };
+
+        RectTransform _rainLayer, _rainStreaks;
+        Image _rainTint;
+        readonly List<RectTransform> _streaks = new List<RectTransform>();
+        readonly List<Image> _streakImages = new List<Image>();
+        readonly List<Image> _rainRipples = new List<Image>();
+        readonly Vector2[] _seatHomes = new Vector2[RestSpots.Max];
+        bool _sheltered;
+
+        bool RainingNow() => Raining != null ? Raining() : Runner.RainingAt(ClockHours());
+
+        /// <summary>The rain's colour over the whole garden, its streaks, the drops on the pond, and the Frog Rabbit with its gate.</summary>
+        void BuildRain(GameCatalog catalog)
+        {
+            _streaks.Clear(); _streakImages.Clear(); _rainRipples.Clear();
+            RainLevel = 0f;
+            _sheltered = false;
+            _rainLayer = UiKit.Rect("Rain", _canvas).Stretch(0, 0, 1, 1);
+            _rainTint = UiKit.Rect("Tint", _rainLayer).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            // Faint slanting streaks, drawn by code like the mist: thin lines that fall and come round again.
+            _rainStreaks = UiKit.Rect("Streaks", _rainLayer).Stretch(0, 0, 1, 1);
+            for (int i = 0; i < 90; i++)
+            {
+                float length = 46f + Hash(i * 3.1f) * 40f;
+                var streak = UiKit.Rect("Streak", _rainStreaks).Place(0f, 0f, Hash(i * 7.3f) * ScreenW, Hash(i * 1.9f) * ScreenH, 3f, length);
+                streak.localRotation = Quaternion.Euler(0, 0, RainSlant);
+                _streakImages.Add(streak.AddImage(catalog.Round, new Color(0.86f, 0.92f, 1f, 0f)));
+                _streaks.Add(streak);
+            }
+            _rainLayer.gameObject.SetActive(false);
+            // Drops landing on the pond: small rings that widen and fade, here and there on the water.
+            for (int i = 0; i < 5; i++)
+            {
+                Image ring = UiKit.Rect("RainRipple", _street).Place(0f, 0f, PondSpot.x, PondSpot.y, 96f, 58f).AddImage(catalog.Glow, new Color(0.88f, 0.94f, 1f, 0f));
+                _rainRipples.Add(ring);
+            }
+            for (int k = 0; k < _seats.Count && k < _seatHomes.Length; k++) _seatHomes[k] = _seats[k].anchoredPosition;
+            BuildFrog(catalog);
+        }
+
+        /// <summary>How far the streaks lean from the upright, in degrees, and how fast they fall, in canvas units a second.</summary>
+        const float RainSlant = -12f, RainFall = 1500f;
+
+        /// <summary>The rain comes and goes with the showers: colour, streaks, drops on the pond, brighter lanterns, the patter, the resting rabbits under the trees, and the Frog Rabbit.</summary>
+        void UpdateRain(float dt)
+        {
+            if (_rainLayer == null) return;
+            bool raining = RainingNow();
+            float target = raining ? 1f : 0f;
+            RainLevel = Motion.Reduced ? target : Mathf.MoveTowards(RainLevel, target, dt / 1.5f);
+            Sfx.SetRain(raining);
+            bool shown = RainLevel > 0f;
+            if (_rainLayer.gameObject.activeSelf != shown) _rainLayer.gameObject.SetActive(shown);
+            if (shown)
+            {
+                // A grey-blue wash by day, a deeper blue at night, under the HUD.
+                float night = (float)Daylight.NightAt(ClockHours());
+                Color wash = Color.Lerp(new Color(0.46f, 0.56f, 0.68f), new Color(0.16f, 0.23f, 0.38f), night);
+                _rainTint.color = Palette.Alpha(wash, Mathf.Lerp(0.13f, 0.22f, night) * RainLevel);
+                bool streaks = !Motion.Reduced;
+                if (_rainStreaks.gameObject.activeSelf != streaks) _rainStreaks.gameObject.SetActive(streaks);
+                if (streaks)
+                {
+                    float lean = Mathf.Tan(-RainSlant * Mathf.Deg2Rad);
+                    for (int i = 0; i < _streaks.Count; i++)
+                    {
+                        float speed = RainFall * (0.8f + 0.4f * Hash(i * 5.7f));
+                        float fallen = Mathf.Repeat(Hash(i * 1.9f) * (ScreenH + 200f) + _clock * speed, ScreenH + 200f);
+                        float x = Mathf.Repeat(Hash(i * 7.3f) * ScreenW - fallen * lean, ScreenW + 80f) - 40f;
+                        _streaks[i].anchoredPosition = new Vector2(x, ScreenH + 100f - fallen);
+                        _streakImages[i].color = new Color(0.86f, 0.92f, 1f, (0.14f + 0.16f * Hash(i * 2.3f)) * RainLevel);
+                    }
+                }
+            }
+            // Drops on the pond; still water under reduced motion.
+            for (int i = 0; i < _rainRipples.Count; i++)
+            {
+                Image ring = _rainRipples[i];
+                if (!shown || Motion.Reduced) { if (ring.color.a != 0f) ring.color = new Color(0.88f, 0.94f, 1f, 0f); continue; }
+                float cycle = _clock / 1.1f + i * 0.21f;
+                float k = Mathf.Repeat(cycle, 1f), n = Mathf.Floor(cycle);
+                Vector2 at = PondSpot + new Vector2(20f + (Hash(n * 3.7f + i) - 0.5f) * 220f, 6f + (Hash(n * 5.3f + i) - 0.5f) * 110f);
+                ring.rectTransform.anchoredPosition = at;
+                ring.rectTransform.localScale = Vector3.one * Mathf.Lerp(0.2f, 1f, k);
+                ring.color = new Color(0.88f, 0.94f, 1f, 0.4f * (1f - k) * RainLevel);
+            }
+            // The lanterns burn brighter in the rain (their flicker is set just before, every frame).
+            if (shown)
+                foreach (Image glow in _lanternGlows)
+                    if (glow != null) glow.color = Palette.Alpha(glow.color, glow.color.a * Mathf.Lerp(1f, RainLanternBoost, RainLevel));
+            ShelterSeats();
+            UpdateFrog(dt);
+        }
+
+        /// <summary>
+        /// The rabbits resting on the rug and in the hammock run under the trees at the wood's edge while it rains and
+        /// sit there upright, then go back. Only where they are drawn changes: the save, the seats and their gifts stay.
+        /// </summary>
+        void ShelterSeats()
+        {
+            bool any = RainLevel > 0f;
+            if (!any && !_sheltered) return;
+            GameState s = Runner.State;
+            foreach (int k in RainShelterSeats)
+            {
+                if (k >= _seats.Count) continue;
+                Vector2 home = _seatHomes[k];
+                _seats[k].anchoredPosition = Vector2.Lerp(home, ShelterOf(k), Ease.InOutCubic(RainLevel));
+                if (any && _seatIds[k] > 0)
+                {
+                    // Under a tree it sits up, whatever its place has it do.
+                    RectTransform art = _seatArt[k].rectTransform;
+                    art.localRotation = Quaternion.identity;
+                    art.localScale = new Vector3(1.06f, 0.86f, 1f);
+                    art.anchoredPosition = new Vector2(0f, -6f);
+                }
+            }
+            if (!any) RefreshSeats(s); // dry again: each sits as its place has it
+            _sheltered = any;
+        }
+
+        /// <summary>
+        /// Where a seat's rabbit sits out the rain: on open grass at the foot of the wood, under the trees nearest its
+        /// place (the rug's rabbit by the trees left of the shop, the hammock's by those beside the hammock), placed by hand.
+        /// </summary>
+        static Vector2 ShelterOf(int seat) => seat == 2 ? new Vector2(200f, 2460f) : new Vector2(110f, 450f);
+
+        // ----- the Frog Rabbit -----
+
+        RectTransform _frog, _frogArt, _frogGate;
+        Image _frogGateImage;
+        Text _frogName;
+        enum FrogPhase { Away, Coming, Waiting, Going }
+        FrogPhase _frogPhase;
+        /// <summary>0 at the moon gate, 1 at the pond.</summary>
+        float _frogT, _frogGateAlpha;
+        /// <summary>How long the walk from the gate to the pond takes.</summary>
+        public const float FrogWalkSeconds = 3f;
+        /// <summary>Where the small moon gate opens for it, on the grass past the pond's top left, and where it stands to wait, on the pond's near rim.</summary>
+        public static Vector2 FrogGateSpot => PondSpot + new Vector2(-190f, 150f);
+        public static Vector2 FrogPondSpot => PondSpot + new Vector2(-10f, -100f);
+        /// <summary>The green its borrowed wool hat is dyed to make a frog's.</summary>
+        public static readonly Color FrogGreen = new Color(0.52f, 0.82f, 0.42f);
+        /// <summary>True while the Frog Rabbit is in the garden: coming, waiting at the pond or going home.</summary>
+        public bool FrogShown => _frog != null && _frog.gameObject.activeSelf;
+        /// <summary>True once it stands at the pond.</summary>
+        public bool FrogWaiting => _frogPhase == FrogPhase.Waiting;
+        public RectTransform FrogRect => _frog;
+
+        /// <summary>A cotton rabbit in the wool hat dyed frog green with two eyes on top, its name under it, and the moon gate it steps out of.</summary>
+        void BuildFrog(GameCatalog catalog)
+        {
+            _frogPhase = FrogPhase.Away;
+            _frogT = _frogGateAlpha = 0f;
+            _frogGate = UiKit.Rect("FrogGate", _street).Place(0f, 0f, FrogGateSpot.x, FrogGateSpot.y, 150f, 170f);
+            _frogGate.pivot = new Vector2(0.5f, 0f);
+            _frogGateImage = _frogGate.AddImage(catalog.MoonGate != null ? catalog.MoonGate : catalog.Glow, new Color(1f, 1f, 1f, 0f));
+            _frogGateImage.preserveAspect = true;
+            _frogGate.gameObject.SetActive(false);
+
+            const float Box = 124f;
+            _frog = UiKit.Rect("Frog", _street).Place(0f, 0f, FrogGateSpot.x, FrogGateSpot.y, Box, 132f);
+            _frog.pivot = new Vector2(0.5f, 0f);
+            UiKit.Rect("Shadow", _frog).Place(0.5f, 0f, 0, 4, 84, 20).AddImage(catalog.Round, Palette.Alpha(Palette.Night, 0.35f));
+            _frogArt = UiKit.Rect("Art", _frog).Stretch(0, 0, 1, 1);
+            _frogArt.pivot = new Vector2(0.5f, 0f);
+            Image art = _frogArt.AddImage(catalog.KindSprite(FrogKind) ?? catalog.Rabbit, Color.white);
+            art.preserveAspect = true;
+            art.raycastTarget = true;
+            var button = _frog.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = art;
+            button.onClick.AddListener(OnFrogTap);
+            // The wool hat, dyed green, with two round eyes on its crown: a frog's hat, drawn by code until one is painted.
+            RabbitKind kind = RabbitKinds.Find(FrogKind);
+            Sprite hat = catalog.ItemIcon(FrogHat);
+            if (hat != null && kind != null)
+            {
+                var hatOn = UiKit.Rect("Hat", _frogArt);
+                Image hatImage = hatOn.AddImage(hat, FrogGreen);
+                hatImage.preserveAspect = true;
+                float across = (GameCatalog.KindHeadX - 0.5f + kind.HatX) * Box * GameCatalog.KindAspect;
+                RabbitGridView.PlaceHat(hatOn, hat, Box, across, (GameCatalog.KindHeadTop + kind.HatY) * Box, catalog.ItemHatLift(FrogHat));
+                for (int side = -1; side <= 1; side += 2)
+                {
+                    var eye = UiKit.Rect(side < 0 ? "Eye L" : "Eye R", hatOn).Place(0.5f, 1f, side * hatOn.sizeDelta.x * 0.24f, -4f, 20f, 20f);
+                    eye.AddImage(catalog.Round, Palette.Paper);
+                    UiKit.Rect("Pupil", eye).Place(0.5f, 0.5f, side * 1.5f, -1f, 9f, 9f).AddImage(catalog.Round, Palette.Ink);
+                }
+            }
+            var plate = UiKit.Rect("Name", _frog).Place(0.5f, 0f, 0, -16, 150, 34);
+            plate.AddImage(catalog.Panel, Palette.Mix(Palette.Paper, FrogGreen, 0.25f), true);
+            _frogName = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(L10n.T("frog.name"), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _frogName.resizeTextForBestFit = true;
+            _frogName.resizeTextMinSize = 12;
+            _frogName.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _frog.gameObject.SetActive(false);
+        }
+
+        /// <summary>The first look of the Frog Rabbit: Thỏ Bông in the Mũ len, dyed green.</summary>
+        const string FrogKind = "tho-bong", FrogHat = "hat-mu-len";
+
+        /// <summary>Open-play time goes to the frog's clock; it walks from the gate to the pond, waits, and walks back.</summary>
+        void UpdateFrog(float dt)
+        {
+            if (_frog == null) return;
+            GameState s = Runner.State;
+            if (Shell.State == ShellState.Playing && !PhotoMode)
+            {
+                FrogEvent e = Runner.AdvanceFrog(dt, ClockHours());
+                if (e == FrogEvent.Arrived) Sfx.Blip();
+            }
+            bool here = FrogRabbit.Here(s);
+            if (here && (_frogPhase == FrogPhase.Away || _frogPhase == FrogPhase.Going))
+            {
+                // A frog has come (or one was here when the garden was saved, or the screen rebuilt): it walks in.
+                bool fresh = s.FrogLeft > FrogRabbit.StaySeconds - 1d;
+                if (_frogPhase == FrogPhase.Away) _frogT = fresh ? 0f : 1f;
+                _frogPhase = _frogT >= 1f ? FrogPhase.Waiting : FrogPhase.Coming;
+                _frog.gameObject.SetActive(true);
+                _frogName.text = L10n.T("frog.name"); // in the language of the moment it comes
+                _frogGate.gameObject.SetActive(true);
+                _frogGate.SetAsLastSibling();
+                _frog.SetAsLastSibling();
+            }
+            else if (!here && (_frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Waiting)) _frogPhase = FrogPhase.Going;
+
+            if (_frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Going)
+            {
+                float dir = _frogPhase == FrogPhase.Coming ? 1f : -1f;
+                _frogT = Mathf.Clamp01(_frogT + dir * dt / Motion.Time(FrogWalkSeconds));
+                if (_frogPhase == FrogPhase.Coming && _frogT >= 1f) _frogPhase = FrogPhase.Waiting;
+                else if (_frogPhase == FrogPhase.Going && _frogT <= 0f)
+                {
+                    _frogPhase = FrogPhase.Away;
+                    _frog.gameObject.SetActive(false);
+                }
+            }
+            if (_frogPhase != FrogPhase.Away) PlaceFrog();
+            // The gate shows while it is on its way in or out, and fades when it is not needed.
+            float gate = _frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Going || (_frogPhase == FrogPhase.Waiting && _frogT < 1f) ? 1f : 0f;
+            if (_frogPhase == FrogPhase.Waiting) gate = 0f;
+            _frogGateAlpha = Motion.Reduced ? gate : Mathf.MoveTowards(_frogGateAlpha, gate, dt / 0.5f);
+            _frogGateImage.color = new Color(1f, 1f, 1f, 0.85f * _frogGateAlpha);
+            bool gateShown = _frogGateAlpha > 0f;
+            if (_frogGate.gameObject.activeSelf != gateShown) _frogGate.gameObject.SetActive(gateShown);
+        }
+
+        void PlaceFrog()
+        {
+            Vector2 at = Vector2.Lerp(FrogGateSpot, FrogPondSpot, Ease.InOutCubic(_frogT));
+            bool walking = _frogPhase == FrogPhase.Coming || _frogPhase == FrogPhase.Going;
+            if (walking && !Motion.Reduced) at.y += Mathf.Abs(Mathf.Sin(_frogT * Mathf.PI * 7f)) * 16f; // little frog hops
+            _frog.anchoredPosition = at;
+            _frogArt.localScale = new Vector3(_frogPhase == FrogPhase.Going ? -1f : 1f, 1f, 1f);
+            if (_frogPhase == FrogPhase.Waiting && !Motion.Reduced) _frogArt.localScale = new Vector3(1f, 1f + 0.025f * Mathf.Sin(_clock * 2.6f), 1f);
+        }
+
+        /// <summary>A touch greets it: ten minutes of income fly to the purse, a clover to the rabbits tab when one comes, and it hops home.</summary>
+        void OnFrogTap()
+        {
+            if (_frogPhase != FrogPhase.Coming && _frogPhase != FrogPhase.Waiting) return;
+            Vector2 from = Feel.PointOf(_frog, new Vector2(0, 90));
+            if (!Runner.GreetFrog(ClockHours(), out BigNum paid, out int clovers)) return;
+            GameCatalog catalog = Runner.Catalog;
+            Sfx.Reward();
+            Haptics.Light();
+            Feel.FloatText(from + new Vector2(50, 40), "♥", Palette.Blush, 50);
+            Feel.FloatText(from + new Vector2(-40, 70), "♥", Palette.Blush, 36);
+            string gained = "+" + paid.Short();
+            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            {
+                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+            });
+            if (clovers > 0)
+            {
+                RectTransform tab = _tabIcons[3].rectTransform;
+                Feel.Fly(from, Feel.PointOf(tab), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
+                    () => { if (tab != null) Feel.FloatText(Feel.PointOf(tab, new Vector2(0, 90)), "+" + clovers, Palette.Moss, 40); });
+            }
+            Feel.Moment(L10n.T("frog.title"), clovers > 0 ? L10n.T("frog.sub.clover", paid.Short()) : L10n.T("frog.sub", paid.Short()));
+            // A happy hop on the spot, then the walk home (the state already says it is going).
+            RectTransform artRect = _frogArt;
+            Tweens.Add(Motion.Time(0.4f), t => { if (artRect != null) artRect.anchoredPosition = new Vector2(0f, 40f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                () => { if (artRect != null) artRect.anchoredPosition = Vector2.zero; });
+            _frogPhase = FrogPhase.Going;
         }
 
         #endregion

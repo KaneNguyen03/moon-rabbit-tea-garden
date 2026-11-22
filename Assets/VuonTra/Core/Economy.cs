@@ -103,11 +103,12 @@ namespace VuonTra.Core
             {
                 var other = defs[i];
                 if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0) continue;
-                // A rabbit at an ingredient station strengthens the bonus it gives, not the base 1.
+                // A rabbit at an ingredient station strengthens the bonus it gives, not the base 1; so do the album's sets (#61).
                 if (other.Boosts(d.Id))
-                    income *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i);
+                    income *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
             }
-            return income * Rabbits.StationMultiplier(defs, s, index);
+            // The album's complete sets of the station's trade (#61): +3 % each.
+            return income * Rabbits.StationMultiplier(defs, s, index) * AlbumSets.StationFactor(defs, s, index);
         }
 
         /// <summary>
@@ -125,7 +126,7 @@ namespace VuonTra.Core
             {
                 var other = defs[i];
                 if (other.Kind == StationKind.Ingredient && s.Levels[i] > 0 && other.Boosts(d.Id))
-                    ingredients *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i);
+                    ingredients *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
             }
             return IncomePerCycle(defs, s, index) / d.CycleSeconds;
         }

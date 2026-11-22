@@ -36,6 +36,13 @@ namespace VuonTra.Game
         public event Action<Rabbit> SeasonArrived;
         /// <summary>The first day the game sees of a season, once a year: the screen greets it.</summary>
         public event Action<Season> SeasonBegan;
+        /// <summary>A set of the album was just completed (#61): the screen raises its banner.</summary>
+        public event Action<AlbumSet> AlbumSetCompleted;
+        /// <summary>
+        /// An album milestone with a gift of its own was just reached (#61): 40 kinds (the hat) or 72 (the frame),
+        /// with the golden carrots given instead of a hat the player already had (0 otherwise).
+        /// </summary>
+        public event Action<int, int> AlbumMilestoneReached;
 
         /// <summary>Greets the running season if it has not been greeted this year; true when it was greeted now.</summary>
         public bool GreetSeason()
@@ -113,13 +120,18 @@ namespace VuonTra.Game
                     // A garden that starts from nothing starts with one rabbit; a save we could load keeps what it had.
                     Rabbits.GiftFirst(State, PickName());
                     State.LastSeenUnixSeconds = Now;
+                    // A save that could not be read: a make-up letter waits in the mailbox (#68).
+                    if (loaded.Status == LoadStatus.Corrupt) Mailbox.Compensate(State, TodayNumber);
                 }
                 Mods = Modifiers.From(UpgradeDefs, State);
             }
 
-            Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
+            LoadGiftKey();
+            CheckMail();
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
+            NoteAlbum(false);
             _ready = true;
             if (preset == null)
             {
@@ -127,6 +139,8 @@ namespace VuonTra.Game
                 // (Game Center and iCloud on iOS, #39; Play Games and Saved Games on Android, #40; nothing elsewhere).
                 PlatformServices.Install(this);
                 Platform.AndroidServices.Install(this);
+                // Reminders left for the time away are not needed once the game is open (#65).
+                Notifications.CameBack();
                 SyncNow(SyncReason.Open);
             }
         }
@@ -157,13 +171,15 @@ namespace VuonTra.Game
             }
 
             if (!Paused) State.PlaySeconds += dt;
+            (_adProvider as FakeRewardedAds)?.Advance(dt); // the editor's pretend videos (#66)
             _sinceSync += dt;
             if (_sinceSync >= SyncTimerSeconds) SyncNow(SyncReason.Timer);
             PlatformServices.Tick(this, dt);
             _sinceSave += dt;
             if (_sinceSave >= AutosaveSeconds)
             {
-                if (Quests.RollDaily(QuestDefs, Defs, State, Today, Mods)) StateChanged?.Invoke();
+                if (Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods)) StateChanged?.Invoke();
+                if (CheckMail()) StateChanged?.Invoke();
                 Save();
                 GreetSeason();
             }
@@ -261,7 +277,7 @@ namespace VuonTra.Game
         /// <summary>Counts seconds of open play towards the next guest and the waiting guest's patience. The save keeps up with comings and goings.</summary>
         public OrderEvent AdvanceOrders(double dt)
         {
-            OrderEvent e = Orders.Advance(Defs, State, dt, Today, _rng.NextDouble);
+            OrderEvent e = Orders.Advance(Defs, State, dt, TodayNumber, _rng.NextDouble);
             if (e != OrderEvent.None) Save();
             return e;
         }
@@ -269,7 +285,7 @@ namespace VuonTra.Game
         /// <summary>Brings a guest to the counter now (previews, tests); null when one is waiting already or the day's guests have all been.</summary>
         public Order PlaceOrder()
         {
-            Order order = Orders.Place(Defs, State, Today, _rng.NextDouble);
+            Order order = Orders.Place(Defs, State, TodayNumber, _rng.NextDouble);
             if (order != null) Changed();
             return order;
         }
@@ -283,12 +299,18 @@ namespace VuonTra.Game
         }
 
         /// <summary>True while the shop's gift for today is still to be had.</summary>
-        public bool GiftWaiting => Shop.GiftWaiting(State, Today);
+        public bool GiftWaiting => Shop.GiftWaiting(State, TodayNumber);
 
-        /// <summary>Takes today's gift at the shop. How many golden carrots it brought; 0 when there was none to take.</summary>
-        public int ClaimDailyGift()
+        /// <summary>
+        /// Takes today's gift at the shop. How many golden carrots it brought; 0 when there was none to take. On the first
+        /// week's seventh day it also brings the conical hat (or its price) and a clover (#57). The day is the clamped
+        /// <see cref="TodayNumber"/>, so a clock set back gets nothing.
+        /// </summary>
+        public int ClaimDailyGift() => ClaimDailyGift(out _);
+
+        public int ClaimDailyGift(out Shop.BigGift big)
         {
-            int gift = Shop.ClaimDailyGift(State, TodayNumber, PickName(), out Rabbit seasonRabbit);
+            int gift = Shop.ClaimDailyGift(State, TodayNumber, PickName(), ItemDefs, out Rabbit seasonRabbit, out big);
             if (seasonRabbit != null) SeasonArrived?.Invoke(seasonRabbit);
             if (gift > 0) Changed();
             return gift;
@@ -298,13 +320,13 @@ namespace VuonTra.Game
         public Shop.Visitor VisitorToday => Shop.VisitorFor(State, TodayNumber);
 
         /// <summary>True while today's visitor has not been looked at yet.</summary>
-        public bool VisitorUnseen => State.VisitorSeenDay != Today;
+        public bool VisitorUnseen => State.VisitorSeenDay != TodayNumber;
 
         /// <summary>The shop was opened: today's visitor has been seen.</summary>
         public void MarkVisitorSeen()
         {
-            if (State.VisitorSeenDay == Today) return;
-            State.VisitorSeenDay = Today;
+            if (State.VisitorSeenDay == TodayNumber) return;
+            State.VisitorSeenDay = TodayNumber;
             Changed();
         }
 
@@ -385,13 +407,47 @@ namespace VuonTra.Game
         /// <summary>A photo of the garden was taken. True when it brought today's gift.</summary>
         public bool TakePhoto(string path = null)
         {
-            bool gift = Photos.Take(State, Today, path);
+            bool gift = Photos.Take(State, TodayNumber, path);
             Changed();
             return gift;
         }
 
         /// <summary>True while today's photo gift is still to be had.</summary>
-        public bool PhotoGiftWaiting => Photos.GiftWaiting(State, Today);
+        public bool PhotoGiftWaiting => Photos.GiftWaiting(State, TodayNumber);
+
+        // ----- a rabbit asks for its picture (#56): the screen counts open-play time, like the guests' clock -----
+
+        /// <summary>Counts seconds of open play towards the next ask and the bubble's stay. The save keeps up when a bubble comes or goes.</summary>
+        public PhotoAskEvent AdvancePhotoAsks(double dt)
+        {
+            PhotoAskEvent e = PhotoAsks.Advance(Defs, State, dt, TodayNumber, _rng.NextDouble);
+            if (e != PhotoAskEvent.None) Save();
+            return e;
+        }
+
+        /// <summary>A rabbit asks now (previews, tests): false when one asks already, the day's asks are answered, or nobody can.</summary>
+        public bool AskForPhoto()
+        {
+            bool ok = PhotoAsks.Ask(Defs, State, TodayNumber, _rng.NextDouble);
+            if (ok) Save();
+            return ok;
+        }
+
+        /// <summary>The picture was taken for the asking rabbit: two minutes of income, counted for the day. False when nobody asks.</summary>
+        public bool AnswerPhotoAsk(out BigNum paid)
+        {
+            bool ok = PhotoAsks.Answer(Defs, State, Mods, TodayNumber, out paid);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>The camera closed without the asked-for picture: that ask goes, nothing else.</summary>
+        public bool DeclinePhotoAsk()
+        {
+            bool ok = PhotoAsks.Decline(State);
+            if (ok) Save();
+            return ok;
+        }
 
         /// <summary>A gift of carrots (a caught firefly, a visitor). Counts as earned.</summary>
         public void Grant(BigNum carrots)
@@ -436,7 +492,7 @@ namespace VuonTra.Game
         /// </summary>
         public PetResult PetRabbit(long id, bool wake = false)
         {
-            PetResult result = Rabbits.Pet(State, Rabbits.Find(State, id), Today, wake);
+            PetResult result = Rabbits.Pet(State, Rabbits.Find(State, id), TodayNumber, wake);
             if (result.FirstToday || result.Energy > 0d) Changed();
             return result;
         }
@@ -534,9 +590,10 @@ namespace VuonTra.Game
             if (State.UpgradeLevels == null || State.UpgradeLevels.Length != UpgradeDefs.Count)
                 Array.Resize(ref State.UpgradeLevels, UpgradeDefs.Count);
             Mods = Modifiers.From(UpgradeDefs, State);
-            Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
+            NoteAlbum(false);
             StateChanged?.Invoke();
             Save();
         }
@@ -650,7 +707,7 @@ namespace VuonTra.Game
         /// <summary>Spends one of today's mooncake plays and hands back the game to score; null when none is left.</summary>
         public PoundingRun StartPounding()
         {
-            if (!Pounding.Start(State, Today)) return null;
+            if (!Pounding.Start(State, TodayNumber)) return null;
             Changed();
             return new PoundingRun();
         }
@@ -666,9 +723,9 @@ namespace VuonTra.Game
         /// <summary>Spends one of today's leaf-catching plays and hands back the game, seeded by the day and the games so far; null when none is left.</summary>
         public LeavesRun StartLeaves()
         {
-            if (!Leaves.Start(State, Today)) return null;
+            if (!Leaves.Start(State, TodayNumber)) return null;
             Changed();
-            return LeavesRun.FromSeed(Leaves.SeedFor(Today, State.Leaves.Games));
+            return LeavesRun.FromSeed(Leaves.SeedFor(TodayNumber, State.Leaves.Games));
         }
 
         /// <summary>Pays a finished leaf-catching game.</summary>
@@ -682,9 +739,9 @@ namespace VuonTra.Game
         /// <summary>Spends one of today's firefly plays and hands back the night, seeded by the day and the games so far; null when none is left.</summary>
         public FirefliesRun StartFireflies()
         {
-            if (!Fireflies.Start(State, Today)) return null;
+            if (!Fireflies.Start(State, TodayNumber)) return null;
             Changed();
-            return FirefliesRun.FromSeed(Fireflies.SeedFor(Today, State.Fireflies.Games));
+            return FirefliesRun.FromSeed(Fireflies.SeedFor(TodayNumber, State.Fireflies.Games));
         }
 
         /// <summary>Pays a finished firefly night.</summary>
@@ -800,12 +857,13 @@ namespace VuonTra.Game
         {
             int buyMode = State.BuyMode;
             State = GameState.NewGame(Defs, UpgradeDefs.Count);
+            _setsDone.Clear(); // a new garden fills its album again, banners and all
             Rabbits.GiftFirst(State, PickName());
             State.BuyMode = buyMode;
             State.HintSeen = true;
             State.LastSeenUnixSeconds = Now;
             Mods = Modifiers.From(UpgradeDefs, State);
-            Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             Changed();
         }
 
@@ -836,6 +894,7 @@ namespace VuonTra.Game
         void Changed()
         {
             if (!Tutorial.IsDone(State)) Tutorial.Advance(State);
+            NoteAlbum(true);
             // Upgrades, working rabbits and their items all feed the modifiers.
             Mods = Modifiers.From(UpgradeDefs, State);
             StateChanged?.Invoke();
@@ -847,6 +906,28 @@ namespace VuonTra.Game
             _goldSeen = gold;
             _shopBought = false;
             if (milestone && _ready) SyncNow(SyncReason.Milestone);
+        }
+
+        /// <summary>The album's sets already complete, so only a set completed now raises a banner (#61).</summary>
+        readonly HashSet<string> _setsDone = new HashSet<string>();
+
+        /// <summary>
+        /// Gives the album's milestone gifts not yet given and notes which sets are complete (#61). With
+        /// <paramref name="tell"/> the screen hears of a set or a gift that is new; without, nothing is announced
+        /// (a save just loaded or restored).
+        /// </summary>
+        void NoteAlbum(bool tell)
+        {
+            if (!tell) _setsDone.Clear();
+            foreach (AlbumSet set in AlbumSets.Completed(State))
+                if (_setsDone.Add(set.Key) && tell) AlbumSetCompleted?.Invoke(set);
+            // A milestone's gift goes up last: the rarer moment is the one left on screen.
+            int goldenBefore = State.GoldenCarrots;
+            List<int> reached = AlbumSets.ClaimMilestones(State, ItemDefs);
+            int golden = State.GoldenCarrots - goldenBefore;
+            foreach (int milestone in reached)
+                if (tell && (milestone == AlbumSets.HatMilestone || milestone == AlbumSets.FrameMilestone))
+                    AlbumMilestoneReached?.Invoke(milestone, milestone == AlbumSets.HatMilestone ? golden : 0);
         }
 
         /// <summary>Remembers a time away for the ×2 button and tells the screen.</summary>
@@ -872,6 +953,132 @@ namespace VuonTra.Game
             return true;
         }
 
+        // ----- moon jars (#64) -----
+
+        /// <summary>What one moon jar would pay if opened now.</summary>
+        public BigNum MoonJarValue => MoonJars.Value(Defs, State, Mods);
+
+        /// <summary>Opens one moon jar into the purse: the carrots it paid, nothing when there is none.</summary>
+        public BigNum OpenMoonJar()
+        {
+            BigNum paid = MoonJars.Open(Defs, State, Mods);
+            if (paid > BigNum.Zero) Changed();
+            return paid;
+        }
+
+        /// <summary>Buys a moon jar at the shop, by the clamped day (#78); false when the shelf is full, the day's three are sold or the purse is short.</summary>
+        public bool BuyMoonJar()
+        {
+            bool ok = MoonJars.Buy(State, TodayNumber);
+            if (ok) Changed();
+            return ok;
+        }
+
+        // ----- rewarded ad seams and the no-ads pass (#66) -----
+
+        /// <summary>
+        /// THE switch for rewarded ads (#66). False (today): every player build, the Mac one included, runs on
+        /// <see cref="NoAds"/>, so no ad button and no no-ads pass is ever shown. The Unity Editor always runs on
+        /// <see cref="FakeRewardedAds"/> so the three places can be tried. When the owner decides the game has ads,
+        /// set this to true and return the real provider (LevelPlay) from <see cref="DefaultAds"/>.
+        /// </summary>
+        public static bool AdsInPlayerBuilds = false;
+
+        IRewardedAds _adProvider;
+        /// <summary>Where rewarded videos come from; tests and previews may set their own.</summary>
+        public IRewardedAds AdProvider
+        {
+            get { if (_adProvider == null) _adProvider = DefaultAds(); return _adProvider; }
+            set => _adProvider = value ?? new NoAds();
+        }
+
+        static IRewardedAds DefaultAds()
+        {
+#if UNITY_EDITOR
+            return new FakeRewardedAds();
+#else
+            return AdsInPlayerBuilds ? (IRewardedAds)new FakeRewardedAds() : new NoAds();
+#endif
+        }
+
+        /// <summary>Ads are switched on here: the no-ads pass is for sale only then.</summary>
+        public bool AdsOn => !(AdProvider is NoAds);
+        /// <summary>A video is playing; ad buttons wait.</summary>
+        public bool AdShowing { get; private set; }
+
+        /// <summary>What the ad button at a place offers right now (the away one only while the latest time away is still to double).</summary>
+        public AdOffer AdOfferFor(string placement, string game = null)
+        {
+            if (placement == Ads.AwayDouble && (LastAwayDoubled || LastAway.Paid < BigNum.One)) return AdOffer.None;
+            return Ads.Offer(State, TodayNumber, AdProvider, placement, game);
+        }
+
+        /// <summary>
+        /// The ad button at a place was pressed: with the pass the reward comes at once, otherwise after a video
+        /// watched to the end. <paramref name="done"/> gets whether it was paid.
+        /// </summary>
+        public void WatchAd(string placement, string game, Action<bool> done)
+        {
+            AdOffer offer = AdShowing ? AdOffer.None : AdOfferFor(placement, game);
+            if (offer == AdOffer.None) { done?.Invoke(false); return; }
+            if (offer == AdOffer.Instant) { done?.Invoke(ClaimAd(placement, game)); return; }
+            AdShowing = true;
+            AdProvider.Show(placement, watched =>
+            {
+                AdShowing = false;
+                done?.Invoke(watched && ClaimAd(placement, game));
+            });
+        }
+
+        bool ClaimAd(string placement, string game)
+        {
+            long day = TodayNumber;
+            bool ok;
+            switch (placement)
+            {
+                case Ads.AwayDouble:
+                    ok = !LastAwayDoubled && Ads.ClaimAwayDouble(State, day, LastAway.Paid);
+                    if (ok) LastAwayDoubled = true;
+                    break;
+                case Ads.ExtraRound: ok = Ads.ClaimExtraRound(State, day, game); break;
+                case Ads.ShopGolden: ok = Ads.ClaimShopGolden(State, day); break;
+                default: ok = false; break;
+            }
+            if (ok) Changed();
+            return ok;
+        }
+
+        // ----- rain and the Frog Rabbit (#62) -----
+
+        /// <summary>True while one of today's showers falls at <paramref name="hour"/>, by the clamped day.</summary>
+        public bool RainingAt(double hour) => Weather.IsRaining(TodayNumber, hour);
+
+        /// <summary>Counts open-play time for the Frog Rabbit at <paramref name="hour"/> of the clamped day; saves when it comes or goes.</summary>
+        public FrogEvent AdvanceFrog(double dt, double hour)
+        {
+            FrogEvent e = FrogRabbit.Advance(State, dt, TodayNumber, hour);
+            if (e != FrogEvent.None) Save();
+            return e;
+        }
+
+        /// <summary>The player taps the Frog Rabbit: ten minutes of income and, one time in four, a clover. False when none is here.</summary>
+        public bool GreetFrog(double hour, out BigNum paid, out int clovers)
+        {
+            bool ok = FrogRabbit.Greet(Defs, State, Mods, TodayNumber, hour, _rng.NextDouble(), out paid, out clovers);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>Days the no-ads pass still runs, 0 without one.</summary>
+        public int NoAdsDaysLeft => Ads.PassDaysLeft(State, TodayNumber);
+
+        /// <summary>Buys the no-ads pass through the store; it is granted from today's clamped day.</summary>
+        public void BuyNoAdsPass(Action<PurchaseResult> done)
+        {
+            Seasons.Clamp(State, Today); // the pass counts from today
+            BuyGolden(Storefront.NoAdsPass, done);
+        }
+
         /// <summary>For tests and previews: as if the player had just come back with this report.</summary>
         public void ShowAwayForTest(AwayReport away) => TellAway(away);
 
@@ -892,12 +1099,56 @@ namespace VuonTra.Game
             {
                 Save();
                 SyncNow(SyncReason.Background);
+                PlanReminders();
             }
+            else if (!paused && _ready) Notifications.CameBack();
         }
 
         void OnApplicationQuit()
         {
-            if (_ready) Save();
+            if (!_ready) return;
+            Save();
+            PlanReminders();
         }
+
+        /// <summary>The device reminders (#65), planned again from the garden as it is left; an empty list while switched off.</summary>
+        void PlanReminders() => Notifications.GoingAway(State, Mods, DateTimeOffset.Now);
+
+        #region Gift codes and mailbox (#68)
+
+        /// <summary>
+        /// The key signed gift codes are checked with, read once from Resources/keys.json (git ignores it; see
+        /// tools/make-code.sh). A build without it refuses every signed code; the public codes still work.
+        /// </summary>
+        static void LoadGiftKey()
+        {
+            if (GiftCodes.HasKey) return;
+            var file = Resources.Load<TextAsset>("keys");
+            if (file != null) GiftCodes.SetKey(GiftCodes.KeyFromJson(file.text));
+        }
+
+        /// <summary>Tries a gift code the player typed, on the clamped day. Saves when it paid.</summary>
+        public GiftCodes.Redeemed RedeemCode(string raw)
+        {
+            GiftCodes.Redeemed r = GiftCodes.Redeem(State, raw, TodayNumber, ItemDefs);
+            if (r.Result == GiftCodes.Result.Ok) Changed();
+            return r;
+        }
+
+        /// <summary>The letters that can be claimed today, oldest first.</summary>
+        public IReadOnlyList<Letter> Letters => Mailbox.Open(State, TodayNumber);
+
+        /// <summary>Claims one letter; null when it is gone.</summary>
+        public Letter ClaimLetter(string id)
+        {
+            Letter letter = Mailbox.Claim(State, id, TodayNumber);
+            if (letter != null) Changed();
+            return letter;
+        }
+
+        /// <summary>Looks for seasons missed since the box last looked; true when a letter came.</summary>
+        bool CheckMail() => Mailbox.Check(State, TodayNumber) > 0;
+
+        #endregion
     }
 }

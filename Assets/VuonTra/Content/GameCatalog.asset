@@ -35,6 +35,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 560921272c01e4ddeafc2c2b67e81003, type: 2}
   - {fileID: 11400000, guid: 11c612ab59b2040a98dff029fa373f6d, type: 2}
   - {fileID: 11400000, guid: 0ed50ad98b1664e8ca95f04fea12fc50, type: 2}
+  - {fileID: 11400000, guid: e62c6df20a6b649d793a38e3b42811d8, type: 2}
   - {fileID: 11400000, guid: ff4c7f4a0c4f44d2984d4ef08581de8c, type: 2}
   - {fileID: 11400000, guid: 1bfe1a351be964861b372ff1f2282a57, type: 2}
   - {fileID: 11400000, guid: e1473368064694eb8bfe11e118852e18, type: 2}
@@ -62,6 +63,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: caa34f7c5b38b47139c514d63448861c, type: 2}
   - {fileID: 11400000, guid: 24dd9e414fd0447e19cc17e408287770, type: 2}
   - {fileID: 11400000, guid: 7c4d56c29122c499a8b5e7cc8a3d6538, type: 2}
+  - {fileID: 11400000, guid: 94680e65144bd41319fc7d0c6ffa2fc6, type: 2}
   - {fileID: 11400000, guid: 91584d058121a491e913c97fa8e36dbc, type: 2}
   - {fileID: 11400000, guid: 29ba5d4e8c670497a87ef1d98a21b687, type: 2}
   - {fileID: 11400000, guid: 5b3f71ca561fa4df5ba14de3034066a7, type: 2}
@@ -72,6 +74,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7b75097df6ce943b1b4094f39d4d03f7, type: 2}
   - {fileID: 11400000, guid: 894380343aa1a413aacb9f6b4b54270a, type: 2}
   - {fileID: 11400000, guid: 1d40abead221743939d429e0818bd50b, type: 2}
+  - {fileID: 11400000, guid: d92d4088961aa4fc9b0fd0d92f867328, type: 2}
+  - {fileID: 11400000, guid: 4292010989f60458cb9abbcab5caf48c, type: 2}
+  - {fileID: 11400000, guid: f8f85ef6046e847a3bfee8579a2764c0, type: 2}
+  - {fileID: 11400000, guid: 789c29475a211477ead5ae912d5cf468, type: 2}
+  - {fileID: 11400000, guid: cf6e8c3708ab643718a0342301329bd9, type: 2}
   Items:
   - {fileID: 11400000, guid: e46dc0e7d6d184c26808df57b4f2fcf0, type: 2}
   - {fileID: 11400000, guid: 7e3b63f42c6394a0baae4dc3f01d4ca9, type: 2}
@@ -138,6 +145,7 @@ MonoBehaviour:
   GoldenCarrot: {fileID: 21300000, guid: 574b012909f2f4f5fb4499600cb84a82, type: 3}
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}
+  MoonJar: {fileID: 21300000, guid: 1aadbf024f880476abd8fee425b49775, type: 3}
   Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Shadow: {fileID: 21300000, guid: 4621549ce2eb646a7ace069e96763f27, type: 3}
   IconUp: {fileID: 21300000, guid: e227213dacd474a26ad7da377889306b, type: 3}

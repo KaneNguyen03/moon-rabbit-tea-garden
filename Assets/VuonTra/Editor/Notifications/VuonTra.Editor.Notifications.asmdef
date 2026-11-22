@@ -1,0 +1,26 @@
+{
+    "name": "VuonTra.Editor.Notifications",
+    "rootNamespace": "VuonTra.EditorTools",
+    "references": [
+        "Unity.Notifications"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "VUONTRA_NOTIFICATIONS"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.mobile.notifications",
+            "expression": "2.0.0",
+            "define": "VUONTRA_NOTIFICATIONS"
+        }
+    ],
+    "noEngineReferences": false
+}

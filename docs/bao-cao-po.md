@@ -1286,6 +1286,234 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Thỏ làm việc nghỉ giải lao; ghế thảm cạnh ao chưa có chỗ trong tầm. Chuyển sang ô trống khi #52 lên.
 
+## #78 — Bug nặng: chỉnh giờ máy qua lại là nhận lại quà ngày
+
+- Test: 747/748 EditMode qua (trước khi gộp #50). Thêm test lùi giờ cho ảnh (`PhotosTests`), nhiệm vụ ngày (`QuestsTests`, thay test cũ ghim hành vi sai), đơn khách (`OrdersTests`) và runner (`GardenScreenTests`); test vuốt thỏ của #19 đổi lại (lùi ngày không cho tim).
+- Commit `4f283cb`, đã push. Issue #78 đã comment (gốc lỗi + bảng 7 ý), nhãn chờ-PO-duyệt.
+- Sửa: `GameRunner` 18 chỗ đổi `Today` (giờ máy thô) sang `TodayNumber` (chặn lùi theo `MaxDaySeen`); luật lõi so `day > ngày đã lưu`: `Photos.Take/GiftWaiting`, `Quests.RollDaily` (ngày lùi không xoá nhiệm vụ đã nhận), `Orders` (không đếm lại khách), `Rabbits.Pet` (không cho tim và Trà lực lần nữa).
+
+### Chưa đạt
+- Người chỉnh giờ tới tương lai rồi chỉnh về phải chờ tới ngày đó mới có quà ngày mới (như Tiệm, trò chơi nhỏ, mùa). Chưa thử tay.
+
+## #50 — Vườn thoáng hơn: lùi camera, dọn cây to khỏi bãi cỏ (agent song song, nhánh agent-50)
+
+- Test: 752/753 EditMode qua trên main sau khi gộp. Nhánh riêng 722/723: 5 test màn hình mới (zoom mặc định/giới hạn và ba cột trạm vừa màn, ≥ 5 ô đất trong khung mở đầu, không cây lớn trên bãi, tán viền cách mọi trạm và đạo cụ có biển ≥ 200, save cũ nhớ zoom 1,0); sửa 2 test ghim số cũ.
+- Commit `10dec38` (nhánh agent-50), gộp vào main qua `1e10542`, đã push. Issue #50 đã comment (bảng 4 ý), nhãn chờ-PO-duyệt.
+- `GardenScreen`: `ZoomDefault` 1,0 → 0,83 (`ZoomNear` 1,5, `ZoomFar` 0,65 giữ nguyên; ngưỡng nhận mức là trung điểm); bãi cỏ vẫn 1 080, màn hình ở mặc định rộng 1 301 nên bãi nằm giữa, hai bên cỏ rồi rừng; rừng dời ra `RimLeft = −300`, `RimRight = 1390`; `StationReach` + `CanopyClear` giữ cây/bụi viền cách trạm, giỏ, lọ, cối ≥ 200; cây to trên ô còn sương thành bụi + nấm; bỏ cây cao rải trong vườn.
+- Ảnh (docs/anh/po-50/): trước/sau khung mở đầu, tấm trạm, zoom xa.
+
+### Chưa đạt
+- Không mở rộng `WorldW`. Save cũ nhớ zoom 1,0 mở ở 1,0 tới khi đổi zoom. Hàng cây đỉnh trên lò bánh nằm dưới HUD ở mặc định khi cuộn lên đỉnh. Chưa thử tay.
+
+## QA #71–#77 — Bảy lỗi giao diện nhỏ (agent song song, nhánh qa-nits, mỗi issue một commit)
+
+- Test: 767/768 EditMode qua trên main sau khi gộp (1 inconclusive có chủ ý của #8). Nhánh riêng 759/760: thêm 15 ca test, mỗi test đỏ trên code cũ, xanh sau khi sửa.
+- Commit: #71 `3dbe0c3` (+ `fddbbe9` sau khi gộp), #72 `eeb7390`, #73 `5e8b01e`, #74 `49e8156`, #75 `9492bfa`, #76 `be72b83`, #77 `21ea82d`; gộp vào main qua `4df9b72`, đã push. Bảy issue đã comment bảng đối chiếu, nhãn chờ-PO-duyệt.
+- #71: viên "Khách!" không đè biển nào của vườn khi camera ở ấm trà. Agent dời xuống y −244; khi gộp chung với #50 (zoom và lọ đom đóm đổi chỗ) vị trí đó lại đè biển lọ, nên viên đưa về sát dưới hàng HUD (y −176). Test đo theo đơn vị màn 1080×1920.
+- #72: tỷ lệ gọi tiếng Anh "60%" thay vì "60.0%" (`ShopView.Odds` định dạng `0.#` trước khi đổi dấu thập phân).
+- #73: "Cấp 500 ✦✦✦" co về một dòng trong viên ở thẻ trạm và hàng trạm.
+- #74: nút "Cấp tối đa" không còn icon cà rốt.
+- #75: thanh nút chụp ảnh lên y 240, tên vườn và ngày ở chân khung hiện đủ.
+- #76: tên mũ và đồ trang trí ở Tiệm một dòng ("Mushroom stools" co chữ), không chạm viên giá.
+- #77: điểm và đồng hồ/số nhịp ở ba trò chơi nhỏ cách hai mép 24.
+- Ảnh: `docs/anh/qa-71` … `qa-77` (`qa-NN-truoc.png`, `qa-NN-sau.png`; #73 thêm `-hang`, #77 thêm `-gia-banh`).
+- Kỹ thuật: `AccessibilityTests` có thêm `RectIn`, `OnPhone` (đổi về đơn vị màn 1080×1920 khi so HUD với vườn) và `OneLine` (kiểm chữ best-fit nằm một dòng ở cỡ thật sự vẽ).
+
+### Chưa đạt
+- Viên "▲ N" ở mép trên có thể đè biển "Giã bánh" (nêu trong #71). Code chưa có vùng an toàn ngang. Chưa thử tay.
+
+## #51 — Bãi cỏ luôn quang, phần chưa mở là vành rừng (agent song song, nhánh agent-51)
+
+- Test: 776/777 EditMode qua trên main sau khi gộp. Nhánh riêng 761/762: 5 test màn hình mới (vành không đè ô ở 4/6/8/10/12 ô và cách ô đã mua ≥ 200, không sương ở mọi đợt, mua đợt thì vành phía đó lùi và mờ, Giảm chuyển động đặt ngay, camera tới mọi ô đã mở sau mỗi đợt); test sương cũ thay bằng test vòng nét đứt.
+- Commit `a0e5e51` (nhánh agent-51), gộp vào main qua `8d53fb3`, đã push. Issue #51 đã comment (bảng 8 ý), nhãn chờ-PO-duyệt.
+- `GardenScreen`: bỏ sương và bụi/nấm trên ô chưa mua; ô chưa mua là vòng nét đứt (`Ring i`), mua xong mọc cỏ + hoa (`Bloom i`). Vành rừng hai bên bãi, hai hàng mỗi bên, sáu mẫu theo hash cố định; mỗi mảnh sát mép bãi và lùi ra tới khi cách mọi ô đã mua và giỏ/lọ/cối ≥ 200, không đè ô nào. Mua đợt: mảnh phải lùi thì mờ rồi hiện lại xa hơn trong 0,6 s (`RimStep`). `RefreshFog` → `RefreshLand`. `ClampView` giữ nguyên.
+- Ảnh (docs/anh/po-51/): trước/sau khung mở đầu và zoom xa, khung mở đầu vi/en/chữ to, mua đợt 1 trước/giữa/sau, năm mốc đợt đất (`PreviewShot.RenderLandWaves`).
+
+### Chưa đạt
+- Vành chỉ ở hai bên (ô chưa mở xen kẽ theo chiều dọc nên không đặt được mặt rừng ngang). Ảnh en/chữ to chỉ ở khung mở đầu. Chưa thử tay.
+
+## #71 phần cuối — Viên "▲ N" không đè biển "Giã bánh"
+
+- Commit `349e76a`, đã push; comment lên #71. Không đổi code: ảnh QA chụp từ bản trước #50, sau khi camera lùi biển cối nằm thấp hơn phao. Thêm test `The_Top_Edge_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot` ở zoom mặc định và zoom gần để lỗi không quay lại.
+
+## #57 — Lịch quà 7 ngày ở Tiệm, ngày 7 là quà lớn, bỏ ngày chỉ lùi một (agent song song, nhánh agent-57)
+
+- Test: 805/806 EditMode qua trên main sau khi gộp (cùng #56). Nhánh riêng 787/788: 5 test Core (`ShopTests`), 2 test màn hình, 1 test tràn chữ ×4; test cũ "bỏ một ngày về ngày 1" thay bằng luật mới. Thêm 1 test màn hình cho khoảnh khắc quà lớn.
+- Commit `9c2fd85` (nhánh agent-57), gộp vào main qua `8ca0fee`, khoảnh khắc quà lớn `e16685b`, đã push. Issue #57 đã comment (bảng 9 ý), nhãn chờ-PO-duyệt. Save thêm `giftBig`, `giftBigGolden` (v14).
+- `Shop`: `MissPenalty = 1`, streak sau khi bỏ k ngày = max(1, streak − k); `Week(s, day)` cho 7 ô; ngày 7 lần đầu tặng Nón lá + 1 cỏ (đã có mũ thì +20 cà rốt vàng). `ShopView`: mục Hôm nay cao 320 với hàng `Days/Day 1…7`. `GardenScreen.OnDailyGift`: quà lớn có `Feel.Moment` riêng nêu tên mũ và cỏ.
+- Kinh tế: tuần thong thả cà rốt vàng không đổi (17 từ quà ngày, 50/50); thêm 1 cỏ → 118 thỏ (trước 117).
+- Ảnh (docs/anh/po-57/): `57-ngay-1.png`, `57-ngay-4.png`, `57-ngay-7.png`.
+
+### Chưa đạt
+- Chưa thử tay.
+
+## #56 — Thỏ xin chụp ảnh mỗi 4 phút (agent song song, nhánh agent-56)
+
+- Test: 805/806 EditMode qua trên main sau khi gộp. Nhánh riêng 791/792: `PhotoAsksTests.cs` (11) + 4 test màn hình.
+- Commit `6391173` (nhánh agent-56), gộp vào main qua `0b6c7c2` + seed lại bảng chuỗi (`d325663`), đã push. Issue #56 đã comment (bảng 11 ý), nhãn chờ-PO-duyệt. Save thêm khối `photoAsk` (v14).
+- Lõi `Core/PhotoAsks.cs`: đồng hồ 240 giây chỉ chạy khi đang chơi, đứng yên khi có bong bóng hoặc đang chụp; bong bóng 90 giây; chỉ thỏ ở trạm đã mở hoặc chỗ nghỉ; thưởng 120 giây × hệ số; tối đa 10/ngày theo ngày đã chặn lùi; `QuestMetric.PhotoAsksAnswered` cuối enum.
+- Màn hình: bong bóng máy ảnh vẽ bằng code trên đầu thỏ, chạm thì mở máy ảnh zoom gần, thỏ ở giữa; chụp xong thẻ ảnh ghi lời cảm ơn, bấm Xong thì thỏ nảy, tim bay, cà rốt về ví; đóng không chụp mất lượt đó. Nhiệm vụ ngày `ngay-anh` "Chụp 3 tấm thỏ xin ảnh" (+1 cỏ); giữ "Chạm bé thỏ 50 lần" nên có năm nhiệm vụ ngày.
+- Ảnh (docs/anh/po-56/): `56-xin-chup.png`, `56-khung-thu.png`.
+
+### Chưa đạt
+- Mở máy ảnh bằng nút HUD lúc có lời mời thì không được thưởng. Chưa có tiếng riêng. Năm nhiệm vụ ngày (PO quyết có bỏ "Chạm bé thỏ 50 lần"). Chưa thử tay.
+
+## #60 — Thỏ nghỉ góp sức: mỗi bé ở chỗ nghỉ cộng 2–10 % thu nhập vườn (agent song song, nhánh agent-60)
+
+- Test: 816/817 EditMode qua trên main (gộp thẳng, cùng cây agent đã verify). 11 test mới (`RestSpotsTests` 7, `CatalogTests` 1, `GardenScreenTests` 3); hai test mùa trăng mới đổi kỳ vọng thành `1,25 × RestSpots.Multiplier`.
+- Commit `d10d0e8`, đã push. Issue #60 đã comment (bảng 9 ý + nhịp trước/sau), nhãn chờ-PO-duyệt.
+- `RestSpots`: `RestBonus = 0,02` × `TierScale` {1; 1,25; 1,5; 2; 3; 5} cho mỗi bé có ghế (`Seated`, cùng thứ tự màn hình vẽ); `Modifiers.From` nhân vào `IncomeMultiplier` nên mọi nguồn thu đều hưởng. `IncomeView` dòng "Thỏ đang nghỉ (N) +x %"; tấm thỏ "Đang nghỉ · +x % vườn"; tab Thỏ nhãn "+x % vườn". Thành tựu `nghi-6` (2 cỏ), `QuestMetric.RabbitsResting` cuối enum. Hai mô phỏng nhịp tính lại hệ số sau khi gọi thỏ hoặc mở rộng vườn.
+- Nhịp: cấp 5, cấp 10, 12 ô đất không đổi ở cả ba mô phỏng nên giữ 2 %; thu nhập thong thả hết ngày 7 cao hơn khoảng 19 % so với cùng lượt chạy không có phần thưởng.
+- Ảnh (docs/anh/po-60/): `60-thu-nhap.png`, `60-tho-nghi.png`, `60-tab-tho.png`.
+
+### Chưa đạt
+- Thẻ ở tab Thỏ chỉ có nhãn ngắn. Chưa thử tay.
+
+## #59 — Thỏ tự nói chuyện khi rảnh (agent song song, nhánh agent-59)
+
+- Test: 836/837 EditMode qua trên main sau khi gộp. Nhánh riêng 825/826: `ChatterTests.cs` (10), 6 test màn hình, 4 ca chữ vừa bong bóng trong `AccessibilityTests`.
+- Commit `fe37a8d` (nhánh agent-59), gộp vào main qua `cf91d4a` (ghép hai hàm khung preview của #59 và #60) + seed lại bảng chuỗi, đã push. Issue #59 đã comment (bảng 11 ý), nhãn chờ-PO-duyệt. Save không đổi.
+- Lõi `Core/Chatter.cs`: `KeysFor(nghề, đang nghỉ, pha ngày, mùa, được tiếp sức, diện đồ)`, `Pick`, `Wait` (40–70 giây), `BoosterOf`. 33 câu vi/en (4 × 4 nghề, 4 chung, 2 × 4 pha ngày, 3 mùa, tiếp sức, khoe đồ).
+- Màn hình: vùng mới cuối `GardenScreen` + một lời gọi trong `Advance`; bong bóng `ChatLine` 2,5 giây đi theo thỏ; ưu tiên thân thiết > khách > rảnh; thỏ ngủ gật và thỏ đang xin chụp ảnh không nói.
+- Ảnh (docs/anh/po-59/): `59-noi-ngay.png`, `59-noi-dem.png`.
+
+### Chưa đạt
+- Không có tiếng; thỏ ngủ gật không nói; câu rảnh có thể chờ tới 180 giây khi có khách; bong bóng chưa có đuôi. Chưa thử tay.
+
+## #61 — Sổ thỏ có thưởng: đủ bộ nghề trong bậc +3 %, mốc 10/20/40/72 loài (agent song song, nhánh agent-61)
+
+- Test: 852/853 EditMode qua trên main sau khi gộp. Nhánh riêng 832/833: `AlbumSetsTests` 9, `GardenScreenTests` 3, `AccessibilityTests` 4 ca; `GardenPacingTests` thêm kiểm tối đa 2 bộ trong ngày 1.
+- Commit `ee9cd0f` (nhánh agent-61), gộp vào main qua `89e09d7` (ghép test, chuỗi và khung preview với #59) + seed lại bảng chuỗi, đã push. Issue #61 đã comment (bảng 10 ý + điểm cần PO chọn), nhãn chờ-PO-duyệt. Save thêm `albumMilestones` (v14).
+- `Core/AlbumSets.cs`: 24 bộ (bậc × nghề, chỉ loài thường ngày); `TradeFactor` = 1 + 0,03 × số bộ đủ (tối đa 1,18), nhân trong `Economy.IncomePerCycle` theo nghề trạm (trạm nguyên liệu nhân vào phần tiếp sức). Mốc: nhiệm vụ `loai-10/20/40/72` (`QuestMetric.KindsMet`) trả 1, 2 + 1 cỏ, 10, 20 cà rốt vàng; `ClaimMilestones` tặng Mũ sao (40) và khung Đủ bộ (72). Sổ thỏ chia nhóm theo nghề, viền vàng khi đủ, băng rôn khi vừa đủ.
+- Nhịp: mốc 10 và 20 hạ từ 3 và 5 vàng xuống 1 và 2 để giữ "12 ô đất chờ ngày 3"; sau khi hạ, 12 ô đất lúc 48 giờ 7 phút; cấp 10 thong thả lúc 4 giờ 29 (trước 6 giờ 30), cấp 5 không đổi.
+- Ảnh (docs/anh/po-61/): `61-so-tho-bo.png`, `61-du-bo.png`.
+
+### Chưa đạt
+- Bảng thu nhập chưa có dòng sổ thỏ; chế độ chụp chưa chọn được khung Đủ bộ. Chưa thử tay.
+- Chủ project quyết 23/11: giữ 1 và 2 cà rốt vàng ở mốc 10/20 loài (đã đúng trong code), giữ mốc 12 ô đất chờ ngày 3.
+
+## #65 — Nhắc tôi: thông báo tại máy khi khay đầy, quà ngày, mùa về (agent song song, nhánh agent-65)
+
+- Test: 868/869 EditMode qua trên main sau khi gộp. Nhánh riêng 852/853 + `verify --build` xanh: `RemindersTests` 13, `GardenScreenTests` 3.
+- Commit `aeb1c42` (nhánh agent-65), gộp vào main qua `240b6d8` + seed lại bảng chuỗi, đã push. Issue #65 đã comment (bảng 9 ý), nhãn chờ-PO-duyệt. Save không đổi.
+- Lõi `Core/Reminders.cs` (`Plan(state, now, offset, mods, on)`: tối đa 4 nhắc, ưu tiên mùa > quà ngày > khay đầy > nhớ bạn, cách nhau ≥ 4 giờ, 21h–9h dời tới 9h, ngày như `TodayNumber`). `Game/Platform/Notifications.cs`: `MobileNotifier` (gói `com.unity.mobile.notifications` 2.5.0, define `VUONTRA_NOTIFICATIONS`, chỉ trên máy thật) và `LogNotifier` (Mac, editor). `GameRunner` đăng ký khi vào nền/thoát, xoá khi quay lại. Bản iOS tắt xin quyền lúc mở app. Tấm Tạm nghỉ thêm dòng "Nhắc tôi" (cao 1500), mặc định Tắt.
+- Ảnh (docs/anh/po-65/): `65-nhac-toi.png`, `65-nhac-toi-en.png`.
+
+### Chưa đạt
+- Thử trên máy thật chờ #41. Khởi động lại máy thì mất nhắc; giờ mùa hè có thể lệch một giờ; bấm thông báo chỉ mở game.
+
+## #64 — Hũ trăng: 1 giờ thu nhập mở ở ví, Tiệm bán 12 cà rốt vàng (agent song song, nhánh agent-64)
+
+- Test: 865/866 EditMode trên nhánh (main trước đó 852/853). Thêm `MoonJarsTests` 9, `GardenScreenTests` 3 (ví, kệ Tiệm, nhiệm vụ thu hoạch), `GardenPacingTests` 1 (tuần thong thả trước/sau). Test đom đóm trên màn hình đổi kỳ vọng từ cà rốt vàng sang hũ. `AccessibilityTests` đo thêm tên ô hũ.
+- Commit `d4b2d24`, merge `b87eaa5`, bảng chuỗi `d109c58`. Main sau gộp: 881/882. Save thêm khối `moonJars` (giữ v14; save cũ 0 hũ).
+- `Core/MoonJars.cs`: `Value` = thu/giây × 3600 × IncomeMultiplier × SpeedMultiplier lúc mở; trần 9; Tiệm 12 vàng, 3/ngày theo `TodayNumber`; một hũ miễn phí/ngày dùng chung cho mốc cấp chia hết cho 10, nhiệm vụ `ngay-thu` (`RewardJars` thay cỏ) và đêm đom đóm 3 sao (thay cà rốt vàng trong ngày). Hai nguồn sau chờ cấp vườn 15. Không có hũ thì nguồn trả quà cũ. Nút, ô HUD và ô Tiệm hiện từ cấp vườn 3.
+- Màn hình: thanh hũ cuối `IncomeView` ("Mở hũ trăng (N)", cà rốt bay về ví như bán món), ô hũ cạnh ô cà rốt vàng trên HUD, ô "Hũ trăng" cuối hàng Trang trí vườn (chạm hai lần, "Còn N/3", "Kệ đầy", "Mai mua tiếp"), ô hũ trên dòng nhiệm vụ, dòng "+1 hũ trăng (3 sao)". Hũ vẽ bằng code. `GardenScreen` có vùng mới cuối file và một chỗ trong `OnClaim`.
+- Nhịp (mở ngay, không mua): cấp 5, cấp 10, 12 ô đất và số lượt gọi vàng không đổi ở cả ba mô phỏng; thong thả 5–6 hũ/tuần, nhiều nhất 1/ngày; hũ 0,7 % thu nhập cuối ngày 1, 1,5 % cuối ngày 7; thu nhập/giây ngày 7 lên 8,04ac (trước 2,32ac). Trả hũ từ đầu hoặc từ cấp 10 đưa 12 ô đất về ngày 2, nên hai nguồn hằng ngày chờ cấp 15.
+- Ảnh (docs/anh/po-64/): `64-vi-hu.png`, `64-ke-hu.png`.
+
+### Chưa đạt / cần PO quyết
+- Giữ mốc cấp 15 cho nhiệm vụ và đom đóm, hay nới mốc 12 ô đất. Chưa có thông báo "đã đầy"; hũ mốc cấp mất im lặng khi đã có hũ hôm nay hoặc kệ đầy. Hình hũ chờ vẽ tay. Chưa thử tay.
+
+## #63 — Tiếng trạm khi zoom gần, thanh Tiếng trạm, chọn nhạc
+
+- Test: 889/890 EditMode qua, 0 hỏng (1 test mùa vụ không kết luận, có từ trước, không liên quan). 22 test mới trong `StationSoundTests`. `tools/verify.sh --build` xanh, Player.log không có lỗi âm thanh.
+- Commit: `7badf52`, merge `24b5fd9`, bảng chuỗi `6ee9679`. Main sau gộp: 902/903.
+- Ảnh (docs/anh/po-63/): `63-tieng-tram.png` (thẻ Tạm nghỉ, nút Nhạc ở Rạng sáng), `10-pause.png`, `14-pause-en.png`.
+
+### Đã làm
+- Zoom gần thì trạm giữa màn (hoặc trạm đang mở thẻ) phát vòng tiếng riêng: lên trong 0,5 giây, đổi trạm thì chéo 0,5 giây, về mức mặc định thì tắt. Trà lực đang chạy thì nhanh hơn 10 %.
+- 9 vòng tổng hợp bằng code, 5–6 giây, tạo một lần. Ấm trà sôi; nồi mứt sánh; hai lò lách tách; trà sữa lắc đá; bình ủ sao và đài ngắm sao leng keng; cối giã hoa thịch thịch; tổ mật nhỏ giọt có tiếng ong; suối hoa chảy; giỏ lá và giàn nho lá xào xạc.
+- Thẻ Tạm nghỉ thêm thanh "Tiếng trạm" (mặc định 0,7) và nút "Nhạc" bấm vòng: Tự động / Đêm trăng / Rạng sáng / Mưa. Tự động: Rạng sáng 5–17 giờ, Đêm trăng các giờ còn lại.
+- Thêm hai bài nhạc: Rạng sáng (nhanh hơn, sáng hơn) và Mưa (chậm, buồn nhẹ, có tiếng mưa).
+- Sửa kèm: trước đây lần mở game đầu tiên, thanh Nhạc nền và Âm thanh hiện giá trị mặc định thay vì giá trị đã lưu. Nay hiện đúng.
+
+### Chưa đạt
+- Chưa ai nghe thật: chủ project cần mở bản Mac, zoom gần từng trạm và ghi tiếng nào chói.
+- Chưa có file ghi âm; mới có chỗ gắn `Sfx.SupplyStationClip`, seeder chưa nạp `sfx_<id>.ogg`.
+- Game chưa có mưa, nên bài Mưa chỉ phát khi người chơi chọn.
+
+## #52 — Vườn đứng trên lưới lục giác (agent song song, nhánh agent-52)
+
+- Test: 917/918 EditMode trên main sau khi gộp. Có 15 test mới: 12 trong `GardenGridTests`, 3 trong `GardenScreenTests`.
+- Commit: code `00ef751`, merge `c587616`, sửa sau gộp `643faa1`, `bd10c7d`, `5b2ecfa`. Save thêm khối `grid`, vẫn giữ v14.
+- Mỗi trạm, chỗ nghỉ, đồ trang trí, cối, tiệm và quầy khách có một ô lục giác riêng, tính từ ấm trà (các ô cách nhau 150 ngang, 200 dọc).
+  - Bãi cỏ lúc đầu rộng 3 vòng; mỗi đợt mở đất thêm 1 vòng, tới 7 vòng khi đủ 12 trạm.
+  - Save cũ tự xếp mọi thứ lên ô mặc định, không mất gì.
+  - Người chơi gần như không thấy khác: vật xê dịch nhiều nhất 171 đơn vị, cối lên nằm trên ấm trà.
+- Sửa thêm khi gộp với main:
+  - Các bảng tĩnh (`Seats`, `DecorSpots`, `Spots`) mà viền rừng #51, bé thỏ đi dạo #55 và tiếng trạm #63 còn dùng nay đọc từ lưới.
+  - Tính lại điểm dạo chơi trên bãi cỏ.
+  - Biển "Giã bánh" dời sang trái để không nằm dưới ô "▲ N" ở mép trên.
+- Ảnh (docs/anh/po-52/): `52-truoc-vuon.png`, `52-sau-vuon.png`, `52-truoc-12-tram.png`, `52-sau-12-tram.png`.
+
+### Chưa đạt / cần PO quyết
+- Bán kính bắt đầu là 3, không phải 2 như đề xuất. Ghế nghỉ, tiệm và hai chỗ trang trí cuối đứng ngoài bãi cỏ cho tới đợt mở đất cuối, coi như khung có sẵn của vườn.
+- Chưa có #53 (vòng đất lộ dần) và #54 (người chơi tự xếp vườn). Chưa thử tay.
+
+## #68 — Mã quà và hộp thư: nhập mã trong Hồ sơ, thư quà đền bù, không cần máy chủ (agent song song, nhánh agent-68)
+
+- Test: 938/939 qua, 0 lỗi (1 test inconclusive là `SeasonTests.Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit`, không thuộc phần này); 36 test mới (18 GiftCodes, 11 Mailbox, 7 màn hình); `tools/verify.sh` GREEN.
+- Commit: f6f1d4c, merge 5464614. Main sau gộp: 953/954.
+- Đã làm:
+- `Core/GiftCodes.cs`: bảng mã công khai `TRATHO-2026` (5 cà rốt vàng + 2 cỏ) và `CAMON-PLAYTEST` (mũ Nơ trăng), cả hai dùng được đến 31/3/2027.
+- Mã ký HMAC-SHA256: 4 ký tự loại (quà + ngày cuối) và 4 ký tự chữ ký. Có 4 loại: 5 vàng, 10 vàng, 2 cỏ, 5 vàng + 2 cỏ.
+- Mỗi vườn dùng một mã một lần; mã đã dùng lưu trong save (`codesUsed`). Không phân biệt hoa thường, bỏ qua dấu cách và gạch ngang.
+- `tools/make-code.sh`: tạo khoá (`--new-key`) và tạo mã; khoá nằm ở `Assets/Resources/keys.json`, git bỏ qua.
+- `Core/Mailbox.cs`: tối đa 10 thư, mỗi thư 30 ngày. Thư xin lỗi khi save hỏng (10 vàng + 3 cỏ). Thư quà mùa (5 vàng) cho mỗi mùa bị lỡ trọn vẹn trong vòng 1 năm. Số quà theo loại thư, sửa file save không tăng được.
+- Hồ sơ: ô nhập mã + nút "Nhận quà" dưới mã người chơi. Mã đúng thì đóng thẻ, cà rốt vàng bay về ví; mã sai thì ô rung, `Sfx.Deny` và báo lý do.
+- Thẻ Tạm nghỉ: nút "Thư" ở góc trên trái, có số đếm, mở thẻ Hộp thư.
+- Ảnh: docs/anh/po-68/68-tam-nghi-thu.png, 68-hop-thu.png, 68-hop-thu-da-nhan.png, 68-ho-so-ma-qua.png, 68-ma-sai.png
+
+### Chưa đạt / cần PO quyết
+- Chưa chạy thử bằng tay trên bản Mac (mới có test màn hình).
+- Chưa có khoá thật: cần chạy `tools/make-code.sh --new-key` trên máy build và cất khoá ở chỗ an toàn. Khoá nằm trong bản build (thư mục Resources), nên người chịu khó mổ bản build vẫn lấy được.
+- PO duyệt các con số tự chọn: hạn 31/3/2027 cho hai mã công khai, thư xin lỗi 10 vàng + 3 cỏ, thư quà mùa 5 vàng, 4 loại mã ký.
+- Nhập mã đúng sẽ đóng cả Hồ sơ lẫn thẻ Tạm nghỉ để thấy quà bay về ví; nhận thư thì ở lại hộp thư và chỉ hiện một dòng "Đã nhận …".
+- Chơi lại từ đầu thì danh sách mã đã dùng cũng mất, nên nhập lại được mã cũ.
+
+## #66 — Seam quảng cáo thưởng ở ba chỗ có trần ngày, và vé Bỏ quảng cáo (agent song song, nhánh agent-66)
+
+**Test:** 940/941 (1 Inconclusive có sẵn: SeasonTests, phụ thuộc mùa), 25 test mới. verify.sh RESULT GREEN.
+**Commit:** 6a544ac, merge 6e866b2. Main sau gộp: 976/977.
+
+Đã làm:
+- `Core/Ads.cs`: `IRewardedAds`, `FakeRewardedAds` (luôn sẵn sàng, trả kết quả sau 1 giây; chỉ dùng trong editor và test), `NoAds`; tên ba chỗ quảng cáo là hằng số; trần theo ngày đã kẹp, lưu thêm vào save (vẫn bản 14).
+- Ba chỗ, mỗi chỗ một nút phụ, chỉ hiện khi có gì để nhận: ×2 ở màn chào trở lại khi lượt miễn phí đã dùng (1/ngày; ×2 miễn phí và ×2 bằng cà rốt vàng giữ nguyên); thêm 1 lượt ở thẻ kết quả khi trò đã hết lượt (1/trò/ngày); "Xem để nhận 1 cà rốt vàng" ở hàng cà rốt vàng của Tiệm (2/ngày).
+- Vé "Bỏ quảng cáo · 30 ngày" (`vuontra.noads.30`) ở thẻ mua cà rốt vàng, giá lấy từ cửa hàng, chỉ bán khi quảng cáo bật; có vé thì mọi nút thành "Nhận ngay", cùng trần.
+- Công tắc duy nhất: `GameRunner.AdsInPlayerBuilds` (đang tắt). Mọi bản build cho người chơi, kể cả bản Mac, không có nút quảng cáo.
+- Mục 5 trong docs/khai-bao-du-lieu-cua-hang.md.
+- Nhịp chơi khi xem mọi quảng cáo (Logs/economy-ads.txt): cấp 5 lúc 7 phút 15 giây, cấp 10 lúc 8 giờ 27 phút → 8 giờ 30 phút, 12 ô đất ngày 3 không đổi; +14 cà rốt vàng/tuần; lượt gọi vàng 5 → 6.
+
+Ảnh: docs/anh/po-66/66-di-vang-xem.png, 66-tiem-xem.png, 66-ve-bo-quang-cao.png, 66-them-luot.png, 66-them-luot-nhan-ngay.png
+
+### Chưa đạt / cần PO quyết
+- Có quảng cáo hay không; ba chỗ và trần; giá vé và 30 ngày.
+- Lượt gọi bằng cà rốt vàng của người chơi xem mọi quảng cáo chạm đúng mức trần 6/tuần; nếu muốn chừa khoảng trống thì giảm quà ở Tiệm còn 1/ngày.
+- Mốc 12 ô đất chỉ cách vạch ngày 3 bảy phút ở cả ba cách chơi (có từ trước, không do quảng cáo).
+- Chưa cài SDK LevelPlay, chưa có hộp ATT/GDPR; chạm vào cối/giỏ/hũ khi hết lượt chưa mời xem thêm lượt.
+
+## #62 — Mưa và Thỏ Ếch (agent song song, nhánh agent-62)
+
+**Test:** 919/920 (1 test mùa vụ Inconclusive như trước), thêm 17 test (9 `WeatherTests`, 7 `RainScreenTests`, 1 `GardenPacingTests`). `tools/verify.sh` → RESULT GREEN.
+**Commit:** f213bce, merge 325e22d. Main sau gộp: 993/994; sau khi gộp cùng #64 và #66, các mốc nhịp không đổi.
+
+**Đã làm:**
+- `Core/Weather.cs`: mỗi ngày 2 cơn mưa 8 phút theo hạt giống ngày (cơn 1 trong 6:00–14:30, cơn 2 trong 14:30–23:00, không chồng); `FrogRabbit`: chỉ trong mưa, mỗi cơn một bé, ở 60 giây, chạm = 10 phút thu nhập (× thu nhập × tốc độ) + 1 cỏ xác suất 1/4, tối đa 2/ngày, lùi đồng hồ không thêm, chờ cấp vườn 15 và xong hướng dẫn.
+- Save giữ bản 14, thêm khối `"frog"` (save cũ: chưa gặp bé nào).
+- Màn vườn: màu mưa (ngày xám xanh, đêm xanh đậm), 90 vạch mưa xiên, giọt trên ao, đèn lồng sáng hơn 20 %. "Giảm chuyển động" tắt vạch và giọt, giữ màu. Thỏ nghỉ ở thảm và võng ngồi dưới gốc cây ven rừng (chỉ đổi chỗ vẽ). Thỏ Ếch = Thỏ Bông đội Mũ len nhuộm xanh có hai mắt, bước ra từ cổng trăng nhỏ cạnh ao.
+- Âm thanh: tiếng mưa của bài "Mưa" (#63) thành hàm chung, mưa thì thay nền ambient, theo thanh Âm thanh.
+- Thành tựu `ech-5` "Gặp Thỏ Ếch 5 lần" = 2 cỏ.
+
+**Nhịp (trước → sau, gặp đủ 2 ếch mỗi ngày):** GardenPacing thong thả cấp 5 6p03 / cấp 10 4g29 / cấp 15 35g06 không đổi. EconomySimulation thong thả cấp 10 8g27, 12 ô đất ngày 3 (48g07), trò chơi + đơn khách ngày 1 19,5 %, không đổi; gặp 10 ếch, +5 cỏ. Không nghỉ tay: cấp 10 5p35, 12 ô đất 9p11, không đổi.
+
+**Ảnh:** `docs/anh/po-62/62-mua-ngay.png`, `62-mua-dem.png`, `62-mua-giam-chuyen-dong.png`, `62-tho-tru-mua.png`, `62-tho-ech-den.png`, `62-tho-ech.png`.
+
+### Chưa đạt / cần PO quyết
+- PO quyết: Thỏ Ếch chỉ đến từ cấp vườn 15. Từ cấp 1 nó kéo phần trò chơi + đơn khách ngày 1 xuống 9,5 %; từ cấp 8 hoặc 10 nó mở đủ 12 ô đất ngay ngày 2; từ cấp 12 thì giữ nhịp.
+- PO quyết: mưa chỉ rơi từ 6:00 tới 23:00. Theo giờ thật chỉ có 16 phút mưa mỗi ngày, nên người chơi thong thả gặp ếch thưa, thành tựu 5 lần sẽ đến chậm.
+- Tiếng mưa theo thanh Âm thanh (như issue), còn nền ambient vẫn theo thanh Nhạc.
+- Chưa có mũ ếch vẽ (Antigravity); chưa có ảnh Thỏ Ếch trong mưa đêm; bài "Mưa" chưa tự bật khi trời mưa.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái

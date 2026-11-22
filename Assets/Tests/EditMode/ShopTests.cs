@@ -26,7 +26,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void A_Gift_Comes_Once_A_Day_A_Missed_Day_Starts_The_Chain_Over_And_A_Clock_Set_Back_Gets_Nothing()
+        public void A_Gift_Comes_Once_A_Day_A_Missed_Day_Steps_Back_One_And_A_Clock_Set_Back_Gets_Nothing()
         {
             Assert.IsTrue(Shop.GiftWaiting(s, 100));
             Assert.AreEqual(1, Shop.ClaimDailyGift(s, 100));
@@ -39,12 +39,144 @@ namespace VuonTra.Core.Tests
 
             Assert.AreEqual(0, Shop.ClaimDailyGift(s, 101), "the clock went back: nothing twice");
             Assert.IsFalse(Shop.GiftWaiting(s, 99));
-            Assert.AreEqual(1, Shop.ClaimDailyGift(s, 104), "a day was missed: back to day one");
-            Assert.AreEqual(1, s.GiftStreak);
+            Assert.AreEqual(3, s.GiftStreak, "and the streak is untouched");
+            Assert.AreEqual(4, s.GoldenCarrots);
+        }
 
-            for (int day = 105; day <= 110; day++) Shop.ClaimDailyGift(s, day);
+        [Test]
+        public void One_Missed_Day_Steps_The_Streak_Back_Exactly_One_And_Each_Further_Missed_Day_One_More()
+        {
+            Assert.AreEqual(1, Shop.MissPenalty);
+            for (long day = 100; day <= 104; day++) Shop.ClaimDailyGift(s, day);
+            Assert.AreEqual(5, s.GiftStreak);
+            Assert.AreEqual(4, Shop.StreakFor(s, 106), "day 5, a day missed: the next gift is day 4's");
+            Assert.AreEqual(Shop.GiftAt(4), Shop.ClaimDailyGift(s, 106));
+            Assert.AreEqual(4, s.GiftStreak);
+            Assert.AreEqual(5, Shop.StreakFor(s, 107), "then on as usual");
+
+            Assert.AreEqual(2, Shop.StreakFor(s, 109), "two days missed: two back");
+            Assert.AreEqual(1, Shop.StreakFor(s, 120), "never below day one");
+            Assert.AreEqual(1, Shop.StreakFor(s, long.MaxValue / 2), "however long away");
+            Shop.ClaimDailyGift(s, 109);
+            Assert.AreEqual(2, s.GiftStreak);
+        }
+
+        [Test]
+        public void The_First_Weeks_Seventh_Day_Brings_The_Conical_Hat_And_A_Clover_Exactly_Once()
+        {
+            List<ItemDef> items = HatDefs();
+            for (long day = 100; day <= 105; day++) Assert.AreEqual(0, ClaimBig(day, items).Clovers);
+            Assert.AreEqual(1 + 1 + 2 + 2 + 3 + 3, s.GoldenCarrots);
+            Assert.IsFalse(s.GiftBigClaimed);
+            Assert.IsTrue(Shop.IsBigDay(s, 7));
+
+            int golden = Shop.ClaimDailyGift(s, 106, "A", items, out _, out Shop.BigGift big);
+            Assert.IsTrue(big.Given);
+            Assert.AreEqual(5, golden, "five golden carrots as every seventh day");
+            Assert.AreEqual(17, s.GoldenCarrots, "a whole week brings seventeen");
+            Assert.IsNotNull(big.Hat);
+            Assert.AreEqual(Shop.BigGiftHat, big.Hat.DefId);
+            Assert.AreEqual("hat-non-la", Shop.BigGiftHat, "the first hat the shop sells");
+            Assert.AreEqual(0, big.Golden);
+            Assert.AreEqual(1, big.Clovers);
+            Assert.AreEqual(1, s.Clovers);
+            Assert.IsTrue(Items.Owns(s, "hat-non-la"), "given, not sold");
+            Assert.AreEqual(1, s.Items.Count);
+            Assert.IsTrue(s.GiftBigClaimed);
+            Assert.AreEqual(106, s.GiftBigDay);
+            Assert.IsFalse(s.GiftBigGolden);
+            Assert.IsFalse(Shop.IsBigDay(s, 7));
+
+            // The second week's seventh day is five golden carrots, nothing more.
+            for (long day = 107; day <= 112; day++) ClaimBig(day, items);
+            Assert.AreEqual(13, s.GiftStreak);
+            Shop.BigGift again = ClaimBig(113, items);
+            Assert.AreEqual(14, s.GiftStreak);
+            Assert.IsFalse(again.Given);
+            Assert.AreEqual(1, s.Clovers);
+            Assert.AreEqual(1, s.Items.Count);
+            // Nor does stepping back to day seven bring it again.
+            s.GiftStreak = 7;
+            ClaimBig(115, items);
+            Assert.AreEqual(6, s.GiftStreak);
+            Assert.IsFalse(ClaimBig(116, items).Given);
             Assert.AreEqual(7, s.GiftStreak);
-            Assert.AreEqual(4 + 1 + 1 + 2 + 2 + 3 + 3 + 5, s.GoldenCarrots, "a whole week brings seventeen");
+            Assert.AreEqual(1, s.Clovers);
+            Assert.AreEqual(1, s.Items.Count);
+        }
+
+        [Test]
+        public void A_Player_Who_Owns_The_Conical_Hat_Gets_Its_Price_In_Golden_Carrots_Instead()
+        {
+            List<ItemDef> items = HatDefs();
+            s.GoldenCarrots = 20;
+            Shop.BuyItem(s, items, "hat-non-la");
+            for (long day = 100; day <= 105; day++) ClaimBig(day, items);
+            int before = s.GoldenCarrots;
+            int golden = Shop.ClaimDailyGift(s, 106, "A", items, out _, out Shop.BigGift big);
+            Assert.IsTrue(big.Given);
+            Assert.IsNull(big.Hat, "one of each: no second hat");
+            Assert.AreEqual(20, big.Golden, "the hat's price instead");
+            Assert.AreEqual(5 + 20, golden);
+            Assert.AreEqual(before + 25, s.GoldenCarrots);
+            Assert.AreEqual(1, s.Clovers);
+            Assert.AreEqual(1, s.Items.Count);
+            Assert.IsTrue(s.GiftBigGolden);
+        }
+
+        [Test]
+        public void A_Clock_Set_Back_On_The_Big_Day_Gives_Nothing_Twice()
+        {
+            List<ItemDef> items = HatDefs();
+            for (long day = 100; day <= 106; day++) ClaimBig(day, items);
+            Assert.IsTrue(s.GiftBigClaimed);
+            int golden = s.GoldenCarrots, clovers = s.Clovers, owned = s.Items.Count;
+            for (long day = 100; day <= 106; day++)
+            {
+                Assert.AreEqual(0, Shop.ClaimDailyGift(s, day, "A", items, out _, out Shop.BigGift big), "day " + day);
+                Assert.IsFalse(big.Given);
+            }
+            Assert.AreEqual(golden, s.GoldenCarrots);
+            Assert.AreEqual(clovers, s.Clovers);
+            Assert.AreEqual(owned, s.Items.Count);
+            Assert.AreEqual(7, s.GiftStreak);
+        }
+
+        [Test]
+        public void The_Week_Row_Shows_Claimed_Today_And_Later_Days_And_Repeats_From_Day_Eight()
+        {
+            Shop.GiftTile[] week = Shop.Week(s, 100);
+            Assert.AreEqual(7, week.Length);
+            Assert.IsTrue(week[0].Today);
+            Assert.IsFalse(week[0].Claimed);
+            for (int i = 1; i < 7; i++) Assert.IsFalse(week[i].Today || week[i].Claimed, "later: day " + (i + 1));
+            Assert.IsTrue(week[6].Big, "the seventh tile is the big gift");
+            for (int i = 0; i < 6; i++) Assert.IsFalse(week[i].Big);
+            CollectionAssert.AreEqual(new[] { 1, 1, 2, 2, 3, 3, 5 }, System.Array.ConvertAll(week, t => t.Golden));
+
+            for (long day = 100; day <= 102; day++) Shop.ClaimDailyGift(s, day);
+            week = Shop.Week(s, 103);
+            Assert.IsTrue(week[0].Claimed && week[1].Claimed && week[2].Claimed);
+            Assert.IsTrue(week[3].Today && !week[3].Claimed, "day four is today's");
+            Assert.IsFalse(week[4].Claimed || week[4].Today);
+            week = Shop.Week(s, 102);
+            Assert.IsTrue(week[2].Today && week[2].Claimed, "today's, already taken");
+            Assert.IsFalse(week[3].Claimed || week[3].Today);
+
+            for (long day = 103; day <= 106; day++) Shop.ClaimDailyGift(s, day, "A", HatDefs(), out _, out _);
+            week = Shop.Week(s, 106);
+            Assert.IsTrue(week[6].Today && week[6].Claimed && week[6].Big, "the big gift taken today still shows what it was");
+            week = Shop.Week(s, 107);
+            CollectionAssert.AreEqual(new[] { 8, 9, 10, 11, 12, 13, 14 }, System.Array.ConvertAll(week, t => t.Day));
+            CollectionAssert.AreEqual(new[] { 3, 3, 5, 3, 3, 5, 3 }, System.Array.ConvertAll(week, t => t.Golden), "the rule as it is");
+            Assert.IsTrue(week[0].Today);
+            foreach (Shop.GiftTile t in week) Assert.IsFalse(t.Big, "no second big gift");
+        }
+
+        Shop.BigGift ClaimBig(long day, List<ItemDef> items)
+        {
+            Shop.ClaimDailyGift(s, day, "A", items, out _, out Shop.BigGift big);
+            return big;
         }
 
         [Test]
@@ -192,9 +324,19 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(8, r.GoldenCarrots);
             Assert.AreEqual(200, r.GiftDay);
             Assert.AreEqual(1, r.GiftStreak);
+            Assert.IsFalse(r.GiftBigClaimed);
             GameState old = SaveCodec.Decode(defs, "{\"version\":12,\"stations\":[]}").State;
             Assert.AreEqual(0, old.GoldenCarrots);
             Assert.IsTrue(Shop.GiftWaiting(old, 200), "an old garden's first gift is still to come");
+            Assert.IsFalse(old.GiftBigClaimed, "and so is its big gift");
+            Assert.AreEqual(-1, old.GiftBigDay);
+
+            s.GiftBigDay = 206;
+            s.GiftBigGolden = true;
+            r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(206, r.GiftBigDay, "the big gift is remembered");
+            Assert.IsTrue(r.GiftBigClaimed);
+            Assert.IsTrue(r.GiftBigGolden);
         }
         // ----- #44 round 3: hats for looks, and fur dye -----
 

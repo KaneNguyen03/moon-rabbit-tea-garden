@@ -44,7 +44,15 @@ namespace VuonTra.Core
         /// <summary>1 while a rabbit of the running season works at a station of its trade.</summary>
         SeasonKindInTrade,
         /// <summary>Pictures taken with a rabbit of the running season in the garden.</summary>
-        PhotosWithSeasonRabbit
+        PhotosWithSeasonRabbit,
+        /// <summary>Pictures taken for a rabbit that asked for one (#56).</summary>
+        PhotoAsksAnswered,
+        /// <summary>How many rabbits sit at the places to rest right now (#60).</summary>
+        RabbitsResting,
+        /// <summary>How many every-day kinds the album holds (#61): the album's milestones.</summary>
+        KindsMet,
+        /// <summary>Frog Rabbits greeted in the rain, in all (#62).</summary>
+        FrogsMet
     }
 
     /// <summary>
@@ -66,6 +74,8 @@ namespace VuonTra.Core
         public double RewardCarrots;
         public int RewardClovers;
         public int RewardGolden;
+        /// <summary>Moon jars (#64), each in place of a clover: the day's free jar when it can still come, the clover when it cannot.</summary>
+        public int RewardJars;
         /// <summary>A quest of a season shows only while that season runs (#8); None is every day.</summary>
         public Season Season;
     }
@@ -148,6 +158,14 @@ namespace VuonTra.Core
                     return Seasons.SeasonRabbitInTrade(defs, s, Seasons.SeasonOf(s.MaxDaySeen)) ? 1 : 0;
                 case QuestMetric.PhotosWithSeasonRabbit:
                     return s.PhotosWithSeasonRabbit;
+                case QuestMetric.PhotoAsksAnswered:
+                    return q.Daily ? Math.Max(0, s.PhotoAsksAnswered - s.DailyPhotoAsksBase) : s.PhotoAsksAnswered;
+                case QuestMetric.RabbitsResting:
+                    return RestSpots.Seated(s).Count;
+                case QuestMetric.KindsMet:
+                    return AlbumSets.KindsMet(s);
+                case QuestMetric.FrogsMet:
+                    return s.FrogsMet;
                 case QuestMetric.OrdersDelivered:
                     return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:
@@ -178,6 +196,12 @@ namespace VuonTra.Core
             return bySeconds > flat ? bySeconds : flat;
         }
 
+        /// <summary>Moon jars a claim would pay now (#64): one at most, the day's free jar, while it can still come (from garden level 15).</summary>
+        public static int JarsNow(QuestDef q, GameState s) => q.RewardJars > 0 && MoonJars.DailyWaiting(s, s.DailyDay) ? 1 : 0;
+
+        /// <summary>Clovers a claim would pay now: its own, and one for each of its jars that cannot come.</summary>
+        public static int CloversNow(QuestDef q, GameState s) => q.RewardClovers + q.RewardJars - JarsNow(q, s);
+
         /// <summary>Pays a finished quest once. Rewards are a gift, so they do not count as earned carrots.</summary>
         public static bool TryClaim(QuestDef q, IReadOnlyList<StationDef> defs, GameState s, Modifiers m, out BigNum paid)
         {
@@ -185,7 +209,9 @@ namespace VuonTra.Core
             if (!CanClaim(q, defs, s)) return false;
             paid = RewardOf(q, defs, s, m);
             s.Coins += paid;
-            s.Clovers += q.RewardClovers;
+            int clovers = CloversNow(q, s);
+            if (JarsNow(q, s) > 0) MoonJars.GiveFree(s, s.DailyDay);
+            s.Clovers += clovers;
             s.GoldenCarrots += q.RewardGolden;
             s.Claimed.Add(q.Id);
             Garden.AddXp(s, Garden.XpQuest);
@@ -201,19 +227,20 @@ namespace VuonTra.Core
         }
 
         /// <summary>
-        /// Starts a new day when <paramref name="day"/> differs from the one in the state: daily
-        /// counters restart from now, daily claims are forgotten, and the carrot goal is set from
-        /// the income at this moment. Returns true when a new day began. A day number that goes
-        /// backwards (clock changed) also starts a fresh day rather than reviving old claims.
+        /// Starts a new day when <paramref name="day"/> is later than the one in the state: daily counters restart
+        /// from now, daily claims are forgotten, and the carrot goal is set from the income at this moment. Returns
+        /// true when a new day began. A day number that goes backwards (clock turned back) starts nothing: the
+        /// day's claims stay claimed (#78).
         /// </summary>
         public static bool RollDaily(IReadOnlyList<QuestDef> quests, IReadOnlyList<StationDef> defs, GameState s, long day, Modifiers m)
         {
-            if (s.DailyDay == day) return false;
+            if (day <= s.DailyDay) return false;
             s.DailyDay = day;
             s.DailyTapsBase = s.TotalTaps;
             s.DailyLevelsBase = s.LevelsBought;
             s.DailyEarnedBase = s.TotalEarned;
             s.DailyOrdersBase = s.OrdersDelivered;
+            s.DailyPhotoAsksBase = s.PhotoAsksAnswered;
             s.GoldenToday = 0;
             BigNum goal = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * DailyCarrotSeconds);
             var floor = new BigNum(DailyCarrotMinimum);

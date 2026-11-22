@@ -97,7 +97,7 @@ namespace VuonTra.Core
             return Multiplier(s, r) * (Suits(defs, r, station) ? TradeBonus : 1d);
         }
 
-        /// <summary>What the rabbit is worth where it is now (resting counts as no bonus).</summary>
+        /// <summary>What the rabbit is worth where it is now (resting counts as no bonus to a station; a seated rabbit adds to the whole garden instead, see <see cref="RestSpots.BonusOf"/>).</summary>
         public static double WorkMultiplier(IReadOnlyList<StationDef> defs, GameState s, Rabbit r) => MultiplierAt(defs, s, r, r.Station);
 
         // ----- touching and stroking (#19) -----
@@ -114,9 +114,9 @@ namespace VuonTra.Core
         public const double DozeEnergy = 8d;
 
         /// <summary>
-        /// The player touched or stroked a rabbit on <paramref name="day"/>. The first time on any day (a day
-        /// before the last one counts too: a clock set back is not a reason to go cold) the bond grows by one
-        /// up to its cap and <see cref="PetEnergy"/> is paid; every later touch that day is for love alone.
+        /// The player touched or stroked a rabbit on <paramref name="day"/>. The first time on a day later than the
+        /// last one the bond grows by one up to its cap and <see cref="PetEnergy"/> is paid; every later touch that
+        /// day, and every touch on a day the clock was turned back to, is for love alone (#78).
         /// Waking a dozing rabbit (<paramref name="wake"/>) pays <see cref="DozeEnergy"/> instead, every time.
         /// The clover for a full bond is paid exactly once, at the step that completes it.
         /// </summary>
@@ -125,7 +125,7 @@ namespace VuonTra.Core
             var result = new PetResult();
             if (r == null) return result;
             result.Found = true;
-            result.FirstToday = r.PetDay != day;
+            result.FirstToday = day > r.PetDay;
             if (result.FirstToday)
             {
                 r.PetDay = day;

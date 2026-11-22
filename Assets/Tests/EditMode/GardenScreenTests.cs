@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Game;
+using VuonTra.Game.Platform;
 using VuonTra.Game.UI;
 using L10n = VuonTra.Game.L10n;
 using Motion = VuonTra.Game.UI.Motion;
@@ -31,6 +32,7 @@ namespace VuonTra.Core.Tests
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
+            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
             screen.Build();
             screen.Refresh();
         }
@@ -41,6 +43,9 @@ namespace VuonTra.Core.Tests
             Object.DestroyImmediate(root);
             Motion.SetReduced(false);
             Haptics.SetOn(true);
+            Notifications.Notifier = new FakeNotifier();
+            Notifications.SetOn(false);
+            Notifications.Notifier = new LogNotifier();
             L10n.SetLocale("vi");
         }
 
@@ -149,7 +154,7 @@ namespace VuonTra.Core.Tests
             Transform chip = root.transform.Find("Canvas/Hud/Season");
             Assert.IsTrue(chip.gameObject.activeSelf);
             Assert.AreEqual("Mùa 1", chip.Find("Text").GetComponent<Text>().text);
-            Assert.AreEqual(1.25d, runner.Mods.IncomeMultiplier, 1e-9);
+            Assert.AreEqual(1.25d * RestSpots.Multiplier(runner.State), runner.Mods.IncomeMultiplier, 1e-9, "the season's quarter, times the seated rabbits' share (#60)");
         }
 
         [Test]
@@ -514,7 +519,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Hud_Shows_The_Garden_Level_And_Mist_Lies_On_Land_Not_Yet_Opened()
+        public void The_Hud_Shows_The_Garden_Level_And_Land_Not_Yet_Opened_Is_A_Dashed_Ring_On_Clear_Grass()
         {
             Transform hud = root.transform.Find("Canvas/Hud");
             Assert.AreEqual("1", hud.Find("Level/Text").GetComponent<Text>().text);
@@ -523,19 +528,215 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("4", hud.Find("Level/Text").GetComponent<Text>().text);
             Assert.AreEqual(0.5f, hud.Find("Level/Ring").GetComponent<Image>().fillAmount, 0.01f);
 
+            // #51: no mist and nothing growing on land the garden does not have yet, only a faint dashed ring.
             Transform world = root.transform.Find("Canvas/Garden/Content");
-            Assert.IsNull(world.Find("Mist 3"), "the first four plots are the garden's own");
-            Assert.IsTrue(world.Find("Mist 4").gameObject.activeSelf);
-            Assert.IsTrue(world.Find("Mist 11").gameObject.activeSelf);
-            Assert.IsTrue(world.Find("Grove 5").gameObject.activeSelf, "trees stand where no station is drawn yet");
+            Assert.IsNull(world.Find("Ring 3"), "the first four plots are the garden's own");
+            for (int i = Plots.Starting; i < runner.Defs.Count; i++)
+            {
+                Assert.IsNull(world.Find("Mist " + i), "no mist on plot " + i);
+                Assert.IsNull(world.Find("Grove " + i), "nothing grows on plot " + i);
+                Transform ring = world.Find("Ring " + i);
+                Assert.IsNotNull(ring, "plot " + i + " is marked");
+                Assert.IsTrue(ring.gameObject.activeSelf);
+                Assert.Greater(ring.childCount, 12, "a ring of dashes");
+                Assert.IsFalse(world.Find("Bloom " + i).gameObject.activeSelf, "no fresh grass before the land is bought");
+            }
             for (int i = 0; i < 5; i++) runner.State.Levels[i] = 1;
             runner.State.Plots = 6;
             screen.Refresh();
-            for (int i = 0; i < 40; i++) screen.Advance(0.1f); // the mist takes a moment to lift
-            Assert.IsFalse(world.Find("Mist 4").gameObject.activeSelf);
-            Assert.IsFalse(world.Find("Grove 5").gameObject.activeSelf, "the sixth station is drawn now, so its trees are gone");
-            Assert.IsTrue(world.Find("Mist 6").gameObject.activeSelf);
-            Assert.IsTrue(world.Find("Grove 8").gameObject.activeSelf);
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f); // the rim steps back and the grass comes up
+            foreach (int i in new[] { 4, 5 })
+            {
+                Assert.IsFalse(world.Find("Ring " + i).gameObject.activeSelf, "plot " + i + " is the garden's now");
+                Transform bloom = world.Find("Bloom " + i);
+                Assert.IsTrue(bloom.gameObject.activeSelf, "fresh grass on plot " + i);
+                Assert.AreEqual(1f, bloom.localScale.x, 1e-3f);
+                Assert.AreEqual(1f, bloom.GetComponent<CanvasGroup>().alpha, 1e-3f);
+            }
+            Assert.IsTrue(world.Find("Ring 6").gameObject.activeSelf);
+            Assert.IsTrue(world.Find("Ring 11").gameObject.activeSelf);
+        }
+
+        /// <summary>The pieces of the forest rim (#51), as they stand on the canopy in garden units, without the sway.</summary>
+        List<KeyValuePair<string, Rect>> RimPieces()
+        {
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var rim = new List<KeyValuePair<string, Rect>>();
+            for (int k = 0; k < canopy.childCount; k++)
+            {
+                var rt = (RectTransform)canopy.GetChild(k);
+                if (!rt.gameObject.activeSelf || !rt.name.StartsWith("Rim ") || rt.name == "Rim Shade") continue;
+                Vector2 at = rt.anchoredPosition, size = rt.rect.size;
+                rim.Add(new KeyValuePair<string, Rect>(rt.name, new Rect(at.x - rt.pivot.x * size.x, at.y - rt.pivot.y * size.y, size.x, size.y)));
+            }
+            return rim;
+        }
+
+        /// <summary>Opens the garden up to <paramref name="plots"/> plots, with a station on every one before the last wave.</summary>
+        void HavePlots(int plots)
+        {
+            for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = i < plots - 2 || i < Plots.Starting ? 1 : 0;
+            runner.State.Plots = plots;
+            screen.Refresh();
+        }
+
+        [TestCase(4)]
+        [TestCase(6)]
+        [TestCase(8)]
+        [TestCase(10)]
+        [TestCase(12)]
+        public void The_Forest_Rim_Stands_On_No_Plot_And_Two_Hundred_Units_From_Every_Open_Station(int plots)
+        {
+            Motion.SetReduced(true);
+            HavePlots(plots);
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            List<KeyValuePair<string, Rect>> rim = RimPieces();
+            Assert.Greater(rim.Count, 20, "a rim of forest around the lawn");
+            var kinds = new HashSet<string>();
+            foreach (KeyValuePair<string, Rect> piece in rim) kinds.Add(piece.Key);
+            Assert.GreaterOrEqual(kinds.Count, 4, "built from four or five kinds of piece: " + string.Join(", ", kinds));
+
+            int onPlots = 0;
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Transform station = street.Find("Station " + runner.Defs[i].Id);
+                var parts = new List<RectTransform>();
+                foreach (string part in new[] { "Level", "Pad", "Floor", "Prop", "Rabbit", "Tier", "Ground" }) parts.Add((RectTransform)station.Find(part));
+                if (i >= Plots.Starting) parts.Add((RectTransform)street.Find("Ring " + i));
+                bool open = i < plots;
+                foreach (RectTransform part in parts)
+                {
+                    Rect at = GardenRect(part, street);
+                    foreach (KeyValuePair<string, Rect> piece in rim)
+                    {
+                        float c = Clearance(at, piece.Value);
+                        if (c < 0f) onPlots++;
+                        if (open) Assert.GreaterOrEqual(c, 200f, runner.Defs[i].Id + "/" + part.name + " is open and keeps 200 units from the rim; " + piece.Key + " at " + piece.Value);
+                    }
+                }
+            }
+            Assert.AreEqual(0, onPlots, "no piece of the rim stands on a plot, bought or not, at " + plots + " plots");
+            foreach (string path in new[] { "Basket", "Basket/Plate", "Jar", "Jar/Plate", "Mortar", "Mortar/Plate" })
+            {
+                Rect at = GardenRect((RectTransform)street.Find(path), street);
+                foreach (KeyValuePair<string, Rect> piece in rim)
+                    Assert.GreaterOrEqual(Clearance(at, piece.Value), 200f, path + " keeps 200 units from the rim; " + piece.Key + " at " + piece.Value);
+            }
+            foreach (KeyValuePair<string, Rect> piece in rim)
+                Assert.IsTrue(piece.Value.xMax <= 40f || piece.Value.xMin >= 1080f - 40f, piece.Key + " at " + piece.Value + " stands at the lawn's edge, not on it");
+        }
+
+        [Test]
+        public void No_Mist_Lies_On_The_Garden_At_Any_Land_Wave()
+        {
+            Sprite mist = runner.Catalog.Mist;
+            Transform garden = root.transform.Find("Canvas/Garden");
+            for (int plots = Plots.Starting; plots <= runner.Defs.Count; plots += 2)
+            {
+                HavePlots(plots);
+                for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+                foreach (Image img in garden.GetComponentsInChildren<Image>(false))
+                    Assert.IsTrue(mist == null || img.sprite != mist, img.name + " is mist over the garden at " + plots + " plots");
+            }
+        }
+
+        [Test]
+        public void Buying_A_Wave_Moves_The_Rim_Out_On_That_Side_And_The_Trees_Fade_Over()
+        {
+            HavePlots(4);
+            List<KeyValuePair<string, Rect>> before = RimPieces();
+            runner.State.Levels[4] = 0;
+            runner.State.Plots = 6;
+            screen.Refresh();
+            screen.Advance(0.15f);
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            bool fading = false;
+            for (int k = 0; k < canopy.childCount; k++)
+            {
+                Image img = canopy.GetChild(k).GetComponent<Image>();
+                if (img != null && canopy.GetChild(k).name.StartsWith("Rim ") && img.color.a > 0.02f && img.color.a < 0.98f) fading = true;
+            }
+            Assert.IsTrue(fading, "the pieces that step back fade out and in again");
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+            List<KeyValuePair<string, Rect>> after = RimPieces();
+            Assert.AreEqual(before.Count, after.Count, "the same pieces, further out");
+            int moved = 0;
+            for (int k = 0; k < before.Count; k++)
+            {
+                Rect a = before[k].Value, b = after[k].Value;
+                Assert.AreEqual(a.y, b.y, 0.01f, "a piece only steps sideways");
+                bool left = a.xMax < 540f;
+                if (left) Assert.LessOrEqual(b.x, a.x + 0.01f, "the rim on the left only steps back"); else Assert.GreaterOrEqual(b.x, a.x - 0.01f, "the rim on the right only steps back");
+                if (Mathf.Abs(b.x - a.x) > 1f)
+                {
+                    moved++;
+                    // Only the side the wave's plots are on opens.
+                    bool newThere = false;
+                    for (int i = 4; i < 6; i++) if ((screen.StationSpot(i).x < 540f) == left) newThere = true;
+                    Assert.IsTrue(newThere, before[k].Key + " at " + a + " moved, on the side with no new plot");
+                }
+            }
+            Assert.GreaterOrEqual(moved, 2, "the rim beside the two new plots stepped back");
+            foreach (Transform child in canopy)
+                if (child.name.StartsWith("Rim ") && child.name != "Rim Shade" && child.gameObject.activeSelf)
+                    Assert.AreEqual(1f, child.GetComponent<Image>().color.a, 1e-3f, child.name + " back in full");
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_A_New_Wave_Puts_The_Rim_And_The_Grass_In_Place_At_Once()
+        {
+            Motion.SetReduced(true);
+            HavePlots(4);
+            List<KeyValuePair<string, Rect>> before = RimPieces();
+            runner.State.Plots = 6;
+            screen.Refresh(); // no time passes: nothing may be on its way
+            List<KeyValuePair<string, Rect>> now = RimPieces();
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
+            List<KeyValuePair<string, Rect>> settled = RimPieces();
+            Assert.AreEqual(settled.Count, now.Count);
+            bool changed = false;
+            for (int k = 0; k < now.Count; k++)
+            {
+                Assert.AreEqual(settled[k].Value.x, now[k].Value.x, 0.01f, now[k].Key + " is already where it ends up");
+                if (k < before.Count && Mathf.Abs(before[k].Value.x - now[k].Value.x) > 1f) changed = true;
+            }
+            Assert.IsTrue(changed, "the rim did step back");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            foreach (Transform child in canopy)
+                if (child.name.StartsWith("Rim ") && child.name != "Rim Shade" && child.gameObject.activeSelf)
+                    Assert.AreEqual(1f, child.GetComponent<Image>().color.a, 1e-3f, child.name + " in full at once");
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            screen.Refresh();
+            foreach (int i in new[] { 4, 5 })
+            {
+                Assert.IsFalse(world.Find("Ring " + i).gameObject.activeSelf);
+                Transform bloom = world.Find("Bloom " + i);
+                Assert.IsTrue(bloom.gameObject.activeSelf);
+                Assert.AreEqual(1f, bloom.localScale.x, 1e-3f, "the grass is simply there");
+                Assert.AreEqual(1f, bloom.GetComponent<CanvasGroup>().alpha, 1e-3f);
+            }
+        }
+
+        [Test]
+        public void The_View_Reaches_The_Outermost_Open_Plot_After_Every_Wave()
+        {
+            screen.Shell.StartGame();
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            for (int plots = Plots.Starting; plots <= runner.Defs.Count; plots += 2)
+            {
+                HavePlots(plots);
+                foreach (GardenScreen.ZoomLevel zoom in new[] { GardenScreen.ZoomLevel.Default, GardenScreen.ZoomLevel.Near, GardenScreen.ZoomLevel.Far })
+                {
+                    screen.SetZoom(zoom, false);
+                    for (int i = 0; i < plots; i++)
+                    {
+                        screen.LookAt(screen.StationSpot(i));
+                        Vector2 at = screen.StationSpot(i) * world.localScale.x + world.anchoredPosition;
+                        Assert.IsTrue(at.x > 0f && at.x < 1080f && at.y > 340f && at.y < 1920f - 160f,
+                            "plot " + i + " of " + plots + " comes into view at " + zoom + ": " + at);
+                    }
+                }
+            }
         }
 
         [Test]
@@ -640,7 +841,7 @@ namespace VuonTra.Core.Tests
             {
                 Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[index].Id).onClick.Invoke();
                 for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
-                float y = GardenScreen.StationSpot(index).y * world.localScale.y + world.anchoredPosition.y;
+                float y = screen.StationSpot(index).y * world.localScale.y + world.anchoredPosition.y;
                 Assert.Greater(y, screen.SheetHeight + 60f, "station " + index + " stands above the sheet");
                 Assert.Less(y, 1920f - 160f, "station " + index + " stands under the HUD");
             }
@@ -731,7 +932,7 @@ namespace VuonTra.Core.Tests
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             float PondY() => GardenScreen.PondSpot.y * world.localScale.y + world.anchoredPosition.y;
-            float PotY() => GardenScreen.StationSpot(0).y * world.localScale.y + world.anchoredPosition.y;
+            float PotY() => screen.StationSpot(0).y * world.localScale.y + world.anchoredPosition.y;
             Assert.That(PondY(), Is.InRange(300f, 1700f), "behind the title the pond is in view");
 
             screen.Shell.StartGame();
@@ -748,7 +949,7 @@ namespace VuonTra.Core.Tests
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             screen.Shell.StartGame();
             for (int i = 0; i < 6; i++) screen.Advance(1f / 30f);
-            screen.LookAt(GardenScreen.StationSpot(2));
+            screen.LookAt(screen.StationSpot(2));
             Vector2 chosen = world.anchoredPosition;
             for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(chosen, world.anchoredPosition, "the glide does not drag the view back");
@@ -892,6 +1093,99 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(quiet, Haptics.Count, "switched off: nothing buzzes");
         }
 
+        // ----- device reminders (#65) -----
+
+        sealed class FakeNotifier : INotifier
+        {
+            public bool Grant = true;
+            public int Asked, Cancelled;
+            public List<Notice> Scheduled = new List<Notice>();
+            public void RequestPermission(System.Action<bool> done) { Asked++; done(Grant); }
+            public void Schedule(IReadOnlyList<Notice> notices) => Scheduled.AddRange(notices);
+            public void CancelAll() { Cancelled++; Scheduled.Clear(); }
+        }
+
+        /// <summary>What the engine calls when the app goes to the background or comes back (SendMessage does not run in edit mode).</summary>
+        void AppPause(bool paused) =>
+            typeof(GameRunner).GetMethod("OnApplicationPause", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
+                .Invoke(runner, new object[] { paused });
+
+        [Test]
+        public void Remind_Me_Is_Off_At_First_And_Asks_Permission_Only_When_Turned_On()
+        {
+            var fake = new FakeNotifier();
+            Notifications.Notifier = fake;
+            Notifications.SetOn(false);
+            fake.Asked = 0;
+            screen.Shell.StartGame();
+            screen.Shell.OpenPause();
+            Assert.AreEqual("Nhắc tôi", root.transform.Find("Canvas/Pause/Card/Remind Label").GetComponent<Text>().text);
+            Text pill = root.transform.Find("Canvas/Pause/Card/Remind/Text").GetComponent<Text>();
+            Assert.AreEqual("Tắt", pill.text, "off until the player turns it on");
+            Assert.AreEqual(0, fake.Asked, "opening the game and the card asks nothing");
+
+            Find("Canvas/Pause/Card/Remind").onClick.Invoke();
+            Assert.IsTrue(Notifications.On);
+            Assert.AreEqual(1, fake.Asked, "turning it on asks once");
+            Assert.AreEqual("Bật", pill.text);
+            Assert.AreEqual(1, PlayerPrefs.GetInt("remind.on", 0), "kept for the next launch");
+
+            Find("Canvas/Pause/Card/Remind").onClick.Invoke();
+            Assert.IsFalse(Notifications.On);
+            Assert.AreEqual(1, fake.Asked, "turning it off asks nothing");
+            Assert.AreEqual("Tắt", pill.text);
+        }
+
+        [Test]
+        public void Remind_Me_Goes_Back_Off_When_Permission_Is_Refused()
+        {
+            var fake = new FakeNotifier { Grant = false };
+            Notifications.Notifier = fake;
+            Notifications.SetOn(false);
+            screen.Shell.StartGame();
+            screen.Shell.OpenPause();
+            Find("Canvas/Pause/Card/Remind").onClick.Invoke();
+            Assert.AreEqual(1, fake.Asked);
+            Assert.IsFalse(Notifications.On, "refused: the switch is off again");
+            Assert.AreEqual("Tắt", root.transform.Find("Canvas/Pause/Card/Remind/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void Going_To_The_Background_Registers_The_Reminders_In_The_Players_Language_And_Coming_Back_Cancels_Them()
+        {
+            var fake = new FakeNotifier();
+            Notifications.Notifier = fake;
+            Notifications.SetOn(true);
+            runner.State.LastSeenUnixSeconds = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+
+            AppPause(true);
+            Assert.That(fake.Scheduled.Count, Is.InRange(2, Reminders.MaxCount), "the list is handed over");
+            var bodies = new List<string>();
+            foreach (Notice n in fake.Scheduled)
+            {
+                Assert.AreEqual("Vườn Trà Thỏ Trăng", n.Title);
+                bodies.Add(n.Body);
+            }
+            CollectionAssert.Contains(bodies, L10n.T("remind.gift"));
+            CollectionAssert.Contains(bodies, L10n.T("remind.missyou"));
+
+            int cancelled = fake.Cancelled;
+            AppPause(false);
+            Assert.AreEqual(cancelled + 1, fake.Cancelled, "back in front: all taken away");
+            Assert.IsEmpty(fake.Scheduled);
+
+            L10n.SetLocale("en");
+            AppPause(true);
+            Assert.AreEqual("Moon Rabbit Tea Garden", fake.Scheduled[0].Title);
+            bodies.Clear();
+            foreach (Notice n in fake.Scheduled) bodies.Add(n.Body);
+            CollectionAssert.Contains(bodies, "We haven't seen you for a while. The rabbits miss you.");
+
+            Notifications.SetOn(false);
+            AppPause(true);
+            Assert.IsEmpty(fake.Scheduled, "switched off: nothing is registered");
+        }
+
         [Test]
         public void Tapping_A_Station_Opens_Its_Card_And_The_Card_Buys()
         {
@@ -956,10 +1250,10 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(scroll.vertical);
             for (int a = 0; a < runner.Defs.Count; a++)
             {
-                Vector2 p = GardenScreen.StationSpot(a);
+                Vector2 p = screen.StationSpot(a);
                 Assert.IsTrue(p.x > 200 && p.x < world.sizeDelta.x - 200 && p.y > 200 && p.y < world.sizeDelta.y - 200, "station " + a + " is inside the world");
                 for (int b = a + 1; b < runner.Defs.Count; b++)
-                    Assert.Greater(Vector2.Distance(p, GardenScreen.StationSpot(b)), 280f, a + " and " + b);
+                    Assert.Greater(Vector2.Distance(p, screen.StationSpot(b)), 280f, a + " and " + b);
             }
         }
 
@@ -980,7 +1274,7 @@ namespace VuonTra.Core.Tests
 
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
             Assert.IsTrue(plate.activeSelf);
-            Assert.AreEqual(1f, world.localScale.x, 1e-4f);
+            Assert.AreEqual(GardenScreen.ZoomDefault, world.localScale.x, 1e-4f);
         }
 
         [Test]
@@ -994,6 +1288,137 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(world.anchoredPosition.x, 1080f - w - 0.5f);
             Assert.LessOrEqual(world.anchoredPosition.y, 0.5f);
             Assert.GreaterOrEqual(world.anchoredPosition.y, 1920f - h - 0.5f);
+        }
+
+        // ----- #50: the camera stands back and the big trees leave the lawn -----
+
+        /// <summary>A rectangle in garden units from a RectTransform under <paramref name="space"/>: anchored rects compared like the jar's.</summary>
+        static Rect GardenRect(RectTransform rt, RectTransform space)
+        {
+            var corners = new Vector3[4];
+            rt.GetWorldCorners(corners);
+            Vector2 a = space.InverseTransformPoint(corners[0]), b = space.InverseTransformPoint(corners[2]);
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        /// <summary>How far apart two rectangles stand: negative when they overlap.</summary>
+        static float Clearance(Rect a, Rect b)
+        {
+            float dx = Mathf.Max(a.xMin - b.xMax, b.xMin - a.xMax), dy = Mathf.Max(a.yMin - b.yMax, b.yMin - a.yMax);
+            return Mathf.Max(dx, dy);
+        }
+
+        [Test]
+        public void The_Usual_Zoom_Stands_Back_So_Three_Station_Columns_Fit_And_Far_Is_A_Step_Beyond()
+        {
+            Assert.That(GardenScreen.ZoomDefault, Is.InRange(0.80f, 0.85f), "the usual view is pulled back 15 to 20 percent");
+            Assert.AreEqual(1.5f, GardenScreen.ZoomNear, 1e-5f, "the nearest zoom stays as it was, so taps stay easy");
+            Assert.LessOrEqual(GardenScreen.ZoomFar, 1920f / 2970f + 1e-4f, "far away the whole garden still fits top to bottom");
+            Assert.Less(GardenScreen.ZoomFar, GardenScreen.ZoomDefault * 0.8f, "and far is a real step beyond the usual view");
+            float visible = 1080f / GardenScreen.ZoomDefault;
+            Assert.GreaterOrEqual(visible, 1300f, "at the usual zoom the screen spans 1300 garden units");
+            // Three stations side by side: the beehive, the teapot and the leaf basket are the widest trio.
+            float left = screen.StationSpot(5).x - 220f * GardenScreen.StationSize(5), right = screen.StationSpot(1).x + 220f * GardenScreen.StationSize(1);
+            Assert.Less(right - left, visible, "the widest row of three fits at once");
+            float lowest = float.MaxValue, highest = float.MinValue;
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                lowest = Mathf.Min(lowest, screen.StationSpot(i).x - 220f * GardenScreen.StationSize(i));
+                highest = Mathf.Max(highest, screen.StationSpot(i).x + 220f * GardenScreen.StationSize(i));
+            }
+            Assert.Less(highest - lowest, visible, "every station column fits across the screen");
+
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f); // the opening glide is over
+            Assert.AreEqual(GardenScreen.ZoomDefault, screen.ZoomScale, 1e-4f, "a new player opens at the usual zoom");
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
+            Assert.AreEqual((1080f - 1080f * GardenScreen.ZoomDefault) / 2f, world.anchoredPosition.x, 0.5f, "the lawn sits in the middle, the rim showing past both sides");
+            Assert.IsFalse(world.parent.GetComponent<ScrollRect>().horizontal, "nothing to drag sideways at the usual zoom");
+        }
+
+        [Test]
+        public void The_Opening_View_Shows_At_Least_Five_Plots_Around_The_Teapot()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            int shown = 0;
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Vector2 at = screen.StationSpot(i) * world.localScale.x + world.anchoredPosition;
+                // Clear of the HUD at the top and the tray and tab bar at the bottom.
+                if (at.x > 0f && at.x < 1080f && at.y > 340f && at.y < 1920f - 160f) shown++;
+            }
+            Assert.GreaterOrEqual(shown, 5, "five or more plots are in view after opening, the teapot among them");
+            Vector2 pot = screen.StationSpot(0) * world.localScale.x + world.anchoredPosition;
+            Assert.AreEqual(1920f * 0.6f, pot.y, 1f);
+        }
+
+        [Test]
+        public void No_Big_Tree_Stands_On_The_Lawn()
+        {
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            int trees = 0;
+            foreach (RectTransform rt in street.GetComponentsInChildren<RectTransform>(true))
+            {
+                if (rt.name != "Tree") continue;
+                trees++;
+                Assert.LessOrEqual(rt.rect.height, 120f, "only the small tea tree by the leaf basket stands on the lawn, at " + rt.anchoredPosition);
+            }
+            Assert.LessOrEqual(trees, 1, "nothing grows on the land not yet opened either (#51)");
+        }
+
+        [Test]
+        public void The_Canopy_Keeps_Two_Hundred_Units_From_Every_Station_And_From_The_Props_That_Must_Be_Read()
+        {
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var wood = new System.Collections.Generic.List<Rect>();
+            for (int k = 0; k < canopy.childCount; k++)
+            {
+                var rt = (RectTransform)canopy.GetChild(k);
+                if (rt.name == "Tree" || rt.name == "Bush") wood.Add(GardenRect(rt, canopy));
+            }
+            Assert.Greater(wood.Count, 20, "the wood still rings the garden");
+            var read = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, Rect>>();
+            foreach (string[] parts in new[] { new[] { "Level" }, new[] { "Pad" }, new[] { "Pad", "Tag" }, new[] { "Floor" }, new[] { "Prop" }, new[] { "Rabbit" }, new[] { "Tier" } })
+                for (int i = 0; i < runner.Defs.Count; i++)
+                {
+                    Transform t = street.Find("Station " + runner.Defs[i].Id);
+                    foreach (string part in parts) t = t.Find(part);
+                    Assert.IsNotNull(t, runner.Defs[i].Id + " has " + string.Join("/", parts));
+                    read.Add(new System.Collections.Generic.KeyValuePair<string, Rect>(runner.Defs[i].Id + " " + string.Join("/", parts), GardenRect((RectTransform)t, street)));
+                }
+            foreach (string path in new[] { "Basket", "Basket/Plate", "Jar", "Jar/Plate", "Mortar", "Mortar/Plate" })
+            {
+                Transform t = street.Find(path);
+                Assert.IsNotNull(t, path);
+                read.Add(new System.Collections.Generic.KeyValuePair<string, Rect>(path, GardenRect((RectTransform)t, street)));
+            }
+            foreach (System.Collections.Generic.KeyValuePair<string, Rect> item in read)
+            {
+                float nearest = float.MaxValue;
+                Rect near = default;
+                foreach (Rect tree in wood)
+                {
+                    float c = Clearance(item.Value, tree);
+                    if (c < nearest) { nearest = c; near = tree; }
+                }
+                Assert.GreaterOrEqual(nearest, 200f, item.Key + " at " + item.Value + " keeps 200 units from the wood; nearest tree " + near);
+            }
+        }
+
+        [Test]
+        public void The_Game_Opens_Where_The_Player_Last_Looked_Even_At_The_Old_Usual_Zoom()
+        {
+            runner.State.ViewX = 540d;
+            runner.State.ViewY = 1500d;
+            runner.State.ViewZoom = 1d; // the usual zoom before #50, as every save from then remembers it
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(1f, screen.ZoomScale, 1e-3f, "a remembered zoom is kept as it is");
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "and still counts as the usual view, so the zoom button goes on to Near");
         }
 
         [Test]
@@ -1088,7 +1513,7 @@ namespace VuonTra.Core.Tests
                 screen.SelectStation(-1);
                 screen.SelectStation(i);
                 screen.Advance(1f); // let the slide finish
-                float feet = (GardenScreen.StationSpot(i).y - 150f) * world.localScale.y + world.anchoredPosition.y;
+                float feet = (screen.StationSpot(i).y - 150f) * world.localScale.y + world.anchoredPosition.y;
                 Assert.GreaterOrEqual(feet, cardTop - 1f, "station " + i + " stands above the card");
             }
         }
@@ -1349,7 +1774,7 @@ namespace VuonTra.Core.Tests
         public void The_Teapot_Is_The_Centrepiece_And_Ingredients_Stand_By_What_They_Supply()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            Assert.AreEqual(world.sizeDelta.x / 2f, GardenScreen.StationSpot(0).x, 0.5f, "teapot in the middle");
+            Assert.AreEqual(world.sizeDelta.x / 2f, screen.StationSpot(0).x, 0.5f, "teapot in the middle");
             float teapot = world.Find("Station am-tra").localScale.x;
             for (int i = 1; i < runner.Defs.Count; i++)
                 Assert.Greater(teapot, world.Find("Station " + runner.Defs[i].Id).localScale.x * 1.3f, "teapot is clearly the largest");
@@ -1359,7 +1784,7 @@ namespace VuonTra.Core.Tests
                 if (runner.Defs[i].Kind != VuonTra.Core.StationKind.Ingredient) continue;
                 for (int j = 0; j < runner.Defs.Count; j++)
                     if (runner.Defs[i].Boosts(runner.Defs[j].Id))
-                        Assert.Less(Vector2.Distance(GardenScreen.StationSpot(i), GardenScreen.StationSpot(j)), 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
+                        Assert.Less(Vector2.Distance(screen.StationSpot(i), screen.StationSpot(j)), 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
             }
         }
 
@@ -1623,7 +2048,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Xây · 120", sign.text);
             Assert.AreEqual(Palette.Carrot, basket.Find("Level").GetComponent<Image>().color, "lit when it can be paid for");
 
-            // Land the garden has not grown into: only a sign under the mist, nothing else.
+            // Land the garden has not grown into: only a sign on its dashed ring, nothing else.
             for (int i = 1; i < 4; i++) runner.State.Levels[i] = 1;
             screen.Refresh();
             Transform oven = Station("lo-banh");
@@ -2611,6 +3036,107 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Shop_Shows_Seven_Gift_Days_Ahead_A_Missed_Day_Steps_Back_One_And_Day_Seven_Brings_The_Hat_And_A_Clover()
+        {
+            screen.Shell.StartGame();
+            screen.OpenShop();
+            screen.Refresh();
+            Transform days = root.transform.Find("Canvas/Shop/Card/Today/Days");
+            Assert.IsNotNull(days, "the calendar sits under today's gift");
+            Assert.AreEqual(Shop.WeekDays, days.childCount);
+            Transform d1 = days.Find("Day 1"), d4 = days.Find("Day 4"), d5 = days.Find("Day 5"), d7 = days.Find("Day 7");
+            Assert.AreEqual("Ngày 1", d1.Find("Day").GetComponent<Text>().text);
+            Assert.AreEqual("+1", d1.Find("Amount").GetComponent<Text>().text);
+            Assert.IsTrue(d1.Find("Ring").gameObject.activeSelf, "today's tile is ringed");
+            Assert.IsFalse(d1.Find("Tick").gameObject.activeSelf);
+            Assert.AreEqual("+5", d7.Find("Amount").GetComponent<Text>().text);
+            Assert.IsTrue(d7.Find("Hat").gameObject.activeSelf, "day seven shows the hat");
+            Assert.AreEqual(runner.Catalog.ItemIcon(Shop.BigGiftHat), d7.Find("Hat").GetComponent<Image>().sprite);
+            Assert.IsNotNull(d7.Find("Hat").GetComponent<Image>().sprite);
+            Assert.IsTrue(d7.Find("Clover").gameObject.activeSelf, "and the clover");
+            Assert.AreEqual(runner.Catalog.Clover, d7.Find("Clover").GetComponent<Image>().sprite);
+            Assert.IsFalse(d4.Find("Hat").gameObject.activeSelf, "an ordinary day shows golden carrots only");
+
+            // Three days taken: solid with a tick; the fourth ringed; the rest faded but readable.
+            long today = runner.TodayNumber;
+            runner.State.GiftDay = today - 1;
+            runner.State.GiftStreak = 3;
+            screen.Refresh();
+            for (int i = 1; i <= 3; i++)
+            {
+                Transform d = days.Find("Day " + i);
+                Assert.IsTrue(d.Find("Tick").gameObject.activeSelf, "day " + i + " was taken");
+                Assert.IsFalse(d.Find("Ring").gameObject.activeSelf);
+            }
+            Assert.IsTrue(d4.Find("Ring").gameObject.activeSelf);
+            Assert.IsFalse(d4.Find("Tick").gameObject.activeSelf);
+            Assert.AreEqual(Palette.Ink, d4.Find("Amount").GetComponent<Text>().color);
+            Assert.IsFalse(d5.Find("Ring").gameObject.activeSelf || d5.Find("Tick").gameObject.activeSelf);
+            Assert.AreEqual(Palette.InkSoft, d5.Find("Amount").GetComponent<Text>().color, "faded, still readable");
+            Assert.Less(d5.Find("Golden").GetComponent<Image>().color.a, 1f);
+            Assert.AreEqual("+3", d5.Find("Amount").GetComponent<Text>().text);
+            Assert.AreEqual(L10n.T("shop.gift.claim", 4), root.transform.Find("Canvas/Shop/Card/Today/Heading").GetComponent<Text>().text);
+
+            // Day five, a day missed: the gift waiting is day four's.
+            runner.State.GiftDay = today - 2;
+            runner.State.GiftStreak = 5;
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.gift.claim", 4), root.transform.Find("Canvas/Shop/Card/Today/Heading").GetComponent<Text>().text);
+            Assert.IsTrue(d4.Find("Ring").gameObject.activeSelf);
+
+            // Day seven: five golden carrots, the conical hat into the wardrobe, and a clover.
+            runner.State.GiftDay = today - 1;
+            runner.State.GiftStreak = 6;
+            screen.Refresh();
+            Text sub = root.transform.Find("Canvas/Shop/Card/Today/Sub").GetComponent<Text>();
+            Assert.AreEqual(L10n.T("shop.gift.big.sub", "Nón lá", 1), sub.text);
+            int golden = runner.State.GoldenCarrots, clovers = runner.State.Clovers;
+            Find("Canvas/Shop/Card/Today/Gift").onClick.Invoke();
+            Assert.AreEqual(golden + 5, runner.State.GoldenCarrots);
+            Assert.AreEqual(clovers + 1, runner.State.Clovers);
+            Assert.IsTrue(Items.Owns(runner.State, "hat-non-la"), "the hat is given");
+            Assert.IsTrue(runner.State.GiftBigClaimed);
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.gift.big.hat", "Nón lá", 1), sub.text, "and the shop says so");
+            Assert.IsTrue(d7.Find("Tick").gameObject.activeSelf);
+            Assert.IsTrue(d7.Find("Hat").gameObject.activeSelf, "today's big gift still shows what it was");
+            Assert.IsFalse(Find("Canvas/Shop/Card/Today/Gift").interactable);
+            Assert.AreEqual(0, runner.ClaimDailyGift(), "once");
+            Assert.AreEqual(clovers + 1, runner.State.Clovers);
+        }
+
+        [Test]
+        public void The_Big_Gift_Pays_The_Hats_Price_When_The_Hat_Is_Owned_And_Says_So()
+        {
+            screen.Shell.StartGame();
+            runner.State.GoldenCarrots = 20;
+            Assert.IsNotNull(runner.BuyItem("hat-non-la"));
+            runner.State.GiftDay = runner.TodayNumber - 1;
+            runner.State.GiftStreak = 6;
+            screen.OpenShop();
+            screen.Refresh();
+            Find("Canvas/Shop/Card/Today/Gift").onClick.Invoke();
+            Assert.AreEqual(5 + 20, runner.State.GoldenCarrots, "five, and twenty in the hat's place");
+            int hats = 0;
+            foreach (Item item in runner.State.Items) if (item.DefId == "hat-non-la") hats++;
+            Assert.AreEqual(1, hats, "no second hat");
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.gift.big.golden", "Nón lá", 20, 1), root.transform.Find("Canvas/Shop/Card/Today/Sub").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void The_Summon_Odds_Read_Without_A_Trailing_Zero_In_Both_Languages()
+        {
+            Assert.AreEqual("Bạc 60% · Xanh lá 25% · Xanh dương 10% · Tím 4% · Vàng 0,9% · Đỏ 0,1%", ShopView.Odds(Rabbits.Odds));
+            Assert.AreEqual("Bạc 25% · Xanh lá 35% · Xanh dương 22% · Tím 12% · Vàng 5% · Đỏ 1%", ShopView.Odds(Shop.GoldenOdds));
+            L10n.SetLocale("en");
+            Assert.AreEqual("Silver 60% · Green 25% · Blue 10% · Purple 4% · Gold 0.9% · Red 0.1%", ShopView.Odds(Rabbits.Odds));
+            Assert.AreEqual("Silver 25% · Green 35% · Blue 22% · Purple 12% · Gold 5% · Red 1%", ShopView.Odds(Shop.GoldenOdds));
+            screen.RebuildUi();
+            StringAssert.Contains("Silver 60% · Green 25%", root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Odds").GetComponent<Text>().text, "and so the Rabbits tab reads");
+        }
+
+        [Test]
         public void The_Rabbits_Tab_Shows_Both_Calls_Odds_And_Golden_Quests_Show_A_Golden_Chip()
         {
             Transform odds = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Odds");
@@ -2772,6 +3298,35 @@ namespace VuonTra.Core.Tests
             Find("Canvas/Away/Card/Ok").onClick.Invoke();
             for (int i = 0; i < 20; i++) screen.Advance(0.05f); // the sheet slides away
             Assert.IsFalse(away.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Every_Daily_Thing_Goes_By_The_Day_That_Never_Goes_Back()
+        {
+            // #78: the runner used the raw device day for the photo gift, the dailies, guests, visitors and strokes.
+            long today = runner.TodayNumber;
+            runner.State.MaxDaySeen = today + 2; // the device was set two days ahead, then back
+            Assert.AreEqual(today + 2, runner.TodayNumber, "the game keeps going by the latest day it saw");
+            runner.State.PhotoDay = today + 2;
+            Assert.IsFalse(runner.PhotoGiftWaiting, "today's photo gift was already taken on that day");
+            runner.State.VisitorSeenDay = today + 2;
+            Assert.IsFalse(runner.VisitorUnseen);
+        }
+
+        [Test]
+        public void The_Day_Seven_Big_Gift_Is_A_Moment_That_Names_The_Hat_And_The_Clover()
+        {
+            screen.Shell.StartGame();
+            GameState s = runner.State;
+            long today = runner.TodayNumber;
+            s.GiftStreak = 6;
+            s.GiftDay = today - 1; // six days in a row, the seventh is today
+            screen.Refresh();
+            screen.OpenShop();
+            screen.Refresh();
+            Find("Canvas/Shop/Card/Today/Gift").onClick.Invoke();
+            Assert.IsTrue(screen.Feel.BannerVisible, "the big gift is a moment");
+            StringAssert.Contains(L10n.T("item." + Shop.BigGiftHat), root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
         }
 
         // ----- #69: the welcome-back sheet tells the time away -----
@@ -2942,6 +3497,28 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Card_Button_Of_A_Station_At_Its_Cap_Shows_No_Carrot()
+        {
+            runner.State.Levels[0] = Economy.MaxLevel - 1;
+            runner.State.Coins = new BigNum(1e300);
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Transform carrot = root.transform.Find("Canvas/Card/Buy/Face/Carrot");
+            Assert.IsNotNull(carrot);
+            Assert.IsTrue(carrot.gameObject.activeSelf, "one level left: the button still costs carrots");
+
+            runner.State.Levels[0] = Economy.MaxLevel;
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("row.maxlevel"), root.transform.Find("Canvas/Card/Buy/Face/Top").GetComponent<Text>().text);
+            Assert.IsFalse(carrot.gameObject.activeSelf, "at the cap nothing is paid, so no carrot either");
+
+            runner.State.Levels[0] = Economy.MaxLevel - 1; // a reset save, say: the price is back
+            screen.Refresh();
+            Assert.IsTrue(carrot.gameObject.activeSelf, "and with it the carrot");
+        }
+
+        [Test]
         public void A_Rabbit_Wears_A_Hollow_Star_For_Every_Ten_Levels_And_Passing_A_Mark_Is_A_Moment()
         {
             string blue = RabbitKinds.OfTier(2)[0].Id;
@@ -3027,6 +3604,101 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.Income.IsOpen);
         }
 
+        /// <summary>A silver rabbit at the teapot, a blue and a green resting and a gold one at the cauldron, with three places to rest.</summary>
+        void SeatTwoOfThree()
+        {
+            runner.State.Levels[0] = 5;
+            runner.State.Levels[1] = 2;
+            runner.State.Levels[2] = 3;
+            runner.State.RestSpots = 3;
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = RabbitKinds.OfTier(0)[0].Id, Name = "Mây", Station = 0 });
+            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 2, Kind = RabbitKinds.OfTier(2)[0].Id, Name = "Sương" });
+            runner.State.Rabbits.Add(new Rabbit { Id = 3, Tier = 1, Kind = RabbitKinds.OfTier(1)[0].Id, Name = "Mè", Station = 2 });
+            runner.State.Rabbits.Add(new Rabbit { Id = 4, Tier = 4, Kind = RabbitKinds.OfTier(4)[0].Id, Name = "Sao", Station = 1 });
+            runner.State.NextRabbitId = 4;
+            screen.Shell.StartGame();
+            Assert.IsTrue(runner.AssignRabbit(3, -1), "the green one is sent to rest");
+            screen.Refresh();
+        }
+
+        [Test]
+        public void The_Purse_Card_Shows_What_The_Resting_Rabbits_Add_To_The_Whole_Garden()
+        {
+            SeatTwoOfThree();
+            Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
+            Assert.AreEqual(1.055, runner.Mods.IncomeMultiplier, 1e-9, "blue +3 % and green +2,5 % are in the garden's modifiers");
+
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            string rows = "Canvas/Income/Card/Scroll/Content/";
+            Assert.AreEqual("Thỏ đang nghỉ (2) +5,5 %", T(rows + "Resting").text);
+            Assert.AreEqual(L10n.T("income.charms", UiKit.Times(1d)), T(rows + "Charms").text, "the charms line keeps to the charms");
+            BigNum total = Economy.IncomePerSecond(runner.Defs, runner.State) * (runner.Mods.IncomeMultiplier * runner.Mods.SpeedMultiplier);
+            Assert.AreEqual(L10n.T("income.total", total.Short()), T(rows + "Total").text, "the total includes the share");
+            Find("Canvas/Income/Card/Close").onClick.Invoke();
+
+            // Put back to work, the share is gone and so is the line.
+            runner.State.Levels[3] = 1;
+            Assert.IsTrue(runner.AssignRabbit(3, 2));
+            Assert.IsTrue(runner.AssignRabbit(2, 3));
+            Assert.AreEqual(1d, runner.Mods.IncomeMultiplier, 1e-9);
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            Assert.IsNull(root.transform.Find(rows + "Resting"), "no resting line with nobody seated");
+        }
+
+        [Test]
+        public void A_Seated_Rabbits_Sheet_And_Card_Say_What_It_Adds_And_A_Rabbit_Without_A_Seat_Does_Not()
+        {
+            SeatTwoOfThree();
+            screen.Detail.Open(runner.Defs, runner.State, 2);
+            Assert.AreEqual("Đang nghỉ · +3 % vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+            screen.Detail.Open(runner.Defs, runner.State, 3);
+            Assert.AreEqual("Đang nghỉ · +2,5 % vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+            screen.Detail.Close();
+
+            screen.OpenSheet(3);
+            screen.Refresh();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content");
+            Transform Cell(long id)
+            {
+                foreach (Transform row in content)
+                {
+                    Transform c = row.Find("Rabbit " + id);
+                    if (c != null) return c;
+                }
+                Assert.Fail("no card for rabbit " + id);
+                return null;
+            }
+            Assert.AreEqual("+3 % vườn", Cell(2).Find("Status/Share").GetComponent<Text>().text, "the nap badge of a seated rabbit says its share");
+            Assert.IsNull(Cell(1).Find("Status/Share"), "a working rabbit shows its station");
+            StringAssert.Contains("+5,5 %", content.Find("Rest/Text").GetComponent<Text>().text, "the places row adds them up");
+
+            // A third resting rabbit with no place left: it adds nothing and its sheet says nothing of a share.
+            runner.State.RestSpots = 2;
+            runner.AssignRabbit(4, -1);
+            Assert.AreEqual(1d + 0.06 + 0.03, runner.Mods.IncomeMultiplier, 1e-9, "gold and blue sit; green has no place");
+            screen.Refresh();
+            Assert.IsNull(Cell(3).Find("Status/Share"));
+            screen.Detail.Open(runner.Defs, runner.State, 3);
+            Assert.AreEqual(L10n.T("detail.resting"), root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+        }
+
+        [Test]
+        public void A_Rabbit_Nodding_Off_In_Its_Seat_Still_Adds_Its_Share()
+        {
+            SeatTwoOfThree();
+            double share = runner.Mods.IncomeMultiplier;
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            bool dozed = false;
+            for (int i = 0; i < 400 && !dozed; i++)
+            {
+                screen.Advance(0.1f);
+                for (int k = 0; k < 2; k++) dozed |= world.Find("Seat " + k + "/Nap").gameObject.activeInHierarchy;
+            }
+            Assert.IsTrue(dozed, "a seated rabbit dozes now and then");
+            Assert.AreEqual(share, runner.Mods.IncomeMultiplier, 1e-12);
+            Assert.AreEqual(share, Modifiers.From(runner.UpgradeDefs, runner.State).IncomeMultiplier, 1e-12);
+        }
+
         [Test]
         public void A_Tea_Bar_Short_Of_Power_Says_How_Long_Until_A_Burst_And_A_Full_One_Breathes()
         {
@@ -3069,7 +3741,9 @@ namespace VuonTra.Core.Tests
             GameObject up = root.transform.Find("Canvas/EdgeUp").gameObject, down = root.transform.Find("Canvas/EdgeDown").gameObject, home = root.transform.Find("Canvas/Home").gameObject;
             int Count(GameObject pill) => pill.activeSelf ? int.Parse(pill.transform.Find("Text").GetComponent<Text>().text.Substring(2)) : 0;
 
-            // The usual zoom, looking at the top of the garden: the lowest stations are out of view below.
+            // Close in, looking at the top of the garden: the lowest stations are out of view below. (At the usual
+            // zoom, since #50, the whole garden is all but in view, so nothing waits beyond an edge.)
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
             screen.LookAt(new Vector2(540f, 2900f));
             screen.Advance(1f / 30f);
             Assert.IsTrue(down.activeSelf, "stations that can be raised wait below");
@@ -3802,10 +4476,10 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(GardenScreen.LawnSpots.Count, 6);
             foreach (Vector2 spot in GardenScreen.LawnSpots)
             {
-                for (int i = 0; i < 12; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
-                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.DecorSpotAt(i)), 150f, spot + " by decoration spot " + i);
+                for (int i = 0; i < 12; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
+                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.DecorSpotAt(i)), 150f, spot + " by decoration spot " + i);
                 Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.PondSpot), 300f, spot + " in the pond");
-                Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.GuestSpot), 150f, spot + " on the guest");
+                Assert.GreaterOrEqual(Vector2.Distance(spot, screen.GuestSpot), 150f, spot + " on the guest");
                 for (int k = 0; k < RestSpots.Max; k++)
                     Assert.GreaterOrEqual(Vector2.Distance(spot, ((RectTransform)world.Find("Seat " + k)).anchoredPosition), 150f, spot + " on seat " + k);
                 Assert.IsTrue(spot.x > 150f && spot.x < GardenScreen.ReadableRight - 80f, spot + " under the wood at the edge");
@@ -4124,7 +4798,7 @@ namespace VuonTra.Core.Tests
                 Vector2 at = ((RectTransform)child).anchoredPosition;
                 for (int i = 0; i < runner.Defs.Count; i++)
                 {
-                    Vector2 spot = GardenScreen.StationSpot(i);
+                    Vector2 spot = screen.StationSpot(i);
                     Assert.IsTrue(Mathf.Abs(spot.x - at.x) >= 230f || Mathf.Abs(spot.y - at.y) >= 230f, "flowers off station " + i);
                 }
             }
@@ -4187,11 +4861,11 @@ namespace VuonTra.Core.Tests
                 if (child.name != "Planter") continue;
                 Vector2 at = ((RectTransform)child).anchoredPosition;
                 float nearest = float.MaxValue;
-                for (int i = 0; i < runner.Defs.Count; i++) nearest = Mathf.Min(nearest, Vector2.Distance(at, GardenScreen.StationSpot(i)));
+                for (int i = 0; i < runner.Defs.Count; i++) nearest = Mathf.Min(nearest, Vector2.Distance(at, screen.StationSpot(i)));
                 Assert.That(nearest, Is.InRange(200f, 320f), "each planter belongs to a station, beside it rather than on it");
             }
             // The mortar no longer sits on the leaf basket's plate: it stands above the teapot's name.
-            Vector2 mortar = ((RectTransform)world.Find("Mortar")).anchoredPosition, basket = GardenScreen.StationSpot(1);
+            Vector2 mortar = ((RectTransform)world.Find("Mortar")).anchoredPosition, basket = screen.StationSpot(1);
             Assert.Greater(Mathf.Abs(mortar.x - basket.x), 200f);
         }
 
@@ -4443,7 +5117,7 @@ namespace VuonTra.Core.Tests
             var jar = (RectTransform)street.Find("Jar");
             Assert.IsTrue(jar.gameObject.activeSelf, "the jar is out from garden level five");
             var plate = (RectTransform)jar.Find("Plate");
-            // Where the plate's edges land on the garden; the garden is as wide as the screen, so at zoom 1 these are screen units too.
+            // Where the plate's edges land on the garden, in garden units (the lawn is 1080 wide, like the portrait screen).
             float centre = jar.anchoredPosition.x + plate.anchoredPosition.x;
             float left = centre - plate.rect.width / 2f, right = centre + plate.rect.width / 2f;
             Assert.GreaterOrEqual(left, 24f, "inside the left edge");
@@ -4572,11 +5246,11 @@ namespace VuonTra.Core.Tests
                 Transform spot = world.Find("Spot " + i);
                 Assert.IsNotNull(spot, "spot " + i + " is built with the garden");
                 Assert.IsFalse(spot.gameObject.activeSelf, "a newcomer sees no spot " + i);
-                Vector2 at = GardenScreen.DecorSpotAt(i);
+                Vector2 at = screen.DecorSpotAt(i);
                 Assert.AreEqual(at, ((RectTransform)spot).anchoredPosition);
-                for (int j = 0; j < runner.Defs.Count; j++) Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.StationSpot(j)), 200f, "spot " + i + " clear of station " + j);
+                for (int j = 0; j < runner.Defs.Count; j++) Assert.GreaterOrEqual(Vector2.Distance(at, screen.StationSpot(j)), 200f, "spot " + i + " clear of station " + j);
                 Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.PondSpot), 200f, "spot " + i + " clear of the pond");
-                for (int j = 0; j < i; j++) Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.DecorSpotAt(j)), 200f, "spots " + i + " and " + j + " apart");
+                for (int j = 0; j < i; j++) Assert.GreaterOrEqual(Vector2.Distance(at, screen.DecorSpotAt(j)), 200f, "spots " + i + " and " + j + " apart");
                 Assert.That(at.x, Is.InRange(90f, GardenScreen.ReadableRight - 40f), "spot " + i + " inside the garden, short of the trees at the edge");
             }
             // No planter, mushrooms or stones has been dressed onto a spot: the ground there is kept for the player.
@@ -4586,7 +5260,7 @@ namespace VuonTra.Core.Tests
                 if (child.name != "Planter" && child.name != "Mushrooms" && child.name != "Stones" && child.name != "Bush" && child.name != "Tree") continue;
                 var prop = (RectTransform)child;
                 Vector2 foot = prop.anchoredPosition - new Vector2(0f, prop.rect.height * prop.pivot.y); // where it stands, whatever it pivots on
-                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(foot, GardenScreen.DecorSpotAt(i)), 140f, child.name + " standing at " + foot + " is off spot " + i);
+                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(foot, screen.DecorSpotAt(i)), 140f, child.name + " standing at " + foot + " is off spot " + i);
             }
 
             // Bought at the shop: a tap asks, a second buys; then the empty spots show their "+".
@@ -4771,5 +5445,657 @@ namespace VuonTra.Core.Tests
             Assert.Less(runner.State.DailyCarrotTarget.ToDouble(), 1e12, "but the carrot goal fits the small garden");
         }
 
+        // ----- #56: a rabbit asks for its picture -----
+
+        /// <summary>A rabbit at work at the teapot, which makes something, so two minutes of income are worth checking.</summary>
+        Rabbit RabbitAtTheTeapot()
+        {
+            runner.State.Levels[0] = 12;
+            Rabbit r = Rabbits.Arrive(runner.State, 0, "Bông", 0d);
+            Assert.IsTrue(Rabbits.Assign(runner.State, r.Id, 0));
+            screen.Refresh();
+            return r;
+        }
+
+        [Test]
+        public void A_Rabbit_Puts_Up_A_Camera_Bubble_After_Four_Minutes_Of_Play_Never_While_Paused_And_It_Goes_After_Ninety_Seconds()
+        {
+            Motion.SetReduced(true);
+            Rabbit bong = RabbitAtTheTeapot();
+            Transform bubble = root.transform.Find("Canvas/Garden/Content/PhotoAsk");
+            Assert.IsNotNull(bubble);
+            for (int i = 0; i < 100; i++) screen.Advance(1f);
+            Assert.AreEqual(0d, runner.State.PhotoAskClock, "the title does not count");
+            screen.Shell.StartGame();
+            for (int i = 0; i < (int)PhotoAsks.Interval - 1; i++) screen.Advance(1f);
+            Assert.IsFalse(PhotoAsks.Waiting(runner.State), "not before four minutes of play");
+            Assert.IsFalse(bubble.gameObject.activeSelf);
+            screen.Advance(1f);
+            screen.Advance(0.5f);
+            Assert.IsTrue(PhotoAsks.Waiting(runner.State), "four minutes in");
+            Assert.AreEqual(bong.Id, runner.State.PhotoAskRabbit);
+            Assert.IsTrue(screen.PhotoAskShown);
+            Assert.AreEqual(bubble.parent.childCount - 1, bubble.GetSiblingIndex(), "over everything in the garden");
+            Vector2 over = ((RectTransform)bubble).anchoredPosition, station = screen.StationSpot(0);
+            Assert.Greater(over.y, station.y, "above the rabbit");
+            Assert.Less(Mathf.Abs(over.x - station.x), 200f, "at its station");
+
+            double left = runner.State.PhotoAskLeft;
+            screen.Shell.OpenPause();
+            for (int i = 0; i < 200; i++) screen.Advance(1f);
+            Assert.AreEqual(left, runner.State.PhotoAskLeft, 1e-9, "a pause holds the bubble");
+            screen.Shell.Resume();
+            for (int i = 0; i < (int)PhotoAsks.StaySeconds + 1; i++) screen.Advance(1f);
+            Assert.IsFalse(PhotoAsks.Waiting(runner.State), "a minute and a half, then it goes");
+            Assert.IsFalse(bubble.gameObject.activeSelf);
+            Assert.AreEqual(0, runner.State.PhotosTaken);
+        }
+
+        [Test]
+        public void Tapping_The_Bubble_Frames_That_Rabbit_Up_Close_And_The_Picture_Pays_Two_Minutes_That_Fly_To_The_Purse()
+        {
+            Motion.SetReduced(true);
+            Rabbit bong = RabbitAtTheTeapot();
+            Rabbits.Arrive(runner.State, 1, "Mây", 0d); // resting in a seat: it could ask too, but the roll picks the worker
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Assert.IsTrue(PhotoAsks.Ask(runner.Defs, runner.State, runner.TodayNumber, () => 0d));
+            Assert.AreEqual(bong.Id, runner.State.PhotoAskRabbit);
+            runner.State.PhotoAskLeft = 2d; // almost gone: framing must not cost it
+            screen.Advance(0.1f);
+            Assert.IsTrue(screen.PhotoAskShown);
+
+            Find("Canvas/Garden/Content/PhotoAsk").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoMode, "the camera comes up");
+            Assert.IsTrue(screen.PhotoAskFraming);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom, "close in");
+            Assert.IsFalse(root.transform.Find("Canvas/Hud").gameObject.activeSelf);
+            Assert.IsFalse(screen.PhotoAskShown, "the bubble is not in the picture");
+            Vector2? onScreen = screen.AskingRabbitOnScreen;
+            Assert.IsTrue(onScreen.HasValue);
+            Assert.Less(Vector2.Distance(onScreen.Value, new Vector2(540f, 1920f * 0.55f)), 2f, "the rabbit that asked is in the middle");
+            for (int i = 0; i < 5; i++) screen.Advance(1f);
+            Assert.IsTrue(PhotoAsks.Waiting(runner.State), "the bubble's time stands still while framing");
+
+            // Mây was put on her seat straight into the state; her share of the income (#60) is in the modifiers from the next change on.
+            BigNum expected = PhotoAsks.Reward(runner.Defs, runner.State, Modifiers.From(runner.UpgradeDefs, runner.State));
+            Assert.Greater(expected.ToDouble(), 0d);
+            BigNum before = runner.State.Coins;
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-ask-" + System.Guid.NewGuid().ToString("N"));
+            Transform review = root.transform.Find("Canvas/PhotoReview");
+            try
+            {
+                screen.PhotoFolder = dir;
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Assert.IsTrue(System.IO.File.Exists(screen.LastPhotoPath), "a picture as always");
+                Assert.IsTrue(runner.State.Coins.Equals(before + expected), "exactly two minutes of income");
+                Assert.AreEqual(1L, runner.State.PhotosTaken, "it counts for the photo quests");
+                Assert.AreEqual(1, runner.State.GoldenCarrots, "and for the day's first-photo gift");
+                Assert.AreEqual(1L, runner.State.PhotoAsksAnswered);
+                Assert.AreEqual(1, runner.State.PhotoAsksToday);
+                Assert.IsFalse(PhotoAsks.Waiting(runner.State), "answered");
+                Assert.IsFalse(screen.PhotoAskFraming);
+                Text ask = review.Find("Card/Ask").GetComponent<Text>();
+                Assert.IsTrue(ask.gameObject.activeSelf);
+                Assert.AreEqual(L10n.T("photo.ask.paid", "Bông", expected.Short()), ask.text);
+                StringAssert.Contains("+1", review.Find("Card/Gift").GetComponent<Text>().text);
+
+                // A second picture is only a picture.
+                Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Assert.IsFalse(review.Find("Card/Ask").gameObject.activeSelf);
+                Assert.IsTrue(runner.State.Coins.Equals(before + expected), "paid once");
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true);
+            }
+
+            Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+            Assert.AreEqual(0, screen.Feel.Flying, "nothing flies at a hidden purse");
+            Find("Canvas/PhotoBar/Done").onClick.Invoke();
+            Assert.IsFalse(screen.PhotoMode);
+            Assert.IsTrue(root.transform.Find("Canvas/Hud").gameObject.activeSelf);
+            Assert.Greater(screen.Feel.Flying, 0, "the carrots fly from the rabbit to the purse");
+            Assert.AreEqual("reward", Sfx.Last);
+            Assert.IsTrue(runner.State.Coins.Equals(before + expected), "and nothing more is paid for the thanks");
+        }
+
+        [Test]
+        public void Closing_The_Camera_Without_A_Picture_Loses_That_Invitation_And_Nothing_Else()
+        {
+            Motion.SetReduced(true);
+            RabbitAtTheTeapot();
+            screen.Shell.StartGame();
+            Assert.IsTrue(runner.AskForPhoto());
+            screen.Advance(0.1f);
+            BigNum coins = runner.State.Coins;
+            int golden = runner.State.GoldenCarrots, clovers = runner.State.Clovers;
+            Find("Canvas/Garden/Content/PhotoAsk").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoMode);
+            Find("Canvas/PhotoBar/Done").onClick.Invoke();
+            Assert.IsFalse(screen.PhotoMode);
+            Assert.IsFalse(PhotoAsks.Waiting(runner.State), "that invitation is gone");
+            screen.Advance(0.1f);
+            Assert.IsFalse(screen.PhotoAskShown);
+            Assert.IsTrue(runner.State.Coins.Equals(coins));
+            Assert.AreEqual(golden, runner.State.GoldenCarrots);
+            Assert.AreEqual(clovers, runner.State.Clovers);
+            Assert.AreEqual(0L, runner.State.PhotosTaken);
+            Assert.AreEqual(0, runner.State.PhotoAsksToday, "nor one of the day's ten");
+            Assert.AreEqual(0, screen.Feel.Flying);
+
+            // The HUD's own camera, with nobody asking, is the plain photo mode it always was.
+            Find("Canvas/Hud/Camera").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoMode);
+            Assert.IsFalse(screen.PhotoAskFraming);
+            screen.ExitPhotoMode();
+        }
+
+        [Test]
+        public void A_Resting_Rabbit_In_Its_Seat_Can_Ask_And_The_Daily_Quest_Is_In_The_List()
+        {
+            Motion.SetReduced(true);
+            runner.State.RestSpots = 2;
+            Rabbit resting = Rabbits.Arrive(runner.State, 1, "Mây", 0d);
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Assert.IsTrue(runner.AskForPhoto(), "nobody works: the seated rabbit asks");
+            Assert.AreEqual(resting.Id, runner.State.PhotoAskRabbit);
+            screen.Advance(0.1f);
+            Assert.IsTrue(screen.PhotoAskShown);
+            Find("Canvas/Garden/Content/PhotoAsk").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoAskFraming);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
+            Assert.IsTrue(screen.AskingRabbitOnScreen.HasValue);
+            screen.ExitPhotoMode();
+
+            Transform quest = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-anh");
+            Assert.IsNotNull(quest, "the daily photo quest is in the list");
+            Assert.AreEqual("0 / 3", quest.Find("Count").GetComponent<Text>().text);
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham"), "the taps daily stays beside it");
+        }
+
+        // ----- #59: rabbits say a line now and then -----
+
+        Transform ChatLine => root.transform.Find("Canvas/Garden/Content/ChatLine");
+
+        /// <summary>A rabbit that has nodded off says nothing: the teapot's rabbit is woken with a tap whenever it dozes.</summary>
+        void KeepTeapotAwake()
+        {
+            Transform z = root.transform.Find("Canvas/Garden/Content/Station am-tra/Doze");
+            if (z != null && z.gameObject.activeSelf) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+        }
+
+        /// <summary>Steps the screen at ten frames a second and counts the idle bubbles that came up: when each came, and how long it stayed.</summary>
+        int BubblesOver(float seconds, List<float> stays = null, bool keepAwake = true, List<float> came = null)
+        {
+            int shown = 0;
+            bool was = screen.ChatShown;
+            float since = 0f;
+            for (float t = 0f; t < seconds; t += 0.1f)
+            {
+                if (keepAwake) KeepTeapotAwake();
+                screen.Advance(0.1f);
+                since += 0.1f;
+                bool now = screen.ChatShown;
+                if (now && !was) { shown++; since = 0f; came?.Add(screen.Clock); }
+                if (!now && was && stays != null) stays.Add(since);
+                was = now;
+            }
+            return shown;
+        }
+
+        static List<string> Allowed(RabbitTrade trade, bool resting, double hour, GameRunner runner, bool boosted, bool dressed) =>
+            Chatter.KeysFor(trade, resting, Daylight.PhaseAt(hour), Seasons.SeasonOf(runner.TodayNumber), boosted, dressed);
+
+        [Test]
+        public void After_Seventy_Seconds_A_Working_Rabbit_Has_Said_Exactly_One_Line_Of_Its_Trade_Or_The_Hour()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d; // no guest in the first minutes
+            screen.ClockHours = () => 13.0;
+            Rabbit r = GiveWorker(1, 0);
+            Assert.IsFalse(screen.ChatShown);
+            var stays = new List<float>();
+            var came = new List<float>();
+            float start = screen.Clock;
+            Assert.AreEqual(1, BubblesOver(70.5f, stays, true, came), "one line in the first seventy seconds");
+            Assert.That(came[0] - start, Is.InRange(Chatter.WaitLeast - 0.2f, Chatter.WaitMost + 0.2f));
+            Assert.AreEqual(1, screen.ChatLines);
+            Assert.AreEqual(r.Id, screen.ChatRabbitId);
+            CollectionAssert.Contains(Allowed(RabbitTrade.Brewer, false, 13.0, runner, Chatter.BoosterOf(runner.Defs, runner.State, 0) >= 0, false), screen.ChatKey);
+            BubblesOver(3f, stays);
+            Assert.AreEqual(1, stays.Count, "and it has gone again");
+            Assert.AreEqual(Chatter.Seconds, stays[0], 0.15f, "two and a half seconds");
+            Assert.AreEqual(1, CountNamed(root.transform.Find("Canvas/Garden/Content"), "ChatLine"), "one bubble, used again and again");
+
+            // The ones after come forty to seventy seconds apart.
+            BubblesOver(150f, null, true, came);
+            Assert.GreaterOrEqual(came.Count, 3);
+            for (int i = 1; i < came.Count; i++)
+                Assert.That(came[i] - came[i - 1], Is.InRange(Chatter.WaitLeast - 0.2f, Chatter.WaitMost + 0.2f), "gap " + i);
+        }
+
+        [Test]
+        public void A_Working_Rabbit_Says_Lines_Of_Its_Own_Trade_And_Of_The_Hour_Never_Of_Another()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            GiveWorker(1, 0);
+            foreach (double hour in new[] { 13.0, 18.0, 22.0, 6.0 })
+            {
+                screen.ClockHours = () => hour;
+                DayPhase phase = Daylight.PhaseAt(hour);
+                List<string> allowed = Allowed(RabbitTrade.Brewer, false, hour, runner, Chatter.BoosterOf(runner.Defs, runner.State, 0) >= 0, false);
+                bool trade = false, ofTheHour = false;
+                for (int i = 0; i < 60; i++)
+                {
+                    screen.Advance(0.37f);
+                    KeepTeapotAwake();
+                    Assert.IsTrue(screen.ChatterNow(), "the brewer is there to talk");
+                    string key = screen.ChatKey;
+                    CollectionAssert.Contains(allowed, key, hour + "h");
+                    Assert.AreEqual(key == Chatter.BoostKey ? L10n.T(key, L10n.Station(runner.Defs[Chatter.BoosterOf(runner.Defs, runner.State, 0)].Id)) : L10n.T(key),
+                        ChatLine.Find("Text").GetComponent<Text>().text);
+                    if (key.StartsWith("chatter.trade.Brewer.")) trade = true;
+                    if (key.StartsWith("chatter.phase." + phase + ".")) ofTheHour = true;
+                }
+                Assert.IsTrue(trade, "it talks about brewing at " + hour + "h");
+                Assert.IsTrue(ofTheHour, "and about the " + phase);
+            }
+        }
+
+        [Test]
+        public void A_Resting_Rabbit_Never_Says_A_Trade_Line_And_By_Night_Talks_Of_The_Night()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            screen.ClockHours = () => 22.0;
+            screen.Refresh();
+            Rabbit r = GiveWorker(1, -1);
+            Assert.AreEqual(1, BubblesOver(70.5f, null, false), "a resting rabbit talks too");
+            Assert.AreEqual(r.Id, screen.ChatRabbitId);
+            bool night = false;
+            for (int i = 0; i < 60; i++)
+            {
+                screen.Advance(0.37f);
+                Assert.IsTrue(screen.ChatterNow());
+                string key = screen.ChatKey;
+                Assert.IsFalse(Chatter.IsTradeLine(key), "a resting rabbit never talks shop: " + key);
+                CollectionAssert.Contains(Allowed(RabbitTrade.Brewer, true, 22.0, runner, false, false), key);
+                if (key.StartsWith("chatter.phase.Night.")) night = true;
+            }
+            Assert.IsTrue(night, "it talks of the night");
+        }
+
+        [Test]
+        public void An_Idle_Line_Waits_While_A_Guest_Is_In_The_Garden_And_Gives_Way_To_A_Bond_Line()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            Rabbit r = GiveWorker(1, 0);
+            runner.State.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = 170, RewardSeconds = Orders.RewardSeconds };
+            runner.State.Order.Lines.Add(new OrderLine { Station = 0, Count = 1 });
+            screen.Refresh();
+            Assert.IsTrue(screen.GuestShown);
+            Assert.IsFalse(screen.ChatterNow(), "not over a guest");
+            Assert.AreEqual(0, BubblesOver(75f), "the line waits while the guest stands at the counter");
+            Assert.IsTrue(screen.GuestShown);
+
+            runner.State.Order = null; // the guest goes
+            screen.Refresh();
+            for (int i = 0; i < 100 && screen.GuestShown; i++) { KeepTeapotAwake(); screen.Advance(0.1f); }
+            Assert.IsFalse(screen.GuestShown);
+            screen.Advance(0.1f);
+            Assert.IsTrue(screen.ChatShown, "the waiting line comes as soon as the guest has gone");
+            Assert.AreEqual(1, screen.ChatLines);
+
+            // A bond line outranks it: the idle line goes, and no other comes while the bond line is up.
+            r.Affection = Rabbits.AffectionLine - 1;
+            r.PetDay = -1;
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Transform bond = root.transform.Find("Canvas/Garden/Content/BondLine");
+            Assert.IsTrue(bond.gameObject.activeSelf);
+            screen.Advance(0.05f);
+            Assert.IsFalse(screen.ChatShown, "the idle line gives way");
+            Assert.IsFalse(screen.ChatterNow(), "and waits for the bond line");
+            for (int i = 0; i < 60 && bond.gameObject.activeSelf; i++) screen.Advance(0.1f);
+            Assert.IsFalse(bond.gameObject.activeSelf);
+            KeepTeapotAwake();
+            Assert.IsTrue(screen.ChatterNow(), "then it may talk again");
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_The_Line_Appears_And_Goes_Without_A_Pop()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            GiveWorker(1, 0);
+            Assert.IsTrue(screen.ChatterNow());
+            screen.Advance(0.05f);
+            Assert.Less(ChatLine.localScale.x, 1f, "it springs in when motion is not reduced");
+
+            Motion.SetReduced(true);
+            screen.Advance(3f);
+            Assert.IsFalse(screen.ChatShown);
+            Assert.IsTrue(screen.ChatterNow());
+            Assert.AreEqual(1f, ChatLine.localScale.x, 1e-4, "it is simply there");
+            for (int i = 0; i < 24; i++)
+            {
+                screen.Advance(0.1f);
+                Assert.AreEqual(1f, ChatLine.localScale.x, 1e-4, "no pop and no shrink at " + (i + 1) * 0.1f + "s");
+            }
+            screen.Advance(0.2f);
+            Assert.IsFalse(screen.ChatShown, "it is simply gone");
+        }
+
+        [Test]
+        public void A_Boosted_Rabbit_Names_Its_Booster_And_A_Dyed_One_Shows_Off()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            runner.State.Levels[1] = 3; // the leaf basket feeds the teapot
+            Rabbit r = GiveWorker(1, 0);
+            Assert.AreEqual(1, Chatter.BoosterOf(runner.Defs, runner.State, 0));
+            var keys = new HashSet<string>();
+            for (int i = 0; i < 200 && !keys.Contains(Chatter.BoostKey); i++)
+            {
+                screen.Advance(0.37f);
+                KeepTeapotAwake();
+                Assert.IsTrue(screen.ChatterNow());
+                keys.Add(screen.ChatKey);
+            }
+            Assert.IsTrue(keys.Contains(Chatter.BoostKey), "the booster's line comes up");
+            StringAssert.Contains(L10n.Station("gio-la"), ChatLine.Find("Text").GetComponent<Text>().text, "naming the leaf basket");
+            Assert.IsFalse(keys.Contains(Chatter.DressedKey), "nothing to show off yet");
+
+            r.Dye = 0;
+            bool showedOff = false;
+            for (int i = 0; i < 200 && !showedOff; i++)
+            {
+                screen.Advance(0.37f);
+                KeepTeapotAwake();
+                Assert.IsTrue(screen.ChatterNow());
+                showedOff = screen.ChatKey == Chatter.DressedKey;
+            }
+            Assert.IsTrue(showedOff, "a dyed rabbit shows its coat off");
+        }
+
+        // ----- The album pays (#61) -----
+
+        [Test]
+        public void The_Album_Shows_Each_Set_With_Its_Progress_And_Outlines_A_Complete_One_In_Gold()
+        {
+            AlbumSet partial = AlbumSets.Find(3, RabbitTrade.Baker), done = AlbumSets.Find(0, RabbitTrade.Stargazer);
+            Rabbits.See(runner.State, partial.Kinds[0].Id);
+            Rabbits.See(runner.State, partial.Kinds[1].Id);
+            foreach (RabbitKind k in done.Kinds) Rabbits.See(runner.State, k.Id);
+            screen.OpenSheet(3);
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content");
+            foreach (AlbumSet set in AlbumSets.All) Assert.IsNotNull(content.Find("Set " + set.Key), set.Key + " has its group");
+
+            Transform half = content.Find("Set " + partial.Key);
+            Assert.AreEqual(L10n.T("album.set", L10n.Trade(RabbitTrade.Baker), 2, partial.Kinds.Count, "3"), half.Find("Line").GetComponent<Text>().text);
+            StringAssert.StartsWith("Bộ Bếp bánh 2/" + partial.Kinds.Count + " · +3 % khi đủ", half.Find("Line").GetComponent<Text>().text);
+            Assert.IsNull(half.Find("Outline"), "not complete: no gold");
+            foreach (RabbitKind k in partial.Kinds) Assert.IsNotNull(half.Find("Kind " + k.Id), k.Id + " sits in its set");
+
+            Transform full = content.Find("Set " + done.Key);
+            Assert.IsNotNull(full.Find("Outline"), "complete: outlined in gold");
+            Assert.AreEqual(Palette.Lantern, full.Find("Outline").GetComponent<Image>().color);
+            Assert.AreEqual(L10n.T("album.set.done", L10n.Trade(RabbitTrade.Stargazer), "3"), full.Find("Line").GetComponent<Text>().text);
+            Assert.IsNull(content.Find("FullFrame"), "the gold frame waits for every kind");
+        }
+
+        [Test]
+        public void A_Set_Just_Completed_Raises_Its_Banner_Once()
+        {
+            AlbumSet set = AlbumSets.Find(3, RabbitTrade.Brewer);
+            for (int i = 0; i < set.Kinds.Count - 1; i++) Rabbits.See(runner.State, set.Kinds[i].Id);
+            runner.AutoAssignRabbits(); // any change the runner makes looks at the album
+            Text title = root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>();
+            title.text = "";
+            Rabbits.See(runner.State, set.Kinds[set.Kinds.Count - 1].Id);
+            runner.AutoAssignRabbits();
+            Assert.AreEqual("Đủ bộ Pha chế bậc Tím!", title.text);
+            Assert.AreEqual(AlbumBanner.SetTitle(set), title.text);
+            Assert.IsTrue(screen.Feel.BannerVisible);
+            StringAssert.Contains("3 %", root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
+            title.text = "";
+            runner.AutoAssignRabbits();
+            Assert.AreEqual("", title.text, "a set already complete says nothing again");
+        }
+
+        [Test]
+        public void Meeting_Forty_Kinds_Gives_The_Starry_Hat_And_Seventy_Two_The_Gold_Frame()
+        {
+            int n = 0;
+            foreach (RabbitKind k in RabbitKinds.All)
+                if (k.Season == Season.None && !k.NewMoonOnly && n < 40) { Rabbits.See(runner.State, k.Id); n++; }
+            runner.AutoAssignRabbits();
+            Assert.IsTrue(Items.Owns(runner.State, AlbumSets.MilestoneHat));
+            Assert.AreEqual(L10n.T("album.milestone.title", 40), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+            screen.OpenSheet(2);
+            screen.Refresh();
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest loai-40"), "the milestone is a quest row");
+
+            foreach (RabbitKind k in RabbitKinds.All) if (k.Season == Season.None && !k.NewMoonOnly) Rabbits.See(runner.State, k.Id);
+            runner.AutoAssignRabbits();
+            Assert.IsTrue(AlbumSets.HasFullFrame(runner.State));
+            Assert.AreEqual(1, runner.State.Items.FindAll(i => i.DefId == AlbumSets.MilestoneHat).Count, "one hat, given once");
+            screen.OpenSheet(3);
+            screen.ShowRabbitAlbum(true);
+            screen.Refresh();
+            Transform frame = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/FullFrame");
+            Assert.IsNotNull(frame, "the gold frame tops the album");
+            StringAssert.Contains("Đủ bộ", frame.Find("Text").GetComponent<Text>().text);
+        }
+
+        // ----- Moon jars (#64) -----
+
+        [Test]
+        public void The_Purse_Card_Opens_A_Moon_Jar_From_Garden_Level_Three_And_The_Carrots_Fly_To_The_Purse()
+        {
+            screen.Shell.StartGame();
+            runner.State.MoonJars = 2;
+            screen.Refresh();
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            Assert.IsTrue(screen.Income.IsOpen);
+            Assert.IsFalse(root.transform.Find("Canvas/Income/Card/Jars").gameObject.activeSelf, "a new player does not see the jars");
+            Assert.IsFalse(root.transform.Find("Canvas/Hud/Jars").gameObject.activeSelf);
+            screen.Income.Close();
+
+            GrowToLevel(MoonJars.ShowLevel);
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            Text label = root.transform.Find("Canvas/Income/Card/Jars/Open/Face/Text").GetComponent<Text>();
+            Assert.IsTrue(root.transform.Find("Canvas/Income/Card/Jars").gameObject.activeSelf);
+            Assert.AreEqual(L10n.T("income.jar", 2), label.text);
+            BigNum value = runner.MoonJarValue;
+            Assert.AreEqual(L10n.T("income.jar.sub", value.Short(), 2, MoonJars.Cap), root.transform.Find("Canvas/Income/Card/Jars/Sub").GetComponent<Text>().text);
+            Assert.IsTrue(root.transform.Find("Canvas/Hud/Jars").gameObject.activeSelf, "the jars on the shelf show under the purse");
+            Assert.AreEqual("2", root.transform.Find("Canvas/Hud/Jars/Text").GetComponent<Text>().text);
+            Assert.AreEqual((Economy.IncomePerSecond(runner.Defs, runner.State) * (runner.Mods.IncomeMultiplier * runner.Mods.SpeedMultiplier * 3600d)).ToDouble(), value.ToDouble(), 1e-6);
+
+            BigNum before = runner.State.Coins;
+            int flying = screen.Feel.Flying;
+            Find("Canvas/Income/Card/Jars/Open").onClick.Invoke();
+            Assert.AreEqual((before + value).ToDouble(), runner.State.Coins.ToDouble(), 1e-6, "an hour of income");
+            Assert.AreEqual(1, runner.State.MoonJars);
+            Assert.Greater(screen.Feel.Flying, flying, "the carrots fly from the button to the purse");
+            Assert.AreEqual(L10n.T("income.jar", 1), label.text, "the card counts down at once");
+            screen.Refresh();
+            Assert.AreEqual("1", root.transform.Find("Canvas/Hud/Jars/Text").GetComponent<Text>().text);
+
+            Find("Canvas/Income/Card/Jars/Open").onClick.Invoke();
+            Assert.AreEqual(0, runner.State.MoonJars);
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("income.jar.none"), label.text);
+            Assert.IsFalse(Find("Canvas/Income/Card/Jars/Open").interactable, "nothing to open");
+            Assert.IsFalse(root.transform.Find("Canvas/Hud/Jars").gameObject.activeSelf, "no jars, no chip");
+        }
+
+        [Test]
+        public void The_Shop_Shelf_Sells_A_Jar_On_The_Second_Tap_Three_A_Day_And_Not_Onto_A_Full_Shelf()
+        {
+            screen.Shell.StartGame();
+            runner.State.GoldenCarrots = 100;
+            screen.OpenShop();
+            screen.Refresh();
+            Assert.IsFalse(root.transform.Find("Canvas/Shop/Card/Decor/Row/Jar").gameObject.activeSelf, "not before garden level 3");
+            screen.Shop.Close();
+
+            GrowToLevel(MoonJars.ShowLevel);
+            screen.OpenShop();
+            screen.Refresh();
+            string jar = "Canvas/Shop/Card/Decor/Row/Jar";
+            Text price = root.transform.Find(jar + "/Price/Text").GetComponent<Text>();
+            Text left = root.transform.Find(jar + "/Left/Text").GetComponent<Text>();
+            Assert.IsTrue(root.transform.Find(jar).gameObject.activeSelf);
+            Assert.AreEqual(MoonJars.Price.ToString(), price.text);
+            Assert.AreEqual(L10n.T("shop.jar.left", 3, 3), left.text);
+            for (int n = 1; n <= MoonJars.BuyPerDay; n++)
+            {
+                Find(jar).onClick.Invoke();
+                Assert.AreEqual(n - 1, runner.State.MoonJars, "the first tap only asks");
+                Assert.AreEqual(L10n.T("shop.hats.confirm"), price.text);
+                Find(jar).onClick.Invoke();
+                Assert.AreEqual(n, runner.State.MoonJars);
+                Assert.AreEqual(100 - n * MoonJars.Price, runner.State.GoldenCarrots);
+                screen.Refresh();
+                Assert.AreEqual(L10n.T("shop.jar.left", 3 - n, 3), left.text);
+            }
+            Assert.AreEqual(runner.TodayNumber, runner.State.MoonJarBuyDay, "counted by the clamped day");
+            Assert.AreEqual(L10n.T("shop.jar.soldout"), price.text);
+            Assert.IsFalse(Find(jar).interactable, "three a day");
+
+            // A new day with a full shelf: the shop will not sell a tenth.
+            runner.State.MoonJarBuyDay = runner.TodayNumber - 1;
+            runner.State.MoonJars = MoonJars.Cap;
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.jar.full"), price.text);
+            Assert.IsFalse(Find(jar).interactable);
+        }
+
+        [Test]
+        public void From_Garden_Level_Fifteen_The_Daily_Harvest_Shows_A_Moon_Jar_In_Place_Of_Its_Clover_And_The_Clover_Once_The_Days_Jar_Has_Come()
+        {
+            GameState s = runner.State;
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
+            screen.Refresh();
+            string row = "Canvas/Sheet/Panel/Quests/Content/Quest ngay-thu";
+            Assert.IsFalse(root.transform.Find(row + "/Jars").gameObject.activeSelf, "the harvest's jar waits for garden level 15");
+            Assert.IsTrue(root.transform.Find(row + "/Clovers").gameObject.activeSelf, "until then it pays its clover");
+
+            GrowToLevel(MoonJars.DailyLevel);
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
+            screen.Refresh();
+            Assert.IsTrue(root.transform.Find(row + "/Jars").gameObject.activeSelf, "the jar in the clover's place");
+            Assert.IsFalse(root.transform.Find(row + "/Clovers").gameObject.activeSelf);
+            Assert.AreEqual("+1", root.transform.Find(row + "/Jars/Text").GetComponent<Text>().text);
+
+            s.MoonJarFreeDay = s.DailyDay; // the firefly night brought today's jar first
+            screen.Refresh();
+            Assert.IsFalse(root.transform.Find(row + "/Jars").gameObject.activeSelf);
+            Assert.IsTrue(root.transform.Find(row + "/Clovers").gameObject.activeSelf, "the clover it replaced");
+            int clovers = s.Clovers;
+            Find(row + "/Claim").onClick.Invoke();
+            Assert.AreEqual(clovers + 1, s.Clovers);
+            Assert.AreEqual(0, s.MoonJars);
+        }
+
+            // ----- #52: the hex grid under the garden -----
+
+        [Test]
+        public void Every_Station_Seat_Prop_And_Decoration_Spot_Stands_On_Its_Own_Tile_Of_The_Grid()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            GardenGrid grid = runner.State.Grid;
+            var taken = new Dictionary<Hex, string>();
+            void Claim(Hex tile, string who)
+            {
+                Assert.IsFalse(taken.ContainsKey(tile), who + " shares tile " + tile + " with " + (taken.ContainsKey(tile) ? taken[tile] : ""));
+                taken[tile] = who;
+            }
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Hex tile = grid.TileOf(GardenGrid.StationId(runner.Defs[i])) ?? GardenGrid.DefaultStationTile(i);
+                if (i < runner.State.Plots) Assert.AreEqual(tile, grid.TileOf(GardenGrid.StationId(runner.Defs[i])), "a plot's station is on the grid");
+                Vector2 at = ((RectTransform)world.Find("Station " + runner.Defs[i].Id)).anchoredPosition;
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), at, "station " + i + " stands on its tile");
+                Assert.AreEqual(at, screen.StationSpot(i));
+                Claim(tile, "station " + i);
+            }
+            for (int k = 0; k < RestSpots.Max; k++)
+            {
+                Hex tile = grid.TileOf(GardenGrid.RestId(k)) ?? GardenGrid.DefaultRestTile(k);
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), screen.RestSpot(k), "seat " + k);
+                Vector2 seat = ((RectTransform)world.Find("Seat " + k)).anchoredPosition;
+                Assert.Less(Vector2.Distance(seat, screen.RestSpot(k)), 80f, "the rabbit sits on its seat's tile, lifted onto the furniture at most");
+                Claim(tile, "seat " + k);
+            }
+            Assert.AreEqual(GardenScreen.CellToWorld(grid.TileOf(GardenGrid.MortarId).Value), screen.MortarSpot);
+            Assert.AreEqual(screen.MortarSpot + new Vector2(0, 80f), ((RectTransform)world.Find("Mortar")).anchoredPosition, "the mortar on its tile");
+            Claim(grid.TileOf(GardenGrid.MortarId).Value, "mortar");
+            Assert.AreEqual(GardenScreen.CellToWorld(grid.TileOf(GardenGrid.ShopId).Value), screen.ShopSpot);
+            var shop = (RectTransform)world.Find("Shop");
+            Assert.AreEqual(screen.ShopSpot.x, shop.anchoredPosition.x, 0.5f, "the shop on its tile");
+            Assert.AreEqual(screen.ShopSpot.y + shop.rect.height / 2f, shop.anchoredPosition.y, 0.5f, "standing on the tile's foot");
+            Claim(grid.TileOf(GardenGrid.ShopId).Value, "shop");
+            Assert.AreEqual(GardenScreen.CellToWorld(grid.TileOf(GardenGrid.CounterId).Value), screen.GuestSpot, "the guest's counter on its tile");
+            Claim(grid.TileOf(GardenGrid.CounterId).Value, "counter");
+            for (int i = 0; i < Decor.Spots; i++)
+            {
+                Hex tile = grid.TileOf(GardenGrid.DecorId(i)) ?? GardenGrid.DefaultDecorTile(i);
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), screen.DecorSpotAt(i));
+                Assert.AreEqual(screen.DecorSpotAt(i), ((RectTransform)world.Find("Spot " + i)).anchoredPosition, "decoration spot " + i + " on its tile");
+                Claim(tile, "decor " + i);
+            }
+            Assert.AreEqual(runner.Defs.Count + RestSpots.Max + 3 + Decor.Spots, taken.Count, "one tile each, nothing shared");
+            Assert.AreEqual(GardenScreen.CellToWorld(new Hex(0, 0)), screen.StationSpot(0), "the teapot is the heart of the grid");
+            Assert.AreEqual(GardenScreen.CellToWorld(new Hex(1, 0)).x - GardenScreen.CellToWorld(new Hex(0, 0)).x, (float)GardenGrid.PitchX, 0.01f);
+        }
+
+        [Test]
+        public void A_Garden_With_Every_Station_Open_Has_Everything_On_The_Grid_Where_The_Screen_Shows_It()
+        {
+            GameState s = runner.State;
+            s.Plots = runner.Defs.Count;
+            for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] <= 0) s.Levels[i] = 1;
+            s.RestSpots = RestSpots.Max;
+            GardenGrid.Settle(runner.Defs, s);
+            screen.Refresh();
+            Assert.AreEqual(GardenGrid.RadiusForPlots(runner.Defs.Count), s.Grid.Radius);
+            Assert.AreEqual(runner.Defs.Count + RestSpots.Max + 3, s.Grid.OccupantCount, "every station, every seat, the mortar, the shop and the counter");
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var tiles = new HashSet<Hex>();
+            foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants)
+            {
+                Assert.IsTrue(tiles.Add(o.Value), o.Key + " has a tile of its own");
+                Assert.LessOrEqual(GardenGrid.Distance(o.Value), s.Grid.Radius, o.Key + " stands on the lawn");
+            }
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Hex tile = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[i])).Value;
+                Assert.AreEqual(GardenScreen.CellToWorld(tile), ((RectTransform)world.Find("Station " + runner.Defs[i].Id)).anchoredPosition, runner.Defs[i].Id);
+                Assert.IsTrue(world.Find("Station " + runner.Defs[i].Id).gameObject.activeSelf, runner.Defs[i].Id + " is open and shown");
+            }
+            for (int k = 0; k < RestSpots.Max; k++) Assert.IsNotNull(s.Grid.TileOf(GardenGrid.RestId(k)), "seat " + k);
+        }
+
+        [Test]
+        public void A_Station_Moved_On_The_Grid_Is_Looked_Up_Where_It_Moved_To()
+        {
+            GameState s = runner.State;
+            Hex home = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[1])).Value;
+            Assert.AreEqual(GardenScreen.CellToWorld(home), screen.StationSpot(1));
+            Assert.IsTrue(s.Grid.NearestEmpty(out Hex empty));
+            Assert.IsTrue(s.Grid.Place(GardenGrid.StationId(runner.Defs[1]), empty.Q, empty.R));
+            Assert.AreEqual(GardenScreen.CellToWorld(empty), screen.StationSpot(1), "the screen reads the grid, not a table");
+            Assert.AreEqual(TileState.UnlockedEmpty, s.Grid.Tile(home.Q, home.R).State, "its old tile is free");
+            Assert.AreEqual(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(runner.Defs.Count)), screen.StationSpot(runner.Defs.Count), "a station beyond the catalog still has a place");
+        }
     }
 }
