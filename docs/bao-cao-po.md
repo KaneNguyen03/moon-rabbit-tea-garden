@@ -1653,6 +1653,17 @@ Sau khi sửa cả bốn xanh.
 - Giỏ hứng lá không còn đi theo trạm Giỏ lá trà khi trạm bị dời; nó ở yên dưới cây trà cạnh ô nhà (2,0). PO xem có ổn không.
 - Mái tiệm trà chồm lên hai ô phía sau (2,-5) (3,-5); chưa giữ chỗ vì đồ ở đó đứng sau tiệm và không che gì.
 
+## #58 (sửa tiếp) — Tiếng câu cá (agent-58s)
+- **Test:** 1125/1126 (1 test bỏ qua có sẵn), tools/verify.sh RESULT GREEN. Mới: FishingSoundTests (4 test), 3 test hình trong PondScreenTests; mở rộng test #54 cho ao và bảng "Câu cá" trong GardenGridTests, AccessibilityTests, LayoutModeTests; test dạo chơi trong GardenScreenTests nay tính cả chỗ nghỉ thứ ba.
+- **Commit:** 3f3887e (tiếng), be6ee3b (hình), 139f172 (gộp main), b3b682a (ô giữ chỗ) trên nhánh agent-58s, main fast-forward tới b3b682a. Main sau gộp: 1125/1126.
+- **Đã làm:** sáu tiếng tạo bằng code trong Sfx: thả câu (gió + tõm), phao chìm (bloop), giật trúng (nước bắn), kéo cá về giỏ (tách tách cao dần + bộp giỏ), mất mồi ("ôi" hai nốt đi xuống), chạm sớm (bọt nhỏ đi lên). Tất cả theo thanh Âm thanh, về 0 là im; thay các tiếng mượn cũ trong thẻ câu cá. Hình vẽ tay: mặt ao, phao nổi/chìm, ba vòng sóng (một vòng đứng yên khi giảm chuyển động); ảnh trước/sau ở docs/anh/po-58/58s-truoc.png và 58s-sau.png. Ô giữ chỗ mới cho ao và bảng "Câu cá N/5": (3,-4), (4,-5), (5,-5), (6,-5); không thả được đồ vào, không có vòng nét đứt, bản lưu cũ được dời sang ô trống gần nhất. Thảm picnic chuyển từ (3,-4) bên bờ ao (đè lên bảng "Câu cá") xuống (-2,2) giữa nồi mứt và ấm trà.
+
+### Chưa đạt / cần PO quyết
+- Cần nghe thử trên bản Mac: âm lượng so với nhạc, tiếng "ôi" mất mồi có đủ nhẹ không, tiếng guồng dây có quá dày không.
+- Chỗ mới của thảm picnic: vườn trong bán kính 4 không còn ô nào trống hẳn; (-2,2) là ô ít chồng lấn nhất, nhưng bọt nồi mứt vẫn chạm nhẹ đầu trái bảng tên "Sữa". PO có thể chọn chỗ khác (ảnh Logs/preview/17-rest-bottom.png).
+- Phao đứng trước mặt trăng của hình ao và dây câu đi ngang mặt trăng; nếu vướng thì dời phao sang trái hoặc xuống dưới một chút.
+- Ảnh "trước" không có khung phao đang nổi vì khung đó mới thêm trong lần chụp sau.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
