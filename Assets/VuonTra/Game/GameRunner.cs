@@ -945,6 +945,27 @@ namespace VuonTra.Game
             return true;
         }
 
+        // ----- moon jars (#64) -----
+
+        /// <summary>What one moon jar would pay if opened now.</summary>
+        public BigNum MoonJarValue => MoonJars.Value(Defs, State, Mods);
+
+        /// <summary>Opens one moon jar into the purse: the carrots it paid, nothing when there is none.</summary>
+        public BigNum OpenMoonJar()
+        {
+            BigNum paid = MoonJars.Open(Defs, State, Mods);
+            if (paid > BigNum.Zero) Changed();
+            return paid;
+        }
+
+        /// <summary>Buys a moon jar at the shop, by the clamped day (#78); false when the shelf is full, the day's three are sold or the purse is short.</summary>
+        public bool BuyMoonJar()
+        {
+            bool ok = MoonJars.Buy(State, TodayNumber);
+            if (ok) Changed();
+            return ok;
+        }
+
         /// <summary>For tests and previews: as if the player had just come back with this report.</summary>
         public void ShowAwayForTest(AwayReport away) => TellAway(away);
 

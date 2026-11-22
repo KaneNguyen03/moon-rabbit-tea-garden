@@ -8,6 +8,7 @@ namespace VuonTra.Game.UI
     /// <summary>
     /// Where the carrots come from: one row per brewing station with what it earns a second and the rabbit
     /// and ingredient factors behind it, then the garden-wide multipliers (the seated rabbits' share among them) and the total. Opens from the purse.
+    /// Under the list, from garden level 3, the moon jars (#64): what one is worth now and the button that opens one.
     /// </summary>
     public sealed class IncomeView
     {
@@ -16,10 +17,18 @@ namespace VuonTra.Game.UI
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
         readonly List<GameObject> _rows = new List<GameObject>();
+        readonly RectTransform _scroll, _jars;
+        readonly ChunkyButton _openJar;
+        readonly Text _jarLabel, _jarSub;
+        /// <summary>The moon jars' bar under the list, and the room it takes from the list while it shows.</summary>
+        public const float JarBarHeight = 170f, ListBottom = 28f;
+
+        /// <summary>Where a jar's carrots start their flight to the purse.</summary>
+        public RectTransform JarButton => _openJar.Root;
 
         public bool IsOpen => _root.activeSelf;
 
-        public IncomeView(RectTransform canvas, GameCatalog catalog, Tweens tweens)
+        public IncomeView(RectTransform canvas, GameCatalog catalog, Tweens tweens, System.Action onOpenJar = null)
         {
             _catalog = catalog;
             _tweens = tweens;
@@ -47,7 +56,8 @@ namespace VuonTra.Game.UI
             closeButton.onClick.AddListener(Close);
             UiKit.Rect("Text", close).Stretch(0, 0, 1, 1).AddText("×", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            var scrollRt = UiKit.Rect("Scroll", _card).Stretch(0, 0, 1, 1, 0, 28, 0, 130);
+            var scrollRt = UiKit.Rect("Scroll", _card).Stretch(0, 0, 1, 1, 0, ListBottom, 0, 130);
+            _scroll = scrollRt;
             scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
@@ -65,6 +75,22 @@ namespace VuonTra.Game.UI
             _content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
             scroll.content = _content;
             scroll.viewport = scrollRt;
+
+            // The moon jars (#64): a jar, what one pays now and how many are on the shelf, and the button that opens one.
+            _jars = UiKit.Rect("Jars", _card).Band(UiKit.CardPad, UiKit.CardPad, ListBottom, JarBarHeight - 16f);
+            _jars.AddImage(catalog.Panel, Palette.Mix(Palette.Lantern, Palette.Paper, 0.6f), true);
+            JarIcon(_jars, catalog, "Icon", 104f, 0f, 0.5f, 72f, 0f);
+            _jarSub = UiKit.Rect("Sub", _jars).Stretch(0, 0, 1, 1, 136, 12, 420, 12).AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _jarSub.resizeTextForBestFit = true;
+            _jarSub.resizeTextMinSize = 13;
+            _jarSub.resizeTextMaxSize = UiKit.TextSmall;
+            var open = UiKit.Rect("Open", _jars).Place(1f, 0.5f, -200, 4, 380, 110);
+            _openJar = UiKit.Chunky(open, catalog.Panel, () => { _openJar.Press(tweens); onOpenJar?.Invoke(); });
+            _jarLabel = UiKit.Rect("Text", _openJar.FaceRect).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _jarLabel.resizeTextForBestFit = true;
+            _jarLabel.resizeTextMinSize = 14;
+            _jarLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _jars.gameObject.SetActive(false);
 
             _root.SetActive(false);
         }
@@ -131,6 +157,37 @@ namespace VuonTra.Game.UI
             if (boosting) AddNote("Boost", L10n.T("income.boost", UiKit.Times(Energy.BoostSpeed)), Palette.Moss);
             BigNum total = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));
             AddNote("Total", L10n.T("income.total", total.Short()), Palette.CarrotLip, true);
+            RefreshJars(defs, s, m);
+        }
+
+        /// <summary>The jars' bar: shown from garden level 3, the button live while there is a jar to open.</summary>
+        void RefreshJars(IReadOnlyList<StationDef> defs, GameState s, Modifiers m)
+        {
+            bool shown = MoonJars.Shown(s);
+            if (_jars.gameObject.activeSelf != shown) _jars.gameObject.SetActive(shown);
+            _scroll.offsetMin = new Vector2(_scroll.offsetMin.x, shown ? ListBottom + JarBarHeight : ListBottom);
+            if (!shown) return;
+            bool any = s.MoonJars > 0;
+            _jarSub.text = L10n.T("income.jar.sub", MoonJars.Value(defs, s, m).Short(), s.MoonJars, MoonJars.Cap);
+            _jarLabel.text = any ? L10n.T("income.jar", s.MoonJars) : L10n.T("income.jar.none");
+            _jarLabel.color = ChunkyButton.InkFor(any);
+            _openJar.SetEnabled(any);
+        }
+
+        /// <summary>
+        /// A moon jar drawn from the game's own shapes (#64): a glass body with a full moon glowing inside and a cork on top,
+        /// <paramref name="size"/> tall. Used on the purse, in this card, on the shop's shelf and on quest rewards.
+        /// </summary>
+        public static RectTransform JarIcon(RectTransform parent, GameCatalog catalog, string name, float size, float anchorX, float anchorY, float x, float y)
+        {
+            var jar = UiKit.Rect(name, parent).Place(anchorX, anchorY, x, y, size * 0.8f, size);
+            UiKit.Rect("Glow", jar).Place(0.5f, 0.42f, 0, 0, size * 1.1f, size * 1.1f).AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
+            UiKit.Rect("Glass", jar).Stretch(0, 0, 1, 0.84f).AddImage(catalog.Panel, Palette.Mix(Palette.Paper, Palette.Night, 0.22f), true);
+            UiKit.Rect("Moon", jar).Place(0.5f, 0.4f, 0, 0, size * 0.44f, size * 0.44f).AddImage(catalog.Round, Palette.Lantern);
+            UiKit.Rect("Shine", jar).Place(0.22f, 0.5f, 0, 0, size * 0.1f, size * 0.42f).AddImage(catalog.Round, Palette.Alpha(Color.white, 0.55f));
+            UiKit.Rect("Cork", jar).Stretch(0.2f, 0.8f, 0.8f, 1f).AddImage(catalog.Panel, Palette.Mix(Palette.Carrot, Palette.Ink, 0.45f), true);
+            foreach (Image image in jar.GetComponentsInChildren<Image>()) image.raycastTarget = false;
+            return jar;
         }
 
         void AddNote(string name, string text, Color color, bool big = false)

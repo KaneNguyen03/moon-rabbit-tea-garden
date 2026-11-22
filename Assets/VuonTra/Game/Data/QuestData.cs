@@ -21,6 +21,8 @@ namespace VuonTra.Game
         public double RewardCarrots = 10;
         public int RewardClovers;
         public int RewardGolden;
+        [Tooltip("Moon jars (#64), each in place of a clover: the day's free jar when it can still come, the clover when it cannot.")]
+        public int RewardJars;
         [Tooltip("A quest of a season shows only while that season runs; None is every day.")]
         public Season Season;
 
@@ -28,7 +30,7 @@ namespace VuonTra.Game
         {
             Id = Id, Title = Title, Metric = Metric, StationId = Station != null ? Station.Id : null,
             Target = Target, Daily = Daily, RewardSeconds = RewardSeconds,
-            RewardCarrots = RewardCarrots, RewardClovers = RewardClovers, RewardGolden = RewardGolden, Season = Season
+            RewardCarrots = RewardCarrots, RewardClovers = RewardClovers, RewardGolden = RewardGolden, Season = Season, RewardJars = RewardJars
         };
     }
 }

@@ -684,6 +684,16 @@ namespace VuonTra.EditorTools
             { "quest.loai-20", "Gặp 20 loài thỏ", "Meet 20 kinds of rabbit" },
             { "quest.loai-40", "Gặp 40 loài thỏ · tặng Mũ sao", "Meet 40 kinds · a Starry Hat" },
             { "quest.loai-72", "Gặp đủ 72 loài · khung Đủ bộ", "Meet all 72 kinds · Complete frame" },
+            // Moon jars (#64): an hour of income in a jar, opened from the purse, sold at the shop.
+            { "income.jar", "Mở hũ trăng ({0})", "Open a moon jar ({0})" },
+            { "income.jar.none", "Chưa có hũ trăng", "No moon jars yet" },
+            { "income.jar.sub", "1 hũ = 1 giờ thu nhập: +{0} · trên kệ {1}/{2}", "1 jar = an hour of income: +{0} · shelf {1}/{2}" },
+            { "shop.jar.name", "Hũ trăng", "Moon jar" },
+            { "shop.jar.left", "Còn {0}/{1}", "{0}/{1} left" },
+            { "shop.jar.full", "Kệ đầy", "Shelf full" },
+            { "shop.jar.soldout", "Mai mua tiếp", "Back tomorrow" },
+            { "float.jar.bought", "+1 hũ trăng · mở ở ví cà rốt", "+1 moon jar · open it from the purse" },
+            { "fireflies.jar", "+1 hũ trăng (3 sao)", "+1 moon jar (three stars)" },
         };
     }
 }

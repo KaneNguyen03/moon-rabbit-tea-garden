@@ -1099,7 +1099,7 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor,
-                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => GoldenPacks.Open(Runner.Store));
+                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => GoldenPacks.Open(Runner.Store), OnBuyMoonJar);
             DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus),
@@ -1165,7 +1165,7 @@ namespace VuonTra.Game.UI
             _onSyncChoice = r => CloudChoice.Open(r);
             Runner.SyncChoiceNeeded += _onSyncChoice;
             if (Runner.Sync.Pending != null) CloudChoice.Open(Runner.Sync.Pending);
-            Income = new IncomeView(_canvas, catalog, Tweens);
+            Income = new IncomeView(_canvas, catalog, Tweens, OnOpenMoonJar);
             Pound = new PoundingView(_canvas, catalog, Tweens, () => Refresh(-1f), run =>
             {
                 PoundingResult result = Runner.FinishPounding(run);
@@ -2951,6 +2951,7 @@ namespace VuonTra.Game.UI
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", _goldenChip).Place(0f, 0.5f, 28, 0, 38, 38).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
             _goldenText = UiKit.Rect("Text", _goldenChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _goldenChip.gameObject.SetActive(false);
+            BuildJarChip(catalog); // the moon jars on the shelf, beside the golden carrots (#64)
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
@@ -3743,6 +3744,7 @@ namespace VuonTra.Game.UI
             bool anyGolden = s.GoldenCarrots > 0;
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
             _goldenText.text = s.GoldenCarrots.ToString();
+            RefreshJarChip(s);
             bool shopNews = Runner.GiftWaiting || Runner.VisitorUnseen; // a gift to take, or a visitor not yet looked at
             if (_shopBadge != null && _shopBadge.activeSelf != shopNews) _shopBadge.SetActive(shopNews);
             ProductTray.Refresh(s);
@@ -4508,6 +4510,9 @@ namespace VuonTra.Game.UI
             QuestRowView row = RowOfQuest(index);
             // Where the reward starts from is read before the claim, which reorders and may hide the row.
             Vector2 carrotsFrom = Feel.PointOf(row != null ? row.CarrotChip : _purse), cloversFrom = Feel.PointOf(row != null ? row.CloverChip : _purse);
+            Vector2 jarsFrom = Feel.PointOf(row != null ? row.JarChip : _purse);
+            // A moon jar comes in a clover's place while the day's free jar can still come (#64), read before the claim gives it.
+            int clovers = Quests.CloversNow(Runner.QuestDefs[index], Runner.State), jars = Quests.JarsNow(Runner.QuestDefs[index], Runner.State);
             if (!Runner.ClaimQuest(index, out BigNum paid)) return;
             if (row != null) row.Claim.Press(Tweens);
             Sfx.Reward();
@@ -4521,8 +4526,8 @@ namespace VuonTra.Game.UI
                 Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 8, 460f, 40f);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
+            if (jars > 0) JarArrived(jarsFrom);
             // Clovers fly to the rabbits tab, where they are spent.
-            int clovers = Runner.QuestDefs[index].RewardClovers;
             if (clovers > 0)
             {
                 Feel.Fly(cloversFrom, Feel.PointOf(_tabIcons[3].rectTransform), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
@@ -5560,6 +5565,62 @@ namespace VuonTra.Game.UI
             _chatText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
             _chatText.horizontalOverflow = HorizontalWrapMode.Wrap;
             _chatLine.gameObject.SetActive(false);
+        }
+
+        #endregion
+
+        #region Moon jars (#64)
+
+        RectTransform _jarChip;
+        Text _jarText;
+
+        /// <summary>The jars on the shelf, as a chip beside the golden carrots under the purse: only from garden level 3 and while there is one.</summary>
+        void BuildJarChip(GameCatalog catalog)
+        {
+            _jarChip = UiKit.Rect("Jars", _hud).Place(0f, 1f, 392, -154, 118, 52);
+            _jarChip.AddShadow(10f, 6f, 0.25f);
+            _jarChip.AddImage(catalog.Panel, Palette.Paper, true);
+            IncomeView.JarIcon(_jarChip, catalog, "Icon", 42f, 0f, 0.5f, 30, 2);
+            _jarText = UiKit.Rect("Text", _jarChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _jarChip.gameObject.SetActive(false);
+        }
+
+        void RefreshJarChip(GameState s)
+        {
+            bool show = MoonJars.Shown(s) && s.MoonJars > 0;
+            if (_jarChip.gameObject.activeSelf != show) _jarChip.gameObject.SetActive(show);
+            _jarText.text = s.MoonJars.ToString();
+        }
+
+        /// <summary>"Mở hũ trăng" on the purse's card: an hour of income flies from the button to the purse, like a sale from the tray.</summary>
+        void OnOpenMoonJar()
+        {
+            Vector2 from = Feel.PointOf(Income.JarButton);
+            BigNum paid = Runner.OpenMoonJar();
+            if (paid <= BigNum.Zero) return;
+            PaySale(from, paid, 0);
+            Income.Refresh(Runner.Defs, Runner.State, Runner.Mods);
+        }
+
+        /// <summary>The jar on the shop's shelf, bought with the second tap.</summary>
+        void OnBuyMoonJar()
+        {
+            if (!Runner.BuyMoonJar()) return;
+            Sfx.Reward();
+            Haptics.Light();
+            Feel.FloatText(new Vector2(0, 420), L10n.T("float.jar.bought"), Palette.Lantern, 36);
+        }
+
+        /// <summary>A moon jar was won: a little moon flies from where it came to the purse, and the jars' chip swells.</summary>
+        void JarArrived(Vector2 from)
+        {
+            GameCatalog catalog = Runner.Catalog;
+            Feel.Fly(from, Feel.PointOf(_purse), catalog.Round, Palette.Lantern, 1, 44f, () =>
+            {
+                if (_purse == null) return;
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), L10n.T("float.jar.bought"), Palette.Lantern, 34);
+                if (_jarChip != null) Tweens.Add(Motion.Tap, t => { if (_jarChip != null) _jarChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_jarChip != null) _jarChip.localScale = Vector3.one; });
+            });
         }
 
         #endregion

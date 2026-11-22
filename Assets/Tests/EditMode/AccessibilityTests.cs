@@ -306,7 +306,7 @@ namespace VuonTra.Core.Tests
             foreach (Text text in root.transform.Find("Canvas/Shop").GetComponentsInChildren<Text>(true))
             {
                 Transform tile = text.transform.parent;
-                if (text.name != "Name" || !(tile.name.StartsWith("Decor ") || tile.name.StartsWith("Hat "))) continue;
+                if (text.name != "Name" || !(tile.name.StartsWith("Decor ") || tile.name.StartsWith("Hat ") || tile.name == "Jar")) continue; // the moon jar (#64) too
                 tiles++;
                 string line = OneLine(text);
                 if (line != null) wrong.Add(line);

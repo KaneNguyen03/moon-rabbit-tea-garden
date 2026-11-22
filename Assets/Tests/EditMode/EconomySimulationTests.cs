@@ -35,6 +35,10 @@ namespace VuonTra.Core.Tests
 
         // Where the carrots came from.
         BigNum earnedTaps, earnedIdle, earnedBoost, earnedAway, earnedQuests, earnedTray, earnedGames, earnedOrders;
+        /// <summary>Moon jars (#64): carrots from opened jars, jars opened, and the free jars that came on each day. The player opens every jar the moment the purse shows them and buys none.</summary>
+        BigNum earnedJars;
+        int jarsOpened, jarsHeld;
+        readonly Dictionary<long, int> freeJars = new Dictionary<long, int>();
         // Where the clovers and golden carrots came from.
         int cloversQuests, cloversGames, cloversOrders, goldenGift, goldenPhoto, goldenQuests, goldenGames, goldenTray, goldenSpent;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
@@ -64,7 +68,9 @@ namespace VuonTra.Core.Tests
             mods = Modifiers.From(ups, s);
             rng = new System.Random(20261122);
             clock = sessionClock = lastSale = 0;
-            earnedTaps = earnedIdle = earnedBoost = earnedAway = earnedQuests = earnedTray = earnedGames = earnedOrders = BigNum.Zero;
+            earnedTaps = earnedIdle = earnedBoost = earnedAway = earnedQuests = earnedTray = earnedGames = earnedOrders = earnedJars = BigNum.Zero;
+            jarsOpened = jarsHeld = 0;
+            freeJars.Clear();
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             levelAt.Clear();
@@ -247,6 +253,36 @@ namespace VuonTra.Core.Tests
             }
         }
 
+        /// <summary>Counts the jars that came since the last look (all free: this player buys none) and opens them while the purse shows them.</summary>
+        void OpenJars()
+        {
+            if (s.MoonJars > jarsHeld)
+            {
+                freeJars.TryGetValue(Today, out int n);
+                freeJars[Today] = n + s.MoonJars - jarsHeld;
+            }
+            while (MoonJars.Shown(s) && s.MoonJars > 0)
+            {
+                earnedJars += MoonJars.Open(defs, s, mods);
+                jarsOpened++;
+            }
+            jarsHeld = s.MoonJars;
+        }
+
+        int MostFreeJarsInADay()
+        {
+            int most = 0;
+            foreach (int n in freeJars.Values) if (n > most) most = n;
+            return most;
+        }
+
+        int FreeJars()
+        {
+            int got = 0;
+            foreach (int n in freeJars.Values) got += n;
+            return got;
+        }
+
         /// <summary>Plays the first game that is open today: the garden runs on while the player is busy with it.</summary>
         bool PlayAGame()
         {
@@ -295,6 +331,7 @@ namespace VuonTra.Core.Tests
             // As in the game, who works and who rests feeds the modifiers (#60).
             if (s.Rabbits.Count != rabbitsBefore) mods = Modifiers.From(ups, s);
             if ((int)sessionClock % gameEvery == 0 && PlayAGame()) Note();
+            OpenJars();
             Note();
             int t = (int)clock;
             if (t == 600) Snapshot("10 phút");
@@ -353,7 +390,7 @@ namespace VuonTra.Core.Tests
             return total >= 3600 ? (total / 3600) + " giờ " + (total % 3600 / 60) + " phút" : (total / 60) + " phút " + (total % 60) + " giây";
         }
 
-        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders;
+        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders + earnedJars;
 
         double Share(BigNum part)
         {
@@ -372,10 +409,10 @@ namespace VuonTra.Core.Tests
             for (int k = 0; k < defs.Count; k++) if (s.Levels[k] > 0) open++;
             snapshots.Add("| " + label + " | " + Income.ToShortString() + " | " + s.Coins.ToShortString() + " | " + Garden.Level(s) + " (" + (int)s.GardenXp + ") | " + s.Plots + " | " + open + " | " + s.Rabbits.Count
                 + " | " + Share(earnedTaps) + " | " + Share(earnedIdle) + " | " + Share(earnedBoost) + " | " + Share(earnedAway) + " | " + Share(earnedQuests) + " | " + Share(earnedTray)
-                + " | " + Share(earnedGames) + " | " + Share(earnedOrders) + " | " + GoldenEarned + " / " + goldenSpent + " |");
+                + " | " + Share(earnedGames) + " | " + Share(earnedOrders) + " | " + Share(earnedJars) + " | " + GoldenEarned + " / " + goldenSpent + " |");
         }
 
-        const string SnapshotHeader = "| Lúc | Thu/giây | Cà rốt | Cấp vườn (điểm) | Ô đất | Trạm | Thỏ | Chạm % | Trạm tự chạy % | Trà lực % | Vắng mặt % | Nhiệm vụ % | Khay % | Trò chơi % | Đơn khách % | Vàng kiếm / tiêu |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|";
+        const string SnapshotHeader = "| Lúc | Thu/giây | Cà rốt | Cấp vườn (điểm) | Ô đất | Trạm | Thỏ | Chạm % | Trạm tự chạy % | Trà lực % | Vắng mặt % | Nhiệm vụ % | Khay % | Trò chơi % | Đơn khách % | Hũ trăng % | Vàng kiếm / tiêu |\n|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|";
 
         string Milestones()
         {
@@ -398,6 +435,7 @@ namespace VuonTra.Core.Tests
             return "Cỏ: " + cloversQuests + " từ nhiệm vụ, " + CloversFromLevels + " từ cấp vườn, " + cloversGames + " từ trò chơi, " + cloversOrders + " từ đơn khách; gọi " + summoned + " thỏ.\n"
                 + "Cà rốt vàng: " + goldenGift + " quà ngày, " + goldenPhoto + " ảnh, " + GoldenFromLevels + " cấp vườn, " + goldenQuests + " nhiệm vụ, " + goldenGames + " trò chơi, " + goldenTray + " khay; tiêu " + goldenSpent
                 + " (" + goldenCalls + " lượt gọi vàng, " + visitorsBought + " thỏ ghé tiệm); còn " + s.GoldenCarrots + ".\n"
+                + "Hũ trăng (#64): " + FreeJars() + " hũ miễn phí (nhiều nhất " + MostFreeJarsInADay() + " trong một ngày), mở " + jarsOpened + " hũ ngay khi ví cho mở, không mua hũ; còn " + s.MoonJars + ".\n"
                 + "Khác: " + gamesPlayed + " ván chơi, " + ordersDelivered + " đơn giao, " + rabbitLevels + " cấp thỏ mua, " + boosts + " lần trà lực, " + s.Claimed.Count + " nhiệm vụ đang nhận.\n";
         }
 
@@ -429,7 +467,8 @@ namespace VuonTra.Core.Tests
                 {
                     Snapshot("hết ngày 1");
                     levelDayOne = Garden.Level(s);
-                    quests1 = earnedQuests; games1 = earnedGames; orders1 = earnedOrders; active1 = TotalEarned - earnedAway;
+                    // Moon jars (#64) are an hour of income at a stretch, like time away, so they are left out of what play earned too.
+                    quests1 = earnedQuests; games1 = earnedGames; orders1 = earnedOrders; active1 = TotalEarned - earnedAway - earnedJars;
                     goldenEarnedDayOne = GoldenEarned;
                 }
                 if (day == 2) Snapshot("hết ngày 2");
@@ -445,11 +484,12 @@ namespace VuonTra.Core.Tests
             double questShare1 = active1.IsZero ? 0 : (quests1 / active1).ToDouble() * 100d;
             double playShare1 = active1.IsZero ? 0 : ((games1 + orders1) / active1).ToDouble() * 100d;
             int goldenCallsCasual = goldenCalls, visitorsCasual = visitorsBought;
+            int mostJarsCasual = MostFreeJarsInADay(), jarsOpenedCasual = jarsOpened;
             report.AppendLine(Milestones());
             report.AppendLine(SnapshotHeader);
             foreach (string row in snapshots) report.AppendLine(row);
             report.AppendLine();
-            report.AppendLine("Ngày 1, tính trên cà rốt kiếm được lúc đang chơi (không tính vắng mặt): nhiệm vụ " + Math.Round(questShare1, 1) + " %, trò chơi + đơn khách " + Math.Round(playShare1, 1) + " %; cà rốt vàng kiếm được " + goldenEarnedDayOne + ".");
+            report.AppendLine("Ngày 1, tính trên cà rốt kiếm được lúc đang chơi (không tính vắng mặt và hũ trăng): nhiệm vụ " + Math.Round(questShare1, 1) + " %, trò chơi + đơn khách " + Math.Round(playShare1, 1) + " %; cà rốt vàng kiếm được " + goldenEarnedDayOne + ".");
             report.AppendLine(Extras());
             report.AppendLine("Diễn biến:");
             report.Append(trace);
@@ -463,6 +503,7 @@ namespace VuonTra.Core.Tests
             Play(2 * 3600);
             Snapshot("2 giờ");
             double plots12Tireless = plotsAt.ContainsKey(12) ? plotsAt[12] : -1;
+            int mostJarsTireless = MostFreeJarsInADay();
             report.AppendLine(Milestones());
             report.AppendLine(SnapshotHeader);
             foreach (string row in snapshots) report.AppendLine(row);
@@ -491,6 +532,10 @@ namespace VuonTra.Core.Tests
             Assert.LessOrEqual(playShare1, 30, "but not take over\n" + report);
             Assert.GreaterOrEqual(goldenCallsCasual + visitorsCasual, 2, "a casual player should call with golden carrots a few times a week\n" + report);
             Assert.LessOrEqual(goldenCallsCasual + visitorsCasual, 6, "but not every day\n" + report);
+            // Moon jars (#64): the free sources together bring at most one a day, to the casual player and the tireless one.
+            Assert.Greater(jarsOpenedCasual, 0, "the casual player gets and opens jars\n" + report);
+            Assert.LessOrEqual(mostJarsCasual, MoonJars.FreePerDay, "at most one free jar a day\n" + report);
+            Assert.LessOrEqual(mostJarsTireless, MoonJars.FreePerDay, "the tireless player too\n" + report);
             Assert.Pass(report.ToString());
         }
     }

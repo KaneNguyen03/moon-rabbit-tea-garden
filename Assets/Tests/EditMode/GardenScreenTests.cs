@@ -5795,5 +5795,117 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(frame, "the gold frame tops the album");
             StringAssert.Contains("Đủ bộ", frame.Find("Text").GetComponent<Text>().text);
         }
+
+        // ----- Moon jars (#64) -----
+
+        [Test]
+        public void The_Purse_Card_Opens_A_Moon_Jar_From_Garden_Level_Three_And_The_Carrots_Fly_To_The_Purse()
+        {
+            screen.Shell.StartGame();
+            runner.State.MoonJars = 2;
+            screen.Refresh();
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            Assert.IsTrue(screen.Income.IsOpen);
+            Assert.IsFalse(root.transform.Find("Canvas/Income/Card/Jars").gameObject.activeSelf, "a new player does not see the jars");
+            Assert.IsFalse(root.transform.Find("Canvas/Hud/Jars").gameObject.activeSelf);
+            screen.Income.Close();
+
+            GrowToLevel(MoonJars.ShowLevel);
+            Find("Canvas/Hud/Purse").onClick.Invoke();
+            Text label = root.transform.Find("Canvas/Income/Card/Jars/Open/Face/Text").GetComponent<Text>();
+            Assert.IsTrue(root.transform.Find("Canvas/Income/Card/Jars").gameObject.activeSelf);
+            Assert.AreEqual(L10n.T("income.jar", 2), label.text);
+            BigNum value = runner.MoonJarValue;
+            Assert.AreEqual(L10n.T("income.jar.sub", value.Short(), 2, MoonJars.Cap), root.transform.Find("Canvas/Income/Card/Jars/Sub").GetComponent<Text>().text);
+            Assert.IsTrue(root.transform.Find("Canvas/Hud/Jars").gameObject.activeSelf, "the jars on the shelf show under the purse");
+            Assert.AreEqual("2", root.transform.Find("Canvas/Hud/Jars/Text").GetComponent<Text>().text);
+            Assert.AreEqual((Economy.IncomePerSecond(runner.Defs, runner.State) * (runner.Mods.IncomeMultiplier * runner.Mods.SpeedMultiplier * 3600d)).ToDouble(), value.ToDouble(), 1e-6);
+
+            BigNum before = runner.State.Coins;
+            int flying = screen.Feel.Flying;
+            Find("Canvas/Income/Card/Jars/Open").onClick.Invoke();
+            Assert.AreEqual((before + value).ToDouble(), runner.State.Coins.ToDouble(), 1e-6, "an hour of income");
+            Assert.AreEqual(1, runner.State.MoonJars);
+            Assert.Greater(screen.Feel.Flying, flying, "the carrots fly from the button to the purse");
+            Assert.AreEqual(L10n.T("income.jar", 1), label.text, "the card counts down at once");
+            screen.Refresh();
+            Assert.AreEqual("1", root.transform.Find("Canvas/Hud/Jars/Text").GetComponent<Text>().text);
+
+            Find("Canvas/Income/Card/Jars/Open").onClick.Invoke();
+            Assert.AreEqual(0, runner.State.MoonJars);
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("income.jar.none"), label.text);
+            Assert.IsFalse(Find("Canvas/Income/Card/Jars/Open").interactable, "nothing to open");
+            Assert.IsFalse(root.transform.Find("Canvas/Hud/Jars").gameObject.activeSelf, "no jars, no chip");
+        }
+
+        [Test]
+        public void The_Shop_Shelf_Sells_A_Jar_On_The_Second_Tap_Three_A_Day_And_Not_Onto_A_Full_Shelf()
+        {
+            screen.Shell.StartGame();
+            runner.State.GoldenCarrots = 100;
+            screen.OpenShop();
+            screen.Refresh();
+            Assert.IsFalse(root.transform.Find("Canvas/Shop/Card/Decor/Row/Jar").gameObject.activeSelf, "not before garden level 3");
+            screen.Shop.Close();
+
+            GrowToLevel(MoonJars.ShowLevel);
+            screen.OpenShop();
+            screen.Refresh();
+            string jar = "Canvas/Shop/Card/Decor/Row/Jar";
+            Text price = root.transform.Find(jar + "/Price/Text").GetComponent<Text>();
+            Text left = root.transform.Find(jar + "/Left/Text").GetComponent<Text>();
+            Assert.IsTrue(root.transform.Find(jar).gameObject.activeSelf);
+            Assert.AreEqual(MoonJars.Price.ToString(), price.text);
+            Assert.AreEqual(L10n.T("shop.jar.left", 3, 3), left.text);
+            for (int n = 1; n <= MoonJars.BuyPerDay; n++)
+            {
+                Find(jar).onClick.Invoke();
+                Assert.AreEqual(n - 1, runner.State.MoonJars, "the first tap only asks");
+                Assert.AreEqual(L10n.T("shop.hats.confirm"), price.text);
+                Find(jar).onClick.Invoke();
+                Assert.AreEqual(n, runner.State.MoonJars);
+                Assert.AreEqual(100 - n * MoonJars.Price, runner.State.GoldenCarrots);
+                screen.Refresh();
+                Assert.AreEqual(L10n.T("shop.jar.left", 3 - n, 3), left.text);
+            }
+            Assert.AreEqual(runner.TodayNumber, runner.State.MoonJarBuyDay, "counted by the clamped day");
+            Assert.AreEqual(L10n.T("shop.jar.soldout"), price.text);
+            Assert.IsFalse(Find(jar).interactable, "three a day");
+
+            // A new day with a full shelf: the shop will not sell a tenth.
+            runner.State.MoonJarBuyDay = runner.TodayNumber - 1;
+            runner.State.MoonJars = MoonJars.Cap;
+            screen.Refresh();
+            Assert.AreEqual(L10n.T("shop.jar.full"), price.text);
+            Assert.IsFalse(Find(jar).interactable);
+        }
+
+        [Test]
+        public void From_Garden_Level_Fifteen_The_Daily_Harvest_Shows_A_Moon_Jar_In_Place_Of_Its_Clover_And_The_Clover_Once_The_Days_Jar_Has_Come()
+        {
+            GameState s = runner.State;
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
+            screen.Refresh();
+            string row = "Canvas/Sheet/Panel/Quests/Content/Quest ngay-thu";
+            Assert.IsFalse(root.transform.Find(row + "/Jars").gameObject.activeSelf, "the harvest's jar waits for garden level 15");
+            Assert.IsTrue(root.transform.Find(row + "/Clovers").gameObject.activeSelf, "until then it pays its clover");
+
+            GrowToLevel(MoonJars.DailyLevel);
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
+            screen.Refresh();
+            Assert.IsTrue(root.transform.Find(row + "/Jars").gameObject.activeSelf, "the jar in the clover's place");
+            Assert.IsFalse(root.transform.Find(row + "/Clovers").gameObject.activeSelf);
+            Assert.AreEqual("+1", root.transform.Find(row + "/Jars/Text").GetComponent<Text>().text);
+
+            s.MoonJarFreeDay = s.DailyDay; // the firefly night brought today's jar first
+            screen.Refresh();
+            Assert.IsFalse(root.transform.Find(row + "/Jars").gameObject.activeSelf);
+            Assert.IsTrue(root.transform.Find(row + "/Clovers").gameObject.activeSelf, "the clover it replaced");
+            int clovers = s.Clovers;
+            Find(row + "/Claim").onClick.Invoke();
+            Assert.AreEqual(clovers + 1, s.Clovers);
+            Assert.AreEqual(0, s.MoonJars);
+        }
     }
 }

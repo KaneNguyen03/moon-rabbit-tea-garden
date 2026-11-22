@@ -32,7 +32,7 @@ namespace VuonTra.EditorTools
             }
         }
 
-        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; public Season Season; }
+        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; public Season Season; public int Jars; }
 
         public static void Seed(GameCatalog catalog)
         {
@@ -69,7 +69,8 @@ namespace VuonTra.EditorTools
                 // Daily: come back tomorrow.
                 new Q { Id = "ngay-cham", Title = "Chạm bé thỏ 50 lần",             Metric = QuestMetric.Taps,          Target = 50, Seconds = 30, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-nang", Title = "Nâng cấp trạm 20 lần",           Metric = QuestMetric.LevelsBought,  Target = 20, Seconds = 30, Carrots = 30,  Clovers = 1, Daily = true },
-                new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 60, Carrots = 60,  Clovers = 1, Daily = true },
+                // The harvest pays a moon jar in place of its clover (#64), the clover again when the day's free jar has come.
+                new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 60, Carrots = 60,  Jars = 1, Daily = true },
                 new Q { Id = "ngay-don",  Title = "Giao 2 đơn trà cho khách",      Metric = QuestMetric.OrdersDelivered, Target = 2, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
                 new Q { Id = "ngay-anh",  Title = "Chụp 3 tấm thỏ xin ảnh",        Metric = QuestMetric.PhotoAsksAnswered, Target = 3, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
                 // Achievements: once.
@@ -134,7 +135,7 @@ namespace VuonTra.EditorTools
                 data.Id = row.Id; data.Title = row.Title; data.Metric = row.Metric;
                 data.Station = row.Station != null ? stations[row.Station] : null;
                 data.Target = row.Target; data.Daily = row.Daily; data.RewardSeconds = row.Seconds;
-                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden; data.Season = row.Season;
+                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden; data.Season = row.Season; data.RewardJars = row.Jars;
                 EditorUtility.SetDirty(data);
                 quests.Add(data);
             }

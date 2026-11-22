@@ -2856,6 +2856,42 @@ MonoBehaviour:
     m_Localized: "Meet all 72 kinds \xB7 Complete frame"
     m_Metadata:
       m_Items: []
+  - m_Id: 380612358692864
+    m_Localized: Open a moon jar ({0})
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081472
+    m_Localized: No moon jars yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081473
+    m_Localized: "1 jar = an hour of income: +{0} \xB7 shelf {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081474
+    m_Localized: Moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081475
+    m_Localized: '{0}/{1} left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081476
+    m_Localized: Shelf full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081477
+    m_Localized: Back tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081478
+    m_Localized: "+1 moon jar \xB7 open it from the purse"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081479
+    m_Localized: +1 moon jar (three stars)
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -20,6 +20,7 @@ MonoBehaviour:
   Daily: 1
   RewardSeconds: 60
   RewardCarrots: 60
-  RewardClovers: 1
+  RewardClovers: 0
   RewardGolden: 0
+  RewardJars: 1
   Season: 0

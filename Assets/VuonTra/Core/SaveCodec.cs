@@ -286,6 +286,12 @@ namespace VuonTra.Core
                 if (s.DecorSpots[i] == null) sb.Append("null"); else WriteString(sb, s.DecorSpots[i]);
             }
             sb.Append("],\"lantern\":").Append(s.LanternColor.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            // Moon jars (#64), an additive block: how many are held, the shop's day and count, the day of the last free jar.
+            sb.Append(",\"moonJars\":{\"held\":").Append(s.MoonJars.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"buyDay\":").Append(s.MoonJarBuyDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"bought\":").Append(s.MoonJarsBoughtToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"freeDay\":").Append(s.MoonJarFreeDay.ToString(CultureInfo.InvariantCulture));
             sb.Append("}}");
             return sb.ToString();
         }
@@ -658,6 +664,14 @@ namespace VuonTra.Core
             if (root.TryGetValue("albumMilestones", out object milestonesObj) && milestonesObj is List<object> milestones)
                 foreach (object item in milestones)
                     if (item is double m && Array.IndexOf(AlbumSets.Milestones, (int)m) >= 0 && m == Math.Floor(m)) s.AlbumMilestonesClaimed.Add((int)m);
+            // Moon jars (#64). A save from before them holds none, and today's jars are all still to come.
+            if (root.TryGetValue("moonJars", out object jarsObj) && jarsObj is Dictionary<string, object> jars)
+            {
+                s.MoonJars = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "held"), MoonJars.Cap));
+                s.MoonJarBuyDay = TryNumber(jars, "buyDay", out double jarBuyDay) ? ToLong(jarBuyDay) : -1;
+                s.MoonJarsBoughtToday = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "bought"), MoonJars.BuyPerDay));
+                s.MoonJarFreeDay = TryNumber(jars, "freeDay", out double jarFreeDay) ? ToLong(jarFreeDay) : -1;
+            }
 
             result.Status = LoadStatus.Ok;
             return result;

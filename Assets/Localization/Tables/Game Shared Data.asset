@@ -2847,6 +2847,42 @@ MonoBehaviour:
     m_Key: quest.loai-72
     m_Metadata:
       m_Items: []
+  - m_Id: 380612358692864
+    m_Key: income.jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081472
+    m_Key: income.jar.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081473
+    m_Key: income.jar.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081474
+    m_Key: shop.jar.name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081475
+    m_Key: shop.jar.left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081476
+    m_Key: shop.jar.full
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081477
+    m_Key: shop.jar.soldout
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081478
+    m_Key: float.jar.bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 380612367081479
+    m_Key: fireflies.jar
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
