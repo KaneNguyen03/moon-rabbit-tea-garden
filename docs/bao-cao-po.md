@@ -792,6 +792,24 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: album đọc lại file mỗi lần mở (12 ảnh, nhanh); nếu sau này album dài hơn thì nên cache thumbnail.
 
+## #30 — Hướng dẫn 60 giây đầu
+
+- Test: 450/450 EditMode qua (verify.sh: seed, 81 ảnh, biên dịch, test). Thêm 5 test core (`TutorialTests.cs`, file mới) và 3 test màn hình.
+- Commit `c7c629d`, đã push. Issue #30 đã comment (bảng đối chiếu), để chủ project duyệt.
+- File mới: `Core/Tutorial.cs`, `UI/TutorialView.cs`, hình giữ chỗ `icon_hand.png` (catalog `Hand`). Save thêm `tutorial`, `tutorialClover` (vẫn v12). Bảng chuỗi seed lại (12 key `tut.*`).
+- Ảnh (docs/anh/po-30/): `30-buoc-1.png` (bàn tay chỉ ấm trà, lỗ mờ), `30-buoc-2.png` (nút Nâng trên tấm), `30-buoc-3.png` (nút Mở trạm trong tab).
+
+### Đã làm (đối chiếu với nguyên văn #30)
+- `Tutorial.Met/Advance/Skip/GrantCallClover`: sáu bước đọc từ state; `GameRunner.Changed` và `Tap` gọi `Advance`; `SkipTutorial`, `GrantTutorialClover`.
+- `TutorialView`: dòng trên đỉnh ("1/6 · …", Bỏ qua), bàn tay bám mục tiêu (`GetWorldCorners` → lỗ bốn tấm), không tấm nào bắt chạm. `GardenScreen.UpdateGuide/GuideTarget` chọn mục tiêu theo bước và theo tấm đang mở.
+- Thứ tự bước 4 và 5 đổi so với nguyên văn (nhận nhiệm vụ trước, gọi thỏ sau) và bước gọi tặng 1 cỏ khi ví trống: ghi trên issue để chủ project duyệt.
+
+### Chưa đạt so với #30
+- Không có: mọi ý đều có mặt; hai điểm lệch (thứ tự, cỏ tặng) chờ duyệt.
+
+### Tồn đọng
+- tồn đọng: trong batch preview, nhãn "Bỏ qua" dựng lúc màn hình đang tiếng Anh nên khung 30-buoc hiện "Skip" (quirk đã ghi ở mục Bàn giao của session kia); trong game không ảnh hưởng.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
