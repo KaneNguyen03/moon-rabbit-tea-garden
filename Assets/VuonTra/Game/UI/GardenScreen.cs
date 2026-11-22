@@ -23,8 +23,13 @@ namespace VuonTra.Game.UI
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
-        // The garden is as wide as the screen and only scrolls up and down.
+        // The lawn is as wide as the portrait screen and only scrolls up and down. At the usual zoom the screen is
+        // wider than the lawn, so it sits in the middle with open grass and, further out, the wood past both sides (#50).
         const float WorldW = 1080f, WorldH = 2970f; // room below the last station, so it can scroll clear of the docked card
+        /// <summary>The feet of the nearest trees of the wood stand this far past the lawn's sides: clear of every station by 200 and more.</summary>
+        const float RimLeft = -300f, RimRight = WorldW + 310f;
+        /// <summary>No tree of the wood comes nearer than this to a station's sign, pad, rabbit or prop, or to the props that must be read (#50).</summary>
+        public const float CanopyClearance = 200f;
         /// <summary>Stations are drawn at this size so four or five fit on one screen.</summary>
         const float StationScale = 0.7f;
         const float DecorScale = 0.7f;
@@ -426,9 +431,12 @@ namespace VuonTra.Game.UI
 
         public enum ZoomLevel { Far, Default, Near }
 
-        /// <summary>Far shows the whole garden top to bottom; near is for looking at one rabbit.</summary>
-        public const float ZoomFar = ScreenH / WorldH, ZoomDefault = 1f, ZoomNear = 1.5f;
-        float _zoom = 1f;
+        /// <summary>
+        /// Far shows the whole garden top to bottom; near is for looking at one rabbit. The usual view stands back 17 %
+        /// (#50): the screen spans 1300 garden units, so three station columns and five or more plots are in view at once.
+        /// </summary>
+        public const float ZoomFar = ScreenH / WorldH, ZoomDefault = 0.83f, ZoomNear = 1.5f;
+        float _zoom = ZoomDefault;
         Text _zoomMark, _levelText;
         Image _levelRing;
         RectTransform _levelBadge;
@@ -454,7 +462,7 @@ namespace VuonTra.Game.UI
         public const float PinchGain = 1f;
 
         public float ZoomScale => _zoom;
-        public ZoomLevel Zoom => _zoom < 0.85f ? ZoomLevel.Far : (_zoom > 1.2f ? ZoomLevel.Near : ZoomLevel.Default);
+        public ZoomLevel Zoom => _zoom < (ZoomFar + ZoomDefault) / 2f ? ZoomLevel.Far : (_zoom > (ZoomDefault + ZoomNear) / 2f ? ZoomLevel.Near : ZoomLevel.Default);
 
         static float ScaleOf(ZoomLevel level) => level == ZoomLevel.Far ? ZoomFar : (level == ZoomLevel.Near ? ZoomNear : ZoomDefault);
 
@@ -1280,12 +1288,15 @@ namespace VuonTra.Game.UI
                 else UiKit.Rect("Patch", bank).Place(0.5f, 0.5f, 6f, -10f, 620f, 470f).AddImage(catalog.Glow, mist);
                 _fog.Add(veil);
                 var grove = UiKit.Rect("Grove " + i, _street).Place(0f, 0f, 0, 0, 0, 0);
-                if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
+                if (catalog.Decor != null && catalog.Decor.Length > 5 && catalog.Decor[1] != null && catalog.Decor[4] != null)
                 {
                     Color dim = Palette.Mix(Color.white, Palette.Night, 0.3f);
-                    // The trees stand on the station's own ground, so they never reach into a neighbour that is open.
-                    Rooted(AddDecor(grove, catalog.Decor[0], spot.x - 66f, spot.y - 40f, 190f, dim), "Tree", spot.x - 66f, spot.y - 40f, _swayTrees);
-                    Rooted(AddDecor(grove, catalog.Decor[0], spot.x + 84f, spot.y - 70f, 165f, dim), "Tree", spot.x + 84f, spot.y - 70f, _swayTrees);
+                    // Low growth on the station's own ground: bushes and mushrooms, so nothing tall cuts the view of the
+                    // lawn or hides a neighbour that is open (#50: the big trees all stand in the wood around the garden).
+                    Rooted(AddDecor(grove, catalog.Decor[1], spot.x - 66f, spot.y - 40f, 96f, dim), "Bush", spot.x - 66f, spot.y - 40f, _swayTrees);
+                    Rooted(AddDecor(grove, catalog.Decor[1], spot.x + 84f, spot.y - 70f, 84f, dim), "Bush", spot.x + 84f, spot.y - 70f, _swayTrees);
+                    Image caps = AddDecor(grove, catalog.Decor[4], spot.x + 10f, spot.y - 120f, 56f, dim);
+                    if (caps != null) caps.name = "Mushrooms";
                 }
                 _fogTrees.Add(grove.gameObject);
                 standing.Add(new KeyValuePair<float, Transform>(spot.y - 40f, grove));
@@ -1481,7 +1492,7 @@ namespace VuonTra.Game.UI
             // The jar for the firefly night waits on a stump by the pond from garden level five: glass, a glow inside, a cork.
             {
                 // Far enough from the right edge that its plate ends before the canopy's trees, which are drawn over the garden.
-                Vector2 jarAt = PondSpot + new Vector2(-5f, -290f);
+                Vector2 jarAt = JarSpot;
                 if (catalog.Decor != null && catalog.Decor.Length > 8 && catalog.Decor[8] != null)
                 {
                     Image stump = AddDecor(_street, catalog.Decor[8], jarAt.x, jarAt.y - 20f, 90f * DecorScale, Color.white);
@@ -2462,6 +2473,26 @@ namespace VuonTra.Game.UI
 
         /// <summary>Where the mortar for the mooncake game stands, and the tea shop: nothing else is placed on them.</summary>
         static Vector2 MortarSpot => Heart + new Vector2(-10f, 300f);
+        /// <summary>Where the firefly jar stands, by the pond.</summary>
+        static Vector2 JarSpot => PondSpot + new Vector2(-5f, -290f);
+
+        /// <summary>
+        /// The ground a station takes, sign, pad, rabbit box, name plate and prop included, at its drawn size: what the
+        /// wood keeps <see cref="CanopyClearance"/> away from. The offsets are the station actor's, at their widest.
+        /// </summary>
+        static Rect StationReach(int i)
+        {
+            Vector2 spot = StationSpot(i);
+            float s = StationSize(i);
+            return Rect.MinMaxRect(spot.x - 210f * s, spot.y - 243f * s, spot.x + 250f * s, spot.y + 205f * s);
+        }
+
+        /// <summary>How far apart two rectangles stand: negative when they overlap.</summary>
+        static float Apart(Rect a, Rect b)
+        {
+            float dx = Mathf.Max(a.xMin - b.xMax, b.xMin - a.xMax), dy = Mathf.Max(a.yMin - b.yMax, b.yMin - a.yMax);
+            return Mathf.Max(dx, dy);
+        }
         static Vector2 ShopSpot => PondSpot + new Vector2(-330f, -150f);
 
         /// <summary>Open grass: off every station's prop, plates and name, off the seats, the pond, the mortar and the shop.</summary>
@@ -2490,6 +2521,22 @@ namespace VuonTra.Game.UI
             Vector2 pondAt = PondSpot;
 
             var canopyStanding = new List<KeyValuePair<float, Transform>>();
+            // What the wood keeps clear of: every station as drawn, and the props with a plate to read (#50).
+            var keepOff = new List<Rect>();
+            for (int i = 0; i < stations; i++) keepOff.Add(StationReach(i));
+            {
+                int leafStation = 1;
+                for (int i = 0; i < stations; i++) if (catalog.Stations[i] != null && catalog.Stations[i].Id == "gio-la") { leafStation = i; break; }
+                Vector2 basketAt = StationSpot(leafStation) + new Vector2(104f, 130f);
+                keepOff.Add(Rect.MinMaxRect(basketAt.x - 245f, basketAt.y, basketAt.x + 60f, basketAt.y + 100f));
+                keepOff.Add(Rect.MinMaxRect(JarSpot.x - 140f, JarSpot.y - 40f, JarSpot.x + 140f, JarSpot.y + 160f));
+                keepOff.Add(Rect.MinMaxRect(MortarSpot.x - 130f, MortarSpot.y - 40f, MortarSpot.x + 130f, MortarSpot.y + 160f));
+            }
+            bool CanopyClear(Rect tree)
+            {
+                foreach (Rect r in keepOff) if (Apart(tree, r) < CanopyClearance + 4f) return false;
+                return true;
+            }
             // Everything that stands casts a soft shadow on the grass, drawn just behind it.
             void Shade(Transform parent, List<KeyValuePair<float, Transform>> into, float x, float y, float height)
             {
@@ -2515,6 +2562,21 @@ namespace VuonTra.Game.UI
                 height *= DecorScale;
                 // Nothing tall may stand in front of the pond: the moon in it has to stay in view.
                 if (kind == Tree && x > 120f && x < WorldW - 60f && Mathf.Abs(x - pondAt.x) < 200f && y > pondAt.y - 330f && y < pondAt.y + 30f) return;
+                if (canopy && (kind == Tree || kind == Bush) && d[kind] != null)
+                {
+                    // The wood never comes within CanopyClearance of a sign, a pad, a rabbit or a plate (#50). A tree of the
+                    // top rows that would come nearer is stood further up instead, clear of the highest stations; any other is left out.
+                    float w = height * d[kind].rect.width / d[kind].rect.height;
+                    Rect Foot(float at) => Rect.MinMaxRect(x - w / 2f, at, x + w / 2f, at + height);
+                    if (!CanopyClear(Foot(y)))
+                    {
+                        if (y < WorldH / 2f) return;
+                        float lifted = y;
+                        while (!CanopyClear(Foot(lifted)) && lifted < y + 320f) lifted += 20f;
+                        if (!CanopyClear(Foot(lifted))) return;
+                        y = lifted;
+                    }
+                }
                 if (kind == Lantern)
                 {
                     var at = new Vector2(x + 14f * DecorScale, y + 150f * DecorScale);
@@ -2587,18 +2649,26 @@ namespace VuonTra.Game.UI
                 Put(Tree, x + jitter, -30f + Hash(x + 7) * 30f, 330f + Hash(x + 2) * 70f, soft, true);
                 Put(Bush, x + 75f - jitter, 30f + Hash(x + 3) * 30f, 130f, soft, true);
             }
-            // Beyond the edges the wood goes on, so zooming out shows forest and not the end of the world.
+            // The wood past both sides stands well out from the lawn (#50): its nearest crowns end 200 units and more
+            // short of every station, so at the usual zoom the sides are open grass and from far away the forest shows.
+            // Beyond the first row the wood goes on, dense, so zooming out shows forest and not the end of the world.
             for (float y = -120f; y < WorldH + 60f; y += 160f)
                 for (int row = 1; row <= 3; row++)
                 {
-                    float away = 60f + row * 105f + Hash(y + row) * 40f, lift = (row % 2) * 80f;
-                    Put(Tree, -away, y + lift, 330f + Hash(y + row * 3) * 90f, soft, true);
-                    Put(Tree, WorldW + away, y + 80f - lift, 330f + Hash(y + row * 5) * 90f, soft, true);
+                    float away = row * 80f + Hash(y + row) * 30f, lift = (row % 2) * 80f;
+                    Put(Tree, RimLeft - away, y + lift, 330f + Hash(y + row * 3) * 90f, soft, true);
+                    Put(Tree, RimRight + away, y + 80f - lift, 330f + Hash(y + row * 5) * 90f, soft, true);
                 }
             for (float y = 180f; y < WorldH - 330f; y += 150f)
             {
-                Put(Tree, -50f + Hash(y) * 40f, y, 340f + Hash(y + 4) * 80f, soft, true);
-                Put(Tree, WorldW + 10f + Hash(y + 2) * 40f, y + 60f, 340f + Hash(y + 6) * 80f, soft, true);
+                Put(Tree, RimLeft - 20f + Hash(y) * 40f, y, 340f + Hash(y + 4) * 80f, soft, true);
+                Put(Tree, RimRight - 20f + Hash(y + 2) * 40f, y + 60f, 340f + Hash(y + 6) * 80f, soft, true);
+            }
+            // Where the wood used to stand, a low hedge marks the lawn's sides without hiding anything behind it.
+            for (float y = 300f; y < WorldH - 500f; y += 190f)
+            {
+                Put(Bush, -70f + Hash(y + 8) * 30f, y + Hash(y + 9) * 60f, 120f, soft);
+                Put(Bush, WorldW + 40f + Hash(y + 10) * 30f, y + 90f + Hash(y + 11) * 60f, 120f, soft);
             }
 
             // Around every station, the same small set, placed where it fits: a planter on one side, mushrooms by the
@@ -2654,21 +2724,20 @@ namespace VuonTra.Game.UI
             }
 
             // Inside: a few small things wherever there is still room that is not a station, a seat or the pond.
+            // All of it low (#50): no tree stands on the lawn, so nothing hides a station or a rabbit.
             for (int n = 0; n < 24; n++)
             {
                 float x = 150f + Hash(n * 3.1f + 1f) * (WorldW - 300f), y = 200f + Hash(n * 5.7f + 2f) * (WorldH - 560f);
                 float pick = Hash(n * 9.3f);
-                bool tall = pick < 0.10f;
-                if (!Free(x, y, 230f, tall ? 380f : 220f, 240f)) continue; // nothing may cover a level plate or a name
+                if (!Free(x, y, 230f, 220f, 240f)) continue; // nothing may cover a level plate or a name
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 240f) continue;
                 if (OnDecorSpot(x, y)) continue;
                 // Keep the places to rest in the open: nothing grows on a seat or in front of the tea table.
                 bool onSeat = false;
                 foreach (Vector2 seat in Seats)
-                    if (Mathf.Abs(Heart.x + seat.x - x) < 190f && y > Heart.y + seat.y - (tall ? 380f : 150f) && y < Heart.y + seat.y + 190f) onSeat = true;
+                    if (Mathf.Abs(Heart.x + seat.x - x) < 190f && y > Heart.y + seat.y - 150f && y < Heart.y + seat.y + 190f) onSeat = true;
                 if (onSeat) continue;
-                if (tall) Put(Tree, x, y, 270f + Hash(n + 40f) * 90f, soft);
-                else if (pick < 0.46f) Put(Bush, x, y, 104f, soft);
+                if (pick < 0.46f) Put(Bush, x, y, 104f, soft);
                 else if (pick < 0.76f) Put(Mushrooms, x, y, 84f, soft);
                 else Put(Stones, x, y, 62f, soft);
             }
