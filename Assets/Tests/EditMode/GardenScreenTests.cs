@@ -2434,5 +2434,41 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.SheetOpen, "the sheet gives way");
             Assert.AreEqual(0, screen.Selected, "to the station's own card");
         }
+
+        [Test]
+        public void The_Station_Card_Stands_On_The_Tab_Bar_And_The_Other_Tabs_Stay_Readable()
+        {
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            var card = (RectTransform)root.transform.Find("Canvas/Card");
+            var bar = (RectTransform)root.transform.Find("Canvas/TabBar");
+            float cardBottom = card.anchoredPosition.y - card.sizeDelta.y / 2f, barTop = bar.anchoredPosition.y + bar.sizeDelta.y;
+            Assert.That(cardBottom - barTop, Is.InRange(0f, 16f), "a thin seam, not a gap");
+
+            screen.SelectStation(-1);
+            screen.OpenSheet(1);
+            for (int i = 0; i < 30; i++) screen.Advance(1f / 30f);
+            float other = bar.Find("Open Thỏ/Icon").GetComponent<Image>().color.a;
+            Assert.That(other, Is.InRange(0.6f, 0.7f), "the other tabs step back but keep their colour");
+        }
+
+        [Test]
+        public void The_Stations_Tab_Counts_What_Can_Be_Opened_And_The_Rabbits_Tab_Counts_Merges_Too()
+        {
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Transform stations = root.transform.Find("Canvas/TabBar/StationsBadge"), rabbits = root.transform.Find("Canvas/TabBar/RabbitsBadge");
+            Assert.IsFalse(stations.gameObject.activeSelf, "nothing can be opened with an empty purse");
+            runner.State.Coins = new BigNum(120);
+            screen.Refresh();
+            Assert.IsTrue(stations.gameObject.activeSelf);
+            Assert.AreEqual("1", stations.Find("Text").GetComponent<Text>().text, "the leaf basket is within reach; the jam pot still needs the basket open first");
+
+            Assert.AreEqual("1", rabbits.Find("Text").GetComponent<Text>().text, "the teapot has nobody");
+            for (int i = 1; i <= 3; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 0, Kind = "tho-bong", Name = "R" + i });
+            runner.State.NextRabbitId = 3;
+            screen.Refresh();
+            Assert.AreEqual("2", rabbits.Find("Text").GetComponent<Text>().text, "and three silver rabbits can be merged");
+        }
     }
 }

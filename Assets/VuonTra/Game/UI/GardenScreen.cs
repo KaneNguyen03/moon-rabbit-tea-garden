@@ -71,8 +71,8 @@ namespace VuonTra.Game.UI
         int _edgeUpTarget = -1, _edgeDownTarget = -1;
         GameObject _home;
         int _shownClaimable = -1;
-        RectTransform _barBadgeRect, _rabbitBadgeRect;
-        Text _rabbitBadgeText;
+        RectTransform _barBadgeRect, _rabbitBadgeRect, _stationBadgeRect;
+        Text _rabbitBadgeText, _stationBadgeText;
         const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f;
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
@@ -288,7 +288,8 @@ namespace VuonTra.Game.UI
         const float WheelScroll = 60f;
         /// <summary>The strip at the top of the sheet: the page name, the buy modes, the close button.</summary>
         const float HeaderHeight = 148f;
-        const float HudCover = 160f, TabCover = 250f, CardHeight = 340f;
+        /// <summary>The station card stands right on the tab bar: the bar's gap and height, plus a thin seam.</summary>
+        const float HudCover = 160f, TabCover = TabBarGap + TabBarHeight + 10f, CardHeight = 340f;
 
         public enum ZoomLevel { Far, Default, Near }
 
@@ -1751,6 +1752,11 @@ namespace VuonTra.Game.UI
             _rabbitBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
             _rabbitBadgeText = UiKit.Rect("Text", _rabbitBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _rabbitBadgeRect.gameObject.SetActive(false);
+            // How many stations could be opened right now, on the corner of the stations tab.
+            _stationBadgeRect = UiKit.Rect("StationsBadge", _tabBar).Place(0.5f / TabCount, 0f, 46, 140, 48, 48);
+            _stationBadgeRect.AddImage(catalog.Round, Palette.CarrotLip);
+            _stationBadgeText = UiKit.Rect("Text", _stationBadgeRect).Stretch(0, 0, 1, 1).AddText("", 26, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _stationBadgeRect.gameObject.SetActive(false);
             _shownClaimable = -1;
             _safeBottom = -1f;
             PlaceTabBar();
@@ -1781,7 +1787,7 @@ namespace VuonTra.Game.UI
         {
             bool any = false;
             for (int i = 0; i < TabCount; i++) any |= SheetOpen && Tab == i;
-            _tabFade = Mathf.MoveTowards(_tabFade, any ? 0.55f : 1f, dt / Motion.Quick);
+            _tabFade = Mathf.MoveTowards(_tabFade, any ? 0.68f : 1f, dt / Motion.Quick); // the others step back, but stay readable
             for (int i = 0; i < TabCount; i++)
             {
                 bool on = SheetOpen && Tab == i;
@@ -1794,7 +1800,7 @@ namespace VuonTra.Game.UI
                 _tabIcons[i].color = new Color(1f, 1f, 1f, Mathf.Lerp(_tabFade, 1f, k));
                 _tabLiftGroups[i].alpha = k;
                 _tabLifts[i].localScale = Vector3.one * Mathf.Lerp(0.7f, 1f, k);
-                _openLabels[i].color = Color.Lerp(Palette.InkSoft, Palette.Ink, k);
+                _openLabels[i].color = Color.Lerp(Palette.Mix(Palette.Ink, Palette.Paper, 0.22f), Palette.Ink, k);
                 _openLabels[i].fontStyle = _tabShown[i] > 0.5f ? FontStyle.Bold : FontStyle.Normal;
             }
             _barBadgeRect.localScale = Vector3.one * (1f + _badgePop);
@@ -2309,9 +2315,17 @@ namespace VuonTra.Game.UI
             if (_shownClaimable >= 0 && claimable > _shownClaimable)
                 Tweens.Add(0.32f, t => _badgePop = 0.4f * Ease.Pop(t), Ease.Linear, 0f, () => _badgePop = 0f); // one more to collect
             _shownClaimable = claimable;
-            int missing = Rabbits.StationsWithoutWorker(s);
-            if (_rabbitBadgeRect.gameObject.activeSelf != (missing > 0)) _rabbitBadgeRect.gameObject.SetActive(missing > 0);
-            _rabbitBadgeText.text = missing.ToString();
+            // The rabbits tab counts what waits there: stations with nobody, merges that can be made, kinds not yet looked at.
+            int waiting = Rabbits.StationsWithoutWorker(s) + _freshKinds.Count;
+            for (int tier = 0; tier < Rabbits.TierCount; tier++) if (Rabbits.CanMerge(s, tier)) waiting++;
+            if (_rabbitBadgeRect.gameObject.activeSelf != (waiting > 0)) _rabbitBadgeRect.gameObject.SetActive(waiting > 0);
+            _rabbitBadgeText.text = waiting.ToString();
+            // The stations tab counts the stations that could be opened for what is in the purse.
+            int openable = 0;
+            for (int i = 0; i < defs.Count; i++)
+                if (s.Levels[i] <= 0 && Economy.CanUnlock(s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1)) openable++;
+            if (_stationBadgeRect.gameObject.activeSelf != (openable > 0)) _stationBadgeRect.gameObject.SetActive(openable > 0);
+            _stationBadgeText.text = openable.ToString();
             _clovers.text = L10n.T("quests.clovers", s.Clovers);
 
             for (int i = 0; i < _modeButtons.Count; i++)
