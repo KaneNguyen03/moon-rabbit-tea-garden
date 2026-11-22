@@ -231,13 +231,17 @@ namespace VuonTra.Core
             grid.Radius = Radius(s) + 1;
             s.Plots = Math.Max(s.Plots, PlotsForRadius(defs, grid.Radius));
             s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + RingsTaken(s)));
+            // The stations whose own tile is free stand first, so one that must look elsewhere keeps clear of them too.
             for (int i = before; i < s.Plots && i < defs.Count; i++)
             {
                 string id = GardenGrid.StationId(defs[i]);
-                if (grid.TileOf(id) != null) continue;
                 Hex home = GardenGrid.DefaultStationTile(i);
-                if (grid.InLawn(home) && grid.OccupantAt(home.Q, home.R) == null) { grid.Place(id, home.Q, home.R); continue; }
-                if (grid.NearestEmptyApart(StationSpacing, out Hex spare)) grid.Place(id, spare.Q, spare.R);
+                if (grid.TileOf(id) == null && grid.InLawn(home) && grid.OccupantAt(home.Q, home.R) == null) grid.Place(id, home.Q, home.R);
+            }
+            for (int i = before; i < s.Plots && i < defs.Count; i++)
+            {
+                string id = GardenGrid.StationId(defs[i]);
+                if (grid.TileOf(id) == null && grid.NearestEmptyApart(StationSpacing, out Hex spare)) grid.Place(id, spare.Q, spare.R);
             }
             GardenGrid.Settle(defs, s); // the new place to rest takes its tile, and anything still without one
             return true;

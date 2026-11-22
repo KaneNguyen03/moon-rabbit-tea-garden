@@ -1641,6 +1641,18 @@ Sau khi sửa cả bốn xanh.
 - 10 tim cần 18.880 điểm (mốc do 58a đặt), nên cảnh 10 tim rất hiếm khi chơi thật.
 - Chưa có tiếng riêng cho câu cá; chưa chạy bản build trên máy thật.
 
+## #54 (sửa tiếp) — Ô giữ chỗ cho lọ đom đóm, giỏ lá, cối, tiệm, quầy (agent-54r)
+
+
+- **Test:** 1104/1105 (1 test mùa không kết luận do ngày chạy), verify GREEN; 6 test mới.
+- **Commit:** 800bc82, merge a88c7f1. Main sau gộp: 1118/1119.
+- **Đã làm:** Lưới vườn có thêm trạng thái ô "giữ chỗ" cho 10 ô dưới lọ đom đóm, giỏ hứng lá và bảng của cối. Chế độ bố trí không vẽ vòng chấm và không nhận đồ thả lên các ô này; việc đặt, dời, đổi chỗ, cất ra và mở rừng đều bỏ qua chúng. Save cũ có đồ trên ô giữ chỗ thì đồ được dời sang ô trống gần nhất khi tải. Giỏ hứng lá đứng cố định cạnh ô nhà của trạm Giỏ lá trà. Khi mở rừng, trạm nào có ô nhà trống được đặt trước, rồi mới tìm chỗ cho trạm bị chiếm ô, nên trạm mới vẫn cách các trạm khác. Tiệm và quầy đã có ô riêng, không có bảng. Không đổi kinh tế.
+- **Ảnh:** docs/anh/po-54/54r-truoc.png (vòng chấm trên ô bảng lọ, đèn đá thả lên bảng lọ) · docs/anh/po-54/54r-sau.png (không còn vòng, đèn đá quay về chỗ cũ).
+
+### Chưa đạt / cần PO quyết
+- Giỏ hứng lá không còn đi theo trạm Giỏ lá trà khi trạm bị dời; nó ở yên dưới cây trà cạnh ô nhà (2,0). PO xem có ổn không.
+- Mái tiệm trà chồm lên hai ô phía sau (2,-5) (3,-5); chưa giữ chỗ vì đồ ở đó đứng sau tiệm và không che gì.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái

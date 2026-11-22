@@ -24,7 +24,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(37, three.LawnTiles);
             int n = 0;
             var seen = new HashSet<Hex>();
-            foreach (TileData t in two.Tiles()) { n++; Assert.IsTrue(seen.Add(new Hex(t.Q, t.R)), "every tile once"); Assert.AreEqual(TileState.UnlockedEmpty, t.State); Assert.IsNull(t.OccupantId); }
+            foreach (TileData t in two.Tiles()) { n++; Assert.IsTrue(seen.Add(new Hex(t.Q, t.R)), "every tile once"); Assert.AreEqual(GardenGrid.IsReserved(t.Hex) ? TileState.Reserved : TileState.UnlockedEmpty, t.State); Assert.IsNull(t.OccupantId); }
             Assert.AreEqual(19, n);
             n = 0;
             foreach (TileData t in three.Tiles()) n++;
@@ -257,6 +257,114 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenGrid.PitchX / 2d, GardenGrid.LocalX(0, 1), "the next row is shifted half a tile");
             Assert.AreEqual(-GardenGrid.PitchY, GardenGrid.LocalY(0, 1), "r grows downward");
             Assert.AreEqual(GardenGrid.PitchY * 2d, GardenGrid.LocalY(3, -2));
+        }
+
+        // ----- Tiles kept clear for the props (#54 follow-up) -----
+
+        [Test]
+        public void The_Tiles_Of_The_Jar_The_Basket_And_The_Mortar_s_Plate_Are_Reserved_And_No_Home_Tile_Is()
+        {
+            // Found while fixing #82: a decoration dropped on (4,-3) stood on the firefly jar's "Đom đóm · còn N lượt" plate.
+            var expected = new[]
+            {
+                new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),                 // the mortar's plate
+                new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),                 // the leaf-catching basket and its plate
+                new Hex(4, -4), new Hex(4, -3), new Hex(5, -4), new Hex(5, -3), // the firefly jar and its plate
+            };
+            CollectionAssert.AreEquivalent(expected, GardenGrid.ReservedTiles);
+            var g = new GardenGrid(GardenGrid.MaxRadius);
+            foreach (Hex h in expected)
+            {
+                Assert.IsTrue(GardenGrid.IsReserved(h), h + " is kept clear");
+                Assert.AreEqual(TileState.Reserved, g.Tile(h.Q, h.R).State, h + " reads as reserved on the lawn");
+            }
+            Assert.AreEqual(TileState.ForestBorder, new GardenGrid(3).Tile(4, -3).State, "beyond the lawn it is still forest");
+            // Nothing the garden stands by default is on one: every station (#67's four on the top rows too), seat and spot.
+            var big = new List<StationDef>();
+            for (int i = 0; i < 24; i++) big.Add(new StationDef { Id = "s" + i });
+            foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId })
+                Assert.IsFalse(GardenGrid.IsReserved(GardenGrid.DefaultTile(id, big)), id + " keeps its own tile");
+            for (int i = 0; i < big.Count; i++) Assert.IsFalse(GardenGrid.IsReserved(GardenGrid.DefaultStationTile(i)), "station " + i);
+            for (int n = 0; n < RestSpots.Max + 2; n++) Assert.IsFalse(GardenGrid.IsReserved(GardenGrid.DefaultRestTile(n)), "rest " + n);
+            for (int n = 0; n < Decor.Spots; n++) Assert.IsFalse(GardenGrid.IsReserved(GardenGrid.DefaultDecorTile(n)), "decor " + n);
+            // A whole garden settles with every reserved tile free and the props on their own tiles.
+            GameState s = GameState.NewGame(big);
+            s.Plots = big.Count;
+            for (int n = 0; n < Decor.Spots; n++) s.DecorSpots[n] = Decor.Kinds[0].Id;
+            GardenGrid.Settle(big, s);
+            foreach (Hex h in expected) Assert.IsNull(s.Grid.OccupantAt(h.Q, h.R), h + " stays free");
+            Assert.AreEqual(GardenGrid.DefaultTile(GardenGrid.MortarId, big), s.Grid.TileOf(GardenGrid.MortarId));
+            Assert.AreEqual(GardenGrid.DefaultTile(GardenGrid.ShopId, big), s.Grid.TileOf(GardenGrid.ShopId));
+            Assert.AreEqual(GardenGrid.DefaultTile(GardenGrid.CounterId, big), s.Grid.TileOf(GardenGrid.CounterId));
+        }
+
+        [Test]
+        public void Nothing_Is_Placed_Moved_Swapped_Dropped_Or_Settled_On_A_Reserved_Tile()
+        {
+            GameState s = GameState.NewGame(defs);
+            s.Levels[1] = 5; s.Levels[2] = 3;
+            GardenGrid g = s.Grid;
+            g.Radius = 5; // out to the jar
+            Hex jar = new Hex(4, -3), plate = new Hex(1, -2);
+            Hex leaf = g.TileOf("station:leaf").Value;
+            Assert.IsFalse(g.Place("decor:0", jar.Q, jar.R), "a decoration on the jar's plate");
+            Assert.IsFalse(g.Place("station:jam", plate.Q, plate.R), "a station on the mortar's plate");
+            Assert.IsFalse(g.Move(leaf, jar), "moved onto the jar");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, jar), "dropped in the arranging mode: back where it was");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(3, -1)), "nor on the leaf basket");
+            Assert.AreEqual(leaf, g.TileOf("station:leaf").Value);
+            // Something that already stands on one (as a save from before may have it) swaps with nothing.
+            Assert.IsTrue(g.Place("decor:1", 4, -4, true));
+            Assert.IsFalse(g.Swap(leaf, new Hex(4, -4)));
+            Assert.IsFalse(g.Swap(new Hex(4, -4), leaf));
+            g.Remove("decor:1");
+            // The searches for a free tile pass them by.
+            foreach (Hex h in g.EmptyTiles()) Assert.IsFalse(GardenGrid.IsReserved(h), h + " offered as empty");
+            Assert.IsTrue(g.NearestEmpty(jar, out Hex near));
+            Assert.IsFalse(GardenGrid.IsReserved(near));
+            Assert.AreEqual(1, GardenGrid.Distance(near, jar), "a free neighbour of the jar's tile, not the tile");
+            // A lawn full but for its reserved tiles has no room: taking out and the expansion's search find nothing.
+            Assert.IsTrue(Layout.Store(defs, s, "station:jam"));
+            int k = 0;
+            foreach (Hex h in GardenGrid.Spiral(g.Radius))
+                if (g.OccupantAt(h.Q, h.R) == null && !GardenGrid.IsReserved(h)) Assert.IsTrue(g.Place("decor:" + (100 + k++), h.Q, h.R));
+            Assert.IsEmpty(g.EmptyTiles());
+            Assert.IsFalse(g.NearestEmpty(out _));
+            Assert.IsFalse(g.NearestEmptyApart(2, out _));
+            Assert.IsFalse(Layout.TakeOut(defs, s, 2), "the jam pot stays in storage rather than stand on a reserved tile");
+        }
+
+        [Test]
+        public void An_Old_Save_With_Things_On_Reserved_Tiles_Loads_With_Them_On_The_Nearest_Empty_Tile()
+        {
+            GameState s = GameState.NewGame(defs);
+            s.Levels[1] = 5; s.Levels[2] = 3;
+            s.Plots = 8; // two land waves: the lawn reaches the jar
+            GardenGrid.Settle(defs, s);
+            s.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(s, Decor.Kinds[0].Id) && Decor.Place(s, 0, Decor.Kinds[0].Id));
+            // As a save from before #54's follow-up may have it: a decoration on the jar's plate, a station on the basket's, a seat on the mortar's.
+            Assert.IsTrue(s.Grid.Place(GardenGrid.DecorId(0), 4, -3, true));
+            Assert.IsTrue(s.Grid.Place("station:jam", 3, -1, true));
+            Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(0), 1, -2, true));
+            string json = SaveCodec.Encode(defs, s);
+            StringAssert.Contains("\"version\":14", json, "the save stays version 14");
+            GameState back = SaveCodec.Decode(defs, json).State;
+            var was = new Dictionary<string, Hex> { { GardenGrid.DecorId(0), new Hex(4, -3) }, { "station:jam", new Hex(3, -1) }, { GardenGrid.RestId(0), new Hex(1, -2) } };
+            foreach (KeyValuePair<string, Hex> moved in was)
+            {
+                Hex? now = back.Grid.TileOf(moved.Key);
+                Assert.IsNotNull(now, moved.Key + " still stands");
+                Assert.IsFalse(GardenGrid.IsReserved(now.Value), moved.Key + " left " + moved.Value + " for " + now.Value);
+                Assert.IsTrue(back.Grid.InLawn(now.Value), moved.Key + " on the lawn");
+                foreach (Hex h in back.Grid.EmptyTiles())
+                    Assert.GreaterOrEqual(GardenGrid.Distance(h, moved.Value), GardenGrid.Distance(now.Value, moved.Value), moved.Key + ": " + h + " was nearer");
+            }
+            Assert.AreEqual(Decor.Kinds[0].Id, back.DecorSpots[0], "the piece is kept");
+            Assert.AreEqual(3, back.Levels[2]);
+            foreach (KeyValuePair<string, Hex> o in back.Grid.Occupants)
+                if (GardenGrid.IsReserved(o.Value)) Assert.Fail(o.Key + " still on reserved " + o.Value);
+            Assert.AreEqual(SaveCodec.Encode(defs, back), SaveCodec.Encode(defs, SaveCodec.Decode(defs, SaveCodec.Encode(defs, back)).State), "settled once, it stays");
         }
     }
 }
