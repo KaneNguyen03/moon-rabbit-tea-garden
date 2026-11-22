@@ -3914,5 +3914,38 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(root.transform.Find("Canvas/Pound/Result").gameObject.activeSelf);
             Assert.AreEqual("banh_xong", root.transform.Find("Canvas/Pound/Result/Card/Cake").GetComponent<Image>().sprite.name, "fifteen perfects earn a star, so the cake came out");
         }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void While_A_Boost_Runs_The_Tea_Bar_Name_And_Its_Countdown_Keep_To_Their_Own_Halves(string locale, bool large)
+        {
+            L10n.SetLocale(locale);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.Shell.StartGame();
+            runner.State.Energy = 28;
+            runner.State.BoostSecondsLeft = 30;
+            screen.Refresh();
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)root.transform.Find("Canvas"));
+            Canvas.ForceUpdateCanvases();
+            Text label = root.transform.Find("Canvas/Hud/Energy/Face/Label").GetComponent<Text>();
+            Text action = root.transform.Find("Canvas/Hud/Energy/Face/Action").GetComponent<Text>();
+            Assert.AreEqual(L10n.T("energy.boosting", 30), action.text);
+            // Two boxes that do not meet…
+            Assert.LessOrEqual(label.rectTransform.anchorMax.x, action.rectTransform.anchorMin.x, "the name's box ends where the countdown's begins");
+            // …each wide enough for its words on one line at the smallest size the text may shrink to.
+            foreach (Text text in new[] { label, action })
+            {
+                int size = text.fontSize; bool fit = text.resizeTextForBestFit;
+                text.resizeTextForBestFit = false;
+                text.fontSize = text.resizeTextMinSize;
+                Assert.LessOrEqual(text.preferredWidth, text.rectTransform.rect.width + 1f, text.name + " \"" + text.text + "\" fits its half at " + text.resizeTextMinSize + "px (" + locale + (large ? ", large" : "") + ")");
+                text.fontSize = size; text.resizeTextForBestFit = fit;
+            }
+            UiKit.SetLargeText(false);
+            L10n.SetLocale("vi");
+        }
     }
 }

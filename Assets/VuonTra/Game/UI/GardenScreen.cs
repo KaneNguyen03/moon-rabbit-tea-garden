@@ -2464,13 +2464,20 @@ namespace VuonTra.Game.UI
                 Sfx.Deny();
                 Feel.FloatText(Feel.PointOf(energyRect, new Vector2(0, 70)), L10n.T("energy.wait", Span(Energy.SecondsUntilBoost(Runner.State))), Palette.Lantern, 32);
             };
-            _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.55f, 1, 22, 0, 0, 6)
+            // The name and the action each get their own half of the top row, one line tall, and shrink to fit it:
+            // "Trà lực 28" and "×2 · 30 giây" never run into each other (test).
+            _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.56f, 0.5f, 1, 22, 0, 4, 8)
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _energyLabel.resizeTextForBestFit = true; // "Tea power 100" stays on one line with large text
-            _energyLabel.resizeTextMinSize = 18;
+            _energyLabel.resizeTextMinSize = 16;
             _energyLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
-            _energyAction = UiKit.Rect("Action", _energyButton.FaceRect).Stretch(0.45f, 0.46f, 1, 1, 0, 0, 22, 6)
+            _energyLabel.verticalOverflow = VerticalWrapMode.Truncate;
+            _energyAction = UiKit.Rect("Action", _energyButton.FaceRect).Stretch(0.5f, 0.56f, 1, 1, 4, 0, 22, 8)
                 .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
+            _energyAction.resizeTextForBestFit = true;
+            _energyAction.resizeTextMinSize = 14;
+            _energyAction.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _energyAction.verticalOverflow = VerticalWrapMode.Truncate;
             var track = UiKit.Rect("Track", _energyButton.FaceRect).Band(22, 22, 16, 18);
             track.AddImage(catalog.Panel, Palette.Track, true);
             _energyFill = UiKit.Rect("Fill", track).Stretch(0, 0, 0, 1);
