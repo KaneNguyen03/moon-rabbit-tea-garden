@@ -620,6 +620,19 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: ba ý trên; mũi tên chưa tính thỏ ngủ gật ở chỗ nghỉ (chỉ thỏ đang làm ở trạm).
 
+## #31 — Hai ý nữa: chạm một lần ở zoom xa, nhớ vị trí và zoom (save v12)
+
+- Test: 425/425 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 1 test save và 2 test màn hình.
+- Commit `57b1541` (commit gộp với quà liên kết #17 của session kia, vì hunk xen kẽ trong cùng file), đã push. Issue #31 để mở (còn: vuốt trái/phải trên tấm trạm), đã comment thêm.
+- Save lên v12 (`view`: x, y, zoom); save cũ mở ở ấm trà như trước; zoom lạ bị bỏ. `GardenScreen.SetViewRaw` (glide không tự huỷ). Không chuỗi mới, không ảnh mới (không đổi hình).
+
+### Đã làm (đối chiếu với nguyên văn #31)
+- Ở mức zoom xa: chạm một vùng thì phóng vào vùng đó: một chạm trên đất trống ở zoom xa về zoom thường quanh chỗ chạm (trong bản chạy lấy toạ độ chạm; test lấy giữa màn hình). Ở zoom thường vẫn cần chạm hai lần như cũ.
+- Nhớ vị trí và mức zoom lần trước: mỗi khung hình đang chơi ghi điểm vườn dưới giữa màn hình và zoom vào state (lưu theo autosave 5 giây); mở lại game, máy quay lướt từ hồ trăng tới đúng chỗ và zoom đó thay vì ấm trà (test).
+
+### Tồn đọng
+- tồn đọng: vuốt trái/phải trên tấm trạm (ý cuối của #31).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -685,6 +698,7 @@ Sau khi sửa cả bốn xanh.
 ### Trạng thái
 - main = origin/main (tới commit này), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
 - `tools/verify.sh --build` xanh lúc 06:29 trên đúng HEAD code (`ceca860`): seed, 76 ảnh preview, biên dịch, 417/417 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369). Chưa ai bấm thử.
+- Sáng 22/11 (từ ~11:45) session "Issue GitHub còn mở" chạy lại cùng lúc với session này; hai bên luân phiên từng issue qua tin nhắn (không cùng sửa, không cùng chạy Unity); commit `57b1541` gộp việc của cả hai vì hunk xen kẽ.
 - Hai session code chạy cùng lúc trong đêm: session "Issue GitHub còn mở" làm #43, #25, #27, #36, #37 (một phần), #18 (một phần) và tạo #44, #45 (mục Bàn giao 05:40 ngay trên); session này dựng `tools/verify.sh`, chờ session kia dừng, rồi làm tiếp. Từ giờ chỉ còn một session.
 
 ### Việc session này làm (sau mục 05:40)
@@ -697,12 +711,13 @@ Sau khi sửa cả bốn xanh.
 - #26 phần còn lại (`a754d5f`): thẻ bùa ghi hiệu lực hiện tại → sau một cấp; thanh cấp bằng chấm.
 - #32 hai ý đầu (`386be8e`): chạm ví mở bảng "Cà rốt đến từ đâu"; thanh Trà lực nói còn bao lâu và thở khi đủ.
 - #31 hai ý (`ceca860`): viên ▲/▼ ở mép đếm trạm nâng được hoặc thỏ ngủ gật ngoài tầm nhìn, chạm bay tới; nút ấm trà về tâm vườn.
+- #31 hai ý nữa (`57b1541`, commit gộp với quà liên kết #17 của session kia): chạm một lần ở zoom xa phóng vào; nhớ vị trí và zoom (save v12). Còn vuốt trái/phải trên tấm trạm.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (phần còn lại của #31, #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
+- Lượt UI 2 (ý cuối của #31, phần còn lại của #32, #22, #23, #24, #28), hướng dẫn 60 giây (#30).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
