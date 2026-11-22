@@ -2652,6 +2652,138 @@ MonoBehaviour:
     m_Localized: Take 3 photos rabbits ask for
     m_Metadata:
       m_Items: []
+  - m_Id: 367448334262272
+    m_Localized: The water just boiled, the tea is nearly ready!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039488
+    m_Localized: One more pinch of leaves should do it.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039489
+    m_Localized: This pot is for the whole garden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039490
+    m_Localized: "Mmm\u2026 smell that tea!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039491
+    m_Localized: The cakes are almost done, wait a moment!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039492
+    m_Localized: Kneading tires my paws, but it is fun.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039493
+    m_Localized: This batch rose so evenly!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039494
+    m_Localized: Who wants the first taste?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039495
+    m_Localized: The young leaves are so soft today.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039496
+    m_Localized: The basket is full, off to the kitchen!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039497
+    m_Localized: Pick gently and the plants stay happy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039498
+    m_Localized: There is still dew on the leaves.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039499
+    m_Localized: That star just winked at me!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039500
+    m_Localized: That makes a hundred stars counted.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039501
+    m_Localized: The moonlight fills the whole garden.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039502
+    m_Localized: A little more starlight to sweeten it.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039503
+    m_Localized: The garden feels so peaceful today.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039504
+    m_Localized: Have some tea with me later!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039505
+    m_Localized: Such a cool breeze, I want to sing.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039506
+    m_Localized: Your visit makes my day.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039507
+    m_Localized: The sunset turns the garden pink.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039508
+    m_Localized: Almost time to light the lanterns.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039509
+    m_Localized: The fireflies are out!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039510
+    m_Localized: It is late, have some warm tea.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039511
+    m_Localized: Good morning! The dew is still cold.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039512
+    m_Localized: The sun is nearly up, time to rise!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039513
+    m_Localized: Lovely sun, time to dry the leaves!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039514
+    m_Localized: It is midday, is anyone hungry?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039515
+    m_Localized: It is Mid-Autumn, shall we parade the lanterns?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039516
+    m_Localized: Happy New Year! Where is my red envelope?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039517
+    m_Localized: Merry Christmas to you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039518
+    m_Localized: Thanks to the {0}, this batch smells even better!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039519
+    m_Localized: Don't I look nice today?
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

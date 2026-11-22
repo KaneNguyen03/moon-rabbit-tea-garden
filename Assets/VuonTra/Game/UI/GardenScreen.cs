@@ -380,6 +380,7 @@ namespace VuonTra.Game.UI
             UpdateWorld(dt);
             UpdateFireflies();
             UpdateGuide(dt);
+            UpdateChatter(dt);
             UpdateBoostEdge(boosting, dt);
 
             // The counter counts up instead of snapping.
@@ -5445,6 +5446,119 @@ namespace VuonTra.Game.UI
             {
                 if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
             });
+        }
+
+        #endregion
+
+        #region Rabbits say a line now and then (#59)
+
+        RectTransform _chatLine;
+        Text _chatText;
+        float _chatTimer = -1f, _chatLeft;
+        long _chatRabbitId;
+
+        /// <summary>True while an idle line shows over a rabbit's head.</summary>
+        public bool ChatShown => _chatLine != null && _chatLine.gameObject.activeSelf;
+        /// <summary>How many idle lines have been said since the screen was built.</summary>
+        public int ChatLines { get; private set; }
+        /// <summary>The string key of the last idle line.</summary>
+        public string ChatKey { get; private set; }
+        /// <summary>The rabbit that said the last idle line.</summary>
+        public long ChatRabbitId => _chatRabbitId;
+
+        /// <summary>A bond line or a guest outranks an idle line: while either is up, the idle line waits.</summary>
+        bool ChatBlocked => (_bondLine != null && _bondLine.gameObject.activeSelf) || GuestShown;
+
+        /// <summary>Every 40 to 70 seconds of open play one rabbit says a line; the bubble follows it and leaves after 2.5 seconds.</summary>
+        void UpdateChatter(float dt)
+        {
+            if (ChatShown)
+            {
+                _chatLeft -= dt;
+                if (_chatLeft <= 0f || ChatBlocked || PhotoMode || !AskSpot(_chatRabbitId, out Vector2 head, out _))
+                    _chatLine.gameObject.SetActive(false);
+                else
+                {
+                    _chatLine.anchoredPosition = head;
+                    float age = Chatter.Seconds - _chatLeft, grow = age / Motion.Panel, shrink = _chatLeft / Motion.PanelOut;
+                    float scale = Motion.Reduced ? 1f : grow < 1f ? Ease.OutBack(grow) : shrink < 1f ? Ease.OutCubic(shrink) : 1f;
+                    _chatLine.localScale = Vector3.one * scale;
+                }
+            }
+            if (Shell.State != ShellState.Playing || PhotoMode) return;
+            if (_chatTimer < 0f) _chatTimer = Chatter.Wait(Hash(_clock + 23f));
+            _chatTimer -= dt;
+            if (_chatTimer > 0f) return;
+            if (ChatBlocked) { _chatTimer = 0f; return; } // it waits for the bond line or the guest to go
+            _chatTimer = Chatter.Wait(Hash(_clock + 23f));
+            ChatterNow();
+        }
+
+        /// <summary>
+        /// One rabbit, picked from wherever the clock points, says a line now: an awake rabbit at work, or one resting on
+        /// its seat or out for a stroll. False when nobody is there to say one, or a bond line or a guest is up.
+        /// </summary>
+        public bool ChatterNow()
+        {
+            if (ChatBlocked || PhotoMode || Runner == null || Runner.State == null) return false;
+            GameState s = Runner.State;
+            Rabbit asking = PhotoAsks.Asking(s); // its camera bubble is over its head already
+            var who = new List<Rabbit>();
+            var where = new List<int>();
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                Rabbit r = Rabbits.AtStation(s, i);
+                if (r == null || s.Levels[i] <= 0 || _actors[i].Dozing || !_actors[i].Root.gameObject.activeSelf) continue;
+                if (asking != null && asking.Id == r.Id) continue;
+                who.Add(r);
+                where.Add(i);
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length; k++)
+            {
+                Rabbit r = _seatIds[k] > 0 ? Rabbits.Find(s, _seatIds[k]) : null;
+                if (r == null || (asking != null && asking.Id == r.Id)) continue;
+                who.Add(r);
+                where.Add(-1);
+            }
+            if (who.Count == 0) return false;
+            int pick = Mathf.Min(who.Count - 1, Mathf.FloorToInt(Hash(_clock + 5f) * who.Count));
+            Rabbit speaker = who[pick];
+            int station = where[pick];
+            bool resting = station < 0;
+            int booster = resting ? -1 : Chatter.BoosterOf(Runner.Defs, s, station);
+            bool dressed = speaker.Dye >= 0 || VuonTra.Core.Items.Worn(s, speaker.Id, ItemSlot.Hat) != null;
+            List<string> keys = Chatter.KeysFor(Rabbits.TradeOf(speaker), resting, Daylight.PhaseAt(ClockHours()),
+                Seasons.SeasonOf(Runner.TodayNumber), booster >= 0, dressed);
+            string key = Chatter.Pick(keys, Hash(_clock + 7f));
+            if (key == null || !AskSpot(speaker.Id, out Vector2 head, out _)) return false;
+            if (_chatLine == null) BuildChatLine();
+            _chatText.text = key == Chatter.BoostKey ? L10n.T(key, L10n.Station(Runner.Defs[booster].Id)) : L10n.T(key);
+            _chatRabbitId = speaker.Id;
+            _chatLeft = Chatter.Seconds;
+            _chatLine.anchoredPosition = head;
+            _chatLine.SetAsLastSibling();
+            _chatLine.localScale = Motion.Reduced ? Vector3.one : Vector3.zero; // reduced motion: it simply appears
+            _chatLine.gameObject.SetActive(true);
+            ChatKey = key;
+            ChatLines++;
+            return true;
+        }
+
+        /// <summary>A paper bubble like the bond line's, standing on the garden; it never takes a touch.</summary>
+        void BuildChatLine()
+        {
+            _chatLine = UiKit.Rect("ChatLine", _street).Place(0f, 0f, 0, 0, 560, 84);
+            _chatLine.pivot = new Vector2(0.5f, 0f);
+            _chatLine.AddShadow(10f, 6f, 0.25f);
+            _chatLine.AddImage(Runner.Catalog.Panel, Palette.Paper, true).raycastTarget = false;
+            _chatText = UiKit.Rect("Text", _chatLine).Stretch(0, 0, 1, 1, 20, 8, 20, 8)
+                .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _chatText.raycastTarget = false;
+            _chatText.resizeTextForBestFit = true; // the longest line in either language stays on its plate
+            _chatText.resizeTextMinSize = 18;
+            _chatText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _chatText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _chatLine.gameObject.SetActive(false);
         }
 
         #endregion

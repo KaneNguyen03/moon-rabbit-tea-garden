@@ -2643,6 +2643,138 @@ MonoBehaviour:
     m_Key: quest.ngay-anh
     m_Metadata:
       m_Items: []
+  - m_Id: 367448334262272
+    m_Key: chatter.trade.Brewer.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039488
+    m_Key: chatter.trade.Brewer.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039489
+    m_Key: chatter.trade.Brewer.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039490
+    m_Key: chatter.trade.Brewer.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039491
+    m_Key: chatter.trade.Baker.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039492
+    m_Key: chatter.trade.Baker.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039493
+    m_Key: chatter.trade.Baker.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039494
+    m_Key: chatter.trade.Baker.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039495
+    m_Key: chatter.trade.Gatherer.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039496
+    m_Key: chatter.trade.Gatherer.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039497
+    m_Key: chatter.trade.Gatherer.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039498
+    m_Key: chatter.trade.Gatherer.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039499
+    m_Key: chatter.trade.Stargazer.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039500
+    m_Key: chatter.trade.Stargazer.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039501
+    m_Key: chatter.trade.Stargazer.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039502
+    m_Key: chatter.trade.Stargazer.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039503
+    m_Key: chatter.any.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039504
+    m_Key: chatter.any.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039505
+    m_Key: chatter.any.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039506
+    m_Key: chatter.any.3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039507
+    m_Key: chatter.phase.Dusk.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039508
+    m_Key: chatter.phase.Dusk.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039509
+    m_Key: chatter.phase.Night.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039510
+    m_Key: chatter.phase.Night.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039511
+    m_Key: chatter.phase.Dawn.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039512
+    m_Key: chatter.phase.Dawn.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039513
+    m_Key: chatter.phase.Day.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039514
+    m_Key: chatter.phase.Day.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039515
+    m_Key: chatter.season.MidAutumn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039516
+    m_Key: chatter.season.Tet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039517
+    m_Key: chatter.season.Christmas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039518
+    m_Key: chatter.boost
+    m_Metadata:
+      m_Items: []
+  - m_Id: 367448351039519
+    m_Key: chatter.dressed
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
