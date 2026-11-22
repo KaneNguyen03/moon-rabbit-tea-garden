@@ -42,6 +42,11 @@ namespace VuonTra.EditorTools
             { "backup.soon", "Sắp có: Game Center trên iPhone, Google Play trên Android", "Coming soon: Game Center on iPhone, Google Play on Android" },
             { "backup.reward", "Liên kết lần đầu được tặng {0} cỏ bốn lá", "Linking for the first time brings {0} clovers" },
             { "backup.rewarded", "+{0} cỏ bốn lá vì đã liên kết", "+{0} clovers for linking" },
+            // ----- Google Play Games (#40) -----
+            { "playgames.name", "Google Play Games", "Google Play Games" },
+            { "playgames.saved", "Saved Games của Google Play", "Google Play Saved Games" },
+            { "playgames.description", "Cấp vườn {0} · {1} thỏ", "Garden level {0} · {1} rabbits" },
+            { "playgames.toolarge", "Bản lưu quá 3 MB nên Saved Games không nhận; vườn vẫn còn trên máy", "The save is over 3 MB, more than Saved Games takes; the garden stays on this device" },
             // ----- cloud save -----
             { "cloud.status.off", "Chưa có nơi lưu mây trên bản này", "No cloud to save to on this build" },
             { "cloud.status.never", "Chưa lưu lên mây", "Not saved to the cloud yet" },

@@ -2358,6 +2358,22 @@ MonoBehaviour:
     m_Localized: "{0} gh\xE9 ti\u1EC7m, nghe g\u1ECDi v\xE0ng v\xE0 \u0111\u1EBFn c\xF9ng qu\xE0 ng\xE0y cu\u1ED1i m\xF9a"
     m_Metadata:
       m_Items: []
+  - m_Id: 268904222941184
+    m_Localized: Google Play Games
+    m_Metadata:
+      m_Items: []
+  - m_Id: 268904248107008
+    m_Localized: "Saved Games c\u1EE7a Google Play"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 268904248107009
+    m_Localized: "C\u1EA5p v\u01B0\u1EDDn {0} \xB7 {1} th\u1ECF"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 268904248107010
+    m_Localized: "B\u1EA3n l\u01B0u qu\xE1 3 MB n\xEAn Saved Games kh\xF4ng nh\u1EADn; v\u01B0\u1EDDn v\u1EABn c\xF2n tr\xEAn m\xE1y"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

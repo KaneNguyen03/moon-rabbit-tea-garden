@@ -5,7 +5,8 @@
         "VuonTra.Core",
         "UnityEngine.UI",
         "Unity.InputSystem",
-        "Unity.Localization"
+        "Unity.Localization",
+        "Google.Play.Games"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -14,6 +15,12 @@
     "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
-    "versionDefines": [],
+    "versionDefines": [
+        {
+            "name": "com.google.play.games",
+            "expression": "2.0.0",
+            "define": "VUONTRA_PLAY_GAMES"
+        }
+    ],
     "noEngineReferences": false
 }

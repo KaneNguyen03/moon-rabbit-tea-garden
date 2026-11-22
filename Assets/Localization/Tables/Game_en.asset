@@ -2362,6 +2362,22 @@ MonoBehaviour:
     m_Localized: '{0} visits the shop, answers golden calls and comes with the last day''s gift'
     m_Metadata:
       m_Items: []
+  - m_Id: 268904222941184
+    m_Localized: Google Play Games
+    m_Metadata:
+      m_Items: []
+  - m_Id: 268904248107008
+    m_Localized: Google Play Saved Games
+    m_Metadata:
+      m_Items: []
+  - m_Id: 268904248107009
+    m_Localized: "Garden level {0} \xB7 {1} rabbits"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 268904248107010
+    m_Localized: The save is over 3 MB, more than Saved Games takes; the garden stays on this device
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

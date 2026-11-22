@@ -110,6 +110,8 @@ namespace VuonTra.Game
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
             _ready = true;
+            // On an Android device the Play Games account and Saved Games go in here (#40); elsewhere this does nothing.
+            if (preset == null) Platform.AndroidServices.Install(this);
             if (preset == null) SyncNow(SyncReason.Open);
         }
 
