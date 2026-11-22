@@ -1160,6 +1160,18 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Kiểu ao (ngoài phạm vi). Chưa thử tay. Tấm Tiệm đã dài, kệ sau nên tách tab.
 
+## #1 — Mùa trăng mới: làm lại vườn để lấy hệ số vĩnh viễn (mặc định theo đề xuất, chờ chủ project duyệt)
+
+- Test: 676/677 EditMode qua. Thêm `NewMoonTests` (9 test lõi: ngưỡng cấp 30 +5 mỗi mùa, trần mùa 7, không đủ cấp thì không đổi gì, giữ thỏ/đồ/cà rốt vàng/cỏ/album, về đầu cà rốt/trạm/ô đất/chỗ nghỉ/cấp vườn/khay/lượt chơi, thỏ ở trạm đóng về nghỉ không mất, Thỏ Trăng Non chỉ đến một lần và chỉ qua mùa mới, +25 %/mùa vào `Modifiers.IncomeMultiplier` và vào tiền trạm trả, save đọc/ghi `season` và save cũ = mùa 0, tấm so sánh đọc số thật), 1 test nhịp (`GardenPacingTests`: mùa 1 kiếm nhiều hơn mùa 0, vẫn qua mốc cấp 5 sau 10 phút), 4 test màn hình (hàng trong Tạm nghỉ khoá/mở theo cấp, tấm so sánh đúng số và giữ ngắn/trượt tay không mở khoá, giữ đủ rồi bấm lại → mùa 1, khoảnh khắc, Thỏ Trăng Non tới, chip "Mùa 1", hệ số 1,25; chạm bỏ qua khoảnh khắc).
+- Commit `b53d5a4`, đã push. Comment lên #1 bảng tiêu chí; nhãn chờ-PO-duyệt.
+- Lõi (`Core/NewMoon.cs`): mở khi cấp vườn ≥ 30 + 5 × số mùa đã qua (mùa 7 là mùa cuối, cần cấp 60). `Begin` giữ mọi thỏ (tên, cấp, mũ, màu), vật phẩm, cỏ, cà rốt vàng, chuỗi quà, thành tựu, album, hồ sơ, cài đặt; về đầu: cà rốt 0, trạm về 0 (ấm trà cấp 1), ô đất 4, chỗ nghỉ 2, cấp vườn 1, khay, trà lực đầy, đơn khách, lượt trò chơi nhỏ trong ngày. Thỏ ở trạm đã đóng về nghỉ; thỏ ở ấm trà giữ chỗ. Quà: +3 cỏ, +5 cà rốt vàng, lần đầu thêm **Thỏ Trăng Non** (`tho-trang-non`, bậc Tím, Ngắm sao, `NewMoonOnly`: không bao giờ ra từ cỏ, Tiệm hay ghép; album xếp vào mục "Thỏ dịp đặc biệt" với ghi chú "Chỉ đến cùng Mùa trăng mới"; chưa có hình riêng → dùng hình bậc Tím, cần vẽ `kind_tho-trang-non.png`).
+- Hệ số: `NewMoon.Bonus = 1 + 0,25 × mùa` nhân vào `Modifiers.IncomeMultiplier` nên tiền trạm, nhiệm vụ, khay, trò chơi nhỏ, đơn khách và lúc đi vắng đều hưởng. Save: trường `season` (không tăng version), save cũ = mùa 0; `GameRunner.BeginNewMoon` quay lại mục tiêu cà rốt ngày theo vườn nhỏ.
+- Màn hình: thẻ Tạm nghỉ cao 1400, thêm hàng "Mùa trăng mới" (nút vàng đèn lồng + huy hiệu "Đủ cấp" khi đủ; chưa đủ thì một dòng "Mùa trăng mới mở ở cấp vườn 30"; hết 7 mùa ghi "Đã qua đủ bảy mùa trăng"). Tấm so sánh `NewMoonView` ba ô Giữ / Về đầu / Được với số thật của save; nút bắt đầu cần **giữ 1,5 giây** (mặt nút đầy dần) rồi **bấm lần nữa** ("Bấm lần nữa để bắt đầu mùa N"); ngón trượt ra ngoài thì huỷ; "Để sau" đóng. Khoảnh khắc `NewMoonMomentView` 3 giây: trăng tròn lặn sau đồi, trăng non mọc lại cùng "Mùa N", chạm bỏ qua (giảm chuyển động: 0,6 giây không di chuyển); xong thì về ấm trà, vườn 4 ô với sương, Thỏ Trăng Non bước qua cổng trăng. HUD: chip "Mùa N" dưới huy hiệu cấp; hồ sơ ghi "Mùa N, thu nhập +25 %"; khung ảnh chụp ghi thêm "· Mùa N".
+- Ảnh: `docs/anh/po-1/`: `1-mua-trang-nut` (hàng trong Tạm nghỉ), `1-mua-trang-so-sanh`, `1-mua-trang-dang-giu`, `1-mua-trang-mo-khoa`, `1-mua-trang-trang-lan`, `1-mua-trang-trang-moc`, `1-mua-trang-tho-moi`, `1-mua-trang-vuon-moi`.
+
+### Chưa đạt (cần chủ project)
+- Bốn ô "Chủ project cần chốt" trong `docs/de-xuat-1.md` đang theo đề xuất (cấp 30 / +25 % tuyến tính / ô đất và chỗ nghỉ về đầu / có Thỏ Trăng Non); đổi số nào thì chỉ đổi hằng số trong `NewMoon`. Hình riêng cho Thỏ Trăng Non và huy hiệu mùa vẽ tay.
+
 ## Bàn giao (22/11 ~17:40, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
