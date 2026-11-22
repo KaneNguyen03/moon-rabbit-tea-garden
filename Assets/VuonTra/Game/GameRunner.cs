@@ -113,7 +113,7 @@ namespace VuonTra.Game
                 if (loaded.Status == LoadStatus.Ok)
                 {
                     Mods = Modifiers.From(UpgradeDefs, State);
-                    _pendingAway = Away.Claim(Defs, State, Now, Mods);
+                    _pendingAway = Away.Claim(Defs, State, Now, Mods, TodayNumber);
                 }
                 else
                 {
@@ -162,7 +162,7 @@ namespace VuonTra.Game
             else if (dt > LongFrameSeconds)
             {
                 // The app was suspended: pay the gap as time away instead of simulating it.
-                AwayReport away = Away.Claim(Defs, State, Now, Mods);
+                AwayReport away = Away.Claim(Defs, State, Now, Mods, TodayNumber);
                 if (away.Paid >= BigNum.One) TellAway(away);
             }
             else

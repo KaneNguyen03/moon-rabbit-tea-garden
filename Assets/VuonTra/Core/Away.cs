@@ -34,8 +34,11 @@ namespace VuonTra.Core
         /// <summary>The second and later doublings of a day cost this many golden carrots.</summary>
         public const int DoubleCost = 5;
 
-        /// <summary>Pays the time since the game was last seen, as <see cref="Simulation.ClaimAway"/> does, and says what happened meanwhile.</summary>
-        public static AwayReport Claim(System.Collections.Generic.IReadOnlyList<StationDef> defs, GameState s, long nowUnixSeconds, Modifiers? mods = null)
+        /// <summary>
+        /// Pays the time since the game was last seen, as <see cref="Simulation.ClaimAway"/> does, and says what happened meanwhile.
+        /// <paramref name="day"/> is the clamped day the game goes by now (the guests' day); without it the guests' own day is assumed.
+        /// </summary>
+        public static AwayReport Claim(System.Collections.Generic.IReadOnlyList<StationDef> defs, GameState s, long nowUnixSeconds, Modifiers? mods = null, long? day = null)
         {
             Modifiers m = mods ?? Modifiers.None;
             int trayBefore = Tray.Count(s);
@@ -47,16 +50,30 @@ namespace VuonTra.Core
                 Capped = counted > 0d && counted >= m.AwayCapSeconds,
                 TrayAdded = Math.Max(0, Tray.Count(s) - trayBefore),
                 TrayFull = Tray.IsFull(s),
-                GuestsMissed = GuestsWhileAway(counted),
+                GuestsMissed = GuestsWhileAway(defs, s, counted, day ?? s.OrderDay),
                 SleepiestId = Sleepiest(s)
             };
         }
 
-        /// <summary>How many guests would have come by in that time, one per order cycle (arrival and wait), at most a day's worth.</summary>
+        /// <summary>How many guests the time alone had room for, one per order cycle (arrival and wait), at most a day's worth.</summary>
         public static int GuestsWhileAway(double seconds)
         {
             if (!(seconds > 0d)) return 0;
             return (int)Math.Min(Orders.PerDay, Math.Floor(seconds / (Orders.Interval + Orders.WaitSeconds)));
+        }
+
+        /// <summary>
+        /// The guests the time away told of (#80): one per order cycle, but never more than the day's guests still to come,
+        /// and none while no open station makes anything a guest could order (as <see cref="Orders.Place"/> decides). When
+        /// <paramref name="day"/> is past the guests' day, a new day began while away and its guests count from the start; the
+        /// day is the clamped one, so a clock turned back brings none.
+        /// </summary>
+        public static int GuestsWhileAway(System.Collections.Generic.IReadOnlyList<StationDef> defs, GameState s, double seconds, long day)
+        {
+            int byTime = GuestsWhileAway(seconds);
+            if (byTime == 0 || Orders.Make(defs, s, null) == null) return 0;
+            int left = day > s.OrderDay ? Orders.PerDay : Orders.PerDay - s.OrdersToday;
+            return Math.Max(0, Math.Min(byTime, left));
         }
 
         /// <summary>The rabbit to show sleeping: the rarest resting one, else the rarest of all; 0 when there is none.</summary>
