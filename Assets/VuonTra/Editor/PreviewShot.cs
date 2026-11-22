@@ -1557,6 +1557,8 @@ namespace VuonTra.EditorTools
             Step(screen, 0.6f);
             Capture(screen, "58-ao-cho");
             screen.FishingCard.Cast();
+            Step(screen, 0.4f);
+            Capture(screen, "58-phao-noi"); // afloat, the rings of its landing spreading
             for (int k = 0; k < 400 && runner.Cast != null && runner.Cast.Phase != CastPhase.Sinking; k++) screen.Advance(1f / 30f);
             Step(screen, 0.2f);
             Capture(screen, "58-phao-chim");

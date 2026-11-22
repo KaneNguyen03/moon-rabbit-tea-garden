@@ -248,6 +248,10 @@ namespace VuonTra.EditorTools
             catalog.MoonJar = FinalArt.Find("icon_hu-trang");
             catalog.Fish = new[] { FinalArt.Find("fish_1"), FinalArt.Find("fish_2"), FinalArt.Find("fish_3"), FinalArt.Find("fish_4"), FinalArt.Find("fish_5"), FinalArt.Find("fish_6") }; // #58b
             catalog.FishBasket = FinalArt.Find("item_gio-ca");
+            catalog.FloatUp = FinalArt.Find("float_up");
+            catalog.FloatDown = FinalArt.Find("float_down");
+            catalog.PondWater = FinalArt.Find("pond_water");
+            catalog.Ripples = System.Array.FindAll(new[] { FinalArt.Find("ripple_1"), FinalArt.Find("ripple_2"), FinalArt.Find("ripple_3") }, s => s != null);
             catalog.ShopProp = FinalArt.Find("prop_tiem");
             catalog.Pad = FinalArt.Load("pad");
             catalog.StationPads = System.Array.FindAll(new[] { FinalArt.Find("pad_dat"), FinalArt.Find("pad_san-go"), FinalArt.Find("pad_vong-da"), FinalArt.Find("pad_hoa") }, s => s != null);

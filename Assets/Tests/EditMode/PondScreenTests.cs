@@ -175,6 +175,114 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("pond.lost"), screen.FishingCard.Status, "a touch on still water does nothing");
         }
 
+        Transform At(string path)
+        {
+            Transform t = root.transform.Find(path);
+            Assert.IsNotNull(t, "Missing UI object: " + path);
+            return t;
+        }
+
+        [Test]
+        public void The_Card_Uses_The_Drawn_Water_Float_And_Ripples()
+        {
+            GameCatalog c = runner.Catalog;
+            Assert.IsNotNull(c.PondWater, "pond_water is seeded");
+            Assert.IsNotNull(c.FloatUp, "float_up is seeded");
+            Assert.IsNotNull(c.FloatDown, "float_down is seeded");
+            Assert.AreEqual(3, c.Ripples.Length);
+            foreach (Sprite ring in c.Ripples) Assert.IsNotNull(ring, "ripple_1 to ripple_3 are seeded");
+
+            Motion.SetReduced(false);
+            OpenPond();
+            Image surface = At(Card + "/Water/Surface").GetComponent<Image>();
+            Assert.AreSame(c.PondWater, surface.sprite, "the drawn pond is the water");
+            Assert.LessOrEqual(surface.rectTransform.rect.width, c.PondWater.rect.width * 1.5f + 0.5f, "not stretched past half again its size");
+            Assert.IsFalse(At(Card + "/Water/Moon").gameObject.activeSelf, "the drawn pond has its own moon");
+            Assert.AreEqual(0, screen.FishingCard.RipplesShowing, "still water before a cast");
+
+            Find(Card + "/Cast").onClick.Invoke();
+            Assert.AreSame(c.FloatUp, screen.FishingCard.FloatSprite, "afloat");
+            Assert.IsFalse(At(Card + "/Water/Float/Art/Cap").gameObject.activeSelf, "the code-drawn float steps aside");
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(1, screen.FishingCard.RipplesShowing, "the first ring as the float lands");
+            float small = At(Card + "/Water/Ripples/Ripple 0").localScale.x;
+            Step(0.45f);
+            Assert.AreEqual(3, screen.FishingCard.RipplesShowing, "then the other two, one after another");
+            Assert.Greater(At(Card + "/Water/Ripples/Ripple 0").localScale.x, small, "spreading out");
+            Step(FishingView.RippleSeconds);
+            Assert.AreEqual(0, screen.FishingCard.RipplesShowing, "and the water is still again");
+
+            StepUntilSinking();
+            Assert.AreSame(c.FloatDown, screen.FishingCard.FloatSprite, "pulled under");
+            Assert.Greater(screen.FishingCard.RipplesShowing, 0, "rings as it goes under");
+            Step(0.2f); // still in the window, the rings half spread
+            Assert.AreEqual(CastPhase.Sinking, runner.Cast.Phase);
+            Find(Card + "/Water").onClick.Invoke();
+            Assert.IsNull(runner.Cast, "caught");
+            screen.Advance(1f / 30f);
+            Assert.IsTrue(At(Card + "/Water/Ripples").gameObject.activeSelf, "the rings stay on the water when the float is gone");
+            Assert.AreEqual(1, screen.FishingCard.RipplesShowing, "and start again for the catch");
+            Step(1.5f);
+        }
+
+        [Test]
+        public void Reduced_Motion_Shows_One_Still_Ripple()
+        {
+            OpenPond();
+            Find(Card + "/Cast").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(1, screen.FishingCard.RipplesShowing, "one ring");
+            Transform ring = null;
+            for (int i = 0; i < 3; i++)
+            {
+                Transform t = At(Card + "/Water/Ripples/Ripple " + i);
+                if (t.gameObject.activeSelf) ring = t;
+            }
+            Assert.IsNotNull(ring);
+            Vector3 scale = ring.localScale;
+            Color color = ring.GetComponent<Image>().color;
+            Step(0.3f);
+            Assert.AreEqual(1, screen.FishingCard.RipplesShowing);
+            Assert.AreEqual(scale, ring.localScale, "it does not spread");
+            Assert.AreEqual(color, ring.GetComponent<Image>().color, "nor fade while it shows");
+            Step(FishingView.RippleSeconds);
+            Assert.AreEqual(0, screen.FishingCard.RipplesShowing, "and goes after a moment");
+        }
+
+        [Test]
+        public void Without_The_Drawings_The_Card_Draws_Its_Own_Float_And_Water()
+        {
+            GameCatalog bare = Object.Instantiate(runner.Catalog);
+            try
+            {
+                bare.PondWater = null;
+                bare.FloatUp = null;
+                bare.FloatDown = null;
+                bare.Ripples = new Sprite[0];
+                runner.Catalog = bare;
+                screen.RebuildUi();
+                screen.Refresh();
+                Step(0.2f);
+                OpenPond();
+                Assert.IsNull(root.transform.Find(Card + "/Water/Surface"), "no drawn pond");
+                Assert.IsTrue(At(Card + "/Water/Moon").gameObject.activeSelf, "the moon drawn in code");
+                Find(Card + "/Cast").onClick.Invoke();
+                Assert.IsNull(screen.FishingCard.FloatSprite);
+                Assert.IsTrue(At(Card + "/Water/Float/Art/Cap").gameObject.activeSelf, "the float drawn in code");
+                Color bobbing = screen.FishingCard.FloatColor;
+                screen.Advance(1f / 30f);
+                Assert.AreEqual(0, screen.FishingCard.RipplesShowing, "no rings to show");
+                StepUntilSinking();
+                Assert.AreNotEqual(bobbing, screen.FishingCard.FloatColor, "the sink shows as a colour");
+                Assert.AreEqual(Palette.Lantern, screen.FishingCard.FloatColor);
+                Assert.Less(screen.FishingCard.FloatScale.x, 0.9f, "and as a smaller float");
+            }
+            finally
+            {
+                Object.DestroyImmediate(bare);
+            }
+        }
+
         [Test]
         public void With_No_Bait_The_Cast_Button_Lies_Flat_And_Counts_Down_To_The_Next()
         {
@@ -206,7 +314,6 @@ namespace VuonTra.Core.Tests
             OpenPond();
             Find(Card + "/Cast").onClick.Invoke();
             var art = (RectTransform)root.transform.Find(Card + "/Water/Float/Art");
-            Color bobbing = screen.FishingCard.FloatColor;
             Vector2 at = art.anchoredPosition;
             for (int k = 0; k < 20; k++)
             {
@@ -215,10 +322,9 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(at, art.anchoredPosition, "no bobbing");
                 Assert.AreEqual(Vector3.one, screen.FishingCard.FloatScale);
             }
+            Assert.AreSame(runner.Catalog.FloatUp, screen.FishingCard.FloatSprite, "the drawn float, afloat");
             StepUntilSinking();
-            Assert.AreNotEqual(bobbing, screen.FishingCard.FloatColor, "the sink shows as a colour");
-            Assert.AreEqual(Palette.Lantern, screen.FishingCard.FloatColor);
-            Assert.Less(screen.FishingCard.FloatScale.x, 0.9f, "and as a smaller float");
+            Assert.AreSame(runner.Catalog.FloatDown, screen.FishingCard.FloatSprite, "the sink shows as the float pulled under");
             Assert.AreEqual(at, art.anchoredPosition, "without moving");
 
             // The same timing rules with motion on: the float bobs.

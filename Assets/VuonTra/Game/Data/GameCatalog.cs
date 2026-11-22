@@ -44,6 +44,9 @@ namespace VuonTra.Game
         public Sprite[] Fish = new Sprite[0];
         /// <summary>The basket the caught fish go into (#58).</summary>
         public Sprite FishBasket;
+        /// <summary>The pond card's float afloat and pulled under, its water, and three rings growing outward (#58), drawn by hand; drawn in code while missing.</summary>
+        public Sprite FloatUp, FloatDown, PondWater;
+        public Sprite[] Ripples = new Sprite[0];
         /// <summary>Fish <paramref name="i"/>'s picture, or null.</summary>
         public Sprite FishSprite(int i) => Fish != null && i >= 0 && i < Fish.Length ? Fish[i] : null;
         public Sprite Gear;
