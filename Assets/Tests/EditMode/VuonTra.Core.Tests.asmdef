@@ -4,6 +4,7 @@
     "references": [
         "VuonTra.Core",
         "VuonTra.Game",
+        "VuonTra.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Unity.Localization",
