@@ -97,6 +97,13 @@ namespace VuonTra.Core
         /// <summary>The garden's name, its avatar rabbit and the player code.</summary>
         public PlayerProfile Profile = new PlayerProfile { Code = VuonTra.Core.Profile.NewCode() };
 
+        /// <summary>The guest at the counter, or null; seconds of open play towards the next one; today's count and the day it counts for; deliveries in all and at the day's start (#20).</summary>
+        public Order Order;
+        public double OrderClock = VuonTra.Core.Orders.StartingClock;
+        public int OrdersToday;
+        public long OrderDay = -1;
+        public long OrdersDelivered, DailyOrdersBase, NextOrderId;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

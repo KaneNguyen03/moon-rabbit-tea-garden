@@ -388,6 +388,23 @@ namespace VuonTra.EditorTools
             { "shop.visitor.hours", "{0} giờ", "{0} h" },
             { "shop.visitor.minutes", "{0} phút", "{0} min" },
             { "moment.golden.sub", "Vườn lên cấp {0}", "Garden level {0}" },
+
+            // ----- guests and their tea orders (#20) -----
+            { "order.title", "Khách đặt trà", "A tea order" },
+            { "order.badge", "Khách!", "Guest!" },
+            { "order.guest", "{0} ghé quầy", "{0} is at the counter" },
+            { "order.wants", "Muốn mua", "Would like" },
+            { "order.left", "Chờ thêm {0}", "Waiting {0} more" },
+            { "order.reward", "Giao đủ: +{0} cà rốt", "Deliver it all: +{0} carrots" },
+            { "order.reward.clover", "Giao đủ: +{0} cà rốt · +1 cỏ bốn lá", "Deliver it all: +{0} carrots · +1 clover" },
+            { "order.deliver", "Giao", "Deliver" },
+            { "order.missing", "Còn thiếu {0} món", "{0} more to make" },
+            { "order.done.title", "Khách hài lòng!", "A happy guest!" },
+            { "order.done.sub", "+{0} cà rốt", "+{0} carrots" },
+            { "order.done.clover", "+{0} cà rốt · +1 cỏ bốn lá", "+{0} carrots · +1 clover" },
+            { "order.gone", "Khách đã đi", "The guest has left" },
+            { "quest.ngay-don", "Giao 2 đơn trà cho khách", "Deliver 2 tea orders" },
+            { "quest.don-20", "Giao 20 đơn trà", "Deliver 20 tea orders" },
         };
     }
 }

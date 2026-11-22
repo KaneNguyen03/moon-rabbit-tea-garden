@@ -1718,6 +1718,66 @@ MonoBehaviour:
     m_Localized: "Ch\u1EEF to"
     m_Metadata:
       m_Items: []
+  - m_Id: 215126937427968
+    m_Localized: "Kh\xE1ch \u0111\u1EB7t tr\xE0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399488
+    m_Localized: "Kh\xE1ch!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399489
+    m_Localized: "{0} gh\xE9 qu\u1EA7y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399490
+    m_Localized: "Mu\u1ED1n mua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399491
+    m_Localized: "Ch\u1EDD th\xEAm {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399492
+    m_Localized: "Giao \u0111\u1EE7: +{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399493
+    m_Localized: "Giao \u0111\u1EE7: +{0} c\xE0 r\u1ED1t \xB7 +1 c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399494
+    m_Localized: Giao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399495
+    m_Localized: "C\xF2n thi\u1EBFu {0} m\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399496
+    m_Localized: "Kh\xE1ch h\xE0i l\xF2ng!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399497
+    m_Localized: "+{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399498
+    m_Localized: "+{0} c\xE0 r\u1ED1t \xB7 +1 c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399499
+    m_Localized: "Kh\xE1ch \u0111\xE3 \u0111i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399500
+    m_Localized: "Giao 2 \u0111\u01A1n tr\xE0 cho kh\xE1ch"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399501
+    m_Localized: "Giao 20 \u0111\u01A1n tr\xE0"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

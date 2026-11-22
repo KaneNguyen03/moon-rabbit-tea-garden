@@ -28,7 +28,9 @@ namespace VuonTra.Core
         /// <summary>How many plots the garden has.</summary>
         PlotsOwned,
         /// <summary>How many rabbits stand at their tier's level cap.</summary>
-        RabbitsAtCap
+        RabbitsAtCap,
+        /// <summary>Guests' tea orders delivered in full (#20).</summary>
+        OrdersDelivered
     }
 
     /// <summary>
@@ -116,6 +118,8 @@ namespace VuonTra.Core
                     foreach (Rabbit r in s.Rabbits) if (Rabbits.IsMaxLevel(r)) capped++;
                     return capped;
                 }
+                case QuestMetric.OrdersDelivered:
+                    return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:
                     return 0;
             }
@@ -176,6 +180,7 @@ namespace VuonTra.Core
             s.DailyTapsBase = s.TotalTaps;
             s.DailyLevelsBase = s.LevelsBought;
             s.DailyEarnedBase = s.TotalEarned;
+            s.DailyOrdersBase = s.OrdersDelivered;
             s.GoldenToday = 0;
             BigNum goal = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * DailyCarrotSeconds);
             var floor = new BigNum(DailyCarrotMinimum);

@@ -431,6 +431,20 @@ namespace VuonTra.EditorTools
             Capture(screen, "44-tiem");
             screen.Shop.Close();
             Step(screen, 0.3f);
+            // A guest at the counter with its order in a bubble (#20), then the order card. One may have come on its
+            // own by now: the frames above step through more than the minute the first guest waits for.
+            if (runner.State.Order == null) runner.PlaceOrder();
+            if (runner.State.Order != null)
+            {
+                screen.LookAt(GardenScreen.GuestSpot);
+                Step(screen, GardenScreen.GuestWalkSeconds + 0.6f);
+                Capture(screen, "20-khach");
+                screen.OpenOrder();
+                Step(screen, 0.4f);
+                Capture(screen, "20-don");
+                screen.OrderCard.Close();
+                Step(screen, 0.3f);
+            }
             // The same garden at noon and at dusk; night is every other frame.
             screen.SelectStation(-1);
             screen.LookAt(GardenScreen.StationSpot(0));

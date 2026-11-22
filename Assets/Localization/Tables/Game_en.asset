@@ -1722,6 +1722,66 @@ MonoBehaviour:
     m_Localized: Large text
     m_Metadata:
       m_Items: []
+  - m_Id: 215126937427968
+    m_Localized: A tea order
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399488
+    m_Localized: Guest!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399489
+    m_Localized: '{0} is at the counter'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399490
+    m_Localized: Would like
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399491
+    m_Localized: Waiting {0} more
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399492
+    m_Localized: 'Deliver it all: +{0} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399493
+    m_Localized: "Deliver it all: +{0} carrots \xB7 +1 clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399494
+    m_Localized: Deliver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399495
+    m_Localized: '{0} more to make'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399496
+    m_Localized: A happy guest!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399497
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399498
+    m_Localized: "+{0} carrots \xB7 +1 clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399499
+    m_Localized: The guest has left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399500
+    m_Localized: Deliver 2 tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 215126958399501
+    m_Localized: Deliver 20 tea orders
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

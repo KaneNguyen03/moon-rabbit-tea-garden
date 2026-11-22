@@ -70,6 +70,7 @@ namespace VuonTra.EditorTools
                 new Q { Id = "ngay-cham", Title = "Chạm bé thỏ 50 lần",             Metric = QuestMetric.Taps,          Target = 50, Seconds = 300, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-nang", Title = "Nâng cấp trạm 20 lần",           Metric = QuestMetric.LevelsBought,  Target = 20, Seconds = 300, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 600, Carrots = 60,  Clovers = 1, Daily = true },
+                new Q { Id = "ngay-don",  Title = "Giao 2 đơn trà cho khách",      Metric = QuestMetric.OrdersDelivered, Target = 2, Seconds = 300, Carrots = 30, Clovers = 1, Daily = true },
                 // Achievements: once.
                 new Q { Id = "mo-2",      Title = "Đánh thức bé thỏ thứ hai",       Metric = QuestMetric.StationsOpen,  Target = 2,  Seconds = 120,  Carrots = 60 },
                 new Q { Id = "mo-4",      Title = "Có 4 trạm đang hoạt động",       Metric = QuestMetric.StationsOpen,  Target = 4,  Seconds = 900,  Carrots = 500,  Clovers = 2 },
@@ -96,6 +97,8 @@ namespace VuonTra.EditorTools
                 new Q { Id = "loai-do",   Title = "Gặp loài thỏ bậc Đỏ đầu tiên",    Metric = QuestMetric.RarestKindMet, Target = 6,  Seconds = 1800, Carrots = 9000, Golden = 5 },
                 new Q { Id = "dat-12",    Title = "Mở đủ 12 ô đất",                  Metric = QuestMetric.PlotsOwned,    Target = 12, Seconds = 1800, Carrots = 9000, Golden = 5 },
                 new Q { Id = "tho-max",   Title = "Một bé thỏ đạt cấp tối đa",       Metric = QuestMetric.RabbitsAtCap,  Target = 1,  Seconds = 900,  Carrots = 3000, Golden = 5 },
+                // Guests' tea orders (#20).
+                new Q { Id = "don-20",    Title = "Giao 20 đơn trà",                 Metric = QuestMetric.OrdersDelivered, Target = 20, Seconds = 900, Carrots = 2000, Clovers = 2 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)
