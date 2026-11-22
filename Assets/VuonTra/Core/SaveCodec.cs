@@ -142,6 +142,14 @@ namespace VuonTra.Core
             sb.Append(",\"seasonGreeted\":").Append(s.SeasonGreetedDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"playSeconds\":").Append(Sane(s.PlaySeconds).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"season\":").Append(s.Season.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"packs\":").Append(s.PacksBought.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"paid\":[");
+            for (int i = 0; i < s.PaidTransactions.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                WriteString(sb, s.PaidTransactions[i]);
+            }
+            sb.Append(']');
             // Version 14: the mooncake game.
             sb.Append(",\"pounding\":{\"day\":").Append(s.PoundingDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"plays\":").Append(s.PoundingPlays.ToString(CultureInfo.InvariantCulture));
@@ -484,6 +492,13 @@ namespace VuonTra.Core
             s.SeasonGreetedDay = TryNumber(root, "seasonGreeted", out double greeted) ? ToLong(greeted) : -1;
             s.PlaySeconds = TryNumber(root, "playSeconds", out double played) ? Math.Max(0d, Sane(played)) : 0d;
             s.Season = TryNumber(root, "season", out double season) ? (int)Math.Max(0d, Math.Min(season, NewMoon.MaxSeasons)) : 0;
+            s.PacksBought = TryNumber(root, "packs", out double packs) ? (int)Math.Max(0d, Math.Min(packs, int.MaxValue)) : 0;
+            if (root.TryGetValue("paid", out object paidObj) && paidObj is List<object> paid)
+            {
+                foreach (object item in paid)
+                    if (item is string paidId && !s.PaidTransactions.Contains(paidId)) s.PaidTransactions.Add(paidId);
+                while (s.PaidTransactions.Count > Storefront.ReceiptMemory) s.PaidTransactions.RemoveAt(0);
+            }
             // Version 14: the mooncake game. An older save has all its plays and no games behind it.
             if (root.TryGetValue("pounding", out object poundObj) && poundObj is Dictionary<string, object> pound)
             {

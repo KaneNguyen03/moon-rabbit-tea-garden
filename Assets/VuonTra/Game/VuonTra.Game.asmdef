@@ -6,7 +6,10 @@
         "UnityEngine.UI",
         "Unity.InputSystem",
         "Unity.Localization",
-        "Google.Play.Games"
+        "Google.Play.Games",
+        "UnityEngine.Purchasing",
+        "UnityEngine.Purchasing.Stores",
+        "UnityEngine.Purchasing.Security"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -20,6 +23,11 @@
             "name": "com.google.play.games",
             "expression": "2.0.0",
             "define": "VUONTRA_PLAY_GAMES"
+        },
+        {
+            "name": "com.unity.purchasing",
+            "expression": "4.0.0",
+            "define": "UNITY_PURCHASING"
         }
     ],
     "noEngineReferences": false

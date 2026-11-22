@@ -70,6 +70,10 @@ namespace VuonTra.Game
 
         void Awake()
         {
+#if UNITY_PURCHASING && (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
+            // A phone build talks to its store (#9); the editor, the tests and the Mac build keep the store in memory.
+            Store = new VuonTra.Game.Store.UnityStorefront();
+#endif
             if (!_ready) Init();
         }
 
@@ -87,6 +91,9 @@ namespace VuonTra.Game
                 if (State.UpgradeLevels == null || State.UpgradeLevels.Length != UpgradeDefs.Count)
                     Array.Resize(ref State.UpgradeLevels, UpgradeDefs.Count);
                 Mods = Modifiers.From(UpgradeDefs, State);
+                // Purchases the store delivered before the save was here.
+                foreach (PurchaseResult r in _deliveriesWaiting) Storefront.Grant(State, r.PackId, r.TransactionId);
+                _deliveriesWaiting.Clear();
             }
             else
             {
@@ -430,6 +437,46 @@ namespace VuonTra.Game
             if (result.FirstToday || result.Energy > 0d) Changed();
             return result;
         }
+
+        /// <summary>The platform store for golden packs (#9): in memory everywhere but a phone build with Unity IAP.</summary>
+        IStorefront _storefront;
+        readonly List<PurchaseResult> _deliveriesWaiting = new List<PurchaseResult>();
+        public IStorefront Store
+        {
+            get { if (_storefront == null) Store = new FakeStorefront(); return _storefront; }
+            set
+            {
+                if (_storefront != null) _storefront.Delivered -= OnDelivered;
+                _storefront = value ?? new FakeStorefront();
+                _storefront.Delivered += OnDelivered;
+            }
+        }
+
+        /// <summary>A purchase the store hands over by itself (one left unfinished before the app died): paid out once, now or once the save is loaded.</summary>
+        void OnDelivered(PurchaseResult r)
+        {
+            if (r.Outcome != PurchaseOutcome.Paid) return;
+            if (State == null) { _deliveriesWaiting.Add(r); return; }
+            if (!Storefront.Grant(State, r.PackId, r.TransactionId)) return;
+            _shopBought = true;
+            Changed();
+        }
+
+        /// <summary>Buys a golden pack through the store and pays it into the purse when the store says it was paid.</summary>
+        public void BuyGolden(string packId, Action<PurchaseResult> done)
+        {
+            Store.Buy(packId, r =>
+            {
+                if (r.Outcome == PurchaseOutcome.Paid)
+                {
+                    if (Storefront.Grant(State, r.PackId, r.TransactionId)) { _shopBought = true; Changed(); }
+                    else r.Outcome = PurchaseOutcome.Duplicate;
+                }
+                done?.Invoke(r);
+            });
+        }
+
+        public void RestorePurchases(Action<bool> done) => Store.Restore(done);
 
         /// <summary>Where the save could be backed up to. Local-only until a store sign-in is wired in (#38, #39, #40).</summary>
         public IAccountService Account { get; set; } = new LocalOnlyAccount();

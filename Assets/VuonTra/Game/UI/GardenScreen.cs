@@ -239,6 +239,8 @@ namespace VuonTra.Game.UI
         public SummonMomentView Arrival { get; private set; }
         /// <summary>The new moon (#1): the compare card and the moment that follows it.</summary>
         public NewMoonView NewMoonCard { get; private set; }
+        /// <summary>Golden carrots for money (#9).</summary>
+        public GoldenPacksView GoldenPacks { get; private set; }
         public NewMoonMomentView NewMoonMoment { get; private set; }
         RectTransform _seasonChip;
         Text _seasonText;
@@ -1102,7 +1104,7 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor,
-                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor);
+                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => GoldenPacks.Open(Runner.Store));
             DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus),
@@ -1145,6 +1147,7 @@ namespace VuonTra.Game.UI
                 }));
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
+            GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
             NewMoonMoment = new NewMoonMomentView(_canvas, catalog);
             CloudChoice = new CloudChoiceView(_canvas, catalog, Tweens, takeRemote => Runner.ResolveSync(takeRemote, r =>
             {
@@ -4124,6 +4127,27 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>Today's gift from the shop: golden carrots fly from the gift box up to their place on the HUD.</summary>
+        /// <summary>A golden pack bought (#9): once the store has taken the money, the carrots fly to their chip.</summary>
+        void OnBuyPack(string packId, System.Action<PurchaseResult> done)
+        {
+            Runner.BuyGolden(packId, result =>
+            {
+                if (result.Outcome == PurchaseOutcome.Paid)
+                {
+                    Sfx.Reward();
+                    Haptics.Light();
+                    GameCatalog catalog = Runner.Catalog;
+                    GoldenPack pack = Storefront.Find(packId);
+                    Vector2 from = new Vector2(0, -120); // the middle of the packs card
+                    Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, 5, 44f,
+                        () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+                    Feel.FloatText(new Vector2(0, 420), L10n.T("packs.float", pack != null ? pack.Golden : 0), Palette.Lantern, 44);
+                    Refresh(-1f);
+                }
+                done?.Invoke(result);
+            });
+        }
+
         void OnDailyGift()
         {
             int gift = Runner.ClaimDailyGift();

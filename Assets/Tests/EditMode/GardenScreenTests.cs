@@ -170,6 +170,63 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.Arrival.IsOpen);
         }
 
+        // ----- Golden carrots for money (#9) -----
+
+        [Test]
+        public void The_Shop_Sells_Golden_Packs_Through_The_Store_And_Pays_Out_Once()
+        {
+            screen.Shell.StartGame();
+            screen.Refresh();
+            var store = (FakeStorefront)runner.Store;
+            Find("Canvas/Garden/Content/Shop").onClick.Invoke();
+            Find("Canvas/Shop/Card/Have/BuyMore").onClick.Invoke();
+            Assert.IsTrue(screen.GoldenPacks.IsOpen);
+            Transform card = root.transform.Find("Canvas/GoldenPacks/Card");
+            StringAssert.Contains("150", card.Find("Pack 1/Face/Text").GetComponent<Text>().text);
+            Assert.AreEqual(store.PriceOf(Storefront.Medium), card.Find("Pack 1/Face/PriceChip/Price").GetComponent<Text>().text, "the store's own price");
+            Assert.IsTrue(card.Find("Pack 1/Best").gameObject.activeSelf, "the middle pack is the best deal");
+            Assert.IsTrue(Find("Canvas/GoldenPacks/Card/Pack 0").interactable);
+
+            int before = runner.State.GoldenCarrots;
+            Find("Canvas/GoldenPacks/Card/Pack 0").onClick.Invoke();
+            Assert.AreEqual(before + 50, runner.State.GoldenCarrots);
+            Assert.AreEqual(1, runner.State.PacksBought);
+            StringAssert.Contains("50", screen.GoldenPacks.Status);
+            Assert.Greater(screen.Feel.Flying, 0, "the carrots fly to their chip");
+            Assert.AreEqual("" + (before + 50), root.transform.Find("Canvas/Hud/Golden/Text").GetComponent<Text>().text);
+
+            store.NextOutcome = PurchaseOutcome.Cancelled;
+            Find("Canvas/GoldenPacks/Card/Pack 2").onClick.Invoke();
+            Assert.AreEqual(before + 50, runner.State.GoldenCarrots, "a cancelled purchase pays nothing");
+            Assert.AreEqual(L10n.T("packs.cancelled"), screen.GoldenPacks.Status);
+
+            // The store hands the same transaction over again after a restart: paid once.
+            store.Deliver(Storefront.Large, "GPA.again");
+            Assert.AreEqual(before + 550, runner.State.GoldenCarrots);
+            store.Deliver(Storefront.Large, "GPA.again");
+            Assert.AreEqual(before + 550, runner.State.GoldenCarrots);
+
+            Find("Canvas/GoldenPacks/Card/Restore").onClick.Invoke();
+            Assert.AreEqual(1, store.Restores);
+            Assert.AreEqual(L10n.T("packs.restored"), screen.GoldenPacks.Status);
+        }
+
+        [Test]
+        public void Without_A_Store_The_Packs_Are_Greyed_And_The_Card_Says_So()
+        {
+            screen.Shell.StartGame();
+            var store = (FakeStorefront)runner.Store;
+            store.Ready = false;
+            screen.GoldenPacks.Open(runner.Store);
+            Assert.IsFalse(Find("Canvas/GoldenPacks/Card/Pack 0").interactable);
+            Assert.IsFalse(Find("Canvas/GoldenPacks/Card/Restore").interactable);
+            Assert.AreEqual(L10n.T("packs.notready"), screen.GoldenPacks.Status);
+            Assert.AreEqual(L10n.T("packs.price.unknown"), root.transform.Find("Canvas/GoldenPacks/Card/Pack 0/Face/PriceChip/Price").GetComponent<Text>().text);
+            int before = runner.State.GoldenCarrots;
+            Find("Canvas/GoldenPacks/Card/Pack 0").onClick.Invoke();
+            Assert.AreEqual(before, runner.State.GoldenCarrots);
+        }
+
         [Test]
         public void Runner_Starts_With_Twelve_Stations_And_First_Open()
         {

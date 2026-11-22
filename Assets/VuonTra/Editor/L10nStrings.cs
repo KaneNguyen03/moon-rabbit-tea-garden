@@ -594,6 +594,25 @@ namespace VuonTra.EditorTools
             { "hud.season", "Mùa {0}", "Season {0}" },
             { "profile.stats.season", "Cấp vườn {0} · {1} bé thỏ · {2} trạm · Mùa {3}, thu nhập +{4}%", "Garden level {0} · {1} rabbits · {2} stations · Season {3}, income +{4}%" },
             { "album.newmoon.only", "Chỉ đến cùng Mùa trăng mới", "Only with a new moon" },
+            // Golden carrots for money (#9).
+            { "shop.buymore", "Mua thêm", "Buy more" },
+            { "packs.title", "Mua cà rốt vàng", "Buy golden carrots" },
+            { "packs.sub", "Cà rốt vàng dùng ở Tiệm: gọi vàng, thỏ ghé, mũ, trang trí. Tỉ lệ gọi ghi ngay ở Tiệm; không có gì khác mua bằng tiền.", "Golden carrots are spent at the shop: golden calls, the visitor, hats, decorations. The call odds are printed at the shop; nothing else is sold for money." },
+            { "packs.pack", "{0} cà rốt vàng", "{0} golden carrots" },
+            { "packs.best", "Hời nhất", "Best value" },
+            { "packs.price.unknown", "—", "—" },
+            { "packs.buying", "Đang mở cửa hàng…", "Opening the store…" },
+            { "packs.paid", "Đã cộng {0} cà rốt vàng. Cảm ơn bạn đã ủng hộ vườn trà!", "{0} golden carrots added. Thank you for supporting the tea garden!" },
+            { "packs.cancelled", "Đã huỷ, không mất gì", "Cancelled, nothing charged" },
+            { "packs.failed", "Mua không thành công, thử lại sau", "The purchase did not go through; try again later" },
+            { "packs.duplicate", "Gói này đã được cộng từ trước", "This purchase was already added" },
+            { "packs.notready", "Cửa hàng chưa sẵn sàng trên máy này", "The store is not ready on this device" },
+            { "packs.restore", "Khôi phục giao dịch", "Restore purchases" },
+            { "packs.restoring", "Đang hỏi cửa hàng…", "Asking the store…" },
+            { "packs.restored", "Đã kiểm tra với cửa hàng; gói nào còn thiếu sẽ được cộng", "Checked with the store; any missing pack will be added" },
+            { "packs.restore.failed", "Không hỏi được cửa hàng, thử lại sau", "Could not reach the store; try again later" },
+            { "packs.close", "Đóng", "Close" },
+            { "packs.float", "+{0} cà rốt vàng", "+{0} golden carrots" },
         };
     }
 }

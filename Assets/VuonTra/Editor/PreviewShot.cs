@@ -684,6 +684,19 @@ namespace VuonTra.EditorTools
             screen.Arrival.Tap();
             Step(screen, 0.6f);
             Capture(screen, "1-mua-trang-vuon-moi");
+
+            // #9 Golden carrots for money: the shop's purse row with its button, and the packs card over it (fake store prices).
+            Press(screen, "Canvas/Garden/Content/Shop");
+            Step(screen, 0.5f);
+            Capture(screen, "9-tiem-mua-them");
+            Press(screen, "Canvas/Shop/Card/Have/BuyMore");
+            Step(screen, 0.4f);
+            Capture(screen, "9-goi-ca-rot-vang");
+            Press(screen, "Canvas/GoldenPacks/Card/Pack 1");
+            Step(screen, 0.3f);
+            Capture(screen, "9-da-mua");
+            screen.GoldenPacks.Close();
+            screen.Shop.Close();
         }
 
         static void Press(GardenScreen screen, string path)

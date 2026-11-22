@@ -124,6 +124,10 @@ namespace VuonTra.Core
         /// <summary>How many new moons this garden has begun (#1); each one adds a lasting share to income. 0 for a garden on its first season.</summary>
         public int Season;
 
+        /// <summary>Golden packs bought for money (#9): how many in all, and the store's ids of the latest paid-out transactions, oldest first, so a purchase delivered again is not paid twice.</summary>
+        public int PacksBought;
+        public List<string> PaidTransactions = new List<string>();
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

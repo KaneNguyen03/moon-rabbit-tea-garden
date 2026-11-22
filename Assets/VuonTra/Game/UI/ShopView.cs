@@ -46,7 +46,7 @@ namespace VuonTra.Game.UI
         public const float Height = 1770f;
 
         public ShopView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<long> today, Func<double> hoursLeft, Action onGift, Action onGoldenSummon, Action onBuyVisitor,
-            IReadOnlyList<ItemDef> items = null, Action<string> onBuyItem = null, Action<string> onBuyDecor = null, Action<int> onLanternColor = null)
+            IReadOnlyList<ItemDef> items = null, Action<string> onBuyItem = null, Action<string> onBuyDecor = null, Action<int> onLanternColor = null, Action onBuyMore = null)
         {
             _catalog = catalog;
             _today = today;
@@ -60,7 +60,17 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("shop.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var purse = UiKit.Rect("Have", card).Stretch(0, 1, 1, 1, 40, -170, 40, 120);
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", purse).Place(0f, 0.5f, 22, 0, 40, 40).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
-            _have = UiKit.Rect("Text", purse).Stretch(0, 0, 1, 1, 56, 0, 0, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _have = UiKit.Rect("Text", purse).Stretch(0, 0, 1, 1, 56, 0, 300, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            // Golden carrots for money (#9): a small warm button at the end of the purse row opens the packs card.
+            var buyMore = UiKit.Rect("BuyMore", purse).Place(1f, 0.5f, -130, 0, 260, UiKit.MinTouch);
+            ChunkyButton buyMoreButton = null;
+            buyMoreButton = UiKit.Chunky(buyMore, catalog.Panel, () => { buyMoreButton.Press(tweens); Sfx.Click(); onBuyMore?.Invoke(); });
+            buyMoreButton.Face.color = Palette.Lantern;
+            buyMoreButton.Lip.color = Palette.Mix(Palette.Lantern, Palette.Ink, 0.3f);
+            Text buyMoreText = UiKit.Rect("Text", buyMoreButton.FaceRect).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(L10n.T("shop.buymore"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            buyMoreText.resizeTextForBestFit = true;
+            buyMoreText.resizeTextMinSize = 14;
+            buyMoreText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
 
             // Today: the gift, its streak, and the button that takes it.
             var today_ = UiKit.Rect("Today", card).Stretch(0, 1, 1, 1, 40, -420, 40, 190);

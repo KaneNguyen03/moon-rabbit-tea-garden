@@ -2512,6 +2512,78 @@ MonoBehaviour:
     m_Localized: The save is over 3 MB, more than Saved Games takes; the garden stays on this device
     m_Metadata:
       m_Items: []
+  - m_Id: 273544201101312
+    m_Localized: Buy more
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878528
+    m_Localized: Buy golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878529
+    m_Localized: 'Golden carrots are spent at the shop: golden calls, the visitor, hats, decorations. The call odds are printed at the shop; nothing else is sold for money.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878530
+    m_Localized: '{0} golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878531
+    m_Localized: Best value
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878532
+    m_Localized: "\u2014"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878533
+    m_Localized: "Opening the store\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878534
+    m_Localized: '{0} golden carrots added. Thank you for supporting the tea garden!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878535
+    m_Localized: Cancelled, nothing charged
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878536
+    m_Localized: The purchase did not go through; try again later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878537
+    m_Localized: This purchase was already added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878538
+    m_Localized: The store is not ready on this device
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878539
+    m_Localized: Restore purchases
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878540
+    m_Localized: "Asking the store\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878541
+    m_Localized: Checked with the store; any missing pack will be added
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878542
+    m_Localized: Could not reach the store; try again later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878543
+    m_Localized: Close
+    m_Metadata:
+      m_Items: []
+  - m_Id: 273544217878544
+    m_Localized: +{0} golden carrots
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
