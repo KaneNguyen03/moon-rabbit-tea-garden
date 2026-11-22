@@ -48,6 +48,11 @@ namespace VuonTra.EditorTools
             { "provider.playgames", "Google Play Games", "Google Play Games" },
             { "provider.apple", "Apple", "Apple" },
             { "provider.google", "Google", "Google" },
+            // ----- Google Play Games (#40) -----
+            { "playgames.name", "Google Play Games", "Google Play Games" },
+            { "playgames.saved", "Saved Games của Google Play", "Google Play Saved Games" },
+            { "playgames.description", "Cấp vườn {0} · {1} thỏ", "Garden level {0} · {1} rabbits" },
+            { "playgames.toolarge", "Bản lưu quá 3 MB nên Saved Games không nhận; vườn vẫn còn trên máy", "The save is over 3 MB, more than Saved Games takes; the garden stays on this device" },
             // ----- cloud save -----
             { "cloud.status.off", "Chưa có nơi lưu mây trên bản này", "No cloud to save to on this build" },
             { "cloud.status.never", "Chưa lưu lên mây", "Not saved to the cloud yet" },

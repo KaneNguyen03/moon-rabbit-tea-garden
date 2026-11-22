@@ -6,6 +6,8 @@
     "com.unity.ai.navigation": "2.0.16",
     "com.unity.analytics": "3.8.2",
     "com.unity.collab-proxy": "2.14.0",
+    "com.google.external-dependency-manager": "https://github.com/googlesamples/unity-jar-resolver.git?path=upm#v1.2.190",
+    "com.google.play.games": "https://github.com/playgameservices/play-games-plugin-for-unity.git?path=/Assets/Public/GooglePlayGames/com.google.play.games#v2.3.0",
     "com.unity.ide.rider": "3.1.0",
     "com.unity.ide.visualstudio": "2.0.26",
     "com.unity.inputsystem": "1.20.1",

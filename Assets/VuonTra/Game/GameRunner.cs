@@ -113,8 +113,10 @@ namespace VuonTra.Game
             _ready = true;
             if (preset == null)
             {
-                // The real game on a real device: the platform's sign-in and cloud (#39) go in before the first sync.
+                // The real game on a real device: the platform's sign-in and cloud go in before the first sync
+                // (Game Center and iCloud on iOS, #39; Play Games and Saved Games on Android, #40; nothing elsewhere).
                 PlatformServices.Install(this);
+                Platform.AndroidServices.Install(this);
                 SyncNow(SyncReason.Open);
             }
         }
