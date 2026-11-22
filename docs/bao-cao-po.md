@@ -1172,6 +1172,43 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt (cần chủ project)
 - Bốn ô "Chủ project cần chốt" trong `docs/de-xuat-1.md` đang theo đề xuất (cấp 30 / +25 % tuyến tính / ô đất và chỗ nghỉ về đầu / có Thỏ Trăng Non); đổi số nào thì chỉ đổi hằng số trong `NewMoon`. Hình riêng cho Thỏ Trăng Non và huy hiệu mùa vẽ tay.
 
+## #33 phần cuối — Chữ trên nút chính đổi sang mực (nhánh agent-33)
+
+- Test: 687/688 EditMode qua trên main sau khi gộp. Commit `09f8a94`, ff vào main qua `daad647`, đã push. Issue #33 đã comment và đóng theo quyết định mặc định.
+- `Palette.OnCarrot = Ink`; `ChunkyButton.InkFor` trả mực cho cả nút cam lẫn tấm phẳng; 40 nhãn trên mặt nút cam và pill đang chọn (chế độ mua, ngôn ngữ, ảnh, tỷ lệ Nâng tất cả, tab Sổ thỏ, gợi ý chọn bản) đổi theo; test tương phản ghim 6,2:1. Huy hiệu đếm và chip cấp giữ nguyên (không phải nút chính). Ảnh: `docs/anh/po-33/33-truoc-nut-cam.png`, `33-sau-nut-cam.png`, `33-sau-nut-cam-tam-nghi.png`.
+
+## #39 phần code — Đăng nhập Game Center và lưu mây iCloud trên iOS (agent song song, nhánh agent-39)
+
+- Test: 687/688 EditMode qua trên main sau khi gộp; +8 test (`PlatformTests.cs`): seam ngoài iOS, kho iCloud ngoài iOS trung thực, tên mặc định, nhớ/quên đăng nhập, bị từ chối, vườn lấy tên GC một lần, save quá lớn không crash, kích thước vườn tối đa.
+- Commit `59d075c` (nhánh agent-39), gộp vào main qua `a4c23d1`…`daad647`, đã push. Issue #39 đã comment (bảng 8 ý), nhãn chờ-PO-duyệt. **Chưa chạy trên máy thật** (máy không có module iOS/Xcode).
+- Game Center (`Game/Platform/GameCenterAccount.cs`): tự đăng nhập khi mở; nhớ trong PlayerPrefs nên Hồ sơ ghi "Đã liên kết · tên" ngay; một lần kiểm tra thất bại không mất liên kết; bỏ liên kết chỉ quên trên máy. Vườn chưa đặt tên lấy tên Game Center một lần (`NameFor`, `GameRunner.AdoptLinkedName`).
+- iCloud (`ICloudKvsCloudSave.cs` + `Plugins/iOS/CloudKvs.mm`): một khoá `vuontra.save`; máy khác ghi → đồng bộ trong 5 giây (`SyncReason.Remote`); chưa đăng nhập iCloud → dòng mây hướng dẫn. `ICloudSave.MaxBytes` + `CloudSync` đo phong bì, quá lớn → `SyncOutcome.TooLarge`. Đo: vườn thường 3 827 byte, vườn tối đa 30 748 byte (3 % của 1 MB).
+- Build: `IOSCapabilities` trong `BuildScript.cs` thêm Game Center + iCloud KVS và entitlements khi build iOS; `docs/build-ios.md` ghi bước App ID / App Store Connect và cách thử.
+
+### Chưa đạt
+- Chưa biên dịch bằng Xcode, chưa thử trên iPhone. Chưa có nút "Bỏ liên kết".
+
+## #5 — Chụm trackpad để zoom trên bản Mac (agent song song, nhánh agent-5)
+
+- Test: 687/688 EditMode qua trên main sau khi gộp; +3 test (hàm thuần kẹp Xa/Gần, Editor im lặng, `SimulatePinch`). `verify.sh --build` xanh trên nhánh: bundle trong `VuonTraTho.app/Contents/Plugins`, Player.log không có `DllNotFoundException`.
+- Commit `73d1611` (nhánh agent-5), gộp vào main qua `d9aa5c7`…`daad647`, đã push. Issue #5 đã comment, nhãn chờ-PO-duyệt.
+- Bundle gốc `Assets/Plugins/macOS/PinchZoom.bundle` (nguồn `PinchZoom/PinchZoom.m` 52 dòng, dựng bằng `tools/build-pinch-bundle.sh`, universal): `NSEvent` local monitor nghe magnify và smart-magnify, cộng dồn độ phóng và vị trí con trỏ theo tỷ lệ cửa sổ; chỉ bật cho Standalone OSX. `TrackpadPinch.cs` (`Game/Platform`) đọc mỗi khung; `GardenScreen` chụm → `ApplyZoom(PinchZoom(_zoom, m), điểm dưới con trỏ)`, buông 0,25 s gióng về mức gần nhất; chạm đôi hai ngón → Gần ↔ Thường. `PinchGain = 1`: một lần chụm trọn đi hết Xa → Gần.
+- Kỹ thuật: `codesign` từ chối file mới tạo trong `Documents` (xattr provenance) nên script link và ký trong thư mục tạm; `.m` có `.meta` tắt mọi nền để không bị kéo vào project Xcode iOS.
+
+### Chưa đạt
+- Chưa thử tay cử chỉ thật; chỉnh độ nhạy bằng `PinchGain` nếu cần. Editor Mac không nhận chụm (cố ý).
+
+## #40 phần code — Android: Google Play Games và Saved Games (agent song song, nhánh agent-40)
+
+- Test: 703/704 EditMode qua trên main sau khi gộp (+16 `PlayGamesTests.cs`); `verify.sh --build` xanh trên nhánh (tham chiếu assembly Play Games không ảnh hưởng player Mac).
+- Commit `6ae4d55` (nhánh agent-40), gộp vào main qua `095dcdc` kèm sửa nhỏ (`SavedGamesCloudSave.MaxBytes` theo giao diện của #39), đã push. Issue #40 đã comment (bảng 9 ý + việc trên Play Console), nhãn chờ-PO-duyệt. **Chưa chạy trên máy thật** (máy không có module Android).
+- Gói: `com.google.play.games` 2.3.0 + `com.google.external-dependency-manager` 1.2.190 qua UPM từ GitHub (`Packages/manifest.json`, lock cập nhật); asmdef bật define `VUONTRA_PLAY_GAMES` khi có gói; mọi chỗ gọi plugin sau `#if UNITY_ANDROID && !UNITY_EDITOR && VUONTRA_PLAY_GAMES`.
+- Code (`Game/Platform/`): seam `IPlayGames` (test bằng bản giả), `PlayGamesAccount` (đăng nhập lặng khi mở, nút Liên kết hỏi ra mặt, nhớ PlayerPrefs, tên vườn mặc định), `SavedGamesCloudSave` (snapshot `vuon` chứa phong bì `CloudSync`, mô tả "Cấp vườn N · M thỏ", bìa = ảnh vườn mới nhất ≤ 800 KB, từ chối bản quá 3 MB, xung đột `UseLongestPlaytime`), `AndroidServices.Install` (cùng chỗ với `PlatformServices.Install` trong `GameRunner.Init`), `PlayGamesPlugin` (bộ chuyển sang plugin thật). Save tối đa đo được 80 106 byte, phong bì 94 325 byte (3 % của 3 MB).
+- Tài liệu: `docs/build-android.md` (gói, sơ đồ code, việc trên Play Console, checklist máy thật).
+
+### Chưa đạt (cần chủ project)
+- Play Console (app, Play Games Services, OAuth client + SHA-1, bật Saved Games, tester), Android Setup trong Unity có module Android, Resolve EDM4U, build AAB thử nội bộ. Ảnh bìa có thể trống nếu ảnh chụp > 800 KB. Thành tựu và bảng xếp hạng chưa làm.
+
 ## Bàn giao (22/11 ~17:40, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
