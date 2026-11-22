@@ -3045,6 +3045,63 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Basket_Opens_The_Leaf_Game_From_Garden_Level_Four_And_A_Finished_Game_Is_Paid()
+        {
+            runner.State.Coins = new BigNum(1000);
+            screen.Shell.StartGame();
+            runner.State.GardenXp = Garden.XpForLevel(3);
+            screen.Refresh();
+            GameObject basket = root.transform.Find("Canvas/Garden/Content/Basket").gameObject;
+            Assert.IsFalse(basket.activeSelf, "no basket at garden level three, where the mortar already stands");
+            Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Mortar").gameObject.activeSelf);
+            runner.State.GardenXp = Garden.XpForLevel(4);
+            screen.Refresh();
+            Assert.IsTrue(basket.activeSelf);
+            Assert.AreEqual(L10n.T("basket.plays", 3), basket.transform.Find("Plate/Text").GetComponent<Text>().text);
+
+            Find("Canvas/Garden/Content/Basket").onClick.Invoke();
+            Assert.IsTrue(screen.Basket.IsOpen);
+            Assert.IsFalse(screen.Pound.IsOpen);
+            Assert.AreEqual(2, Leaves.PlaysLeft(runner.State, runner.TodayNumber), "a play is spent on starting");
+            Assert.AreEqual(3, Pounding.PlaysLeft(runner.State, runner.TodayNumber), "and none of the mortar's");
+            LeavesRun run = screen.Basket.Run;
+            Assert.AreEqual(Leaves.SeedFor(runner.TodayNumber, 0), run.Seed, "the first game of the day");
+            Assert.AreEqual(0.5f, screen.Basket.BasketX, 1e-6f, "the basket starts in the middle");
+
+            // A drag puts the basket where the finger is; a tap slides it there (at once under reduced motion).
+            screen.Basket.SetBasket(0.9f);
+            Assert.AreEqual(0.9f, screen.Basket.BasketX, 1e-6f);
+            Motion.SetReduced(true);
+            screen.Basket.MoveBasket(0.2f);
+            screen.Advance(0.05f);
+            Assert.AreEqual(0.2f, screen.Basket.BasketX, 1e-6f);
+
+            // Play it through: the basket under every leaf, away from every cone, each at the moment it lands.
+            BigNum before = runner.State.Coins;
+            foreach (Leaf leaf in run.Schedule)
+            {
+                screen.Basket.SetBasket(leaf.Kind == LeafKind.Cone ? (leaf.X > 0.5 ? (float)leaf.X - 0.4f : (float)leaf.X + 0.4f) : (float)leaf.X);
+                screen.Advance((float)(leaf.Lands - screen.Basket.Time) + 0.001f);
+                Assert.AreEqual(Quaternion.identity, ((RectTransform)root.transform.Find("Canvas/Leaves/Basket")).localRotation, "no wobble with reduced motion");
+            }
+            Assert.IsTrue(run.Finished);
+            Assert.AreEqual(Leaves.MaxScore, run.Score);
+            Assert.AreEqual(L10n.T("leaves.score", Leaves.MaxScore), root.transform.Find("Canvas/Leaves/Score").GetComponent<Text>().text);
+            Assert.IsFalse(root.transform.Find("Canvas/Leaves/Result").gameObject.activeSelf, "the clock still runs");
+            for (int i = 0; i < 20; i++) screen.Advance(0.5f);
+            Assert.IsTrue(root.transform.Find("Canvas/Leaves/Result").gameObject.activeSelf, "the result card is up");
+            Assert.AreEqual(1, runner.State.Leaves.Games, "paid once");
+            Assert.AreEqual(0, runner.State.PoundingGames);
+            Assert.Greater(runner.State.Coins.ToDouble(), before.ToDouble());
+            Assert.AreEqual(1, runner.State.Clovers, "the day's first starred game");
+            Assert.AreEqual(0, runner.State.GoldenCarrots, "no golden carrot from this game");
+            Assert.AreEqual("★★★", root.transform.Find("Canvas/Leaves/Result/Card/Stars").GetComponent<Text>().text);
+            Find("Canvas/Leaves/Result/Card/Done").onClick.Invoke();
+            Assert.IsFalse(screen.Basket.IsOpen);
+            Assert.AreEqual(L10n.T("basket.plays", 2), basket.transform.Find("Plate/Text").GetComponent<Text>().text);
+        }
+
+        [Test]
         public void A_Rabbit_Put_To_Work_Walks_From_Its_Seat_To_The_Station_Unless_Motion_Is_Reduced()
         {
             screen.Shell.StartGame();

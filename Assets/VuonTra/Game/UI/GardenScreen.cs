@@ -50,6 +50,10 @@ namespace VuonTra.Game.UI
         Text _mortarPlate;
         /// <summary>The mooncake game, opened from the mortar beside the teapot.</summary>
         public PoundingView Pound { get; private set; }
+        /// <summary>The leaf-catching game, opened from the basket under the tea tree past the leaf station.</summary>
+        public LeavesView Basket { get; private set; }
+        RectTransform _basketProp;
+        Text _basketPlate;
         GameObject _shopBadge;
         Text _goldenText;
         int _guideStep = -1;
@@ -260,6 +264,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
             UpdateEdges();
             Pound.Update(dt);
+            Basket.Update(dt);
             if (_purseDown && !_purseHeld)
             {
                 _purseDownFor += dt;
@@ -899,6 +904,7 @@ namespace VuonTra.Game.UI
             Profile = null;
             Income = null;
             Pound = null;
+            Basket = null;
             Detail = null;
             Arrival = null;
             Shell = null;
@@ -990,6 +996,12 @@ namespace VuonTra.Game.UI
                 PoundingResult result = Runner.FinishPounding(run);
                 if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
                 Pound.ShowPaid(result);
+            });
+            Basket = new LeavesView(_canvas, catalog, Tweens, () => Refresh(-1f), run =>
+            {
+                LeavesResult result = Runner.FinishLeaves(run);
+                if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
+                Basket.ShowPaid(result);
             });
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
@@ -1235,6 +1247,35 @@ namespace VuonTra.Game.UI
                 _mortarPlate.resizeTextMaxSize = 20;
                 _mortarProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(mortarAt.y, _mortarProp));
+            }
+            // The basket for the leaf-catching game waits under a small tea tree past the leaf basket station from garden level four.
+            {
+                int leafStation = 1;
+                for (int i = 0; i < Runner.Defs.Count; i++) if (Runner.Defs[i].Id == "gio-la") { leafStation = i; break; }
+                Vector2 basketAt = StationSpot(leafStation) + new Vector2(50f, 190f);
+                if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
+                {
+                    Image tree = AddDecor(_street, catalog.Decor[0], basketAt.x + 30f, basketAt.y + 40f, 150f * DecorScale, Color.white);
+                    Rooted(tree, "Tree", basketAt.x + 30f, basketAt.y + 40f, _swayTrees);
+                    standing.Add(new KeyValuePair<float, Transform>(basketAt.y + 40f, tree.transform));
+                }
+                Sprite basketSprite = leafStation < catalog.Stations.Length && catalog.Stations[leafStation] != null ? catalog.Stations[leafStation].Prop : null;
+                _basketProp = UiKit.Rect("Basket", _street).Place(0f, 0f, basketAt.x, basketAt.y + 60f, 150, 130);
+                Image basketImage = _basketProp.AddImage(basketSprite != null ? basketSprite : catalog.Round, basketSprite != null ? Color.white : Palette.Mix(Palette.Carrot, Palette.Ink, 0.35f));
+                basketImage.preserveAspect = true;
+                basketImage.raycastTarget = true;
+                var basketButton = _basketProp.gameObject.AddComponent<Button>();
+                basketButton.transition = Selectable.Transition.None;
+                basketButton.targetGraphic = basketImage;
+                basketButton.onClick.AddListener(OpenLeaves);
+                var basketPlate = UiKit.Rect("Plate", _basketProp).Place(0.5f, 0f, 0, -26, 250, 44);
+                basketPlate.AddImage(catalog.Panel, Palette.Paper, true);
+                _basketPlate = UiKit.Rect("Text", basketPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _basketPlate.resizeTextForBestFit = true;
+                _basketPlate.resizeTextMinSize = 14;
+                _basketPlate.resizeTextMaxSize = 20;
+                _basketProp.gameObject.SetActive(false);
+                standing.Add(new KeyValuePair<float, Transform>(basketAt.y, _basketProp));
             }
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
@@ -3051,6 +3092,13 @@ namespace VuonTra.Game.UI
                 int left = Pounding.PlaysLeft(s, Runner.TodayNumber);
                 _mortarPlate.text = left > 0 ? L10n.T("mortar.plays", left) : L10n.T("mortar.tomorrow");
             }
+            bool basket = Leaves.Unlocked(s);
+            if (_basketProp.gameObject.activeSelf != basket) _basketProp.gameObject.SetActive(basket);
+            if (basket)
+            {
+                int left = Leaves.PlaysLeft(s, Runner.TodayNumber);
+                _basketPlate.text = left > 0 ? L10n.T("basket.plays", left) : L10n.T("basket.tomorrow");
+            }
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
@@ -3545,7 +3593,7 @@ namespace VuonTra.Game.UI
         /// <summary>The mortar was touched: a game starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
         public void OpenPounding()
         {
-            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen) return;
+            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen || Basket.IsOpen) return;
             if (!Pounding.CanPlay(Runner.State, Runner.TodayNumber))
             {
                 Sfx.Deny();
@@ -3559,6 +3607,25 @@ namespace VuonTra.Game.UI
             Sfx.Click();
             Rabbit helper = Pounding.Helper(Runner.State);
             Pound.Open(run, helper != null ? Runner.Catalog.RabbitArt(helper) : null, helper != null ? helper.Name : "");
+            Refresh(-1f);
+        }
+
+        /// <summary>The basket was touched: a leaf-catching game starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
+        public void OpenLeaves()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode || Basket.IsOpen || Pound.IsOpen) return;
+            if (!Leaves.CanPlay(Runner.State, Runner.TodayNumber))
+            {
+                Sfx.Deny();
+                Feel.FloatText(Feel.PointOf(_basketProp, new Vector2(0, 100)), L10n.T("basket.tomorrow"), Palette.Lantern, 36);
+                return;
+            }
+            LeavesRun run = Runner.StartLeaves();
+            if (run == null) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Sfx.Click();
+            Basket.Open(run);
             Refresh(-1f);
         }
 

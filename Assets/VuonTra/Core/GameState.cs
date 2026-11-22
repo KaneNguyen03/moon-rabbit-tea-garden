@@ -88,6 +88,8 @@ namespace VuonTra.Core
         public bool PoundingStarToday, PoundingThreeToday;
         public long PoundingGames;
         public int PoundingBestStars;
+        /// <summary>The leaf-catching game: its own plays today, its own daily clover and its own counts.</summary>
+        public MiniGameRecord Leaves = new MiniGameRecord();
         /// <summary>Where the latest pictures were written, oldest first; at most <see cref="Photos.AlbumSize"/>.</summary>
         public List<string> Album = new List<string>();
 

@@ -178,6 +178,27 @@ namespace VuonTra.EditorTools
             Capture(screen, "45-gia-ket-qua");
             screen.Pound.Close();
             screen.Refresh();
+            // The leaf-catching game: leaves in the air with the basket under one, then the result.
+            screen.OpenLeaves();
+            if (screen.Basket.IsOpen)
+            {
+                LeavesRun leafRun = screen.Basket.Run;
+                Step(screen, 3.2f);
+                foreach (Leaf leaf in leafRun.Schedule)
+                    if (leaf.Drop <= screen.Basket.Time && leaf.Lands > screen.Basket.Time && leaf.Kind != LeafKind.Cone) { screen.Basket.SetBasket((float)leaf.X); break; }
+                Step(screen, 0.4f);
+                Capture(screen, "10-hung-la");
+                foreach (Leaf leaf in leafRun.Schedule)
+                {
+                    if (leaf.Lands <= screen.Basket.Time) continue;
+                    screen.Basket.SetBasket(leaf.Kind == LeafKind.Cone ? (leaf.X > 0.5 ? (float)leaf.X - 0.4f : (float)leaf.X + 0.4f) : (float)leaf.X);
+                    Step(screen, (float)(leaf.Lands - screen.Basket.Time) + 0.02f);
+                }
+                Step(screen, 4f);
+                Capture(screen, "10-hung-la-ket-qua");
+                screen.Basket.Close();
+                screen.Refresh();
+            }
 
             // The sheet's slide in, frame by frame (30 frames a second), then at rest.
             Capture(screen, "22-open-0");

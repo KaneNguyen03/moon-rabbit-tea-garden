@@ -143,6 +143,12 @@ namespace VuonTra.Core
             sb.Append(",\"three\":").Append(s.PoundingThreeToday ? "true" : "false");
             sb.Append(",\"games\":").Append(s.PoundingGames.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"best\":").Append(s.PoundingBestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
+            // Still version 14: the leaf-catching game, its own block. A reader without it defaults the block, so no bump.
+            sb.Append(",\"leaves\":{\"day\":").Append(s.Leaves.Day.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"plays\":").Append(s.Leaves.Plays.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"star\":").Append(s.Leaves.StarToday ? "true" : "false");
+            sb.Append(",\"games\":").Append(s.Leaves.Games.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"best\":").Append(s.Leaves.BestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
             sb.Append(",\"album\":[");
             for (int i = 0; i < s.Album.Count; i++)
             {
@@ -424,6 +430,15 @@ namespace VuonTra.Core
                 s.PoundingThreeToday = pound.TryGetValue("three", out object pThree) && pThree is bool pt && pt;
                 s.PoundingGames = Math.Max(0, ToLong(ReadNumber(pound, "games")));
                 s.PoundingBestStars = (int)Math.Max(0d, Math.Min(ReadNumber(pound, "best"), 3));
+            }
+            // The leaf-catching game. A save from before it has all its plays and no games behind it.
+            if (root.TryGetValue("leaves", out object leavesObj) && leavesObj is Dictionary<string, object> leaves)
+            {
+                s.Leaves.Day = TryNumber(leaves, "day", out double lDay) ? ToLong(lDay) : -1;
+                s.Leaves.Plays = (int)Math.Max(0d, Math.Min(ReadNumber(leaves, "plays"), Leaves.PlaysPerDay));
+                s.Leaves.StarToday = leaves.TryGetValue("star", out object lStar) && lStar is bool ls && ls;
+                s.Leaves.Games = Math.Max(0, ToLong(ReadNumber(leaves, "games")));
+                s.Leaves.BestStars = (int)Math.Max(0d, Math.Min(ReadNumber(leaves, "best"), 3));
             }
             if (root.TryGetValue("album", out object albumObj) && albumObj is List<object> album)
                 foreach (object item in album)
