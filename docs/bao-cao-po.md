@@ -1388,8 +1388,9 @@ Sau khi sửa cả bốn xanh.
 - Nhịp: mốc 10 và 20 hạ từ 3 và 5 vàng xuống 1 và 2 để giữ "12 ô đất chờ ngày 3"; sau khi hạ, 12 ô đất lúc 48 giờ 7 phút; cấp 10 thong thả lúc 4 giờ 29 (trước 6 giờ 30), cấp 5 không đổi.
 - Ảnh (docs/anh/po-61/): `61-so-tho-bo.png`, `61-du-bo.png`.
 
-### Chưa đạt / cần PO quyết
-- Giữ 1 và 2 vàng ở mốc 10/20 hay nới mốc 12 ô đất. Bảng thu nhập chưa có dòng sổ thỏ; chế độ chụp chưa chọn được khung Đủ bộ. Chưa thử tay.
+### Chưa đạt
+- Bảng thu nhập chưa có dòng sổ thỏ; chế độ chụp chưa chọn được khung Đủ bộ. Chưa thử tay.
+- Chủ project quyết 23/11: giữ 1 và 2 cà rốt vàng ở mốc 10/20 loài (đã đúng trong code), giữ mốc 12 ô đất chờ ngày 3.
 
 ## #65 — Nhắc tôi: thông báo tại máy khi khay đầy, quà ngày, mùa về (agent song song, nhánh agent-65)
 
