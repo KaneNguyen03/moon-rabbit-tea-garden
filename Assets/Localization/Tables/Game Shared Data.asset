@@ -2847,6 +2847,38 @@ MonoBehaviour:
     m_Key: quest.loai-72
     m_Metadata:
       m_Items: []
+  - m_Id: 378373560852480
+    m_Key: pause.remind
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824000
+    m_Key: remind.app
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824001
+    m_Key: remind.tray
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824002
+    m_Key: remind.gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824003
+    m_Key: remind.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824004
+    m_Key: remind.missyou
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824005
+    m_Key: remind.channel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824006
+    m_Key: remind.channel.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

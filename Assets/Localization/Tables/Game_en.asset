@@ -2856,6 +2856,38 @@ MonoBehaviour:
     m_Localized: "Meet all 72 kinds \xB7 Complete frame"
     m_Metadata:
       m_Items: []
+  - m_Id: 378373560852480
+    m_Localized: Remind me
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824000
+    m_Localized: Moon Rabbit Tea Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824001
+    m_Localized: The tray is full and the rabbits are rested. Come sell the treats!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824002
+    m_Localized: A new daily gift is waiting, and a new rabbit is visiting the shop.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824003
+    m_Localized: '{0} is here! Come meet a new friend in the garden.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824004
+    m_Localized: We haven't seen you for a while. The rabbits miss you.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824005
+    m_Localized: Reminders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 378373581824006
+    m_Localized: Full tray, daily gift, new season
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
