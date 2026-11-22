@@ -1596,6 +1596,25 @@ Sau khi sửa cả bốn xanh.
 - Nhìn xa không còn thấy cả vườn: thấy bãi cỏ tới tiệm trà, hàng trạm mới cần cuộn lên; nếu thấy cả vườn thì các trạm dưới cùng bị thanh tab che.
 - Người thong thả không tới cấp 30 trong 14 ngày nên Mùa trăng mới đầu tiên không đến (đã như vậy trên main).
 
+## #79–#82 — Bốn lỗi nhẹ QA hồi quy 23/11 (agent qa-nits-2)
+
+
+- **Test:** verify GREEN, 1056/1057 (1 bỏ qua như trước), thêm 8 ca test.
+- **Commit:** `1245a6b` (#79), `1d792c2` (#80), `e24be3c` (#81), `b5d8391` (#82) — nhánh `qa-nits-2`, merge `d1889cc`. Main sau gộp: 1098/1099.
+
+- #79: tấm "Mừng bạn quay lại" vẽ trên màn tiêu đề, dòng "CHẠM ĐỂ BẮT ĐẦU" nằm dưới tấm; nút Nhận nhận chạm ngay.
+- #80: số khách lỡ không vượt số khách còn lại hôm nay, bằng 0 khi vườn chưa có món để bán; qua ngày mới thì tính khách ngày mới, đồng hồ lùi không thêm khách.
+- #81: viên loài · bậc trên tấm thỏ và viên bậc ở sổ thỏ co chữ để luôn một dòng, sao nằm trong viên (vi/en, chữ to).
+- #82: nhãn cấp, nút "Xếp thỏ +" và mũi tên nâng cấp của trạm luôn vẽ trên đồ trang trí, ở mọi ô, kể cả sau khi bố trí lại.
+
+
+- **Ảnh:** `docs/anh/qa-79/`, `qa-80/`, `qa-81/`, `qa-82/` (trước–sau, thêm ảnh cận cho #81, #82).
+
+### Chưa đạt / cần PO quyết
+- Lọ đom đóm (có thể cả giỏ lá, cối) không nằm trên lưới lục giác: chế độ bố trí cho đặt đồ trang trí ở ô 4,-3 cạnh lọ và đồ đó che nhãn "Đom đóm · còn N lượt". Ngoài phạm vi #82; cần quyết có giữ chỗ cho lọ trên lưới không.
+- Nhãn tên thỏ trên trạm vẫn thuộc trạm; đèn đá cao đặt ô bên trái trạm có thể chạm mép nhãn (chưa đo).
+- #80: thời gian vắng qua nửa đêm tính trọn cho ngày mới, không chia; khách đang chờ ở quầy lúc rời game không tính riêng.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
