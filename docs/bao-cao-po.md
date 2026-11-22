@@ -884,6 +884,13 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Thỏ hiếm ghé tiệm ban đêm: chờ #44. Độ đậm lớp phủ chưa ai xem bằng mắt vào ban ngày thật.
 
+## #32 — Ý cuối: viền sáng khi tăng tốc (và kiểm #29)
+
+- Test: 472/472 EditMode qua (verify.sh). Thêm 1 test màn hình.
+- Commit `6d65055`, đã push. #32 đã comment (đủ bốn ý, chờ duyệt). #29: comment xác nhận hai thanh âm lượng đã có sẵn, không sửa.
+- `GardenScreen`: lớp "BoostEdge" (bốn dải `UiKit.FadeUp` màu rêu, hai dải dọc xoay ±90°), `UpdateBoostEdge` trong `Advance`: lên/xuống 0,4 giây, thở khi chạy, tắt thở khi Giảm chuyển động.
+- Ảnh (docs/anh/po-32/): `32-sau-vien-sang.png`.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
