@@ -119,6 +119,12 @@ namespace VuonTra.Game.UI
         readonly List<RectTransform> _swayTrees = new List<RectTransform>(), _swayLanterns = new List<RectTransform>();
         readonly List<Image> _lanternGlows = new List<Image>(), _ripples = new List<Image>();
         RectTransform _pondGlow;
+        /// <summary>The wood around the clearing, on its own layer that slides a little slower than the ground.</summary>
+        RectTransform _canopy;
+        public const float CanopyDrift = 0.9f;
+        RawImage _moonbeam;
+        Image _moonPool;
+        const float MoonbeamAlpha = 0.9f, MoonPoolAlpha = 0.4f;
 
         /// <summary>
         /// Where resting rabbits sit, as offsets from the teapot. The two stumps by the tea table come with the
@@ -597,6 +603,13 @@ namespace VuonTra.Game.UI
 
             UpdateScenery();
             UpdateTravelers(dt);
+            if (_canopy != null)
+            {
+                // The canopy follows the ground at nine tenths of its pace, measured from the view that rests on the teapot.
+                _canopy.localScale = _street.localScale;
+                Vector2 rest = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - Heart * _zoom, _zoom);
+                _canopy.anchoredPosition = rest + (_street.anchoredPosition - rest) * CanopyDrift;
+            }
             if (Shell.State == ShellState.Playing)
             {
                 _courierTimer -= dt;
@@ -663,6 +676,8 @@ namespace VuonTra.Game.UI
                 float flicker = still ? 1f : 0.86f + 0.14f * Mathf.Sin(_clock * 9f + i * 3.1f) * Mathf.Sin(_clock * 2.3f + i);
                 if (i < _lanternGlows.Count) _lanternGlows[i].color = Palette.Alpha(Palette.Lantern, LanternGlowAlpha * flicker);
             }
+            if (_moonbeam != null && _moonbeam.texture != null) _moonbeam.color = new Color(0.82f, 0.9f, 1f, MoonbeamAlpha + (still ? 0f : 0.1f * Mathf.Sin(_clock * 0.7f)));
+            if (_moonPool != null) _moonPool.color = new Color(0.82f, 0.9f, 1f, MoonPoolAlpha + (still ? 0f : 0.05f * Mathf.Sin(_clock * 0.7f + 1f)));
             if (_pondGlow != null)
                 _pondGlow.localScale = still ? Vector3.one : new Vector3(1f + 0.03f * Mathf.Sin(_clock * 0.9f), 1f + 0.02f * Mathf.Sin(_clock * 1.3f + 1f), 1f);
             for (int i = 0; i < _ripples.Count; i++)
@@ -1016,8 +1031,14 @@ namespace VuonTra.Game.UI
             scroll.horizontal = WorldW * _zoom > ScreenW + 1f;
             scroll.content = _street;
             scroll.viewport = view;
+            // The canopy lies over the content and follows it at nine tenths of the pace: the trees at the edge drift a little, for depth.
+            _canopy = UiKit.Rect("Canopy", view);
+            _canopy.anchorMin = _canopy.anchorMax = _canopy.pivot = Vector2.zero;
+            _canopy.sizeDelta = _street.sizeDelta;
+            _canopy.localScale = _street.localScale;
 
             int count = catalog.Stations.Length;
+            BuildGroundLayers(catalog, count);
 
             // A few worn paths lead out from the teapot; they lie flat on the grass, under everything.
             Color stone = Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Grass, 0.5f), 0.6f);
@@ -1197,7 +1218,7 @@ namespace VuonTra.Game.UI
             }
             // The mortar for the mooncake game stands near the teapot from garden level three; a touch starts a game.
             {
-                Vector2 mortarAt = Heart + new Vector2(290f, -210f);
+                Vector2 mortarAt = MortarSpot; // above the teapot's name, between the oven and the milk tea
                 _mortarProp = UiKit.Rect("Mortar", _street).Place(0f, 0f, mortarAt.x, mortarAt.y + 80f, 170, 170);
                 Image mortarImage = _mortarProp.AddImage(catalog.Mortar != null ? catalog.Mortar : catalog.Round, catalog.Mortar != null ? Color.white : Palette.Mix(Palette.Ink, Palette.Paper, 0.4f));
                 mortarImage.preserveAspect = true;
@@ -1932,6 +1953,112 @@ namespace VuonTra.Game.UI
         /// a pond that holds the moon, places to sit, and a scatter of smaller things. Placement
         /// is fixed (not random each run) so the garden always looks the same.
         /// </summary>
+        /// <summary>
+        /// The ground has layers before anything stands on it: a worn band of earth under the stepping stones of every
+        /// path, flagstones around the teapot, carpets of small flowers where there is open grass, and the moon's
+        /// light coming down on the teapot. All flat, all drawn first.
+        /// </summary>
+        void BuildGroundLayers(GameCatalog catalog, int count)
+        {
+            Color earth = Palette.Alpha(Palette.Mix(Palette.Mix(Palette.Grass, Palette.Carrot, 0.35f), Palette.Ink, 0.25f), 0.32f);
+            foreach (Vector2Int path in Paths)
+            {
+                if (path.x >= count || path.y >= count) continue;
+                Vector2 a = StationSpot(path.x) + new Vector2(0, -150f * StationSize(path.x)), b = StationSpot(path.y) + new Vector2(0, -150f * StationSize(path.y));
+                int steps = Mathf.Max(2, Mathf.RoundToInt(Vector2.Distance(a, b) / 44f));
+                for (int k = 0; k <= steps; k++)
+                {
+                    Vector2 at = Vector2.Lerp(a, b, k / (float)steps) + new Vector2(Mathf.Sin(k * 2.3f) * 9f, Mathf.Sin(k * 1.7f) * 7f);
+                    UiKit.Rect("Path", _street).Place(0f, 0f, at.x, at.y, 118, 64).AddImage(catalog.Round, earth);
+                }
+            }
+
+            // Flagstones in a ring around the teapot, a few more inside it.
+            Color stone = Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Ink, 0.38f), 0.5f);
+            Vector2 ring = Heart + new Vector2(0, -70f);
+            for (int k = 0; k < 14; k++)
+            {
+                float angle = k / 14f * Mathf.PI * 2f + 0.2f;
+                Vector2 at = ring + new Vector2(Mathf.Cos(angle) * 225f, Mathf.Sin(angle) * 150f);
+                float w = 62f + Hash(k + 11f) * 22f;
+                UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, w, w * 0.62f).AddImage(catalog.Round, stone);
+            }
+            for (int k = 0; k < 6; k++)
+            {
+                float angle = k / 6f * Mathf.PI * 2f + 0.7f;
+                Vector2 at = ring + new Vector2(Mathf.Cos(angle) * 135f, Mathf.Sin(angle) * 92f);
+                UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, 56f, 34f).AddImage(catalog.Round, stone);
+            }
+
+            // Carpets of small flowers where the grass is most open: the spots furthest from every station and seat,
+            // at most six, well apart. The same garden always gets the same carpets.
+            var beds = new List<Vector2>();
+            {
+                var open = new List<KeyValuePair<float, Vector2>>();
+                for (float x = 100f; x < WorldW - 90f; x += 60f)
+                    for (float y = 180f; y < WorldH - 220f; y += 60f)
+                    {
+                        if (!OpenGrass(x, y, count)) continue;
+                        float d = float.MaxValue;
+                        for (int i = 0; i < count; i++) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), StationSpot(i)));
+                        foreach (Vector2 seat in Seats) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), Heart + seat));
+                        open.Add(new KeyValuePair<float, Vector2>(d, new Vector2(x, y)));
+                    }
+                open.Sort((a, b) => b.Key.CompareTo(a.Key));
+                foreach (KeyValuePair<float, Vector2> spot in open)
+                {
+                    bool apart = true;
+                    foreach (Vector2 bed in beds) if (Vector2.Distance(bed, spot.Value) < 260f) apart = false;
+                    if (apart) beds.Add(spot.Value);
+                    if (beds.Count == 6) break;
+                }
+            }
+            Color[] petals = { Palette.Blush, Palette.Lantern, Palette.Paper, Palette.Mix(Palette.Blush, Palette.Paper, 0.5f) };
+            foreach (Vector2 at in beds)
+            {
+                var carpet = UiKit.Rect("Flowers", _street).Place(0f, 0f, at.x, at.y, 0, 0);
+                for (int k = 0; k < 14; k++)
+                {
+                    float seed = k * 3.7f + at.x * 0.01f;
+                    Vector2 d = new Vector2(Hash(seed + at.x) - 0.5f, Hash(seed + at.y + 1f) - 0.5f) * new Vector2(190f, 110f);
+                    float size = 12f + Hash(seed + 2f) * 10f;
+                    UiKit.Rect("Petal", carpet).Place(0.5f, 0.5f, d.x, d.y, size, size).AddImage(catalog.Round, Palette.Alpha(petals[k % petals.Length], 0.85f));
+                    UiKit.Rect("Leaf", carpet).Place(0.5f, 0.5f, d.x + 9f, d.y - 7f, size * 0.7f, size * 0.45f).AddImage(catalog.Round, Palette.Alpha(Palette.Moss, 0.7f));
+                }
+            }
+
+            // The moon lights the teapot: a slanted shaft coming down from the top corner, and a pool on the ground.
+            var pool = UiKit.Rect("MoonPool", _street).Place(0f, 0f, Heart.x, Heart.y - 60f, 620f, 340f);
+            _moonPool = pool.AddImage(catalog.Glow, new Color(0.82f, 0.9f, 1f, MoonPoolAlpha));
+            var beam = UiKit.Rect("Moonbeam", _street).Place(0f, 0f, Heart.x + 40f, Heart.y - 40f, 560f, 1500f);
+            beam.pivot = new Vector2(0.5f, 0f);
+            beam.anchoredPosition = new Vector2(Heart.x + 40f, Heart.y - 40f);
+            beam.localRotation = Quaternion.Euler(0, 0, -16f);
+            _moonbeam = beam.gameObject.AddComponent<RawImage>();
+            _moonbeam.texture = catalog.BgMoonbeam;
+            _moonbeam.color = new Color(0.82f, 0.9f, 1f, catalog.BgMoonbeam != null ? MoonbeamAlpha : 0f);
+            _moonbeam.raycastTarget = false;
+        }
+
+        /// <summary>Where the mortar for the mooncake game stands, and the tea shop: nothing else is placed on them.</summary>
+        static Vector2 MortarSpot => Heart + new Vector2(-10f, 300f);
+        static Vector2 ShopSpot => PondSpot + new Vector2(-330f, -150f);
+
+        /// <summary>Open grass: off every station's prop, plates and name, off the seats, the pond, the mortar and the shop.</summary>
+        static bool OpenGrass(float x, float y, int stations)
+        {
+            if (x < 90f || x > WorldW - 90f || y < 160f || y > WorldH - 220f) return false;
+            for (int i = 0; i < stations; i++)
+            {
+                Vector2 spot = StationSpot(i);
+                if (Mathf.Abs(spot.x - x) < 200f && y > spot.y - 230f && y < spot.y + 230f) return false;
+            }
+            foreach (Vector2 seat in Seats)
+                if (Vector2.Distance(Heart + seat, new Vector2(x, y)) < 150f) return false;
+            var at = new Vector2(x, y);
+            return Vector2.Distance(at, PondSpot) > 300f && Vector2.Distance(at, MortarSpot) > 180f && Vector2.Distance(at, ShopSpot) > 220f;
+        }
+
         void BuildDecor(GameCatalog catalog, int stations, List<KeyValuePair<float, Transform>> standing)
         {
             Sprite[] d = catalog.Decor;
@@ -1942,7 +2069,28 @@ namespace VuonTra.Game.UI
             // The pond lies in the top corner, where the moonlight comes in.
             Vector2 pondAt = PondSpot;
 
-            void Put(int kind, float x, float y, float height, Color tint)
+            var canopyStanding = new List<KeyValuePair<float, Transform>>();
+            // Everything that stands casts a soft shadow on the grass, drawn just behind it.
+            void Shade(Transform parent, List<KeyValuePair<float, Transform>> into, float x, float y, float height)
+            {
+                float w = Mathf.Clamp(height * 0.55f, 50f, 260f);
+                var rt = UiKit.Rect("Shade", parent).Place(0f, 0f, x + 6f, y + 4f, w, w * 0.34f);
+                rt.AddImage(catalog.Glow, Palette.Alpha(Palette.Night, 0.28f));
+                into.Add(new KeyValuePair<float, Transform>(y + 0.25f, rt));
+            }
+            // One piece of scenery standing on the ground, on the street or on the canopy.
+            Image Stand(Sprite sprite, string name, float x, float y, float height, Color tint, bool canopy, bool shade)
+            {
+                Transform parent = canopy && _canopy != null ? _canopy : (Transform)_street;
+                List<KeyValuePair<float, Transform>> into = canopy && _canopy != null ? canopyStanding : standing;
+                if (shade) Shade(parent, into, x, y, height);
+                Image img = AddDecor(parent, sprite, x, y, height, tint);
+                if (img == null) return null;
+                img.name = name;
+                into.Add(new KeyValuePair<float, Transform>(y, img.transform));
+                return img;
+            }
+            void Put(int kind, float x, float y, float height, Color tint, bool canopy = false)
             {
                 height *= DecorScale;
                 // Nothing tall may stand in front of the pond: the moon in it has to stay in view.
@@ -1955,8 +2103,8 @@ namespace VuonTra.Game.UI
                     standing.Add(new KeyValuePair<float, Transform>(y + 0.5f, glow));
                     _glowSpots.Add(at);
                 }
-                Image img = AddDecor(_street, d[kind], x, y, height, tint);
-                if (img != null) standing.Add(new KeyValuePair<float, Transform>(y, img.transform));
+                string[] names = { "Tree", "Bush", "Lantern", "Fence", "Mushrooms", "Stones", "Pond", "TeaTable", "Stump" };
+                Image img = Stand(d[kind], names[kind], x, y, height, tint, canopy, kind != Pond && kind != Stones);
                 if (kind == Tree) Rooted(img, "Tree", x, y, _swayTrees);
                 if (kind == Lantern && img != null)
                 {
@@ -2012,27 +2160,79 @@ namespace VuonTra.Game.UI
             for (float x = -40f; x < WorldW + 60f; x += 150f)
             {
                 float jitter = Hash(x) * 50f;
-                Put(Tree, x + jitter, WorldH - 300f + Hash(x + 5) * 40f, 380f + Hash(x + 9) * 70f, soft);
-                Put(Tree, x + 75f - jitter, WorldH - 230f + Hash(x + 6) * 30f, 360f + Hash(x + 4) * 60f, soft);
-                Put(Tree, x + jitter, -30f + Hash(x + 7) * 30f, 330f + Hash(x + 2) * 70f, soft);
-                Put(Bush, x + 75f - jitter, 30f + Hash(x + 3) * 30f, 130f, soft);
+                // Low enough that their crowns, not just their trunks, are in view when the garden is scrolled to the top.
+                Put(Tree, x + jitter, WorldH - 390f + Hash(x + 5) * 40f, 380f + Hash(x + 9) * 70f, soft, true);
+                Put(Tree, x + 75f - jitter, WorldH - 320f + Hash(x + 6) * 30f, 360f + Hash(x + 4) * 60f, soft, true);
+                Put(Tree, x + jitter, -30f + Hash(x + 7) * 30f, 330f + Hash(x + 2) * 70f, soft, true);
+                Put(Bush, x + 75f - jitter, 30f + Hash(x + 3) * 30f, 130f, soft, true);
             }
             // Beyond the edges the wood goes on, so zooming out shows forest and not the end of the world.
             for (float y = -120f; y < WorldH + 60f; y += 160f)
                 for (int row = 1; row <= 3; row++)
                 {
                     float away = 60f + row * 105f + Hash(y + row) * 40f, lift = (row % 2) * 80f;
-                    Put(Tree, -away, y + lift, 330f + Hash(y + row * 3) * 90f, soft);
-                    Put(Tree, WorldW + away, y + 80f - lift, 330f + Hash(y + row * 5) * 90f, soft);
+                    Put(Tree, -away, y + lift, 330f + Hash(y + row * 3) * 90f, soft, true);
+                    Put(Tree, WorldW + away, y + 80f - lift, 330f + Hash(y + row * 5) * 90f, soft, true);
                 }
             for (float y = 180f; y < WorldH - 330f; y += 150f)
             {
-                Put(Tree, -50f + Hash(y) * 40f, y, 340f + Hash(y + 4) * 80f, soft);
-                Put(Tree, WorldW + 10f + Hash(y + 2) * 40f, y + 60f, 340f + Hash(y + 6) * 80f, soft);
+                Put(Tree, -50f + Hash(y) * 40f, y, 340f + Hash(y + 4) * 80f, soft, true);
+                Put(Tree, WorldW + 10f + Hash(y + 2) * 40f, y + 60f, 340f + Hash(y + 6) * 80f, soft, true);
             }
 
-            // Inside: small things wherever there is room that is not a station, a seat or the pond.
-            for (int n = 0; n < 60; n++)
+            // Around every station, the same small set, placed where it fits: a planter on one side, mushrooms by the
+            // front, stones at the back. Each tries a few spots in order and takes the first that is clear.
+            bool Clear(float x, float y, int own, float halfWidth)
+            {
+                if (x < 70f + halfWidth || x > WorldW - 70f - halfWidth || y < 160f || y > WorldH - 220f) return false;
+                if (Vector2.Distance(new Vector2(x, y), pondAt) < 250f) return false;
+                if (Vector2.Distance(new Vector2(x, y), MortarSpot) < 170f || Vector2.Distance(new Vector2(x, y), ShopSpot) < 220f) return false;
+                foreach (Vector2 seat in Seats)
+                    if (Mathf.Abs(Heart.x + seat.x - x) < 170f && y > Heart.y + seat.y - 170f && y < Heart.y + seat.y + 200f) return false;
+                for (int j = 0; j < stations; j++)
+                {
+                    // Prop, pad, level plate and name of every station, the item's own included: the teapot's are the tallest.
+                    Vector2 spot = StationSpot(j);
+                    float reach = (j == own ? 130f : 150f) + halfWidth, below = j == 0 ? 330f : 280f;
+                    if (Mathf.Abs(spot.x - x) < reach && y > spot.y - below && y < spot.y + 240f) return false;
+                }
+                return true;
+            }
+            void Dress(int i, Sprite sprite, string name, float height, Vector2[] offsets, bool shade)
+            {
+                Vector2 spot = StationSpot(i);
+                float side = spot.x >= Heart.x ? 1f : -1f;
+                var tries = new List<Vector2>(offsets);
+                // Failing the preferred spots, a ring around the station, nearest first: the same for the same garden every time.
+                for (float r = 200f; r <= 320f; r += 60f)
+                    for (int k = 0; k < 12; k++)
+                        tries.Add(new Vector2(Mathf.Cos(k * Mathf.PI / 6f) * r, Mathf.Sin(k * Mathf.PI / 6f) * r));
+                foreach (Vector2 o in tries)
+                {
+                    float x = spot.x + o.x * side, y = spot.y + o.y;
+                    if (!Clear(x, y, i, height * 0.3f)) continue;
+                    if (sprite != null) Stand(sprite, name, x, y, height, sprite == catalog.Planter || sprite == catalog.StoneLantern ? Color.white : soft, false, shade);
+                    return;
+                }
+            }
+            Vector2[] planterAt = { new Vector2(230f, -40f), new Vector2(-230f, -40f), new Vector2(170f, -260f), new Vector2(-170f, -260f), new Vector2(120f, -300f), new Vector2(-120f, -300f), new Vector2(0f, 230f), new Vector2(230f, 120f), new Vector2(-230f, 120f), new Vector2(260f, -120f), new Vector2(-260f, -120f), new Vector2(0f, -330f) };
+            Vector2[] mushroomsAt = { new Vector2(-130f, -240f), new Vector2(130f, -240f), new Vector2(220f, 70f) };
+            Vector2[] stonesAt = { new Vector2(200f, 160f), new Vector2(-200f, 160f), new Vector2(0f, -320f) };
+            for (int i = 0; i < stations; i++)
+            {
+                Dress(i, catalog.Planter, "Planter", 92f, planterAt, true);
+                Dress(i, d[Mushrooms], "Mushrooms", 84f * DecorScale, mushroomsAt, true);
+                Dress(i, d[Stones], "Stones", 62f * DecorScale, stonesAt, false);
+            }
+            // Two stone lanterns mark the way into the corner where the rabbits rest.
+            foreach (Vector2 o in new[] { new Vector2(-380f, -1010f), new Vector2(120f, -930f) })
+            {
+                Vector2 at = Heart + o;
+                if (catalog.StoneLantern != null && Free(at.x, at.y, 150f, 230f, 240f)) Stand(catalog.StoneLantern, "StoneLantern", at.x, at.y, 150f, Color.white, false, true);
+            }
+
+            // Inside: a few small things wherever there is still room that is not a station, a seat or the pond.
+            for (int n = 0; n < 24; n++)
             {
                 float x = 150f + Hash(n * 3.1f + 1f) * (WorldW - 300f), y = 200f + Hash(n * 5.7f + 2f) * (WorldH - 560f);
                 float pick = Hash(n * 9.3f);
@@ -2052,6 +2252,8 @@ namespace VuonTra.Game.UI
 
             // Stations glow too, and draw their own few fireflies.
             for (int i = 0; i < stations; i += 2) _glowSpots.Add(StationSpot(i) + new Vector2(0, 40));
+            canopyStanding.Sort((a, b) => b.Key.CompareTo(a.Key));
+            foreach (KeyValuePair<float, Transform> item in canopyStanding) item.Value.SetAsLastSibling();
         }
 
         void BuildHud(GameCatalog catalog)

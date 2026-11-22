@@ -963,6 +963,27 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Màu chữ trên nút chính (chờ PO). Chưa thử tay trên máy thật, chưa đo trên máy có tai thỏ thật.
 
+## #34 — Mặt đất có lớp lang, bóng đổ, tán cây trượt chậm, vệt trăng, trang trí có chủ đích
+
+- Test: 526/526 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 4 test màn hình.
+- Commit `ab2aab2`, đã push. Issue #34 để mở (còn hình gợn nước riêng, thử tay), đã comment đối chiếu từng ý, nhãn chờ-PO-duyệt.
+- Lớp đất (`GardenScreen.BuildGroundLayers`, vẽ trước mọi thứ đứng): dải đất mòn dưới các viên đá bước của mỗi lối; vòng 14 phiến đá lát quanh ấm trà và 6 phiến bên trong; thảm hoa nhỏ ở 6 chỗ cỏ thoáng nhất (quét lưới, chọn chỗ xa trạm và ghế nhất, cách nhau ≥ 260); vệt trăng chéo (`bg_moonbeam`) đổ xuống ấm trà và vũng sáng dưới chân, thở nhẹ (đứng yên khi Giảm chuyển động).
+- Bóng đổ mềm (`Shade`, 28 % đêm) dưới mọi cây, bụi, đèn lồng, nấm, gốc, bàn trà, bồn hoa, đèn đá; vẽ ngay sau vật theo cùng thứ tự xa gần (test).
+- Tán cây viền (hàng trên, hàng dưới, hai cột bên) nằm trên lớp `Canopy` riêng, trượt bằng 0,9 lần mặt đất tính từ góc nhìn nghỉ ở ấm trà (test đo đúng 0,9). Hàng trên hạ 90 để thấy tán chứ không chỉ thân.
+- Trang trí có chủ đích: mỗi trạm thử lần lượt 12 chỗ ưu tiên rồi một vành 200–320 quanh trạm, lấy chỗ đầu tiên không đè prop/pad/biển cấp/tên của trạm nào, ghế, ao, cối, tiệm: bồn hoa (`decor_bon-hoa`), nấm, đá; hai đèn đá (`decor_den-da`) ở góc nghỉ. Rải ngẫu nhiên còn 24 thay vì 60.
+- Cối giã dời lên trên tên ấm trà (`Heart + (-10, 300)`), không còn đè biển cấp của giỏ lá (test).
+- Ảnh (docs/anh/po-34/): `34-nen-tam.png` (quanh ấm trà: đá lát, vũng trăng, thảm hoa, bồn hoa), `34-nen-tren.png` (đầu vườn: tán cây, bóng, vệt trăng, bồn hoa cạnh tiệm), `34-vuon.png` (khung vườn chung).
+
+### Đã làm (đối chiếu với #34)
+- Mặt đất có lớp lang: cỏ, lối mòn đất, thảm hoa, đá lát quanh ấm trà: đủ.
+- Vật ở dưới che vật ở trên theo thứ tự xa gần; bóng đổ mềm dưới thỏ và đồ vật: đủ (thỏ đã có bóng từ trước; đồ vật thêm bóng).
+- Tán cây viền quanh trượt chậm hơn mặt đất khi kéo: đủ (0,9).
+- Vệt sáng trăng chiếu xuống ấm trà: đủ.
+- Trang trí rải có chủ đích quanh từng cụm trạm; dùng đèn đá, bồn hoa trong po-do-vat: đủ.
+
+### Chưa đạt so với #34
+- Chưa có hình gợn nước riêng (vòng gợn dùng ảnh ánh sáng); thử tay cảm giác chiều sâu khi kéo trên máy thật.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -991,7 +1012,8 @@ Sau khi sửa cả bốn xanh.
 - #22 ý cuối (`bdf2647`): tấm chi tiết thỏ, chọn đồ, chọn thỏ thành tấm trượt dùng chung (`BottomSheet`). #22 chỉ còn thử tay.
 - #45 Giã bánh trăng (`7ce83c9`): trò chơi nhỏ đầu tiên theo đề xuất đã duyệt; save v14; hai thành tựu. Còn hình chày/bánh ba trạng thái.
 - #28 phần code còn lại (`fcf3f64`): cây, đèn lồng, ao, đom đóm theo đàn chuyển động; thỏ đi dạo từ ghế ra lối và về; thỏ được xếp đi bộ tới trạm. Còn chớp mắt/vẫy tai (cần hình).
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`; #16 đã tick.
+- #34 (`ab2aab2`): lớp đất (đất mòn, đá lát, thảm hoa, vệt trăng), bóng đổ dưới mọi đồ vật, tán cây viền trượt 0,9, trang trí có chủ đích quanh từng trạm với bồn hoa và đèn đá; cối giã dời lên trên ấm trà.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).

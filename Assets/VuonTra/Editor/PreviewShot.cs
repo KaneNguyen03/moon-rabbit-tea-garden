@@ -66,6 +66,15 @@ namespace VuonTra.EditorTools
             }
             Step(screen, 0.4f);
             Capture(screen, "2-garden");
+            // The ground's layers around the teapot, and the canopy drifting when the view is at the top.
+            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+            Step(screen, 0.3f);
+            Capture(screen, "34-nen-tam");
+            screen.LookAt(new Vector2(540f, 2800f));
+            Step(screen, 0.3f);
+            Capture(screen, "34-nen-tren");
+            screen.LookAt(GardenScreen.StationSpot(0));
+            Step(screen, 0.3f);
             // A payout: two carrots fly from the teapot to the purse, three frames 0.15 s apart.
             screen.PlayPayout(0, new BigNum(1200));
             for (int f = 1; f <= 3; f++)

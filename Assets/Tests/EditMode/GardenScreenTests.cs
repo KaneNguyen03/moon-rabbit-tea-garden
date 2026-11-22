@@ -3102,8 +3102,8 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Scenery_Sways_Between_Fixed_Bounds_And_Holds_Still_Under_Reduced_Motion()
         {
-            Transform world = root.transform.Find("Canvas/Garden/Content");
-            Transform tree = world.Find("Tree"), lantern = world.Find("Lantern"), glow = world.Find("LanternGlow"), ripple = world.Find("Ripple");
+            Transform world = root.transform.Find("Canvas/Garden/Content"), canopy = root.transform.Find("Canvas/Garden/Canopy");
+            Transform tree = canopy.Find("Tree"), lantern = world.Find("Lantern"), glow = world.Find("LanternGlow"), ripple = world.Find("Ripple");
             Assert.IsNotNull(tree); Assert.IsNotNull(lantern); Assert.IsNotNull(ripple);
             Assert.AreEqual(0f, ((RectTransform)tree).pivot.y, "a tree leans from its root");
             Assert.AreEqual(1f, ((RectTransform)lantern).pivot.y, "a lantern swings from its hook");
@@ -3261,6 +3261,104 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Rabbits.AffectionGiftClovers, runner.State.Clovers, "the closest friend gives a clover");
             Assert.IsTrue(screen.Feel.BannerVisible, "and it is a moment");
             StringAssert.Contains("Bông", root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+
+        static int CountNamed(Transform parent, string name)
+        {
+            int n = 0;
+            for (int k = 0; k < parent.childCount; k++) if (parent.GetChild(k).name == name) n++;
+            return n;
+        }
+
+        [Test]
+        public void The_Ground_Has_Layers_That_Lie_Under_Everything_That_Stands()
+        {
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Assert.GreaterOrEqual(CountNamed(world, "Path"), 10, "a worn band of earth under the stepping stones");
+            Assert.GreaterOrEqual(CountNamed(world, "Flagstone"), 12, "flagstones around the teapot");
+            Assert.GreaterOrEqual(CountNamed(world, "Flowers"), 2, "carpets of flowers on open grass");
+            Transform beam = world.Find("Moonbeam"), pool = world.Find("MoonPool"), stone = world.Find("Stone"), station = world.Find("Station am-tra");
+            Assert.IsNotNull(beam); Assert.IsNotNull(pool);
+            Assert.Less(world.Find("Path").GetSiblingIndex(), stone.GetSiblingIndex(), "earth under the stones");
+            Assert.Less(beam.GetSiblingIndex(), station.GetSiblingIndex(), "the moonlight is on the ground, under the teapot");
+            Assert.Less(world.Find("Flagstone").GetSiblingIndex(), station.GetSiblingIndex());
+            Assert.Greater(pool.GetComponent<Image>().color.a, 0.2f);
+            // Every flower carpet keeps clear of every station.
+            for (int k = 0; k < world.childCount; k++)
+            {
+                Transform child = world.GetChild(k);
+                if (child.name != "Flowers") continue;
+                Vector2 at = ((RectTransform)child).anchoredPosition;
+                for (int i = 0; i < runner.Defs.Count; i++)
+                {
+                    Vector2 spot = GardenScreen.StationSpot(i);
+                    Assert.IsTrue(Mathf.Abs(spot.x - at.x) >= 230f || Mathf.Abs(spot.y - at.y) >= 230f, "flowers off station " + i);
+                }
+            }
+        }
+
+        [Test]
+        public void Scenery_Stands_On_A_Soft_Shadow_Drawn_Just_Behind_It()
+        {
+            Transform world = root.transform.Find("Canvas/Garden/Content"), canopy = root.transform.Find("Canvas/Garden/Canopy");
+            Assert.GreaterOrEqual(CountNamed(canopy, "Shade"), CountNamed(canopy, "Tree"), "every tree at the edge has its shadow");
+            Assert.GreaterOrEqual(CountNamed(world, "Shade"), CountNamed(world, "Lantern") + CountNamed(world, "Planter"));
+            Transform tree = canopy.Find("Tree");
+            Vector2 foot = ((RectTransform)tree).anchoredPosition;
+            Transform shade = null;
+            float nearest = float.MaxValue;
+            for (int k = 0; k < canopy.childCount; k++)
+            {
+                Transform child = canopy.GetChild(k);
+                if (child.name != "Shade") continue;
+                float d = Vector2.Distance(foot, ((RectTransform)child).anchoredPosition);
+                if (d < nearest) { nearest = d; shade = child; }
+            }
+            string around = "";
+            for (int k = Mathf.Max(0, tree.GetSiblingIndex() - 3); k <= Mathf.Min(canopy.childCount - 1, tree.GetSiblingIndex() + 1); k++)
+                around += canopy.GetChild(k).name + "@" + ((RectTransform)canopy.GetChild(k)).anchoredPosition + " ";
+            Assert.IsNotNull(shade);
+            Assert.Less(nearest, 12f, "a shadow lies at the tree's foot; around it: " + around);
+            Assert.Less(shade.GetSiblingIndex(), tree.GetSiblingIndex(), "and is drawn behind it");
+            Assert.Less(shade.GetComponent<Image>().color.a, 0.4f, "soft");
+        }
+
+        [Test]
+        public void The_Canopy_Slides_Slower_Than_The_Ground()
+        {
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            Assert.IsNotNull(canopy.Find("Tree"), "the trees at the edge live on the canopy");
+            Assert.IsNull(canopy.Find("Lantern"), "the lanterns stay on the ground");
+            screen.LookAt(new Vector2(540f, 2800f));
+            screen.Advance(0f);
+            Vector2 street0 = street.anchoredPosition, canopy0 = canopy.anchoredPosition;
+            screen.LookAt(new Vector2(540f, 400f));
+            screen.Advance(0f);
+            float groundMoved = street.anchoredPosition.y - street0.y, canopyMoved = canopy.anchoredPosition.y - canopy0.y;
+            Assert.Greater(Mathf.Abs(groundMoved), 500f, "the view really moved");
+            Assert.AreEqual(groundMoved * GardenScreen.CanopyDrift, canopyMoved, 1f, "the canopy at nine tenths of the pace");
+            Assert.AreEqual(street.localScale, canopy.localScale);
+        }
+
+        [Test]
+        public void Each_Station_Is_Dressed_With_Intent_Where_There_Is_Room()
+        {
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            int planters = CountNamed(world, "Planter");
+            Assert.GreaterOrEqual(planters, 4, "a planter by most stations");
+            Assert.GreaterOrEqual(CountNamed(world, "StoneLantern"), 1, "a stone lantern by the resting corner");
+            for (int k = 0; k < world.childCount; k++)
+            {
+                Transform child = world.GetChild(k);
+                if (child.name != "Planter") continue;
+                Vector2 at = ((RectTransform)child).anchoredPosition;
+                float nearest = float.MaxValue;
+                for (int i = 0; i < runner.Defs.Count; i++) nearest = Mathf.Min(nearest, Vector2.Distance(at, GardenScreen.StationSpot(i)));
+                Assert.That(nearest, Is.InRange(200f, 320f), "each planter belongs to a station, beside it rather than on it");
+            }
+            // The mortar no longer sits on the leaf basket's plate: it stands above the teapot's name.
+            Vector2 mortar = ((RectTransform)world.Find("Mortar")).anchoredPosition, basket = GardenScreen.StationSpot(1);
+            Assert.Greater(Mathf.Abs(mortar.x - basket.x), 200f);
         }
     }
 }
