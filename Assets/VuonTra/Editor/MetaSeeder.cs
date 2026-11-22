@@ -236,6 +236,7 @@ namespace VuonTra.EditorTools
             catalog.Planter = FinalArt.Find("decor_bon-hoa");
             catalog.GoldenCarrot = FinalArt.Find("icon_ca-rot-vang");
             catalog.GiftBox = FinalArt.Find("icon_hop-qua");
+            catalog.MoonJar = FinalArt.Find("icon_hu-trang");
             catalog.ShopProp = FinalArt.Find("prop_tiem");
             catalog.Pad = FinalArt.Load("pad");
             catalog.StationPads = System.Array.FindAll(new[] { FinalArt.Find("pad_dat"), FinalArt.Find("pad_san-go"), FinalArt.Find("pad_vong-da"), FinalArt.Find("pad_hoa") }, s => s != null);

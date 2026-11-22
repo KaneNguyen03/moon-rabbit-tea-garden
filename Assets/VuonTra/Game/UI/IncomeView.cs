@@ -182,6 +182,14 @@ namespace VuonTra.Game.UI
         {
             var jar = UiKit.Rect(name, parent).Place(anchorX, anchorY, x, y, size * 0.8f, size);
             UiKit.Rect("Glow", jar).Place(0.5f, 0.42f, 0, 0, size * 1.1f, size * 1.1f).AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
+            if (catalog.MoonJar != null)
+            {
+                // The hand-drawn jar, glowing on its own; the code-drawn one below stays for a catalog without it.
+                Image art = UiKit.Rect("Art", jar).Stretch(0, 0, 1, 1).AddImage(catalog.MoonJar, Color.white);
+                art.preserveAspect = true;
+                foreach (Image image in jar.GetComponentsInChildren<Image>()) image.raycastTarget = false;
+                return jar;
+            }
             UiKit.Rect("Glass", jar).Stretch(0, 0, 1, 0.84f).AddImage(catalog.Panel, Palette.Mix(Palette.Paper, Palette.Night, 0.22f), true);
             UiKit.Rect("Moon", jar).Place(0.5f, 0.4f, 0, 0, size * 0.44f, size * 0.44f).AddImage(catalog.Round, Palette.Lantern);
             UiKit.Rect("Shine", jar).Place(0.22f, 0.5f, 0, 0, size * 0.1f, size * 0.42f).AddImage(catalog.Round, Palette.Alpha(Color.white, 0.55f));

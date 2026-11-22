@@ -144,6 +144,7 @@ MonoBehaviour:
   GoldenCarrot: {fileID: 21300000, guid: 574b012909f2f4f5fb4499600cb84a82, type: 3}
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}
+  MoonJar: {fileID: 21300000, guid: 1aadbf024f880476abd8fee425b49775, type: 3}
   Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Shadow: {fileID: 21300000, guid: 4621549ce2eb646a7ace069e96763f27, type: 3}
   IconUp: {fileID: 21300000, guid: e227213dacd474a26ad7da377889306b, type: 3}

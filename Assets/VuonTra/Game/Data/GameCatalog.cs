@@ -38,6 +38,8 @@ namespace VuonTra.Game
         public Sprite TrayWood;
         [Tooltip("The golden carrot, the gift box and the tea shop by the pond.")]
         public Sprite GoldenCarrot, GiftBox, ShopProp;
+        /// <summary>The moon jar (#64), drawn by hand; the jar is drawn in code while this is empty.</summary>
+        public Sprite MoonJar;
         public Sprite Gear;
         public Sprite Shadow;
         public Sprite IconUp;
