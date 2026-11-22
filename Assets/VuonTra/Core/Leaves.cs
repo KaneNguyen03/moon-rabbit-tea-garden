@@ -41,6 +41,8 @@ namespace VuonTra.Core
         public int Plays;
         /// <summary>The day's first starred game has given its clover.</summary>
         public bool StarToday;
+        /// <summary>What the day's capped gifts have paid so far, for a game that caps them (the firefly night).</summary>
+        public int CloversToday, GoldenToday;
         public long Games;
         public int BestStars;
 
@@ -56,6 +58,8 @@ namespace VuonTra.Core
                 Day = day;
                 Plays = 0;
                 StarToday = false;
+                CloversToday = 0;
+                GoldenToday = 0;
             }
             Plays++;
             return true;

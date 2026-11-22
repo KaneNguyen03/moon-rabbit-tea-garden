@@ -150,6 +150,13 @@ namespace VuonTra.Core
             sb.Append(",\"star\":").Append(s.Leaves.StarToday ? "true" : "false");
             sb.Append(",\"games\":").Append(s.Leaves.Games.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"best\":").Append(s.Leaves.BestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
+            // Still version 14: the firefly night, its own block with the day's capped gifts. Absent in older saves, so no bump.
+            sb.Append(",\"fireflies\":{\"day\":").Append(s.Fireflies.Day.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"plays\":").Append(s.Fireflies.Plays.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"clovers\":").Append(s.Fireflies.CloversToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"golden\":").Append(s.Fireflies.GoldenToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"games\":").Append(s.Fireflies.Games.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"best\":").Append(s.Fireflies.BestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
             sb.Append(",\"album\":[");
             for (int i = 0; i < s.Album.Count; i++)
             {
@@ -441,6 +448,16 @@ namespace VuonTra.Core
                 s.Leaves.StarToday = leaves.TryGetValue("star", out object lStar) && lStar is bool ls && ls;
                 s.Leaves.Games = Math.Max(0, ToLong(ReadNumber(leaves, "games")));
                 s.Leaves.BestStars = (int)Math.Max(0d, Math.Min(ReadNumber(leaves, "best"), 3));
+            }
+            // The firefly night. A save from before it has all its plays, the day's gifts untouched and no games behind it.
+            if (root.TryGetValue("fireflies", out object firefliesObj) && firefliesObj is Dictionary<string, object> fireflies)
+            {
+                s.Fireflies.Day = TryNumber(fireflies, "day", out double fDay) ? ToLong(fDay) : -1;
+                s.Fireflies.Plays = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "plays"), Fireflies.PlaysPerDay));
+                s.Fireflies.CloversToday = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "clovers"), Fireflies.CloverCapPerDay));
+                s.Fireflies.GoldenToday = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "golden"), Fireflies.GoldenCapPerDay));
+                s.Fireflies.Games = Math.Max(0, ToLong(ReadNumber(fireflies, "games")));
+                s.Fireflies.BestStars = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "best"), 3));
             }
             if (root.TryGetValue("album", out object albumObj) && albumObj is List<object> album)
                 foreach (object item in album)

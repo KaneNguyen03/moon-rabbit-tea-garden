@@ -57,6 +57,10 @@ namespace VuonTra.Game.UI
         public LeavesView Basket { get; private set; }
         RectTransform _basketProp;
         Text _basketPlate;
+        /// <summary>The firefly night, opened from the glass jar on a stump by the pond.</summary>
+        public FirefliesView Jar { get; private set; }
+        RectTransform _jarProp;
+        Text _jarPlate;
         GameObject _shopBadge;
         Text _goldenText;
         int _guideStep = -1;
@@ -268,6 +272,7 @@ namespace VuonTra.Game.UI
             UpdateEdges();
             Pound.Update(dt);
             Basket.Update(dt);
+            Jar.Update(dt);
             if (_purseDown && !_purseHeld)
             {
                 _purseDownFor += dt;
@@ -908,6 +913,7 @@ namespace VuonTra.Game.UI
             Income = null;
             Pound = null;
             Basket = null;
+            Jar = null;
             Detail = null;
             Arrival = null;
             Shell = null;
@@ -1030,6 +1036,12 @@ namespace VuonTra.Game.UI
                 LeavesResult result = Runner.FinishLeaves(run);
                 if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
                 Basket.ShowPaid(result);
+            });
+            Jar = new FirefliesView(_canvas, catalog, Tweens, () => Refresh(-1f), run =>
+            {
+                FirefliesResult result = Runner.FinishFireflies(run);
+                if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
+                Jar.ShowPaid(result);
             });
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
@@ -1304,6 +1316,36 @@ namespace VuonTra.Game.UI
                 _basketPlate.resizeTextMaxSize = 20;
                 _basketProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(basketAt.y, _basketProp));
+            }
+            // The jar for the firefly night waits on a stump by the pond from garden level five: glass, a glow inside, a cork.
+            {
+                Vector2 jarAt = PondSpot + new Vector2(70f, -290f);
+                if (catalog.Decor != null && catalog.Decor.Length > 8 && catalog.Decor[8] != null)
+                {
+                    Image stump = AddDecor(_street, catalog.Decor[8], jarAt.x, jarAt.y - 20f, 90f * DecorScale, Color.white);
+                    stump.name = "JarStump";
+                    standing.Add(new KeyValuePair<float, Transform>(jarAt.y - 20f, stump.transform));
+                }
+                _jarProp = UiKit.Rect("Jar", _street).Place(0f, 0f, jarAt.x, jarAt.y + 80f, 150, 150);
+                var jarGlass = UiKit.Rect("Glass", _jarProp).Place(0.5f, 0.5f, 0, -14, 96, 110);
+                UiKit.Rect("Glow", jarGlass).Place(0.5f, 0.5f, 0, 0, 170, 170).AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
+                Image jarImage = jarGlass.AddImage(catalog.Panel, Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Night, 0.2f), 0.5f), true);
+                jarImage.raycastTarget = true;
+                for (int k = 0; k < 3; k++)
+                    UiKit.Rect("Dot", jarGlass).Place(0.5f, 0.5f, -22f + 22f * k, -24f + 18f * (k % 2), 10, 10).AddImage(catalog.Round, Palette.Mix(Palette.Lantern, Color.white, 0.5f));
+                UiKit.Rect("Cork", _jarProp).Place(0.5f, 0.5f, 0, 48, 56, 24).AddImage(catalog.Panel, Palette.Mix(Palette.Carrot, Palette.Ink, 0.45f), true);
+                var jarButton = _jarProp.gameObject.AddComponent<Button>();
+                jarButton.transition = Selectable.Transition.None;
+                jarButton.targetGraphic = jarImage;
+                jarButton.onClick.AddListener(OpenFireflies);
+                var jarPlate = UiKit.Rect("Plate", _jarProp).Place(0.5f, 0f, 0, -26, 270, 44);
+                jarPlate.AddImage(catalog.Panel, Palette.Paper, true);
+                _jarPlate = UiKit.Rect("Text", jarPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _jarPlate.resizeTextForBestFit = true;
+                _jarPlate.resizeTextMinSize = 14;
+                _jarPlate.resizeTextMaxSize = 20;
+                _jarProp.gameObject.SetActive(false);
+                standing.Add(new KeyValuePair<float, Transform>(jarAt.y, _jarProp));
             }
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
@@ -3127,6 +3169,13 @@ namespace VuonTra.Game.UI
                 int left = Leaves.PlaysLeft(s, Runner.TodayNumber);
                 _basketPlate.text = left > 0 ? L10n.T("basket.plays", left) : L10n.T("basket.tomorrow");
             }
+            bool jar = Fireflies.Unlocked(s);
+            if (_jarProp.gameObject.activeSelf != jar) _jarProp.gameObject.SetActive(jar);
+            if (jar)
+            {
+                int left = Fireflies.PlaysLeft(s, Runner.TodayNumber);
+                _jarPlate.text = left > 0 ? L10n.T("jar.plays", left) : L10n.T("jar.tomorrow");
+            }
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
@@ -3621,7 +3670,7 @@ namespace VuonTra.Game.UI
         /// <summary>The mortar was touched: a game starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
         public void OpenPounding()
         {
-            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen || Basket.IsOpen) return;
+            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
             if (!Pounding.CanPlay(Runner.State, Runner.TodayNumber))
             {
                 Sfx.Deny();
@@ -3641,7 +3690,7 @@ namespace VuonTra.Game.UI
         /// <summary>The basket was touched: a leaf-catching game starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
         public void OpenLeaves()
         {
-            if (Shell.State != ShellState.Playing || PhotoMode || Basket.IsOpen || Pound.IsOpen) return;
+            if (Shell.State != ShellState.Playing || PhotoMode || Basket.IsOpen || Pound.IsOpen || Jar.IsOpen) return;
             if (!Leaves.CanPlay(Runner.State, Runner.TodayNumber))
             {
                 Sfx.Deny();
@@ -3654,6 +3703,25 @@ namespace VuonTra.Game.UI
             SelectStation(-1);
             Sfx.Click();
             Basket.Open(run);
+            Refresh(-1f);
+        }
+
+        /// <summary>The jar was touched: a firefly night starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
+        public void OpenFireflies()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode || Jar.IsOpen || Basket.IsOpen || Pound.IsOpen) return;
+            if (!Fireflies.CanPlay(Runner.State, Runner.TodayNumber))
+            {
+                Sfx.Deny();
+                Feel.FloatText(Feel.PointOf(_jarProp, new Vector2(0, 100)), L10n.T("jar.tomorrow"), Palette.Lantern, 36);
+                return;
+            }
+            FirefliesRun run = Runner.StartFireflies();
+            if (run == null) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Sfx.Click();
+            Jar.Open(run);
             Refresh(-1f);
         }
 
