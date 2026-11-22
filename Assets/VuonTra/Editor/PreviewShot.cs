@@ -302,9 +302,21 @@ namespace VuonTra.EditorTools
             Capture(screen, "17-profile");
             screen.Profile.Close();
 
-            // The same screens in English.
+            // Large text: every label a fifth bigger, the sheet and the garden rebuilt around it.
             screen.Shell.Resume();
             Step(screen, 0.6f);
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            Step(screen, 0.8f);
+            screen.OpenSheet(0);
+            Step(screen, 0.5f);
+            Capture(screen, "33-chu-to");
+            screen.CloseSheet();
+            UiKit.SetLargeText(false);
+            screen.RebuildUi();
+            Step(screen, 0.8f);
+
+            // The same screens in English.
             L10n.SetLocale("en");
             screen.RebuildUi();
             Step(screen, 0.8f);

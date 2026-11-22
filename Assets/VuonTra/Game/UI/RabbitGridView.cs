@@ -58,6 +58,7 @@ namespace VuonTra.Game.UI
             _count = UiKit.Rect("Text", top).Stretch(0, 0, 1, 1, 8, 0, 90, 0)
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var auto = UiKit.Rect("Auto", top).Place(1f, 0.5f, -36, 0, 64, 64);
+            UiKit.Touchable(auto, 64, 64);
             Image autoImage = auto.AddImage(_catalog.Round, Palette.Track);
             autoImage.raycastTarget = true;
             var autoButton = auto.gameObject.AddComponent<Button>();
@@ -69,7 +70,7 @@ namespace VuonTra.Game.UI
                 UiKit.Rect("Bar", auto).Place(0.5f, 0.5f, -6 + i * 3, 12 - i * 12, 30 - i * 6, 7).AddImage(_catalog.Panel, Palette.Ink, true);
 
             var tabs = UiKit.Rect("SubTabs", _content);
-            tabs.gameObject.AddComponent<LayoutElement>().preferredHeight = 70;
+            tabs.gameObject.AddComponent<LayoutElement>().preferredHeight = UiKit.MinTouch + 12f; // each tab a full touch target
             UiKit.Rect("Track", tabs).Stretch(0, 0, 1, 1, 0, 2, 0, 2).AddImage(_catalog.Panel, Palette.Track, true);
             _mineTab = AddSubTab(tabs, "Mine", 0f, L10n.T("rabbits.tab.mine"), false, out _mineLabel);
             _albumTab = AddSubTab(tabs, "Album", 0.5f, L10n.T("rabbits.tab.album"), true, out _albumLabel);
@@ -102,7 +103,7 @@ namespace VuonTra.Game.UI
 
         Image AddSubTab(RectTransform tabs, string name, float from, string label, bool album, out Text text)
         {
-            var rt = UiKit.Rect(name, tabs).Stretch(from, 0, from + 0.5f, 1, 6, 8, 6, 8);
+            var rt = UiKit.Rect(name, tabs).Stretch(from, 0, from + 0.5f, 1, 6, 6, 6, 6);
             Image img = rt.AddImage(_catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var b = rt.gameObject.AddComponent<Button>();

@@ -104,9 +104,12 @@ namespace VuonTra.Game.UI
             padButton.transition = Selectable.Transition.None;
             padButton.targetGraphic = padImage;
             padButton.onClick.AddListener(() => onPad(_index));
-            var tag = UiKit.Rect("Tag", _pad).Place(0.5f, 1f, 0, -14, 150, 42);
+            var tag = UiKit.Rect("Tag", _pad).Place(0.5f, 1f, 0, -14, 150 * UiKit.TextScale, 42 * UiKit.TextScale);
             tag.AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Text", tag).Stretch(0, 0, 1, 1).AddText(L10n.T("pad.hint") + " +", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Text tagText = UiKit.Rect("Text", tag).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("pad.hint") + " +", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            tagText.resizeTextForBestFit = true; // one line on the small plate in either language
+            tagText.resizeTextMinSize = 16;
+            tagText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
             _pad.gameObject.SetActive(false);
 
             // The player's rabbit, when one works here. Dressed rabbits are taller than wide (ears, hats).

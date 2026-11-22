@@ -69,7 +69,7 @@ namespace VuonTra.Game.UI
             _name.resizeTextForBestFit = true;
             _name.resizeTextMinSize = 24;
             _name.resizeTextMaxSize = 44;
-            var rename = UiKit.Rect("Rename", _card).Place(0.5f, 1f, 310, -490, 76, 76);
+            var rename = UiKit.Rect("Rename", _card).Place(0.5f, 1f, 310, -490, UiKit.MinTouch, UiKit.MinTouch);
             Image renamePlate = rename.AddImage(catalog.Round, Palette.Track);
             renamePlate.raycastTarget = true;
             var renameButton = rename.gameObject.AddComponent<Button>();
@@ -88,7 +88,7 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("profile.code"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.LowerLeft);
             _code = UiKit.Rect("Code", _card).Place(0.5f, 1f, -140, -676, 420, 50)
                 .AddText("", 38, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            var copy = UiKit.Rect("Copy", _card).Place(0.5f, 1f, 250, -660, 200, 76);
+            var copy = UiKit.Rect("Copy", _card).Place(0.5f, 1f, 250, -660, 200, UiKit.MinTouch);
             ChunkyButton copyButton = null;
             copyButton = UiKit.Chunky(copy, catalog.Panel, () =>
             {
@@ -113,7 +113,7 @@ namespace VuonTra.Game.UI
             _linkNote = UiKit.Rect("LinkNote", _card).Place(0.5f, 1f, 0, -1010, 740, 60)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
 
-            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, 80, 80);
+            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();

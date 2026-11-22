@@ -38,7 +38,7 @@ namespace VuonTra.Game.UI
             _title.resizeTextMinSize = 22;
             _title.resizeTextMaxSize = UiKit.TextTitle;
 
-            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, 80, 80);
+            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();

@@ -43,7 +43,7 @@ namespace VuonTra.Game.UI
             Sheet = new BottomSheet(canvas, "RabbitSheet", catalog, tweens, 1400f, OnClosed, 0.6f);
             _root = Sheet.Root;
             _card = Sheet.Card;
-            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -66, -66, 80, 80);
+            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -66, -66, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();
@@ -153,6 +153,7 @@ namespace VuonTra.Game.UI
             // Right: who it is.
             Line("Name", 56, 60, r.Name, 46, Palette.Ink, FontStyle.Bold, 420, 200);
             var pencil = UiKit.Rect("Rename", _body).Place(1f, 1f, -156, -86, 64, 64);
+            UiKit.Touchable(pencil, 64, 64);
             Image pencilImage = pencil.AddImage(_catalog.Round, Palette.Track);
             pencilImage.raycastTarget = true;
             var pencilButton = pencil.gameObject.AddComponent<Button>();

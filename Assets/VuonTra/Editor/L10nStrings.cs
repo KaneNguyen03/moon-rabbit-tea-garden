@@ -22,6 +22,7 @@ namespace VuonTra.EditorTools
             { "pause.reset.confirm", "Chạm lần nữa để xóa toàn bộ tiến trình", "Tap again to erase all progress" },
             { "pause.motion", "Giảm chuyển động", "Reduce motion" },
             { "pause.haptics", "Rung khi chạm", "Vibration" },
+            { "pause.text", "Chữ to", "Large text" },
             { "pause.profile", "Hồ sơ người chơi", "Player profile" },
 
             // ----- profile and backup -----

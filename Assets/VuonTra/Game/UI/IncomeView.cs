@@ -38,7 +38,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", _card).Stretch(0, 1, 1, 1, 40, -120, 130, 20)
                 .AddText(L10n.T("income.title"), 42, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, 80, 80);
+            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();

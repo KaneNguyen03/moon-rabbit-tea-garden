@@ -1711,6 +1711,10 @@ MonoBehaviour:
     m_Key: shop.visitor.minutes
     m_Metadata:
       m_Items: []
+  - m_Id: 201923603980288
+    m_Key: pause.text
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

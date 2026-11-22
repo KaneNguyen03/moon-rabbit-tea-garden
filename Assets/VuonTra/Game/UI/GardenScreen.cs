@@ -225,12 +225,14 @@ namespace VuonTra.Game.UI
             Runner.ProductMade += OnProductMade;
             Runner.AwayClaimed += ShowAway;
             L10n.Changed += RebuildUi;
+            UiKit.TextChanged += RebuildUi;
             RefreshNow();
         }
 
         void OnDestroy()
         {
             L10n.Changed -= RebuildUi;
+            UiKit.TextChanged -= RebuildUi;
             if (Runner == null) return;
             Runner.StateChanged -= RefreshNow;
             Runner.Payout -= OnPayout;
@@ -924,6 +926,7 @@ namespace VuonTra.Game.UI
 
             BuildBackdrop(catalog);
             Motion.Load();
+            UiKit.LoadTextSize();
             Haptics.Load();
             BuildWorld(catalog);
             BuildAtmosphere(catalog);
@@ -1460,9 +1463,9 @@ namespace VuonTra.Game.UI
             AddPhotoToggle(options, catalog, "Frame", L10n.T("photo.frame"), 104, () => PhotoFrameOn, v => PhotoFrameOn = v);
             AddPhotoToggle(options, catalog, "Names", L10n.T("photo.names"), 310, () => PhotoNamesOn, v => PhotoNamesOn = v);
             AddPhotoToggle(options, catalog, "Fireflies", L10n.T("photo.fireflies"), 516, () => PhotoFirefliesOn, v => PhotoFirefliesOn = v);
-            var album = UiKit.Rect("Album", bar).Place(0f, 0.5f, 110, 4, 170, 76);
+            var album = UiKit.Rect("Album", bar).Place(0f, 0.5f, 110, 4, 170, UiKit.MinTouch);
             UiKit.Secondary(album, catalog.Panel, L10n.T("photo.album"), () => { Sfx.Click(); OpenAlbum(); });
-            var done = UiKit.Rect("Done", bar).Place(0f, 0.5f, 300, 4, 170, 76);
+            var done = UiKit.Rect("Done", bar).Place(0f, 0.5f, 300, 4, 170, UiKit.MinTouch);
             UiKit.Secondary(done, catalog.Panel, L10n.T("photo.done"), () => { Sfx.Click(); ExitPhotoMode(); });
             var snap = UiKit.Rect("Snap", bar).Place(1f, 0.5f, -170, 4, 280, 96);
             ChunkyButton snapButton = UiKit.Chunky(snap, catalog.Panel, Snap);
@@ -1499,7 +1502,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Lip", albumCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", albumCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
             _albumTitle = UiKit.Rect("Title", albumCard).Stretch(0, 1, 1, 1, 40, -110, 130, 30).AddText("", UiKit.TextTitle, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            var albumClose = UiKit.Rect("Close", albumCard).Place(1f, 1f, -70, -70, 80, 80);
+            var albumClose = UiKit.Rect("Close", albumCard).Place(1f, 1f, -70, -70, UiKit.MinTouch, UiKit.MinTouch);
             Image albumCloseImage = albumClose.AddImage(catalog.Round, Palette.Track);
             albumCloseImage.raycastTarget = true;
             var albumCloseButton = albumClose.gameObject.AddComponent<Button>();
@@ -1527,9 +1530,9 @@ namespace VuonTra.Game.UI
             _photoNote.resizeTextForBestFit = true;
             _photoNote.resizeTextMinSize = 12;
             _photoNote.resizeTextMaxSize = UiKit.TextSmall;
-            var save = UiKit.Rect("Save", card).Place(0f, 0f, 190, 150, 280, 84);
+            var save = UiKit.Rect("Save", card).Place(0f, 0f, 190, 150, 280, UiKit.MinTouch);
             UiKit.Secondary(save, catalog.Panel, L10n.T("photo.save"), () => { Sfx.Click(); RevealPhoto(); });
-            var share = UiKit.Rect("Share", card).Place(0.5f, 0f, 0, 150, 280, 84);
+            var share = UiKit.Rect("Share", card).Place(0.5f, 0f, 0, 150, 280, UiKit.MinTouch);
             UiKit.Secondary(share, catalog.Panel, L10n.T("photo.share"), () => { Sfx.Click(); CopyPhoto(); });
             var close = UiKit.Rect("Close", card).Place(1f, 0f, -190, 150, 280, 96);
             ChunkyButton closeButton = UiKit.Chunky(close, catalog.Panel, () => { Sfx.Click(); _photoReview.SetActive(false); _photoBar.SetActive(true); });
@@ -1541,6 +1544,7 @@ namespace VuonTra.Game.UI
         void AddPhotoToggle(RectTransform track, GameCatalog catalog, string name, string label, float x, System.Func<bool> get, System.Action<bool> set)
         {
             var rt = UiKit.Rect(name, track).Place(0f, 0.5f, x, 0, 196, 52);
+            UiKit.Touchable(rt, 196, 52);
             Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -2144,6 +2148,9 @@ namespace VuonTra.Game.UI
             };
             _energyLabel = UiKit.Rect("Label", _energyButton.FaceRect).Stretch(0, 0.46f, 0.55f, 1, 22, 0, 0, 6)
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _energyLabel.resizeTextForBestFit = true; // "Tea power 100" stays on one line with large text
+            _energyLabel.resizeTextMinSize = 18;
+            _energyLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
             _energyAction = UiKit.Rect("Action", _energyButton.FaceRect).Stretch(0.45f, 0.46f, 1, 1, 0, 0, 22, 6)
                 .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
             var track = UiKit.Rect("Track", _energyButton.FaceRect).Band(22, 22, 16, 18);
@@ -2280,13 +2287,23 @@ namespace VuonTra.Game.UI
             ShowTabBar(0f);
         }
 
-        /// <summary>The part of the bottom edge the phone keeps for itself (home bar), in canvas units.</summary>
-        static float SafeBottom() => Screen.height > 0 ? Mathf.Max(0f, Screen.safeArea.yMin / Screen.height * ScreenH) : 0f;
+        /// <summary>
+        /// What the phone keeps for itself at the bottom (home bar) and the top (notch), in canvas
+        /// units: x is the bottom, y the top. Tests swap this for a phone of their choosing.
+        /// </summary>
+        public static System.Func<Vector2> SafeInsets = () => Screen.height > 0
+            ? new Vector2(Mathf.Max(0f, Screen.safeArea.yMin / Screen.height * ScreenH), Mathf.Max(0f, (Screen.height - Screen.safeArea.yMax) / Screen.height * ScreenH))
+            : Vector2.zero;
 
-        /// <summary>Stands the tab bar just inside the safe area, and the sheet's lists just above the bar.</summary>
+        /// <summary>The part of the bottom edge the phone keeps for itself (home bar), in canvas units.</summary>
+        static float SafeBottom() => SafeInsets().x;
+
+        /// <summary>Stands the tab bar just inside the safe area, the HUD under the notch, and the sheet's lists just above the bar.</summary>
         void PlaceTabBar()
         {
-            float safe = SafeBottom();
+            Vector2 insets = SafeInsets();
+            if (_hud != null && !Mathf.Approximately(_hud.anchoredPosition.y, -insets.y)) _hud.anchoredPosition = new Vector2(0f, -insets.y);
+            float safe = insets.x;
             if (Mathf.Approximately(safe, _safeBottom)) return;
             _safeBottom = safe;
             _tabBar.anchoredPosition = new Vector2(0f, safe + TabBarGap);
@@ -2374,7 +2391,7 @@ namespace VuonTra.Game.UI
             _modes = modes.gameObject;
             BuildModeBar(modes, catalog, -110, -18, 76);
 
-            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, -18, 80, 80);
+            var close = UiKit.Rect("Close", bar).Place(1f, 0.5f, -62, -18, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();
@@ -2393,7 +2410,7 @@ namespace VuonTra.Game.UI
             upgradeAllNote.resizeTextForBestFit = true;
             upgradeAllNote.resizeTextMinSize = 16;
             upgradeAllNote.resizeTextMaxSize = UiKit.TextBody;
-            var upgradeAllButton = UiKit.Rect("Button", _upgradeAllRow).Place(1f, 0.5f, -166, 4, 284, 84);
+            var upgradeAllButton = UiKit.Rect("Button", _upgradeAllRow).Place(1f, 0.5f, -166, 4, 284, UiKit.MinTouch);
             ChunkyButton upgradeAllChunky = UiKit.Chunky(upgradeAllButton, catalog.Panel, () => { Sfx.Click(); UpgradeAll.Open(Runner.Defs, Runner.State); });
             UiKit.Rect("Text", upgradeAllChunky.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("upgradeall.title"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             for (int i = 0; i < catalog.Stations.Length; i++)
@@ -2423,6 +2440,7 @@ namespace VuonTra.Game.UI
             _questReady.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
             UiKit.Rect("Text", _questReady).Stretch(0, 0, 0.5f, 1).AddText(L10n.T("quests.ready"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var claimAll = UiKit.Rect("ClaimAll", _questReady).Place(1f, 0.5f, -130, 0, 260, 68);
+            UiKit.Touchable(claimAll, 260, 68);
             _claimAll = UiKit.Chunky(claimAll, catalog.Panel, OnClaimAll);
             UiKit.Rect("Text", _claimAll.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("quests.claimall"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             _questReady.gameObject.SetActive(false);
@@ -2535,6 +2553,7 @@ namespace VuonTra.Game.UI
             int[] modes = { Simulation.BuyOne, Simulation.BuyTen, Simulation.BuyToMilestone, Simulation.BuyMax };
             string[] labels = { "×1", "×10", L10n.T("mode.milestone"), L10n.T("mode.max") };
             float[] widths = { 84f, 92f, 118f, 140f };
+            for (int i = 0; i < widths.Length; i++) widths[i] *= UiKit.TextScale; // large text: wider pills, never a second line
             float width = Pad * 2f + Gap * (modes.Length - 1);
             foreach (float w in widths) width += w;
             var track = UiKit.Rect("Track", parent).Place(1f, 0.5f, right - width / 2f, y, width, height);
@@ -2544,6 +2563,7 @@ namespace VuonTra.Game.UI
             {
                 int mode = modes[i];
                 var rt = UiKit.Rect("Mode " + labels[i], parent).Place(1f, 0.5f, x + widths[i] / 2f, y, widths[i], height - 16f);
+                UiKit.Touchable(rt, widths[i], height - 16f);
                 Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
                 img.raycastTarget = true;
                 var button = rt.gameObject.AddComponent<Button>();
@@ -3123,6 +3143,7 @@ namespace VuonTra.Game.UI
         RectTransform EdgePill(GameCatalog catalog, string name, float y, System.Action onTap, out Text text)
         {
             var pill = UiKit.Rect(name, _canvas).Place(0.5f, 0f, 0, y, 160, 56);
+            UiKit.Touchable(pill, 160, 56);
             pill.AddShadow(12f, 8f, 0.3f);
             Image back = pill.AddImage(catalog.Panel, Palette.Paper, true);
             back.raycastTarget = true;

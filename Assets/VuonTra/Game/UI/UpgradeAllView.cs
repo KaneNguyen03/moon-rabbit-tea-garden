@@ -51,7 +51,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", _card).Stretch(0, 1, 1, 1, 40, -110, 130, 20)
                 .AddText(L10n.T("upgradeall.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -66, 80, 80);
+            var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -66, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
             var closeButton = close.gameObject.AddComponent<Button>();
@@ -68,6 +68,7 @@ namespace VuonTra.Game.UI
             {
                 double share = Shares[i];
                 var rt = UiKit.Rect("Share " + share.ToString(System.Globalization.CultureInfo.InvariantCulture), track).Place(0f, 0.5f, 66 + i * 134f, 0, 124, 52);
+                UiKit.Touchable(rt, 124, 52);
                 Image img = rt.AddImage(catalog.Panel, Palette.Carrot, true);
                 img.raycastTarget = true;
                 var button = rt.gameObject.AddComponent<Button>();
@@ -103,7 +104,7 @@ namespace VuonTra.Game.UI
             _total.resizeTextMinSize = 20;
             _total.resizeTextMaxSize = UiKit.TextTitle;
 
-            var cancel = UiKit.Rect("Cancel", _card).Place(0f, 0f, 190, 86, 260, 84);
+            var cancel = UiKit.Rect("Cancel", _card).Place(0f, 0f, 190, 86, 260, UiKit.MinTouch);
             UiKit.Secondary(cancel, catalog.Panel, L10n.T("upgradeall.cancel"), Close);
             var confirm = UiKit.Rect("Confirm", _card).Place(1f, 0f, -250, 86, 420, 96);
             _confirm = UiKit.Chunky(confirm, catalog.Panel, () => _onConfirm());

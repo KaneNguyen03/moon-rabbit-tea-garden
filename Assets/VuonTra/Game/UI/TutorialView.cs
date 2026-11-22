@@ -51,6 +51,7 @@ namespace VuonTra.Game.UI
             _text.resizeTextMinSize = 16;
             _text.resizeTextMaxSize = UiKit.TextBody;
             var skip = UiKit.Rect("Skip", _plate).Place(1f, 0.5f, -80, 0, 130, 56);
+            UiKit.Touchable(skip, 130, 56);
             UiKit.TextButton(skip, L10n.T("tut.skip"), () => { Sfx.Click(); onSkip(); });
             Root.gameObject.SetActive(false);
         }

@@ -65,7 +65,7 @@ namespace VuonTra.Game.UI
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
             pause.AddImage(null, Palette.Scrim).raycastTarget = true;
 
-            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1190);
+            _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.52f, 0, 0, 820, 1290);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
@@ -108,6 +108,8 @@ namespace VuonTra.Game.UI
             AddToggleRow(catalog, "Motion", L10n.T("pause.motion"), -680, () => Motion.Reduced, Motion.SetReduced);
             // Short buzzes on a phone for upgrades, milestones and new rabbits.
             AddToggleRow(catalog, "Haptics", L10n.T("pause.haptics"), -780, () => Haptics.On, Haptics.SetOn);
+            // Every label a fifth bigger; the screen builds itself again, as for a language change.
+            AddToggleRow(catalog, "Text", L10n.T("pause.text"), -880, () => UiKit.LargeText, UiKit.SetLargeText);
 
             var resume = UiKit.Rect("Resume", _pauseCard).Place(0.5f, 0f, 0, 260, 620, 130);
             ChunkyButton resumeButton = null;
@@ -119,7 +121,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Text", resumeButton.FaceRect).Stretch(0, 0, 1, 1)
                 .AddText(L10n.T("pause.resume"), 42, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            var reset = UiKit.Rect("Reset", _pauseCard).Place(0.5f, 0f, 0, 120, 700, 80);
+            var reset = UiKit.Rect("Reset", _pauseCard).Place(0.5f, 0f, 0, 120, 700, UiKit.MinTouch);
             Image resetHit = reset.AddImage(null, new Color(0, 0, 0, 0));
             resetHit.raycastTarget = true;
             var resetButton = reset.gameObject.AddComponent<Button>();
@@ -135,7 +137,7 @@ namespace VuonTra.Game.UI
         {
             UiKit.Rect(id + " Label", _pauseCard).Place(0.5f, 1f, -120, y, 460, 60)
                 .AddText(label, UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            var pill = UiKit.Rect(id, _pauseCard).Place(0.5f, 1f, 262, y, 176, 68);
+            var pill = UiKit.Rect(id, _pauseCard).Place(0.5f, 1f, 262, y, 176, UiKit.MinTouch);
             Image plate = pill.AddImage(catalog.Panel, Palette.Track, true);
             plate.raycastTarget = true;
             Text text = UiKit.Rect("Text", pill).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -162,6 +164,7 @@ namespace VuonTra.Game.UI
         {
             bool current = L10n.Code == code;
             var rt = UiKit.Rect("Language " + code, _pauseCard).Place(0.5f, 1f, x, -570, 208, 60);
+            UiKit.Touchable(rt, 208, 60);
             Image img = rt.AddImage(catalog.Panel, current ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f), true);
             img.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();

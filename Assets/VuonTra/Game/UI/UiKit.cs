@@ -80,13 +80,52 @@ namespace VuonTra.Game.UI
             return img;
         }
 
+        // ----- large text -----
+        const string LargeTextKey = "text.large";
+        /// <summary>How much bigger every size asked of AddText comes out when the player wants large text.</summary>
+        public const float LargeScale = 1.2f;
+        /// <summary>The player asked for large text. Read once at start; the screen rebuilds when it changes.</summary>
+        public static bool LargeText { get; private set; }
+        /// <summary>What a size passed to AddText is multiplied by.</summary>
+        public static float TextScale => LargeText ? LargeScale : 1f;
+        /// <summary>Raised when the text size setting changes, so the screen can build itself again.</summary>
+        public static event Action TextChanged;
+
+        public static void LoadTextSize() => LargeText = PlayerPrefs.GetInt(LargeTextKey, 0) == 1;
+
+        public static void SetLargeText(bool on)
+        {
+            if (LargeText == on) return;
+            LargeText = on;
+            PlayerPrefs.SetInt(LargeTextKey, on ? 1 : 0);
+            TextChanged?.Invoke();
+        }
+
+        /// <summary>A font size as it comes out on screen, after the large-text setting.</summary>
+        public static int Scaled(int size) => Mathf.RoundToInt(size * TextScale);
+
+        /// <summary>The smallest side a thing that is pressed may have, in canvas units (about 35 pt on a 6-inch phone).</summary>
+        public const float MinTouch = 88f;
+
+        /// <summary>
+        /// Widens what a small control answers to without changing how it looks: an unseen pane under
+        /// it, at least MinTouch on each side. For pills that sit in a row too tight to grow.
+        /// </summary>
+        public static void Touchable(RectTransform rt, float width, float height)
+        {
+            float dx = Mathf.Max(0f, (MinTouch - width) / 2f), dy = Mathf.Max(0f, (MinTouch - height) / 2f);
+            if (dx <= 0f && dy <= 0f) return;
+            Image hit = Rect("Hit", rt).Stretch(0, 0, 1, 1, -dx, -dy, -dx, -dy).AddImage(null, new Color(0, 0, 0, 0));
+            hit.raycastTarget = true;
+        }
+
         public static Text AddText(this RectTransform rt, string text, int size, Color color,
             TextAnchor anchor = TextAnchor.MiddleCenter, FontStyle style = FontStyle.Normal)
         {
             var t = rt.gameObject.AddComponent<Text>();
             t.font = Font;
             t.text = text;
-            t.fontSize = size;
+            t.fontSize = Scaled(size);
             t.color = color;
             t.alignment = anchor;
             t.fontStyle = style;

@@ -64,7 +64,10 @@ namespace VuonTra.Game.UI
             _visitorSub.resizeTextForBestFit = true;
             _visitorSub.resizeTextMinSize = 13;
             _visitorSub.resizeTextMaxSize = UiKit.TextSmall;
-            _visitorNew = UiKit.Rect("New", visitor).Place(0f, 1f, 110, -22, 190, 36).AddText(L10n.T("shop.visitor.new"), 18, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _visitorNew = UiKit.Rect("New", visitor).Place(0f, 1f, 110, -22, 190 * UiKit.TextScale, 36 * UiKit.TextScale).AddText(L10n.T("shop.visitor.new"), 18, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _visitorNew.resizeTextForBestFit = true;
+            _visitorNew.resizeTextMinSize = 14;
+            _visitorNew.resizeTextMaxSize = UiKit.Scaled(18);
             var newPlate = UiKit.Rect("Plate", _visitorNew.rectTransform).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.Tiers[5], true);
             newPlate.transform.SetAsFirstSibling();
             var buyButton = UiKit.Rect("Buy", visitor).Place(1f, 0.5f, -150, 0, 260, 100);
