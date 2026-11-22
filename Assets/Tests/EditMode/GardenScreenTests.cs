@@ -2774,6 +2774,19 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(away.gameObject.activeSelf);
         }
 
+        [Test]
+        public void Every_Daily_Thing_Goes_By_The_Day_That_Never_Goes_Back()
+        {
+            // #78: the runner used the raw device day for the photo gift, the dailies, guests, visitors and strokes.
+            long today = runner.TodayNumber;
+            runner.State.MaxDaySeen = today + 2; // the device was set two days ahead, then back
+            Assert.AreEqual(today + 2, runner.TodayNumber, "the game keeps going by the latest day it saw");
+            runner.State.PhotoDay = today + 2;
+            Assert.IsFalse(runner.PhotoGiftWaiting, "today's photo gift was already taken on that day");
+            runner.State.VisitorSeenDay = today + 2;
+            Assert.IsFalse(runner.VisitorUnseen);
+        }
+
         // ----- #69: the welcome-back sheet tells the time away -----
 
         [Test]

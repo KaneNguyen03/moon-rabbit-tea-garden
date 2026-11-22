@@ -98,7 +98,7 @@ namespace VuonTra.Core
 
         static void NewDay(GameState s, long day)
         {
-            if (s.OrderDay == day) return;
+            if (day <= s.OrderDay) return; // a clock turned back does not bring the day's guests back (#78)
             s.OrderDay = day;
             s.OrdersToday = 0;
         }

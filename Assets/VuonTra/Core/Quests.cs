@@ -201,14 +201,14 @@ namespace VuonTra.Core
         }
 
         /// <summary>
-        /// Starts a new day when <paramref name="day"/> differs from the one in the state: daily
-        /// counters restart from now, daily claims are forgotten, and the carrot goal is set from
-        /// the income at this moment. Returns true when a new day began. A day number that goes
-        /// backwards (clock changed) also starts a fresh day rather than reviving old claims.
+        /// Starts a new day when <paramref name="day"/> is later than the one in the state: daily counters restart
+        /// from now, daily claims are forgotten, and the carrot goal is set from the income at this moment. Returns
+        /// true when a new day began. A day number that goes backwards (clock turned back) starts nothing: the
+        /// day's claims stay claimed (#78).
         /// </summary>
         public static bool RollDaily(IReadOnlyList<QuestDef> quests, IReadOnlyList<StationDef> defs, GameState s, long day, Modifiers m)
         {
-            if (s.DailyDay == day) return false;
+            if (day <= s.DailyDay) return false;
             s.DailyDay = day;
             s.DailyTapsBase = s.TotalTaps;
             s.DailyLevelsBase = s.LevelsBought;

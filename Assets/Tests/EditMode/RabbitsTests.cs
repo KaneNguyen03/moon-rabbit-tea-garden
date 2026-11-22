@@ -533,10 +533,12 @@ namespace VuonTra.Core.Tests
 
             Assert.IsTrue(Rabbits.Pet(s, r, 101).FirstToday, "a new day");
             Assert.AreEqual(2, r.Affection);
-            Assert.IsTrue(Rabbits.Pet(s, r, 50).FirstToday, "a clock that went backwards is still another day");
-            Assert.AreEqual(3, r.Affection);
-            Assert.AreEqual(50, r.PetDay);
-            Assert.IsFalse(Rabbits.Pet(s, r, 50).FirstToday);
+            // #78: a clock turned back is not another day, so it brings neither a heart nor tea power.
+            double energy = s.Energy;
+            Assert.IsFalse(Rabbits.Pet(s, r, 50).FirstToday, "a clock that went backwards is not another day");
+            Assert.AreEqual(2, r.Affection);
+            Assert.AreEqual(101, r.PetDay);
+            Assert.AreEqual(energy, s.Energy, 1e-9);
         }
 
         [Test]

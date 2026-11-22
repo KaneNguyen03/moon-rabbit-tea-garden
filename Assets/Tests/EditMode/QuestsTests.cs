@@ -109,12 +109,17 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Clock_Going_Backwards_Starts_A_Fresh_Day_Without_Crashing()
+        public void Clock_Going_Backwards_Keeps_The_Days_Claims_And_Does_Not_Start_A_Day()
         {
-            s.TotalTaps = 5;
-            Quests.TryClaim(dailyTaps, defs, s, Modifiers.None, out _);
-            Assert.IsTrue(Quests.RollDaily(quests, defs, s, 90, Modifiers.None));
-            Assert.AreEqual(0, Quests.Progress(dailyTaps, defs, s));
+            // #78: a clock turned back used to wipe the day's claims, so a daily could be claimed again and again.
+            s.TotalTaps = 50;
+            Assert.IsTrue(Quests.TryClaim(dailyTaps, defs, s, Modifiers.None, out _));
+            Assert.IsFalse(Quests.RollDaily(quests, defs, s, 90, Modifiers.None), "an earlier day starts nothing");
+            Assert.AreEqual(100, s.DailyDay);
+            Assert.IsTrue(Quests.IsClaimed(dailyTaps, s), "what was claimed stays claimed");
+            Assert.IsFalse(Quests.TryClaim(dailyTaps, defs, s, Modifiers.None, out _));
+            Assert.IsTrue(Quests.RollDaily(quests, defs, s, 101, Modifiers.None), "the next real day does start");
+            Assert.IsFalse(Quests.IsClaimed(dailyTaps, s));
         }
 
         [Test]

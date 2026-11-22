@@ -31,14 +31,15 @@ namespace VuonTra.Core
                 s.Album.Add(path);
                 while (s.Album.Count > AlbumSize) s.Album.RemoveAt(0);
             }
-            if (s.PhotoDay == day) return false;
+            // Only a day after the last gift counts: a clock turned back never pays it again (#78).
+            if (day <= s.PhotoDay) return false;
             s.PhotoDay = day;
             s.GoldenCarrots += GiftGolden;
             return true;
         }
 
         /// <summary>True while today's gift is still to be had.</summary>
-        public static bool GiftWaiting(GameState s, long day) => s.PhotoDay != day;
+        public static bool GiftWaiting(GameState s, long day) => day > s.PhotoDay;
 
         public static bool HasGoldRabbit(GameState s)
         {

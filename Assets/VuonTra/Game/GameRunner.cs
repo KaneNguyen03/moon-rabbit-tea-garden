@@ -117,7 +117,7 @@ namespace VuonTra.Game
                 Mods = Modifiers.From(UpgradeDefs, State);
             }
 
-            Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
             _ready = true;
@@ -163,7 +163,7 @@ namespace VuonTra.Game
             _sinceSave += dt;
             if (_sinceSave >= AutosaveSeconds)
             {
-                if (Quests.RollDaily(QuestDefs, Defs, State, Today, Mods)) StateChanged?.Invoke();
+                if (Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods)) StateChanged?.Invoke();
                 Save();
                 GreetSeason();
             }
@@ -261,7 +261,7 @@ namespace VuonTra.Game
         /// <summary>Counts seconds of open play towards the next guest and the waiting guest's patience. The save keeps up with comings and goings.</summary>
         public OrderEvent AdvanceOrders(double dt)
         {
-            OrderEvent e = Orders.Advance(Defs, State, dt, Today, _rng.NextDouble);
+            OrderEvent e = Orders.Advance(Defs, State, dt, TodayNumber, _rng.NextDouble);
             if (e != OrderEvent.None) Save();
             return e;
         }
@@ -269,7 +269,7 @@ namespace VuonTra.Game
         /// <summary>Brings a guest to the counter now (previews, tests); null when one is waiting already or the day's guests have all been.</summary>
         public Order PlaceOrder()
         {
-            Order order = Orders.Place(Defs, State, Today, _rng.NextDouble);
+            Order order = Orders.Place(Defs, State, TodayNumber, _rng.NextDouble);
             if (order != null) Changed();
             return order;
         }
@@ -283,7 +283,7 @@ namespace VuonTra.Game
         }
 
         /// <summary>True while the shop's gift for today is still to be had.</summary>
-        public bool GiftWaiting => Shop.GiftWaiting(State, Today);
+        public bool GiftWaiting => Shop.GiftWaiting(State, TodayNumber);
 
         /// <summary>Takes today's gift at the shop. How many golden carrots it brought; 0 when there was none to take.</summary>
         public int ClaimDailyGift()
@@ -298,13 +298,13 @@ namespace VuonTra.Game
         public Shop.Visitor VisitorToday => Shop.VisitorFor(State, TodayNumber);
 
         /// <summary>True while today's visitor has not been looked at yet.</summary>
-        public bool VisitorUnseen => State.VisitorSeenDay != Today;
+        public bool VisitorUnseen => State.VisitorSeenDay != TodayNumber;
 
         /// <summary>The shop was opened: today's visitor has been seen.</summary>
         public void MarkVisitorSeen()
         {
-            if (State.VisitorSeenDay == Today) return;
-            State.VisitorSeenDay = Today;
+            if (State.VisitorSeenDay == TodayNumber) return;
+            State.VisitorSeenDay = TodayNumber;
             Changed();
         }
 
@@ -385,13 +385,13 @@ namespace VuonTra.Game
         /// <summary>A photo of the garden was taken. True when it brought today's gift.</summary>
         public bool TakePhoto(string path = null)
         {
-            bool gift = Photos.Take(State, Today, path);
+            bool gift = Photos.Take(State, TodayNumber, path);
             Changed();
             return gift;
         }
 
         /// <summary>True while today's photo gift is still to be had.</summary>
-        public bool PhotoGiftWaiting => Photos.GiftWaiting(State, Today);
+        public bool PhotoGiftWaiting => Photos.GiftWaiting(State, TodayNumber);
 
         /// <summary>A gift of carrots (a caught firefly, a visitor). Counts as earned.</summary>
         public void Grant(BigNum carrots)
@@ -436,7 +436,7 @@ namespace VuonTra.Game
         /// </summary>
         public PetResult PetRabbit(long id, bool wake = false)
         {
-            PetResult result = Rabbits.Pet(State, Rabbits.Find(State, id), Today, wake);
+            PetResult result = Rabbits.Pet(State, Rabbits.Find(State, id), TodayNumber, wake);
             if (result.FirstToday || result.Energy > 0d) Changed();
             return result;
         }
@@ -534,7 +534,7 @@ namespace VuonTra.Game
             if (State.UpgradeLevels == null || State.UpgradeLevels.Length != UpgradeDefs.Count)
                 Array.Resize(ref State.UpgradeLevels, UpgradeDefs.Count);
             Mods = Modifiers.From(UpgradeDefs, State);
-            Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
             StateChanged?.Invoke();
@@ -650,7 +650,7 @@ namespace VuonTra.Game
         /// <summary>Spends one of today's mooncake plays and hands back the game to score; null when none is left.</summary>
         public PoundingRun StartPounding()
         {
-            if (!Pounding.Start(State, Today)) return null;
+            if (!Pounding.Start(State, TodayNumber)) return null;
             Changed();
             return new PoundingRun();
         }
@@ -666,9 +666,9 @@ namespace VuonTra.Game
         /// <summary>Spends one of today's leaf-catching plays and hands back the game, seeded by the day and the games so far; null when none is left.</summary>
         public LeavesRun StartLeaves()
         {
-            if (!Leaves.Start(State, Today)) return null;
+            if (!Leaves.Start(State, TodayNumber)) return null;
             Changed();
-            return LeavesRun.FromSeed(Leaves.SeedFor(Today, State.Leaves.Games));
+            return LeavesRun.FromSeed(Leaves.SeedFor(TodayNumber, State.Leaves.Games));
         }
 
         /// <summary>Pays a finished leaf-catching game.</summary>
@@ -682,9 +682,9 @@ namespace VuonTra.Game
         /// <summary>Spends one of today's firefly plays and hands back the night, seeded by the day and the games so far; null when none is left.</summary>
         public FirefliesRun StartFireflies()
         {
-            if (!Fireflies.Start(State, Today)) return null;
+            if (!Fireflies.Start(State, TodayNumber)) return null;
             Changed();
-            return FirefliesRun.FromSeed(Fireflies.SeedFor(Today, State.Fireflies.Games));
+            return FirefliesRun.FromSeed(Fireflies.SeedFor(TodayNumber, State.Fireflies.Games));
         }
 
         /// <summary>Pays a finished firefly night.</summary>
@@ -805,7 +805,7 @@ namespace VuonTra.Game
             State.HintSeen = true;
             State.LastSeenUnixSeconds = Now;
             Mods = Modifiers.From(UpgradeDefs, State);
-            Quests.RollDaily(QuestDefs, Defs, State, Today, Mods);
+            Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             Changed();
         }
 

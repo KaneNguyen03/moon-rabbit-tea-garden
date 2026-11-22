@@ -231,6 +231,18 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Clock_Turned_Back_Does_Not_Bring_The_Days_Guests_Back()
+        {
+            // #78: an earlier day used to count the day's guests from nought again.
+            s.OrderDay = Day;
+            s.OrdersToday = Orders.PerDay;
+            s.OrderClock = Orders.Interval;
+            Assert.AreEqual(OrderEvent.None, Orders.Advance(defs, s, 1d, Day - 1, Rolls(0.2)), "no guest on a day the clock went back to");
+            Assert.AreEqual(Orders.PerDay, s.OrdersToday);
+            Assert.AreEqual(Day, s.OrderDay);
+        }
+
+        [Test]
         public void Placing_An_Order_By_Hand_Respects_The_Cap_And_Gives_Each_Its_Own_Id()
         {
             Order a = Orders.Place(defs, s, Day, Rolls(0.2));
