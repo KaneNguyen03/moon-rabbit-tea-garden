@@ -53,7 +53,9 @@ namespace VuonTra.Game.UI
                 int slot = i;
                 var rt = UiKit.Rect("Slot " + i, Root).Place(0f, 0.5f, 72 + i * 118f, 4, 96, 96);
                 _slots[i] = rt;
-                Image back = rt.AddImage(catalog.Round, Palette.Track);
+                // Each product sits on a little wooden dish once that is drawn; a plain disc until then.
+                Image back = rt.AddImage(catalog.TrayWood != null ? catalog.TrayWood : catalog.Round, catalog.TrayWood != null ? Color.white : Palette.Track);
+                back.preserveAspect = true;
                 back.raycastTarget = true;
                 var button = rt.gameObject.AddComponent<Button>();
                 button.transition = Selectable.Transition.None;

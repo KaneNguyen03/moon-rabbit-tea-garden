@@ -32,6 +32,10 @@ namespace VuonTra.Game
         public Sprite Mortar;
         [Tooltip("A stone lantern and a flower planter: the dressing set around the stations.")]
         public Sprite StoneLantern, Planter;
+        [Tooltip("The mooncake game's own art: the empty mortar, the pestle, the dough raw and being worked, the cake done and dented.")]
+        public Sprite MortarEmpty, Pestle, Dough, DoughPounded, Cake, CakeDented;
+        [Tooltip("The wooden dish under each product in the tray.")]
+        public Sprite TrayWood;
         [Tooltip("The golden carrot, the gift box and the tea shop by the pond.")]
         public Sprite GoldenCarrot, GiftBox, ShopProp;
         public Sprite Gear;

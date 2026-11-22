@@ -1070,13 +1070,28 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Chưa thử tay trên máy thật; bong bóng chưa có hình riêng; một khách một lúc (chưa có hàng).
 
-## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
+## #45 nối hình — chày, bột, bánh, cối trống
+
+- Test: 618/618 EditMode qua. Thêm 1 test màn hình (bột → đang giã → méo một lúc sau Méo → bánh xong trên tấm kết quả; chày hạ xuống rồi về chỗ).
+- Commit `7ca9091`, đã push. Comment lên #45; nhãn chờ-PO-duyệt giữ nguyên.
+- Catalog thêm MortarEmpty, Pestle, Dough, DoughPounded, Cake, CakeDented (seed từ `prop_coi-trong`, `prop_chay`, `banh_bot`, `banh_dang-gia`, `banh_xong`, `banh_meo`). Trong ván: cối trống, chày riêng nghiêng 10° treo trên bột, hạ 60 đơn vị khi giã rồi về (hai mốc cố định); bột thô tới nhịp 15, đang giã từ nhịp 15, méo 0,6 giây sau mỗi Méo, bánh xong khi hết ván; tấm kết quả có hình bánh (xong từ 1 sao, méo khi 0 sao). Cối trong vườn vẫn `prop_coi-gia-banh`.
+- Ảnh (docs/anh/po-45/): `45-vong-chay.png`, `45-deo.png`, `45-ket-qua.png` cập nhật.
+
+## #37 nối hình — bảy món và khay gỗ
+
+- Test: 618/618 EditMode qua; test khay cũ đổi sang kiểm đúng hình món (`product_am-tra`) và đĩa gỗ (`khay_go`).
+- Commit `a7897ba`, đã push. Comment đối chiếu lên #37, nhãn chờ-PO-duyệt (mọi ý làm được bằng code đã có; còn chạm/vuốt thật).
+- Bảy `product_<id>.png` chép vào Art/Final, seed tự gán `StationData.Product`; khay dùng `khay_go` làm đĩa dưới từng món (khung khay vẫn tấm giấy chuẩn vì khay gỗ tròn không kéo dài được thành khung 5 ô).
+- Ảnh (docs/anh/po-37/): `37-khay-hinh.png`.
+
+## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
-- main = origin/main (tới commit này), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
-- `tools/verify.sh --build` xanh lúc 06:29 trên đúng HEAD code (`ceca860`): seed, 76 ảnh preview, biên dịch, 417/417 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369). Chưa ai bấm thử.
-- Sáng 22/11 (từ ~11:45) session "Issue GitHub còn mở" chạy lại cùng lúc với session này; hai bên luân phiên từng issue qua tin nhắn (không cùng sửa, không cùng chạy Unity); commit `57b1541` gộp việc của cả hai vì hunk xen kẽ.
-- Hai session code chạy cùng lúc trong đêm: session "Issue GitHub còn mở" làm #43, #25, #27, #36, #37 (một phần), #18 (một phần) và tạo #44, #45 (mục Bàn giao 05:40 ngay trên); session này dựng `tools/verify.sh`, chờ session kia dừng, rồi làm tiếp. Từ giờ chỉ còn một session.
+- main = origin/main (tới commit này, ngay sau `025eaf5`), cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset` đổi rid khi seed, `Garden.unity` đổi id khi seed; `.agent/`, `.agents/`, `.github/`, `skills-lock.json` để nguyên như dặn).
+- `tools/verify.sh --build` xanh lúc 14:51 trên HEAD `025eaf5`: seed, 105 ảnh preview, biên dịch, 618/618 EditMode, build Mac `Build/Mac/VuonTraTho.app` mở chạy 8 giây, Player.log không exception (mốc đầu phiên 369/369; mốc 06:30 là 417/417). Chưa ai bấm thử.
+- Trong ngày 22/11 ba session chạy cùng lúc: session này (code), session "Issue GitHub còn mở" (code, luân phiên checkout với session này qua tin nhắn "xong lượt"/"checkout rảnh"; làm #44 ba lượt, #33, và #19, #10 Hứng lá + Đêm đom đóm, #20 bằng agent song song trong worktree riêng `../VuonTraNam-19`, `-10a`, `-10b`, `-20` rồi gộp qua nhánh `integrate-1` `4a48d81`…`adf9827` và `integrate-2` `e282242`…`d2b1390`), và session điều phối "Agent sửa lỗi GitHub" (giao hàng đợi, không sửa Assets; vẽ hình bằng Antigravity, commit docs `8d85900`, cách vẽ ở `docs/anh/VE-BANG-ANTIGRAVITY.md`).
+- Quy ước mới của chủ project từ 22/11: không mở issue mới cho việc; dòng chưa có issue trong #16 thì comment đối chiếu vào #16, tick dòng, ghi mục ở file này. #49 (mốc trạm) mở trước khi có quy ước, để PO đóng hoặc gộp.
+- Save hiện ở v14 (`pounding`), sau đó thêm khối `leaves`, `fireflies`, `orders`, `playSeconds`, `visitorBought/Seen` không tăng version; save cũ mở lên được (test).
 
 ### Việc session này làm (sau mục 05:40)
 - `tools/verify.sh` (`822a8e9`): một lệnh kiểm hết; `--build` thêm bản Mac và đọc Player.log; đỏ là thoát khác 0.
@@ -1102,17 +1117,19 @@ Sau khi sửa cả bốn xanh.
 - #38 lõi lưu mây (`d88b60c`): phong bì có mã kiểm, `CloudSync` (khi nào đồng bộ, chọn bản, không tự ghi đè), sao lưu trên máy trước khi thay, tấm chọn bản, trạng thái + Lưu ngay + Khôi phục trong Hồ sơ, thời gian chơi trong save. Còn nhà cung cấp thật (#39/#40).
 - Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
+- #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
+- Hai chỗ chữ bị che (`ac9a9d0`, sau verify --build; verify thường xanh 618/618): thanh Trà lực ngắn lại (288, kết thúc trước tấm nút góc) nên "Tăng tốc!" đọc đủ; giỏ Hứng lá nhỏ lại (110×95), dời sang phải (StationSpot(giỏ lá) + (104, 130)) và biển của nó treo bên trái (240 rộng, một dòng), không còn đè "Mở rộng vườn" hay tên trạm; ảnh `docs/anh/po-37/37-khay-hinh.png` cập nhật.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`, `po-49`, `po-41`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
-- Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
-- Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 xong phần máy làm được; còn các ý cần hình/đường đi của #28 và các việc thử tay. Hàng đợi kế (từ điều phối): #45 Giã bánh trăng, #28 phần code (cảnh nền, thỏ đi tới trạm), #34, #38 phần Core.
-- Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
+- Màn "lúc bạn đi vắng": tấm `Canvas/Away` (Mừng bạn quay lại, số cà rốt, thời gian) đã có từ `ba1cd71`; chưa rõ PO muốn thêm gì (thỏ làm gì lúc vắng, món trong khay…). Chưa tick vì chưa có mô tả.
+- Mọi dòng khác trong #16 đã tick hoặc đang chờ PO duyệt. Hàng đợi của cả hai session code đã hết việc không cần chủ project quyết.
 
 ### Cần chủ project thử tay hoặc quyết
-- Thử trong bản Mac: hàng Hồ sơ trên tấm Tạm nghỉ, nút Chép mã (clipboard), chạm hình đổi thỏ đại diện, đặt tên vườn (#17); đọc sao trên ô thỏ và danh sách bùa ở cỡ điện thoại (#46); giữ tay nâng sát cấp 500 (#47, cần save cao cấp hoặc đặt `Levels` bằng tay).
-- Quyết: #44, #45 (như mục 05:40); #17 phần Unity Cloud hay đi theo #39/#40; có muốn sao trên nhãn tên thỏ trong vườn không (#46, lệch nhỏ); "Mốc trạm 25/100/300" muốn thấy gì (đổi hình đạo cụ, băng cờ, hay chỉ huy hiệu).
+- Đóng các issue đã gắn `chờ-PO-duyệt` sau khi xem (#13, #14, #17, #19, #21–#28, #31–#38, #41, #43–#49), hoặc gắn `PO-trả-lại` kèm ý chưa đạt.
+- Thử trong bản Mac `Build/Mac/VuonTraTho.app`: ván Giã bánh trăng (nhịp ±80/±160 ms có vừa không, hình chày/bột mới), khay sản phẩm với hình món và đĩa gỗ, thỏ đi bộ tới trạm khi xếp, cảnh nền đung đưa, lớp đất và tán cây trượt (#34), tấm chọn bản lưu mây (#38, cần mây giả: `MemoryCloudSave`), mốc trạm ở cấp 25/100/300 (#49: kiểu dây đèn/đèn đá/vầng sáng hay băng cờ như điều phối gợi ý), Hồ sơ với Lưu ngay/Khôi phục từ mây (nói rõ "chưa có nơi lưu mây").
+- #41: cài module iOS và Android cho Unity 6000.6.10f1 qua Unity Hub, Xcode, Android SDK/NDK/JDK; rồi `tools/build.sh ios` / `tools/build.sh android`, seed lại một lần để gán icon theo cỡ; icon và màn hình chờ nên vẽ riêng thay bản ghép.
+- Quyết: #17 phần Unity Cloud hay đi theo #39/#40; #39, #40, #42, #9, #15 (các issue `question`); #28 chớp mắt/vẫy tai cần khung hình vẽ; "Màn lúc bạn đi vắng" muốn gì thêm.
 
 ### Lưu ý kỹ thuật mới
 - Trước khi sửa file: xem `mcp list_sessions`/`git status` để chắc không có session khác đang viết cùng thư mục; không chạy hai Unity batch cùng lúc (khoá `Temp/UnityLockfile`).
@@ -1121,3 +1138,8 @@ Sau khi sửa cả bốn xanh.
 - Trong `GardenScreen` có thuộc tính `Profile` nên gọi lớp tĩnh phải viết `VuonTra.Core.Profile`.
 - Kịch bản `PreviewShot` đổi về `vi` cuối phần tiếng Anh nhưng không dựng lại tấm, nên vài khung cuối trộn hai ngôn ngữ trong tấm trượt; không ảnh hưởng game.
 - Lệnh test/seed/chụp/build như các mục Bàn giao trước; `tools/verify.sh` gom tất cả.
+- Hai session code trên một checkout: luân phiên bằng tin nhắn; trước khi sửa xem `list_sessions` và `git status`; Unity ở worktree khác (projectPath khác) chỉ làm verify chậm, không chặn.
+- `tools/verify.sh --build` cần Unity rảnh trên project này; `tools/build.sh mac|ios|android` cho bản chơi; thiếu module thì dừng với exit 2.
+- `StationActorView`: bậc trạm là `SetRank` (đổi kiểu hình ở một chỗ); thỏ đi tới trạm là `Traveler` trong `GardenScreen` (ẩn thỏ ở trạm tới 2,4 giây, test nào xếp thỏ rồi soi ngay cần `Advance` hoặc `Motion.SetReduced(true)`).
+- Mây: `GameRunner.Cloud` là seam (`ICloudSave`); `MemoryCloudSave` cho test/preview; không bao giờ thay save trên máy ngoài `ResolveSync`/`RestoreFromCloud`, và luôn `SaveStore.Backup()` trước.
+

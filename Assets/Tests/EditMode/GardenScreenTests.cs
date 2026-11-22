@@ -1843,7 +1843,8 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.IsTrue(tray.gameObject.activeSelf);
             Assert.IsTrue(tray.Find("Slot 0/Icon").gameObject.activeSelf);
-            Assert.AreEqual(runner.Catalog.Stations[0].Prop, tray.Find("Slot 0/Icon").GetComponent<Image>().sprite, "the prop stands in until a product is drawn");
+            Assert.AreEqual("product_am-tra", tray.Find("Slot 0/Icon").GetComponent<Image>().sprite.name, "the teapot's own product, now that it is drawn");
+            Assert.AreEqual("khay_go", tray.Find("Slot 0").GetComponent<Image>().sprite.name, "on a wooden dish");
             Assert.IsTrue(tray.Find("Slot 0/Count").gameObject.activeSelf);
             Assert.AreEqual("×2", tray.Find("Slot 0/Count/Text").GetComponent<Text>().text);
             Assert.IsFalse(tray.Find("Slot 0/Gold").gameObject.activeSelf);
@@ -3874,6 +3875,44 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(25, runner.State.Levels[0]);
             StringAssert.Contains(L10n.T("moment.rank.title", 1), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
             Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Station am-tra/Bunting").gameObject.activeSelf, "and the bunting is up at once");
+        }
+
+        [Test]
+        public void The_Mooncake_Game_Shows_The_Dough_Being_Worked_A_Pestle_That_Drops_And_The_Cake_At_The_End()
+        {
+            screen.Shell.StartGame();
+            runner.State.GardenXp = Garden.XpForLevel(3);
+            screen.Refresh();
+            screen.OpenPounding();
+            Transform pound = root.transform.Find("Canvas/Pound/Shake");
+            Image cake = pound.Find("Cake").GetComponent<Image>();
+            Assert.AreEqual("banh_bot", cake.sprite.name, "raw dough to begin with");
+            Assert.AreEqual("prop_coi-trong", pound.Find("Mortar").GetComponent<Image>().sprite.name, "an empty mortar: the pestle is its own");
+            var pestle = (RectTransform)pound.Find("Pestle");
+            Assert.AreEqual("prop_chay", pestle.GetComponent<Image>().sprite.name);
+            float rest = pestle.anchoredPosition.y;
+
+            // Fifteen pounds on the beat: the dough is being worked, and the pestle is down right after a pound.
+            for (int b = 0; b < 15; b++)
+            {
+                screen.Advance((float)(Pounding.BeatTime(b) - screen.Pound.Time));
+                screen.Pound.Tap();
+            }
+            screen.Advance(0.02f);
+            Assert.Less(pestle.anchoredPosition.y, rest, "the pestle comes down");
+            Assert.AreEqual("banh_dang-gia", cake.sprite.name);
+            screen.Advance(0.4f);
+            Assert.AreEqual(rest, pestle.anchoredPosition.y, 0.01f, "and back up to where it rests");
+
+            // A beat left to pass dents the cake for a moment.
+            screen.Advance((float)(Pounding.BeatTime(15) + Pounding.GoodWindow + 0.05 - screen.Pound.Time));
+            Assert.AreEqual("banh_meo", cake.sprite.name, "dented after a miss");
+            screen.Advance(0.7f);
+            Assert.AreEqual("banh_dang-gia", cake.sprite.name, "then worked on again");
+
+            for (int k = 0; k < 60; k++) screen.Advance(0.5f);
+            Assert.IsTrue(root.transform.Find("Canvas/Pound/Result").gameObject.activeSelf);
+            Assert.AreEqual("banh_xong", root.transform.Find("Canvas/Pound/Result/Card/Cake").GetComponent<Image>().sprite.name, "fifteen perfects earn a star, so the cake came out");
         }
     }
 }
