@@ -903,6 +903,25 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Lượt 2 (thỏ ghé tiệm) và lượt 3 (mũ, nhuộm) chưa làm. Chưa thử tay.
 
+## #45 — Giã bánh trăng: trò chơi nhỏ đầu tiên
+
+- Test: 507/507 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 25 test luật (`PoundingTests.cs`) và 1 test màn hình.
+- Commit `7ce83c9`, đã push. Issue #45 để mở, đã comment đối chiếu từng ý đã duyệt, nhãn chờ-PO-duyệt. Save v14 (khối `pounding`); save cũ mở ra còn đủ 3 lượt, 0 ván.
+- Luật trong `Core/Pounding.cs`: lịch nhịp là hàm của chỉ số nhịp (1 giây, mỗi 5 nhịp nhanh thêm 10 %, ván ~25 giây), chấm Chuẩn ±80 ms / Được ±160 ms / Méo, chuỗi Dẻo sau 5 Chuẩn (+5, rồi 4 điểm mỗi nhịp, Được giữ Dẻo, Méo đứt), tối đa 120, sao 40/75/105, 3 lượt/ngày làm mới theo ngày (lùi đồng hồ không thêm lượt), mở ở cấp vườn 3, thưởng = thu nhập/giây × hệ số × 60 × điểm/120, thỏ Bếp bánh cấp cao nhất đang làm giã cùng ×1,5, lượt có sao đầu ngày +1 cỏ, ván 3 sao đầu ngày +1 cà rốt vàng.
+- Màn hình `PoundingView`: cối đứng giữa, vòng thu nhỏ về bánh theo nhịp, chạm đâu cũng tính, cối nén xuống khi giã, chữ Chuẩn/Được/Méo, pill "Dẻo!", bánh sạm khi Méo, rung ngang 0,25 giây khi Méo (tắt khi Giảm chuyển động), tấm kết quả sao/điểm/cà rốt/cỏ/vàng/thỏ giã cùng. Cối trong vườn (`Canvas/Garden/Content/Mortar`) cạnh ấm trà, biển "Giã bánh · còn N lượt" / "Mai giã tiếp".
+- Hai thành tựu mới: `gia-3sao` (Giã bánh 3 sao lần đầu), `gia-30` (Giã 30 ván). Hình: `prop_coi-gia-banh.png` đã có; chày tách, bánh ba trạng thái, bánh méo chưa vẽ (cối hiện dùng hình có sẵn chày, bánh là đĩa vàng).
+- Ảnh (docs/anh/po-45/): `45-vong-chay.png` (vòng đang khép về bánh), `45-deo.png` (sau 6 Chuẩn, Dẻo!), `45-ket-qua.png` (tấm kết quả). Chuỗi en ngắn hơn vi, cùng khung.
+
+### Đã làm (đối chiếu với đề xuất đã duyệt trong #45)
+- Bấm theo nhịp, ván 25 giây 30 nhịp, vòng thu nhỏ về bánh, nhanh dần, Chuẩn/Được/Méo, Dẻo!, 120 điểm, 3 sao: đủ, có test.
+- Cối cạnh ấm trà, hiện từ cấp vườn 3, chạm cối để chơi, không nút HUD: đủ.
+- 3 lượt/ngày, thưởng 60 giây thu nhập × điểm/120, cỏ cho lượt có sao đầu ngày, cà rốt vàng cho ván 3 sao đầu ngày: đủ, có test.
+- Thỏ Bếp bánh cấp cao nhất đang làm giã cùng ×1,5, hiện bên cối: đủ, có test.
+- Tắt rung khi Giảm chuyển động: đủ, có test.
+
+### Chưa đạt so với #45
+- Hình chày tách khỏi cối, bánh ba trạng thái và bánh méo (cần vẽ). Thử tay nhịp có cảm giác đúng chưa (cửa sổ ±80/±160 ms là số đề xuất).
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -929,7 +948,8 @@ Sau khi sửa cả bốn xanh.
 - #24 hai ý còn lại (`3cebd43`): thang chữ cho màn vườn, khung ngoài, băng thông báo; khoảng cách thẻ dùng chung; biển "Widen the garden" hết tràn. Còn soi tràn toàn bộ (#33).
 - #28 bốn ý còn lại (`33f9b5a`): thỏ nảy và ♥ khi chạm; cà rốt bay về ví, ví phồng khi nhận; ánh sáng loé khi nâng; vòng sao qua mốc. Còn chớp mắt/vẫy tai (cần hình), thỏ đi tới trạm, cảnh nền đung đưa.
 - #22 ý cuối (`bdf2647`): tấm chi tiết thỏ, chọn đồ, chọn thỏ thành tấm trượt dùng chung (`BottomSheet`). #22 chỉ còn thử tay.
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
+- #45 Giã bánh trăng (`7ce83c9`): trò chơi nhỏ đầu tiên theo đề xuất đã duyệt; save v14; hai thành tựu. Còn hình chày/bánh ba trạng thái.
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
