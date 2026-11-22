@@ -3215,6 +3215,22 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(runner.VisitorUnseen);
         }
 
+        [Test]
+        public void The_Day_Seven_Big_Gift_Is_A_Moment_That_Names_The_Hat_And_The_Clover()
+        {
+            screen.Shell.StartGame();
+            GameState s = runner.State;
+            long today = runner.TodayNumber;
+            s.GiftStreak = 6;
+            s.GiftDay = today - 1; // six days in a row, the seventh is today
+            screen.Refresh();
+            screen.OpenShop();
+            screen.Refresh();
+            Find("Canvas/Shop/Card/Today/Gift").onClick.Invoke();
+            Assert.IsTrue(screen.Feel.BannerVisible, "the big gift is a moment");
+            StringAssert.Contains(L10n.T("item." + Shop.BigGiftHat), root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
+        }
+
         // ----- #69: the welcome-back sheet tells the time away -----
 
         [Test]

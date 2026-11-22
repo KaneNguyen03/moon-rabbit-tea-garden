@@ -4359,8 +4359,17 @@ namespace VuonTra.Game.UI
 
         void OnDailyGift()
         {
-            int gift = Runner.ClaimDailyGift();
+            int gift = Runner.ClaimDailyGift(out Shop.BigGift big);
             if (gift <= 0) return;
+            // Day 7 of the first week (#57): a moment of its own, saying what came beside the golden carrots.
+            if (big.Given)
+            {
+                Sfx.Sting();
+                string what = big.Hat != null
+                    ? L10n.T("shop.gift.big.hat", L10n.ItemName(big.Hat), big.Clovers)
+                    : L10n.T("shop.gift.big.golden", L10n.T("item." + VuonTra.Core.Shop.BigGiftHat), big.Golden, big.Clovers);
+                Feel.Moment(L10n.T("shop.gift.big", gift), what);
+            }
             Sfx.Reward();
             Haptics.Light();
             GameCatalog catalog = Runner.Catalog;
