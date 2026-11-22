@@ -1492,6 +1492,28 @@ Sau khi sửa cả bốn xanh.
 - Mốc 12 ô đất chỉ cách vạch ngày 3 bảy phút ở cả ba cách chơi (có từ trước, không do quảng cáo).
 - Chưa cài SDK LevelPlay, chưa có hộp ATT/GDPR; chạm vào cối/giỏ/hũ khi hết lượt chưa mời xem thêm lượt.
 
+## #62 — Mưa và Thỏ Ếch (agent song song, nhánh agent-62)
+
+**Test:** 919/920 (1 test mùa vụ Inconclusive như trước), thêm 17 test (9 `WeatherTests`, 7 `RainScreenTests`, 1 `GardenPacingTests`). `tools/verify.sh` → RESULT GREEN.
+**Commit:** f213bce, merge 325e22d. Main sau gộp: 993/994; sau khi gộp cùng #64 và #66, các mốc nhịp không đổi.
+
+**Đã làm:**
+- `Core/Weather.cs`: mỗi ngày 2 cơn mưa 8 phút theo hạt giống ngày (cơn 1 trong 6:00–14:30, cơn 2 trong 14:30–23:00, không chồng); `FrogRabbit`: chỉ trong mưa, mỗi cơn một bé, ở 60 giây, chạm = 10 phút thu nhập (× thu nhập × tốc độ) + 1 cỏ xác suất 1/4, tối đa 2/ngày, lùi đồng hồ không thêm, chờ cấp vườn 15 và xong hướng dẫn.
+- Save giữ bản 14, thêm khối `"frog"` (save cũ: chưa gặp bé nào).
+- Màn vườn: màu mưa (ngày xám xanh, đêm xanh đậm), 90 vạch mưa xiên, giọt trên ao, đèn lồng sáng hơn 20 %. "Giảm chuyển động" tắt vạch và giọt, giữ màu. Thỏ nghỉ ở thảm và võng ngồi dưới gốc cây ven rừng (chỉ đổi chỗ vẽ). Thỏ Ếch = Thỏ Bông đội Mũ len nhuộm xanh có hai mắt, bước ra từ cổng trăng nhỏ cạnh ao.
+- Âm thanh: tiếng mưa của bài "Mưa" (#63) thành hàm chung, mưa thì thay nền ambient, theo thanh Âm thanh.
+- Thành tựu `ech-5` "Gặp Thỏ Ếch 5 lần" = 2 cỏ.
+
+**Nhịp (trước → sau, gặp đủ 2 ếch mỗi ngày):** GardenPacing thong thả cấp 5 6p03 / cấp 10 4g29 / cấp 15 35g06 không đổi. EconomySimulation thong thả cấp 10 8g27, 12 ô đất ngày 3 (48g07), trò chơi + đơn khách ngày 1 19,5 %, không đổi; gặp 10 ếch, +5 cỏ. Không nghỉ tay: cấp 10 5p35, 12 ô đất 9p11, không đổi.
+
+**Ảnh:** `docs/anh/po-62/62-mua-ngay.png`, `62-mua-dem.png`, `62-mua-giam-chuyen-dong.png`, `62-tho-tru-mua.png`, `62-tho-ech-den.png`, `62-tho-ech.png`.
+
+### Chưa đạt / cần PO quyết
+- PO quyết: Thỏ Ếch chỉ đến từ cấp vườn 15. Từ cấp 1 nó kéo phần trò chơi + đơn khách ngày 1 xuống 9,5 %; từ cấp 8 hoặc 10 nó mở đủ 12 ô đất ngay ngày 2; từ cấp 12 thì giữ nhịp.
+- PO quyết: mưa chỉ rơi từ 6:00 tới 23:00. Theo giờ thật chỉ có 16 phút mưa mỗi ngày, nên người chơi thong thả gặp ếch thưa, thành tựu 5 lần sẽ đến chậm.
+- Tiếng mưa theo thanh Âm thanh (như issue), còn nền ambient vẫn theo thanh Nhạc.
+- Chưa có mũ ếch vẽ (Antigravity); chưa có ảnh Thỏ Ếch trong mưa đêm; bài "Mưa" chưa tự bật khi trời mưa.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
