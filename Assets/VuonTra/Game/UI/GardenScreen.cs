@@ -1416,7 +1416,7 @@ namespace VuonTra.Game.UI
                 for (int i = 0; i < Runner.Defs.Count; i++) if (Runner.Defs[i].Id == "gio-la") { leafStation = i; break; }
                 // Past the leaf station on the right, in the one gap between its name and the next station's plate: a
                 // small basket, with its plate hung on its left so neither covers a sign.
-                Vector2 basketAt = StationSpot(leafStation) + new Vector2(104f, 130f);
+                Vector2 basketAt = BasketSpot(leafStation); // #54 follow-up: by the leaf station's home tile, wherever the station is moved
                 if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
                 {
                     Image tree = AddDecor(_street, catalog.Decor[0], basketAt.x + 30f, basketAt.y + 40f, 150f * DecorScale, Color.white);
@@ -2616,7 +2616,7 @@ namespace VuonTra.Game.UI
             {
                 int leafStation = 1;
                 for (int i = 0; i < stations; i++) if (catalog.Stations[i] != null && catalog.Stations[i].Id == "gio-la") { leafStation = i; break; }
-                Vector2 basketAt = StationSpot(leafStation) + new Vector2(104f, 130f);
+                Vector2 basketAt = BasketSpot(leafStation);
                 keepOff.Add(Rect.MinMaxRect(basketAt.x - 245f, basketAt.y, basketAt.x + 60f, basketAt.y + 100f));
                 keepOff.Add(Rect.MinMaxRect(JarSpot.x - 140f, JarSpot.y - 40f, JarSpot.x + 140f, JarSpot.y + 160f));
                 keepOff.Add(Rect.MinMaxRect(MortarSpot.x - 130f, MortarSpot.y - 40f, MortarSpot.x + 130f, MortarSpot.y + 160f));
@@ -6750,9 +6750,13 @@ namespace VuonTra.Game.UI
             return p.x >= 70f && p.x <= WorldW - 70f && p.y >= 80f && p.y <= WorldH - 80f;
         }
 
-        /// <summary>A tile kept for land not bought yet: its station will stand there, and its dashed ring is already drawn.</summary>
+        /// <summary>
+        /// A tile kept for land not bought yet (its station will stand there, and its dashed ring is already drawn), or kept clear
+        /// for a prop off the grid or its plate: the firefly jar, the leaf basket, the mortar's plate (#54 follow-up).
+        /// </summary>
         bool Reserved(Hex h)
         {
+            if (GardenGrid.IsReserved(h)) return true;
             GameState s = Runner.State;
             for (int i = s.Plots; i < Runner.Defs.Count; i++) if (GardenGrid.DefaultStationTile(i) == h) return true;
             return false;
@@ -7004,6 +7008,19 @@ namespace VuonTra.Game.UI
                 for (int k = 0; k < parts.Length; k++) if (parts[k] != null) parts[k].anchoredPosition = to + offsets[k]; // exactly on the tile
             });
         }
+
+        #endregion
+
+        #region Reserved prop tiles (#54 follow-up)
+
+        /// <summary>Where the firefly jar stands by the pond, for the tests and previews: its tiles and its plate's are kept clear (<see cref="GardenGrid.ReservedTiles"/>).</summary>
+        public static Vector2 FireflyJarSpot => JarSpot;
+
+        /// <summary>
+        /// Where the leaf-catching basket stands: past the leaf station's home tile on the right, under its small tea tree. It stays
+        /// there when the leaf station is moved (#54), so the tiles kept clear for it and its plate hold wherever things are arranged.
+        /// </summary>
+        static Vector2 BasketSpot(int leafStation) => CellToWorld(GardenGrid.DefaultStationTile(leafStation)) + new Vector2(104f, 130f);
 
         #endregion
     }
