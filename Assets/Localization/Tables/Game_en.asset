@@ -2924,6 +2924,30 @@ MonoBehaviour:
     m_Localized: +1 moon jar (three stars)
     m_Metadata:
       m_Items: []
+  - m_Id: 386172349046784
+    m_Localized: Stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435392
+    m_Localized: Tune
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435393
+    m_Localized: Auto
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435394
+    m_Localized: Moonlit night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435395
+    m_Localized: Daybreak
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435396
+    m_Localized: Rain
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

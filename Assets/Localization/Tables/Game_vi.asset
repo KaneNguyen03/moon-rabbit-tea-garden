@@ -2918,6 +2918,30 @@ MonoBehaviour:
     m_Localized: "+1 h\u0169 tr\u0103ng (3 sao)"
     m_Metadata:
       m_Items: []
+  - m_Id: 386172349046784
+    m_Localized: "Ti\u1EBFng tr\u1EA1m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435392
+    m_Localized: "Nh\u1EA1c"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435393
+    m_Localized: "T\u1EF1 \u0111\u1ED9ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435394
+    m_Localized: "\u0110\xEAm tr\u0103ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435395
+    m_Localized: "R\u1EA1ng s\xE1ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 386172357435396
+    m_Localized: "M\u01B0a"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
