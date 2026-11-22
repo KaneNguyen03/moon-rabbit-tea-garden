@@ -704,7 +704,7 @@ namespace VuonTra.EditorTools
             screen.Refresh();
             Step(screen, 0.6f);
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.4f);
             Capture(screen, "51-mo-vuon");
             L10n.SetLocale("en");
@@ -721,7 +721,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.6f);
 
             // The first wave opens the two plots left of the teapot: the rim there steps back while the grass comes up.
-            Vector2 side = (GardenScreen.StationSpot(4) + GardenScreen.StationSpot(5)) / 2f;
+            Vector2 side = (screen.StationSpot(4) + screen.StationSpot(5)) / 2f;
             screen.LookAt(side);
             Step(screen, 0.3f);
             Capture(screen, "51-mua-dot-1-truoc");
@@ -753,7 +753,7 @@ namespace VuonTra.EditorTools
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
             PhotoAsks.Decline(s);
             if (!PhotoAsks.Ask(runner.Defs, s, runner.TodayNumber, () => 0d)) throw new System.Exception("Preview: nobody could ask for a photo");
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.6f);
             Capture(screen, "56-xin-chup");
             Press(screen, "Canvas/Garden/Content/PhotoAsk");
@@ -785,7 +785,7 @@ namespace VuonTra.EditorTools
             if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
             screen.SelectStation(-1);
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.5f);
             Press(screen, "Canvas/Hud/Purse");
             Step(screen, 0.4f);
