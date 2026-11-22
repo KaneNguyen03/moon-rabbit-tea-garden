@@ -2496,6 +2496,22 @@ MonoBehaviour:
     m_Localized: New Moon Rabbit
     m_Metadata:
       m_Items: []
+  - m_Id: 272084788830208
+    m_Localized: Google Play Games
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272084809801728
+    m_Localized: Google Play Saved Games
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272084809801729
+    m_Localized: "Garden level {0} \xB7 {1} rabbits"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 272084809801730
+    m_Localized: The save is over 3 MB, more than Saved Games takes; the garden stays on this device
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
