@@ -2948,6 +2948,46 @@ MonoBehaviour:
     m_Localized: Rain
     m_Metadata:
       m_Items: []
+  - m_Id: 403583164997632
+    m_Localized: Arrange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774848
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774849
+    m_Localized: "Hold to pick up \xB7 drop on an empty tile, on something to swap, or in storage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774850
+    m_Localized: Store away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774851
+    m_Localized: 'In storage: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774852
+    m_Localized: Stored away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774853
+    m_Localized: Only open stations and decorations can be stored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774854
+    m_Localized: "{0} \xB7 level {1} \xB7 in storage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774855
+    m_Localized: Take out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774856
+    m_Localized: The garden has no empty tile
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -308,7 +308,21 @@ namespace VuonTra.Core
                     sb.Append('}');
                 }
             }
-            sb.Append("]}}");
+            sb.Append(']');
+            if (s.Grid.StoredCount > 0)
+            {
+                // The stations put away (#54), an additive list written only when there are some.
+                var stored = new List<string>(s.Grid.Stored);
+                stored.Sort(string.CompareOrdinal);
+                sb.Append(",\"stored\":[");
+                for (int i = 0; i < stored.Count; i++)
+                {
+                    if (i > 0) sb.Append(',');
+                    WriteString(sb, stored[i]);
+                }
+                sb.Append(']');
+            }
+            sb.Append("}}");
             return sb.ToString();
         }
 
@@ -703,6 +717,10 @@ namespace VuonTra.Core
                         if (Math.Abs(q) > GardenGrid.MaxRadius * 2 || Math.Abs(r) > GardenGrid.MaxRadius * 2 || s.Grid.OccupantAt((int)q, (int)r) != null) continue;
                         s.Grid.Place(id, (int)q, (int)r, true);
                     }
+                // The stations put away (#54); Settle lets go of any that is not an open station with a plot.
+                if (grid.TryGetValue("stored", out object storedObj) && storedObj is List<object> stored)
+                    foreach (object raw in stored)
+                        if (raw is string id && GardenGrid.Known(id)) s.Grid.Restore(id);
             }
             GardenGrid.Settle(defs, s);
 

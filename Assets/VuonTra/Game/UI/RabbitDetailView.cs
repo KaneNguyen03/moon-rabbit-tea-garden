@@ -127,7 +127,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < defs.Count; i++)
             {
                 Rabbit there = Rabbits.AtStation(s, i);
-                sb.Append(s.Levels[i] > 0 ? '1' : '0').Append(there != null ? there.Id : 0).Append(',');
+                sb.Append(s.Levels[i] > 0 && !Layout.IsStored(defs, s, i) ? '1' : '0').Append(there != null ? there.Id : 0).Append(',');
             }
             return sb.ToString();
         }
@@ -296,7 +296,7 @@ namespace VuonTra.Game.UI
             scroll.viewport = scrollRt;
 
             var open = new List<int>();
-            for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0) open.Add(i);
+            for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0 && !Layout.IsStored(defs, s, i)) open.Add(i); // not a stored station (#54)
             // Its own trade first; within each group, the order the stations open in.
             open.Sort((a, b) =>
             {

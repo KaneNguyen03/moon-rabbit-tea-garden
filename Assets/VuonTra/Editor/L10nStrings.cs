@@ -710,6 +710,17 @@ namespace VuonTra.EditorTools
             { "tune.moon", "Đêm trăng", "Moonlit night" },
             { "tune.dawn", "Rạng sáng", "Daybreak" },
             { "tune.rain", "Mưa", "Rain" },
+            // ----- layout mode (#54) -----
+            { "layout.button", "Bố trí", "Arrange" },
+            { "layout.done", "Xong", "Done" },
+            { "layout.hint", "Giữ để nhấc lên · thả vào ô trống, lên thứ khác để đổi chỗ, hoặc vào kho", "Hold to pick up · drop on an empty tile, on something to swap, or in storage" },
+            { "layout.store", "Cất vào kho", "Store away" },
+            { "layout.store.count", "Đang cất: {0} trạm", "In storage: {0}" },
+            { "layout.stored", "Đã cất vào kho", "Stored away" },
+            { "layout.cannot", "Chỉ cất được trạm đã mở và đồ trang trí", "Only open stations and decorations can be stored" },
+            { "layout.stored.row", "{0} · cấp {1} · trong kho", "{0} · level {1} · in storage" },
+            { "layout.takeout", "Lấy ra", "Take out" },
+            { "layout.full", "Vườn đã hết ô trống", "The garden has no empty tile" },
         };
     }
 }

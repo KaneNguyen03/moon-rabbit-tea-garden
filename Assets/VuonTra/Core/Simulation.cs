@@ -26,7 +26,7 @@ namespace VuonTra.Core
             for (int i = 0; i < defs.Count; i++)
             {
                 var d = defs[i];
-                if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d) continue;
+                if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d || Layout.IsStored(defs, s, i)) continue; // stored: at rest (#54)
 
                 Tray.Advance(s, i, work * m.SpeedMultiplier, roll, onProduct);
                 double p = s.Progress[i] + work * m.SpeedMultiplier / d.CycleSeconds;

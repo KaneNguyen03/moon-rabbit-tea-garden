@@ -168,7 +168,7 @@ namespace VuonTra.Core
         /// <summary>Stands something on a lawn tile; something already standing elsewhere moves. False when the tile is off the lawn or taken by another.</summary>
         public bool Place(string id, int q, int r)
         {
-            if (!InLawn(q, r)) return false;
+            if (!InLawn(q, r) || IsStored(id)) return false; // a stored station comes out with TakeOut (#54)
             return Seat(id, new Hex(q, r));
         }
 
@@ -263,7 +263,8 @@ namespace VuonTra.Core
             GardenGrid g = s.Grid ?? (s.Grid = new GardenGrid());
             g.Radius = Math.Max(g.Radius, RadiusForPlots(s.Plots));
             var wanted = new List<string>();
-            for (int i = 0; i < defs.Count && i < s.Plots; i++) wanted.Add(StationId(defs[i]));
+            g.KeepStored(defs, s); // #54: only open stations with a plot stay in storage
+            for (int i = 0; i < defs.Count && i < s.Plots; i++) if (!g.IsStored(StationId(defs[i]))) wanted.Add(StationId(defs[i]));
             for (int n = 0; n < Math.Min(s.RestSpots, RestSpots.Max); n++) wanted.Add(RestId(n));
             wanted.Add(MortarId); wanted.Add(ShopId); wanted.Add(CounterId);
             for (int n = 0; n < s.DecorSpots.Length; n++) if (s.DecorSpots[n] != null) wanted.Add(DecorId(n));
@@ -290,6 +291,71 @@ namespace VuonTra.Core
                 if (s.DecorSpots[n] == null) g.Remove(id);
                 else if (!g._tileOf.ContainsKey(id) && !g.Seat(id, DefaultDecorTile(n)) && g.NearestEmpty(DefaultDecorTile(n), out Hex spare)) g.Seat(id, spare);
             }
+        }
+
+        // ----- Arranging the garden (#54) -----
+
+        readonly HashSet<string> _stored = new HashSet<string>();
+
+        /// <summary>The stations put away in storage: off the lawn, keeping their levels, earning nothing.</summary>
+        public IEnumerable<string> Stored => _stored;
+        public int StoredCount => _stored.Count;
+        public bool IsStored(string id) => id != null && _stored.Contains(id);
+
+        /// <summary>What the player may pick up and stand elsewhere: stations, places to rest and decorations; the props stay.</summary>
+        public static bool Movable(string id) => id != null && (id.StartsWith("station:") || id.StartsWith("rest:") || id.StartsWith("decor:"));
+
+        /// <summary>Moves what stands on one tile to an empty lawn tile. False when nothing movable stands there, or the other tile is taken or off the lawn.</summary>
+        public bool Move(Hex from, Hex to)
+        {
+            if (from == to || !InLawn(to) || _occupantAt.ContainsKey(to)) return false;
+            if (!_occupantAt.TryGetValue(from, out string id) || !Movable(id)) return false;
+            return Seat(id, to);
+        }
+
+        /// <summary>Exchanges what stands on two tiles. False unless both hold something movable.</summary>
+        public bool Swap(Hex a, Hex b)
+        {
+            if (a == b || !_occupantAt.TryGetValue(a, out string first) || !_occupantAt.TryGetValue(b, out string second)) return false;
+            if (!Movable(first) || !Movable(second)) return false;
+            _occupantAt[a] = second; _occupantAt[b] = first;
+            _tileOf[first] = b; _tileOf[second] = a;
+            return true;
+        }
+
+        /// <summary>Takes a station standing on the grid off it and into storage. False for anything that is not a station on the grid.</summary>
+        public bool Store(string id)
+        {
+            if (id == null || !id.StartsWith("station:") || !_tileOf.ContainsKey(id)) return false;
+            Remove(id);
+            _stored.Add(id);
+            return true;
+        }
+
+        /// <summary>Brings a stored station back onto the empty lawn tile nearest the centre. False when it is not stored or the lawn is full.</summary>
+        public bool TakeOut(string id)
+        {
+            if (!IsStored(id) || !NearestEmpty(out Hex tile)) return false;
+            _stored.Remove(id);
+            return Seat(id, tile);
+        }
+
+        /// <summary>Puts a station in storage as a save remembers it, with no tile; Settle drops it again if it may not be stored.</summary>
+        public void Restore(string id)
+        {
+            if (id == null || !id.StartsWith("station:")) return;
+            Remove(id);
+            _stored.Add(id);
+        }
+
+        /// <summary>Lets go of stored stations that are no longer open stations with a plot (a new moon, a save that does not fit).</summary>
+        void KeepStored(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            if (_stored.Count == 0) return;
+            var keep = new HashSet<string>();
+            for (int i = 0; i < defs.Count && i < s.Plots && i < s.Levels.Length; i++) if (s.Levels[i] > 0) keep.Add(StationId(defs[i]));
+            _stored.RemoveWhere(id => !keep.Contains(id));
+            foreach (string id in _stored) Remove(id);
         }
     }
 }

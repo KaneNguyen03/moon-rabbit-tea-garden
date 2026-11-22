@@ -2939,6 +2939,46 @@ MonoBehaviour:
     m_Key: tune.rain
     m_Metadata:
       m_Items: []
+  - m_Id: 403583164997632
+    m_Key: layout.button
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774848
+    m_Key: layout.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774849
+    m_Key: layout.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774850
+    m_Key: layout.store
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774851
+    m_Key: layout.store.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774852
+    m_Key: layout.stored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774853
+    m_Key: layout.cannot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774854
+    m_Key: layout.stored.row
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774855
+    m_Key: layout.takeout
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774856
+    m_Key: layout.full
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

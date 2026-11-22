@@ -2942,6 +2942,46 @@ MonoBehaviour:
     m_Localized: "M\u01B0a"
     m_Metadata:
       m_Items: []
+  - m_Id: 403583164997632
+    m_Localized: "B\u1ED1 tr\xED"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774848
+    m_Localized: Xong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774849
+    m_Localized: "Gi\u1EEF \u0111\u1EC3 nh\u1EA5c l\xEAn \xB7 th\u1EA3 v\xE0o \xF4 tr\u1ED1ng, l\xEAn th\u1EE9 kh\xE1c \u0111\u1EC3 \u0111\u1ED5i ch\u1ED7, ho\u1EB7c v\xE0o kho"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774850
+    m_Localized: "C\u1EA5t v\xE0o kho"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774851
+    m_Localized: "\u0110ang c\u1EA5t: {0} tr\u1EA1m"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774852
+    m_Localized: "\u0110\xE3 c\u1EA5t v\xE0o kho"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774853
+    m_Localized: "Ch\u1EC9 c\u1EA5t \u0111\u01B0\u1EE3c tr\u1EA1m \u0111\xE3 m\u1EDF v\xE0 \u0111\u1ED3 trang tr\xED"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774854
+    m_Localized: "{0} \xB7 c\u1EA5p {1} \xB7 trong kho"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774855
+    m_Localized: "L\u1EA5y ra"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 403583181774856
+    m_Localized: "V\u01B0\u1EDDn \u0111\xE3 h\u1EBFt \xF4 tr\u1ED1ng"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

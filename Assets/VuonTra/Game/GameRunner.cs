@@ -794,6 +794,7 @@ namespace VuonTra.Game
         /// <summary>Sends a rabbit to a station (whoever was there rests), or to rest with -1.</summary>
         public bool AssignRabbit(long id, int station)
         {
+            if (Layout.IsStored(Defs, State, station)) return false; // a stored station has no post (#54)
             bool ok = Rabbits.Assign(State, id, station);
             if (ok) Changed();
             return ok;
@@ -1002,5 +1003,31 @@ namespace VuonTra.Game
 
         /// <summary>The device reminders (#65), planned again from the garden as it is left; an empty list while switched off.</summary>
         void PlanReminders() => Notifications.GoingAway(State, Mods, DateTimeOffset.Now);
+
+        // ----- Arranging the garden (#54) -----
+
+        /// <summary>Something picked up on one tile and dropped on another: stood there, swapped, or back where it was.</summary>
+        public LayoutDrop DropInLayout(Hex from, Hex to)
+        {
+            LayoutDrop done = Layout.Drop(Defs, State, from, to);
+            if (done != VuonTra.Core.LayoutDrop.Back) Changed();
+            return done;
+        }
+
+        /// <summary>A station put away in storage (its rabbit rests), or a decoration back into its own storage.</summary>
+        public bool StoreAway(string id)
+        {
+            bool ok = Layout.Store(Defs, State, id);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>A stored station back on the empty tile nearest the centre; false when the lawn is full.</summary>
+        public bool TakeOutStation(int index)
+        {
+            bool ok = Layout.TakeOut(Defs, State, index);
+            if (ok) Changed();
+            return ok;
+        }
     }
 }

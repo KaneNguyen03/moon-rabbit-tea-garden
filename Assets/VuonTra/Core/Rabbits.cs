@@ -87,7 +87,7 @@ namespace VuonTra.Core
         {
             var list = new List<int>();
             for (int i = 0; i < defs.Count; i++)
-                if (s.Levels[i] > 0 && Suits(defs, r, i)) list.Add(i);
+                if (s.Levels[i] > 0 && Suits(defs, r, i) && !Layout.IsStored(defs, s, i)) list.Add(i);
             return list;
         }
 
@@ -402,6 +402,15 @@ namespace VuonTra.Core
             return n;
         }
 
+        /// <summary>Like <see cref="StationsWithoutWorker(GameState)"/>, leaving out the stations put away in storage (#54).</summary>
+        public static int StationsWithoutWorker(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            int n = 0;
+            for (int i = 0; i < s.Levels.Length; i++)
+                if (s.Levels[i] > 0 && AtStation(s, i) == null && !Layout.IsStored(defs, s, i)) n++;
+            return n;
+        }
+
         /// <summary>The rabbit's own multiplier at a station, without the trade bonus. Income uses the overload with the stations.</summary>
         public static double StationMultiplier(GameState s, int station)
         {
@@ -500,7 +509,7 @@ namespace VuonTra.Core
             var worth = new Dictionary<int, double>();
             for (int i = 0; i < defs.Count; i++)
             {
-                if (s.Levels[i] <= 0) continue;
+                if (s.Levels[i] <= 0 || Layout.IsStored(defs, s, i)) continue; // a stored station has no post (#54)
                 open.Add(i);
                 StationDef d = defs[i];
                 // Compare on a log scale so huge incomes still order correctly; rabbits excluded.

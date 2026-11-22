@@ -679,6 +679,7 @@ namespace VuonTra.EditorTools
             RenderChatter(runner, screen);
             RenderAlbumSets(runner, screen);
             RenderMoonJars(runner, screen);
+            RenderLayout(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1044,6 +1045,69 @@ namespace VuonTra.EditorTools
             File.WriteAllBytes(Path.Combine(Folder, name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             rt.Release();
+        }
+
+        /// <summary>
+        /// #54 arranging the garden: the mode on with a dashed ring on every empty tile and the first-time hint, a station
+        /// lifted and carried, the garden after a swap (still arranging), and the garden built again after "Xong".
+        /// </summary>
+        static void RenderLayout(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(4);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            Rabbits.Arrive(s, 1, "Mây", 0.4); // one resting on a stump
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0f, -80f));
+            Step(screen, 0.5f);
+            screen.EnterLayoutMode();
+            Step(screen, 0.3f);
+            Capture(screen, "54-bo-tri-bat");
+
+            // The leaf basket held, then carried halfway towards an empty tile left of the teapot.
+            Hex basket = s.Grid.TileOf(GardenGrid.StationId(defs[1])).Value, teapot = s.Grid.TileOf(GardenGrid.StationId(defs[0])).Value;
+            Hex empty = basket;
+            int best = int.MaxValue;
+            foreach (Hex h in screen.LayoutEmptyTiles())
+            {
+                int d = GardenGrid.Distance(h, new Hex(-1, 1));
+                if (d < best) { best = d; empty = h; }
+            }
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(basket));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            Vector2 half = (screen.LayoutViewPoint(basket) + screen.LayoutViewPoint(empty)) / 2f + new Vector2(60f, 230f); // above the teapot, clear of it
+            screen.SimulateLayoutDrag(half);
+            Step(screen, 0.1f);
+            Capture(screen, "54-dang-nhac");
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(empty));
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(empty));
+            Step(screen, 0.4f);
+
+            // The jam pot dropped on the teapot: the two swap tiles.
+            Hex jam = s.Grid.TileOf(GardenGrid.StationId(defs[2])).Value;
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(jam));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(teapot));
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(teapot));
+            Step(screen, 0.5f);
+            Capture(screen, "54-sau-hoan-doi");
+            screen.ExitLayoutMode();
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0f, -80f));
+            Step(screen, 0.5f);
+            Capture(screen, "54-sau-xong");
         }
     }
 }
