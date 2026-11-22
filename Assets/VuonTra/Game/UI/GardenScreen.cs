@@ -57,6 +57,10 @@ namespace VuonTra.Game.UI
         public LeavesView Basket { get; private set; }
         RectTransform _basketProp;
         Text _basketPlate;
+        /// <summary>The firefly night, opened from the glass jar on a stump by the pond.</summary>
+        public FirefliesView Jar { get; private set; }
+        RectTransform _jarProp;
+        Text _jarPlate;
         GameObject _shopBadge;
         Text _goldenText;
         int _guideStep = -1;
@@ -268,6 +272,7 @@ namespace VuonTra.Game.UI
             UpdateEdges();
             Pound.Update(dt);
             Basket.Update(dt);
+            Jar.Update(dt);
             if (_purseDown && !_purseHeld)
             {
                 _purseDownFor += dt;
@@ -804,6 +809,7 @@ namespace VuonTra.Game.UI
                 _dozeTimer = 22f + Hash(_clock) * 16f;
                 DozeSomeone();
             }
+            UpdateOrders(dt);
         }
 
         /// <summary>
@@ -908,6 +914,7 @@ namespace VuonTra.Game.UI
             Income = null;
             Pound = null;
             Basket = null;
+            Jar = null;
             Detail = null;
             Arrival = null;
             Shell = null;
@@ -978,6 +985,7 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor);
+            BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
@@ -1030,6 +1038,12 @@ namespace VuonTra.Game.UI
                 LeavesResult result = Runner.FinishLeaves(run);
                 if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
                 Basket.ShowPaid(result);
+            });
+            Jar = new FirefliesView(_canvas, catalog, Tweens, () => Refresh(-1f), run =>
+            {
+                FirefliesResult result = Runner.FinishFireflies(run);
+                if (result.Stars >= 3) Sfx.Milestone(); else if (result.Stars >= 1) Sfx.Reward(); else Sfx.Deny();
+                Jar.ShowPaid(result);
             });
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
@@ -1304,6 +1318,36 @@ namespace VuonTra.Game.UI
                 _basketPlate.resizeTextMaxSize = 20;
                 _basketProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(basketAt.y, _basketProp));
+            }
+            // The jar for the firefly night waits on a stump by the pond from garden level five: glass, a glow inside, a cork.
+            {
+                Vector2 jarAt = PondSpot + new Vector2(70f, -290f);
+                if (catalog.Decor != null && catalog.Decor.Length > 8 && catalog.Decor[8] != null)
+                {
+                    Image stump = AddDecor(_street, catalog.Decor[8], jarAt.x, jarAt.y - 20f, 90f * DecorScale, Color.white);
+                    stump.name = "JarStump";
+                    standing.Add(new KeyValuePair<float, Transform>(jarAt.y - 20f, stump.transform));
+                }
+                _jarProp = UiKit.Rect("Jar", _street).Place(0f, 0f, jarAt.x, jarAt.y + 80f, 150, 150);
+                var jarGlass = UiKit.Rect("Glass", _jarProp).Place(0.5f, 0.5f, 0, -14, 96, 110);
+                UiKit.Rect("Glow", jarGlass).Place(0.5f, 0.5f, 0, 0, 170, 170).AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
+                Image jarImage = jarGlass.AddImage(catalog.Panel, Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Night, 0.2f), 0.5f), true);
+                jarImage.raycastTarget = true;
+                for (int k = 0; k < 3; k++)
+                    UiKit.Rect("Dot", jarGlass).Place(0.5f, 0.5f, -22f + 22f * k, -24f + 18f * (k % 2), 10, 10).AddImage(catalog.Round, Palette.Mix(Palette.Lantern, Color.white, 0.5f));
+                UiKit.Rect("Cork", _jarProp).Place(0.5f, 0.5f, 0, 48, 56, 24).AddImage(catalog.Panel, Palette.Mix(Palette.Carrot, Palette.Ink, 0.45f), true);
+                var jarButton = _jarProp.gameObject.AddComponent<Button>();
+                jarButton.transition = Selectable.Transition.None;
+                jarButton.targetGraphic = jarImage;
+                jarButton.onClick.AddListener(OpenFireflies);
+                var jarPlate = UiKit.Rect("Plate", _jarProp).Place(0.5f, 0f, 0, -26, 270, 44);
+                jarPlate.AddImage(catalog.Panel, Palette.Paper, true);
+                _jarPlate = UiKit.Rect("Text", jarPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _jarPlate.resizeTextForBestFit = true;
+                _jarPlate.resizeTextMinSize = 14;
+                _jarPlate.resizeTextMaxSize = 20;
+                _jarProp.gameObject.SetActive(false);
+                standing.Add(new KeyValuePair<float, Transform>(jarAt.y, _jarProp));
             }
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
@@ -3127,6 +3171,13 @@ namespace VuonTra.Game.UI
                 int left = Leaves.PlaysLeft(s, Runner.TodayNumber);
                 _basketPlate.text = left > 0 ? L10n.T("basket.plays", left) : L10n.T("basket.tomorrow");
             }
+            bool jar = Fireflies.Unlocked(s);
+            if (_jarProp.gameObject.activeSelf != jar) _jarProp.gameObject.SetActive(jar);
+            if (jar)
+            {
+                int left = Fireflies.PlaysLeft(s, Runner.TodayNumber);
+                _jarPlate.text = left > 0 ? L10n.T("jar.plays", left) : L10n.T("jar.tomorrow");
+            }
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
@@ -3157,6 +3208,7 @@ namespace VuonTra.Game.UI
             }
             UpgradeAll.Refresh(defs, s);
             Shop.Refresh(s);
+            RefreshOrders(s);
             bool anyGolden = s.GoldenCarrots > 0;
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
             _goldenText.text = s.GoldenCarrots.ToString();
@@ -3632,7 +3684,7 @@ namespace VuonTra.Game.UI
         /// <summary>The mortar was touched: a game starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
         public void OpenPounding()
         {
-            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen || Basket.IsOpen) return;
+            if (Shell.State != ShellState.Playing || PhotoMode || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
             if (!Pounding.CanPlay(Runner.State, Runner.TodayNumber))
             {
                 Sfx.Deny();
@@ -3652,7 +3704,7 @@ namespace VuonTra.Game.UI
         /// <summary>The basket was touched: a leaf-catching game starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
         public void OpenLeaves()
         {
-            if (Shell.State != ShellState.Playing || PhotoMode || Basket.IsOpen || Pound.IsOpen) return;
+            if (Shell.State != ShellState.Playing || PhotoMode || Basket.IsOpen || Pound.IsOpen || Jar.IsOpen) return;
             if (!Leaves.CanPlay(Runner.State, Runner.TodayNumber))
             {
                 Sfx.Deny();
@@ -3665,6 +3717,25 @@ namespace VuonTra.Game.UI
             SelectStation(-1);
             Sfx.Click();
             Basket.Open(run);
+            Refresh(-1f);
+        }
+
+        /// <summary>The jar was touched: a firefly night starts if a play is left today; otherwise the plate says to come back tomorrow.</summary>
+        public void OpenFireflies()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode || Jar.IsOpen || Basket.IsOpen || Pound.IsOpen) return;
+            if (!Fireflies.CanPlay(Runner.State, Runner.TodayNumber))
+            {
+                Sfx.Deny();
+                Feel.FloatText(Feel.PointOf(_jarProp, new Vector2(0, 100)), L10n.T("jar.tomorrow"), Palette.Lantern, 36);
+                return;
+            }
+            FirefliesRun run = Runner.StartFireflies();
+            if (run == null) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Sfx.Click();
+            Jar.Open(run);
             Refresh(-1f);
         }
 
@@ -4052,5 +4123,235 @@ namespace VuonTra.Game.UI
             Tweens.Add(Motion.Time(Motion.PanelOut), t => { if (token == _bondToken) _bondLine.localScale = Vector3.one * (1f - t); }, Ease.InCubic,
                 Motion.Speech, () => { if (token == _bondToken) _bondLine.gameObject.SetActive(false); });
         }
+        #region Guests and their tea orders (#20)
+
+        /// <summary>The guest's order card, opened from the guest or the HUD pill.</summary>
+        public OrderView OrderCard { get; private set; }
+        /// <summary>Where a guest stands to order: in front of the tea shop, at the counter's open side.</summary>
+        public static Vector2 GuestSpot => PondSpot + new Vector2(-110f, -250f);
+        /// <summary>Where a guest comes in from and goes back to: off the garden's left edge, at the counter's height.</summary>
+        static Vector2 GuestEntry => new Vector2(-90f, GuestSpot.y - 40f);
+        /// <summary>How long the walk to the counter takes.</summary>
+        public const float GuestWalkSeconds = 2.4f;
+        enum GuestPhase { Away, Arriving, Waiting, Bowing, Leaving }
+        GuestPhase _guestPhase;
+        /// <summary>0 at the entry point, 1 at the counter.</summary>
+        float _guestT;
+        RectTransform _guest, _guestArt, _bubble;
+        Image _guestImage;
+        readonly RectTransform[] _bubbleItems = new RectTransform[VuonTra.Core.Orders.MaxLines];
+        readonly Image[] _bubbleIcons = new Image[VuonTra.Core.Orders.MaxLines];
+        readonly Text[] _bubbleCounts = new Text[VuonTra.Core.Orders.MaxLines];
+        GameObject _orderBadge;
+        /// <summary>True while a guest is in the garden: walking in, waiting, bowing or walking away.</summary>
+        public bool GuestShown => _guest != null && _guest.gameObject.activeSelf;
+        /// <summary>True once the guest stands at the counter with its order up.</summary>
+        public bool GuestAtCounter => _guestPhase == GuestPhase.Waiting;
+
+        void BuildOrders(GameCatalog catalog)
+        {
+            _guestPhase = GuestPhase.Away;
+            _guestT = 0f;
+            // The guest: a rabbit like the walkers, drawn over everything in the garden so it is never behind the shop.
+            _guest = UiKit.Rect("Guest", _street).Place(0f, 0f, GuestEntry.x, GuestEntry.y, 104, 110);
+            _guest.pivot = new Vector2(0.5f, 0f);
+            UiKit.Rect("Shadow", _guest).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(catalog.Round, Palette.Alpha(Palette.Night, 0.35f));
+            _guestArt = UiKit.Rect("Art", _guest).Stretch(0, 0, 1, 1);
+            _guestArt.pivot = new Vector2(0.5f, 0f); // a bow tips from the feet
+            _guestImage = _guestArt.AddImage(catalog.Rabbit, Color.white);
+            _guestImage.preserveAspect = true;
+            _guestImage.raycastTarget = true;
+            var guestButton = _guest.gameObject.AddComponent<Button>();
+            guestButton.transition = Selectable.Transition.None;
+            guestButton.targetGraphic = _guestImage;
+            guestButton.onClick.AddListener(OpenOrder);
+            // The speech bubble above its head: the products it wants, each with its count.
+            _bubble = UiKit.Rect("Bubble", _guest).Place(0.5f, 1f, 34, 64, 120, 100);
+            _bubble.AddShadow(10f, 6f, 0.25f);
+            _bubble.AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = false;
+            UiKit.Rect("Tail", _bubble).Place(0f, 0f, 28, -6, 26, 26).AddImage(catalog.Round, Palette.Paper).raycastTarget = false;
+            for (int i = 0; i < _bubbleItems.Length; i++)
+            {
+                var item = UiKit.Rect("Item " + i, _bubble).Place(0f, 0.5f, 56 + i * 104, 2, 84, 84);
+                _bubbleItems[i] = item;
+                _bubbleIcons[i] = UiKit.Rect("Icon", item).Stretch(0, 0, 1, 1, 4, 4, 4, 4).AddImage(null, Color.white);
+                _bubbleIcons[i].preserveAspect = true;
+                _bubbleIcons[i].raycastTarget = false;
+                var count = UiKit.Rect("Count", item).Place(1f, 0f, -10, 10, 46, 32);
+                count.AddImage(catalog.Panel, Palette.CarrotLip, true).raycastTarget = false;
+                _bubbleCounts[i] = UiKit.Rect("Text", count).Stretch(0, 0, 1, 1).AddText("", 20, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            }
+            _bubble.gameObject.SetActive(false);
+            _guest.SetAsLastSibling();
+            _guest.gameObject.SetActive(false);
+
+            // The HUD pill that says a guest waits, wherever the player has scrolled: a touch goes to the guest and opens the card.
+            var badge = UiKit.Rect("Order", _hud).Place(1f, 1f, -184, -176, 230, 56);
+            UiKit.Touchable(badge, 230, 56);
+            badge.AddShadow(12f, 8f, 0.3f);
+            Image badgeBack = badge.AddImage(catalog.Panel, Palette.Lantern, true);
+            badgeBack.raycastTarget = true;
+            var badgeButton = badge.gameObject.AddComponent<Button>();
+            badgeButton.transition = Selectable.Transition.None;
+            badgeButton.targetGraphic = badgeBack;
+            badgeButton.onClick.AddListener(() => { GlideTo(GuestSpot); OpenOrder(); });
+            if (catalog.Rabbit != null) UiKit.Rect("Icon", badge).Place(0f, 0.5f, 34, 2, 44, 44).AddImage(catalog.Rabbit, Color.white).preserveAspect = true;
+            UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1, 64, 0, 14, 0).AddText(L10n.T("order.badge"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _orderBadge = badge.gameObject;
+            _orderBadge.SetActive(false);
+
+            OrderCard = new OrderView(_canvas, catalog, Tweens, ProductTray.ProductSprite, OnDeliverOrder);
+        }
+
+        /// <summary>Open-play time goes to the counter's clock, and the guest walks in, waits, bows or walks away.</summary>
+        void UpdateOrders(float dt)
+        {
+            OrderEvent e = Runner.AdvanceOrders(dt);
+            if (e != OrderEvent.None)
+            {
+                if (e == OrderEvent.Arrived) Sfx.Blip();
+                Refresh(-1f);
+            }
+            if (_guestPhase == GuestPhase.Arriving || _guestPhase == GuestPhase.Leaving)
+            {
+                float dir = _guestPhase == GuestPhase.Arriving ? 1f : -1f;
+                _guestT = Mathf.Clamp01(_guestT + dir * dt / Motion.Time(GuestWalkSeconds));
+                PlaceGuest(true);
+                if (_guestPhase == GuestPhase.Arriving && _guestT >= 1f)
+                {
+                    _guestPhase = GuestPhase.Waiting;
+                    PlaceGuest(false);
+                    _bubble.gameObject.SetActive(Runner.State.Order != null);
+                    RectTransform bubble = _bubble;
+                    Tweens.Add(Motion.Time(Motion.Tap), t => { if (bubble != null) bubble.localScale = Vector3.one * (1f + 0.2f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (bubble != null) bubble.localScale = Vector3.one; });
+                }
+                else if (_guestPhase == GuestPhase.Leaving && _guestT <= 0f)
+                {
+                    _guestPhase = GuestPhase.Away;
+                    _guest.gameObject.SetActive(false);
+                }
+            }
+            else if (_guestPhase == GuestPhase.Waiting && !Motion.Reduced)
+            {
+                _guestArt.localScale = new Vector3(1f, 1f + 0.02f * Mathf.Sin(_clock * 2.2f), 1f); // breathing while it waits
+            }
+        }
+
+        void PlaceGuest(bool walking)
+        {
+            Vector2 at = Vector2.Lerp(GuestEntry, GuestSpot, _guestT);
+            if (walking && !Motion.Reduced) at.y += Mathf.Abs(Mathf.Sin(_guestT * Mathf.PI * 9f)) * 14f;
+            _guest.anchoredPosition = at;
+            _guestArt.localScale = new Vector3(_guestPhase == GuestPhase.Leaving ? -1f : 1f, 1f, 1f);
+        }
+
+        /// <summary>What the state says about the counter: a guest walks in when an order appears (or stands there already, after a load), walks away when it is gone; the bubble and the HUD pill follow.</summary>
+        void RefreshOrders(GameState s)
+        {
+            Order o = s.Order;
+            if (o != null && (_guestPhase == GuestPhase.Away || _guestPhase == GuestPhase.Leaving))
+            {
+                if (_guestPhase == GuestPhase.Away)
+                {
+                    _guest.gameObject.SetActive(true);
+                    // An order that has already waited a while (a loaded save, a rebuilt screen) has its guest standing there; a fresh one walks in.
+                    bool fresh = o.Left > VuonTra.Core.Orders.WaitSeconds - 1d;
+                    _guestT = fresh ? 0f : 1f;
+                    _guestPhase = fresh ? GuestPhase.Arriving : GuestPhase.Waiting;
+                    PlaceGuest(fresh);
+                    _bubble.gameObject.SetActive(!fresh);
+                }
+                else _guestPhase = GuestPhase.Arriving; // turned back at the gate
+            }
+            else if (o == null && (_guestPhase == GuestPhase.Arriving || _guestPhase == GuestPhase.Waiting))
+            {
+                // Patience ran out: the guest goes without a word.
+                _guestPhase = GuestPhase.Leaving;
+                _bubble.gameObject.SetActive(false);
+                if (OrderCard.IsOpen) OrderCard.Close();
+            }
+            if (o != null)
+            {
+                // The guest is drawn as its kind, the same face the card shows.
+                Sprite face = Runner.Catalog.KindSprite(o.Guest);
+                if (face != null && _guestImage.sprite != face) _guestImage.sprite = face;
+                for (int i = 0; i < _bubbleItems.Length; i++)
+                {
+                    bool has = i < o.Lines.Count;
+                    if (_bubbleItems[i].gameObject.activeSelf != has) _bubbleItems[i].gameObject.SetActive(has);
+                    if (!has) continue;
+                    _bubbleIcons[i].sprite = ProductTray.ProductSprite(o.Lines[i].Station);
+                    _bubbleCounts[i].text = "×" + o.Lines[i].Count;
+                    _bubbleCounts[i].color = VuonTra.Core.Orders.LineMet(s, o.Lines[i]) ? Palette.Moss : Palette.Card;
+                }
+                _bubble.sizeDelta = new Vector2(16 + o.Lines.Count * 104, 100);
+            }
+            bool waiting = o != null;
+            if (_orderBadge.activeSelf != waiting) _orderBadge.SetActive(waiting);
+            OrderCard.Refresh(s, Runner.Mods, Runner.Defs);
+        }
+
+        /// <summary>Opens the guest's order card, over the plain garden view.</summary>
+        public void OpenOrder()
+        {
+            if (Shell.State != ShellState.Playing || PhotoMode || Runner.State.Order == null) return;
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Sfx.Click();
+            OrderCard.Open(Runner.State, Runner.Mods, Runner.Defs);
+        }
+
+        /// <summary>Slides the view so a garden point sits a little above the middle of the screen.</summary>
+        void GlideTo(Vector2 point)
+        {
+            Vector2 from = _street.anchoredPosition, to = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - point * _zoom, _zoom);
+            if (_scroll != null) _scroll.StopMovement();
+            int run = ++_glideRun;
+            Tweens.Add(Motion.Time(Motion.Glide * 0.6f), t => { if (run == _glideRun && _street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, to, t); }, Ease.InOutCubic);
+        }
+
+        /// <summary>The order is served: the products leave the tray, the carrots fly to the purse and any clover to the rabbits tab, the guest bows and goes.</summary>
+        void OnDeliverOrder()
+        {
+            GameState s = Runner.State;
+            if (s.Order == null) return;
+            Vector2 from = Feel.PointOf(OrderCard.IsOpen ? OrderCard.DeliverRect : _guest);
+            GuestPhase was = _guestPhase;
+            _guestPhase = GuestPhase.Bowing; // so the refresh that follows does not send the guest off before the bow
+            if (!Runner.DeliverOrder(out BigNum paid, out int clovers))
+            {
+                _guestPhase = was;
+                return;
+            }
+            Sfx.Reward();
+            Haptics.Light();
+            OrderCard.Close();
+            GameCatalog catalog = Runner.Catalog;
+            string gained = "+" + paid.Short();
+            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            {
+                if (_purse == null) return;
+                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
+                Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
+            });
+            if (clovers > 0)
+            {
+                // Clovers fly to the rabbits tab, where they are spent, like a quest's.
+                RectTransform tab = _tabIcons[3].rectTransform;
+                Feel.Fly(from, Feel.PointOf(tab), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
+                    () => { if (tab != null) Feel.FloatText(Feel.PointOf(tab, new Vector2(0, 90)), "+" + clovers, Palette.Moss, 40); });
+            }
+            Feel.Moment(L10n.T("order.done.title"), clovers > 0 ? L10n.T("order.done.clover", paid.Short()) : L10n.T("order.done.sub", paid.Short()));
+            // A bow from the feet, then the walk home.
+            _bubble.gameObject.SetActive(false);
+            RectTransform artRect = _guestArt;
+            Tweens.Add(Motion.Time(0.7f), t => { if (artRect != null) artRect.localRotation = Quaternion.Euler(0, 0, -24f * Ease.Pop(t)); }, Ease.Linear, 0f, () =>
+            {
+                if (artRect != null) artRect.localRotation = Quaternion.identity;
+                if (_guestPhase == GuestPhase.Bowing) _guestPhase = GuestPhase.Leaving;
+            });
+        }
+
+        #endregion
     }
 }

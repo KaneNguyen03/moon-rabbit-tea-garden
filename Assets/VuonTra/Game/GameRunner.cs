@@ -216,6 +216,32 @@ namespace VuonTra.Game
             return paid;
         }
 
+        // ----- guests' orders (#20): the screen counts open-play time, so nothing runs at the title or while paused -----
+
+        /// <summary>Counts seconds of open play towards the next guest and the waiting guest's patience. The save keeps up with comings and goings.</summary>
+        public OrderEvent AdvanceOrders(double dt)
+        {
+            OrderEvent e = Orders.Advance(Defs, State, dt, Today, _rng.NextDouble);
+            if (e != OrderEvent.None) Save();
+            return e;
+        }
+
+        /// <summary>Brings a guest to the counter now (previews, tests); null when one is waiting already or the day's guests have all been.</summary>
+        public Order PlaceOrder()
+        {
+            Order order = Orders.Place(Defs, State, Today, _rng.NextDouble);
+            if (order != null) Changed();
+            return order;
+        }
+
+        /// <summary>Serves the waiting guest from the tray. The carrots paid and the clovers, or false when a line is short.</summary>
+        public bool DeliverOrder(out BigNum paid, out int clovers)
+        {
+            bool ok = Orders.Deliver(Defs, State, Mods, out paid, out clovers);
+            if (ok) Changed();
+            return ok;
+        }
+
         /// <summary>True while the shop's gift for today is still to be had.</summary>
         public bool GiftWaiting => Shop.GiftWaiting(State, Today);
 
@@ -482,6 +508,22 @@ namespace VuonTra.Game
         public LeavesResult FinishLeaves(LeavesRun run)
         {
             LeavesResult result = Leaves.Finish(Defs, State, Mods, run);
+            Changed();
+            return result;
+        }
+
+        /// <summary>Spends one of today's firefly plays and hands back the night, seeded by the day and the games so far; null when none is left.</summary>
+        public FirefliesRun StartFireflies()
+        {
+            if (!Fireflies.Start(State, Today)) return null;
+            Changed();
+            return FirefliesRun.FromSeed(Fireflies.SeedFor(Today, State.Fireflies.Games));
+        }
+
+        /// <summary>Pays a finished firefly night.</summary>
+        public FirefliesResult FinishFireflies(FirefliesRun run)
+        {
+            FirefliesResult result = Fireflies.Finish(Defs, State, Mods, run);
             Changed();
             return result;
         }

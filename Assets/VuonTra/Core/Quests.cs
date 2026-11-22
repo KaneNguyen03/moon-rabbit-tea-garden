@@ -32,7 +32,13 @@ namespace VuonTra.Core
         /// <summary>1 once a leaf-catching game has earned three stars.</summary>
         LeavesThreeStar,
         /// <summary>Leaf-catching games played, in all.</summary>
-        LeavesGames
+        LeavesGames,
+        /// <summary>1 once a firefly night has earned three stars.</summary>
+        FirefliesThreeStar,
+        /// <summary>Firefly nights played, in all.</summary>
+        FirefliesGames,
+        /// <summary>Guests' tea orders delivered in full (#20).</summary>
+        OrdersDelivered
     }
 
     /// <summary>
@@ -118,12 +124,18 @@ namespace VuonTra.Core
                     return s.Leaves.BestStars >= 3 ? 1 : 0;
                 case QuestMetric.LeavesGames:
                     return s.Leaves.Games;
+                case QuestMetric.FirefliesThreeStar:
+                    return s.Fireflies.BestStars >= 3 ? 1 : 0;
+                case QuestMetric.FirefliesGames:
+                    return s.Fireflies.Games;
                 case QuestMetric.RabbitsAtCap:
                 {
                     int capped = 0;
                     foreach (Rabbit r in s.Rabbits) if (Rabbits.IsMaxLevel(r)) capped++;
                     return capped;
                 }
+                case QuestMetric.OrdersDelivered:
+                    return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:
                     return 0;
             }
@@ -184,6 +196,7 @@ namespace VuonTra.Core
             s.DailyTapsBase = s.TotalTaps;
             s.DailyLevelsBase = s.LevelsBought;
             s.DailyEarnedBase = s.TotalEarned;
+            s.DailyOrdersBase = s.OrdersDelivered;
             s.GoldenToday = 0;
             BigNum goal = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * DailyCarrotSeconds);
             var floor = new BigNum(DailyCarrotMinimum);

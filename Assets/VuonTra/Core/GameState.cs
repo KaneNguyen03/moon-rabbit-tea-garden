@@ -92,6 +92,8 @@ namespace VuonTra.Core
         public int PoundingBestStars;
         /// <summary>The leaf-catching game: its own plays today, its own daily clover and its own counts.</summary>
         public MiniGameRecord Leaves = new MiniGameRecord();
+        /// <summary>The firefly night: its own plays today, the day's capped clovers and golden carrot, and its own counts.</summary>
+        public MiniGameRecord Fireflies = new MiniGameRecord();
         /// <summary>Where the latest pictures were written, oldest first; at most <see cref="Photos.AlbumSize"/>.</summary>
         public List<string> Album = new List<string>();
 
@@ -100,6 +102,13 @@ namespace VuonTra.Core
 
         /// <summary>The garden's name, its avatar rabbit and the player code.</summary>
         public PlayerProfile Profile = new PlayerProfile { Code = VuonTra.Core.Profile.NewCode() };
+
+        /// <summary>The guest at the counter, or null; seconds of open play towards the next one; today's count and the day it counts for; deliveries in all and at the day's start (#20).</summary>
+        public Order Order;
+        public double OrderClock = VuonTra.Core.Orders.StartingClock;
+        public int OrdersToday;
+        public long OrderDay = -1;
+        public long OrdersDelivered, DailyOrdersBase, NextOrderId;
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {

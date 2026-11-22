@@ -70,6 +70,7 @@ namespace VuonTra.EditorTools
                 new Q { Id = "ngay-cham", Title = "Chạm bé thỏ 50 lần",             Metric = QuestMetric.Taps,          Target = 50, Seconds = 300, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-nang", Title = "Nâng cấp trạm 20 lần",           Metric = QuestMetric.LevelsBought,  Target = 20, Seconds = 300, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 600, Carrots = 60,  Clovers = 1, Daily = true },
+                new Q { Id = "ngay-don",  Title = "Giao 2 đơn trà cho khách",      Metric = QuestMetric.OrdersDelivered, Target = 2, Seconds = 300, Carrots = 30, Clovers = 1, Daily = true },
                 // Achievements: once.
                 new Q { Id = "mo-2",      Title = "Đánh thức bé thỏ thứ hai",       Metric = QuestMetric.StationsOpen,  Target = 2,  Seconds = 120,  Carrots = 60 },
                 new Q { Id = "mo-4",      Title = "Có 4 trạm đang hoạt động",       Metric = QuestMetric.StationsOpen,  Target = 4,  Seconds = 900,  Carrots = 500,  Clovers = 2 },
@@ -99,6 +100,11 @@ namespace VuonTra.EditorTools
                 // The leaf-catching game (#10).
                 new Q { Id = "la-3sao",   Title = "Hứng lá 3 sao lần đầu",           Metric = QuestMetric.LeavesThreeStar, Target = 1,  Seconds = 600,  Carrots = 1000, Clovers = 2 },
                 new Q { Id = "la-30",     Title = "Hứng lá 30 ván",                  Metric = QuestMetric.LeavesGames,     Target = 30, Seconds = 1800, Carrots = 3000, Clovers = 3 },
+                // The firefly night (#10).
+                new Q { Id = "dom-3sao",  Title = "Bắt đom đóm 3 sao lần đầu",       Metric = QuestMetric.FirefliesThreeStar, Target = 1,  Seconds = 600,  Carrots = 1000, Clovers = 2 },
+                new Q { Id = "dom-30",    Title = "Bắt đom đóm 30 đêm",              Metric = QuestMetric.FirefliesGames,     Target = 30, Seconds = 1800, Carrots = 3000, Clovers = 3 },
+                // Guests' tea orders (#20).
+                new Q { Id = "don-20",    Title = "Giao 20 đơn trà",                 Metric = QuestMetric.OrdersDelivered, Target = 20, Seconds = 900, Carrots = 2000, Clovers = 2 },
             };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)

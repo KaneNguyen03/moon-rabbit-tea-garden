@@ -209,6 +209,34 @@ namespace VuonTra.EditorTools
                 screen.Basket.Close();
                 screen.Refresh();
             }
+            // The firefly night: the swarm over the dark garden with the jar below, then the result.
+            screen.OpenFireflies();
+            if (screen.Jar.IsOpen)
+            {
+                FirefliesRun flyRun = screen.Jar.Run;
+                Step(screen, 4.2f);
+                foreach (Firefly fly in flyRun.Schedule)
+                {
+                    if (fly.Appears + 0.5 > screen.Jar.Time || !Fireflies.Visible(fly, screen.Jar.Time)) continue;
+                    FlySpot spot = Fireflies.PositionAt(fly, screen.Jar.Time);
+                    screen.Jar.Tap((float)spot.X, (float)spot.Y);
+                    break; // one just caught, its "+1" still up
+                }
+                Step(screen, 0.1f);
+                Capture(screen, "10-dom-dom");
+                foreach (Firefly fly in flyRun.Schedule)
+                {
+                    if (flyRun.IsCaught(fly.Index)) continue;
+                    double at = System.Math.Max(screen.Jar.Time, fly.Appears + 0.2);
+                    if (at > screen.Jar.Time) Step(screen, (float)(at - screen.Jar.Time));
+                    FlySpot spot = Fireflies.PositionAt(fly, screen.Jar.Time);
+                    screen.Jar.Tap((float)spot.X, (float)spot.Y);
+                }
+                Step(screen, 21f);
+                Capture(screen, "10-dom-dom-ket-qua");
+                screen.Jar.Close();
+                screen.Refresh();
+            }
 
             // The sheet's slide in, frame by frame (30 frames a second), then at rest.
             Capture(screen, "22-open-0");
@@ -508,6 +536,20 @@ namespace VuonTra.EditorTools
             Capture(screen, "44-tiem");
             screen.Shop.Close();
             Step(screen, 0.3f);
+            // A guest at the counter with its order in a bubble (#20), then the order card. One may have come on its
+            // own by now: the frames above step through more than the minute the first guest waits for.
+            if (runner.State.Order == null) runner.PlaceOrder();
+            if (runner.State.Order != null)
+            {
+                screen.LookAt(GardenScreen.GuestSpot);
+                Step(screen, GardenScreen.GuestWalkSeconds + 0.6f);
+                Capture(screen, "20-khach");
+                screen.OpenOrder();
+                Step(screen, 0.4f);
+                Capture(screen, "20-don");
+                screen.OrderCard.Close();
+                Step(screen, 0.3f);
+            }
             // The same garden at noon and at dusk; night is every other frame.
             screen.SelectStation(-1);
             screen.LookAt(GardenScreen.StationSpot(0));

@@ -150,6 +150,13 @@ namespace VuonTra.Core
             sb.Append(",\"star\":").Append(s.Leaves.StarToday ? "true" : "false");
             sb.Append(",\"games\":").Append(s.Leaves.Games.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"best\":").Append(s.Leaves.BestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
+            // Still version 14: the firefly night, its own block with the day's capped gifts. Absent in older saves, so no bump.
+            sb.Append(",\"fireflies\":{\"day\":").Append(s.Fireflies.Day.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"plays\":").Append(s.Fireflies.Plays.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"clovers\":").Append(s.Fireflies.CloversToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"golden\":").Append(s.Fireflies.GoldenToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"games\":").Append(s.Fireflies.Games.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"best\":").Append(s.Fireflies.BestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
             sb.Append(",\"album\":[");
             for (int i = 0; i < s.Album.Count; i++)
             {
@@ -201,6 +208,33 @@ namespace VuonTra.Core
             sb.Append(",\"view\":{\"x\":").Append(Sane(s.ViewX).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"y\":").Append(Sane(s.ViewY).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"zoom\":").Append(Sane(s.ViewZoom).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append('}');
+            // Guests' orders (#20), an additive block: the schedule, the counts, and the guest at the counter if any.
+            sb.Append(",\"orders\":{\"clock\":").Append(Sane(s.OrderClock).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"today\":").Append(s.OrdersToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"day\":").Append(s.OrderDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"delivered\":").Append(s.OrdersDelivered.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"dailyBase\":").Append(s.DailyOrdersBase.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"nextId\":").Append(s.NextOrderId.ToString(CultureInfo.InvariantCulture));
+            if (s.Order != null)
+            {
+                Order o = s.Order;
+                sb.Append(",\"order\":{\"id\":").Append(o.Id.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"guest\":");
+                WriteString(sb, o.Guest);
+                sb.Append(",\"left\":").Append(Sane(o.Left).ToString("R", CultureInfo.InvariantCulture));
+                sb.Append(",\"seconds\":").Append(Sane(o.RewardSeconds).ToString("R", CultureInfo.InvariantCulture));
+                sb.Append(",\"clovers\":").Append(o.RewardClovers.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"lines\":[");
+                for (int i = 0; i < o.Lines.Count; i++)
+                {
+                    if (i > 0) sb.Append(',');
+                    sb.Append("{\"station\":");
+                    WriteString(sb, o.Lines[i].Station >= 0 && o.Lines[i].Station < defs.Count ? defs[o.Lines[i].Station].Id : "");
+                    sb.Append(",\"count\":").Append(o.Lines[i].Count.ToString(CultureInfo.InvariantCulture)).Append('}');
+                }
+                sb.Append("]}");
+            }
             sb.Append("}}");
             return sb.ToString();
         }
@@ -442,6 +476,16 @@ namespace VuonTra.Core
                 s.Leaves.Games = Math.Max(0, ToLong(ReadNumber(leaves, "games")));
                 s.Leaves.BestStars = (int)Math.Max(0d, Math.Min(ReadNumber(leaves, "best"), 3));
             }
+            // The firefly night. A save from before it has all its plays, the day's gifts untouched and no games behind it.
+            if (root.TryGetValue("fireflies", out object firefliesObj) && firefliesObj is Dictionary<string, object> fireflies)
+            {
+                s.Fireflies.Day = TryNumber(fireflies, "day", out double fDay) ? ToLong(fDay) : -1;
+                s.Fireflies.Plays = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "plays"), Fireflies.PlaysPerDay));
+                s.Fireflies.CloversToday = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "clovers"), Fireflies.CloverCapPerDay));
+                s.Fireflies.GoldenToday = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "golden"), Fireflies.GoldenCapPerDay));
+                s.Fireflies.Games = Math.Max(0, ToLong(ReadNumber(fireflies, "games")));
+                s.Fireflies.BestStars = (int)Math.Max(0d, Math.Min(ReadNumber(fireflies, "best"), 3));
+            }
             if (root.TryGetValue("album", out object albumObj) && albumObj is List<object> album)
                 foreach (object item in album)
                     if (item is string path && path.Length > 0 && s.Album.Count < Photos.AlbumSize && !s.Album.Contains(path)) s.Album.Add(path);
@@ -475,6 +519,40 @@ namespace VuonTra.Core
                 s.ViewZoom = zoom;
                 s.ViewX = ReadNumber(view, "x");
                 s.ViewY = ReadNumber(view, "y");
+            }
+
+            // Guests' orders (#20). A save from before them: the first guest comes a minute after opening, nothing delivered.
+            if (root.TryGetValue("orders", out object ordersObj) && ordersObj is Dictionary<string, object> orders)
+            {
+                s.OrderClock = TryNumber(orders, "clock", out double clock) ? Math.Max(0d, Math.Min(Orders.Interval, clock)) : Orders.StartingClock;
+                s.OrdersToday = (int)Math.Max(0d, Math.Min(ReadNumber(orders, "today"), Orders.PerDay));
+                s.OrderDay = TryNumber(orders, "day", out double orderDay) ? ToLong(orderDay) : -1;
+                s.OrdersDelivered = Math.Max(0L, ToLong(ReadNumber(orders, "delivered")));
+                s.DailyOrdersBase = Math.Max(0L, Math.Min(s.OrdersDelivered, ToLong(ReadNumber(orders, "dailyBase"))));
+                s.NextOrderId = Math.Max(0L, ToLong(ReadNumber(orders, "nextId")));
+                if (orders.TryGetValue("order", out object orderObj) && orderObj is Dictionary<string, object> entry)
+                {
+                    var order = new Order
+                    {
+                        Id = ToLong(ReadNumber(entry, "id")),
+                        Guest = entry.TryGetValue("guest", out object guestObj) && guestObj is string guest && RabbitKinds.Find(guest) != null ? guest : RabbitKinds.DefaultFor(0),
+                        Left = Math.Max(0d, Math.Min(Orders.WaitSeconds, ReadNumber(entry, "left"))),
+                        RewardSeconds = Math.Max(0d, Math.Min(Orders.RewardSeconds, ReadNumber(entry, "seconds"))),
+                        RewardClovers = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "clovers"), 1)),
+                    };
+                    if (entry.TryGetValue("lines", out object linesObj) && linesObj is List<object> lines)
+                        foreach (object raw in lines)
+                        {
+                            if (!(raw is Dictionary<string, object> line) || order.Lines.Count >= Orders.MaxLines) continue;
+                            int station = line.TryGetValue("station", out object stationObj) && stationObj is string stationId ? IndexOf(defs, stationId) : -1;
+                            int count = (int)Math.Min(ReadNumber(line, "count"), Tray.StackLimit);
+                            if (station < 0 || count < 1) continue;
+                            order.Lines.Add(new OrderLine { Station = station, Count = count });
+                        }
+                    // A guest with nothing left to ask for, or whose patience is spent, is not kept.
+                    if (order.Lines.Count > 0 && order.Left > 0d) s.Order = order;
+                    if (order.Id > s.NextOrderId) s.NextOrderId = order.Id;
+                }
             }
 
             result.Status = LoadStatus.Ok;

@@ -1922,11 +1922,143 @@ MonoBehaviour:
     m_Localized: Take the cloud's
     m_Metadata:
       m_Items: []
-  - m_Id: 216240961347584
+  - m_Id: 216545128079360
+    m_Localized: Firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439488
+    m_Localized: Tap the fireflies as they cross the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439489
+    m_Localized: '{0} points'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439490
+    m_Localized: '{0} s left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439491
+    m_Localized: +1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439492
+    m_Localized: +3 golden!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439493
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439494
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439495
+    m_Localized: The jar is lit!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439496
+    m_Localized: '{0} caught'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439497
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439498
+    m_Localized: +{0} clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439499
+    m_Localized: +1 golden carrot (three stars)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439500
+    m_Localized: Today's cap is reached; more tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439501
+    m_Localized: "Fireflies \xB7 {0} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439502
+    m_Localized: More tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439503
+    m_Localized: First three-star firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216545157439504
+    m_Localized: Catch fireflies thirty nights
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048119169024
+    m_Localized: A tea order
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751936
+    m_Localized: Guest!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751937
+    m_Localized: '{0} is at the counter'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751938
+    m_Localized: Would like
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751939
+    m_Localized: Waiting {0} more
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751940
+    m_Localized: 'Deliver it all: +{0} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751941
+    m_Localized: "Deliver it all: +{0} carrots \xB7 +1 clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751942
+    m_Localized: Deliver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751943
+    m_Localized: '{0} more to make'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751944
+    m_Localized: A happy guest!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751945
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751946
+    m_Localized: "+{0} carrots \xB7 +1 clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751947
+    m_Localized: The guest has left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751948
+    m_Localized: Deliver 2 tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751949
+    m_Localized: Deliver 20 tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 219281773027328
     m_Localized: Station rank {0}!
     m_Metadata:
       m_Items: []
-  - m_Id: 216240986513408
+  - m_Id: 219281785610240
     m_Localized: "{0} \xB7 level {1}, now earns double"
     m_Metadata:
       m_Items: []
