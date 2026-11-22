@@ -504,6 +504,23 @@ namespace VuonTra.EditorTools
             screen.LookAt(new Vector2(540f, 2900f));
             Step(screen, 0.3f);
             Capture(screen, "17-rest-top");
+            // #55 Resting rabbits stroll to an empty spot of the lawn: tea by day, a firefly to chase by night.
+            {
+                screen.ClockHours = () => 12.0;
+                screen.Refresh();
+                Step(screen, screen.StageStroll(0, StrollActivity.Tea));
+                int spot = screen.StrollSpotOf(0);
+                if (spot >= 0) screen.LookAt(GardenScreen.LawnSpots[spot]);
+                Step(screen, 0.4f);
+                Capture(screen, "55-uong-tra");
+                screen.ClockHours = () => 22.0;
+                screen.Refresh();
+                Step(screen, screen.StageStroll(1, StrollActivity.Firefly));
+                spot = screen.StrollSpotOf(1);
+                if (spot >= 0) screen.LookAt(GardenScreen.LawnSpots[spot]);
+                Step(screen, 0.4f);
+                Capture(screen, "55-duoi-dom-dom");
+            }
             // A resting rabbit given the teapot walks over from its seat: caught halfway.
             {
                 Rabbit mover = null;
