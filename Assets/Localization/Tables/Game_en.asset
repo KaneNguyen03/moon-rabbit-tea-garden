@@ -2158,6 +2158,38 @@ MonoBehaviour:
     m_Localized: charcoal
     m_Metadata:
       m_Items: []
+  - m_Id: 249588253450240
+    m_Localized: Privacy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838848
+    m_Localized: Read the privacy policy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838849
+    m_Localized: Need help? Send your player code to {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838850
+    m_Localized: Delete my data
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838851
+    m_Localized: 'Tap again: the garden, the backup and the cloud copy will go'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838852
+    m_Localized: This cannot be undone. Tap once more to delete everything
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838853
+    m_Localized: All data deleted; the garden starts over
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838854
+    m_Localized: Deleted on this device; the cloud copy could not be removed, try again when online
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -469,6 +469,21 @@ namespace VuonTra.Game
             Sync.Restore(SaveSummary.Of(State), ReplaceWithCloud, r => { Synced?.Invoke(r); onDone?.Invoke(r); });
         }
 
+        /// <summary>
+        /// "Delete my data" (#42): the copy in the cloud, the save on the device, its backup and the kept corrupt copy all go,
+        /// and the garden starts over as a new game. <paramref name="onDone"/> gets whether everything could be removed.
+        /// </summary>
+        public void DeleteMyData(Action<bool> onDone = null)
+        {
+            Cloud.Delete(cloudGone =>
+            {
+                bool diskGone = _store == null || _store.DeleteAll();
+                _sync = null;
+                ResetGame();
+                onDone?.Invoke(cloudGone && diskGone);
+            });
+        }
+
         /// <summary>Brings the backed-up copy on the device back; the copy it replaces becomes the backup, so nothing is lost either way.</summary>
         public bool RestoreLocalBackup()
         {

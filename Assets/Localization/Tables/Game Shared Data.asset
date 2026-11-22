@@ -2151,6 +2151,38 @@ MonoBehaviour:
     m_Key: dye.than
     m_Metadata:
       m_Items: []
+  - m_Id: 249588253450240
+    m_Key: privacy.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838848
+    m_Key: privacy.open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838849
+    m_Key: privacy.support
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838850
+    m_Key: privacy.delete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838851
+    m_Key: privacy.delete.once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838852
+    m_Key: privacy.delete.twice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838853
+    m_Key: privacy.deleted
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838854
+    m_Key: privacy.delete.partly
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

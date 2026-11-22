@@ -4038,5 +4038,46 @@ namespace VuonTra.Core.Tests
             if (!noHat) Assert.AreEqual(runner.Catalog.ItemIcon(hat.DefId), hatOn.GetComponent<Image>().sprite);
             Assert.IsFalse(world.Find("Seat 1/Art/HatOn").gameObject.activeSelf, "no hat on a rabbit that wears none");
         }
+
+        [Test]
+        public void The_Profile_Offers_The_Privacy_Policy_Support_And_Deleting_Everything_After_Two_Confirmations()
+        {
+            screen.Shell.StartGame();
+            runner.State.Rabbits.Add(new Rabbit { Id = 7, Tier = 2, Kind = "tho-bong", Name = "Bông" });
+            runner.State.Coins = new BigNum(12345);
+            runner.State.GardenXp = Garden.XpForLevel(6);
+            var cloud = new MemoryCloudSave();
+            runner.Cloud = cloud;
+            runner.PushToCloud();
+            Assert.IsNotNull(cloud.Text);
+            string opened = null;
+            ProfileView.OpenUrl = url => opened = url;
+            int rabbitsBefore = runner.State.Rabbits.Count;
+
+            Find("Canvas/Hud/Settings").onClick.Invoke();
+            Find("Canvas/Pause/Card/Profile").onClick.Invoke();
+            Find("Canvas/Profile/Card/Privacy").onClick.Invoke();
+            Assert.AreEqual(AppInfo.PrivacyUrl, opened, "the policy opens at its address");
+            StringAssert.Contains(AppInfo.SupportEmail, root.transform.Find("Canvas/Profile/Card/Support").GetComponent<Text>().text);
+
+            Text label = root.transform.Find("Canvas/Profile/Card/DeleteData/Text").GetComponent<Text>();
+            Assert.AreEqual(L10n.T("privacy.delete"), label.text);
+            Find("Canvas/Profile/Card/DeleteData").onClick.Invoke();
+            Assert.AreEqual(L10n.T("privacy.delete.once"), label.text, "first confirmation asked");
+            Assert.AreEqual(rabbitsBefore, runner.State.Rabbits.Count, "nothing deleted yet");
+            Find("Canvas/Profile/Card/DeleteData").onClick.Invoke();
+            Assert.AreEqual(L10n.T("privacy.delete.twice"), label.text, "second confirmation asked");
+            Assert.IsNotNull(cloud.Text, "still nothing deleted");
+            Find("Canvas/Profile/Card/DeleteData").onClick.Invoke();
+            Assert.IsNull(cloud.Text, "the cloud copy is gone");
+            Assert.AreEqual(1, cloud.Deletes);
+            Assert.AreEqual(1, runner.State.Rabbits.Count, "a new garden with its first rabbit");
+            Assert.IsNull(Rabbits.Find(runner.State, 7), "the old rabbit is gone");
+            Assert.AreEqual(0d, runner.State.Coins.ToDouble());
+            Assert.AreEqual(1, Garden.Level(runner.State));
+            Assert.IsFalse(screen.Profile.IsOpen, "the profile closes on the fresh garden");
+            Assert.AreEqual(ShellState.Playing, screen.Shell.State);
+            ProfileView.OpenUrl = url => Application.OpenURL(url);
+        }
     }
 }

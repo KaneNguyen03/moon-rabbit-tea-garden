@@ -1025,7 +1025,14 @@ namespace VuonTra.Game.UI
                     Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus);
                     Feel.FloatText(Feel.PointOf(Profile.Root), L10n.T("cloud.local.restored"), Palette.Ink, 34);
                     Refresh(-1f);
-                });
+                },
+                () => Runner.DeleteMyData(ok =>
+                {
+                    Profile.Close();
+                    Shell.Resume();
+                    Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
+                    Refresh(-1f);
+                }));
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             CloudChoice = new CloudChoiceView(_canvas, catalog, Tweens, takeRemote => Runner.ResolveSync(takeRemote, r =>
             {
