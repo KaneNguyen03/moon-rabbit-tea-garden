@@ -712,6 +712,25 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: #33 (soi tràn toàn bộ, chữ to tuỳ chọn).
 
+## #28 — Bốn ý còn lại: thỏ nảy và trái tim khi chạm, cà rốt bay về ví, đạo cụ loé khi nâng, vòng sao qua mốc
+
+- Test: 455/455 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 3 test màn hình.
+- Commit `33f9b5a`, đã push. Issue #28 để mở (còn: thỏ chớp mắt/vẫy tai (cần hình), thỏ đi tới trạm khi được xếp, cảnh nền đung đưa, thử tay), đã comment, nhãn chờ-PO-duyệt.
+- `StationActorView.Flash` (ánh sáng sau trạm nở ra 0,3 giây), `GardenScreen.PlayPayout` (công khai để test và preview gọi). Không chuỗi mới.
+- Ảnh (docs/anh/po-28/): `28-sau-bay-1.png`, `28-sau-bay-2.png`, `28-sau-bay-3.png` (ba khung cà rốt bay từ ấm trà về ví).
+
+### Đã làm (đối chiếu với mục "Còn lại" trong #28)
+- Kéo vườn có quán tính và nảy biên: đã có từ trước (ScrollRect Elastic, quán tính mặc định); không đổi.
+- Thỏ nảy và hiện trái tim khi chạm: chạm trạm có thỏ thì thỏ nhảy một cái và ♥ nổi lên, về đúng chỗ cũ (test). Thở đã có; chớp mắt, vẫy tai cần khung hình vẽ (chưa).
+- Cà rốt bay từ trạm về ô cà rốt, ô phồng khi nhận: mỗi lần trạm trả, hai cà rốt bay về ví, ví phồng khi chúng tới (test); con số chạy đã có từ trước; quá 12 thứ đang bay thì bỏ bớt để vườn đông không ngập.
+- Nâng cấp: đạo cụ nảy (có từ trước) và ánh sáng loé; qua mốc ×2 có vòng 14 sao vàng bung ra quanh trạm (test).
+
+### Chưa đạt so với #28
+- Thỏ đi dạo đi thật theo lối và đi tới trạm khi được xếp; cảnh nền (tán cây, đèn lồng, mặt ao, đom đóm theo đàn); thử tay.
+
+### Tồn đọng
+- tồn đọng: các ý trên; "vòng sao" dùng chấm tròn màu vàng, chưa có hình ngôi sao.
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -865,12 +884,13 @@ Sau khi sửa cả bốn xanh.
 - #23 ba ý còn lại (`9cff4c9`): tab không chọn rõ hơn; tấm trạm sát thanh tab; huy hiệu tab Trạm và tab Thỏ. Còn vùng an toàn trên máy thật.
 - #32 hai ý còn lại (`40443d7`): chạm giữ ví xem số đầy đủ; cụm nút góc phải trên một tấm. Còn viền sáng khi tăng tốc.
 - #24 hai ý còn lại (`3cebd43`): thang chữ cho màn vườn, khung ngoài, băng thông báo; khoảng cách thẻ dùng chung; biển "Widen the garden" hết tràn. Còn soi tràn toàn bộ (#33).
+- #28 bốn ý còn lại (`33f9b5a`): thỏ nảy và ♥ khi chạm; cà rốt bay về ví, ví phồng khi nhận; ánh sáng loé khi nâng; vòng sao qua mốc. Còn chớp mắt/vẫy tai (cần hình), thỏ đi tới trạm, cảnh nền đung đưa.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2 (#22 (hộp giữa màn), #28 phần còn lại); #30 xong (session kia, `c7c629d`).
+- Lượt UI 2: còn #22 (hộp giữa màn) và các ý cần hình/đường đi của #28; #30 xong (session kia, `c7c629d`).
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
