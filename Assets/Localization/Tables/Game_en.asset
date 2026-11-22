@@ -1994,6 +1994,66 @@ MonoBehaviour:
     m_Localized: Catch fireflies thirty nights
     m_Metadata:
       m_Items: []
+  - m_Id: 218048119169024
+    m_Localized: A tea order
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751936
+    m_Localized: Guest!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751937
+    m_Localized: '{0} is at the counter'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751938
+    m_Localized: Would like
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751939
+    m_Localized: Waiting {0} more
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751940
+    m_Localized: 'Deliver it all: +{0} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751941
+    m_Localized: "Deliver it all: +{0} carrots \xB7 +1 clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751942
+    m_Localized: Deliver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751943
+    m_Localized: '{0} more to make'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751944
+    m_Localized: A happy guest!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751945
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751946
+    m_Localized: "+{0} carrots \xB7 +1 clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751947
+    m_Localized: The guest has left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751948
+    m_Localized: Deliver 2 tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751949
+    m_Localized: Deliver 20 tea orders
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

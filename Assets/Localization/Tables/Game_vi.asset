@@ -1990,6 +1990,66 @@ MonoBehaviour:
     m_Localized: "B\u1EAFt \u0111om \u0111\xF3m 30 \u0111\xEAm"
     m_Metadata:
       m_Items: []
+  - m_Id: 218048119169024
+    m_Localized: "Kh\xE1ch \u0111\u1EB7t tr\xE0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751936
+    m_Localized: "Kh\xE1ch!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751937
+    m_Localized: "{0} gh\xE9 qu\u1EA7y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751938
+    m_Localized: "Mu\u1ED1n mua"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751939
+    m_Localized: "Ch\u1EDD th\xEAm {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751940
+    m_Localized: "Giao \u0111\u1EE7: +{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751941
+    m_Localized: "Giao \u0111\u1EE7: +{0} c\xE0 r\u1ED1t \xB7 +1 c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751942
+    m_Localized: Giao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751943
+    m_Localized: "C\xF2n thi\u1EBFu {0} m\xF3n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751944
+    m_Localized: "Kh\xE1ch h\xE0i l\xF2ng!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751945
+    m_Localized: "+{0} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751946
+    m_Localized: "+{0} c\xE0 r\u1ED1t \xB7 +1 c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751947
+    m_Localized: "Kh\xE1ch \u0111\xE3 \u0111i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751948
+    m_Localized: "Giao 2 \u0111\u01A1n tr\xE0 cho kh\xE1ch"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751949
+    m_Localized: "Giao 20 \u0111\u01A1n tr\xE0"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

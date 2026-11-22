@@ -986,7 +986,7 @@ namespace VuonTra.Game.UI
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor);
             BuildOrders(catalog);
-            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account));
+            Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus));
             // Built after the shell so it draws over the pause card it opens from; the rename card is moved above it.
             Profile = new ProfileView(_canvas, catalog, Tweens,
                 () => { Runner.NextAvatar(); Profile.Refresh(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus); },

@@ -1987,6 +1987,66 @@ MonoBehaviour:
     m_Key: quest.dom-30
     m_Metadata:
       m_Items: []
+  - m_Id: 218048119169024
+    m_Key: order.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751936
+    m_Key: order.badge
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751937
+    m_Key: order.guest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751938
+    m_Key: order.wants
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751939
+    m_Key: order.left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751940
+    m_Key: order.reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751941
+    m_Key: order.reward.clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751942
+    m_Key: order.deliver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751943
+    m_Key: order.missing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751944
+    m_Key: order.done.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751945
+    m_Key: order.done.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751946
+    m_Key: order.done.clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751947
+    m_Key: order.gone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751948
+    m_Key: quest.ngay-don
+    m_Metadata:
+      m_Items: []
+  - m_Id: 218048131751949
+    m_Key: quest.don-20
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

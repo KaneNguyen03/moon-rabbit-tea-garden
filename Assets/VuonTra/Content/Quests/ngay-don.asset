@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
   Id: ngay-don
   Title: "Giao 2 \u0111\u01A1n tr\xE0 cho kh\xE1ch"
-  Metric: 14
+  Metric: 18
   Station: {fileID: 0}
   Target: 2
   Daily: 1

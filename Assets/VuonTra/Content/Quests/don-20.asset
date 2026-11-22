@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
   Id: don-20
   Title: "Giao 20 \u0111\u01A1n tr\xE0"
-  Metric: 14
+  Metric: 18
   Station: {fileID: 0}
   Target: 20
   Daily: 0
