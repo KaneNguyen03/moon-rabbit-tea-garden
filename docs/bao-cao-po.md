@@ -731,6 +731,20 @@ Sau khi sửa cả bốn xanh.
 ### Tồn đọng
 - tồn đọng: các ý trên; "vòng sao" dùng chấm tròn màu vàng, chưa có hình ngôi sao.
 
+## #22 — Ý còn lại: tấm chi tiết thỏ, bảng chọn đồ, chọn thỏ thành tấm trượt
+
+- Test: 471/471 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 1 test màn hình.
+- Commit `bdf2647`, đã push. Issue #22 đã đủ các ý trừ thử tay; comment, nhãn chờ-PO-duyệt.
+- File mới: `Assets/VuonTra/Game/UI/BottomSheet.cs` (tấm trượt dùng chung: trượt lên có nảy nhẹ, tay nắm, kéo xuống hoặc chạm ra ngoài để đóng, chỉ phủ tối nhẹ). `RabbitDetailView`, `ItemPickerView`, `WorkerPickerView` đặt nội dung lên tấm này; đường dẫn `Canvas/RabbitSheet/Card`, `Canvas/Picker/Card`, `Canvas/WorkerPicker/Card` giữ nguyên.
+- Ảnh (docs/anh/po-22/): `22-truoc-8b-detail.png`, `22-truoc-9-items.png`, `22-sau-8b-detail.png`, `22-sau-9-items.png`, `22-sau-43-chon-tho.png`.
+
+### Đã làm (đối chiếu với mục "Còn lại" trong #22)
+- Tấm chi tiết thỏ, bảng chọn đồ, chọn thỏ cho trạm: trượt từ dưới lên (0,25 s, nảy nhẹ), có tay nắm, kéo xuống quá 30% hoặc hất nhanh thì đóng, kéo ít thì bật lại, chạm ra ngoài đóng; phủ tối nhẹ (18%) thay vì scrim đậm (test).
+- Tấm đổi tên giữ ở giữa-trên màn hình vì bàn phím điện thoại che phần dưới.
+
+### Tồn đọng
+- tồn đọng: thử tay kéo tay nắm trên bản Mac (chủ project).
+
 ## Bàn giao (22/11, phiên code dừng tại đây)
 
 ### Trạng thái
@@ -895,12 +909,13 @@ Sau khi sửa cả bốn xanh.
 - #32 hai ý còn lại (`40443d7`): chạm giữ ví xem số đầy đủ; cụm nút góc phải trên một tấm. Còn viền sáng khi tăng tốc.
 - #24 hai ý còn lại (`3cebd43`): thang chữ cho màn vườn, khung ngoài, băng thông báo; khoảng cách thẻ dùng chung; biển "Widen the garden" hết tràn. Còn soi tràn toàn bộ (#33).
 - #28 bốn ý còn lại (`33f9b5a`): thỏ nảy và ♥ khi chạm; cà rốt bay về ví, ví phồng khi nhận; ánh sáng loé khi nâng; vòng sao qua mốc. Còn chớp mắt/vẫy tai (cần hình), thỏ đi tới trạm, cảnh nền đung đưa.
+- #22 ý cuối (`bdf2647`): tấm chi tiết thỏ, chọn đồ, chọn thỏ thành tấm trượt dùng chung (`BottomSheet`). #22 chỉ còn thử tay.
 - Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
 - Màn "lúc bạn đi vắng" (tấm `Canvas/Away` đã có từ trước; chưa rõ PO muốn thêm gì; chưa có issue).
-- Lượt UI 2: còn #22 (hộp giữa màn) và các ý cần hình/đường đi của #28; #30 xong (session kia, `c7c629d`).
+- Lượt UI 2 xong phần máy làm được; còn các ý cần hình/đường đi của #28 và các việc thử tay. Hàng đợi kế (từ điều phối): #45 Giã bánh trăng, #28 phần code (cảnh nền, thỏ đi tới trạm), #34, #38 phần Core.
 - Phần còn lại của #37 (7 hình món + khung khay) và #18 (khung ảnh, công tắc, album, nhiệm vụ, mobile).
 
 ### Cần chủ project thử tay hoặc quyết
