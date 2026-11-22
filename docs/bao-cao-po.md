@@ -1402,6 +1402,18 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Thử trên máy thật chờ #41. Khởi động lại máy thì mất nhắc; giờ mùa hè có thể lệch một giờ; bấm thông báo chỉ mở game.
 
+## #64 — Hũ trăng: 1 giờ thu nhập mở ở ví, Tiệm bán 12 cà rốt vàng (agent song song, nhánh agent-64)
+
+- Test: 865/866 EditMode trên nhánh (main trước đó 852/853). Thêm `MoonJarsTests` 9, `GardenScreenTests` 3 (ví, kệ Tiệm, nhiệm vụ thu hoạch), `GardenPacingTests` 1 (tuần thong thả trước/sau). Test đom đóm trên màn hình đổi kỳ vọng từ cà rốt vàng sang hũ. `AccessibilityTests` đo thêm tên ô hũ.
+- Commit `d4b2d24`, merge `b87eaa5`, bảng chuỗi `d109c58`. Main sau gộp: 881/882. Save thêm khối `moonJars` (giữ v14; save cũ 0 hũ).
+- `Core/MoonJars.cs`: `Value` = thu/giây × 3600 × IncomeMultiplier × SpeedMultiplier lúc mở; trần 9; Tiệm 12 vàng, 3/ngày theo `TodayNumber`; một hũ miễn phí/ngày dùng chung cho mốc cấp chia hết cho 10, nhiệm vụ `ngay-thu` (`RewardJars` thay cỏ) và đêm đom đóm 3 sao (thay cà rốt vàng trong ngày). Hai nguồn sau chờ cấp vườn 15. Không có hũ thì nguồn trả quà cũ. Nút, ô HUD và ô Tiệm hiện từ cấp vườn 3.
+- Màn hình: thanh hũ cuối `IncomeView` ("Mở hũ trăng (N)", cà rốt bay về ví như bán món), ô hũ cạnh ô cà rốt vàng trên HUD, ô "Hũ trăng" cuối hàng Trang trí vườn (chạm hai lần, "Còn N/3", "Kệ đầy", "Mai mua tiếp"), ô hũ trên dòng nhiệm vụ, dòng "+1 hũ trăng (3 sao)". Hũ vẽ bằng code. `GardenScreen` có vùng mới cuối file và một chỗ trong `OnClaim`.
+- Nhịp (mở ngay, không mua): cấp 5, cấp 10, 12 ô đất và số lượt gọi vàng không đổi ở cả ba mô phỏng; thong thả 5–6 hũ/tuần, nhiều nhất 1/ngày; hũ 0,7 % thu nhập cuối ngày 1, 1,5 % cuối ngày 7; thu nhập/giây ngày 7 lên 8,04ac (trước 2,32ac). Trả hũ từ đầu hoặc từ cấp 10 đưa 12 ô đất về ngày 2, nên hai nguồn hằng ngày chờ cấp 15.
+- Ảnh (docs/anh/po-64/): `64-vi-hu.png`, `64-ke-hu.png`.
+
+### Chưa đạt / cần PO quyết
+- Giữ mốc cấp 15 cho nhiệm vụ và đom đóm, hay nới mốc 12 ô đất. Chưa có thông báo "đã đầy"; hũ mốc cấp mất im lặng khi đã có hũ hôm nay hoặc kệ đầy. Hình hũ chờ vẽ tay. Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
