@@ -453,9 +453,12 @@ namespace VuonTra.Game.UI
         Image _levelRing;
         RectTransform _levelBadge;
         int _shownGardenLevel = -1;
-        readonly List<CanvasGroup> _fog = new List<CanvasGroup>();
-        readonly List<GameObject> _fogTrees = new List<GameObject>();
-        int _fogPlots = -1;
+        // #51: land not bought yet is a dashed ring on clear grass; the forest rim at the lawn's edge steps back as the land opens.
+        readonly List<CanvasGroup> _landRings = new List<CanvasGroup>(), _landBlooms = new List<CanvasGroup>();
+        readonly List<RimPiece> _rim = new List<RimPiece>();
+        /// <summary>What the rim keeps clear of whatever land is open, and by how much: the props with a plate to read by 200, the pond, seats and decoration spots by a hair.</summary>
+        readonly List<KeyValuePair<Rect, float>> _rimKeepOff = new List<KeyValuePair<Rect, float>>();
+        int _landPlots = -1;
         bool _wheelLatched;
         float _wheelQuiet;
         RectTransform _cardWorker;
@@ -1242,44 +1245,15 @@ namespace VuonTra.Game.UI
             // Everything that stands up is drawn back to front: the lower on screen, the nearer.
             var standing = new List<KeyValuePair<float, Transform>>();
 
-            // Land the garden has not grown into yet lies under mist with a few trees on it. The mist is on the
-            // ground, under everything that stands, so the outline of the next station still shows through.
-            _fog.Clear(); _fogTrees.Clear(); _fogPlots = -1;
-            Color mist = new Color(0.66f, 0.74f, 0.88f, 0.62f);
+            // Land the garden has not bought yet is clear grass with a faint dashed ring where the station will stand (#51);
+            // the forest rim at the lawn's edge is what is not opened. When the land is bought the ring goes and fresh grass
+            // and flowers come up on it. Both lie flat on the ground, under everything that stands.
+            _landRings.Clear(); _landBlooms.Clear(); _rim.Clear(); _rimKeepOff.Clear(); _landPlots = -1;
             for (int i = 0; i < count; i++)
             {
-                if (i < Plots.Starting) { _fog.Add(null); _fogTrees.Add(null); continue; }
-                Vector2 spot = StationSpot(i);
-                // Several banks of mist, each a different size and thickness, overlapping so no edge reads as a picture.
-                var bank = UiKit.Rect("Mist " + i, _street).Place(0f, 0f, spot.x, spot.y, 0, 0);
-                CanvasGroup veil = bank.gameObject.AddComponent<CanvasGroup>();
-                veil.blocksRaycasts = false;
-                if (catalog.Mist != null)
-                {
-                    float ratio = catalog.Mist.rect.height / catalog.Mist.rect.width;
-                    float[] dx = { -70f, 90f, 10f, -20f }, dy = { 30f, 10f, -70f, 110f }, wide = { 520f, 460f, 600f, 400f }, thick = { 0.7f, 0.58f, 0.74f, 0.46f };
-                    for (int k = 0; k < dx.Length; k++)
-                    {
-                        Image patch = UiKit.Rect("Patch", bank).Place(0.5f, 0.5f, dx[k] + (i % 2) * 24f, dy[k], wide[k], wide[k] * ratio)
-                            .AddImage(catalog.Mist, new Color(0.86f, 0.9f, 1f, thick[k]));
-                        if ((k + i) % 2 == 1) patch.rectTransform.localScale = new Vector3(-1f, 1f, 1f); // flipped, so neighbours differ
-                    }
-                }
-                else UiKit.Rect("Patch", bank).Place(0.5f, 0.5f, 6f, -10f, 620f, 470f).AddImage(catalog.Glow, mist);
-                _fog.Add(veil);
-                var grove = UiKit.Rect("Grove " + i, _street).Place(0f, 0f, 0, 0, 0, 0);
-                if (catalog.Decor != null && catalog.Decor.Length > 5 && catalog.Decor[1] != null && catalog.Decor[4] != null)
-                {
-                    Color dim = Palette.Mix(Color.white, Palette.Night, 0.3f);
-                    // Low growth on the station's own ground: bushes and mushrooms, so nothing tall cuts the view of the
-                    // lawn or hides a neighbour that is open (#50: the big trees all stand in the wood around the garden).
-                    Rooted(AddDecor(grove, catalog.Decor[1], spot.x - 66f, spot.y - 40f, 96f, dim), "Bush", spot.x - 66f, spot.y - 40f, _swayTrees);
-                    Rooted(AddDecor(grove, catalog.Decor[1], spot.x + 84f, spot.y - 70f, 84f, dim), "Bush", spot.x + 84f, spot.y - 70f, _swayTrees);
-                    Image caps = AddDecor(grove, catalog.Decor[4], spot.x + 10f, spot.y - 120f, 56f, dim);
-                    if (caps != null) caps.name = "Mushrooms";
-                }
-                _fogTrees.Add(grove.gameObject);
-                standing.Add(new KeyValuePair<float, Transform>(spot.y - 40f, grove));
+                if (i < Plots.Starting) { _landRings.Add(null); _landBlooms.Add(null); continue; }
+                _landBlooms.Add(BuildBloom(catalog, i));
+                _landRings.Add(BuildRing(catalog, i));
             }
             BuildDecor(catalog, count, standing);
 
@@ -2461,6 +2435,122 @@ namespace VuonTra.Game.UI
         }
         static Vector2 ShopSpot => PondSpot + new Vector2(-330f, -150f);
 
+        // ----- #51: the forest rim and the land not bought yet -----
+
+        /// <summary>The forest rim at its nearest comes to this line at the lawn's sides: its pieces end where the grass ends.</summary>
+        const float RimHugLeft = 40f, RimHugRight = WorldW - 40f;
+        /// <summary>How long a piece of the rim takes to step back when new land opens: it fades out, and in again further off.</summary>
+        public const float RimStep = 0.6f;
+
+        /// <summary>One piece of the forest rim: a tree, a sapling, a clump of mushrooms, a bush, stones or a stone lantern.</summary>
+        sealed class RimPiece
+        {
+            public RectTransform Art, Shade;
+            public Image Image, ShadeImage;
+            /// <summary>Where its foot stands up the lawn, its size, which side (-1 left, +1 right), and how far behind the edge line its row stands.</summary>
+            public float Y, Width, Height, Depth, ShadeAlpha;
+            public int Side;
+            public float X, Target = float.NaN;
+            public int Run;
+        }
+
+        /// <summary>
+        /// The plot a station takes, as a ring on the ground: the station's pad, centred where its floor is drawn.
+        /// The same shape as <see cref="StationReach"/> at its widest, so whatever keeps off the reach keeps off the ring.
+        /// </summary>
+        static Rect PlotRing(int i)
+        {
+            Vector2 spot = StationSpot(i);
+            float s = StationSize(i);
+            Vector2 centre = spot + StationActorView.FloorAt * s, half = StationActorView.FloorSize * s / 2f;
+            return Rect.MinMaxRect(centre.x - half.x, centre.y - half.y * 0.7f, centre.x + half.x, centre.y + half.y * 0.7f);
+        }
+
+        /// <summary>A faint dashed ring on the grass where a station will stand once the land is bought.</summary>
+        CanvasGroup BuildRing(GameCatalog catalog, int i)
+        {
+            Rect at = PlotRing(i);
+            var ring = UiKit.Rect("Ring " + i, _street).Place(0f, 0f, at.center.x, at.center.y, at.width, at.height);
+            CanvasGroup group = ring.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            Color dash = Palette.Alpha(Palette.Paper, 0.42f);
+            const int Dashes = 22;
+            for (int k = 0; k < Dashes; k++)
+            {
+                float angle = k / (float)Dashes * Mathf.PI * 2f;
+                Vector2 o = new Vector2(Mathf.Cos(angle) * at.width / 2f, Mathf.Sin(angle) * at.height / 2f);
+                Vector2 along = new Vector2(-Mathf.Sin(angle) * at.width, Mathf.Cos(angle) * at.height);
+                var d = UiKit.Rect("Dash", ring).Place(0.5f, 0.5f, o.x, o.y, 24f, 7f);
+                d.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(along.y, along.x) * Mathf.Rad2Deg);
+                d.AddImage(catalog.Round, dash).raycastTarget = false;
+            }
+            return group;
+        }
+
+        /// <summary>Fresh grass and a few flowers on land just bought: hidden until then, and it stays.</summary>
+        CanvasGroup BuildBloom(GameCatalog catalog, int i)
+        {
+            Rect at = PlotRing(i);
+            var bloom = UiKit.Rect("Bloom " + i, _street).Place(0f, 0f, at.center.x, at.center.y, at.width, at.height);
+            CanvasGroup group = bloom.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            Color[] blades = { Palette.Alpha(Palette.Moss, 0.75f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Paper, 0.3f), 0.7f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Grass, 0.4f), 0.8f) };
+            Color[] petals = { Palette.Blush, Palette.Lantern, Palette.Paper };
+            for (int k = 0; k < 26; k++)
+            {
+                float seed = i * 7.3f + k * 1.9f;
+                float angle = Hash(seed) * Mathf.PI * 2f, r = 0.78f + Hash(seed + 1f) * 0.32f;
+                Vector2 o = new Vector2(Mathf.Cos(angle) * at.width / 2f * r, Mathf.Sin(angle) * at.height / 2f * r);
+                bool flower = k % 3 == 0;
+                float size = flower ? 12f + Hash(seed + 2f) * 8f : 26f + Hash(seed + 3f) * 16f;
+                var piece = UiKit.Rect(flower ? "Petal" : "Grass", bloom).Place(0.5f, 0.5f, o.x, o.y, size, flower ? size : size * 0.4f);
+                if (!flower) piece.localRotation = Quaternion.Euler(0, 0, 60f + Hash(seed + 4f) * 60f);
+                piece.AddImage(catalog.Round, flower ? Palette.Alpha(petals[k % petals.Length], 0.9f) : blades[k % blades.Length]).raycastTarget = false;
+            }
+            bloom.gameObject.SetActive(false);
+            return group;
+        }
+
+        /// <summary>
+        /// Where a piece of the rim stands when the garden has <paramref name="plots"/> plots: as near the lawn's edge as it may,
+        /// stepping out until it keeps <see cref="CanopyClearance"/> from every plot that is bought and from the props that must be
+        /// read, and stands on no plot at all, bought or not.
+        /// </summary>
+        float RimX(RimPiece p, int plots)
+        {
+            float x = 0f;
+            for (int n = 0; n < 60; n++)
+            {
+                float edge = p.Side < 0 ? RimHugLeft - p.Depth - n * 20f : RimHugRight + p.Depth + n * 20f;
+                x = edge + p.Side * p.Width / 2f;
+                if (RimClear(Rect.MinMaxRect(x - p.Width / 2f, p.Y, x + p.Width / 2f, p.Y + p.Height), plots)) return x;
+            }
+            return x;
+        }
+
+        bool RimClear(Rect piece, int plots)
+        {
+            for (int i = 0; i < _landRings.Count; i++)
+                if (Apart(piece, StationReach(i)) < (i < plots ? CanopyClearance + 4f : 4f)) return false;
+            foreach (KeyValuePair<Rect, float> keep in _rimKeepOff)
+                if (Apart(piece, keep.Key) < keep.Value) return false;
+            return true;
+        }
+
+        /// <summary>Stands a piece of the rim at <paramref name="x"/>, with its shadow, as clear as <paramref name="alpha"/>.</summary>
+        static void PlaceRim(RimPiece p, float x, float alpha)
+        {
+            p.X = x;
+            if (p.Art == null) return;
+            p.Art.anchoredPosition = new Vector2(x, p.Y);
+            p.Image.color = Palette.Alpha(p.Image.color, alpha);
+            if (p.Shade != null)
+            {
+                p.Shade.anchoredPosition = new Vector2(x + 6f, p.Y + 4f);
+                p.ShadeImage.color = Palette.Alpha(p.ShadeImage.color, p.ShadeAlpha * alpha);
+            }
+        }
+
         /// <summary>Open grass: off every station's prop, plates and name, off the seats, the pond, the mortar and the shop.</summary>
         static bool OpenGrass(float x, float y, int stations)
         {
@@ -2635,6 +2725,66 @@ namespace VuonTra.Game.UI
             {
                 Put(Bush, -70f + Hash(y + 8) * 30f, y + Hash(y + 9) * 60f, 120f, soft);
                 Put(Bush, WorldW + 40f + Hash(y + 10) * 30f, y + 90f + Hash(y + 11) * 60f, 120f, soft);
+            }
+
+            // The forest rim (#51): along both sides of the lawn, a row of trees and saplings just behind the edge and, at the edge
+            // itself, the low things of a wood's border. Each spot takes one of the templates by a fixed hash, so the rim never
+            // repeats and is the same every time. Beside land not yet bought the rim comes right up to the grass; beside land
+            // that is bought it stands back as far as the wood does (RefreshLand moves it).
+            _rimKeepOff.Clear();
+            for (int k = stations; k < keepOff.Count; k++) _rimKeepOff.Add(new KeyValuePair<Rect, float>(keepOff[k], CanopyClearance + 4f));
+            _rimKeepOff.Add(new KeyValuePair<Rect, float>(Rect.MinMaxRect(pondAt.x - 200f, pondAt.y - 110f, pondAt.x + 210f, pondAt.y + 120f), 4f));
+            foreach (Vector2 seat in Seats) _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(Heart.x + seat.x - 80f, Heart.y + seat.y - 20f, 160f, 160f), 4f));
+            foreach (Vector2 spot in DecorSpots) _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(spot.x - 70f, spot.y, 140f, 160f), 4f));
+            Transform rimParent = _canopy != null ? _canopy : (Transform)_street;
+            List<KeyValuePair<float, Transform>> rimInto = _canopy != null ? canopyStanding : standing;
+            const int RimTree = 0, RimSapling = 1, RimMushrooms = 2, RimBush = 3, RimStones = 4, RimLantern = 5;
+            void AddRim(int template, int side, float y, float depth, float seed)
+            {
+                if (template == RimLantern && catalog.StoneLantern == null) template = RimBush;
+                Sprite sprite = template == RimLantern ? catalog.StoneLantern : d[template == RimTree || template == RimSapling ? Tree : template == RimMushrooms ? Mushrooms : template == RimBush ? Bush : Stones];
+                if (sprite == null) return;
+                string[] names = { "Rim Tree", "Rim Sapling", "Rim Mushrooms", "Rim Bush", "Rim Stones", "Rim Lantern" };
+                float[] low = { 380f, 230f, 92f, 130f, 74f, 150f / DecorScale }, high = { 460f, 280f, 110f, 150f, 86f, 150f / DecorScale };
+                float height = Mathf.Lerp(low[template], high[template], Hash(seed)) * DecorScale;
+                float width = height * sprite.rect.width / sprite.rect.height;
+                var piece = new RimPiece { Y = y, Width = width, Height = height, Depth = depth, Side = side };
+                if (template != RimStones)
+                {
+                    float sw = Mathf.Clamp(height * 0.55f, 50f, 260f);
+                    piece.Shade = UiKit.Rect("Rim Shade", rimParent).Place(0f, 0f, 0f, 0f, sw, sw * 0.34f);
+                    piece.ShadeAlpha = 0.28f;
+                    piece.ShadeImage = piece.Shade.AddImage(catalog.Glow, Palette.Alpha(Palette.Night, piece.ShadeAlpha));
+                    piece.ShadeImage.raycastTarget = false;
+                    rimInto.Add(new KeyValuePair<float, Transform>(y + 0.25f, piece.Shade));
+                }
+                // Mirrored on one side in two, so neighbours of the same kind differ.
+                piece.Image = AddDecor(rimParent, sprite, 0f, y, height, template == RimLantern ? Color.white : soft);
+                piece.Image.raycastTarget = false;
+                piece.Art = piece.Image.rectTransform;
+                piece.Art.name = names[template];
+                piece.Art.pivot = new Vector2(0.5f, 0f);
+                if (Hash(seed + 0.5f) < 0.5f) piece.Art.localScale = new Vector3(-1f, 1f, 1f);
+                if (template == RimTree || template == RimSapling) _swayTrees.Add(piece.Art);
+                rimInto.Add(new KeyValuePair<float, Transform>(y, piece.Art));
+                PlaceRim(piece, RimX(piece, Plots.Starting), 1f);
+                _rim.Add(piece);
+            }
+            for (int side = -1; side <= 1; side += 2)
+            {
+                int lastEdge = -1;
+                for (float y = 140f; y < WorldH - 340f; y += 115f)
+                {
+                    float seed = y * 0.37f + side * 11f;
+                    // Behind: a tree or a sapling.
+                    AddRim(Hash(seed + 2f) < 0.6f ? RimTree : RimSapling, side, y + 50f + Hash(seed + 1f) * 30f, 50f + Hash(seed + 3f) * 50f, seed + 4f);
+                    // At the edge: something low, so the grass reads where it ends. A lantern now and then, never two running.
+                    float pick = Hash(seed + 5f);
+                    int edge = pick < 0.3f ? RimSapling : pick < 0.56f ? RimMushrooms : pick < 0.8f ? RimBush : pick < 0.93f ? RimStones : RimLantern;
+                    if (edge == lastEdge) edge = edge == RimMushrooms ? RimBush : RimMushrooms;
+                    AddRim(edge, side, y + Hash(seed + 6f) * 30f, Hash(seed + 7f) * 16f, seed + 8f);
+                    lastEdge = edge;
+                }
             }
 
             // Around every station, the same small set, placed where it fits: a planter on one side, mushrooms by the
@@ -3595,7 +3745,7 @@ namespace VuonTra.Game.UI
                 Tweens.Add(0.5f, t => { if (badge != null) badge.localScale = Vector3.one * (1f + 0.3f * Ease.Pop(t)); });
             }
             _shownGardenLevel = gardenLevel;
-            RefreshFog(s);
+            RefreshLand(s);
 
             _energyFill.anchorMax = new Vector2(Mathf.Clamp01((float)(s.Energy / Energy.Max)), 1f);
             _energyLabel.text = L10n.T("energy.label", Mathf.FloorToInt((float)s.Energy));
@@ -3682,47 +3832,63 @@ namespace VuonTra.Game.UI
             _worldSeen = true;
         }
 
-        /// <summary>The mist lies on every plot the garden does not have; when the garden widens it lifts.</summary>
-        void RefreshFog(GameState s)
+        /// <summary>
+        /// Land not bought is a dashed ring on clear grass, with the forest rim right up to the lawn beside it (#51). When the
+        /// garden widens the rings of the new plots go, grass and flowers come up on them and the rim beside them steps back:
+        /// its pieces fade out and in again further off. Under reduced motion, and when the screen first shows, all of it is
+        /// simply where it belongs.
+        /// </summary>
+        void RefreshLand(GameState s)
         {
-            // Trees grow only where no station is drawn at all; the next station's outline stands in mist alone.
-            int open = 0;
-            for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] > 0) open = i + 1;
-            int drawn = Mathf.Min(s.Levels.Length, Mathf.Min(s.Plots + 1, open + 2));
-            int key = s.Plots * 100 + drawn;
-            if (key == _fogPlots) return;
-            bool lifting = _fogPlots >= 0 && s.Plots > _fogPlots / 100;
-            for (int i = 0; i < _fog.Count; i++)
+            int plots = s.Plots;
+            if (plots == _landPlots) return;
+            bool growing = _landPlots >= 0 && plots > _landPlots && !Motion.Reduced;
+            for (int i = 0; i < _landRings.Count; i++)
             {
-                if (_fog[i] == null) continue;
-                bool misty = i >= s.Plots;
-                CanvasGroup fog = _fog[i];
-                GameObject grove = _fogTrees[i];
-                if (grove.activeSelf != (i >= drawn)) grove.SetActive(i >= drawn);
-                if (misty) fog.gameObject.SetActive(true);
-                else if (lifting && fog.gameObject.activeSelf)
+                CanvasGroup ring = _landRings[i], bloom = _landBlooms[i];
+                if (ring == null) continue;
+                if (i >= plots)
                 {
-                    // The banks drift apart to either side and thin away.
-                    var bank = (RectTransform)fog.transform;
-                    var homes = new Vector2[bank.childCount];
-                    for (int k = 0; k < homes.Length; k++) homes[k] = ((RectTransform)bank.GetChild(k)).anchoredPosition;
-                    Tweens.Add(1.4f, t =>
-                    {
-                        if (fog == null) return;
-                        fog.alpha = 1f - t;
-                        for (int k = 0; k < homes.Length && k < bank.childCount; k++)
-                            ((RectTransform)bank.GetChild(k)).anchoredPosition = homes[k] + new Vector2((k % 2 == 0 ? -1f : 1f) * 260f * t, 30f * t);
-                    }, Ease.OutCubic, 0f, () =>
-                    {
-                        if (fog == null) return;
-                        fog.gameObject.SetActive(false);
-                        fog.alpha = 1f;
-                        for (int k = 0; k < homes.Length && k < bank.childCount; k++) ((RectTransform)bank.GetChild(k)).anchoredPosition = homes[k];
-                    });
+                    ring.gameObject.SetActive(true);
+                    ring.alpha = 1f;
+                    bloom.gameObject.SetActive(false);
+                    continue;
                 }
-                else fog.gameObject.SetActive(false);
+                bloom.gameObject.SetActive(true);
+                if (!growing || i < _landPlots || !ring.gameObject.activeSelf)
+                {
+                    ring.gameObject.SetActive(false);
+                    bloom.alpha = 1f;
+                    bloom.transform.localScale = Vector3.one;
+                    continue;
+                }
+                Tweens.Add(RimStep / 2f, t => { if (ring != null) ring.alpha = 1f - t; }, null, 0f,
+                    () => { if (ring != null) { ring.gameObject.SetActive(false); ring.alpha = 1f; } });
+                bloom.alpha = 0f;
+                bloom.transform.localScale = Vector3.one * 0.6f;
+                Tweens.Add(RimStep, t =>
+                {
+                    if (bloom == null) return;
+                    bloom.alpha = Mathf.Clamp01(t);
+                    bloom.transform.localScale = Vector3.one * Mathf.LerpUnclamped(0.6f, 1f, t);
+                }, Ease.OutBack, RimStep / 3f);
             }
-            _fogPlots = key;
+            foreach (RimPiece p in _rim)
+            {
+                float to = RimX(p, plots);
+                if (to == p.Target) continue;
+                p.Target = to;
+                int run = ++p.Run;
+                float from = p.X;
+                if (!growing || Mathf.Abs(to - from) < 0.5f) { PlaceRim(p, to, 1f); continue; }
+                Tweens.Add(RimStep, t =>
+                {
+                    if (p.Run != run || p.Art == null) return;
+                    if (t < 0.5f) PlaceRim(p, from, 1f - 2f * t);
+                    else PlaceRim(p, to, 2f * t - 1f);
+                }, t => t);
+            }
+            _landPlots = plots;
         }
 
         /// <summary>Resting rabbits that have a place sit in the garden as themselves; the rest are not out.</summary>
