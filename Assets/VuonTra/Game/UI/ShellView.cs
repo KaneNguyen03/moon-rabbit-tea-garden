@@ -35,11 +35,16 @@ namespace VuonTra.Game.UI
         readonly GameObject _newMoon;
         readonly Func<bool> _newMoonReady, _newMoonCapped;
         readonly Func<int> _newMoonLevel;
+        readonly Func<int> _mailCount;
+        readonly GameObject _mailBadge;
+        readonly Text _mailBadgeText;
         float _resetArmedAt = -99f;
 
         public ShellView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onReset, Action onProfile = null,
-            Func<bool> newMoonReady = null, Func<int> newMoonLevel = null, Action onNewMoon = null, Func<bool> newMoonCapped = null)
+            Func<bool> newMoonReady = null, Func<int> newMoonLevel = null, Action onNewMoon = null, Func<bool> newMoonCapped = null,
+            Action onMail = null, Func<int> mailCount = null)
         {
+            _mailCount = mailCount;
             _tweens = tweens;
             _onReset = onReset;
             _newMoonReady = newMoonReady;
@@ -77,8 +82,30 @@ namespace VuonTra.Game.UI
             _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.5f, 0, 0, 820, 1720);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 700, 80)
+            UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 440, 80)
                 .AddText(L10n.T("pause.title"), 60, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+
+            // The mailbox (#68): gifts the game wrote itself, in the card's top corner; a badge counts the letters waiting.
+            var mail = UiKit.Rect("Mail", _pauseCard).Place(0f, 1f, 115, -100, 150, UiKit.MinTouch);
+            Image mailPlate = mail.AddImage(catalog.Panel, Palette.Track, true);
+            mailPlate.raycastTarget = true;
+            var mailButton = mail.gameObject.AddComponent<Button>();
+            mailButton.transition = Selectable.Transition.None;
+            mailButton.targetGraphic = mailPlate;
+            mailButton.onClick.AddListener(() => { Sfx.Click(); onMail?.Invoke(); });
+            Text mailLabel = UiKit.Rect("Text", mail).Stretch(0, 0, 1, 1, 10, 0, 10, 0)
+                .AddText(L10n.T("pause.mail"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            mailLabel.resizeTextForBestFit = true;
+            mailLabel.resizeTextMinSize = 14;
+            mailLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            var mailBadge = UiKit.Rect("Badge", mail).Place(1f, 1f, -4, -4, 44, 44);
+            mailBadge.AddImage(catalog.Round, Palette.Carrot);
+            _mailBadgeText = UiKit.Rect("Text", mailBadge).Stretch(0, 0, 1, 1).AddText("", UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _mailBadgeText.resizeTextForBestFit = true;
+            _mailBadgeText.resizeTextMinSize = 12;
+            _mailBadgeText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _mailBadge = mailBadge.gameObject;
+            RefreshMail();
 
             // Who is playing: the avatar rabbit, the garden's name and the player code; a touch opens the profile.
             var profile = UiKit.Rect("Profile", _pauseCard).Place(0.5f, 1f, 0, -210, 700, 110);
@@ -172,6 +199,14 @@ namespace VuonTra.Game.UI
             _resetLabel = UiKit.Rect("Text", reset).Stretch(0, 0, 1, 1).AddText(L10n.T("pause.reset"), UiKit.TextTitle, Palette.InkSoft);
 
             _pause.SetActive(false);
+        }
+
+        /// <summary>The mailbox's badge: how many letters wait, hidden when none do.</summary>
+        public void RefreshMail()
+        {
+            int n = _mailCount != null ? _mailCount() : 0;
+            if (_mailBadge.activeSelf != n > 0) _mailBadge.SetActive(n > 0);
+            _mailBadgeText.text = n.ToString();
         }
 
         /// <summary>The new-moon row as the garden stands: the button, or the line that says what it still needs.</summary>
@@ -301,6 +336,7 @@ namespace VuonTra.Game.UI
             _resetLabel.text = L10n.T("pause.reset");
             _resetLabel.color = Palette.InkSoft;
             ShowNewMoon();
+            RefreshMail();
             _pause.SetActive(true);
             _pauseGroup.alpha = 0f;
             _pauseGroup.blocksRaycasts = true;

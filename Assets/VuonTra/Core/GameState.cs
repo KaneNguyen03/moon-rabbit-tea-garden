@@ -151,6 +151,12 @@ namespace VuonTra.Core
         /// <summary>The hex grid the garden stands on (#52): how wide the lawn is and which tile each station, place to rest, decoration and prop has.</summary>
         public GardenGrid Grid = new GardenGrid();
 
+        /// <summary>Gift codes this garden has used (#68), as <see cref="GiftCodes.Normalize"/> writes them; each pays once.</summary>
+        public HashSet<string> CodesUsed = new HashSet<string>();
+        /// <summary>The mailbox (#68): unclaimed letters, oldest first, and the last day it looked for missed seasons (-1: not yet).</summary>
+        public List<Letter> Letters = new List<Letter>();
+        public long MailDay = -1;
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

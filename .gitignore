@@ -26,3 +26,6 @@ crashlytics-build.properties
 # Addressables writes and removes this at build time (#12)
 /Assets/AddressableAssetsData/link.xml
 /Assets/AddressableAssetsData/link.xml.meta
+# The key signed gift codes are checked with (#68): never in the repository. tools/make-code.sh --new-key makes one.
+/Assets/Resources/keys.json
+/Assets/Resources/keys.json.meta
