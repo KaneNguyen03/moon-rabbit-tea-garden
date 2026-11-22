@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: VuonTraTho
-  productName: "V\u01B0\u1EDDn Tr\xE0 Th\u1ECF Tr\u0103ng"
+  productName: Moon Rabbit Tea Garden
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.105882354, g: 0.11764706, b: 0.27058825, a: 1}

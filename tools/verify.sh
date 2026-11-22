@@ -63,7 +63,7 @@ if [ $BUILD -eq 1 ]; then
   echo "== 4/4 Mac build"
   pkill -f "VuonTraTho.app/Contents/MacOS" 2>/dev/null; sleep 1
   if run_unity "build" Logs/build.log -executeMethod VuonTra.EditorTools.BuildScript.BuildMac -quit; then
-    plog="$HOME/Library/Logs/VuonTraTho/Vườn Trà Thỏ Trăng/Player.log"
+    plog="$HOME/Library/Logs/VuonTraTho/Moon Rabbit Tea Garden/Player.log"
     rm -f "$plog"
     open Build/Mac/VuonTraTho.app; sleep 8
     pkill -f "VuonTraTho.app/Contents/MacOS"; sleep 1

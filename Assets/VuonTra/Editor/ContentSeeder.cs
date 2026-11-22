@@ -156,7 +156,8 @@ namespace VuonTra.EditorTools
         static void ApplyPlayerSettings()
         {
             PlayerSettings.companyName = "VuonTraTho";
-            PlayerSettings.productName = "Vườn Trà Thỏ Trăng";
+            // The English name is the app's name on every store and window (#15); the Vietnamese title stays on the title screen.
+            PlayerSettings.productName = BuildScript.ProductName;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.defaultScreenWidth = 540;
             PlayerSettings.defaultScreenHeight = 960;

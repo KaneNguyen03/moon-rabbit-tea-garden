@@ -29,14 +29,24 @@ namespace VuonTra.Core
         public static int StreakFor(GameState s, long day) => s.GiftDay >= 0 && day == s.GiftDay + 1 ? s.GiftStreak + 1 : 1;
 
         /// <summary>Pays today's gift once. How many golden carrots it brought, 0 when today is already paid or the clock went back.</summary>
-        public static int ClaimDailyGift(GameState s, long day)
+        public static int ClaimDailyGift(GameState s, long day) => ClaimDailyGift(s, day, null, out _);
+
+        /// <summary>
+        /// The same, and on a season's last day the gift also brings the season's kind to a garden that has none (#8),
+        /// so that everyone who plays through a season meets its rabbit. <paramref name="seasonRabbit"/> is that rabbit, or null.
+        /// </summary>
+        public static int ClaimDailyGift(GameState s, long day, string name, out Rabbit seasonRabbit)
         {
+            seasonRabbit = null;
             if (!GiftWaiting(s, day)) return 0;
             int streak = StreakFor(s, day);
             int gift = GiftAt(streak);
             s.GoldenCarrots += gift;
             s.GiftDay = day;
             s.GiftStreak = streak;
+            Season season = Seasons.SeasonOf(day);
+            if (Seasons.IsLastDay(day) && !Seasons.HasSeasonRabbit(s, season))
+                seasonRabbit = Rabbits.ArriveKind(s, Seasons.KindOf(season).Id, name ?? Seasons.KindOf(season).NameVi);
             return gift;
         }
 
@@ -45,6 +55,20 @@ namespace VuonTra.Core
         public static readonly double[] GoldenOdds = { 0.25, 0.35, 0.22, 0.12, 0.05, 0.01 };
 
         /// <summary>Spends golden carrots for one new rabbit at the shop's odds; null when there are not enough.</summary>
+        /// <summary>The same, in a season: half of the calls that land on the season kind's tier bring the season kind (#8).</summary>
+        public static Rabbit SummonGolden(GameState s, double roll, string name, double kindRoll, long day)
+        {
+            int tier = Rabbits.RollTier(roll, GoldenOdds);
+            RabbitKind seasonKind = Seasons.KindOf(Seasons.SeasonOf(day));
+            if (seasonKind != null && tier == seasonKind.Tier && kindRoll < Seasons.GoldenCallShare)
+            {
+                if (s.GoldenCarrots < GoldenSummonCost) return null;
+                s.GoldenCarrots -= GoldenSummonCost;
+                return Rabbits.ArriveKind(s, seasonKind.Id, name);
+            }
+            return SummonGolden(s, roll, name, kindRoll);
+        }
+
         public static Rabbit SummonGolden(GameState s, double roll, string name, double kindRoll = 0d)
         {
             if (s.GoldenCarrots < GoldenSummonCost) return null;
@@ -103,15 +127,18 @@ namespace VuonTra.Core
             return kinds[kinds.Count - 1].Id;
         }
 
-        /// <summary>Who is at the shop on <paramref name="day"/>: the same answer all day for this garden.</summary>
+        /// <summary>Who is at the shop on <paramref name="day"/>: the same answer all day for this garden. In a season, a third of the days bring the season's kind (#8).</summary>
         public static Visitor VisitorFor(GameState s, long day)
         {
             string code = s.Profile != null ? s.Profile.Code : "";
             int tier = VisitorFirstTier + Rabbits.RollTier(Roll(day, code, 1), VisitorTierOdds);
             tier = Math.Min(tier, Rabbits.TierCount - 1);
+            RabbitKind seasonKind = Seasons.KindOf(Seasons.SeasonOf(day));
+            bool seasonal = seasonKind != null && Roll(day, code, 3) < Seasons.VisitorShare;
+            if (seasonal) tier = seasonKind.Tier;
             return new Visitor
             {
-                Day = day, Tier = tier, Kind = PickKind(s, tier, Roll(day, code, 2)),
+                Day = day, Tier = tier, Kind = seasonal ? seasonKind.Id : PickKind(s, tier, Roll(day, code, 2)),
                 Price = VisitorPrices[Math.Min(tier - VisitorFirstTier, VisitorPrices.Length - 1)],
                 Bought = s.VisitorBoughtDay == day, Seen = s.VisitorSeenDay == day
             };

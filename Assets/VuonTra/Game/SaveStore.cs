@@ -47,6 +47,18 @@ namespace VuonTra.Game
             return current != null && WriteBackup(current);
         }
 
+        /// <summary>Removes every file this store wrote: the save, its temp, the backup and any kept corrupt copy (#42). True when nothing is left.</summary>
+        public bool DeleteAll()
+        {
+            bool ok = true;
+            foreach (string path in new[] { MainPath, TempPath, BackupPath, BadPath })
+            {
+                try { if (File.Exists(path)) File.Delete(path); }
+                catch (Exception e) { Debug.LogWarning("Không xoá được " + path + ": " + e.Message); ok = false; }
+            }
+            return ok;
+        }
+
         public bool WriteBackup(string json)
         {
             try

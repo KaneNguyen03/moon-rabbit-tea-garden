@@ -16,6 +16,8 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(BuildScript.BundleId, PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.iOS));
             Assert.AreEqual(BuildScript.BundleId, PlayerSettings.GetApplicationIdentifier(NamedBuildTarget.Android));
             Assert.AreEqual(BuildScript.Version, PlayerSettings.bundleVersion);
+            Assert.AreEqual("Moon Rabbit Tea Garden", PlayerSettings.productName, "the English name is the app's name (#15)");
+            Assert.AreEqual("VuonTraTho", PlayerSettings.companyName);
             Assert.AreEqual(BuildScript.BuildNumber.ToString(), PlayerSettings.iOS.buildNumber);
             Assert.AreEqual(BuildScript.BuildNumber, PlayerSettings.Android.bundleVersionCode);
         }

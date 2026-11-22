@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8704501d219f436d93221f29ed4dd17, type: 3}
+  m_Name: mua-nghe-noel
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
+  Id: mua-nghe-noel
+  Title: "X\u1EBFp Th\u1ECF Noel v\xE0o \u0111\xFAng ngh\u1EC1"
+  Metric: 20
+  Station: {fileID: 0}
+  Target: 1
+  Daily: 0
+  RewardSeconds: 60
+  RewardCarrots: 100
+  RewardClovers: 0
+  RewardGolden: 5
+  Season: 3

@@ -901,7 +901,9 @@ namespace VuonTra.Core.Tests
                 cells++;
                 bool seen = runner.State.SeenKinds.Contains(kind.Id);
                 if (seen) met++;
-                Assert.AreEqual(seen ? L10n.T("kind." + kind.Id) : "???", cell.Find("Name").GetComponent<Text>().text);
+                // An unmet everyday kind is a question; an unmet seasonal kind says when it can be met (#8).
+                string unmet = kind.Season != Season.None ? L10n.T("album.season.only", L10n.Season(kind.Season)) : "???";
+                Assert.AreEqual(seen ? L10n.T("kind." + kind.Id) : unmet, cell.Find("Name").GetComponent<Text>().text);
             }
             Assert.AreEqual(RabbitKinds.All.Count, cells);
             Assert.AreEqual(3, met);
@@ -3979,6 +3981,105 @@ namespace VuonTra.Core.Tests
             text.fontSize = size; text.resizeTextForBestFit = fit;
             UiKit.SetLargeText(false);
             L10n.SetLocale("vi");
+        }
+
+        [Test]
+        public void A_Working_Rabbit_Holds_Its_Stations_Tool_And_Works_It_Between_Fixed_Bounds()
+        {
+            screen.Shell.StartGame();
+            Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra");
+            Assert.IsFalse(station.Find("Rabbit/Tool").gameObject.activeSelf, "no tool without a rabbit");
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            Motion.SetReduced(true);
+            screen.Refresh();
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
+            var tool = (RectTransform)station.Find("Rabbit/Tool");
+            Assert.IsTrue(tool.gameObject.activeSelf, "a tool in the paw");
+            Assert.AreEqual(runner.Catalog.TradeIcon(runner.Defs[0].Trade), tool.GetComponent<Image>().sprite, "the station's trade, not the rabbit's");
+            Assert.AreEqual(Quaternion.identity, tool.localRotation, "held still under reduced motion");
+
+            Motion.SetReduced(false);
+            float maxAngle = 0f; bool moved = false; Vector2 home = tool.anchoredPosition;
+            for (int k = 0; k < 40; k++)
+            {
+                screen.Advance(0.05f);
+                float a = Mathf.Abs(Mathf.DeltaAngle(0f, tool.localRotation.eulerAngles.z));
+                maxAngle = Mathf.Max(maxAngle, a);
+                if (Vector2.Distance(tool.anchoredPosition, home) > 1f || a > 0.5f) moved = true;
+            }
+            Assert.IsTrue(moved, "the tool is worked");
+            Assert.LessOrEqual(maxAngle, 25f, "between fixed bounds");
+
+            runner.State.Rabbits[0].Station = -1;
+            screen.Refresh();
+            Assert.IsFalse(tool.gameObject.activeSelf, "and goes with the rabbit");
+        }
+
+        [Test]
+        public void Resting_Rabbits_Squat_On_Their_Seats_Lie_In_The_Hammock_And_Wear_Their_Hat_And_Name()
+        {
+            runner.State.RestSpots = RestSpots.Max;
+            for (int i = 1; i <= 5; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 5 - i, Kind = RabbitKinds.OfTier(5 - i)[0].Id, Name = "T" + i });
+            runner.State.NextRabbitId = 5;
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
+            runner.EquipItem(hat.Id, 1); // the rarest, who takes the first seat
+            screen.Refresh();
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            var stump = (RectTransform)world.Find("Seat 0/Art");
+            Assert.Less(stump.localScale.y, 1f, "a squat on the stump");
+            Assert.Greater(stump.localScale.x, 1f);
+            Assert.AreEqual(0f, Mathf.DeltaAngle(0f, stump.localRotation.eulerAngles.z), 0.01f);
+            var hammock = (RectTransform)world.Find("Seat 4/Art");
+            Assert.AreEqual(-72f, Mathf.DeltaAngle(0f, hammock.localRotation.eulerAngles.z), 0.01f, "lying along the hammock");
+            Assert.AreEqual("T1", world.Find("Seat 0/Name/Text").GetComponent<Text>().text, "the name under the seat");
+            Assert.AreEqual("T5", world.Find("Seat 4/Name/Text").GetComponent<Text>().text);
+            Transform hatOn = world.Find("Seat 0/Art/HatOn");
+            bool noHat = RabbitKinds.Find(runner.State.Rabbits[0].Kind).NoHat;
+            Assert.AreEqual(!noHat, hatOn.gameObject.activeSelf, "the hat comes along to the seat");
+            if (!noHat) Assert.AreEqual(runner.Catalog.ItemIcon(hat.DefId), hatOn.GetComponent<Image>().sprite);
+            Assert.IsFalse(world.Find("Seat 1/Art/HatOn").gameObject.activeSelf, "no hat on a rabbit that wears none");
+        }
+
+        [Test]
+        public void The_Profile_Offers_The_Privacy_Policy_Support_And_Deleting_Everything_After_Two_Confirmations()
+        {
+            screen.Shell.StartGame();
+            runner.State.Rabbits.Add(new Rabbit { Id = 7, Tier = 2, Kind = "tho-bong", Name = "Bông" });
+            runner.State.Coins = new BigNum(12345);
+            runner.State.GardenXp = Garden.XpForLevel(6);
+            var cloud = new MemoryCloudSave();
+            runner.Cloud = cloud;
+            runner.PushToCloud();
+            Assert.IsNotNull(cloud.Text);
+            string opened = null;
+            ProfileView.OpenUrl = url => opened = url;
+            int rabbitsBefore = runner.State.Rabbits.Count;
+
+            Find("Canvas/Hud/Settings").onClick.Invoke();
+            Find("Canvas/Pause/Card/Profile").onClick.Invoke();
+            Find("Canvas/Profile/Card/Privacy").onClick.Invoke();
+            Assert.AreEqual(AppInfo.PrivacyUrl, opened, "the policy opens at its address");
+            StringAssert.Contains(AppInfo.SupportEmail, root.transform.Find("Canvas/Profile/Card/Support").GetComponent<Text>().text);
+
+            Text label = root.transform.Find("Canvas/Profile/Card/DeleteData/Text").GetComponent<Text>();
+            Assert.AreEqual(L10n.T("privacy.delete"), label.text);
+            Find("Canvas/Profile/Card/DeleteData").onClick.Invoke();
+            Assert.AreEqual(L10n.T("privacy.delete.once"), label.text, "first confirmation asked");
+            Assert.AreEqual(rabbitsBefore, runner.State.Rabbits.Count, "nothing deleted yet");
+            Find("Canvas/Profile/Card/DeleteData").onClick.Invoke();
+            Assert.AreEqual(L10n.T("privacy.delete.twice"), label.text, "second confirmation asked");
+            Assert.IsNotNull(cloud.Text, "still nothing deleted");
+            Find("Canvas/Profile/Card/DeleteData").onClick.Invoke();
+            Assert.IsNull(cloud.Text, "the cloud copy is gone");
+            Assert.AreEqual(1, cloud.Deletes);
+            Assert.AreEqual(1, runner.State.Rabbits.Count, "a new garden with its first rabbit");
+            Assert.IsNull(Rabbits.Find(runner.State, 7), "the old rabbit is gone");
+            Assert.AreEqual(0d, runner.State.Coins.ToDouble());
+            Assert.AreEqual(1, Garden.Level(runner.State));
+            Assert.IsFalse(screen.Profile.IsOpen, "the profile closes on the fresh garden");
+            Assert.AreEqual(ShellState.Playing, screen.Shell.State);
+            ProfileView.OpenUrl = url => Application.OpenURL(url);
         }
     }
 }

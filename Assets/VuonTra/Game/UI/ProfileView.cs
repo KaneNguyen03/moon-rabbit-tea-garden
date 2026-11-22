@@ -20,7 +20,10 @@ namespace VuonTra.Game.UI
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
         readonly Image _avatar;
-        readonly Text _name, _code, _stats, _backup, _copyLabel, _linkNote, _cloudStatus, _restoreLocalLabel;
+        readonly Text _name, _code, _stats, _backup, _copyLabel, _linkNote, _cloudStatus, _restoreLocalLabel, _deleteLabel;
+        /// <summary>How many times "delete my data" has been pressed in a row: two confirmations before it acts.</summary>
+        int _deletePresses;
+        float _deletePressedAt = -99f;
         readonly ChunkyButton _link, _push, _restore;
         readonly GameObject _restoreLocal;
         readonly Action _onNextAvatar, _onRename;
@@ -30,7 +33,7 @@ namespace VuonTra.Game.UI
         public RectTransform Root => _card;
 
         public ProfileView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onNextAvatar, Action onRename, Action onLink,
-            Action onPushCloud = null, Action onRestoreCloud = null, Action onRestoreLocal = null)
+            Action onPushCloud = null, Action onRestoreCloud = null, Action onRestoreLocal = null, Action onDeleteData = null)
         {
             _catalog = catalog;
             _tweens = tweens;
@@ -44,7 +47,7 @@ namespace VuonTra.Game.UI
             scrim.transition = Selectable.Transition.None;
             scrim.onClick.AddListener(Close);
 
-            _card = UiKit.Rect("Card", overlay).Place(0.5f, 0.52f, 0, 0, 860, 1340);
+            _card = UiKit.Rect("Card", overlay).Place(0.5f, 0.52f, 0, 0, 860, 1580);
             _card.AddShadow(26f, 16f, 0.45f);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
@@ -135,6 +138,46 @@ namespace VuonTra.Game.UI
             _restoreLocal = restoreLocal.gameObject;
             _restoreLocal.SetActive(false);
 
+            // Privacy (#42): the policy, where to write for help, and the way to delete everything, which asks twice.
+            UiKit.Rect("PrivacyTitle", _card).Place(0.5f, 1f, 0, -1320, 740, 44)
+                .AddText(L10n.T("privacy.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var privacy = UiKit.Rect("Privacy", _card).Place(0.5f, 1f, 0, -1372, 740, UiKit.MinTouch);
+            Image privacyHit = privacy.AddImage(null, new Color(0, 0, 0, 0));
+            privacyHit.raycastTarget = true;
+            var privacyButton = privacy.gameObject.AddComponent<Button>();
+            privacyButton.transition = Selectable.Transition.None;
+            privacyButton.onClick.AddListener(() => { Sfx.Click(); OpenUrl(AppInfo.PrivacyUrl); });
+            UiKit.Rect("Text", privacy).Stretch(0, 0, 1, 1).AddText(L10n.T("privacy.open"), UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
+            Text support = UiKit.Rect("Support", _card).Place(0.5f, 1f, 0, -1430, 740, 44)
+                .AddText(L10n.T("privacy.support", AppInfo.SupportEmail), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft);
+            support.resizeTextForBestFit = true;
+            support.resizeTextMinSize = 12;
+            support.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            support.verticalOverflow = VerticalWrapMode.Truncate;
+            var delete = UiKit.Rect("DeleteData", _card).Place(0.5f, 1f, 0, -1500, 740, UiKit.MinTouch);
+            Image deleteHit = delete.AddImage(null, new Color(0, 0, 0, 0));
+            deleteHit.raycastTarget = true;
+            var deleteButton = delete.gameObject.AddComponent<Button>();
+            deleteButton.transition = Selectable.Transition.None;
+            deleteButton.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                _deletePresses++;
+                _deletePressedAt = Time.unscaledTime;
+                if (_deletePresses >= 3)
+                {
+                    _deletePresses = 0;
+                    onDeleteData?.Invoke();
+                    return;
+                }
+                _deleteLabel.text = L10n.T(_deletePresses == 1 ? "privacy.delete.once" : "privacy.delete.twice");
+            });
+            _deleteLabel = UiKit.Rect("Text", delete).Stretch(0, 0, 1, 1).AddText(L10n.T("privacy.delete"), UiKit.TextSmall, Palette.Tiers[5], TextAnchor.MiddleLeft, FontStyle.Bold);
+            _deleteLabel.resizeTextForBestFit = true;
+            _deleteLabel.resizeTextMinSize = 12;
+            _deleteLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _deleteLabel.verticalOverflow = VerticalWrapMode.Truncate;
+
             var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);
             closeImage.raycastTarget = true;
@@ -169,8 +212,13 @@ namespace VuonTra.Game.UI
             return cloud.LastPushedAt > 0 ? L10n.T("cloud.status.at", Clock(cloud.LastPushedAt)) : L10n.T("cloud.status.never");
         }
 
+        /// <summary>Opens a web address; tests swap it for a capture.</summary>
+        public static Action<string> OpenUrl = url => Application.OpenURL(url);
+
         public void Open(IReadOnlyList<StationDef> defs, GameState s, IAccountService account, CloudStatus cloud = default)
         {
+            _deletePresses = 0;
+            if (_deleteLabel != null) _deleteLabel.text = L10n.T("privacy.delete");
             _copiedAt = -99f;
             _copyLabel.text = L10n.T("profile.copy");
             _root.SetActive(true);
@@ -187,6 +235,12 @@ namespace VuonTra.Game.UI
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s, IAccountService account, CloudStatus cloud = default)
         {
             if (!IsOpen) return;
+            // A half-finished "delete" is forgotten after a few seconds, so a stray tap later does not count as the second.
+            if (_deletePresses > 0 && Time.unscaledTime - _deletePressedAt > 6f)
+            {
+                _deletePresses = 0;
+                _deleteLabel.text = L10n.T("privacy.delete");
+            }
             _cloudStatus.text = CloudLine(cloud);
             _push.SetEnabled(cloud.Available);
             _restore.SetEnabled(cloud.Available);

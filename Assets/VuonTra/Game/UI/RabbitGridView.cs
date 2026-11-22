@@ -364,6 +364,32 @@ namespace VuonTra.Game.UI
                     AddKind(row, i % Columns, kinds[i], s.SeenKinds.Contains(kinds[i].Id));
                 }
             }
+
+            // The seasons' kinds (#8), after the tiers: met ones kept for good, the others marked with their season.
+            IReadOnlyList<RabbitKind> seasonal = RabbitKinds.Seasonal();
+            if (seasonal.Count > 0)
+            {
+                int metSeasonal = 0;
+                foreach (RabbitKind k in seasonal) if (s.SeenKinds.Contains(k.Id)) metSeasonal++;
+                var head = UiKit.Rect("Season", _content);
+                head.gameObject.AddComponent<LayoutElement>().preferredHeight = 58;
+                head.AddImage(_catalog.Panel, Palette.Mix(Palette.Lantern, Palette.Paper, 0.35f), true);
+                UiKit.Rect("Text", head).Stretch(0, 0, 1, 1, 22, 0, 22, 0)
+                    .AddText(L10n.T("album.season", metSeasonal, seasonal.Count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                _dynamic.Add(head.gameObject);
+                RectTransform row = null;
+                for (int i = 0; i < seasonal.Count; i++)
+                {
+                    if (i % Columns == 0) row = AddRow("Kinds season-" + i / Columns, AlbumH);
+                    bool met = s.SeenKinds.Contains(seasonal[i].Id);
+                    AddKind(row, i % Columns, seasonal[i], met);
+                    if (!met)
+                    {
+                        Transform cell = row.Find("Kind " + seasonal[i].Id);
+                        cell.Find("Name").GetComponent<Text>().text = L10n.T("album.season.only", L10n.Season(seasonal[i].Season));
+                    }
+                }
+            }
         }
 
         void AddKind(RectTransform row, int column, RabbitKind kind, bool met)

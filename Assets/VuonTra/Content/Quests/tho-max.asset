@@ -18,7 +18,8 @@ MonoBehaviour:
   Station: {fileID: 0}
   Target: 1
   Daily: 0
-  RewardSeconds: 90
+  RewardSeconds: 900
   RewardCarrots: 3000
   RewardClovers: 0
-  RewardGolden: 3
+  RewardGolden: 5
+  Season: 0

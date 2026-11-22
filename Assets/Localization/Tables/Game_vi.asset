@@ -2154,6 +2154,110 @@ MonoBehaviour:
     m_Localized: than
     m_Metadata:
       m_Items: []
+  - m_Id: 249588253450240
+    m_Localized: "Quy\u1EC1n ri\xEAng t\u01B0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838848
+    m_Localized: "\u0110\u1ECDc ch\xEDnh s\xE1ch quy\u1EC1n ri\xEAng t\u01B0"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838849
+    m_Localized: "C\u1EA7n gi\xFAp? G\u1EEDi m\xE3 ng\u01B0\u1EDDi ch\u01A1i t\u1EDBi {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838850
+    m_Localized: "Xo\xE1 d\u1EEF li\u1EC7u c\u1EE7a t\xF4i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838851
+    m_Localized: "Ch\u1EA1m l\u1EA7n n\u1EEFa: xo\xE1 v\u01B0\u1EDDn, sao l\u01B0u v\xE0 b\u1EA3n tr\xEAn m\xE2y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838852
+    m_Localized: "Kh\xF4ng ho\xE0n t\xE1c \u0111\u01B0\u1EE3c. Ch\u1EA1m l\u1EA7n cu\u1ED1i \u0111\u1EC3 xo\xE1 h\u1EBFt"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838853
+    m_Localized: "\u0110\xE3 xo\xE1 h\u1EBFt d\u1EEF li\u1EC7u; v\u01B0\u1EDDn b\u1EAFt \u0111\u1EA7u l\u1EA1i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838854
+    m_Localized: "\u0110\xE3 xo\xE1 tr\xEAn m\xE1y; b\u1EA3n tr\xEAn m\xE2y kh\xF4ng xo\xE1 \u0111\u01B0\u1EE3c, th\u1EED l\u1EA1i khi c\xF3 m\u1EA1ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714404868096
+    m_Localized: "Th\u1ECF \u0110\xE8n \xD4ng Sao"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256704
+    m_Localized: "Th\u1ECF \xC1o D\xE0i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256705
+    m_Localized: "Th\u1ECF Noel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465726349312
+    m_Localized: "G\u1EB7p Th\u1ECF \u0110\xE8n \xD4ng Sao"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320832
+    m_Localized: "X\u1EBFp Th\u1ECF \u0110\xE8n \xD4ng Sao v\xE0o \u0111\xFAng ngh\u1EC1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320833
+    m_Localized: "Ch\u1EE5p \u1EA3nh c\xF3 Th\u1ECF \u0110\xE8n \xD4ng Sao"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320834
+    m_Localized: "G\u1EB7p Th\u1ECF \xC1o D\xE0i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320835
+    m_Localized: "X\u1EBFp Th\u1ECF \xC1o D\xE0i v\xE0o \u0111\xFAng ngh\u1EC1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320836
+    m_Localized: "Ch\u1EE5p \u1EA3nh c\xF3 Th\u1ECF \xC1o D\xE0i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320837
+    m_Localized: "G\u1EB7p Th\u1ECF Noel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320838
+    m_Localized: "X\u1EBFp Th\u1ECF Noel v\xE0o \u0111\xFAng ngh\u1EC1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320839
+    m_Localized: "Ch\u1EE5p \u1EA3nh c\xF3 Th\u1ECF Noel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320840
+    m_Localized: Trung thu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320841
+    m_Localized: "T\u1EBFt"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320842
+    m_Localized: "Gi\xE1ng sinh"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320843
+    m_Localized: "Th\u1ECF theo m\xF9a \xB7 {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320844
+    m_Localized: "Ch\u1EC9 c\xF3 trong {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320845
+    m_Localized: "Ch\u1EC9 trong m\xF9a; h\u1EBFt m\xF9a th\xEC m\u1EA5t"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -21,6 +21,8 @@ namespace VuonTra.EditorTools
         public const string IOSPath = "Build/iOS";
         public const string AndroidPath = "Build/Android/VuonTraTho.apk";
 
+        /// <summary>The app's name on the stores, the window and the log folder; the title screen keeps its Vietnamese name.</summary>
+        public const string ProductName = "Moon Rabbit Tea Garden";
         /// <summary>One bundle id for every store, so the same account and cloud save follow the game across platforms.</summary>
         public const string BundleId = "com.vuontratho.game";
         /// <summary>The version the stores show; the build number counts every upload and never goes backwards.</summary>

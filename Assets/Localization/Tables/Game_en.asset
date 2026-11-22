@@ -2158,6 +2158,110 @@ MonoBehaviour:
     m_Localized: charcoal
     m_Metadata:
       m_Items: []
+  - m_Id: 249588253450240
+    m_Localized: Privacy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838848
+    m_Localized: Read the privacy policy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838849
+    m_Localized: Need help? Send your player code to {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838850
+    m_Localized: Delete my data
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838851
+    m_Localized: 'Tap again: the garden, the backup and the cloud copy will go'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838852
+    m_Localized: This cannot be undone. Tap once more to delete everything
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838853
+    m_Localized: All data deleted; the garden starts over
+    m_Metadata:
+      m_Items: []
+  - m_Id: 249588261838854
+    m_Localized: Deleted on this device; the cloud copy could not be removed, try again when online
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714404868096
+    m_Localized: Star Lantern Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256704
+    m_Localized: "\xC1o D\xE0i Rabbit"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256705
+    m_Localized: Noel Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465726349312
+    m_Localized: Meet the Star Lantern Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320832
+    m_Localized: Put the Star Lantern Rabbit to its trade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320833
+    m_Localized: Take a photo with the Star Lantern Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320834
+    m_Localized: "Meet the \xC1o D\xE0i Rabbit"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320835
+    m_Localized: "Put the \xC1o D\xE0i Rabbit to its trade"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320836
+    m_Localized: "Take a photo with the \xC1o D\xE0i Rabbit"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320837
+    m_Localized: Meet the Noel Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320838
+    m_Localized: Put the Noel Rabbit to its trade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320839
+    m_Localized: Take a photo with the Noel Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320840
+    m_Localized: Mid-Autumn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320841
+    m_Localized: "T\u1EBFt"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320842
+    m_Localized: Christmas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320843
+    m_Localized: "Seasonal rabbits \xB7 {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320844
+    m_Localized: Only during {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320845
+    m_Localized: Only this season; gone when it ends
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

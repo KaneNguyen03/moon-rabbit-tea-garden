@@ -143,6 +143,8 @@ namespace VuonTra.Core
         void Push(string json, Action<bool> onDone);
         /// <summary>Fetches the save text kept up there; <paramref name="onDone"/> gets null when there is none.</summary>
         void Pull(Action<string> onDone);
+        /// <summary>Removes the copy kept up there (#42); <paramref name="onDone"/> gets whether it is gone (true when there was none).</summary>
+        void Delete(Action<bool> onDone);
     }
 
     /// <summary>Nowhere to back up to: every push fails and every pull finds nothing, without pretending.</summary>
@@ -153,6 +155,8 @@ namespace VuonTra.Core
         public void Push(string json, Action<bool> onDone) => onDone?.Invoke(false);
 
         public void Pull(Action<string> onDone) => onDone?.Invoke(null);
+
+        public void Delete(Action<bool> onDone) => onDone?.Invoke(true);
     }
 
     /// <summary>The few numbers a player needs to choose between two copies of a garden.</summary>

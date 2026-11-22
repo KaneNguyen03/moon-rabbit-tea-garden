@@ -303,5 +303,14 @@ namespace VuonTra.Core
             Pulls++;
             onDone?.Invoke(Online ? Text : null);
         }
+
+        public int Deletes;
+
+        public void Delete(Action<bool> onDone)
+        {
+            Deletes++;
+            if (Online) Text = null;
+            onDone?.Invoke(Online);
+        }
     }
 }

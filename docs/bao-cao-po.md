@@ -1096,6 +1096,46 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Chưa thử tay trên máy thật (hai chạm trong 2 giây; màu nhuộm nhẹ trên thỏ tối).
 
+## #2 và #3 — Thỏ cầm dụng cụ nghề; thỏ nghỉ ngồi, nằm, đội mũ, có tên (bản code, chờ hình vẽ)
+
+- Test: 632/632 EditMode qua. Thêm 2 test màn hình.
+- Commit `8438799`, đã push. Comment đối chiếu lên #2 và #3, nhãn chờ-PO-duyệt (chủ project đồng ý làm bản code trước, hình vẽ sau).
+- #2: `StationActorView` có "Tool" (icon nghề của TRẠM, `catalog.TradeIcon(defs[i].Trade)`) treo ở tay gần của thỏ, đi theo thỏ khi nhún/nhảy; `MoveTool`: Brewer khuấy (xoay ±22° quanh tay), Baker nhào (ấn xuống 10), Gatherer vung giỏ (±12°), nghề còn lại nghiêng chậm ±8°; thỏ ngủ gật thì hạ dụng cụ; Giảm chuyển động thì đứng yên. 72 loài đều có vì dụng cụ nằm ngoài hình thỏ.
+- #3: `PoseSeated`: ghế gốc cây, thảm, ghế nấm, xích đu → dáng ngồi (ép 1,06×0,86, hạ 6); võng → nằm (xoay −72°, 0,92, dời 12/26); mũ đặt lên đầu theo đúng cách tấm thỏ đặt (`RabbitGridView.PlaceHat`), xoay theo dáng; biển tên dưới ghế.
+- Ảnh: `docs/anh/po-2/2-dung-cu-nghe.png`, `docs/anh/po-3/3-dang-nghi.png`.
+
+### Chưa đạt
+- Hình vẽ dáng ngồi/nằm và khung động tác nghề cho từng dáng thân (#2, #3 ghi "hoặc"); khi có hình thì thay ở `PoseSeated` và `MoveTool`.
+
+## #15 — Đổi tên app sang Moon Rabbit Tea Garden (mặc định, chờ chủ project duyệt)
+
+- Commit `fb68262`, đã push; 632/632. `BuildScript.ProductName = "Moon Rabbit Tea Garden"`, seed ghi vào `PlayerSettings.productName`; màn tiêu đề tiếng Việt giữ "Vườn Trà Thỏ Trăng". Thư mục log Mac đổi theo (`~/Library/Logs/VuonTraTho/Moon Rabbit Tea Garden/`), `tools/verify.sh --build` đọc đúng chỗ mới; save không đổi chỗ (theo bundle id). Test `BuildSettingsTests` kiểm tên.
+
+## #42 phần code — Quyền riêng tư: chính sách, xoá dữ liệu, liên hệ (mặc định, chờ chủ project duyệt)
+
+- Test: 633/633 EditMode qua. Thêm 1 test màn hình (mở chính sách, dòng liên hệ, xoá sau hai lần xác nhận: bản mây, save, sao lưu đi hết, vườn bắt đầu lại).
+- Commit `18c21d1`, đã push. Comment lên #42 tick ba ô; điều phối tick trên issue; nhãn chờ-PO-duyệt.
+- Bản nháp chính sách (vi + en) ở `docs/chinh-sach-quyen-rieng-tu.md`: game không thu thập gì, không máy chủ riêng, lưu mây là tài khoản của chính người chơi, xoá và xuất dữ liệu, trẻ em, liên hệ. Chủ project duyệt nội dung và đặt lên một địa chỉ công khai rồi ghi vào `AppInfo.PrivacyUrl` (đang trỏ vào file trong repo private, chỉ là giữ chỗ). `AppInfo.SupportEmail` giữ chỗ `hotro@vuontratho.game`.
+- Hồ sơ (thẻ cao 1580): mục "Quyền riêng tư" với nút "Đọc chính sách quyền riêng tư" (`ProfileView.OpenUrl`), dòng "Cần giúp? Gửi mã người chơi tới …" (mã đã có nút Chép mã), "Xoá dữ liệu của tôi": chạm 1 → "Chạm lần nữa…", chạm 2 → "Không hoàn tác được. Chạm lần cuối…", chạm 3 → `GameRunner.DeleteMyData`: `ICloudSave.Delete` (mới, `LocalOnlyCloudSave`/`MemoryCloudSave` có), `SaveStore.DeleteAll` (save, tmp, backup, bad), `ResetGame`; nửa chừng bỏ 6 giây thì quên.
+- Ảnh: `docs/anh/po-42/42-ho-so.png`.
+
+### Chưa đạt (cần chủ project)
+- Khai báo dữ liệu thu thập cho hai cửa hàng và nhóm tuổi mục tiêu; địa chỉ công khai của chính sách và email hỗ trợ thật.
+
+## #8 — Thỏ sự kiện theo mùa (bản code, hình ứng viên 1 mỗi mùa)
+
+- Test: 651/652 EditMode qua (1 inconclusive: test "xếp đúng nghề" bỏ qua vì bộ trạm giả trong test không có nghề). Thêm `SeasonTests.cs` (9 test: mốc ngày kể cả năm nhuận, ngày cuối mùa, loài mùa chỉ có trong mùa, thỏ ghé tiệm ≈ 1/3 ngày trong mùa và không bao giờ ngoài mùa, quà ngày cuối mùa tặng một lần, gọi vàng 50 % ở bậc Vàng trong mùa, ngày không lùi và lưu save, nhiệm vụ mùa chỉ trong mùa).
+- Commit `75f72fc`, đã push. Comment đối chiếu lên #8, nhãn chờ-PO-duyệt (chủ project đồng ý làm bản code trước).
+- `Core/Seasons.cs`: `Season` (None/MidAutumn/Tet/Christmas), `SeasonOf(day)` theo lịch máy (1/9–30/9, 15/1–28(29)/2, 1/12–31/12), `IsLastDay`, `Clamp(s, day)` với `GameState.MaxDaySeen` (save "maxDay"): `GameRunner.TodayNumber` giờ không bao giờ lùi, dùng chung cho quà ngày, thỏ ghé tiệm, gọi vàng và (qua TodayNumber) các trò nhỏ.
+- Ba loài bậc Vàng có `Season`: `tho-den-ong-sao` (Ngắm sao), `tho-ao-dai` (Pha trà), `tho-noel` (Bếp bánh); hình chép từ docs/anh/po-8 (ứng viên 1), viền sinh tự động. `RabbitKinds.OfTier(tier, season)` chỉ đưa loài mùa khi đúng mùa; gọi thường không bao giờ ra loài mùa.
+- Ba cách gặp: `Shop.VisitorFor` 1/3 ngày trong mùa là loài mùa (giá bậc Vàng); `Shop.ClaimDailyGift(s, day, name, out seasonRabbit)` ngày cuối mùa tặng loài mùa nếu chưa có (`GameRunner.SeasonArrived`); `Shop.SummonGolden(…, day)` 50 % khi rơi bậc Vàng trong mùa.
+- Nhiệm vụ: `QuestDef.Season`, 9 nhiệm vụ `mua-gap/nghe/anh-<mùa>` thưởng 3/5/10 cà rốt vàng, chỉ hiện và chỉ nhận được trong mùa (`Quests.IsAvailable`); metric `SeasonKindMet`, `SeasonKindInTrade`, `PhotosWithSeasonRabbit` (save "photosSeason").
+- Sổ thỏ: mục "Thỏ theo mùa · N/3" sau các bậc; loài chưa gặp ghi "Chỉ có trong Trung thu/Tết/Giáng sinh".
+- Ảnh: `docs/anh/po-8/8-so-tho-mua.png`.
+
+### Chưa đạt
+- Trang trí mùa ở cổng trăng (cần hình); băng rôn khi `SeasonArrived` chưa nối vào màn hình (sự kiện đã có); ứng viên 2 mỗi mùa để PO quyết. Chưa thử tay.
+
 ## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -1130,6 +1170,7 @@ Sau khi sửa cả bốn xanh.
 - Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
 - #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
+- Chiều 22/11 chủ project giao điều phối hoàn thiện mọi issue: #2 + #3 bản code (`8438799`), #15 đổi tên app (`fb68262`); #42 phần code (`18c21d1`, chính sách bản nháp, xoá dữ liệu, liên hệ); #8 thỏ theo mùa bản code (`75f72fc`); B làm #6 rồi #11; điều phối đóng nhóm A, mặc định cho #7/#9/#39/#40, #8 hình và đề xuất, #1 đề xuất.
 - Hai chỗ chữ bị che (`ac9a9d0`, sau verify --build; verify thường xanh 618/618): thanh Trà lực ngắn lại (288, kết thúc trước tấm nút góc) nên "Tăng tốc!" đọc đủ; giỏ Hứng lá nhỏ lại (110×95), dời sang phải (StationSpot(giỏ lá) + (104, 130)) và biển của nó treo bên trái (240 rộng, một dòng), không còn đè "Mở rộng vườn" hay tên trạm; ảnh `docs/anh/po-37/37-khay-hinh.png` cập nhật.
 - Nhãn tăng tốc đè số Trà lực (`994a396`, verify thường xanh 626/626): tên và đếm ngược mỗi bên một nửa hàng trên của thanh, cùng co chữ về một dòng (min 16/14); test 4 trường hợp vi/en × thường/chữ to đo hai ô không giao nhau và mỗi chữ vừa nửa của nó ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-tang-toc-sau.png`.
 - Biển "Đom đóm · còn N lượt" bị tán cây viền (lớp Canopy, vẽ trên vườn) che đuôi (`22fc554`, verify thường xanh 630/630): lọ đom đóm dời vào trong (PondSpot + (-5, -290)), biển kết thúc trước `GardenScreen.ReadableRight` = 1000; test 4 trường hợp vi/en × thường/chữ to đo biển nằm trọn trong màn (cách mép ≥ 24), không vượt 1000, chữ vừa một dòng ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-lo-dom-dom-sau.png`.
@@ -1157,3 +1198,14 @@ Sau khi sửa cả bốn xanh.
 - `StationActorView`: bậc trạm là `SetRank` (đổi kiểu hình ở một chỗ); thỏ đi tới trạm là `Traveler` trong `GardenScreen` (ẩn thỏ ở trạm tới 2,4 giây, test nào xếp thỏ rồi soi ngay cần `Advance` hoặc `Motion.SetReduced(true)`).
 - Mây: `GameRunner.Cloud` là seam (`ICloudSave`); `MemoryCloudSave` cho test/preview; không bao giờ thay save trên máy ngoài `ResolveSync`/`RestoreFromCloud`, và luôn `SaveStore.Backup()` trước.
 
+
+## Đề xuất #1 — Mùa trăng mới (22/11, chưa code, chờ chủ project duyệt)
+
+Bản đầy đủ: `docs/de-xuat-1.md`; đã đăng lên #1. Bốn điểm issue hỏi:
+
+1. **Điều kiện mở:** cấp vườn 30 (không đợi mọi trạm cấp 500); mỗi mùa sau thêm 5 cấp, trần mùa 7.
+2. **Giữ / mất:** giữ mọi thỏ, vật phẩm, cà rốt vàng, cỏ, thành tựu, album, hồ sơ; mất cà rốt, cấp trạm, ô đất (về 4), chỗ nghỉ (về 2), cấp vườn.
+3. **Phần thưởng:** +25 % thu nhập mỗi mùa, cộng dồn tuyến tính, nằm trong `Modifiers.IncomeMultiplier`; quà mùa mới 3 cỏ, 5 cà rốt vàng, lần đầu một Thỏ Trăng Non bậc Tím.
+4. **Save:** thêm `Season` (save cũ = 0), không tăng version; test đọc save cũ và mô phỏng mùa 1.
+
+Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu hình ứng viên trong `docs/anh/po-8/`.

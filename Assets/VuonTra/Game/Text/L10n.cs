@@ -73,6 +73,17 @@ namespace VuonTra.Game
 
         public static string Station(string id) => T("station." + id);
 
+        public static string Season(VuonTra.Core.Season season)
+        {
+            switch (season)
+            {
+                case VuonTra.Core.Season.MidAutumn: return T("season.midautumn");
+                case VuonTra.Core.Season.Tet: return T("season.tet");
+                case VuonTra.Core.Season.Christmas: return T("season.christmas");
+                default: return "";
+            }
+        }
+
         /// <summary>"Cấp 120 ✦✦": the level, then one mark per rank reached (25, 100, 300), the same on the plate, the card and the row.</summary>
         public static string StationLevel(int level) => T("station.level", level) + RankMarks(level);
 

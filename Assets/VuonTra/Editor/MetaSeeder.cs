@@ -32,7 +32,7 @@ namespace VuonTra.EditorTools
             }
         }
 
-        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; }
+        struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; public Season Season; }
 
         public static void Seed(GameCatalog catalog)
         {
@@ -89,6 +89,16 @@ namespace VuonTra.EditorTools
                 new Q { Id = "anh-1",     Title = "Chụp tấm ảnh đầu tiên",          Metric = QuestMetric.PhotosTaken,         Target = 1, Seconds = 12, Carrots = 100 },
                 new Q { Id = "gia-3sao",  Title = "Giã bánh 3 sao lần đầu",         Metric = QuestMetric.PoundingThreeStar,   Target = 1,  Seconds = 60,  Carrots = 1000, Clovers = 2 },
                 new Q { Id = "gia-30",    Title = "Giã 30 ván",                      Metric = QuestMetric.PoundingGames,       Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
+                // The seasons' quests (#8): one set each, shown only in season, paid in golden carrots.
+                new Q { Id = "mua-gap-trung-thu",  Title = "Gặp Thỏ Đèn Ông Sao",             Metric = QuestMetric.SeasonKindMet,          Target = 1, Seconds = 6,  Carrots = 100, Golden = 3,  Season = Season.MidAutumn },
+                new Q { Id = "mua-nghe-trung-thu", Title = "Xếp Thỏ Đèn Ông Sao vào đúng nghề", Metric = QuestMetric.SeasonKindInTrade,    Target = 1, Seconds = 6,  Carrots = 100, Golden = 5,  Season = Season.MidAutumn },
+                new Q { Id = "mua-anh-trung-thu",  Title = "Chụp ảnh có Thỏ Đèn Ông Sao",       Metric = QuestMetric.PhotosWithSeasonRabbit, Target = 1, Seconds = 6,  Carrots = 100, Golden = 10, Season = Season.MidAutumn },
+                new Q { Id = "mua-gap-tet",        Title = "Gặp Thỏ Áo Dài",                  Metric = QuestMetric.SeasonKindMet,          Target = 1, Seconds = 6,  Carrots = 100, Golden = 3,  Season = Season.Tet },
+                new Q { Id = "mua-nghe-tet",       Title = "Xếp Thỏ Áo Dài vào đúng nghề",      Metric = QuestMetric.SeasonKindInTrade,    Target = 1, Seconds = 6,  Carrots = 100, Golden = 5,  Season = Season.Tet },
+                new Q { Id = "mua-anh-tet",        Title = "Chụp ảnh có Thỏ Áo Dài",            Metric = QuestMetric.PhotosWithSeasonRabbit, Target = 1, Seconds = 6,  Carrots = 100, Golden = 10, Season = Season.Tet },
+                new Q { Id = "mua-gap-noel",       Title = "Gặp Thỏ Noel",                    Metric = QuestMetric.SeasonKindMet,          Target = 1, Seconds = 6,  Carrots = 100, Golden = 3,  Season = Season.Christmas },
+                new Q { Id = "mua-nghe-noel",      Title = "Xếp Thỏ Noel vào đúng nghề",        Metric = QuestMetric.SeasonKindInTrade,    Target = 1, Seconds = 6,  Carrots = 100, Golden = 5,  Season = Season.Christmas },
+                new Q { Id = "mua-anh-noel",       Title = "Chụp ảnh có Thỏ Noel",              Metric = QuestMetric.PhotosWithSeasonRabbit, Target = 1, Seconds = 6,  Carrots = 100, Golden = 10, Season = Season.Christmas },
                 new Q { Id = "anh-vang",  Title = "Chụp ảnh có một thỏ bậc Vàng",   Metric = QuestMetric.PhotosWithGoldRabbit, Target = 1, Seconds = 60, Carrots = 1000, Clovers = 2 },
                 new Q { Id = "anh-nghi",  Title = "Chụp ảnh khi đủ 6 chỗ nghỉ",     Metric = QuestMetric.PhotosWithFullRest,   Target = 1, Seconds = 90, Carrots = 2000, Clovers = 2 },
                 // Golden carrots, once each (#44).
@@ -113,7 +123,7 @@ namespace VuonTra.EditorTools
                 data.Id = row.Id; data.Title = row.Title; data.Metric = row.Metric;
                 data.Station = row.Station != null ? stations[row.Station] : null;
                 data.Target = row.Target; data.Daily = row.Daily; data.RewardSeconds = row.Seconds;
-                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden;
+                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden; data.Season = row.Season;
                 EditorUtility.SetDirty(data);
                 quests.Add(data);
             }
