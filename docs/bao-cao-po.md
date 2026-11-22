@@ -1047,6 +1047,29 @@ Sau khi sửa cả bốn xanh.
 - `ContentSeeder.ApplyMobileSettings` (chạy khi seed): bundle id `com.vuontratho.game` cho iOS và Android (cùng Standalone), `bundleVersion` 0.1.0 và số build 1 cho cả ba (`BuildScript.Version/BuildNumber`, một chỗ để tăng), chỉ dọc (tắt xoay ngang và lộn ngược), ẩn thanh trạng thái, iPhone+iPad, Android minSdk 26, IL2CPP + ARM64. Icon mặc định cho mọi nền tảng và màn hình chờ (nền đêm của art bible, hình 2 giây) từ `icon_app.png` vẽ ghép từ thỏ trắng có sẵn + trăng + đồi cỏ (docs/anh/po-41/41-icon-app.png). Icon theo từng cỡ của iOS/Android chỉ gán được khi có module (có try/catch, seed lại sau khi cài).
 - Chưa làm (cần chủ project): cài module iOS và Android qua Unity Hub cùng Xcode và Android SDK/NDK/JDK; chạy build thật; chạm thật, hiệu năng, dung lượng, TestFlight/Internal testing. Icon và màn hình chờ nên có hình vẽ riêng theo art bible thay cho bản ghép.
 
+## #10 phần 2 — Đêm đom đóm (agent song song, nhánh agent-10b)
+
+- Test: 617/617 EditMode qua trên main sau khi gộp (verify.sh: seed, 105 ảnh, biên dịch, test). Nhánh riêng 561/561: +15 test luật (`FirefliesTests.cs`), +1 màn hình.
+- Commit `1227642` (nhánh agent-10b), gộp vào main qua `e282242`, đã push. Issue #10 đã comment phần 2, nhãn chờ-PO-duyệt (cả hai trò xong về luật và màn hình). Save vẫn v14, thêm khối `fireflies` sau `leaves`; `MiniGameRecord` thêm `CloversToday`, `GoldenToday`.
+- Luật trong `Core/Fireflies.cs`: 20 giây, đàn 24 con (3 vàng) theo seed = ngày × 1000003 + số ván; mỗi con hiện trong một cửa sổ 4–7 giây, bay ngang với sóng sin riêng, vị trí là hàm thuần `PositionAt(fly, t)`; `Catch(x, y, now)` bắt con gần nhất trong bán kính 0,09, thường +1, vàng +3, trượt không mất; tối đa 30, sao 10/20/26; 3 lượt/ngày; mở ở cấp vườn 5; thưởng cà rốt = thu nhập/giây × hệ số × 20 × điểm/30; cỏ = điểm/10 (tối đa 3), 3 sao +1 cà rốt vàng; trần ngày 3 cỏ và 1 vàng, ván bị trần vẫn nhận cà rốt và tấm kết quả ghi rõ.
+- Màn hình `FirefliesView` (`Canvas/Fireflies`): màn đêm phủ vườn, đom đóm là chấm sáng đặt theo đồng hồ mỗi khung (pool 24), nhấp nháy lệch pha (tắt khi Giảm chuyển động), chạm đâu cũng tính, con bị bắt phồng rồi mờ kèm "+1" / "+3 vàng!", lọ dưới đáy sáng dần, tấm kết quả. Lọ trong vườn (`Canvas/Garden/Content/Jar`) trên gốc cây cạnh ao, biển "Đom đóm · còn N lượt" / "Mai bắt tiếp". Thành tựu `dom-3sao`, `dom-30`.
+- Ảnh (docs/anh/po-10/): `10-sau-dom-dom.png`, `10-sau-dom-dom-ket-qua.png`.
+
+### Chưa đạt
+- Chưa có hình lọ và đom đóm riêng. Chưa thử tay bán kính chạm trên máy thật.
+
+## #20 — Khách ghé vườn và đơn hàng trà (agent song song, nhánh agent-20)
+
+- Test: 617/617 EditMode qua trên main sau khi gộp. Nhánh riêng 538/538: +13 test luật (`OrdersTests.cs`), +3 màn hình.
+- Commit `f1c35a7` (nhánh agent-20), gộp vào main qua `e282242`, đã push. Issue #20 đã comment (bảng 7 ý), nhãn chờ-PO-duyệt. Save vẫn v14, thêm khối `orders`; save cũ: khách đầu đến sau 1 phút. Khi gộp, `OrdersDelivered` dời xuống cuối enum (sau các metric đom đóm) nên seed viết lại hai quest asset; dòng mở hồ sơ trong `GardenScreen` giữ lại tham số `Runner.CloudStatus` của #38.
+- Luật trong `Core/Orders.cs`: khách đầu sau 60 giây mở game, rồi mỗi 240 giây khi không có khách (đồng hồ chỉ chạy lúc đang chơi); đơn 1–2 dòng từ các trạm pha đang mở, mỗi món 1–3 (không quá một chồng ở khay); khách là một loài thỏ, loài chưa gặp nặng ×3; chờ 180 giây rồi đi, không phạt; tối đa 8 khách/ngày. Giao đủ: lấy món thường ở khay (món vàng giữ lại), trả giá bán các món + 90 giây thu nhập × hệ số, tính là đã thu; 1/3 đơn kèm 1 cỏ (quyết lúc đặt, ghi trên tấm).
+- Màn hình (`GardenScreen` vùng `#region Guests…`, `OrderView`): bé thỏ (hình đúng loài) đi từ mép trái tới trước quầy tiệm (2,4 s; Giảm chuyển động thì tức thì), bong bóng ghi món × số (xanh khi khay đủ), pill "Khách!" trên HUD (chạm: lướt tới khách, mở tấm). Tấm `Canvas/Order/Card`: chân dung, "Chờ thêm m:ss", từng dòng có/cần, phần thưởng, nút "Giao" chỉ sáng khi đủ. Giao xong: cà rốt về ví, cỏ về tab Thỏ, băng rôn "Khách hài lòng!", thỏ cúi chào rồi đi. Mở lại game khi khách đang chờ: khách đứng sẵn.
+- Nhiệm vụ: `ngay-don` "Giao 2 đơn trà cho khách" (ngày, +1 cỏ), `don-20` (+2 cỏ); `QuestMetric.OrdersDelivered` cuối enum; `DailyOrdersBase` chốt trong `RollDaily`. Đom đóm vàng (đã có) là thành viên cùng họ, không đổi code.
+- Ảnh (docs/anh/po-20/): `20-sau-khach.png`, `20-sau-don.png`.
+
+### Chưa đạt
+- Chưa thử tay trên máy thật; bong bóng chưa có hình riêng; một khách một lúc (chưa có hàng).
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
