@@ -180,7 +180,7 @@ namespace VuonTra.Core
         }
 
         /// <summary>Golden carrots the garden brings at every level that divides by five.</summary>
-        public const int GoldenPerFifthLevel = 3;
+        public const int GoldenPerFifthLevel = 2;
         public static int GoldenForLevels(int from, int to)
         {
             int n = 0;

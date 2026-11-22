@@ -230,10 +230,13 @@ namespace VuonTra.Core
         }
 
         /// <summary>Pays a finished game and keeps the day's and the garden's counts. Carrots are the prize; no golden carrot here.</summary>
-        public static LeavesResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, LeavesRun run)
+        public static LeavesResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, LeavesRun run) => Finish(defs, s, m, run.Score);
+
+        /// <summary>Pays a game that ended on this score; the run is only its score once it is over.</summary>
+        public static LeavesResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, int score)
         {
-            var result = new LeavesResult { Score = run.Score, Stars = StarsFor(run.Score) };
-            result.Carrots = Reward(defs, s, m, run.Score);
+            var result = new LeavesResult { Score = score, Stars = StarsFor(score) };
+            result.Carrots = Reward(defs, s, m, score);
             s.Coins += result.Carrots;
             if (result.Stars >= 1 && !s.Leaves.StarToday)
             {

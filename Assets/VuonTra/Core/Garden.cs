@@ -12,10 +12,12 @@ namespace VuonTra.Core
     {
         public const int XpPerLevelBought = 1, XpStationOpened = 10, XpMilestone = 15, XpSummon = 5, XpNewKind = 20, XpQuest = 10;
         /// <summary>
-        /// Going from level L to L + 1 takes XpBase + XpStep * L. Nearly flat on purpose: experience comes fastest
-        /// in the first minutes, when everything is cheap, so a steep curve would hand out the first levels in seconds.
+        /// Going from level L to L + 1 takes XpBase + XpStep * L. Gentle at the start and steeper after: experience comes
+        /// fastest in the first minutes, when everything is cheap, so a steep curve would hand out the first levels in
+        /// seconds; with these numbers a casual player sees level 5 around minute 7, level 10 on the first evening and
+        /// level 15 (the last plots) on day three (EconomySimulationTests).
         /// </summary>
-        public const int XpBase = 180, XpStep = 5;
+        public const int XpBase = 100, XpStep = 14;
         public const int MaxLevel = 99;
         public const int CloversPerLevel = 1;
 

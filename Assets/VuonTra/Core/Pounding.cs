@@ -170,11 +170,14 @@ namespace VuonTra.Core
         }
 
         /// <summary>Pays a finished game and keeps the day's and the garden's counts.</summary>
-        public static PoundingResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, PoundingRun run)
+        public static PoundingResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, PoundingRun run) => Finish(defs, s, m, run.Score);
+
+        /// <summary>Pays a game that ended on this score; the run is only its score once it is over.</summary>
+        public static PoundingResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, int score)
         {
             bool helper = Helper(s) != null;
-            var result = new PoundingResult { Score = run.Score, Stars = StarsFor(run.Score), HelperJoined = helper };
-            result.Carrots = Reward(defs, s, m, run.Score, helper);
+            var result = new PoundingResult { Score = score, Stars = StarsFor(score), HelperJoined = helper };
+            result.Carrots = Reward(defs, s, m, score, helper);
             s.Coins += result.Carrots;
             if (result.Stars >= 1 && !s.PoundingStarToday)
             {

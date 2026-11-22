@@ -73,15 +73,15 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Every_Fifth_Garden_Level_Brings_Three_Golden_Carrots()
+        public void Every_Fifth_Garden_Level_Brings_Two_Golden_Carrots()
         {
             Assert.AreEqual(0, Shop.GoldenForLevels(1, 4));
-            Assert.AreEqual(3, Shop.GoldenForLevels(4, 5));
-            Assert.AreEqual(6, Shop.GoldenForLevels(3, 11));
+            Assert.AreEqual(2, Shop.GoldenForLevels(4, 5));
+            Assert.AreEqual(4, Shop.GoldenForLevels(3, 11));
             s.GardenXp = Garden.XpForLevel(4);
             Garden.AddXp(s, Garden.XpForLevel(6) - Garden.XpForLevel(4));
             Assert.AreEqual(6, Garden.Level(s));
-            Assert.AreEqual(3, s.GoldenCarrots, "level 5 passed on the way");
+            Assert.AreEqual(2, s.GoldenCarrots, "level 5 passed on the way");
             Assert.AreEqual(2, s.Clovers, "and the clovers per level still come");
         }
 

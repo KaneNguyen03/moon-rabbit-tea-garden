@@ -222,14 +222,17 @@ namespace VuonTra.Core
         /// Pays a finished night: carrots by the score, clovers by the score and a golden carrot for three stars,
         /// both held to the day's caps, and keeps the day's and the garden's counts.
         /// </summary>
-        public static FirefliesResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, FirefliesRun run)
+        public static FirefliesResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, FirefliesRun run) => Finish(defs, s, m, run.Score);
+
+        /// <summary>Pays a night that ended on this score; the run is only its score once it is over.</summary>
+        public static FirefliesResult Finish(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, int score)
         {
             MiniGameRecord record = s.Fireflies;
-            var result = new FirefliesResult { Score = run.Score, Stars = StarsFor(run.Score) };
-            result.Carrots = Reward(defs, s, m, run.Score);
+            var result = new FirefliesResult { Score = score, Stars = StarsFor(score) };
+            result.Carrots = Reward(defs, s, m, score);
             s.Coins += result.Carrots;
 
-            int clovers = CloversFor(run.Score);
+            int clovers = CloversFor(score);
             result.Clovers = Math.Min(clovers, Math.Max(0, CloverCapPerDay - record.CloversToday));
             result.CloversCapped = clovers > result.Clovers;
             record.CloversToday += result.Clovers;

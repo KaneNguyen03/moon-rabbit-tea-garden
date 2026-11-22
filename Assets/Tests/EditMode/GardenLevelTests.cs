@@ -18,13 +18,13 @@ namespace VuonTra.Core.Tests
         }
 
         [TestCase(0, 1)]
-        [TestCase(184, 1)]
-        [TestCase(185, 2)]   // 180 + 5 x 1
-        [TestCase(374, 2)]
-        [TestCase(375, 3)]   // + 180 + 5 x 2
-        [TestCase(770, 5)]
-        [TestCase(1845, 10)]
-        [TestCase(3045, 15)]
+        [TestCase(113, 1)]
+        [TestCase(114, 2)]   // 100 + 14 x 1
+        [TestCase(241, 2)]
+        [TestCase(242, 3)]   // + 100 + 14 x 2
+        [TestCase(540, 5)]
+        [TestCase(1530, 10)]
+        [TestCase(2870, 15)]
         [TestCase(-5, 1)]
         public void Level_Follows_Experience(double xp, int level)
         {
@@ -47,24 +47,24 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Level_Gained_Brings_A_Clover()
         {
-            Assert.AreEqual(0, Garden.AddXp(s, 184));
+            Assert.AreEqual(0, Garden.AddXp(s, 113));
             Assert.AreEqual(0, s.Clovers);
             Assert.AreEqual(1, Garden.AddXp(s, 1));
             Assert.AreEqual(1, s.Clovers);
             Assert.AreEqual(2, Garden.Level(s));
-            Assert.AreEqual(2, Garden.AddXp(s, 400), "two levels in one go bring two clovers"); // 585: level 4 begins at 570
+            Assert.AreEqual(2, Garden.AddXp(s, 300), "two levels in one go bring two clovers"); // 414: level 4 begins at 384
             Assert.AreEqual(3, s.Clovers);
             Assert.AreEqual(0, Garden.AddXp(s, 0));
             Assert.AreEqual(0, Garden.AddXp(s, -50));
             Assert.AreEqual(0, Garden.AddXp(s, double.NaN));
-            Assert.AreEqual(585, s.GardenXp, 1e-9);
+            Assert.AreEqual(414, s.GardenXp, 1e-9);
         }
 
         [Test]
         public void Progress_Runs_From_Nought_To_One_Within_A_Level()
         {
             Assert.AreEqual(0, Garden.Progress(s), 1e-9);
-            s.GardenXp = 280; // level 2 runs from 185 to 375
+            s.GardenXp = 178; // level 2 runs from 114 to 242
             Assert.AreEqual(0.5, Garden.Progress(s), 1e-9);
         }
 

@@ -2383,7 +2383,7 @@ namespace VuonTra.Core.Tests
             Transform quest = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest loai-tim");
             Assert.IsNotNull(quest, "the golden achievements are in the list");
             Assert.IsTrue(quest.Find("Golden").gameObject.activeSelf);
-            Assert.AreEqual("+5", quest.Find("Golden/Text").GetComponent<Text>().text);
+            Assert.AreEqual("+3", quest.Find("Golden/Text").GetComponent<Text>().text);
             Assert.IsFalse(quest.Find("Clovers").gameObject.activeSelf);
             Assert.IsFalse(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Golden").gameObject.activeSelf);
         }

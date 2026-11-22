@@ -18,7 +18,7 @@ MonoBehaviour:
   Station: {fileID: 11400000, guid: d237ad7244c8947b5b20e1fb27342644, type: 2}
   Target: 25
   Daily: 0
-  RewardSeconds: 600
+  RewardSeconds: 60
   RewardCarrots: 500
   RewardClovers: 1
   RewardGolden: 0
