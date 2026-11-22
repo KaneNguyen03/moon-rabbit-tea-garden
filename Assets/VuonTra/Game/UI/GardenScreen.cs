@@ -1535,7 +1535,12 @@ namespace VuonTra.Game.UI
             _cardName.horizontalOverflow = HorizontalWrapMode.Overflow;
             var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -104, -42, 160, 46);
             _cardLevelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            // "Cấp 500 ✦✦✦" is wider than the pill at full size: the words shrink to stay on one line (#73).
+            _cardLevel.resizeTextForBestFit = true;
+            _cardLevel.resizeTextMinSize = 14;
+            _cardLevel.resizeTextMaxSize = _cardLevel.fontSize;
+            _cardLevel.verticalOverflow = VerticalWrapMode.Truncate;
             _cardInfo = UiKit.Rect("Info", _card).Stretch(0, 1, 1, 1, 32, -138, 32, 74)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             // The same buy modes as the Stations tab; one choice, remembered in both places.

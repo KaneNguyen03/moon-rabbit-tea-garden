@@ -218,6 +218,52 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(spills, spills.Count + " labels spill in " + code + (large ? " (large text)" : "") + ":\n" + string.Join("\n", spills));
         }
 
+        /// <summary>
+        /// Null when the label's words sit on one line inside its box at the size it is drawn (after best fit),
+        /// else what went wrong. A best-fit label is skipped by <see cref="Spills"/>, so this asks the generator itself.
+        /// </summary>
+        static string OneLine(Text text)
+        {
+            Vector2 size = text.rectTransform.rect.size;
+            var gen = new TextGenerator();
+            TextGenerationSettings settings = text.GetGenerationSettings(size);
+            gen.Populate(text.text, settings);
+            settings.fontSize = text.resizeTextForBestFit ? gen.fontSizeUsedForBestFit : settings.fontSize;
+            settings.resizeTextForBestFit = false;
+            settings.horizontalOverflow = HorizontalWrapMode.Overflow;
+            settings.verticalOverflow = VerticalWrapMode.Overflow;
+            float ppu = text.pixelsPerUnit;
+            float w = gen.GetPreferredWidth(text.text, settings) / ppu, h = gen.GetPreferredHeight(text.text, settings) / ppu;
+            if (w <= size.x + 1f && h <= size.y + 1f) return null;
+            return Path(text.transform) + " \"" + text.text + "\" at " + Mathf.RoundToInt(settings.fontSize / ppu) + "px is " + Mathf.RoundToInt(w) + "x" + Mathf.RoundToInt(h) + " in " + Mathf.RoundToInt(size.x) + "x" + Mathf.RoundToInt(size.y);
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Level_500_Label_Fits_On_One_Line_In_Its_Pill_On_The_Card_And_The_Row(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            runner.State.Levels[0] = Economy.MaxLevel;
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Layout();
+            Text card = root.transform.Find("Canvas/Card/Level/Text").GetComponent<Text>();
+            Assert.AreEqual(L10n.StationLevel(Economy.MaxLevel), card.text);
+            Assert.IsNull(OneLine(card));
+            screen.SelectStation(-1);
+            screen.OpenSheet(0);
+            screen.Refresh();
+            Layout();
+            Text row = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Level/Text").GetComponent<Text>();
+            Assert.AreEqual(L10n.StationLevel(Economy.MaxLevel), row.text);
+            Assert.IsNull(OneLine(row));
+        }
+
         // ----- contrast -----
 
         static double Luminance(Color c)
