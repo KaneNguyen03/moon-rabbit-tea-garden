@@ -146,6 +146,9 @@ namespace VuonTra.Game.UI
                     });
             }
             RefreshDouble();
+            // The sheet comes up as the game opens, over the title (#79): drawn last, so the title's blinking
+            // "tap to start" sits under it and Collect takes the touch, not the title behind.
+            Sheet.Root.transform.SetAsLastSibling();
             Sheet.Open();
         }
 

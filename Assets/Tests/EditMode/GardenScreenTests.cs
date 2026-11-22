@@ -3369,6 +3369,26 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Welcome_Back_Sheet_Comes_Up_Over_The_Title_And_Its_Tap_To_Start_Line()
+        {
+            // #79: the game opens on the title, and the sheet for the time away comes up at once.
+            Assert.AreEqual(ShellState.Title, screen.Shell.State);
+            var away = new AwayReport { Paid = new BigNum(5000), Seconds = 3 * 3600, Capped = true, GuestsMissed = 3 };
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Transform canvas = root.transform.Find("Canvas");
+            Transform title = canvas.Find("Title"), sheet = canvas.Find("Away");
+            Assert.IsTrue(title.gameObject.activeSelf && title.Find("Prompt").gameObject.activeSelf, "the title and its blinking line are still up");
+            Assert.IsTrue(sheet.gameObject.activeSelf);
+            Assert.Greater(sheet.GetSiblingIndex(), title.GetSiblingIndex(), "the sheet draws over the title, so \"tap to start\" is under it");
+
+            // Collect is pressed on the sheet, not on the title behind it; the title waits for its own tap.
+            Find("Canvas/Away/Card/Ok").onClick.Invoke();
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+            Assert.AreEqual(ShellState.Title, screen.Shell.State);
+        }
+
+        [Test]
         public void Under_Five_Minutes_Away_There_Is_No_Sheet_Only_Carrots_To_The_Purse()
         {
             screen.Shell.StartGame();
