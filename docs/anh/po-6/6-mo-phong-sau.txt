@@ -1,0 +1,82 @@
+# Nhịp kinh tế với đủ mọi nguồn thu (EconomySimulationTests)
+
+## Người chơi thong thả
+1 chạm/giây vào trạm thu nhiều nhất, 3 giây mua một thứ rẻ nhất, 30 giây xem nhiệm vụ, 4 phút chơi một ván (2 sao), bán khay khi đầy hoặc mỗi 2 phút, giao đơn khi khay có đủ, gọi thỏ ngay khi có cỏ, mua thỏ ghé tiệm khi đủ vàng rồi gọi vàng mỗi 10, bật trà lực khi đủ, nâng cấp thỏ khi giá dưới 10 giây thu nhập.
+Mỗi ngày: chơi 20 phút, vắng 8 giờ, chơi 10 phút, vắng tới hết ngày; 7 ngày.
+
+| Mốc | Lúc đạt |
+|---|---|
+| Cấp vườn 3 | 1 phút 30 giây |
+| Cấp vườn 5 | 7 phút 15 giây |
+| Cấp vườn 10 | 8 giờ 29 phút |
+| Cấp vườn 15 | ngày 3 (48 giờ 8 phút) |
+| 6 ô đất | 3 phút 33 giây |
+| 8 ô đất | 9 phút 33 giây |
+| 10 ô đất | 8 giờ 29 phút |
+| 12 ô đất | ngày 3 (48 giờ 8 phút) |
+| Thỏ Tím đầu tiên | ngày 2 (24 giờ 4 phút) |
+| Thỏ Vàng đầu tiên | ngày 4 (72 giờ 13 phút) |
+| Đợt đất 1 | đủ cấp 1 phút 30 giây, đủ thỏ 1 phút 0 giây, mở 3 phút 33 giây |
+| Đợt đất 2 | đủ cấp 9 phút 30 giây, đủ thỏ 1 phút 30 giây, mở 9 phút 33 giây |
+| Đợt đất 3 | đủ cấp 8 giờ 29 phút, đủ thỏ 3 phút 30 giây, mở 8 giờ 29 phút |
+| Đợt đất 4 | đủ cấp ngày 3 (48 giờ 8 phút), đủ thỏ 7 phút 35 giây, mở ngày 3 (48 giờ 8 phút) |
+
+| Lúc | Thu/giây | Cà rốt | Cấp vườn (điểm) | Ô đất | Trạm | Thỏ | Chạm % | Trạm tự chạy % | Trà lực % | Vắng mặt % | Nhiệm vụ % | Khay % | Trò chơi % | Đơn khách % | Vàng kiếm / tiêu |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 10 phút | 328K | 39,4M | 6 (792) | 8 | 4 | 20 | 21.8 | 22.8 | 0.6 | 0 | 35.7 | 9.5 | 4 | 5.6 | 7 / 0 |
+| 20 phút | 30,4M | 22,6B | 8 (1291) | 8 | 6 | 28 | 23.9 | 29.2 | 3.3 | 0 | 15.7 | 10.3 | 5 | 12.6 | 7 / 0 |
+| hết ngày 1 | 13,1B | 574T | 10 (1664) | 10 | 7 | 33 | 0.2 | 0.3 | 0.1 | 99.1 | 0 | 0.2 | 0 | 0.2 | 11 / 10 |
+| hết ngày 2 | 1,89aa | 85,4ab | 14 (2737) | 10 | 10 | 51 | 0.6 | 0.5 | 0.1 | 98.2 | 0 | 0.2 | 0 | 0.3 | 17 / 10 |
+| hết ngày 3 | 426aa | 26,3ac | 18 (3852) | 12 | 12 | 70 | 0.7 | 0.8 | 0.1 | 97.5 | 0.1 | 0.4 | 0.1 | 0.2 | 26 / 20 |
+| hết ngày 7 | 3,04ac | 132ad | 25 (7019) | 12 | 12 | 123 | 1.1 | 2 | 0.3 | 94.7 | 0.1 | 0.9 | 0.3 | 0.6 | 50 / 50 |
+
+Ngày 1, tính trên cà rốt kiếm được lúc đang chơi (không tính vắng mặt): nhiệm vụ 0.1 %, trò chơi + đơn khách 20.2 %; cà rốt vàng kiếm được 11.
+Cỏ: 54 từ nhiệm vụ, 22 từ cấp vườn, 28 từ trò chơi, 13 từ đơn khách; gọi 117 thỏ.
+Cà rốt vàng: 17 quà ngày, 7 ảnh, 8 cấp vườn, 14 nhiệm vụ, 0 trò chơi, 4 khay; tiêu 50 (5 lượt gọi vàng, 0 thỏ ghé tiệm); còn 0.
+Khác: 49 ván chơi, 47 đơn giao, 375 cấp thỏ mua, 70 lần trà lực, 25 nhiệm vụ đang nhận.
+
+Diễn biến:
+  t=30s  cà rốt 807  thu/giây 23  trạm mở 1  tổng cấp trạm 10  cấp vườn 1  thỏ 1  nhiệm vụ 2  ván 0  đơn 0  vàng 2
+  t=60s  cà rốt 7,72K  thu/giây 59  trạm mở 1  tổng cấp trạm 20  cấp vườn 2  thỏ 4  nhiệm vụ 5  ván 0  đơn 0  vàng 2
+  t=120s  cà rốt 68,3K  thu/giây 325  trạm mở 2  tổng cấp trạm 39  cấp vườn 3  thỏ 7  nhiệm vụ 11  ván 0  đơn 0  vàng 5
+  t=300s  cà rốt 3,37M  thu/giây 31,6K  trạm mở 3  tổng cấp trạm 87  cấp vườn 4  thỏ 12  nhiệm vụ 13  ván 1  đơn 1  vàng 5
+  t=600s  cà rốt 39,4M  thu/giây 328K  trạm mở 4  tổng cấp trạm 171  cấp vườn 6  thỏ 20  nhiệm vụ 16  ván 2  đơn 2  vàng 7
+
+## Người chơi không nghỉ tay
+3 chạm/giây, 4 lần mua mỗi giây, nhận nhiệm vụ ngay, chơi ván 3 sao ngay khi có lượt, còn lại như trên. Chơi liền 2 giờ.
+
+| Mốc | Lúc đạt |
+|---|---|
+| Cấp vườn 3 | 0 phút 35 giây |
+| Cấp vườn 5 | 3 phút 22 giây |
+| Cấp vườn 10 | 5 phút 39 giây |
+| Cấp vườn 15 | 9 phút 12 giây |
+| 6 ô đất | 3 phút 22 giây |
+| 8 ô đất | 4 phút 30 giây |
+| 10 ô đất | 5 phút 41 giây |
+| 12 ô đất | 9 phút 12 giây |
+| Thỏ Tím đầu tiên | 3 phút 22 giây |
+| Thỏ Vàng đầu tiên | chưa đạt |
+| Đợt đất 1 | đủ cấp 0 phút 35 giây, đủ thỏ 0 phút 8 giây, mở 3 phút 2 giây |
+| Đợt đất 2 | đủ cấp 4 phút 5 giây, đủ thỏ 0 phút 35 giây, mở 4 phút 30 giây |
+| Đợt đất 3 | đủ cấp 5 phút 39 giây, đủ thỏ 1 phút 27 giây, mở 5 phút 41 giây |
+| Đợt đất 4 | đủ cấp 9 phút 12 giây, đủ thỏ 1 phút 1 giây, mở 9 phút 12 giây |
+
+| Lúc | Thu/giây | Cà rốt | Cấp vườn (điểm) | Ô đất | Trạm | Thỏ | Chạm % | Trạm tự chạy % | Trà lực % | Vắng mặt % | Nhiệm vụ % | Khay % | Trò chơi % | Đơn khách % | Vàng kiếm / tiêu |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| 10 phút | 50,8aa | 7,71ab | 16 (3214) | 12 | 11 | 51 | 39.6 | 12.5 | 0 | 0 | 47.6 | 0.2 | 0 | 0 | 19 / 10 |
+| 1 giờ | 1,70ac | 124ac | 23 (6050) | 12 | 12 | 61 | 61.7 | 24.4 | 2.3 | 0 | 0 | 7.8 | 0 | 3.9 | 22 / 20 |
+| 2 giờ | 1,85ac | 282ac | 23 (6150) | 12 | 12 | 61 | 62.8 | 24.8 | 2.5 | 0 | 0 | 8.5 | 0 | 1.4 | 22 / 20 |
+
+Cỏ: 32 từ nhiệm vụ, 18 từ cấp vườn, 5 từ trò chơi, 3 từ đơn khách; gọi 58 thỏ.
+Cà rốt vàng: 1 quà ngày, 1 ảnh, 8 cấp vườn, 9 nhiệm vụ, 2 trò chơi, 1 khay; tiêu 20 (2 lượt gọi vàng, 0 thỏ ghé tiệm); còn 2.
+Khác: 9 ván chơi, 8 đơn giao, 316 cấp thỏ mua, 26 lần trà lực, 24 nhiệm vụ đang nhận.
+
+Diễn biến:
+  t=300s  cà rốt 653M  thu/giây 18,0M  trạm mở 5  tổng cấp trạm 275  cấp vườn 8  thỏ 32  nhiệm vụ 19  ván 9  đơn 1  vàng 2
+  t=600s  cà rốt 7,71ab  thu/giây 50,8aa  trạm mở 11  tổng cấp trạm 1455  cấp vườn 16  thỏ 51  nhiệm vụ 24  ván 9  đơn 2  vàng 9
+  t=1200s  cà rốt 1,44ac  thu/giây 1,03ac  trạm mở 12  tổng cấp trạm 3350  cấp vườn 22  thỏ 58  nhiệm vụ 24  ván 9  đơn 4  vàng 2
+  t=3600s  cà rốt 124ac  thu/giây 1,70ac  trạm mở 12  tổng cấp trạm 3647  cấp vườn 23  thỏ 61  nhiệm vụ 24  ván 9  đơn 8  vàng 2
+  t=7200s  cà rốt 50,5ac  thu/giây 1,84ac  trạm mở 12  tổng cấp trạm 3729  cấp vườn 23  thỏ 61  nhiệm vụ 24  ván 9  đơn 8  vàng 2
+
+Người chơi không nghỉ tay mở đủ 12 ô đất lúc 9 phút 12 giây (mục tiêu: không trước ~2 giờ; chưa đạt vì mỗi cấp trạm mua đều cho 1 điểm, 4 lần mua mỗi giây).
