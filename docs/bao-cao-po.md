@@ -1332,6 +1332,32 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Vành chỉ ở hai bên (ô chưa mở xen kẽ theo chiều dọc nên không đặt được mặt rừng ngang). Ảnh en/chữ to chỉ ở khung mở đầu. Chưa thử tay.
 
+## #71 phần cuối — Viên "▲ N" không đè biển "Giã bánh"
+
+- Commit `349e76a`, đã push; comment lên #71. Không đổi code: ảnh QA chụp từ bản trước #50, sau khi camera lùi biển cối nằm thấp hơn phao. Thêm test `The_Top_Edge_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot` ở zoom mặc định và zoom gần để lỗi không quay lại.
+
+## #57 — Lịch quà 7 ngày ở Tiệm, ngày 7 là quà lớn, bỏ ngày chỉ lùi một (agent song song, nhánh agent-57)
+
+- Test: 805/806 EditMode qua trên main sau khi gộp (cùng #56). Nhánh riêng 787/788: 5 test Core (`ShopTests`), 2 test màn hình, 1 test tràn chữ ×4; test cũ "bỏ một ngày về ngày 1" thay bằng luật mới. Thêm 1 test màn hình cho khoảnh khắc quà lớn.
+- Commit `9c2fd85` (nhánh agent-57), gộp vào main qua `8ca0fee`, khoảnh khắc quà lớn `e16685b`, đã push. Issue #57 đã comment (bảng 9 ý), nhãn chờ-PO-duyệt. Save thêm `giftBig`, `giftBigGolden` (v14).
+- `Shop`: `MissPenalty = 1`, streak sau khi bỏ k ngày = max(1, streak − k); `Week(s, day)` cho 7 ô; ngày 7 lần đầu tặng Nón lá + 1 cỏ (đã có mũ thì +20 cà rốt vàng). `ShopView`: mục Hôm nay cao 320 với hàng `Days/Day 1…7`. `GardenScreen.OnDailyGift`: quà lớn có `Feel.Moment` riêng nêu tên mũ và cỏ.
+- Kinh tế: tuần thong thả cà rốt vàng không đổi (17 từ quà ngày, 50/50); thêm 1 cỏ → 118 thỏ (trước 117).
+- Ảnh (docs/anh/po-57/): `57-ngay-1.png`, `57-ngay-4.png`, `57-ngay-7.png`.
+
+### Chưa đạt
+- Chưa thử tay.
+
+## #56 — Thỏ xin chụp ảnh mỗi 4 phút (agent song song, nhánh agent-56)
+
+- Test: 805/806 EditMode qua trên main sau khi gộp. Nhánh riêng 791/792: `PhotoAsksTests.cs` (11) + 4 test màn hình.
+- Commit `6391173` (nhánh agent-56), gộp vào main qua `0b6c7c2` + seed lại bảng chuỗi (`d325663`), đã push. Issue #56 đã comment (bảng 11 ý), nhãn chờ-PO-duyệt. Save thêm khối `photoAsk` (v14).
+- Lõi `Core/PhotoAsks.cs`: đồng hồ 240 giây chỉ chạy khi đang chơi, đứng yên khi có bong bóng hoặc đang chụp; bong bóng 90 giây; chỉ thỏ ở trạm đã mở hoặc chỗ nghỉ; thưởng 120 giây × hệ số; tối đa 10/ngày theo ngày đã chặn lùi; `QuestMetric.PhotoAsksAnswered` cuối enum.
+- Màn hình: bong bóng máy ảnh vẽ bằng code trên đầu thỏ, chạm thì mở máy ảnh zoom gần, thỏ ở giữa; chụp xong thẻ ảnh ghi lời cảm ơn, bấm Xong thì thỏ nảy, tim bay, cà rốt về ví; đóng không chụp mất lượt đó. Nhiệm vụ ngày `ngay-anh` "Chụp 3 tấm thỏ xin ảnh" (+1 cỏ); giữ "Chạm bé thỏ 50 lần" nên có năm nhiệm vụ ngày.
+- Ảnh (docs/anh/po-56/): `56-xin-chup.png`, `56-khung-thu.png`.
+
+### Chưa đạt
+- Mở máy ảnh bằng nút HUD lúc có lời mời thì không được thưởng. Chưa có tiếng riêng. Năm nhiệm vụ ngày (PO quyết có bỏ "Chạm bé thỏ 50 lần"). Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
