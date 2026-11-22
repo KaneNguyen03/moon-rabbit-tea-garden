@@ -291,11 +291,13 @@ namespace VuonTra.Game.UI
             Runner.AwayClaimed += ShowAway;
             L10n.Changed += RebuildUi;
             UiKit.TextChanged += RebuildUi;
+            TrackpadPinch.Start();
             RefreshNow();
         }
 
         void OnDestroy()
         {
+            TrackpadPinch.Stop();
             L10n.Changed -= RebuildUi;
             UiKit.TextChanged -= RebuildUi;
             if (Runner == null) return;
@@ -433,9 +435,14 @@ namespace VuonTra.Game.UI
         ScrollRect _scroll;
         ZoomLevel _shownZoom = ZoomLevel.Default;
         float _lastGroundTapAt = -10f;
-        bool _pinching;
-        float _pinchStartDistance, _pinchStartZoom, _wheelWait;
+        bool _pinching, _padPinching;
+        float _pinchStartDistance, _pinchStartZoom, _wheelWait, _padPinchQuiet;
         Vector2 _pinchAt;
+        /// <summary>
+        /// How much a trackpad pinch zooms: the zoom is multiplied by 1 + gain × magnification each frame, so
+        /// a whole pinch (its magnifications sum to about ±1) spans e ≈ 2.7×, a little more than Far to Near (2.3×).
+        /// </summary>
+        public const float PinchGain = 1f;
 
         public float ZoomScale => _zoom;
         public ZoomLevel Zoom => _zoom < 0.85f ? ZoomLevel.Far : (_zoom > 1.2f ? ZoomLevel.Near : ZoomLevel.Default);
@@ -554,9 +561,35 @@ namespace VuonTra.Game.UI
             Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(world, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.InOutCubic);
         }
 
-        /// <summary>Pinch on a phone, wheel on a desktop. Both land on one of the three levels.</summary>
+        /// <summary>The zoom after one frame of trackpad pinch, kept between Far and Near.</summary>
+        public static float PinchZoom(float current, float magnification)
+        {
+            float factor = Mathf.Max(0.1f, 1f + magnification * PinchGain); // a wild negative sum must not flip the garden
+            return Mathf.Clamp(current * factor, ZoomFar, ZoomNear);
+        }
+
+        /// <summary>One frame of trackpad pinch around a point of the view (canvas units from the bottom left).</summary>
+        public void SimulatePinch(float magnification, Vector2 viewPoint) => OnTrackpadPinch(magnification, viewPoint);
+
+        void OnTrackpadPinch(float magnification, Vector2 viewPoint)
+        {
+            if (_street == null) return;
+            _pinchAt = viewPoint;
+            _padPinchQuiet = 0f;
+            if (!_padPinching)
+            {
+                _padPinching = true;
+                if (_scroll != null) _scroll.StopMovement();
+            }
+            ApplyZoom(PinchZoom(_zoom, magnification), viewPoint);
+            DismissHint();
+        }
+
+        /// <summary>Pinch on a phone or a trackpad, wheel on a desktop. All land on one of the three levels.</summary>
         void HandleZoomInput(float dt)
         {
+            // Drained every frame, even while the sheet is open, so nothing piles up and lands at once later.
+            bool padPinched = TrackpadPinch.Read(out float padMagnification, out Vector2 padScreen, out bool smartMagnify);
             if (_street == null || Shell == null || Shell.State != ShellState.Playing || SheetOpen) return;
             _wheelWait -= dt;
 
@@ -589,6 +622,30 @@ namespace VuonTra.Game.UI
             {
                 _pinching = false;
                 if (_scroll != null) _scroll.enabled = true;
+                SetZoom(Zoom, true, _pinchAt); // settle on the nearest level
+                return;
+            }
+
+            // A pinch on a Mac trackpad zooms around the pointer; a two-finger double tap goes in close there, or back.
+            if (padPinched)
+            {
+                Vector2 at = ScreenToView(padScreen);
+                if (smartMagnify)
+                {
+                    SelectStation(-1);
+                    SetZoom(Zoom == ZoomLevel.Near ? ZoomLevel.Default : ZoomLevel.Near, true, at);
+                    DismissHint();
+                    _padPinching = false;
+                    return;
+                }
+                OnTrackpadPinch(padMagnification, at);
+                return;
+            }
+            if (_padPinching)
+            {
+                _padPinchQuiet += dt;
+                if (_padPinchQuiet < 0.25f) return; // the fingers are still on the glass
+                _padPinching = false;
                 SetZoom(Zoom, true, _pinchAt); // settle on the nearest level
                 return;
             }

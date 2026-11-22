@@ -819,6 +819,62 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Trackpad_Pinch_Zooms_By_Its_Magnification_And_Stops_At_Far_And_Near()
+        {
+            Assert.AreEqual(1f, GardenScreen.PinchZoom(1f, 0f), 1e-5f, "no fingers, no change");
+            Assert.AreEqual(1f + 0.1f * GardenScreen.PinchGain, GardenScreen.PinchZoom(1f, 0.1f), 1e-5f, "spreading zooms in");
+            Assert.AreEqual(1f - 0.1f * GardenScreen.PinchGain, GardenScreen.PinchZoom(1f, -0.1f), 1e-5f, "closing zooms out");
+            Assert.AreEqual(GardenScreen.ZoomNear, GardenScreen.PinchZoom(GardenScreen.ZoomNear, 0.5f), 1e-5f, "no closer than Near");
+            Assert.AreEqual(GardenScreen.ZoomFar, GardenScreen.PinchZoom(GardenScreen.ZoomFar, -0.5f), 1e-5f, "no further than Far");
+            Assert.GreaterOrEqual(GardenScreen.PinchZoom(1f, -5f), GardenScreen.ZoomFar, "a wild negative sum never flips the garden");
+            // A whole pinch sums to about one; ten frames of it take the view from Far right up to Near.
+            float zoom = GardenScreen.ZoomFar;
+            for (int i = 0; i < 10; i++) zoom = GardenScreen.PinchZoom(zoom, 0.1f);
+            Assert.AreEqual(GardenScreen.ZoomNear, zoom, 1e-5f);
+        }
+
+        [Test]
+        public void The_Trackpad_Is_Silent_In_The_Editor()
+        {
+            Assert.IsFalse(TrackpadPinch.Available);
+            TrackpadPinch.Start();
+            Assert.IsFalse(TrackpadPinch.Read(out float magnification, out Vector2 at, out bool smart));
+            Assert.AreEqual(0f, magnification);
+            Assert.AreEqual(Vector2.zero, at);
+            Assert.IsFalse(smart);
+            TrackpadPinch.Stop();
+        }
+
+        [Test]
+        public void A_Simulated_Pinch_Zooms_Toward_The_Point_Under_The_Fingers_And_Clamps()
+        {
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Vector2 at = new Vector2(540f, 960f);
+            Vector2 under = (at - world.anchoredPosition) / screen.ZoomScale; // the garden point under the fingers
+            float before = screen.ZoomScale;
+
+            screen.SimulatePinch(0.1f, at);
+            Assert.AreEqual(before * (1f + 0.1f * GardenScreen.PinchGain), screen.ZoomScale, 1e-4f);
+            Assert.AreEqual(screen.ZoomScale, world.localScale.x, 1e-4f);
+            Vector2 after = (at - world.anchoredPosition) / screen.ZoomScale;
+            Assert.AreEqual(under.x, after.x, 0.5f, "the point under the fingers stays put");
+            Assert.AreEqual(under.y, after.y, 0.5f);
+
+            for (int i = 0; i < 20; i++) screen.SimulatePinch(0.3f, at);
+            Assert.AreEqual(GardenScreen.ZoomNear, screen.ZoomScale, 1e-4f, "spreading on and on stops at Near");
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
+            float w = world.sizeDelta.x * world.localScale.x, h = world.sizeDelta.y * world.localScale.y;
+            Assert.LessOrEqual(world.anchoredPosition.x, 0.5f);
+            Assert.GreaterOrEqual(world.anchoredPosition.x, 1080f - w - 0.5f);
+            Assert.LessOrEqual(world.anchoredPosition.y, 0.5f);
+            Assert.GreaterOrEqual(world.anchoredPosition.y, 1920f - h - 0.5f);
+
+            for (int i = 0; i < 20; i++) screen.SimulatePinch(-0.3f, at);
+            Assert.AreEqual(GardenScreen.ZoomFar, screen.ZoomScale, 1e-4f, "closing on and on stops at Far");
+            Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
+        }
+
+        [Test]
         public void The_Zoom_Button_Goes_Round_The_Three_Levels()
         {
             Button zoom = Find("Canvas/Hud/Zoom");
