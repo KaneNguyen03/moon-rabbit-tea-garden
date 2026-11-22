@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEngine;
@@ -3573,8 +3574,200 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(seat.anchoredPosition, walker.anchoredPosition, "it starts on the seat, not in the lane");
             screen.Advance(2f);
             Vector2 later = walker.anchoredPosition;
-            Assert.Greater(later.y, seat.anchoredPosition.y + 100f, "two seconds on it has walked away from the seat");
+            Assert.Greater(Vector2.Distance(later, seat.anchoredPosition), 40f, "two seconds on it has walked away from the seat");
             Assert.Less(Vector2.Distance(later, seat.anchoredPosition), 2f * 300f, "at a walk, not a jump");
+        }
+
+        // ----- Strolls to empty spots of the lawn (#55) -----
+
+        /// <summary>Steps the screen a quarter second at a time until the seat's rabbit is at its spot, or gives up after the window.</summary>
+        bool StepUntilAtSpot(int seat, float most = GardenScreen.StrollPeriod)
+        {
+            for (float t = 0f; t < most; t += 0.25f)
+            {
+                screen.Advance(0.25f);
+                if (screen.AtSpot(seat)) return true;
+            }
+            return false;
+        }
+
+        [Test]
+        public void A_Resting_Rabbit_Strolls_To_An_Empty_Spot_Does_Something_There_And_Comes_Back_Every_Period()
+        {
+            screen.Shell.StartGame();
+            runner.State.Energy = 10;
+            Rabbit r = GiveWorker(1, -1);
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            var walker = (RectTransform)world.Find("Walker 0");
+            var seat = (RectTransform)world.Find("Seat 0");
+            screen.Advance(0f);
+            Assert.IsTrue(walker.gameObject.activeSelf, "out at the start of its window");
+            Assert.AreEqual(seat.anchoredPosition, walker.anchoredPosition, "from its seat");
+            Assert.IsFalse(screen.AtSpot(0), "still on the way");
+
+            Assert.IsTrue(StepUntilAtSpot(0), "it reaches its spot");
+            int spot = screen.StrollSpotOf(0);
+            Assert.GreaterOrEqual(spot, 0);
+            Vector2 at = GardenScreen.LawnSpots[spot];
+            Assert.LessOrEqual(Vector2.Distance(at, seat.anchoredPosition), GardenScreen.StrollRadius, "an empty spot within reach of its seat");
+            Assert.LessOrEqual(Vector2.Distance(at, walker.anchoredPosition), 16f, "standing on it, give or take a hop");
+            Assert.IsTrue(screen.ActivityOf(0).HasValue, "doing something there");
+            Transform bubble = walker.Find("Bubble");
+            Assert.IsTrue(bubble.gameObject.activeSelf, "with a bubble over its head");
+            Assert.That(bubble.Find("Text").GetComponent<Text>().text, Is.EqualTo("♪").Or.EqualTo("♥").Or.EqualTo("zZ"));
+            Assert.IsFalse(seat.gameObject.activeSelf, "its seat stands empty meanwhile");
+
+            // Out on the lawn it can still be stroked (#19).
+            Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.BeginDrag);
+            Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.Drag);
+            Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.EndDrag);
+            Assert.AreEqual(1, r.Affection, "a stroke on the lawn counts");
+            Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6);
+
+            // It stays four to six seconds, then walks home: by the end of its window it sits again.
+            float stayed = 0f;
+            while (screen.AtSpot(0) && stayed < 10f) { screen.Advance(0.25f); stayed += 0.25f; }
+            Assert.That(stayed, Is.GreaterThanOrEqualTo(Strolls.LingerLeast - 0.5f).And.LessThanOrEqualTo(Strolls.LingerMost + 0.5f), "stayed " + stayed);
+            Assert.IsFalse(bubble.gameObject.activeSelf, "the bubble goes when it sets off");
+            Assert.IsTrue(walker.gameObject.activeSelf, "walking home");
+            Assert.Greater(Vector2.Distance(walker.anchoredPosition, seat.anchoredPosition), 20f);
+            while (GardenScreen.Strolling(0, screen.Clock)) screen.Advance(0.25f);
+            Assert.IsFalse(walker.gameObject.activeSelf, "home");
+            Assert.IsTrue(seat.gameObject.activeSelf);
+
+            // A period on, the same again.
+            screen.Advance(GardenScreen.StrollPeriod - screen.Clock % GardenScreen.StrollPeriod + 0.1f);
+            Assert.IsTrue(GardenScreen.Strolling(0, screen.Clock));
+            Assert.IsTrue(StepUntilAtSpot(0), "out again the next period");
+        }
+
+        [Test]
+        public void At_The_Spot_A_Rabbit_Drinks_Tea_Chases_A_Firefly_By_Night_Or_Dozes()
+        {
+            screen.Shell.StartGame();
+            screen.ClockHours = () => 22.0;
+            screen.Refresh();
+            GiveWorker(1, -1);
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Transform walker = world.Find("Walker 0");
+            var seen = new HashSet<StrollActivity>();
+            for (int period = 0; period < 24 && seen.Count < 3; period++)
+            {
+                if (!StepUntilAtSpot(0)) continue;
+                StrollActivity a = screen.ActivityOf(0).Value;
+                seen.Add(a);
+                string bubble = walker.Find("Bubble/Text").GetComponent<Text>().text;
+                switch (a)
+                {
+                    case StrollActivity.Tea:
+                        Assert.IsTrue(walker.Find("Cup").gameObject.activeSelf, "a cup in its paws");
+                        Assert.IsTrue(walker.Find("Cup/Steam").gameObject.activeSelf, "with a little steam");
+                        Assert.AreEqual("♪", bubble);
+                        break;
+                    case StrollActivity.Firefly:
+                        Assert.IsTrue(walker.Find("Firefly").gameObject.activeSelf, "one firefly circles it");
+                        Assert.IsFalse(walker.Find("Cup").gameObject.activeSelf);
+                        Assert.AreEqual("♥", bubble);
+                        break;
+                    default:
+                        Assert.AreNotEqual(0f, Mathf.DeltaAngle(0f, walker.Find("Art").localRotation.eulerAngles.z), "lying down");
+                        Assert.IsFalse(walker.Find("Firefly").gameObject.activeSelf);
+                        Assert.AreEqual("zZ", bubble);
+                        break;
+                }
+                while (GardenScreen.Strolling(0, screen.Clock)) screen.Advance(0.25f);
+                Assert.AreEqual(0f, Mathf.DeltaAngle(0f, walker.Find("Art").localRotation.eulerAngles.z), 0.01f, "up again on the way home");
+            }
+            Assert.AreEqual(3, seen.Count, "all three in two dozen strolls: " + string.Join(", ", seen));
+
+            // By day the fireflies are not out, so nobody chases them.
+            screen.ClockHours = () => 13.0;
+            for (int period = 0; period < 12; period++)
+            {
+                if (!StepUntilAtSpot(0)) continue;
+                Assert.AreNotEqual(StrollActivity.Firefly, screen.ActivityOf(0).Value, "no firefly by day");
+                while (GardenScreen.Strolling(0, screen.Clock)) screen.Advance(0.25f);
+            }
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_The_Rabbit_Is_At_Its_Spot_And_Back_On_Its_Seat_Without_Walking()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            GiveWorker(1, -1);
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            var walker = (RectTransform)world.Find("Walker 0");
+            var seat = (RectTransform)world.Find("Seat 0");
+            screen.Advance(0f);
+            Assert.IsFalse(walker.gameObject.activeSelf, "no walk out: it sits until it is at the spot");
+            Assert.IsTrue(seat.gameObject.activeSelf);
+            Assert.IsTrue(StepUntilAtSpot(0));
+            Vector2 at = walker.anchoredPosition;
+            Assert.AreEqual(GardenScreen.LawnSpots[screen.StrollSpotOf(0)], at, "simply there");
+            Assert.IsFalse(seat.gameObject.activeSelf);
+            float stayed = 0f;
+            while (screen.AtSpot(0) && stayed < 10f)
+            {
+                screen.Advance(0.25f); stayed += 0.25f;
+                if (screen.AtSpot(0)) Assert.AreEqual(at, walker.anchoredPosition, "it does not move while it is there");
+            }
+            Assert.IsFalse(walker.gameObject.activeSelf, "and then it is back");
+            Assert.IsTrue(seat.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void No_More_Than_One_Rabbit_Per_Three_Empty_Spots_Is_Out_And_No_Two_Share_A_Spot()
+        {
+            screen.Shell.StartGame();
+            runner.State.RestSpots = RestSpots.Max;
+            for (int i = 1; i <= RestSpots.Max; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 0, Kind = "tho-bong", Name = "T" + i });
+            runner.State.NextRabbitId = RestSpots.Max;
+            screen.Refresh();
+            int cap = Strolls.MaxAtOnce(GardenScreen.LawnSpots.Count);
+            Assert.GreaterOrEqual(cap, 2, "room for a few at once");
+            int most = 0;
+            for (float t = 0f; t < 3f * GardenScreen.StrollPeriod; t += 0.5f)
+            {
+                screen.Advance(0.5f);
+                int outNow = screen.StrollersOut;
+                most = Mathf.Max(most, outNow);
+                Assert.LessOrEqual(outNow, cap, "at " + screen.Clock);
+                var taken = new HashSet<int>();
+                for (int k = 0; k < RestSpots.Max; k++)
+                {
+                    int spot = screen.StrollSpotOf(k);
+                    if (spot < 0) continue;
+                    Assert.IsTrue(taken.Add(spot), "two rabbits on spot " + spot + " at " + screen.Clock);
+                }
+            }
+            Assert.GreaterOrEqual(most, 2, "and more than one does go out");
+        }
+
+        [Test]
+        public void Every_Lawn_Spot_Keeps_Clear_Of_The_Stations_The_Props_And_The_Seats()
+        {
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Assert.GreaterOrEqual(GardenScreen.LawnSpots.Count, 6);
+            foreach (Vector2 spot in GardenScreen.LawnSpots)
+            {
+                for (int i = 0; i < 12; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
+                for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.DecorSpotAt(i)), 150f, spot + " by decoration spot " + i);
+                Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.PondSpot), 300f, spot + " in the pond");
+                Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.GuestSpot), 150f, spot + " on the guest");
+                for (int k = 0; k < RestSpots.Max; k++)
+                    Assert.GreaterOrEqual(Vector2.Distance(spot, ((RectTransform)world.Find("Seat " + k)).anchoredPosition), 150f, spot + " on seat " + k);
+                Assert.IsTrue(spot.x > 150f && spot.x < GardenScreen.ReadableRight - 80f, spot + " under the wood at the edge");
+            }
+            // Every seat but the one by the pond has somewhere to go.
+            for (int k = 0; k < RestSpots.Max; k++)
+            {
+                if (k == 2) continue;
+                Vector2 seat = ((RectTransform)world.Find("Seat " + k)).anchoredPosition;
+                bool any = false;
+                foreach (Vector2 spot in GardenScreen.LawnSpots) any |= Vector2.Distance(spot, seat) <= GardenScreen.StrollRadius;
+                Assert.IsTrue(any, "seat " + k + " has a spot within reach");
+            }
         }
 
         [Test]
