@@ -5517,5 +5517,211 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("0 / 3", quest.Find("Count").GetComponent<Text>().text);
             Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham"), "the taps daily stays beside it");
         }
+
+        // ----- #59: rabbits say a line now and then -----
+
+        Transform ChatLine => root.transform.Find("Canvas/Garden/Content/ChatLine");
+
+        /// <summary>A rabbit that has nodded off says nothing: the teapot's rabbit is woken with a tap whenever it dozes.</summary>
+        void KeepTeapotAwake()
+        {
+            Transform z = root.transform.Find("Canvas/Garden/Content/Station am-tra/Doze");
+            if (z != null && z.gameObject.activeSelf) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+        }
+
+        /// <summary>Steps the screen at ten frames a second and counts the idle bubbles that came up: when each came, and how long it stayed.</summary>
+        int BubblesOver(float seconds, List<float> stays = null, bool keepAwake = true, List<float> came = null)
+        {
+            int shown = 0;
+            bool was = screen.ChatShown;
+            float since = 0f;
+            for (float t = 0f; t < seconds; t += 0.1f)
+            {
+                if (keepAwake) KeepTeapotAwake();
+                screen.Advance(0.1f);
+                since += 0.1f;
+                bool now = screen.ChatShown;
+                if (now && !was) { shown++; since = 0f; came?.Add(screen.Clock); }
+                if (!now && was && stays != null) stays.Add(since);
+                was = now;
+            }
+            return shown;
+        }
+
+        static List<string> Allowed(RabbitTrade trade, bool resting, double hour, GameRunner runner, bool boosted, bool dressed) =>
+            Chatter.KeysFor(trade, resting, Daylight.PhaseAt(hour), Seasons.SeasonOf(runner.TodayNumber), boosted, dressed);
+
+        [Test]
+        public void After_Seventy_Seconds_A_Working_Rabbit_Has_Said_Exactly_One_Line_Of_Its_Trade_Or_The_Hour()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d; // no guest in the first minutes
+            screen.ClockHours = () => 13.0;
+            Rabbit r = GiveWorker(1, 0);
+            Assert.IsFalse(screen.ChatShown);
+            var stays = new List<float>();
+            var came = new List<float>();
+            float start = screen.Clock;
+            Assert.AreEqual(1, BubblesOver(70.5f, stays, true, came), "one line in the first seventy seconds");
+            Assert.That(came[0] - start, Is.InRange(Chatter.WaitLeast - 0.2f, Chatter.WaitMost + 0.2f));
+            Assert.AreEqual(1, screen.ChatLines);
+            Assert.AreEqual(r.Id, screen.ChatRabbitId);
+            CollectionAssert.Contains(Allowed(RabbitTrade.Brewer, false, 13.0, runner, Chatter.BoosterOf(runner.Defs, runner.State, 0) >= 0, false), screen.ChatKey);
+            BubblesOver(3f, stays);
+            Assert.AreEqual(1, stays.Count, "and it has gone again");
+            Assert.AreEqual(Chatter.Seconds, stays[0], 0.15f, "two and a half seconds");
+            Assert.AreEqual(1, CountNamed(root.transform.Find("Canvas/Garden/Content"), "ChatLine"), "one bubble, used again and again");
+
+            // The ones after come forty to seventy seconds apart.
+            BubblesOver(150f, null, true, came);
+            Assert.GreaterOrEqual(came.Count, 3);
+            for (int i = 1; i < came.Count; i++)
+                Assert.That(came[i] - came[i - 1], Is.InRange(Chatter.WaitLeast - 0.2f, Chatter.WaitMost + 0.2f), "gap " + i);
+        }
+
+        [Test]
+        public void A_Working_Rabbit_Says_Lines_Of_Its_Own_Trade_And_Of_The_Hour_Never_Of_Another()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            GiveWorker(1, 0);
+            foreach (double hour in new[] { 13.0, 18.0, 22.0, 6.0 })
+            {
+                screen.ClockHours = () => hour;
+                DayPhase phase = Daylight.PhaseAt(hour);
+                List<string> allowed = Allowed(RabbitTrade.Brewer, false, hour, runner, Chatter.BoosterOf(runner.Defs, runner.State, 0) >= 0, false);
+                bool trade = false, ofTheHour = false;
+                for (int i = 0; i < 60; i++)
+                {
+                    screen.Advance(0.37f);
+                    KeepTeapotAwake();
+                    Assert.IsTrue(screen.ChatterNow(), "the brewer is there to talk");
+                    string key = screen.ChatKey;
+                    CollectionAssert.Contains(allowed, key, hour + "h");
+                    Assert.AreEqual(key == Chatter.BoostKey ? L10n.T(key, L10n.Station(runner.Defs[Chatter.BoosterOf(runner.Defs, runner.State, 0)].Id)) : L10n.T(key),
+                        ChatLine.Find("Text").GetComponent<Text>().text);
+                    if (key.StartsWith("chatter.trade.Brewer.")) trade = true;
+                    if (key.StartsWith("chatter.phase." + phase + ".")) ofTheHour = true;
+                }
+                Assert.IsTrue(trade, "it talks about brewing at " + hour + "h");
+                Assert.IsTrue(ofTheHour, "and about the " + phase);
+            }
+        }
+
+        [Test]
+        public void A_Resting_Rabbit_Never_Says_A_Trade_Line_And_By_Night_Talks_Of_The_Night()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            screen.ClockHours = () => 22.0;
+            screen.Refresh();
+            Rabbit r = GiveWorker(1, -1);
+            Assert.AreEqual(1, BubblesOver(70.5f, null, false), "a resting rabbit talks too");
+            Assert.AreEqual(r.Id, screen.ChatRabbitId);
+            bool night = false;
+            for (int i = 0; i < 60; i++)
+            {
+                screen.Advance(0.37f);
+                Assert.IsTrue(screen.ChatterNow());
+                string key = screen.ChatKey;
+                Assert.IsFalse(Chatter.IsTradeLine(key), "a resting rabbit never talks shop: " + key);
+                CollectionAssert.Contains(Allowed(RabbitTrade.Brewer, true, 22.0, runner, false, false), key);
+                if (key.StartsWith("chatter.phase.Night.")) night = true;
+            }
+            Assert.IsTrue(night, "it talks of the night");
+        }
+
+        [Test]
+        public void An_Idle_Line_Waits_While_A_Guest_Is_In_The_Garden_And_Gives_Way_To_A_Bond_Line()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            Rabbit r = GiveWorker(1, 0);
+            runner.State.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = 170, RewardSeconds = Orders.RewardSeconds };
+            runner.State.Order.Lines.Add(new OrderLine { Station = 0, Count = 1 });
+            screen.Refresh();
+            Assert.IsTrue(screen.GuestShown);
+            Assert.IsFalse(screen.ChatterNow(), "not over a guest");
+            Assert.AreEqual(0, BubblesOver(75f), "the line waits while the guest stands at the counter");
+            Assert.IsTrue(screen.GuestShown);
+
+            runner.State.Order = null; // the guest goes
+            screen.Refresh();
+            for (int i = 0; i < 100 && screen.GuestShown; i++) { KeepTeapotAwake(); screen.Advance(0.1f); }
+            Assert.IsFalse(screen.GuestShown);
+            screen.Advance(0.1f);
+            Assert.IsTrue(screen.ChatShown, "the waiting line comes as soon as the guest has gone");
+            Assert.AreEqual(1, screen.ChatLines);
+
+            // A bond line outranks it: the idle line goes, and no other comes while the bond line is up.
+            r.Affection = Rabbits.AffectionLine - 1;
+            r.PetDay = -1;
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Transform bond = root.transform.Find("Canvas/Garden/Content/BondLine");
+            Assert.IsTrue(bond.gameObject.activeSelf);
+            screen.Advance(0.05f);
+            Assert.IsFalse(screen.ChatShown, "the idle line gives way");
+            Assert.IsFalse(screen.ChatterNow(), "and waits for the bond line");
+            for (int i = 0; i < 60 && bond.gameObject.activeSelf; i++) screen.Advance(0.1f);
+            Assert.IsFalse(bond.gameObject.activeSelf);
+            KeepTeapotAwake();
+            Assert.IsTrue(screen.ChatterNow(), "then it may talk again");
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_The_Line_Appears_And_Goes_Without_A_Pop()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            GiveWorker(1, 0);
+            Assert.IsTrue(screen.ChatterNow());
+            screen.Advance(0.05f);
+            Assert.Less(ChatLine.localScale.x, 1f, "it springs in when motion is not reduced");
+
+            Motion.SetReduced(true);
+            screen.Advance(3f);
+            Assert.IsFalse(screen.ChatShown);
+            Assert.IsTrue(screen.ChatterNow());
+            Assert.AreEqual(1f, ChatLine.localScale.x, 1e-4, "it is simply there");
+            for (int i = 0; i < 24; i++)
+            {
+                screen.Advance(0.1f);
+                Assert.AreEqual(1f, ChatLine.localScale.x, 1e-4, "no pop and no shrink at " + (i + 1) * 0.1f + "s");
+            }
+            screen.Advance(0.2f);
+            Assert.IsFalse(screen.ChatShown, "it is simply gone");
+        }
+
+        [Test]
+        public void A_Boosted_Rabbit_Names_Its_Booster_And_A_Dyed_One_Shows_Off()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrderClock = 0d;
+            runner.State.Levels[1] = 3; // the leaf basket feeds the teapot
+            Rabbit r = GiveWorker(1, 0);
+            Assert.AreEqual(1, Chatter.BoosterOf(runner.Defs, runner.State, 0));
+            var keys = new HashSet<string>();
+            for (int i = 0; i < 200 && !keys.Contains(Chatter.BoostKey); i++)
+            {
+                screen.Advance(0.37f);
+                KeepTeapotAwake();
+                Assert.IsTrue(screen.ChatterNow());
+                keys.Add(screen.ChatKey);
+            }
+            Assert.IsTrue(keys.Contains(Chatter.BoostKey), "the booster's line comes up");
+            StringAssert.Contains(L10n.Station("gio-la"), ChatLine.Find("Text").GetComponent<Text>().text, "naming the leaf basket");
+            Assert.IsFalse(keys.Contains(Chatter.DressedKey), "nothing to show off yet");
+
+            r.Dye = 0;
+            bool showedOff = false;
+            for (int i = 0; i < 200 && !showedOff; i++)
+            {
+                screen.Advance(0.37f);
+                KeepTeapotAwake();
+                Assert.IsTrue(screen.ChatterNow());
+                showedOff = screen.ChatKey == Chatter.DressedKey;
+            }
+            Assert.IsTrue(showedOff, "a dyed rabbit shows its coat off");
+        }
     }
 }

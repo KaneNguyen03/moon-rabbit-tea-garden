@@ -668,6 +668,7 @@ namespace VuonTra.EditorTools
             RenderLandWaves(runner, screen);
             RenderPhotoAsk(runner, screen);
             RenderRestShare(runner, screen);
+            RenderChatter(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -789,6 +790,65 @@ namespace VuonTra.EditorTools
             Capture(screen, "60-tab-tho");
             screen.CloseSheet();
             Step(screen, 0.3f);
+        }
+
+        /// <summary>#59: by day a rabbit at work says a line of its trade; by night a resting rabbit talks of the night.</summary>
+        static void RenderChatter(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = runner.State;
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            PhotoAsks.Decline(s); // no camera bubble and no guest: the line has the garden to itself
+            s.Order = null;
+            screen.SelectStation(-1);
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.ClockHours = () => 13.0;
+            screen.Refresh();
+            Step(screen, 4f); // the guest walks off
+            WakeEveryone(screen, s);
+            Step(screen, 2f); // the hearts of the wake float away before the frame
+            SayUntil(screen, s, key => Chatter.IsTradeLine(key), false);
+            Capture(screen, "59-noi-ngay");
+            // A rabbit resting on its seat for the night frame.
+            s.RestSpots = Mathf.Max(s.RestSpots, 2);
+            Rabbits.Arrive(s, 1, "Mây", 0d);
+            screen.ClockHours = () => 22.0;
+            screen.Refresh();
+            Step(screen, 3f); // the day's line has gone
+            WakeEveryone(screen, s);
+            Step(screen, 2f);
+            SayUntil(screen, s, key => key.StartsWith("chatter.phase.Night."), true);
+            Capture(screen, "59-noi-dem");
+            Step(screen, 3f);
+        }
+
+        /// <summary>Asks for lines until one is the wanted kind from a working (or resting) rabbit, then centres the view on it.</summary>
+        static void SayUntil(GardenScreen screen, GameState s, System.Func<string, bool> want, bool resting)
+        {
+            for (int i = 0; i < 600; i++)
+            {
+                screen.Advance(0.01f);
+                WakeEveryone(screen, s);
+                if (!screen.ChatterNow()) continue;
+                Rabbit r = Rabbits.Find(s, screen.ChatRabbitId);
+                if (r == null || (r.Station < 0) != resting || !want(screen.ChatKey)) continue;
+                var line = (RectTransform)screen.transform.Find("Canvas/Garden/Content/ChatLine");
+                screen.LookAt(line.anchoredPosition + new Vector2(0f, -120f));
+                Step(screen, 0.5f);
+                return;
+            }
+            throw new System.Exception("Preview: no " + (resting ? "resting" : "working") + " rabbit said the wanted line");
+        }
+
+        /// <summary>A rabbit that nodded off says nothing: a tap on its station wakes it, and the card it opens is closed again.</summary>
+        static void WakeEveryone(GardenScreen screen, GameState s)
+        {
+            for (int i = 0; i < screen.Runner.Defs.Count; i++)
+            {
+                Transform z = screen.transform.Find("Canvas/Garden/Content/Station " + screen.Runner.Defs[i].Id + "/Doze");
+                if (z == null || !z.gameObject.activeSelf) continue;
+                Press(screen, "Canvas/Garden/Content/Station " + screen.Runner.Defs[i].Id);
+                screen.SelectStation(-1);
+            }
         }
 
         /// <summary>A brand-new garden for the guidance frames: the first step, then the card step, then the sheet step.</summary>

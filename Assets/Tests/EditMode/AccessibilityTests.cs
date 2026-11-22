@@ -321,6 +321,57 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(wrong, string.Join("\n", wrong));
         }
 
+        /// <summary>
+        /// Null when the label's words, wrapped, fit its box at the size best fit draws them, and that size is no
+        /// smaller than <paramref name="least"/>; else what went wrong.
+        /// </summary>
+        static string Wrapped(Text text, int least)
+        {
+            Vector2 size = text.rectTransform.rect.size;
+            var gen = new TextGenerator();
+            TextGenerationSettings settings = text.GetGenerationSettings(size);
+            gen.Populate(text.text, settings);
+            settings.fontSize = text.resizeTextForBestFit ? gen.fontSizeUsedForBestFit : settings.fontSize;
+            settings.resizeTextForBestFit = false;
+            settings.verticalOverflow = VerticalWrapMode.Overflow;
+            float ppu = text.pixelsPerUnit;
+            float h = gen.GetPreferredHeight(text.text, settings) / ppu, drawn = settings.fontSize / ppu;
+            if (h <= size.y + 1f && drawn >= least - 0.01f) return null;
+            return Path(text.transform) + " \"" + text.text + "\" at " + Mathf.RoundToInt(drawn) + "px is " + Mathf.RoundToInt(h) + " tall in " + Mathf.RoundToInt(size.x) + "x" + Mathf.RoundToInt(size.y);
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void Every_Idle_Line_A_Rabbit_Says_Fits_Its_Bubble(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            screen.Refresh();
+            Assert.IsTrue(screen.ChatterNow());
+            Layout();
+            Text text = root.transform.Find("Canvas/Garden/Content/ChatLine/Text").GetComponent<Text>();
+            var wrong = new List<string>();
+            int lines = 0;
+            // The longest station name in either language stands in for the booster's.
+            string longest = "";
+            foreach (StationDef d in runner.Defs) if (L10n.Station(d.Id).Length > longest.Length) longest = L10n.Station(d.Id);
+            foreach (string key in Chatter.AllKeys)
+            {
+                lines++;
+                text.text = L10n.T(key, longest);
+                string line = Wrapped(text, 18);
+                if (line != null) wrong.Add(line);
+            }
+            Assert.AreEqual(33, lines);
+            Assert.IsEmpty(wrong, string.Join("\n", wrong));
+        }
+
         [TestCase("vi", false)]
         [TestCase("en", false)]
         [TestCase("vi", true)]
