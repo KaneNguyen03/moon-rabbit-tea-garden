@@ -118,6 +118,13 @@ namespace VuonTra.Core
         public long OrderDay = -1;
         public long OrdersDelivered, DailyOrdersBase, NextOrderId;
 
+        /// <summary>A rabbit asking for its picture (#56): who (0 for nobody), the seconds its bubble has left, seconds of open play towards the next ask, today's answered asks and the day they count for, answers in all and at the day's start.</summary>
+        public long PhotoAskRabbit;
+        public double PhotoAskLeft, PhotoAskClock;
+        public int PhotoAsksToday;
+        public long PhotoAskDay = -1;
+        public long PhotoAsksAnswered, DailyPhotoAsksBase;
+
         /// <summary>Decorating the garden (#11): how many of each kind are owned (indexed like <see cref="Decor.Kinds"/>), what stands on each of the eight spots (a kind id or null), and the colour hung on the paper lanterns (0 = paper).</summary>
         public int[] DecorOwned = new int[Decor.Kinds.Length];
         public string[] DecorSpots = new string[Decor.Spots];

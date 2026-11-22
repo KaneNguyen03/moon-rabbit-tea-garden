@@ -2624,6 +2624,14 @@ MonoBehaviour:
     m_Localized: "Collected \xD72"
     m_Metadata:
       m_Items: []
+  - m_Id: 360969950715904
+    m_Localized: '{0} loves the photo! +{1} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360969975881728
+    m_Localized: Take 3 photos rabbits ask for
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

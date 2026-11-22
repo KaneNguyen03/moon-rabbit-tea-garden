@@ -643,6 +643,7 @@ namespace VuonTra.EditorTools
 
             RenderGuidance(runner, screen);
             RenderLandWaves(runner, screen);
+            RenderPhotoAsk(runner, screen);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -707,6 +708,24 @@ namespace VuonTra.EditorTools
                 Capture(screen, "51-dot-" + wave);
             }
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+        }
+
+        /// <summary>#56: the rabbit at the teapot holds up its camera bubble, then the camera comes up framed on it.</summary>
+        static void RenderPhotoAsk(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = runner.State;
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            PhotoAsks.Decline(s);
+            if (!PhotoAsks.Ask(runner.Defs, s, runner.TodayNumber, () => 0d)) throw new System.Exception("Preview: nobody could ask for a photo");
+            screen.LookAt(GardenScreen.StationSpot(0));
+            Step(screen, 0.6f);
+            Capture(screen, "56-xin-chup");
+            Press(screen, "Canvas/Garden/Content/PhotoAsk");
+            Step(screen, 0.6f);
+            Capture(screen, "56-khung-thu");
+            screen.ExitPhotoMode();
+            Step(screen, 0.3f);
         }
 
         /// <summary>A brand-new garden for the guidance frames: the first step, then the card step, then the sheet step.</summary>

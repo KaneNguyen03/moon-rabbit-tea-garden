@@ -5147,5 +5147,174 @@ namespace VuonTra.Core.Tests
             Assert.Less(runner.State.DailyCarrotTarget.ToDouble(), 1e12, "but the carrot goal fits the small garden");
         }
 
+        // ----- #56: a rabbit asks for its picture -----
+
+        /// <summary>A rabbit at work at the teapot, which makes something, so two minutes of income are worth checking.</summary>
+        Rabbit RabbitAtTheTeapot()
+        {
+            runner.State.Levels[0] = 12;
+            Rabbit r = Rabbits.Arrive(runner.State, 0, "Bông", 0d);
+            Assert.IsTrue(Rabbits.Assign(runner.State, r.Id, 0));
+            screen.Refresh();
+            return r;
+        }
+
+        [Test]
+        public void A_Rabbit_Puts_Up_A_Camera_Bubble_After_Four_Minutes_Of_Play_Never_While_Paused_And_It_Goes_After_Ninety_Seconds()
+        {
+            Motion.SetReduced(true);
+            Rabbit bong = RabbitAtTheTeapot();
+            Transform bubble = root.transform.Find("Canvas/Garden/Content/PhotoAsk");
+            Assert.IsNotNull(bubble);
+            for (int i = 0; i < 100; i++) screen.Advance(1f);
+            Assert.AreEqual(0d, runner.State.PhotoAskClock, "the title does not count");
+            screen.Shell.StartGame();
+            for (int i = 0; i < (int)PhotoAsks.Interval - 1; i++) screen.Advance(1f);
+            Assert.IsFalse(PhotoAsks.Waiting(runner.State), "not before four minutes of play");
+            Assert.IsFalse(bubble.gameObject.activeSelf);
+            screen.Advance(1f);
+            screen.Advance(0.5f);
+            Assert.IsTrue(PhotoAsks.Waiting(runner.State), "four minutes in");
+            Assert.AreEqual(bong.Id, runner.State.PhotoAskRabbit);
+            Assert.IsTrue(screen.PhotoAskShown);
+            Assert.AreEqual(bubble.parent.childCount - 1, bubble.GetSiblingIndex(), "over everything in the garden");
+            Vector2 over = ((RectTransform)bubble).anchoredPosition, station = GardenScreen.StationSpot(0);
+            Assert.Greater(over.y, station.y, "above the rabbit");
+            Assert.Less(Mathf.Abs(over.x - station.x), 200f, "at its station");
+
+            double left = runner.State.PhotoAskLeft;
+            screen.Shell.OpenPause();
+            for (int i = 0; i < 200; i++) screen.Advance(1f);
+            Assert.AreEqual(left, runner.State.PhotoAskLeft, 1e-9, "a pause holds the bubble");
+            screen.Shell.Resume();
+            for (int i = 0; i < (int)PhotoAsks.StaySeconds + 1; i++) screen.Advance(1f);
+            Assert.IsFalse(PhotoAsks.Waiting(runner.State), "a minute and a half, then it goes");
+            Assert.IsFalse(bubble.gameObject.activeSelf);
+            Assert.AreEqual(0, runner.State.PhotosTaken);
+        }
+
+        [Test]
+        public void Tapping_The_Bubble_Frames_That_Rabbit_Up_Close_And_The_Picture_Pays_Two_Minutes_That_Fly_To_The_Purse()
+        {
+            Motion.SetReduced(true);
+            Rabbit bong = RabbitAtTheTeapot();
+            Rabbits.Arrive(runner.State, 1, "Mây", 0d); // resting in a seat: it could ask too, but the roll picks the worker
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Assert.IsTrue(PhotoAsks.Ask(runner.Defs, runner.State, runner.TodayNumber, () => 0d));
+            Assert.AreEqual(bong.Id, runner.State.PhotoAskRabbit);
+            runner.State.PhotoAskLeft = 2d; // almost gone: framing must not cost it
+            screen.Advance(0.1f);
+            Assert.IsTrue(screen.PhotoAskShown);
+
+            Find("Canvas/Garden/Content/PhotoAsk").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoMode, "the camera comes up");
+            Assert.IsTrue(screen.PhotoAskFraming);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom, "close in");
+            Assert.IsFalse(root.transform.Find("Canvas/Hud").gameObject.activeSelf);
+            Assert.IsFalse(screen.PhotoAskShown, "the bubble is not in the picture");
+            Vector2? onScreen = screen.AskingRabbitOnScreen;
+            Assert.IsTrue(onScreen.HasValue);
+            Assert.Less(Vector2.Distance(onScreen.Value, new Vector2(540f, 1920f * 0.55f)), 2f, "the rabbit that asked is in the middle");
+            for (int i = 0; i < 5; i++) screen.Advance(1f);
+            Assert.IsTrue(PhotoAsks.Waiting(runner.State), "the bubble's time stands still while framing");
+
+            BigNum expected = PhotoAsks.Reward(runner.Defs, runner.State, runner.Mods);
+            Assert.Greater(expected.ToDouble(), 0d);
+            BigNum before = runner.State.Coins;
+            string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-ask-" + System.Guid.NewGuid().ToString("N"));
+            Transform review = root.transform.Find("Canvas/PhotoReview");
+            try
+            {
+                screen.PhotoFolder = dir;
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Assert.IsTrue(System.IO.File.Exists(screen.LastPhotoPath), "a picture as always");
+                Assert.IsTrue(runner.State.Coins.Equals(before + expected), "exactly two minutes of income");
+                Assert.AreEqual(1L, runner.State.PhotosTaken, "it counts for the photo quests");
+                Assert.AreEqual(1, runner.State.GoldenCarrots, "and for the day's first-photo gift");
+                Assert.AreEqual(1L, runner.State.PhotoAsksAnswered);
+                Assert.AreEqual(1, runner.State.PhotoAsksToday);
+                Assert.IsFalse(PhotoAsks.Waiting(runner.State), "answered");
+                Assert.IsFalse(screen.PhotoAskFraming);
+                Text ask = review.Find("Card/Ask").GetComponent<Text>();
+                Assert.IsTrue(ask.gameObject.activeSelf);
+                Assert.AreEqual(L10n.T("photo.ask.paid", "Bông", expected.Short()), ask.text);
+                StringAssert.Contains("+1", review.Find("Card/Gift").GetComponent<Text>().text);
+
+                // A second picture is only a picture.
+                Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+                Find("Canvas/PhotoBar/Snap").onClick.Invoke();
+                Assert.IsFalse(review.Find("Card/Ask").gameObject.activeSelf);
+                Assert.IsTrue(runner.State.Coins.Equals(before + expected), "paid once");
+            }
+            finally
+            {
+                if (System.IO.Directory.Exists(dir)) System.IO.Directory.Delete(dir, true);
+            }
+
+            Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
+            Assert.AreEqual(0, screen.Feel.Flying, "nothing flies at a hidden purse");
+            Find("Canvas/PhotoBar/Done").onClick.Invoke();
+            Assert.IsFalse(screen.PhotoMode);
+            Assert.IsTrue(root.transform.Find("Canvas/Hud").gameObject.activeSelf);
+            Assert.Greater(screen.Feel.Flying, 0, "the carrots fly from the rabbit to the purse");
+            Assert.AreEqual("reward", Sfx.Last);
+            Assert.IsTrue(runner.State.Coins.Equals(before + expected), "and nothing more is paid for the thanks");
+        }
+
+        [Test]
+        public void Closing_The_Camera_Without_A_Picture_Loses_That_Invitation_And_Nothing_Else()
+        {
+            Motion.SetReduced(true);
+            RabbitAtTheTeapot();
+            screen.Shell.StartGame();
+            Assert.IsTrue(runner.AskForPhoto());
+            screen.Advance(0.1f);
+            BigNum coins = runner.State.Coins;
+            int golden = runner.State.GoldenCarrots, clovers = runner.State.Clovers;
+            Find("Canvas/Garden/Content/PhotoAsk").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoMode);
+            Find("Canvas/PhotoBar/Done").onClick.Invoke();
+            Assert.IsFalse(screen.PhotoMode);
+            Assert.IsFalse(PhotoAsks.Waiting(runner.State), "that invitation is gone");
+            screen.Advance(0.1f);
+            Assert.IsFalse(screen.PhotoAskShown);
+            Assert.IsTrue(runner.State.Coins.Equals(coins));
+            Assert.AreEqual(golden, runner.State.GoldenCarrots);
+            Assert.AreEqual(clovers, runner.State.Clovers);
+            Assert.AreEqual(0L, runner.State.PhotosTaken);
+            Assert.AreEqual(0, runner.State.PhotoAsksToday, "nor one of the day's ten");
+            Assert.AreEqual(0, screen.Feel.Flying);
+
+            // The HUD's own camera, with nobody asking, is the plain photo mode it always was.
+            Find("Canvas/Hud/Camera").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoMode);
+            Assert.IsFalse(screen.PhotoAskFraming);
+            screen.ExitPhotoMode();
+        }
+
+        [Test]
+        public void A_Resting_Rabbit_In_Its_Seat_Can_Ask_And_The_Daily_Quest_Is_In_The_List()
+        {
+            Motion.SetReduced(true);
+            runner.State.RestSpots = 2;
+            Rabbit resting = Rabbits.Arrive(runner.State, 1, "Mây", 0d);
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Assert.IsTrue(runner.AskForPhoto(), "nobody works: the seated rabbit asks");
+            Assert.AreEqual(resting.Id, runner.State.PhotoAskRabbit);
+            screen.Advance(0.1f);
+            Assert.IsTrue(screen.PhotoAskShown);
+            Find("Canvas/Garden/Content/PhotoAsk").onClick.Invoke();
+            Assert.IsTrue(screen.PhotoAskFraming);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
+            Assert.IsTrue(screen.AskingRabbitOnScreen.HasValue);
+            screen.ExitPhotoMode();
+
+            Transform quest = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-anh");
+            Assert.IsNotNull(quest, "the daily photo quest is in the list");
+            Assert.AreEqual("0 / 3", quest.Find("Count").GetComponent<Text>().text);
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham"), "the taps daily stays beside it");
+        }
     }
 }

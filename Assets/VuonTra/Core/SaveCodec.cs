@@ -250,6 +250,15 @@ namespace VuonTra.Core
                 sb.Append("]}");
             }
             sb.Append('}');
+            // A rabbit asking for its picture (#56), an additive block: the clock, the bubble if any, today's count and the totals.
+            sb.Append(",\"photoAsk\":{\"clock\":").Append(Sane(s.PhotoAskClock).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"left\":").Append(Sane(s.PhotoAskLeft).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"rabbit\":").Append(s.PhotoAskRabbit.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"today\":").Append(s.PhotoAsksToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"day\":").Append(s.PhotoAskDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"answered\":").Append(s.PhotoAsksAnswered.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"dailyBase\":").Append(s.DailyPhotoAsksBase.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
             // Decorating the garden (#11), an additive block: what is owned by kind, what stands on each spot, the lantern colour.
             sb.Append(",\"decor\":{\"owned\":{");
             for (int i = 0; i < Decor.Kinds.Length; i++)
@@ -614,6 +623,20 @@ namespace VuonTra.Core
                     if (order.Lines.Count > 0 && order.Left > 0d) s.Order = order;
                     if (order.Id > s.NextOrderId) s.NextOrderId = order.Id;
                 }
+            }
+
+            // A rabbit asking for its picture (#56). A save from before it: the clock starts from nothing, nobody asks.
+            if (root.TryGetValue("photoAsk", out object askObj) && askObj is Dictionary<string, object> ask)
+            {
+                s.PhotoAskClock = TryNumber(ask, "clock", out double askClock) ? Math.Max(0d, Math.Min(PhotoAsks.Interval, askClock)) : 0d;
+                s.PhotoAskLeft = Math.Max(0d, Math.Min(PhotoAsks.StaySeconds, ReadNumber(ask, "left")));
+                s.PhotoAskRabbit = Math.Max(0L, ToLong(ReadNumber(ask, "rabbit")));
+                // A bubble whose time is spent, or whose rabbit is not in this garden, is not kept.
+                if (s.PhotoAskLeft <= 0d || Rabbits.Find(s, s.PhotoAskRabbit) == null) { s.PhotoAskRabbit = 0; s.PhotoAskLeft = 0d; }
+                s.PhotoAsksToday = (int)Math.Max(0d, Math.Min(ReadNumber(ask, "today"), PhotoAsks.PerDay));
+                s.PhotoAskDay = TryNumber(ask, "day", out double askDay) ? ToLong(askDay) : -1;
+                s.PhotoAsksAnswered = Math.Max(0L, ToLong(ReadNumber(ask, "answered")));
+                s.DailyPhotoAsksBase = Math.Max(0L, Math.Min(s.PhotoAsksAnswered, ToLong(ReadNumber(ask, "dailyBase"))));
             }
 
             result.Status = LoadStatus.Ok;

@@ -2618,6 +2618,14 @@ MonoBehaviour:
     m_Localized: "\u0110\xE3 nh\u1EADn \xD72"
     m_Metadata:
       m_Items: []
+  - m_Id: 360969950715904
+    m_Localized: "{0} c\u1EA3m \u01A1n v\xEC t\u1EA5m \u1EA3nh! +{1} c\xE0 r\u1ED1t"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360969975881728
+    m_Localized: "Ch\u1EE5p 3 t\u1EA5m th\u1ECF xin \u1EA3nh"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

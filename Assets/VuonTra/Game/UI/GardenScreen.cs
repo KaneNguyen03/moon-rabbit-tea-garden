@@ -916,6 +916,7 @@ namespace VuonTra.Game.UI
                 DozeSomeone();
             }
             UpdateOrders(dt);
+            UpdatePhotoAsk(dt);
         }
 
         /// <summary>
@@ -1076,6 +1077,7 @@ namespace VuonTra.Game.UI
             BuildTabBar(catalog);
             ProductTray = new TrayView(_canvas, catalog, OnSellProduct, OnSellAllProducts);
             BuildPhotoMode(catalog);
+            BuildPhotoAsk(catalog);
             ProductTray.Root.anchoredPosition = new Vector2(0f, SafeBottom() + TabBarGap + TabBarHeight + 10f); // just above the tab bar
             BuildEdges(catalog);
             BuildSheet(catalog);
@@ -1784,6 +1786,13 @@ namespace VuonTra.Game.UI
             _photoNote.resizeTextForBestFit = true;
             _photoNote.resizeTextMinSize = 12;
             _photoNote.resizeTextMaxSize = UiKit.TextSmall;
+            // #56: the thanks of the rabbit that asked for this picture, and what it paid.
+            _photoAskLine = UiKit.Rect("Ask", card).Stretch(0, 0, 1, 0, 40, 344, 40, -396)
+                .AddText("", UiKit.TextBody, Palette.Mix(Palette.Carrot, Palette.Ink, 0.55f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            _photoAskLine.resizeTextForBestFit = true;
+            _photoAskLine.resizeTextMinSize = 16;
+            _photoAskLine.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _photoAskLine.gameObject.SetActive(false);
             var save = UiKit.Rect("Save", card).Place(0f, 0f, 190, 150, 280, UiKit.MinTouch);
             UiKit.Secondary(save, catalog.Panel, L10n.T("photo.save"), () => { Sfx.Click(); RevealPhoto(); });
             var share = UiKit.Rect("Share", card).Place(0.5f, 0f, 0, 150, 280, UiKit.MinTouch);
@@ -1899,6 +1908,7 @@ namespace VuonTra.Game.UI
             LastPhotoPath = path;
             _photoPreview.sprite = Sprite.Create(tex, new Rect(0, 0, tex.width, tex.height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = "";
+            _photoAskLine.gameObject.SetActive(false);
             _photoNote.text = path;
             CloseAlbum();
             _photoBar.SetActive(false);
@@ -1909,6 +1919,7 @@ namespace VuonTra.Game.UI
         {
             if (!PhotoMode) return;
             PhotoMode = false;
+            if (PhotoAskFraming) { PhotoAskFraming = false; Runner.DeclinePhotoAsk(); } // closed without the picture: that ask is gone (#56)
             _photoReview.SetActive(false);
             _photoAlbum.SetActive(false);
             _photoBar.SetActive(false);
@@ -1916,6 +1927,7 @@ namespace VuonTra.Game.UI
             _hud.gameObject.SetActive(true);
             _tabBar.gameObject.SetActive(true);
             Refresh();
+            CelebratePhotoAsk();
         }
 
         /// <summary>The garden alone, rendered through the game's own camera and written as a PNG.</summary>
@@ -1961,6 +1973,8 @@ namespace VuonTra.Game.UI
             Haptics.Medium();
             Feel.Flash(Color.white, 0.18f);
             bool gift = Runner.TakePhoto(path);
+            bool asked = PhotoAskFraming && AnswerPhotoAsk();
+            _photoAskLine.gameObject.SetActive(asked);
             _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftGolden) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
@@ -5247,6 +5261,181 @@ namespace VuonTra.Game.UI
                 w.Bubble.localScale = new Vector3(face, 1f, 1f); // the words read the right way round whichever way it faces
                 if (w.Fly.gameObject.activeSelf) w.Fly.localScale = Vector3.one * (0.8f + 0.3f * (0.5f + 0.5f * Mathf.Sin(since * 5f)));
             }
+        }
+
+        #endregion
+
+        #region A rabbit asks for its picture (#56)
+
+        RectTransform _askBubble;
+        Text _photoAskLine;
+        long _askShownId, _askRabbitId;
+        BigNum _askPaid;
+        bool _askCelebrate;
+
+        /// <summary>True while photo mode was opened from a rabbit's camera bubble: the next picture answers it.</summary>
+        public bool PhotoAskFraming { get; private set; }
+        /// <summary>True while a camera bubble shows over a rabbit in the garden.</summary>
+        public bool PhotoAskShown => _askBubble != null && _askBubble.gameObject.activeSelf;
+
+        /// <summary>Where the asking rabbit is on the screen (canvas units), or null when nobody asks or it is not in view.</summary>
+        public Vector2? AskingRabbitOnScreen
+        {
+            get
+            {
+                Rabbit r = PhotoAsks.Asking(Runner.State);
+                long id = r != null ? r.Id : _askRabbitId;
+                return AskSpot(id, out _, out Vector2 body) ? ToView(body) : (Vector2?)null;
+            }
+        }
+
+        /// <summary>A round paper bubble with a little camera drawn in it, like the HUD's camera button; it stands on the garden.</summary>
+        void BuildPhotoAsk(GameCatalog catalog)
+        {
+            _askBubble = UiKit.Rect("PhotoAsk", _street).Place(0f, 0f, 0, 0, 120, 120);
+            _askBubble.pivot = new Vector2(0.5f, 0f);
+            var tail = UiKit.Rect("Tail", _askBubble).Place(0.5f, 0f, 0, 10, 30, 30);
+            tail.localRotation = Quaternion.Euler(0, 0, 45f);
+            tail.AddImage(catalog.Panel, Palette.Paper, true);
+            UiKit.Rect("Shadow", _askBubble).Place(0.5f, 0.5f, 0, -6, 112, 112).AddImage(catalog.Round, Palette.Alpha(Palette.Night, 0.25f));
+            Image plate = UiKit.Rect("Plate", _askBubble).Place(0.5f, 0.5f, 0, 6, 112, 112).AddImage(catalog.Round, Palette.Paper);
+            plate.raycastTarget = true;
+            var button = _askBubble.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = plate;
+            button.onClick.AddListener(OnPhotoAskTap);
+            RectTransform cam = plate.rectTransform;
+            UiKit.Rect("Body", cam).Place(0.5f, 0.5f, 0, -4, 60, 42).AddImage(catalog.Panel, Palette.Ink, true);
+            UiKit.Rect("Bump", cam).Place(0.5f, 0.5f, -10, 20, 22, 14).AddImage(catalog.Panel, Palette.Ink, true);
+            UiKit.Rect("Lens", cam).Place(0.5f, 0.5f, 0, -4, 26, 26).AddImage(catalog.Round, Palette.Paper);
+            UiKit.Rect("Glint", cam).Place(0.5f, 0.5f, -3, -1, 8, 8).AddImage(catalog.Round, Palette.Ink);
+            UiKit.Rect("Flash", cam).Place(0.5f, 0.5f, 20, 10, 10, 8).AddImage(catalog.Round, Palette.Lantern);
+            _askBubble.gameObject.SetActive(false);
+            _askShownId = 0;
+        }
+
+        /// <summary>The ask's clock runs with the other open-play events, but stands still while the camera is up, so framing never costs the bubble.</summary>
+        void UpdatePhotoAsk(float dt)
+        {
+            if (!PhotoMode && Runner.AdvancePhotoAsks(dt) == PhotoAskEvent.Asked) Sfx.Blip();
+            PlacePhotoAsk();
+        }
+
+        /// <summary>The bubble over the asking rabbit's head, wherever it is; it springs up when it first shows and bobs while it waits. Never in a picture.</summary>
+        void PlacePhotoAsk()
+        {
+            if (_askBubble == null) return;
+            Rabbit r = PhotoAsks.Asking(Runner.State);
+            bool show = r != null && !PhotoMode && AskSpot(r.Id, out Vector2 head, out _);
+            if (_askBubble.gameObject.activeSelf != show) _askBubble.gameObject.SetActive(show);
+            if (!show) { if (r == null) _askShownId = 0; return; }
+            AskSpot(r.Id, out head, out _);
+            float bob = Motion.Reduced ? 0f : Mathf.Sin(_clock * 3f) * 6f;
+            _askBubble.anchoredPosition = head + new Vector2(0, bob);
+            if (_askBubble.GetSiblingIndex() != _askBubble.parent.childCount - 1) _askBubble.SetAsLastSibling();
+            if (_askShownId == r.Id) return;
+            _askShownId = r.Id;
+            RectTransform bubble = _askBubble;
+            bubble.localScale = Vector3.zero;
+            Tweens.Add(Motion.Time(Motion.Panel), t => { if (bubble != null) bubble.localScale = Vector3.one * t; }, Motion.Curve(Ease.OutBack));
+        }
+
+        /// <summary>
+        /// Where a rabbit stands in the garden: above its head for the bubble, and its middle for the camera. False when it is
+        /// not out where it can be seen (a closed station, resting with no seat).
+        /// </summary>
+        bool AskSpot(long id, out Vector2 head, out Vector2 body)
+        {
+            head = body = Vector2.zero;
+            if (id <= 0 || Runner == null || Runner.State == null) return false;
+            GameState s = Runner.State;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                Rabbit worker = Rabbits.AtStation(s, i);
+                if (worker == null || worker.Id != id || s.Levels[i] <= 0 || !_actors[i].Root.gameObject.activeSelf) continue;
+                float size = StationSize(i);
+                Vector2 feet = StationSpot(i) + _actors[i].RabbitHome * size;
+                body = feet + new Vector2(0, 128f * size);
+                head = feet + new Vector2(0, 350f * size); // above its name plate, clear of a doze's "z z z"
+                return true;
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length; k++)
+            {
+                if (_seatIds[k] != id) continue;
+                RectTransform near = k < _walkers.Count && _walkers[k].Rect.gameObject.activeSelf ? _walkers[k].Rect : _seats[k];
+                Vector2 feet = near.anchoredPosition;
+                body = feet + new Vector2(0, 60f);
+                head = feet + new Vector2(0, 175f); // above a walker's own little bubble
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>A touch on the bubble: the camera comes up, close in and centred on the rabbit that asked.</summary>
+        void OnPhotoAskTap()
+        {
+            Rabbit r = PhotoAsks.Asking(Runner.State);
+            if (r == null || !AskSpot(r.Id, out _, out Vector2 body)) return;
+            Sfx.Click();
+            EnterPhotoMode();
+            if (!PhotoMode) return;
+            PhotoAskFraming = true;
+            _askRabbitId = r.Id;
+            PlacePhotoAsk(); // the bubble is not in the picture
+            Vector2 to = new Vector2(ScreenW / 2f, ScreenH * 0.55f), fromAt = ToView(body);
+            float from = _zoom;
+            if (_scroll != null) _scroll.StopMovement();
+            if (Motion.Reduced) { PlaceView(body, to, ZoomNear); return; }
+            Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(body, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.InOutCubic);
+        }
+
+        /// <summary>The picture was taken for the rabbit: the reward is paid now and the review card says so; the thanks follow once the garden is back.</summary>
+        bool AnswerPhotoAsk()
+        {
+            PhotoAskFraming = false;
+            Rabbit r = Rabbits.Find(Runner.State, _askRabbitId);
+            if (!Runner.AnswerPhotoAsk(out BigNum paid)) return false;
+            _askPaid = paid;
+            _askCelebrate = true;
+            _photoAskLine.text = L10n.T("photo.ask.paid", r != null ? r.Name : "", paid.Short());
+            return true;
+        }
+
+        /// <summary>Back from the camera after answering: the rabbit hops, hearts rise, and the carrots fly from it to the purse.</summary>
+        void CelebratePhotoAsk()
+        {
+            if (!_askCelebrate) return;
+            _askCelebrate = false;
+            GameCatalog catalog = Runner.Catalog;
+            RectTransform near = null;
+            GameState s = Runner.State;
+            for (int i = 0; i < _actors.Count && near == null; i++)
+            {
+                Rabbit worker = Rabbits.AtStation(s, i);
+                if (worker == null || worker.Id != _askRabbitId) continue;
+                _actors[i].Hop();
+                near = _actors[i].Root;
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length && near == null; k++)
+            {
+                if (_seatIds[k] != _askRabbitId) continue;
+                near = k < _walkers.Count && _walkers[k].Rect.gameObject.activeSelf ? _walkers[k].Rect : _seats[k];
+                RectTransform seat = near;
+                Vector3 rest = seat.localScale;
+                Tweens.Add(Motion.Time(Motion.Tap), t => { if (seat != null) seat.localScale = new Vector3(rest.x, rest.y * (1f + 0.18f * Ease.Pop(t)), rest.z); }, Ease.Linear, 0f,
+                    () => { if (seat != null) seat.localScale = rest; });
+            }
+            Vector2 at = near != null ? Feel.PointOf(near, new Vector2(0, 120)) : new Vector2(0, 200);
+            Feel.FloatText(at + new Vector2(60, 30), "♥", Palette.Blush, 54);
+            Feel.FloatText(at + new Vector2(0, 80), "♥", Palette.Blush, 38);
+            Feel.FloatText(at + new Vector2(110, 90), "♥", Palette.Blush, 32);
+            Sfx.Reward();
+            Haptics.Light();
+            string gained = "+" + _askPaid.Short();
+            Feel.Fly(at, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            {
+                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+            });
         }
 
         #endregion

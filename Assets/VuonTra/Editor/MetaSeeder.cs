@@ -71,6 +71,7 @@ namespace VuonTra.EditorTools
                 new Q { Id = "ngay-nang", Title = "Nâng cấp trạm 20 lần",           Metric = QuestMetric.LevelsBought,  Target = 20, Seconds = 30, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 60, Carrots = 60,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-don",  Title = "Giao 2 đơn trà cho khách",      Metric = QuestMetric.OrdersDelivered, Target = 2, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
+                new Q { Id = "ngay-anh",  Title = "Chụp 3 tấm thỏ xin ảnh",        Metric = QuestMetric.PhotoAsksAnswered, Target = 3, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
                 // Achievements: once.
                 new Q { Id = "mo-2",      Title = "Đánh thức bé thỏ thứ hai",       Metric = QuestMetric.StationsOpen,  Target = 2,  Seconds = 12,  Carrots = 60 },
                 new Q { Id = "mo-4",      Title = "Có 4 trạm đang hoạt động",       Metric = QuestMetric.StationsOpen,  Target = 4,  Seconds = 90,  Carrots = 500,  Clovers = 2 },

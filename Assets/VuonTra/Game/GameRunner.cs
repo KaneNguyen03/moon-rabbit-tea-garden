@@ -393,6 +393,40 @@ namespace VuonTra.Game
         /// <summary>True while today's photo gift is still to be had.</summary>
         public bool PhotoGiftWaiting => Photos.GiftWaiting(State, TodayNumber);
 
+        // ----- a rabbit asks for its picture (#56): the screen counts open-play time, like the guests' clock -----
+
+        /// <summary>Counts seconds of open play towards the next ask and the bubble's stay. The save keeps up when a bubble comes or goes.</summary>
+        public PhotoAskEvent AdvancePhotoAsks(double dt)
+        {
+            PhotoAskEvent e = PhotoAsks.Advance(Defs, State, dt, TodayNumber, _rng.NextDouble);
+            if (e != PhotoAskEvent.None) Save();
+            return e;
+        }
+
+        /// <summary>A rabbit asks now (previews, tests): false when one asks already, the day's asks are answered, or nobody can.</summary>
+        public bool AskForPhoto()
+        {
+            bool ok = PhotoAsks.Ask(Defs, State, TodayNumber, _rng.NextDouble);
+            if (ok) Save();
+            return ok;
+        }
+
+        /// <summary>The picture was taken for the asking rabbit: two minutes of income, counted for the day. False when nobody asks.</summary>
+        public bool AnswerPhotoAsk(out BigNum paid)
+        {
+            bool ok = PhotoAsks.Answer(Defs, State, Mods, TodayNumber, out paid);
+            if (ok) Changed();
+            return ok;
+        }
+
+        /// <summary>The camera closed without the asked-for picture: that ask goes, nothing else.</summary>
+        public bool DeclinePhotoAsk()
+        {
+            bool ok = PhotoAsks.Decline(State);
+            if (ok) Save();
+            return ok;
+        }
+
         /// <summary>A gift of carrots (a caught firefly, a visitor). Counts as earned.</summary>
         public void Grant(BigNum carrots)
         {
