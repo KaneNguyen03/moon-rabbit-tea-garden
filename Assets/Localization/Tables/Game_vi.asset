@@ -1422,6 +1422,14 @@ MonoBehaviour:
     m_Localized: "T\u1ED5ng c\u1ED9ng +{0}/gi\xE2y"
     m_Metadata:
       m_Items: []
+  - m_Id: 175608989474816
+    m_Localized: "Li\xEAn k\u1EBFt l\u1EA7n \u0111\u1EA7u \u0111\u01B0\u1EE3c t\u1EB7ng {0} c\u1ECF b\u1ED1n l\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 175608997863424
+    m_Localized: "+{0} c\u1ECF b\u1ED1n l\xE1 v\xEC \u0111\xE3 li\xEAn k\u1EBFt"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -1987,6 +1987,34 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Link_That_Succeeds_Pays_The_Gift_Once_Through_The_Runner()
+        {
+            runner.Account = new FakeLinkedAccount();
+            int calls = 0; bool lastOk = false, lastGift = false;
+            runner.LinkAccount((ok, gift) => { calls++; lastOk = ok; lastGift = gift; });
+            Assert.AreEqual(1, calls);
+            Assert.IsTrue(lastOk);
+            Assert.IsTrue(lastGift);
+            Assert.AreEqual(VuonTra.Core.Profile.LinkRewardClovers, runner.State.Clovers);
+            runner.LinkAccount((ok, gift) => { lastOk = ok; lastGift = gift; });
+            Assert.IsTrue(lastOk);
+            Assert.IsFalse(lastGift, "the gift came once");
+            Assert.AreEqual(VuonTra.Core.Profile.LinkRewardClovers, runner.State.Clovers);
+        }
+
+        /// <summary>A provider that links at once, for the gift to be tested without a store.</summary>
+        sealed class FakeLinkedAccount : IAccountService
+        {
+            public AccountProvider Provider => AccountProvider.Apple;
+            public BackupState State { get; private set; } = BackupState.LocalOnly;
+            public bool CanLink => true;
+            public string LinkedName => State == BackupState.Linked ? "Test" : "";
+            public event System.Action Changed { add { } remove { } }
+            public void Link(System.Action<bool> onDone) { State = BackupState.Linked; onDone(true); }
+            public void Unlink() { State = BackupState.LocalOnly; }
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");
@@ -2035,7 +2063,8 @@ namespace VuonTra.Core.Tests
 
             Assert.AreEqual(L10n.T("backup.local"), T("Canvas/Profile/Card/Backup").text);
             Assert.IsFalse(Find("Canvas/Profile/Card/Link").interactable, "nothing to link to yet");
-            Assert.AreEqual(L10n.T("backup.soon"), T("Canvas/Profile/Card/LinkNote").text);
+            StringAssert.StartsWith(L10n.T("backup.soon"), T("Canvas/Profile/Card/LinkNote").text);
+            StringAssert.Contains(L10n.T("backup.reward", VuonTra.Core.Profile.LinkRewardClovers), T("Canvas/Profile/Card/LinkNote").text, "what linking will bring");
 
             Find("Canvas/Profile/Card/Rename").onClick.Invoke();
             Assert.IsTrue(screen.Rename.IsOpen);
@@ -2276,6 +2305,39 @@ namespace VuonTra.Core.Tests
             screen.OpenSheet(0);
             screen.Advance(1f / 30f);
             Assert.IsFalse(home.activeSelf, "nothing at the edges while a sheet is up");
+        }
+
+        [Test]
+        public void From_Far_Away_One_Touch_On_Open_Ground_Comes_In_To_The_Usual_Zoom()
+        {
+            screen.Shell.StartGame();
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
+            Find("Canvas/Garden").onClick.Invoke();
+            screen.Advance(1f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "one touch, not two, when the whole garden is in view");
+            Find("Canvas/Garden").onClick.Invoke();
+            screen.Advance(1f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "at the usual zoom a single touch still only closes the card");
+        }
+
+        [Test]
+        public void The_Game_Opens_Where_The_Player_Last_Looked_And_Keeps_Noting_Where_That_Is()
+        {
+            runner.State.ViewX = 540d;
+            runner.State.ViewY = 800d;
+            runner.State.ViewZoom = 1.5d;
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f); // the opening glide is over
+            Assert.AreEqual(1.5f, screen.ZoomScale, 1e-3f, "the zoom comes back too");
+            Assert.AreEqual(540f, (1080f / 2f - world.anchoredPosition.x) / world.localScale.x, 1f);
+            Assert.AreEqual(800f, (1920f / 2f - world.anchoredPosition.y) / world.localScale.y, 1f, "the spot under the middle of the screen is the one saved");
+
+            screen.LookAt(new Vector2(540f, 2000f)); // LookAt puts its point at 60% of the height, so the middle sits a little below it
+            screen.Advance(1f / 30f);
+            Assert.AreEqual(2000d - 0.1d * 1920d / 1.5d, runner.State.ViewY, 1d, "looking elsewhere is noted at once, so the next save keeps it");
+            Assert.AreEqual(1.5d, runner.State.ViewZoom, 1e-3d);
         }
     }
 }

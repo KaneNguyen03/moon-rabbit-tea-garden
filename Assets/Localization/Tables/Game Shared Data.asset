@@ -1419,6 +1419,14 @@ MonoBehaviour:
     m_Key: income.total
     m_Metadata:
       m_Items: []
+  - m_Id: 175608989474816
+    m_Key: backup.reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 175608997863424
+    m_Key: backup.rewarded
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -11,6 +11,8 @@ namespace VuonTra.Core
         public long AvatarRabbitId;
         /// <summary>"THO-" and six characters, given once and never changed; what a player quotes to support or a friend.</summary>
         public string Code = "";
+        /// <summary>The one-time gift for linking an account has been given.</summary>
+        public bool LinkRewarded;
     }
 
     public static class Profile
@@ -57,6 +59,18 @@ namespace VuonTra.Core
             string name = CleanName(raw);
             if (name == null) return false;
             s.Profile.GardenName = name;
+            return true;
+        }
+
+        /// <summary>What linking an account brings, once, whichever provider it is.</summary>
+        public const int LinkRewardClovers = 3;
+
+        /// <summary>An account was linked. The first time this garden is linked it is paid; true then, false ever after.</summary>
+        public static bool OnLinked(GameState s)
+        {
+            if (s.Profile.LinkRewarded) return false;
+            s.Profile.LinkRewarded = true;
+            s.Clovers += LinkRewardClovers;
             return true;
         }
 
@@ -115,6 +129,71 @@ namespace VuonTra.Core
         void Link(Action<bool> onDone);
         void Unlink();
         event Action Changed;
+    }
+
+    /// <summary>
+    /// Where a copy of the save can live besides this device. The game ships with the local-only answer;
+    /// the cloud save core (#38) plugs in here. The save on the device stays the real one.
+    /// </summary>
+    public interface ICloudSave
+    {
+        /// <summary>True when there is somewhere to push to and pull from.</summary>
+        bool Available { get; }
+        /// <summary>Sends the save text up; <paramref name="onDone"/> gets whether it arrived.</summary>
+        void Push(string json, Action<bool> onDone);
+        /// <summary>Fetches the save text kept up there; <paramref name="onDone"/> gets null when there is none.</summary>
+        void Pull(Action<string> onDone);
+    }
+
+    /// <summary>Nowhere to back up to: every push fails and every pull finds nothing, without pretending.</summary>
+    public sealed class LocalOnlyCloudSave : ICloudSave
+    {
+        public bool Available => false;
+
+        public void Push(string json, Action<bool> onDone) => onDone?.Invoke(false);
+
+        public void Pull(Action<string> onDone) => onDone?.Invoke(null);
+    }
+
+    /// <summary>The few numbers a player needs to choose between two copies of a garden.</summary>
+    public struct SaveSummary
+    {
+        public int GardenLevel;
+        public int Rabbits;
+        public long LastSeenUnixSeconds;
+        public string Code;
+
+        public static SaveSummary Of(GameState s) => new SaveSummary
+        {
+            GardenLevel = Garden.Level(s), Rabbits = s.Rabbits.Count, LastSeenUnixSeconds = s.LastSeenUnixSeconds, Code = s.Profile.Code
+        };
+    }
+
+    public enum SaveChoice
+    {
+        /// <summary>The two copies are the same garden at the same point: nothing to decide.</summary>
+        Same,
+        /// <summary>The copy on this device is ahead in every way.</summary>
+        KeepLocal,
+        /// <summary>The copy up there is ahead in every way.</summary>
+        KeepRemote,
+        /// <summary>Each is ahead in something: the player decides, shown both summaries.</summary>
+        Ask
+    }
+
+    /// <summary>The rule for two copies of a save, so the sync core (#38) and the screen that asks agree on it.</summary>
+    public static class SaveSync
+    {
+        public static SaveChoice Choose(SaveSummary local, SaveSummary remote)
+        {
+            bool sameTime = local.LastSeenUnixSeconds == remote.LastSeenUnixSeconds;
+            if (sameTime && local.GardenLevel == remote.GardenLevel && local.Rabbits == remote.Rabbits) return SaveChoice.Same;
+            bool localAhead = local.GardenLevel >= remote.GardenLevel && local.Rabbits >= remote.Rabbits && local.LastSeenUnixSeconds >= remote.LastSeenUnixSeconds;
+            bool remoteAhead = remote.GardenLevel >= local.GardenLevel && remote.Rabbits >= local.Rabbits && remote.LastSeenUnixSeconds >= local.LastSeenUnixSeconds;
+            if (localAhead && !remoteAhead) return SaveChoice.KeepLocal;
+            if (remoteAhead && !localAhead) return SaveChoice.KeepRemote;
+            return SaveChoice.Ask;
+        }
     }
 
     /// <summary>No provider at all: the honest answer until a store sign-in is wired in.</summary>

@@ -124,6 +124,60 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Linking_An_Account_Pays_Its_Gift_Once_And_The_Save_Remembers()
+        {
+            Assert.IsTrue(Profile.OnLinked(s), "the first link brings the gift");
+            Assert.AreEqual(Profile.LinkRewardClovers, s.Clovers);
+            Assert.IsFalse(Profile.OnLinked(s), "linking again, or on another device, brings nothing more");
+            Assert.AreEqual(Profile.LinkRewardClovers, s.Clovers);
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.IsTrue(r.Profile.LinkRewarded);
+            Assert.IsFalse(Profile.OnLinked(r));
+            GameState old = SaveCodec.Decode(defs, "{\"version\":11,\"stations\":[],\"profile\":{\"name\":\"A\",\"avatar\":0,\"code\":\"THO-7K3M9Q\"}}").State;
+            Assert.IsFalse(old.Profile.LinkRewarded, "a save from before the gift still has it to come");
+        }
+
+        [Test]
+        public void With_Nowhere_To_Back_Up_To_Every_Push_Fails_And_Every_Pull_Finds_Nothing()
+        {
+            ICloudSave cloud = new LocalOnlyCloudSave();
+            Assert.IsFalse(cloud.Available);
+            bool? pushed = null;
+            cloud.Push("{}", ok => pushed = ok);
+            Assert.AreEqual(false, pushed);
+            string pulled = "unset";
+            cloud.Pull(json => pulled = json);
+            Assert.IsNull(pulled);
+        }
+
+        [Test]
+        public void Two_Copies_Of_A_Garden_Are_Chosen_Between_By_Level_Rabbits_And_Time()
+        {
+            var a = new SaveSummary { GardenLevel = 5, Rabbits = 3, LastSeenUnixSeconds = 1000, Code = "THO-7K3M9Q" };
+            Assert.AreEqual(SaveChoice.Same, SaveSync.Choose(a, a));
+            var ahead = a; ahead.GardenLevel = 6; ahead.LastSeenUnixSeconds = 2000;
+            Assert.AreEqual(SaveChoice.KeepRemote, SaveSync.Choose(a, ahead), "the other copy is ahead in every way");
+            Assert.AreEqual(SaveChoice.KeepLocal, SaveSync.Choose(ahead, a));
+            var elsewhere = a; elsewhere.Rabbits = 5; elsewhere.LastSeenUnixSeconds = 500;
+            Assert.AreEqual(SaveChoice.Ask, SaveSync.Choose(a, elsewhere), "more rabbits but older: the player decides");
+            Assert.AreEqual(SaveChoice.Ask, SaveSync.Choose(elsewhere, a));
+            var later = a; later.LastSeenUnixSeconds = 3000;
+            Assert.AreEqual(SaveChoice.KeepRemote, SaveSync.Choose(a, later), "same garden, seen later elsewhere");
+        }
+
+        [Test]
+        public void A_Summary_Reads_The_Garden_Level_Rabbits_And_Time_Off_The_State()
+        {
+            s.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "R" });
+            s.LastSeenUnixSeconds = 777;
+            SaveSummary sum = SaveSummary.Of(s);
+            Assert.AreEqual(Garden.Level(s), sum.GardenLevel);
+            Assert.AreEqual(1, sum.Rabbits);
+            Assert.AreEqual(777, sum.LastSeenUnixSeconds);
+            Assert.AreEqual(s.Profile.Code, sum.Code);
+        }
+
+        [Test]
         public void With_No_Service_Linked_The_Account_Is_Local_Only_And_Cannot_Link()
         {
             IAccountService account = new LocalOnlyAccount();

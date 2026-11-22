@@ -26,6 +26,7 @@ namespace VuonTra.Game.UI
         float _copiedAt = -99f;
 
         public bool IsOpen => _root.activeSelf;
+        public RectTransform Root => _card;
 
         public ProfileView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onNextAvatar, Action onRename, Action onLink)
         {
@@ -162,7 +163,9 @@ namespace VuonTra.Game.UI
             _backup.text = linked ? L10n.T("backup.linked", account.LinkedName) : L10n.T("backup.local");
             _link.SetEnabled(account.CanLink && !linked);
             _link.FaceRect.GetComponentInChildren<Text>().color = ChunkyButton.InkFor(account.CanLink && !linked);
-            _linkNote.text = account.CanLink ? "" : L10n.T("backup.soon");
+            // What linking brings, until it has been brought; the honest "coming soon" above it while nothing can link.
+            string reward = s.Profile.LinkRewarded ? "" : L10n.T("backup.reward", Profile.LinkRewardClovers);
+            _linkNote.text = linked ? "" : (account.CanLink ? reward : L10n.T("backup.soon") + (reward.Length > 0 ? "\n" + reward : ""));
         }
     }
 }

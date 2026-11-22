@@ -212,6 +212,13 @@ namespace VuonTra.Game.UI
             bool boosting = s.BoostSecondsLeft > 0d;
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
             UpdateEdges();
+            if (Shell.State == ShellState.Playing)
+            {
+                // Remember where the player is looking, so the next opening glides back here.
+                s.ViewX = (ScreenW / 2f - _street.anchoredPosition.x) / _zoom;
+                s.ViewY = (ScreenH / 2f - _street.anchoredPosition.y) / _zoom;
+                s.ViewZoom = _zoom;
+            }
             // A full bar breathes: the one hint that the boost is there to be taken.
             _energyButton.FaceRect.localScale = Vector3.one * (_energyReady ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
 
@@ -335,6 +342,12 @@ namespace VuonTra.Game.UI
         void PlaceView(Vector2 world, Vector2 atView, float zoom)
         {
             _glideRun++; // the view was put somewhere on purpose: the opening glide lets go
+            SetViewRaw(world, atView, zoom);
+        }
+
+        /// <summary>The same as <see cref="PlaceView"/> but without letting go of a glide: what a glide itself calls.</summary>
+        void SetViewRaw(Vector2 world, Vector2 atView, float zoom)
+        {
             _zoom = Mathf.Clamp(zoom, ZoomFar, ZoomNear);
             _street.localScale = new Vector3(_zoom, _zoom, 1f);
             _street.anchoredPosition = ClampView(atView - world * _zoom, _zoom);
@@ -381,14 +394,22 @@ namespace VuonTra.Game.UI
         void OnGroundTap()
         {
             SelectStation(-1);
-            bool second = _clock - _lastGroundTapAt < 0.35f;
-            _lastGroundTapAt = second ? -10f : _clock;
-            if (!second) return;
             Vector2 at = new Vector2(ScreenW / 2f, ScreenH / 2f);
             var mouse = UnityEngine.InputSystem.Mouse.current;
             var touch = UnityEngine.InputSystem.Touchscreen.current;
             if (touch != null && touch.primaryTouch.press.wasReleasedThisFrame) at = ScreenToView(touch.primaryTouch.position.ReadValue());
             else if (mouse != null && Application.isPlaying) at = ScreenToView(mouse.position.ReadValue());
+            // From far away one touch is enough: it comes in to the usual zoom on the spot that was touched.
+            if (Zoom == ZoomLevel.Far)
+            {
+                _lastGroundTapAt = -10f;
+                SetZoom(ZoomLevel.Default, true, at);
+                DismissHint();
+                return;
+            }
+            bool second = _clock - _lastGroundTapAt < 0.35f;
+            _lastGroundTapAt = second ? -10f : _clock;
+            if (!second) return;
             SetZoom(Zoom == ZoomLevel.Near ? ZoomLevel.Default : ZoomLevel.Near, true, at);
             DismissHint();
         }
@@ -769,7 +790,11 @@ namespace VuonTra.Game.UI
                     Runner.RenameGarden(name);
                     Profile.Refresh(Runner.Defs, Runner.State, Runner.Account);
                 }),
-                () => Runner.Account.Link(ok => Profile.Refresh(Runner.Defs, Runner.State, Runner.Account)));
+                () => Runner.LinkAccount((ok, gift) =>
+                {
+                    Profile.Refresh(Runner.Defs, Runner.State, Runner.Account);
+                    if (gift) Feel.FloatText(Feel.PointOf(Profile.Root), L10n.T("backup.rewarded", VuonTra.Core.Profile.LinkRewardClovers), Palette.Lantern, 44);
+                }));
             Income = new IncomeView(_canvas, catalog, Tweens);
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
@@ -2194,10 +2219,26 @@ namespace VuonTra.Game.UI
             Tweens.Add(Motion.Time(0.45f), t => _hud.anchoredPosition = hudHome + new Vector2(0, (1f - t) * 340f), Motion.Curve(Ease.OutBack));
             Tweens.Add(Motion.Time(0.5f), t => _tabBar.anchoredPosition = barHome + new Vector2(0, -(1f - t) * 320f), Ease.OutCubic);
 
-            // The camera glides from the moon pond down to the teapot. It never blocks: any touch on the garden takes over.
+            // The camera glides from the moon pond down to where the player last looked, or to the teapot the first
+            // time. It never blocks: any touch on the garden takes over.
             int run = ++_glideRun;
-            Vector2 from = _street.anchoredPosition, home = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - StationSpot(0) * _zoom, _zoom);
-            Tweens.Add(Motion.Time(Motion.Glide), t => { if (run == _glideRun && _street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); }, Ease.InOutCubic);
+            GameState opening = Runner.State;
+            if (opening.ViewZoom > 0d)
+            {
+                Vector2 center = new Vector2(ScreenW / 2f, ScreenH / 2f);
+                Vector2 fromWorld = (center - _street.anchoredPosition) / _zoom, toWorld = new Vector2((float)opening.ViewX, (float)opening.ViewY);
+                float fromZoom = _zoom, toZoom = Mathf.Clamp((float)opening.ViewZoom, ZoomFar, ZoomNear);
+                Tweens.Add(Motion.Time(Motion.Glide), t =>
+                {
+                    if (run != _glideRun || _street == null) return;
+                    SetViewRaw(Vector2.LerpUnclamped(fromWorld, toWorld, t), center, Mathf.LerpUnclamped(fromZoom, toZoom, t));
+                }, Ease.InOutCubic);
+            }
+            else
+            {
+                Vector2 from = _street.anchoredPosition, home = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - StationSpot(0) * _zoom, _zoom);
+                Tweens.Add(Motion.Time(Motion.Glide), t => { if (run == _glideRun && _street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); }, Ease.InOutCubic);
+            }
             Refresh(-1f);
         }
 

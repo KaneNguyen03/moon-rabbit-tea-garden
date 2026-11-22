@@ -67,6 +67,9 @@ namespace VuonTra.Core
         public long PhotoDay = -1;
         public long PhotosTaken;
 
+        /// <summary>Where the player last looked: the garden point under the middle of the screen and the zoom; zoom 0 means never recorded.</summary>
+        public double ViewX, ViewY, ViewZoom;
+
         /// <summary>The garden's name, its avatar rabbit and the player code.</summary>
         public PlayerProfile Profile = new PlayerProfile { Code = VuonTra.Core.Profile.NewCode() };
 

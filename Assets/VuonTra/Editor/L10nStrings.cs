@@ -39,6 +39,8 @@ namespace VuonTra.EditorTools
             { "backup.linked", "Đã liên kết · {0}", "Linked · {0}" },
             { "backup.link", "Liên kết tài khoản", "Link an account" },
             { "backup.soon", "Sắp có: Game Center trên iPhone, Google Play trên Android", "Coming soon: Game Center on iPhone, Google Play on Android" },
+            { "backup.reward", "Liên kết lần đầu được tặng {0} cỏ bốn lá", "Linking for the first time brings {0} clovers" },
+            { "backup.rewarded", "+{0} cỏ bốn lá vì đã liên kết", "+{0} clovers for linking" },
             { "toggle.on", "Bật", "On" },
             { "toggle.off", "Tắt", "Off" },
             { "lang.vi", "Tiếng Việt", "Tiếng Việt" },

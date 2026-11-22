@@ -239,5 +239,23 @@ namespace VuonTra.Core.Tests
             CollectionAssert.AreEqual(new[] { 1, 0, 0 }, r.State.Levels);
             Assert.IsFalse(r.State.HintSeen);
         }
+
+        [Test]
+        public void The_Last_View_Is_Remembered_And_Nonsense_Is_Dropped()
+        {
+            var defs = Fixture.Defs();
+            GameState s = GameState.NewGame(defs);
+            Assert.AreEqual(0d, s.ViewZoom, "never looked anywhere yet");
+            s.ViewX = 540d; s.ViewY = 2000d; s.ViewZoom = 1.5d;
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(540d, r.ViewX, 1e-9);
+            Assert.AreEqual(2000d, r.ViewY, 1e-9);
+            Assert.AreEqual(1.5d, r.ViewZoom, 1e-9);
+
+            GameState old = SaveCodec.Decode(defs, "{\"version\":11,\"stations\":[]}").State;
+            Assert.AreEqual(0d, old.ViewZoom, "a save from before the view was kept opens on the teapot");
+            GameState bad = SaveCodec.Decode(defs, "{\"version\":12,\"stations\":[],\"view\":{\"x\":1,\"y\":2,\"zoom\":99}}").State;
+            Assert.AreEqual(0d, bad.ViewZoom, "a zoom the game does not offer is ignored");
+        }
     }
 }

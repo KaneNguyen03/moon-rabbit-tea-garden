@@ -29,8 +29,8 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile.</summary>
-        public const int CurrentVersion = 11;
+        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view.</summary>
+        public const int CurrentVersion = 12;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
         {
@@ -151,8 +151,14 @@ namespace VuonTra.Core
             sb.Append("],\"profile\":{\"name\":");
             WriteString(sb, s.Profile.GardenName);
             sb.Append(",\"avatar\":").Append(s.Profile.AvatarRabbitId.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"linkRewarded\":").Append(s.Profile.LinkRewarded ? "true" : "false");
             sb.Append(",\"code\":");
             WriteString(sb, s.Profile.Code);
+            sb.Append("}");
+            // Version 12: where the player last looked.
+            sb.Append(",\"view\":{\"x\":").Append(Sane(s.ViewX).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"y\":").Append(Sane(s.ViewY).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"zoom\":").Append(Sane(s.ViewZoom).ToString("R", CultureInfo.InvariantCulture));
             sb.Append("}}");
             return sb.ToString();
         }
@@ -374,8 +380,18 @@ namespace VuonTra.Core
                 long avatar = ToLong(ReadNumber(profile, "avatar"));
                 s.Profile.AvatarRabbitId = avatar > 0 && Rabbits.Find(s, avatar) != null ? avatar : 0;
                 if (profile.TryGetValue("code", out object codeObj) && codeObj is string code && Profile.IsCode(code)) s.Profile.Code = code;
+                s.Profile.LinkRewarded = profile.TryGetValue("linkRewarded", out object rewardedObj) && rewardedObj is bool rewarded && rewarded;
             }
             if (!Profile.IsCode(s.Profile.Code)) s.Profile.Code = Profile.NewCode();
+
+            // Version 12: the last view. A zoom outside what the game offers means "never recorded".
+            if (root.TryGetValue("view", out object viewObj) && viewObj is Dictionary<string, object> view
+                && TryNumber(view, "zoom", out double zoom) && zoom >= 0.3d && zoom <= 2.5d)
+            {
+                s.ViewZoom = zoom;
+                s.ViewX = ReadNumber(view, "x");
+                s.ViewY = ReadNumber(view, "y");
+            }
 
             result.Status = LoadStatus.Ok;
             return result;

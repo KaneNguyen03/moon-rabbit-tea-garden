@@ -239,6 +239,22 @@ namespace VuonTra.Game
 
         /// <summary>Where the save could be backed up to. Local-only until a store sign-in is wired in (#38, #39, #40).</summary>
         public IAccountService Account { get; set; } = new LocalOnlyAccount();
+        /// <summary>Where a copy of the save could be kept. Nowhere until the cloud save core is wired in (#38).</summary>
+        public ICloudSave Cloud { get; set; } = new LocalOnlyCloudSave();
+
+        /// <summary>
+        /// Asks the account service to link. When it does, the garden's one-time gift is paid and
+        /// <paramref name="onDone"/> hears whether the link worked and whether the gift came with it.
+        /// </summary>
+        public void LinkAccount(Action<bool, bool> onDone = null)
+        {
+            Account.Link(ok =>
+            {
+                bool gift = ok && Profile.OnLinked(State);
+                if (ok) Changed();
+                onDone?.Invoke(ok, gift);
+            });
+        }
 
         public bool RenameGarden(string name)
         {
