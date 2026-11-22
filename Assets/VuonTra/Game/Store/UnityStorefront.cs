@@ -119,6 +119,8 @@ namespace VuonTra.Game.Store
 
         public void OnPurchaseFailed(Product product, PurchaseFailureDescription failure)
         {
+            // The store can report a failure for a product it does not know; there is then nobody waiting to tell.
+            if (product == null || failure == null) { Debug.LogWarning("Store: purchase failed for an unknown product"); return; }
             PurchaseOutcome outcome = failure.reason == PurchaseFailureReason.UserCancelled ? PurchaseOutcome.Cancelled
                 : failure.reason == PurchaseFailureReason.PurchasingUnavailable || failure.reason == PurchaseFailureReason.ProductUnavailable ? PurchaseOutcome.Unavailable
                 : PurchaseOutcome.Failed;
@@ -126,7 +128,7 @@ namespace VuonTra.Game.Store
         }
 
         public void OnPurchaseFailed(Product product, PurchaseFailureReason reason)
-            => OnPurchaseFailed(product, new PurchaseFailureDescription(product.definition.id, reason, null));
+            => OnPurchaseFailed(product, product == null ? null : new PurchaseFailureDescription(product.definition.id, reason, null));
     }
 
 #if RECEIPT_VALIDATION
