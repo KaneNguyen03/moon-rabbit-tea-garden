@@ -1122,6 +1122,20 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt (cần chủ project)
 - Khai báo dữ liệu thu thập cho hai cửa hàng và nhóm tuổi mục tiêu; địa chỉ công khai của chính sách và email hỗ trợ thật.
 
+## #8 — Thỏ sự kiện theo mùa (bản code, hình ứng viên 1 mỗi mùa)
+
+- Test: 651/652 EditMode qua (1 inconclusive: test "xếp đúng nghề" bỏ qua vì bộ trạm giả trong test không có nghề). Thêm `SeasonTests.cs` (9 test: mốc ngày kể cả năm nhuận, ngày cuối mùa, loài mùa chỉ có trong mùa, thỏ ghé tiệm ≈ 1/3 ngày trong mùa và không bao giờ ngoài mùa, quà ngày cuối mùa tặng một lần, gọi vàng 50 % ở bậc Vàng trong mùa, ngày không lùi và lưu save, nhiệm vụ mùa chỉ trong mùa).
+- Commit `75f72fc`, đã push. Comment đối chiếu lên #8, nhãn chờ-PO-duyệt (chủ project đồng ý làm bản code trước).
+- `Core/Seasons.cs`: `Season` (None/MidAutumn/Tet/Christmas), `SeasonOf(day)` theo lịch máy (1/9–30/9, 15/1–28(29)/2, 1/12–31/12), `IsLastDay`, `Clamp(s, day)` với `GameState.MaxDaySeen` (save "maxDay"): `GameRunner.TodayNumber` giờ không bao giờ lùi, dùng chung cho quà ngày, thỏ ghé tiệm, gọi vàng và (qua TodayNumber) các trò nhỏ.
+- Ba loài bậc Vàng có `Season`: `tho-den-ong-sao` (Ngắm sao), `tho-ao-dai` (Pha trà), `tho-noel` (Bếp bánh); hình chép từ docs/anh/po-8 (ứng viên 1), viền sinh tự động. `RabbitKinds.OfTier(tier, season)` chỉ đưa loài mùa khi đúng mùa; gọi thường không bao giờ ra loài mùa.
+- Ba cách gặp: `Shop.VisitorFor` 1/3 ngày trong mùa là loài mùa (giá bậc Vàng); `Shop.ClaimDailyGift(s, day, name, out seasonRabbit)` ngày cuối mùa tặng loài mùa nếu chưa có (`GameRunner.SeasonArrived`); `Shop.SummonGolden(…, day)` 50 % khi rơi bậc Vàng trong mùa.
+- Nhiệm vụ: `QuestDef.Season`, 9 nhiệm vụ `mua-gap/nghe/anh-<mùa>` thưởng 3/5/10 cà rốt vàng, chỉ hiện và chỉ nhận được trong mùa (`Quests.IsAvailable`); metric `SeasonKindMet`, `SeasonKindInTrade`, `PhotosWithSeasonRabbit` (save "photosSeason").
+- Sổ thỏ: mục "Thỏ theo mùa · N/3" sau các bậc; loài chưa gặp ghi "Chỉ có trong Trung thu/Tết/Giáng sinh".
+- Ảnh: `docs/anh/po-8/8-so-tho-mua.png`.
+
+### Chưa đạt
+- Trang trí mùa ở cổng trăng (cần hình); băng rôn khi `SeasonArrived` chưa nối vào màn hình (sự kiện đã có); ứng viên 2 mỗi mùa để PO quyết. Chưa thử tay.
+
 ## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -1156,7 +1170,7 @@ Sau khi sửa cả bốn xanh.
 - Mốc trạm 25/100/300 (`f2ca812`, #16 + #49): dây đèn, đèn đá + biển vàng, vầng sáng; dấu ✦ theo bậc; băng rôn lên bậc.
 - #41 phần chuẩn bị (`b9a7a62`): đích iOS/Android trong BuildScript + tools/build.sh, bundle id/version/số build, chỉ dọc, icon và màn hình chờ. Máy này không có module iOS/Android nên chưa build.
 - #45 nối hình (`7ca9091`): cối trống, chày riêng, bột ba trạng thái, bánh méo. #37 nối hình (`a7897ba`): bảy món và đĩa gỗ trong khay.
-- Chiều 22/11 chủ project giao điều phối hoàn thiện mọi issue: #2 + #3 bản code (`8438799`), #15 đổi tên app (`fb68262`); #42 phần code (`18c21d1`, chính sách bản nháp, xoá dữ liệu, liên hệ); B làm #6 rồi #11; điều phối đóng nhóm A, mặc định cho #7/#9/#39/#40, #8 hình và đề xuất, #1 đề xuất.
+- Chiều 22/11 chủ project giao điều phối hoàn thiện mọi issue: #2 + #3 bản code (`8438799`), #15 đổi tên app (`fb68262`); #42 phần code (`18c21d1`, chính sách bản nháp, xoá dữ liệu, liên hệ); #8 thỏ theo mùa bản code (`75f72fc`); B làm #6 rồi #11; điều phối đóng nhóm A, mặc định cho #7/#9/#39/#40, #8 hình và đề xuất, #1 đề xuất.
 - Hai chỗ chữ bị che (`ac9a9d0`, sau verify --build; verify thường xanh 618/618): thanh Trà lực ngắn lại (288, kết thúc trước tấm nút góc) nên "Tăng tốc!" đọc đủ; giỏ Hứng lá nhỏ lại (110×95), dời sang phải (StationSpot(giỏ lá) + (104, 130)) và biển của nó treo bên trái (240 rộng, một dòng), không còn đè "Mở rộng vườn" hay tên trạm; ảnh `docs/anh/po-37/37-khay-hinh.png` cập nhật.
 - Nhãn tăng tốc đè số Trà lực (`994a396`, verify thường xanh 626/626): tên và đếm ngược mỗi bên một nửa hàng trên của thanh, cùng co chữ về một dòng (min 16/14); test 4 trường hợp vi/en × thường/chữ to đo hai ô không giao nhau và mỗi chữ vừa nửa của nó ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-tang-toc-sau.png`.
 - Biển "Đom đóm · còn N lượt" bị tán cây viền (lớp Canopy, vẽ trên vườn) che đuôi (`22fc554`, verify thường xanh 630/630): lọ đom đóm dời vào trong (PondSpot + (-5, -290)), biển kết thúc trước `GardenScreen.ReadableRight` = 1000; test 4 trường hợp vi/en × thường/chữ to đo biển nằm trọn trong màn (cách mép ≥ 24), không vượt 1000, chữ vừa một dòng ở cỡ nhỏ nhất; ảnh `docs/anh/po-32/32-lo-dom-dom-sau.png`.
