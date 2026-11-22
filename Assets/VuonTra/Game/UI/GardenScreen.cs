@@ -437,11 +437,18 @@ namespace VuonTra.Game.UI
         /// </summary>
         public const float ZoomFar = ScreenH / FarSpan, ZoomDefault = 0.83f, ZoomNear = 1.5f;
         /// <summary>
-        /// How much of the garden's height the far view shows: the lawn from the resting corner to the shop, as before the top
-        /// band of #67b. The four stations up there are a scroll away from far; at a smaller zoom the foot of the garden would
-        /// sink under the tab bar.
+        /// How much of the garden's height the far view shows while the lawn is seven rings or fewer: from the resting corner
+        /// to the shop, as before the top band of #67b. <see cref="ZoomFar"/> is that far.
         /// </summary>
         const float FarSpan = 2970f;
+        /// <summary>The ring from which the band above the shop is land (#67b): from there far shows the whole garden.</summary>
+        const int TopBandRing = 8;
+        /// <summary>
+        /// The far zoom for this garden: <see cref="ZoomFar"/> until a ring past R 7 is open, then far enough back for the whole
+        /// garden top to bottom between the HUD and the tab bar (it sits in the middle), so the row of the four newest stations
+        /// is in view with the rest and the stations at the foot stay clear of the tab bar (#67 follow-up).
+        /// </summary>
+        public float FarZoom => Runner != null && Runner.State != null && Expansion.Radius(Runner.State) >= TopBandRing ? (ScreenH - HudCover - TabCover) / WorldH : ZoomFar;
         float _zoom = ZoomDefault;
         Text _zoomMark, _levelText;
         Image _levelRing;
@@ -471,9 +478,9 @@ namespace VuonTra.Game.UI
         public const float PinchGain = 1f;
 
         public float ZoomScale => _zoom;
-        public ZoomLevel Zoom => _zoom < (ZoomFar + ZoomDefault) / 2f ? ZoomLevel.Far : (_zoom > (ZoomDefault + ZoomNear) / 2f ? ZoomLevel.Near : ZoomLevel.Default);
+        public ZoomLevel Zoom => _zoom < (FarZoom + ZoomDefault) / 2f ? ZoomLevel.Far : (_zoom > (ZoomDefault + ZoomNear) / 2f ? ZoomLevel.Near : ZoomLevel.Default);
 
-        static float ScaleOf(ZoomLevel level) => level == ZoomLevel.Far ? ZoomFar : (level == ZoomLevel.Near ? ZoomNear : ZoomDefault);
+        float ScaleOf(ZoomLevel level) => level == ZoomLevel.Far ? FarZoom : (level == ZoomLevel.Near ? ZoomNear : ZoomDefault);
 
         /// <summary>Where a point of the garden is on the screen (canvas units from the bottom left).</summary>
         Vector2 ToView(Vector2 world) => world * _zoom + _street.anchoredPosition;
@@ -504,7 +511,7 @@ namespace VuonTra.Game.UI
         /// <summary>The same as <see cref="PlaceView"/> but without letting go of a glide: what a glide itself calls.</summary>
         void SetViewRaw(Vector2 world, Vector2 atView, float zoom)
         {
-            _zoom = Mathf.Clamp(zoom, ZoomFar, ZoomNear);
+            _zoom = Mathf.Clamp(zoom, FarZoom, ZoomNear);
             _street.localScale = new Vector3(_zoom, _zoom, 1f);
             _street.anchoredPosition = ClampView(atView - world * _zoom, _zoom);
             if (_scroll != null) _scroll.horizontal = WorldW * _zoom > ScreenW + 1f;
@@ -587,11 +594,11 @@ namespace VuonTra.Game.UI
             Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(world, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.InOutCubic);
         }
 
-        /// <summary>The zoom after one frame of trackpad pinch, kept between Far and Near.</summary>
-        public static float PinchZoom(float current, float magnification)
+        /// <summary>The zoom after one frame of trackpad pinch, kept between Far (<paramref name="far"/>, by default <see cref="ZoomFar"/>) and Near.</summary>
+        public static float PinchZoom(float current, float magnification, float far = ZoomFar)
         {
             float factor = Mathf.Max(0.1f, 1f + magnification * PinchGain); // a wild negative sum must not flip the garden
-            return Mathf.Clamp(current * factor, ZoomFar, ZoomNear);
+            return Mathf.Clamp(current * factor, far, ZoomNear);
         }
 
         /// <summary>One frame of trackpad pinch around a point of the view (canvas units from the bottom left).</summary>
@@ -607,7 +614,7 @@ namespace VuonTra.Game.UI
                 _padPinching = true;
                 if (_scroll != null) _scroll.StopMovement();
             }
-            ApplyZoom(PinchZoom(_zoom, magnification), viewPoint);
+            ApplyZoom(PinchZoom(_zoom, magnification, FarZoom), viewPoint);
             DismissHint();
         }
 
@@ -3640,7 +3647,7 @@ namespace VuonTra.Game.UI
             {
                 Vector2 center = new Vector2(ScreenW / 2f, ScreenH / 2f);
                 Vector2 fromWorld = (center - _street.anchoredPosition) / _zoom, toWorld = new Vector2((float)opening.ViewX, (float)opening.ViewY);
-                float fromZoom = _zoom, toZoom = Mathf.Clamp((float)opening.ViewZoom, ZoomFar, ZoomNear);
+                float fromZoom = _zoom, toZoom = Mathf.Clamp((float)opening.ViewZoom, FarZoom, ZoomNear);
                 Tweens.Add(Motion.Time(Motion.Glide), t =>
                 {
                     if (run != _glideRun || _street == null) return;

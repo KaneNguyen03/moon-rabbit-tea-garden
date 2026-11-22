@@ -1280,6 +1280,34 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Once_The_Top_Band_Is_Land_Far_Shows_The_Whole_Garden_Top_To_Bottom()
+        {
+            // #67 follow-up: the four newest stations stand in the band above the shop. Once a ring past R 7 is open, far
+            // stands back far enough for the whole garden, the new row included; before that it stays where it was.
+            var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            Assert.AreEqual(GardenScreen.ZoomFar, screen.ZoomScale, 1e-4f, "a garden of seven rings keeps the old far");
+
+            GameState s = runner.State;
+            s.Plots = runner.Defs.Count;
+            s.Grid.Radius = 9;
+            GardenGrid.Settle(runner.Defs, s);
+            screen.Refresh();
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
+            Assert.Less(screen.ZoomScale, GardenScreen.ZoomFar, "far stands further back once the top band is land");
+            Assert.LessOrEqual(world.sizeDelta.y * world.localScale.y, 1920f + 0.5f, "the whole garden fits top to bottom");
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Vector2 at = screen.StationSpot(i) * world.localScale.x + world.anchoredPosition;
+                Assert.That(at.y, Is.InRange(0f, 1920f), "station " + i + " is on the screen from far away");
+                Assert.That(at.x, Is.InRange(0f, 1080f), "station " + i + " is on the screen from far away");
+            }
+            Assert.AreEqual(screen.ZoomScale, GardenScreen.PinchZoom(screen.ZoomScale, -0.5f, screen.FarZoom), 1e-5f, "a pinch closes to the new far, no further");
+        }
+
+        [Test]
         public void Zooming_In_Never_Shows_Past_The_Edge_Of_The_Garden()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
