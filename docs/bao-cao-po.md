@@ -891,6 +891,18 @@ Sau khi sửa cả bốn xanh.
 - `GardenScreen`: lớp "BoostEdge" (bốn dải `UiKit.FadeUp` màu rêu, hai dải dọc xoay ±90°), `UpdateBoostEdge` trong `Advance`: lên/xuống 0,4 giây, thở khi chạy, tắt thở khi Giảm chuyển động.
 - Ảnh (docs/anh/po-32/): `32-sau-vien-sang.png`.
 
+## #44 lượt 1 — Cà rốt vàng và Tiệm (quà ngày, Gọi vàng)
+
+- Test: 481/481 EditMode qua (verify.sh: seed, 87 ảnh, biên dịch, test; GardenPacingTests vẫn qua). Thêm 7 test core (`ShopTests.cs`, file mới), 2 test màn hình.
+- Commit `4fc84eb`, đã push. Issue #44 đã comment (bảng đối chiếu lượt 1), nhãn chờ-PO-duyệt. Save lên v13.
+- File mới: `Core/Shop.cs`, `UI/ShopView.cs`; Art/Final thêm `prop_tiem.png`, `icon_ca-rot-vang.png`, `icon_hop-qua.png` (từ docs/anh/po-do-vat); catalog `GoldenCarrot`, `GiftBox`, `ShopProp`; 5 quest asset mới (loai-tim, loai-vang, loai-do, dat-12, tho-max). Bảng chuỗi seed lại (~22 key).
+- `Rabbits.Arrive` tách từ `Summon` để hai cách gọi chung một đường; `Rabbits.RollTier(roll, odds)`. `Tray.Sell/SellAll` giờ trả `golden`; `Photos.GiftGolden`; `Quests.RewardGolden` + ba metric mới; `Garden.AddXp` cộng cà rốt vàng mỗi 5 cấp.
+- `GardenScreen`: quầy "Shop" trong `_street` cạnh ao (thêm vào `standing` để xếp lớp), chip "Hud/Golden", `OpenShop/OnDailyGift/OnSummonGolden`, `PaySale` bay cà rốt vàng về chip. `GameRunner.TodayNumber`, `GiftWaiting`, `ClaimDailyGift`, `SummonGoldenRabbit`.
+- Ảnh (docs/anh/po-44/): `44-sau-tiem.png`, `44-sau-quay-tiem-mep-ao.png`.
+
+### Chưa đạt
+- Lượt 2 (thỏ ghé tiệm) và lượt 3 (mũ, nhuộm) chưa làm. Chưa thử tay.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
