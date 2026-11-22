@@ -1286,6 +1286,25 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Thỏ làm việc nghỉ giải lao; ghế thảm cạnh ao chưa có chỗ trong tầm. Chuyển sang ô trống khi #52 lên.
 
+## #78 — Bug nặng: chỉnh giờ máy qua lại là nhận lại quà ngày
+
+- Test: 747/748 EditMode qua (trước khi gộp #50). Thêm test lùi giờ cho ảnh (`PhotosTests`), nhiệm vụ ngày (`QuestsTests`, thay test cũ ghim hành vi sai), đơn khách (`OrdersTests`) và runner (`GardenScreenTests`); test vuốt thỏ của #19 đổi lại (lùi ngày không cho tim).
+- Commit `4f283cb`, đã push. Issue #78 đã comment (gốc lỗi + bảng 7 ý), nhãn chờ-PO-duyệt.
+- Sửa: `GameRunner` 18 chỗ đổi `Today` (giờ máy thô) sang `TodayNumber` (chặn lùi theo `MaxDaySeen`); luật lõi so `day > ngày đã lưu`: `Photos.Take/GiftWaiting`, `Quests.RollDaily` (ngày lùi không xoá nhiệm vụ đã nhận), `Orders` (không đếm lại khách), `Rabbits.Pet` (không cho tim và Trà lực lần nữa).
+
+### Chưa đạt
+- Người chỉnh giờ tới tương lai rồi chỉnh về phải chờ tới ngày đó mới có quà ngày mới (như Tiệm, trò chơi nhỏ, mùa). Chưa thử tay.
+
+## #50 — Vườn thoáng hơn: lùi camera, dọn cây to khỏi bãi cỏ (agent song song, nhánh agent-50)
+
+- Test: 752/753 EditMode qua trên main sau khi gộp. Nhánh riêng 722/723: 5 test màn hình mới (zoom mặc định/giới hạn và ba cột trạm vừa màn, ≥ 5 ô đất trong khung mở đầu, không cây lớn trên bãi, tán viền cách mọi trạm và đạo cụ có biển ≥ 200, save cũ nhớ zoom 1,0); sửa 2 test ghim số cũ.
+- Commit `10dec38` (nhánh agent-50), gộp vào main qua `1e10542`, đã push. Issue #50 đã comment (bảng 4 ý), nhãn chờ-PO-duyệt.
+- `GardenScreen`: `ZoomDefault` 1,0 → 0,83 (`ZoomNear` 1,5, `ZoomFar` 0,65 giữ nguyên; ngưỡng nhận mức là trung điểm); bãi cỏ vẫn 1 080, màn hình ở mặc định rộng 1 301 nên bãi nằm giữa, hai bên cỏ rồi rừng; rừng dời ra `RimLeft = −300`, `RimRight = 1390`; `StationReach` + `CanopyClear` giữ cây/bụi viền cách trạm, giỏ, lọ, cối ≥ 200; cây to trên ô còn sương thành bụi + nấm; bỏ cây cao rải trong vườn.
+- Ảnh (docs/anh/po-50/): trước/sau khung mở đầu, tấm trạm, zoom xa.
+
+### Chưa đạt
+- Không mở rộng `WorldW`. Save cũ nhớ zoom 1,0 mở ở 1,0 tới khi đổi zoom. Hàng cây đỉnh trên lò bánh nằm dưới HUD ở mặc định khi cuộn lên đỉnh. Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
