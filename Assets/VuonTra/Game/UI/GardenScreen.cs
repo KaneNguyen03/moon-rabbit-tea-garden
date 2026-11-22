@@ -163,24 +163,11 @@ namespace VuonTra.Game.UI
         static readonly float[] DecorHeights = { 132f, 92f, 110f, 84f };
 
         /// <summary>
-        /// The eight places a decoration can stand, placed by hand where the garden has room: two in the resting corner at the
-        /// bottom, one between each pair of station clusters up the sides and the middle, and one by the tea shop near the pond.
-        /// Every one keeps 200 units from every station and from the props that come with the garden.
+        /// Where decoration spot <paramref name="i"/> stands in the world: the feet of whatever is placed there. Each of the eight
+        /// spots has a tile of the grid (#52): two in the resting corner at the bottom, one between each pair of station clusters
+        /// up the sides and the middle, and one by the tea shop near the pond; every one clear of the stations and the props.
         /// </summary>
-        static readonly Vector2[] DecorSpots =
-        {
-            new Vector2(610f, 290f),   // 0 resting corner, by the tea table
-            new Vector2(340f, 300f),   // 1 resting corner, left
-            new Vector2(400f, 910f),   // 2 between the jam pot and the flower spring, left of the flower mortar's level plate
-            new Vector2(930f, 992f),   // 3 between the star jar and the flower spring, under the star jar's level plate
-            new Vector2(560f, 1290f),  // 4 between the teapot and the flower mortar
-            new Vector2(130f, 1400f),  // 5 between the jam pot and the beehive, under the beehive's level plate
-            new Vector2(120f, 1830f),  // 6 between the beehive and the chestnut oven
-            new Vector2(390f, 2190f),  // 7 by the tea shop, on the way to the pond
-        };
-
-        /// <summary>Where decoration spot <paramref name="i"/> stands in the world: the feet of whatever is placed there.</summary>
-        public static Vector2 DecorSpotAt(int i) => i >= 0 && i < DecorSpots.Length ? DecorSpots[i] : DecorSpots[0];
+        public Vector2 DecorSpotAt(int i) => CellToWorld(Grid != null && Grid.TryTileOf(GardenGrid.DecorId(i), out Hex tile) ? tile : GardenGrid.DefaultDecorTile(i));
 
         /// <summary>The tint a paper lantern's picture takes for a lantern colour: none for paper, a wash of the colour for the rest.</summary>
         public static Color LanternTint(int color)
@@ -197,14 +184,10 @@ namespace VuonTra.Game.UI
         const float MoonbeamAlpha = 0.9f, MoonPoolAlpha = 0.4f;
 
         /// <summary>
-        /// Where resting rabbits sit, as offsets from the teapot. The two stumps by the tea table come with the
+        /// Where resting rabbits sit: each place has a tile of the grid (#52). The two stumps by the tea table come with the
         /// garden; then a picnic rug by the pond, mushroom stools, a hammock and a swing, one for each place added.
         /// </summary>
-        static readonly Vector2[] Seats =
-        {
-            new Vector2(246, -1082), new Vector2(-60, -1116),
-            new Vector2(150, 880), new Vector2(402, -1052), new Vector2(-376, -1196), new Vector2(372, -1272),
-        };
+        public Vector2 RestSpot(int k) => CellToWorld(Grid != null && Grid.TryTileOf(GardenGrid.RestId(k), out Hex tile) ? tile : GardenGrid.DefaultRestTile(k));
         /// <summary>For the places that bring their own furniture: how tall it is drawn, and how far the rabbit sits above its foot.</summary>
         static readonly float[] SeatPropHeight = { 0, 0, 104, 124, 150, 196 };
         static readonly Vector2[] SeatPropLift = { default, default, new Vector2(0, 26), new Vector2(-38, 56), new Vector2(-4, 46), new Vector2(2, 60) };
@@ -410,29 +393,27 @@ namespace VuonTra.Game.UI
             new Vector2Int(4, 9), new Vector2Int(2, 11),
         };
 
-        static readonly Vector2[] Spots =
-        {
-            new Vector2(0, 0),       //  0 teapot: the heart
-            new Vector2(326, 70),    //  1 leaf basket: beside the teapot, below the milk tea stall
-            new Vector2(-276, -372), //  2 jam pot
-            new Vector2(12, -548),   //  3 flower mortar: between the jam pot and the star jar
-            new Vector2(-292, 408),  //  4 chestnut oven
-            new Vector2(-336, 20),   //  5 beehive: between the oven and the jam pot
-            new Vector2(270, 432),   //  6 moon milk tea
-            new Vector2(296, -366),  //  7 star jar
-            new Vector2(24, 690),    //  8 grape vine: between the milk tea and the bakery
-            new Vector2(-270, 850),  //  9 mooncake bakery
-            new Vector2(246, -770),  // 10 flower spring: between the star jar and the observatory
-            new Vector2(-214, -900), // 11 star observatory
-        };
+        /// <summary>The hex grid the garden stands on (#52): the player's own, or none before the runner is set.</summary>
+        GardenGrid Grid => Runner != null && Runner.State != null ? Runner.State.Grid : null;
 
-        /// <summary>Position of station <paramref name="i"/> in the world.</summary>
-        public static Vector2 StationSpot(int i)
+        /// <summary>Where a tile of the grid lies in the world: a pointy-top lattice from the heart, where the teapot stands, stretched tall for the portrait garden.</summary>
+        public static Vector2 CellToWorld(Hex tile) => Heart + new Vector2((float)GardenGrid.LocalX(tile.Q, tile.R), (float)GardenGrid.LocalY(tile.Q, tile.R));
+
+        /// <summary>
+        /// Position of station <paramref name="i"/> in the world: its tile on the grid, or the default table's tile for a
+        /// station that has no plot yet (a locked station still needs a place for its sign and its plot of mist).
+        /// </summary>
+        public Vector2 StationSpot(int i)
         {
-            if (i >= 0 && i < Spots.Length) return Heart + Spots[i];
-            // More stations than the table knows: carry on downward rather than stack them up.
-            return Heart + new Vector2((i % 2 == 0 ? -240f : 240f), -1000f - (i - Spots.Length) * 280f);
+            string id = Runner != null && i >= 0 && i < Runner.Defs.Count ? GardenGrid.StationId(Runner.Defs[i]) : null;
+            return CellToWorld(Grid != null && Grid.TryTileOf(id, out Hex tile) ? tile : GardenGrid.DefaultStationTile(i));
         }
+
+        /// <summary>Where a prop that comes with the garden stands: its tile on the grid, or the default table's.</summary>
+        Vector2 PropSpot(string id) => CellToWorld(Grid != null && Grid.TryTileOf(id, out Hex tile) ? tile : GardenGrid.DefaultTile(id, null));
+        /// <summary>Where the mortar for the mooncake game stands, and the tea shop: nothing else is placed on them.</summary>
+        public Vector2 MortarSpot => PropSpot(GardenGrid.MortarId);
+        public Vector2 ShopSpot => PropSpot(GardenGrid.ShopId);
 
         /// <summary>How large a station is drawn. The teapot is the centrepiece.</summary>
         public static float StationSize(int i) => i == 0 ? 1f : StationScale;
@@ -1302,10 +1283,10 @@ namespace VuonTra.Game.UI
 
             // Resting rabbits sit about the garden. Each seat is a place a rabbit can be tapped.
             Color shade = Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f);
-            for (int k = 0; k < Seats.Length && k < RestSpots.Max; k++)
+            for (int k = 0; k < RestSpots.Max; k++)
             {
                 int seat = k;
-                Vector2 at = Heart + Seats[k];
+                Vector2 at = RestSpot(k);
                 // The later places bring their own furniture, which appears with the place.
                 RectTransform prop = UiKit.Rect("SeatProp " + k, _street);
                 Sprite propArt = catalog.RestProps != null && k < catalog.RestProps.Length ? catalog.RestProps[k] : null;
@@ -1358,8 +1339,8 @@ namespace VuonTra.Game.UI
                 _seats.Add(rt);
                 _seatArt.Add(art);
                 rt.gameObject.SetActive(false);
-                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y + 60f, cushion)); // the furniture is always behind whoever sits on it
-                standing.Add(new KeyValuePair<float, Transform>((Heart + Seats[k]).y, rt));
+                standing.Add(new KeyValuePair<float, Transform>(RestSpot(k).y + 60f, cushion)); // the furniture is always behind whoever sits on it
+                standing.Add(new KeyValuePair<float, Transform>(RestSpot(k).y, rt));
             }
 
             // Now and then a seated rabbit gets up and strolls to an empty spot of the lawn (#55).
@@ -1368,7 +1349,7 @@ namespace VuonTra.Game.UI
             // The tea shop stands at the edge of the pond from the first day; a touch opens it.
             if (catalog.ShopProp != null)
             {
-                Vector2 shopAt = PondSpot + new Vector2(-330f, -150f);
+                Vector2 shopAt = ShopSpot;
                 float shopHeight = 300f * DecorScale, shopWidth = shopHeight * catalog.ShopProp.rect.width / catalog.ShopProp.rect.height;
                 _shopProp = UiKit.Rect("Shop", _street).Place(0f, 0f, shopAt.x, shopAt.y + shopHeight / 2f, shopWidth, shopHeight);
                 Image shopImage = _shopProp.AddImage(catalog.ShopProp, Color.white);
@@ -1386,7 +1367,7 @@ namespace VuonTra.Game.UI
             }
             // The mortar for the mooncake game stands near the teapot from garden level three; a touch starts a game.
             {
-                Vector2 mortarAt = MortarSpot; // above the teapot's name, between the oven and the milk tea
+                Vector2 mortarAt = MortarSpot; // just above the teapot, a row under the grape vine; its plate hangs over it, clear of the teapot's name
                 _mortarProp = UiKit.Rect("Mortar", _street).Place(0f, 0f, mortarAt.x, mortarAt.y + 80f, 170, 170);
                 Image mortarImage = _mortarProp.AddImage(catalog.Mortar != null ? catalog.Mortar : catalog.Round, catalog.Mortar != null ? Color.white : Palette.Mix(Palette.Ink, Palette.Paper, 0.4f));
                 mortarImage.preserveAspect = true;
@@ -1395,7 +1376,7 @@ namespace VuonTra.Game.UI
                 mortarButton.transition = Selectable.Transition.None;
                 mortarButton.targetGraphic = mortarImage;
                 mortarButton.onClick.AddListener(OpenPounding);
-                var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 0f, 0, -26, 250, 44);
+                var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 1f, 0, 26, 250, 44);
                 plate.AddImage(catalog.Panel, Palette.Paper, true);
                 _mortarPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _mortarPlate.resizeTextForBestFit = true;
@@ -1490,7 +1471,7 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>The ground a station takes up, plates included, in garden units.</summary>
-        static Rect StationBox(int i)
+        Rect StationBox(int i)
         {
             float size = StationSize(i);
             Vector2 spot = StationSpot(i);
@@ -2204,9 +2185,9 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>True when a point lies on one of the player's decoration spots (#11): the garden's own dressing keeps off them.</summary>
-        static bool OnDecorSpot(float x, float y)
+        bool OnDecorSpot(float x, float y)
         {
-            foreach (Vector2 spot in DecorSpots) if (Vector2.Distance(spot, new Vector2(x, y)) < 150f) return true;
+            for (int i = 0; i < Decor.Spots; i++) if (Vector2.Distance(DecorSpotAt(i), new Vector2(x, y)) < 150f) return true;
             return false;
         }
 
@@ -2399,7 +2380,7 @@ namespace VuonTra.Game.UI
                         if (!OpenGrass(x, y, count)) continue;
                         float d = float.MaxValue;
                         for (int i = 0; i < count; i++) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), StationSpot(i)));
-                        foreach (Vector2 seat in Seats) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), Heart + seat));
+                        for (int k = 0; k < RestSpots.Max; k++) d = Mathf.Min(d, Vector2.Distance(new Vector2(x, y), RestSpot(k)));
                         open.Add(new KeyValuePair<float, Vector2>(d, new Vector2(x, y)));
                     }
                 open.Sort((a, b) => b.Key.CompareTo(a.Key));
@@ -2438,8 +2419,6 @@ namespace VuonTra.Game.UI
             _moonbeam.raycastTarget = false;
         }
 
-        /// <summary>Where the mortar for the mooncake game stands, and the tea shop: nothing else is placed on them.</summary>
-        static Vector2 MortarSpot => Heart + new Vector2(-10f, 300f);
         /// <summary>Where the firefly jar stands, by the pond.</summary>
         static Vector2 JarSpot => PondSpot + new Vector2(-5f, -290f);
 
@@ -2447,7 +2426,7 @@ namespace VuonTra.Game.UI
         /// The ground a station takes, sign, pad, rabbit box, name plate and prop included, at its drawn size: what the
         /// wood keeps <see cref="CanopyClearance"/> away from. The offsets are the station actor's, at their widest.
         /// </summary>
-        static Rect StationReach(int i)
+        Rect StationReach(int i)
         {
             Vector2 spot = StationSpot(i);
             float s = StationSize(i);
@@ -2460,7 +2439,6 @@ namespace VuonTra.Game.UI
             float dx = Mathf.Max(a.xMin - b.xMax, b.xMin - a.xMax), dy = Mathf.Max(a.yMin - b.yMax, b.yMin - a.yMax);
             return Mathf.Max(dx, dy);
         }
-        static Vector2 ShopSpot => PondSpot + new Vector2(-330f, -150f);
 
         // ----- #51: the forest rim and the land not bought yet -----
 
@@ -2485,7 +2463,7 @@ namespace VuonTra.Game.UI
         /// The plot a station takes, as a ring on the ground: the station's pad, centred where its floor is drawn.
         /// The same shape as <see cref="StationReach"/> at its widest, so whatever keeps off the reach keeps off the ring.
         /// </summary>
-        static Rect PlotRing(int i)
+        Rect PlotRing(int i)
         {
             Vector2 spot = StationSpot(i);
             float s = StationSize(i);
@@ -2579,7 +2557,7 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>Open grass: off every station's prop, plates and name, off the seats, the pond, the mortar and the shop.</summary>
-        static bool OpenGrass(float x, float y, int stations)
+        bool OpenGrass(float x, float y, int stations)
         {
             if (x < 90f || x > WorldW - 90f || y < 160f || y > WorldH - 220f) return false;
             for (int i = 0; i < stations; i++)
@@ -2587,8 +2565,8 @@ namespace VuonTra.Game.UI
                 Vector2 spot = StationSpot(i);
                 if (Mathf.Abs(spot.x - x) < 200f && y > spot.y - 230f && y < spot.y + 230f) return false;
             }
-            foreach (Vector2 seat in Seats)
-                if (Vector2.Distance(Heart + seat, new Vector2(x, y)) < 150f) return false;
+            for (int k = 0; k < RestSpots.Max; k++)
+                if (Vector2.Distance(RestSpot(k), new Vector2(x, y)) < 150f) return false;
             var at = new Vector2(x, y);
             return Vector2.Distance(at, PondSpot) > 300f && Vector2.Distance(at, MortarSpot) > 180f && Vector2.Distance(at, ShopSpot) > 220f;
         }
@@ -2701,10 +2679,11 @@ namespace VuonTra.Game.UI
                 _ripples.Add(UiKit.Rect("Ripple", _street).Place(0f, 0f, pondAt.x + 20f, pondAt.y + 6f, 260f, 180f).AddImage(catalog.Glow, new Color(0.85f, 0.93f, 1f, 0f)));
             _glowSpots.Add(pondAt + new Vector2(14, 28));
 
-            // Places to sit, in the corners the stations leave free.
-            Put(TeaTable, Heart.x + 90f, Heart.y - 1130f, 170f, Color.white);
-            Put(Stump, Heart.x + 246f, Heart.y - 1120f, 110f, Color.white);
-            Put(Stump, Heart.x - 60f, Heart.y - 1150f, 96f, Color.white);
+            // Places to sit, in the corners the stations leave free: the tea table between the two stumps, each at the foot of its seat.
+            Vector2 stumpA = RestSpot(0), stumpB = RestSpot(1), table = (stumpA + stumpB) / 2f + new Vector2(-3f, -31f);
+            Put(TeaTable, table.x, table.y, 170f, Color.white);
+            Put(Stump, stumpA.x, stumpA.y - 38f, 110f, Color.white);
+            Put(Stump, stumpB.x, stumpB.y - 34f, 96f, Color.white);
 
             // A lantern beside each path, halfway along.
             for (int n = 0; n < Paths.Length; n++)
@@ -2761,8 +2740,8 @@ namespace VuonTra.Game.UI
             _rimKeepOff.Clear();
             for (int k = stations; k < keepOff.Count; k++) _rimKeepOff.Add(new KeyValuePair<Rect, float>(keepOff[k], CanopyClearance + 4f));
             _rimKeepOff.Add(new KeyValuePair<Rect, float>(Rect.MinMaxRect(pondAt.x - 200f, pondAt.y - 110f, pondAt.x + 210f, pondAt.y + 120f), 4f));
-            foreach (Vector2 seat in Seats) _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(Heart.x + seat.x - 80f, Heart.y + seat.y - 20f, 160f, 160f), 4f));
-            foreach (Vector2 spot in DecorSpots) _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(spot.x - 70f, spot.y, 140f, 160f), 4f));
+            for (int k = 0; k < RestSpots.Max; k++) { Vector2 seat = RestSpot(k); _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(seat.x - 80f, seat.y - 20f, 160f, 160f), 4f)); }
+            for (int k = 0; k < Decor.Spots; k++) { Vector2 spot = DecorSpotAt(k); _rimKeepOff.Add(new KeyValuePair<Rect, float>(new Rect(spot.x - 70f, spot.y, 140f, 160f), 4f)); }
             Transform rimParent = _canopy != null ? _canopy : (Transform)_street;
             List<KeyValuePair<float, Transform>> rimInto = _canopy != null ? canopyStanding : standing;
             const int RimTree = 0, RimSapling = 1, RimMushrooms = 2, RimBush = 3, RimStones = 4, RimLantern = 5;
@@ -2822,8 +2801,11 @@ namespace VuonTra.Game.UI
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 250f) return false;
                 if (Vector2.Distance(new Vector2(x, y), MortarSpot) < 170f || Vector2.Distance(new Vector2(x, y), ShopSpot) < 220f) return false;
                 if (OnDecorSpot(x, y)) return false; // the player's own spots stay clear for what they buy (#11)
-                foreach (Vector2 seat in Seats)
-                    if (Mathf.Abs(Heart.x + seat.x - x) < 170f && y > Heart.y + seat.y - 170f && y < Heart.y + seat.y + 200f) return false;
+                for (int k = 0; k < RestSpots.Max; k++)
+                {
+                    Vector2 seat = RestSpot(k);
+                    if (Mathf.Abs(seat.x - x) < 170f && y > seat.y - 170f && y < seat.y + 200f) return false;
+                }
                 for (int j = 0; j < stations; j++)
                 {
                     // Prop, pad, level plate and name of every station, the item's own included: the teapot's are the tallest.
@@ -2839,7 +2821,8 @@ namespace VuonTra.Game.UI
                 float side = spot.x >= Heart.x ? 1f : -1f;
                 var tries = new List<Vector2>(offsets);
                 // Failing the preferred spots, a ring around the station, nearest first: the same for the same garden every time.
-                for (float r = 200f; r <= 320f; r += 60f)
+                // The rings start at 220, so a prop's picture (lifted half its height) still reads as beside the station, not on it.
+                foreach (float r in new[] { 220f, 260f, 300f })
                     for (int k = 0; k < 12; k++)
                         tries.Add(new Vector2(Mathf.Cos(k * Mathf.PI / 6f) * r, Mathf.Sin(k * Mathf.PI / 6f) * r));
                 foreach (Vector2 o in tries)
@@ -2877,8 +2860,11 @@ namespace VuonTra.Game.UI
                 if (OnDecorSpot(x, y)) continue;
                 // Keep the places to rest in the open: nothing grows on a seat or in front of the tea table.
                 bool onSeat = false;
-                foreach (Vector2 seat in Seats)
-                    if (Mathf.Abs(Heart.x + seat.x - x) < 190f && y > Heart.y + seat.y - 150f && y < Heart.y + seat.y + 190f) onSeat = true;
+                for (int k = 0; k < RestSpots.Max; k++)
+                {
+                    Vector2 seat = RestSpot(k);
+                    if (Mathf.Abs(seat.x - x) < 190f && y > seat.y - 150f && y < seat.y + 190f) onSeat = true;
+                }
                 if (onSeat) continue;
                 if (pick < 0.46f) Put(Bush, x, y, 104f, soft);
                 else if (pick < 0.76f) Put(Mushrooms, x, y, 84f, soft);
@@ -4794,10 +4780,10 @@ namespace VuonTra.Game.UI
 
         /// <summary>The guest's order card, opened from the guest or the HUD pill.</summary>
         public OrderView OrderCard { get; private set; }
-        /// <summary>Where a guest stands to order: in front of the tea shop, at the counter's open side.</summary>
-        public static Vector2 GuestSpot => PondSpot + new Vector2(-110f, -250f);
+        /// <summary>Where a guest stands to order: in front of the tea shop, at the counter's open side; the counter's tile of the grid (#52).</summary>
+        public Vector2 GuestSpot => PropSpot(GardenGrid.CounterId);
         /// <summary>Where a guest comes in from and goes back to: off the garden's left edge, at the counter's height.</summary>
-        static Vector2 GuestEntry => new Vector2(-90f, GuestSpot.y - 40f);
+        Vector2 GuestEntry => new Vector2(-90f, GuestSpot.y - 40f);
         /// <summary>How long the walk to the counter takes.</summary>
         public const float GuestWalkSeconds = 2.4f;
         enum GuestPhase { Away, Arriving, Waiting, Bowing, Leaving }
@@ -5050,7 +5036,7 @@ namespace VuonTra.Game.UI
         {
             _standing = standing;
             Sprite cup = catalog.Stations.Length > 0 && catalog.Stations[0] != null && catalog.Stations[0].Product != null ? catalog.Stations[0].Product : catalog.Round;
-            for (int i = 0; i < Seats.Length && catalog.Rabbit != null; i++)
+            for (int i = 0; i < RestSpots.Max && catalog.Rabbit != null; i++)
             {
                 var rt = UiKit.Rect("Walker " + i, _street).Place(0f, 0f, 400, 400, 104, 110);
                 rt.pivot = new Vector2(0.5f, 0f);
@@ -5092,7 +5078,7 @@ namespace VuonTra.Game.UI
         {
             if (_standing == null || _standing.Count == 0) return;
             float key = feet.y;
-            for (int k = 0; k < Spots.Length; k++)
+            for (int k = 0; k < _actors.Count; k++)
             {
                 Vector2 s = StationSpot(k);
                 if (Mathf.Abs(s.x - feet.x) < 240f && feet.y > s.y - 280f && feet.y < s.y + 60f) { key = float.MaxValue; break; }
@@ -5182,8 +5168,8 @@ namespace VuonTra.Game.UI
             {
                 Outing o = _walkers[i].Out;
                 int n = StrollNumber(i, _clock);
-                var blocked = new List<Vec2>(Spots.Length + _walkers.Count);
-                for (int k = 0; k < Spots.Length; k++) { Vector2 at = StationSpot(k); blocked.Add(new Vec2(at.x, at.y)); }
+                var blocked = new List<Vec2>(_actors.Count + _walkers.Count);
+                for (int k = 0; k < _actors.Count; k++) { Vector2 at = StationSpot(k); blocked.Add(new Vec2(at.x, at.y)); }
                 int outNow = 0;
                 for (int j = 0; j < _walkers.Count && j < _seated; j++)
                 {
@@ -5215,7 +5201,7 @@ namespace VuonTra.Game.UI
             o.Number = n;
             Vector2 seatAt = seat < _seats.Count ? _seats[seat].anchoredPosition : Heart;
             var stations = new List<Vec2>();
-            for (int k = 0; k < Spots.Length; k++) { Vector2 at = StationSpot(k); stations.Add(new Vec2(at.x, at.y)); }
+            for (int k = 0; k < _actors.Count; k++) { Vector2 at = StationSpot(k); stations.Add(new Vec2(at.x, at.y)); }
             o.Spot = Strolls.PickSpot(LawnCore, stations, new Vec2(seatAt.x, seatAt.y), StrollRadius, 0d);
             o.Granted = o.Spot >= 0;
             float start = (n - seat * 0.37f) * StrollPeriod;

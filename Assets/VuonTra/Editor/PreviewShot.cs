@@ -67,7 +67,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             Capture(screen, "2-garden");
             // The ground's layers around the teapot, and the canopy drifting when the view is at the top.
-            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0, -120f));
             Step(screen, 0.3f);
             Capture(screen, "34-nen-tam");
             screen.LookAt(new Vector2(540f, 2800f));
@@ -77,13 +77,13 @@ namespace VuonTra.EditorTools
             state.Levels[1] = 100;
             state.Levels[2] = 300;
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(0, -120f));
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0, -120f));
             Step(screen, 0.3f);
             Capture(screen, "49-bac-tram");
             state.Levels[1] = 12;
             state.Levels[2] = 9;
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.3f);
             // A payout: two carrots fly from the teapot to the purse, three frames 0.15 s apart.
             screen.PlayPayout(0, new BigNum(1200));
@@ -169,11 +169,11 @@ namespace VuonTra.EditorTools
             screen.Refresh();
             Step(screen, 3f);
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.StationSpot(0) + new Vector2(-60f, 0f));
+            screen.LookAt(screen.StationSpot(0) + new Vector2(-60f, 0f));
             Step(screen, 0.6f);
             Capture(screen, "2-dung-cu-nghe");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.3f);
             Press(screen, "Canvas/Hud/Energy");
             Step(screen, 2.4f);
@@ -643,7 +643,7 @@ namespace VuonTra.EditorTools
             if (runner.State.Order == null) runner.PlaceOrder();
             if (runner.State.Order != null)
             {
-                screen.LookAt(GardenScreen.GuestSpot);
+                screen.LookAt(screen.GuestSpot);
                 Step(screen, GardenScreen.GuestWalkSeconds + 0.6f);
                 Capture(screen, "20-khach");
                 screen.OpenOrder();
@@ -662,7 +662,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             // The same garden at noon and at dusk; night is every other frame.
             screen.SelectStation(-1);
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             screen.ClockHours = () => 13.0;
             Step(screen, 0.3f);
             Capture(screen, "21-ban-ngay");
@@ -946,7 +946,7 @@ namespace VuonTra.EditorTools
             runner.Init(fresh);
             screen.SelectStation(-1);
             screen.Refresh();
-            screen.LookAt(GardenScreen.StationSpot(0));
+            screen.LookAt(screen.StationSpot(0));
             Step(screen, 0.6f);
             Capture(screen, "30-buoc-1");
             Press(screen, "Canvas/Garden/Content/Station am-tra");
