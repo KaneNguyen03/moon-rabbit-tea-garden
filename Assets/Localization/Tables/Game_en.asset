@@ -2262,6 +2262,14 @@ MonoBehaviour:
     m_Localized: Only this season; gone when it ends
     m_Metadata:
       m_Items: []
+  - m_Id: 255322647158784
+    m_Localized: '{0} is here!'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 255322659741696
+    m_Localized: '{0} visits the shop, answers golden calls and comes with the last day''s gift'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

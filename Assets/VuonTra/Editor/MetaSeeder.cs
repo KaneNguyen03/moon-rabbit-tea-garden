@@ -204,6 +204,9 @@ namespace VuonTra.EditorTools
                 tradeIcons[(int)trade] = trade == RabbitTrade.None ? null : PlaceholderArt.Load("icon_trade_" + trade);
             catalog.TradeIcons = tradeIcons;
             catalog.MoonGate = FinalArt.Find("prop_cong-trang");
+            catalog.GateMidAutumn = FinalArt.Find("decor_cong-trung-thu");
+            catalog.GateTet = FinalArt.Find("decor_cong-tet");
+            catalog.GateChristmas = FinalArt.Find("decor_cong-giang-sinh");
             catalog.LevelBadge = FinalArt.Find("icon_cap-vuon");
             catalog.Mist = FinalArt.Find("decor_suong");
             catalog.PlotSign = FinalArt.Load("plot_sign");

@@ -38,6 +38,22 @@ namespace VuonTra.Core
             return s.MaxDaySeen;
         }
 
+        /// <summary>
+        /// Whether a season's greeting is due today: once per season per year, the first day the game sees of it.
+        /// Marks the greeting as given. False out of season or when this season has been greeted already.
+        /// </summary>
+        public static bool ShouldGreet(GameState s, long day)
+        {
+            Season now = SeasonOf(day);
+            if (now == Season.None) return false;
+            if (s.SeasonGreetedDay >= 0 && SeasonOf(s.SeasonGreetedDay) == now && SeasonYear(s.SeasonGreetedDay) == SeasonYear(day)) return false;
+            s.SeasonGreetedDay = day;
+            return true;
+        }
+
+        /// <summary>The year a season's day belongs to; Tết's February days count with its January.</summary>
+        static int SeasonYear(long day) => DateOf(day).Year;
+
         /// <summary>The kind that belongs to a season, or null.</summary>
         public static RabbitKind KindOf(Season season)
         {

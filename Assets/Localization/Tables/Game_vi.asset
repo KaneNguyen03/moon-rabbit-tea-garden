@@ -2258,6 +2258,14 @@ MonoBehaviour:
     m_Localized: "Ch\u1EC9 trong m\xF9a; h\u1EBFt m\xF9a th\xEC m\u1EA5t"
     m_Metadata:
       m_Items: []
+  - m_Id: 255322647158784
+    m_Localized: "M\xF9a {0} \u0111\xE3 v\u1EC1!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 255322659741696
+    m_Localized: "{0} gh\xE9 ti\u1EC7m, nghe g\u1ECDi v\xE0ng v\xE0 \u0111\u1EBFn c\xF9ng qu\xE0 ng\xE0y cu\u1ED1i m\xF9a"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

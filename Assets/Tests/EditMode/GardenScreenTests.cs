@@ -4081,5 +4081,37 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(ShellState.Playing, screen.Shell.State);
             ProfileView.OpenUrl = url => Application.OpenURL(url);
         }
+
+        [Test]
+        public void A_Season_Beginning_Is_A_Banner_And_The_Gate_Wears_The_Seasons_Dressing_Only_When_It_Has_One()
+        {
+            screen.Shell.StartGame();
+            // The banner: the runner greets a season once a year; today is whatever day it is, so force the greeting by
+            // pretending Tết started today and letting the runner raise its event.
+            long tet = runner.TodayNumber; // the real day; the greeting rule is tested in SeasonTests, here only the banner
+            runner.State.SeasonGreetedDay = -1;
+            bool raised = false;
+            runner.SeasonBegan += s => raised = true;
+            bool greeted = runner.GreetSeason();
+            Assert.AreEqual(Seasons.SeasonOf(tet) != Season.None, greeted, "greeted exactly when a season runs today");
+            Assert.AreEqual(greeted, raised);
+            if (greeted) StringAssert.Contains(L10n.Season(Seasons.SeasonOf(tet)), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+
+            // The gate's dressing: hangs when there is a picture, swings, holds still under reduced motion, and nothing out of season.
+            Transform decor = root.transform.Find("Canvas/SummonMoment/Gate/GateDecor");
+            Assert.IsNotNull(decor, "the hook on the arch");
+            screen.Arrival.SetSeasonDecor(runner.Catalog.Round);
+            Assert.IsTrue(decor.gameObject.activeSelf);
+            screen.Arrival.Show(runner.Catalog.Rabbit, "Mai", "", Palette.Lantern, false, "", "");
+            Motion.SetReduced(false);
+            float maxAngle = 0f; bool moved = false;
+            for (int k = 0; k < 30; k++) { screen.Advance(0.1f); float a = Mathf.Abs(Mathf.DeltaAngle(0f, decor.localRotation.eulerAngles.z)); maxAngle = Mathf.Max(maxAngle, a); if (a > 0.2f) moved = true; }
+            Assert.IsTrue(moved, "it swings"); Assert.LessOrEqual(maxAngle, 2.6f, "between fixed bounds");
+            Motion.SetReduced(true);
+            screen.Advance(0.1f);
+            Assert.AreEqual(Quaternion.identity, decor.localRotation, "still under reduced motion");
+            screen.Arrival.SetSeasonDecor(null);
+            Assert.IsFalse(decor.gameObject.activeSelf, "nothing out of season or without a picture");
+        }
     }
 }

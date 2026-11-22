@@ -53,6 +53,8 @@ namespace VuonTra.Game.UI
         /// <summary>The card that asks which of two copies of the garden to keep.</summary>
         public CloudChoiceView CloudChoice { get; private set; }
         System.Action<SyncReport> _onSyncChoice;
+        System.Action<Season> _onSeasonBegan;
+        System.Action<Rabbit> _onSeasonArrived;
         /// <summary>The leaf-catching game, opened from the basket under the tea tree past the leaf station.</summary>
         public LeavesView Basket { get; private set; }
         RectTransform _basketProp;
@@ -1039,6 +1041,17 @@ namespace VuonTra.Game.UI
                 Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : "cloud.kept"), Palette.Ink, 34);
                 Refresh(-1f);
             }));
+            if (_onSeasonBegan != null) Runner.SeasonBegan -= _onSeasonBegan;
+            _onSeasonBegan = season =>
+            {
+                Sfx.Sting();
+                RabbitKind kind = Seasons.KindOf(season);
+                Feel.Moment(L10n.T("season.began.title", L10n.Season(season)), L10n.T("season.began.sub", kind != null ? L10n.T("kind." + kind.Id) : ""));
+            };
+            Runner.SeasonBegan += _onSeasonBegan;
+            if (_onSeasonArrived != null) Runner.SeasonArrived -= _onSeasonArrived;
+            _onSeasonArrived = rabbit => { Sfx.Summon(rabbit.Tier); Welcome(rabbit); };
+            Runner.SeasonArrived += _onSeasonArrived;
             if (_onSyncChoice != null) Runner.SyncChoiceNeeded -= _onSyncChoice;
             _onSyncChoice = r => CloudChoice.Open(r);
             Runner.SyncChoiceNeeded += _onSyncChoice;
@@ -3884,6 +3897,7 @@ namespace VuonTra.Game.UI
         /// <summary>A rabbit has just arrived, called or merged: it steps out of the moon gate.</summary>
         void Welcome(Rabbit rabbit)
         {
+            Arrival.SetSeasonDecor(Runner.Catalog.GateDecor(Runner.SeasonNow));
             Arrival.Show(Runner.Catalog.RabbitArt(rabbit), rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Rarity(rabbit.Tier)),
                 Palette.Tiers[rabbit.Tier], rabbit.FirstOfKind, L10n.T("summon.new"), L10n.T("summon.hint"), rabbit.Tier == 0);
         }

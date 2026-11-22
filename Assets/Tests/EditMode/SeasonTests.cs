@@ -134,6 +134,22 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Season_Is_Greeted_Once_A_Year_On_The_First_Day_The_Game_Sees_Of_It()
+        {
+            GameState s = GameState.NewGame(Fixture.Defs());
+            Assert.IsFalse(Seasons.ShouldGreet(s, Day(2026, 8, 20)), "no season, no greeting");
+            Assert.IsTrue(Seasons.ShouldGreet(s, Day(2026, 9, 3)), "first day seen of Mid-Autumn");
+            Assert.IsFalse(Seasons.ShouldGreet(s, Day(2026, 9, 4)), "not again this season");
+            Assert.IsFalse(Seasons.ShouldGreet(s, Day(2026, 9, 30)));
+            Assert.IsTrue(Seasons.ShouldGreet(s, Day(2026, 12, 1)), "a new season is greeted");
+            Assert.IsTrue(Seasons.ShouldGreet(s, Day(2027, 1, 20)), "Tết straddles the year end but is one season");
+            Assert.IsFalse(Seasons.ShouldGreet(s, Day(2027, 2, 10)));
+            Assert.IsTrue(Seasons.ShouldGreet(s, Day(2027, 9, 1)), "next year's Mid-Autumn is greeted again");
+            GameState back = SaveCodec.Decode(Fixture.Defs(), SaveCodec.Encode(Fixture.Defs(), s)).State;
+            Assert.AreEqual(s.SeasonGreetedDay, back.SeasonGreetedDay, "kept in the save");
+        }
+
+        [Test]
         public void Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit()
         {
             IReadOnlyList<StationDef> defs = Fixture.Defs();

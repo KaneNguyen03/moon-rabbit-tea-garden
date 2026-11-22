@@ -2255,6 +2255,14 @@ MonoBehaviour:
     m_Key: quest.season.note
     m_Metadata:
       m_Items: []
+  - m_Id: 255322647158784
+    m_Key: season.began.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 255322659741696
+    m_Key: season.began.sub
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
