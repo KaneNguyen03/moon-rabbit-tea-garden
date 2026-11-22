@@ -32,6 +32,7 @@ namespace VuonTra.Core.Tests
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
+            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
             screen.Build();
             screen.Refresh();
         }
@@ -47,12 +48,6 @@ namespace VuonTra.Core.Tests
             Notifications.Notifier = new LogNotifier();
             L10n.SetLocale("vi");
         }
-
-        /// <summary>
-        /// The stations the garden's land holds (#67a): the land waves end at twelve plots, so the four stations after the
-        /// star observatory wait for the rings of land of #53 (67b) and the layout tests cover the twelve that stand.
-        /// </summary>
-        int Landed => Mathf.Min(runner.Defs.Count, Expansion.Waves[Expansion.Waves.Length - 1].PlotsAfter);
 
         Button Find(string path)
         {
@@ -536,7 +531,7 @@ namespace VuonTra.Core.Tests
             // #51: no mist and nothing growing on land the garden does not have yet, only a faint dashed ring.
             Transform world = root.transform.Find("Canvas/Garden/Content");
             Assert.IsNull(world.Find("Ring 3"), "the first four plots are the garden's own");
-            for (int i = Plots.Starting; i < Landed; i++)
+            for (int i = Plots.Starting; i < runner.Defs.Count; i++)
             {
                 Assert.IsNull(world.Find("Mist " + i), "no mist on plot " + i);
                 Assert.IsNull(world.Find("Grove " + i), "nothing grows on plot " + i);
@@ -602,7 +597,7 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(kinds.Count, 4, "built from four or five kinds of piece: " + string.Join(", ", kinds));
 
             int onPlots = 0;
-            for (int i = 0; i < Landed; i++)
+            for (int i = 0; i < runner.Defs.Count; i++)
             {
                 Transform station = street.Find("Station " + runner.Defs[i].Id);
                 var parts = new List<RectTransform>();
@@ -727,7 +722,7 @@ namespace VuonTra.Core.Tests
         {
             screen.Shell.StartGame();
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            for (int plots = Plots.Starting; plots <= Landed; plots += 2)
+            for (int plots = Plots.Starting; plots <= runner.Defs.Count; plots += 2)
             {
                 HavePlots(plots);
                 foreach (GardenScreen.ZoomLevel zoom in new[] { GardenScreen.ZoomLevel.Default, GardenScreen.ZoomLevel.Near, GardenScreen.ZoomLevel.Far })
@@ -1253,11 +1248,11 @@ namespace VuonTra.Core.Tests
             var scroll = world.parent.GetComponent<UnityEngine.UI.ScrollRect>();
             Assert.IsFalse(scroll.horizontal);
             Assert.IsTrue(scroll.vertical);
-            for (int a = 0; a < Landed; a++)
+            for (int a = 0; a < runner.Defs.Count; a++)
             {
                 Vector2 p = screen.StationSpot(a);
                 Assert.IsTrue(p.x > 200 && p.x < world.sizeDelta.x - 200 && p.y > 200 && p.y < world.sizeDelta.y - 200, "station " + a + " is inside the world");
-                for (int b = a + 1; b < Landed; b++)
+                for (int b = a + 1; b < runner.Defs.Count; b++)
                     Assert.Greater(Vector2.Distance(p, screen.StationSpot(b)), 280f, a + " and " + b);
             }
         }
@@ -1272,7 +1267,9 @@ namespace VuonTra.Core.Tests
 
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
-            Assert.LessOrEqual(world.sizeDelta.y * world.localScale.y, 1920f + 0.5f, "the whole garden fits top to bottom");
+            // The lawn from the resting corner to the shop fits top to bottom; the band above it, where the four newest stations
+            // stand (#67b), is a scroll up, so the foot of the garden stays clear of the tab bar.
+            Assert.AreEqual(1920f, 2970f * world.localScale.y, 0.5f, "the lawn up to the shop fits top to bottom");
             Assert.IsFalse(plate.activeSelf, "no level plates from far away");
             // Smaller than the screen sideways: it sits in the middle, not against an edge.
             Assert.AreEqual((1080f - world.sizeDelta.x * world.localScale.x) / 2f, world.anchoredPosition.x, 0.5f);
@@ -1388,7 +1385,7 @@ namespace VuonTra.Core.Tests
             Assert.Greater(wood.Count, 20, "the wood still rings the garden");
             var read = new System.Collections.Generic.List<System.Collections.Generic.KeyValuePair<string, Rect>>();
             foreach (string[] parts in new[] { new[] { "Level" }, new[] { "Pad" }, new[] { "Pad", "Tag" }, new[] { "Floor" }, new[] { "Prop" }, new[] { "Rabbit" }, new[] { "Tier" } })
-                for (int i = 0; i < Landed; i++)
+                for (int i = 0; i < runner.Defs.Count; i++)
                 {
                     Transform t = street.Find("Station " + runner.Defs[i].Id);
                     foreach (string part in parts) t = t.Find(part);
@@ -1506,14 +1503,14 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Station_Card_Is_Docked_And_The_Station_Scrolls_Clear_Of_It()
         {
-            for (int i = 0; i < Landed; i++) if (runner.State.Levels[i] <= 0) runner.State.Levels[i] = 1;
-            runner.State.Plots = Landed;
+            for (int i = 0; i < runner.Defs.Count; i++) if (runner.State.Levels[i] <= 0) runner.State.Levels[i] = 1;
+            runner.State.Plots = runner.Defs.Count;
             screen.Refresh();
             var card = (RectTransform)root.transform.Find("Canvas/Card");
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             Assert.AreEqual(root.transform.Find("Canvas"), card.parent, "the card does not move with the garden");
             float cardTop = card.anchoredPosition.y + card.sizeDelta.y / 2f;
-            for (int i = 0; i < Landed; i++)
+            for (int i = 0; i < runner.Defs.Count; i++)
             {
                 screen.SelectStation(-1);
                 screen.SelectStation(i);
@@ -1781,15 +1778,23 @@ namespace VuonTra.Core.Tests
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             Assert.AreEqual(world.sizeDelta.x / 2f, screen.StationSpot(0).x, 0.5f, "teapot in the middle");
             float teapot = world.Find("Station am-tra").localScale.x;
-            for (int i = 1; i < Landed; i++)
+            for (int i = 1; i < runner.Defs.Count; i++)
                 Assert.Greater(teapot, world.Find("Station " + runner.Defs[i].Id).localScale.x * 1.3f, "teapot is clearly the largest");
 
-            for (int i = 0; i < Landed; i++)
+            for (int i = 0; i < runner.Defs.Count; i++)
             {
                 if (runner.Defs[i].Kind != VuonTra.Core.StationKind.Ingredient) continue;
-                for (int j = 0; j < Landed; j++)
+                float nearest = float.MaxValue;
+                for (int j = 0; j < runner.Defs.Count; j++)
                     if (runner.Defs[i].Boosts(runner.Defs[j].Id))
-                        Assert.Less(Vector2.Distance(screen.StationSpot(i), screen.StationSpot(j)), 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
+                    {
+                        float apart = Vector2.Distance(screen.StationSpot(i), screen.StationSpot(j));
+                        nearest = Mathf.Min(nearest, apart);
+                        // The first twelve stand by everything they supply. The lotus garden (#67) feeds the bakery at the top and
+                        // the observatory at the foot of the garden, so the four newest stand by at least one of theirs.
+                        if (i < 12) Assert.Less(apart, 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
+                    }
+                Assert.Less(nearest, 520f, runner.Defs[i].Id + " is near one station it supplies");
             }
         }
 
@@ -2061,7 +2066,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(oven.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Pad").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Prop").gameObject.activeSelf);
-            Assert.AreEqual("Mở rộng vườn", oven.Find("Level/Text").GetComponent<Text>().text);
+            Assert.AreEqual("Mở rộng rừng", oven.Find("Level/Text").GetComponent<Text>().text); // #53
 
             // One of your rabbits arrives: the rabbit shows and the pad goes.
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
@@ -3749,7 +3754,7 @@ namespace VuonTra.Core.Tests
             // Close in, looking at the top of the garden: the lowest stations are out of view below. (At the usual
             // zoom, since #50, the whole garden is all but in view, so nothing waits beyond an edge.)
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(new Vector2(540f, 2900f));
+            screen.LookAt(new Vector2(540f, 2330f)); // the top of the lawn below the band of the four newest stations (#67b)
             screen.Advance(1f / 30f);
             Assert.IsTrue(down.activeSelf, "stations that can be raised wait below");
             StringAssert.StartsWith("▼ ", down.transform.Find("Text").GetComponent<Text>().text);
@@ -4481,7 +4486,7 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(GardenScreen.LawnSpots.Count, 6);
             foreach (Vector2 spot in GardenScreen.LawnSpots)
             {
-                for (int i = 0; i < 12; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
+                for (int i = 0; i < runner.Defs.Count; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
                 for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.DecorSpotAt(i)), 150f, spot + " by decoration spot " + i);
                 Assert.GreaterOrEqual(Vector2.Distance(spot, GardenScreen.PondSpot), 300f, spot + " in the pond");
                 Assert.GreaterOrEqual(Vector2.Distance(spot, screen.GuestSpot), 150f, spot + " on the guest");
@@ -4801,7 +4806,7 @@ namespace VuonTra.Core.Tests
                 Transform child = world.GetChild(k);
                 if (child.name != "Flowers") continue;
                 Vector2 at = ((RectTransform)child).anchoredPosition;
-                for (int i = 0; i < Landed; i++)
+                for (int i = 0; i < runner.Defs.Count; i++)
                 {
                     Vector2 spot = screen.StationSpot(i);
                     Assert.IsTrue(Mathf.Abs(spot.x - at.x) >= 230f || Mathf.Abs(spot.y - at.y) >= 230f, "flowers off station " + i);
@@ -6067,13 +6072,13 @@ namespace VuonTra.Core.Tests
         public void A_Garden_With_Every_Station_Open_Has_Everything_On_The_Grid_Where_The_Screen_Shows_It()
         {
             GameState s = runner.State;
-            s.Plots = Landed;
+            s.Plots = runner.Defs.Count;
             for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] <= 0) s.Levels[i] = 1;
             s.RestSpots = RestSpots.Max;
             GardenGrid.Settle(runner.Defs, s);
             screen.Refresh();
-            Assert.AreEqual(GardenGrid.RadiusForPlots(Landed), s.Grid.Radius);
-            Assert.AreEqual(Landed + RestSpots.Max + 3, s.Grid.OccupantCount, "every station, every seat, the mortar, the shop and the counter");
+            Assert.AreEqual(GardenGrid.RadiusForPlots(runner.Defs.Count), s.Grid.Radius);
+            Assert.AreEqual(runner.Defs.Count + RestSpots.Max + 3, s.Grid.OccupantCount, "every station, every seat, the mortar, the shop and the counter");
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             var tiles = new HashSet<Hex>();
             foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants)
@@ -6081,7 +6086,7 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(tiles.Add(o.Value), o.Key + " has a tile of its own");
                 Assert.LessOrEqual(GardenGrid.Distance(o.Value), s.Grid.Radius, o.Key + " stands on the lawn");
             }
-            for (int i = 0; i < Landed; i++)
+            for (int i = 0; i < runner.Defs.Count; i++)
             {
                 Hex tile = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[i])).Value;
                 Assert.AreEqual(GardenScreen.CellToWorld(tile), ((RectTransform)world.Find("Station " + runner.Defs[i].Id)).anchoredPosition, runner.Defs[i].Id);

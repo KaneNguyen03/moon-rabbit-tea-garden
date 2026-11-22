@@ -736,6 +736,41 @@ namespace VuonTra.EditorTools
             { "quest.mo-12", "Cả 12 bé thỏ đều thức", "All 12 rabbits awake" },
             { "quest.mo-16", "Có 16 trạm", "Have 16 stations" },
             { "row.needlevel", "Cần vườn cấp {0}", "Needs garden level {0}" },
+            // ----- rewarded ad seams and the no-ads pass (#66) -----
+            { "ad.away", "Xem 30 giây · nhận ×2", "Watch 30 s · collect ×2" },
+            { "ad.away.now", "Nhận ngay ×2", "Collect ×2 now" },
+            { "ad.round", "Xem 30 giây · thêm 1 lượt", "Watch 30 s · one more round" },
+            { "ad.round.now", "Nhận ngay 1 lượt nữa", "One more round now" },
+            { "ad.shop", "Xem để nhận 1 cà rốt vàng", "Watch for 1 golden carrot" },
+            { "ad.shop.now", "Nhận ngay 1 cà rốt vàng", "Get 1 golden carrot now" },
+            { "ad.shop.float", "+1 cà rốt vàng", "+1 golden carrot" },
+            { "ad.busy", "Đang mở…", "Opening…" },
+            { "ad.failed", "Chưa xem hết nên chưa nhận được", "Not watched to the end, so nothing yet" },
+            { "noads.title", "Bỏ quảng cáo · 30 ngày", "No ads · 30 days" },
+            { "noads.active", "Bỏ quảng cáo · còn {0} ngày", "No ads · {0} days left" },
+            { "noads.paid", "Đã bỏ quảng cáo, còn {0} ngày: mọi nút xem thành Nhận ngay.", "No ads for {0} days: every watch button now pays at once." },
+            { "noads.float", "Bỏ quảng cáo {0} ngày", "No ads for {0} days" },
+            // ----- rain and the Frog Rabbit (#62) -----
+            { "frog.name", "Thỏ Ếch", "Frog Rabbit" },
+            { "frog.title", "Thỏ Ếch ghé chơi!", "The Frog Rabbit says hello!" },
+            { "frog.sub", "Quà mưa: {0} cà rốt", "A rainy-day gift: {0} carrots" },
+            { "frog.sub.clover", "Quà mưa: {0} cà rốt và 1 cỏ", "A rainy-day gift: {0} carrots and a clover" },
+            { "quest.ech-5", "Gặp Thỏ Ếch 5 lần", "Meet the Frog Rabbit 5 times" },
+            // ----- ring expansion of the forest (#53) -----
+            { "forest.expand", "Mở rộng rừng", "Widen the forest" },
+            { "forest.title", "Mở rộng rừng · vòng {0}", "Widen the forest · ring {0}" },
+            { "moment.forest.title", "Rừng lùi ra một vòng!", "The forest steps back!" },
+            // ----- layout mode (#54) -----
+            { "layout.button", "Bố trí", "Arrange" },
+            { "layout.done", "Xong", "Done" },
+            { "layout.hint", "Giữ để nhấc lên · thả vào ô trống, lên thứ khác để đổi chỗ, hoặc vào kho", "Hold to pick up · drop on an empty tile, on something to swap, or in storage" },
+            { "layout.store", "Cất vào kho", "Store away" },
+            { "layout.store.count", "Đang cất: {0} trạm", "In storage: {0}" },
+            { "layout.stored", "Đã cất vào kho", "Stored away" },
+            { "layout.cannot", "Chỉ cất được trạm đã mở và đồ trang trí", "Only open stations and decorations can be stored" },
+            { "layout.stored.row", "{0} · cấp {1} · trong kho", "{0} · level {1} · in storage" },
+            { "layout.takeout", "Lấy ra", "Take out" },
+            { "layout.full", "Vườn đã hết ô trống", "The garden has no empty tile" },
         };
     }
 }

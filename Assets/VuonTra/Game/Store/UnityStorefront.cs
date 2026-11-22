@@ -35,6 +35,7 @@ namespace VuonTra.Game.Store
             _check = check ?? new AcceptAllReceipts();
             var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
             foreach (GoldenPack pack in Storefront.Packs) builder.AddProduct(pack.Id, ProductType.Consumable);
+            builder.AddProduct(Storefront.NoAdsPass, ProductType.Consumable); // thirty days, bought again to extend (#66)
             UnityPurchasing.Initialize(this, builder);
         }
 

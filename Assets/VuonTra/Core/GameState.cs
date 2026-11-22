@@ -150,12 +150,21 @@ namespace VuonTra.Core
         public long MoonJarFreeDay = -1;
         /// <summary>The hex grid the garden stands on (#52): how wide the lawn is and which tile each station, place to rest, decoration and prop has.</summary>
         public GardenGrid Grid = new GardenGrid();
+        /// <summary>Rewarded-ad seams (#66): today's claims at each of the three places, and the first day the no-ads pass no longer covers (-1: never bought).</summary>
+        public AdsRecord AdsToday = new AdsRecord();
+        public long NoAdsUntilDay = -1;
 
         /// <summary>Gift codes this garden has used (#68), as <see cref="GiftCodes.Normalize"/> writes them; each pays once.</summary>
         public HashSet<string> CodesUsed = new HashSet<string>();
         /// <summary>The mailbox (#68): unclaimed letters, oldest first, and the last day it looked for missed seasons (-1: not yet).</summary>
         public List<Letter> Letters = new List<Letter>();
         public long MailDay = -1;
+
+        /// <summary>The Frog Rabbit (#62): the day its counts are for, the showers of that day whose frog has come (one bit each), frogs greeted that day and in all, and the seconds the one at the pond has left (0 when none is here).</summary>
+        public long FrogDay = -1;
+        public int FrogShowers, FrogsToday;
+        public long FrogsMet;
+        public double FrogLeft;
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {

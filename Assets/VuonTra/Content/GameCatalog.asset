@@ -84,6 +84,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4292010989f60458cb9abbcab5caf48c, type: 2}
   - {fileID: 11400000, guid: f8f85ef6046e847a3bfee8579a2764c0, type: 2}
   - {fileID: 11400000, guid: 789c29475a211477ead5ae912d5cf468, type: 2}
+  - {fileID: 11400000, guid: cf6e8c3708ab643718a0342301329bd9, type: 2}
   Items:
   - {fileID: 11400000, guid: e46dc0e7d6d184c26808df57b4f2fcf0, type: 2}
   - {fileID: 11400000, guid: 7e3b63f42c6394a0baae4dc3f01d4ca9, type: 2}
@@ -150,6 +151,7 @@ MonoBehaviour:
   GoldenCarrot: {fileID: 21300000, guid: 574b012909f2f4f5fb4499600cb84a82, type: 3}
   GiftBox: {fileID: 21300000, guid: 8d81ab5c97b1e4f3c8c067bae563288c, type: 3}
   ShopProp: {fileID: 21300000, guid: 3e60406a8d1be43e0a046e3f6ac6e151, type: 3}
+  MoonJar: {fileID: 21300000, guid: 1aadbf024f880476abd8fee425b49775, type: 3}
   Gear: {fileID: 21300000, guid: 6f5d37df80d404818bc206886fc30d9c, type: 3}
   Shadow: {fileID: 21300000, guid: 4621549ce2eb646a7ace069e96763f27, type: 3}
   IconUp: {fileID: 21300000, guid: e227213dacd474a26ad7da377889306b, type: 3}

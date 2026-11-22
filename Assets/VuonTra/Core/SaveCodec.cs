@@ -293,6 +293,20 @@ namespace VuonTra.Core
             sb.Append(",\"bought\":").Append(s.MoonJarsBoughtToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"freeDay\":").Append(s.MoonJarFreeDay.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
+            // Rewarded-ad seams (#66), an additive block: the day the claims count for, each place's claims that day, and the pass's end day.
+            sb.Append(",\"ads\":{\"day\":").Append(s.AdsToday.Day.ToString(CultureInfo.InvariantCulture)).Append(",\"used\":{");
+            {
+                bool firstAd = true;
+                foreach (string key in Ads.Keys())
+                {
+                    if (!s.AdsToday.Used.TryGetValue(key, out int used) || used <= 0) continue;
+                    if (!firstAd) sb.Append(',');
+                    firstAd = false;
+                    WriteString(sb, key);
+                    sb.Append(':').Append(used.ToString(CultureInfo.InvariantCulture));
+                }
+            }
+            sb.Append("},\"passUntil\":").Append(s.NoAdsUntilDay.ToString(CultureInfo.InvariantCulture)).Append('}');
             // The hex grid (#52), an additive block: how wide the lawn is, and the tile of everything standing on it. Empty tiles follow.
             sb.Append(",\"grid\":{\"radius\":").Append(s.Grid.Radius.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
             {
@@ -308,7 +322,21 @@ namespace VuonTra.Core
                     sb.Append('}');
                 }
             }
-            sb.Append("]}");
+            sb.Append(']');
+            if (s.Grid.StoredCount > 0)
+            {
+                // The stations put away (#54), an additive list written only when there are some.
+                var stored = new List<string>(s.Grid.Stored);
+                stored.Sort(string.CompareOrdinal);
+                sb.Append(",\"stored\":[");
+                for (int i = 0; i < stored.Count; i++)
+                {
+                    if (i > 0) sb.Append(',');
+                    WriteString(sb, stored[i]);
+                }
+                sb.Append(']');
+            }
+            sb.Append('}');
             // Gift codes and the mailbox (#68), additive: the codes used, then the letters and the day the box last looked.
             sb.Append(",\"codesUsed\":[");
             first = true;
@@ -334,7 +362,14 @@ namespace VuonTra.Core
                 sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
-            sb.Append("]}}");
+            sb.Append("]}");
+            // The Frog Rabbit (#62), an additive block: the day counted, its showers' frogs, today's and all greetings, the one at the pond.
+            sb.Append(",\"frog\":{\"day\":").Append(s.FrogDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"showers\":").Append(s.FrogShowers.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"met\":").Append(s.FrogsMet.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"left\":").Append(Sane(s.FrogLeft).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append("}}");
             return sb.ToString();
         }
 
@@ -741,6 +776,19 @@ namespace VuonTra.Core
                     }
             }
 
+            // Rewarded-ad seams (#66). A save from before has every claim of the day and no pass; counts are kept to the caps.
+            if (root.TryGetValue("ads", out object adsObj) && adsObj is Dictionary<string, object> ads)
+            {
+                s.AdsToday.Day = TryNumber(ads, "day", out double adsDay) ? ToLong(adsDay) : -1;
+                if (ads.TryGetValue("used", out object usedObj) && usedObj is Dictionary<string, object> used)
+                    foreach (string key in Ads.Keys())
+                    {
+                        int n = (int)Math.Max(0d, Math.Min(ReadNumber(used, key), Ads.CapOfKey(key)));
+                        if (n > 0) s.AdsToday.Used[key] = n;
+                    }
+                s.NoAdsUntilDay = TryNumber(ads, "passUntil", out double passUntil) ? Math.Max(-1L, ToLong(passUntil)) : -1;
+            }
+
             // The hex grid (#52). A save from before stands on the default table: every plot's station, place to rest and
             // decoration standing gets its tile, so nothing is lost. A tile claimed twice keeps its first claimant.
             s.Grid = new GardenGrid(GardenGrid.RadiusForPlots(s.Plots));
@@ -755,8 +803,22 @@ namespace VuonTra.Core
                         if (Math.Abs(q) > GardenGrid.MaxRadius * 2 || Math.Abs(r) > GardenGrid.MaxRadius * 2 || s.Grid.OccupantAt((int)q, (int)r) != null) continue;
                         s.Grid.Place(id, (int)q, (int)r, true);
                     }
+                // The stations put away (#54); Settle lets go of any that is not an open station with a plot.
+                if (grid.TryGetValue("stored", out object storedObj) && storedObj is List<object> stored)
+                    foreach (object raw in stored)
+                        if (raw is string id && GardenGrid.Known(id)) s.Grid.Restore(id);
             }
             GardenGrid.Settle(defs, s);
+
+            // The Frog Rabbit (#62). A save from before the rain has met none, and today's frogs are still to come.
+            if (root.TryGetValue("frog", out object frogObj) && frogObj is Dictionary<string, object> frog)
+            {
+                s.FrogDay = TryNumber(frog, "day", out double frogDay) ? ToLong(frogDay) : -1;
+                s.FrogShowers = (int)Math.Max(0d, Math.Min(ReadNumber(frog, "showers"), (1 << Weather.ShowersPerDay) - 1));
+                s.FrogsToday = (int)Math.Max(0d, Math.Min(ReadNumber(frog, "today"), FrogRabbit.PerDay));
+                s.FrogsMet = Math.Max(0L, ToLong(ReadNumber(frog, "met")));
+                s.FrogLeft = Math.Max(0d, Math.Min(FrogRabbit.StaySeconds, ReadNumber(frog, "left")));
+            }
 
             result.Status = LoadStatus.Ok;
             return result;

@@ -105,32 +105,46 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_First_Wave_Needs_Level_Rabbits_And_Carrots_All_Three()
+        public void The_First_Ring_Needs_Level_And_Carrots_Both()
         {
-            ExpansionWave wave = Expansion.Next(defs, s);
-            Assert.AreEqual(6, wave.PlotsAfter);
-            BigNum cost = Expansion.Cost(defs, s);
-            Assert.AreEqual((1e5 + 1e6) * Plots.CostShare, cost.ToDouble(), 1e-3, "the two plots it opens, each a quarter of its station");
-
-            s.Coins = cost; s.GardenXp = Garden.XpForLevel(3); Rabbit(2);
-            Assert.IsFalse(Expansion.TryExpand(defs, s), "one rabbit short");
-            Rabbit(1);
-            s.GardenXp = Garden.XpForLevel(3) - 1;
-            Assert.IsFalse(Expansion.TryExpand(defs, s), "one level short");
-            s.GardenXp = Garden.XpForLevel(3);
-            s.Coins = cost - BigNum.One;
-            Assert.IsFalse(Expansion.TryExpand(defs, s), "one carrot short");
-            Assert.AreEqual(4, s.Plots);
+            ForestRing ring = Expansion.Next(defs, s);
+            Assert.AreEqual(4, ring.RadiusAfter);
+            Assert.AreEqual(0, ring.NeedRabbits, "the first ring asks for no rabbits (#53)");
+            BigNum cost = Expansion.CostOfNext(defs, s);
+            Assert.AreEqual((1e5 + 1e6) * Plots.CostShare, cost.ToDouble(), 1e-3, "the land of the two stations it makes room for, each a quarter of its station");
 
             s.Coins = cost;
-            Assert.IsTrue(Expansion.TryExpand(defs, s));
+            s.GardenXp = Garden.XpForLevel(3) - 1;
+            Assert.IsFalse(Expansion.Expand(defs, s), "one level short");
+            s.GardenXp = Garden.XpForLevel(3);
+            s.Coins = cost - BigNum.One;
+            Assert.IsFalse(Expansion.Expand(defs, s), "one carrot short");
+            Assert.AreEqual(4, s.Plots);
+            Assert.AreEqual(3, s.Grid.Radius);
+
+            s.Coins = cost;
+            Assert.IsTrue(Expansion.Expand(defs, s));
             Assert.AreEqual(6, s.Plots);
-            Assert.AreEqual(3, s.RestSpots, "a wave also opens a place to rest");
+            Assert.AreEqual(4, s.Grid.Radius, "the forest stepped back a ring");
+            Assert.AreEqual(3, s.RestSpots, "a ring also opens a place to rest");
             Assert.IsTrue(s.Coins.Equals(BigNum.Zero));
         }
 
         [Test]
-        public void The_Waves_Go_Six_Eight_Ten_Twelve_And_Then_Stop()
+        public void The_Second_Ring_Needs_Rabbits_Too()
+        {
+            s.Coins = BigNum.FromParts(1, 40);
+            s.GardenXp = Garden.XpForLevel(6);
+            Assert.IsTrue(Expansion.Expand(defs, s));
+            Rabbit(5);
+            Assert.IsFalse(Expansion.Expand(defs, s), "one rabbit short");
+            Rabbit(1);
+            Assert.IsTrue(Expansion.Expand(defs, s));
+            Assert.AreEqual(5, s.Grid.Radius);
+        }
+
+        [Test]
+        public void The_Rings_Go_Four_Five_Six_Seven_And_Then_Stop()
         {
             s.Coins = BigNum.FromParts(1, 40);
             s.GardenXp = Garden.XpForLevel(20);
@@ -139,21 +153,24 @@ namespace VuonTra.Core.Tests
             int[] expected = { 6, 8, 10, 12 };
             for (int i = 0; i < expected.Length; i++)
             {
-                Assert.IsTrue(Expansion.TryExpand(defs, s), "wave " + i);
+                Assert.IsTrue(Expansion.Expand(defs, s), "ring " + i);
                 Assert.AreEqual(expected[i], s.Plots);
+                Assert.AreEqual(4 + i, s.Grid.Radius);
                 Assert.AreEqual(3 + i, s.RestSpots);
             }
-            Assert.IsNull(Expansion.Next(defs, s));
-            Assert.IsFalse(Expansion.TryExpand(defs, s));
-            Assert.IsTrue(Expansion.Cost(defs, s).Equals(BigNum.Zero));
+            Assert.IsNull(Expansion.Next(defs, s), "twelve stations, twelve plots: the forest stays where it is");
+            Assert.IsFalse(Expansion.Expand(defs, s));
+            Assert.IsTrue(Expansion.CostOfNext(defs, s).Equals(BigNum.Zero));
         }
 
         [Test]
-        public void The_Last_Wave_Asks_For_Kinds_Met_Not_For_A_Head_Count()
+        public void The_Last_Ring_Asks_For_Kinds_Met_Not_For_A_Head_Count()
         {
             s.Plots = 10;
+            GardenGrid.Settle(defs, s);
             s.Coins = BigNum.FromParts(1, 40);
             s.GardenXp = Garden.XpForLevel(15);
+            Assert.AreEqual(7, Expansion.Next(defs, s).RadiusAfter);
             Assert.IsFalse(Expansion.CanExpand(defs, s));
             foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < 8) s.SeenKinds.Add(kind.Id);
             Assert.IsTrue(Expansion.CanExpand(defs, s), "no rabbits owned right now, but eight kinds met");

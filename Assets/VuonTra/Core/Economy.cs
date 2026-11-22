@@ -96,13 +96,13 @@ namespace VuonTra.Core
         {
             var d = defs[index];
             int level = s.Levels[index];
-            if (d.Kind != StationKind.Brew || level <= 0) return BigNum.Zero;
+            if (d.Kind != StationKind.Brew || level <= 0 || Layout.IsStored(defs, s, index)) return BigNum.Zero; // a stored station earns nothing (#54)
 
             var income = new BigNum(d.BaseIncome * level * MilestoneMultiplier(level));
             for (int i = 0; i < defs.Count; i++)
             {
                 var other = defs[i];
-                if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0) continue;
+                if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0 || Layout.IsStored(defs, s, i)) continue;
                 // A rabbit at an ingredient station strengthens the bonus it gives, not the base 1; so do the album's sets (#61).
                 if (other.Boosts(d.Id))
                     income *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
@@ -120,12 +120,12 @@ namespace VuonTra.Core
             rabbit = 1d;
             ingredients = 1d;
             var d = defs[index];
-            if (d.Kind != StationKind.Brew || s.Levels[index] <= 0 || d.CycleSeconds <= 0d) return BigNum.Zero;
+            if (d.Kind != StationKind.Brew || s.Levels[index] <= 0 || d.CycleSeconds <= 0d || Layout.IsStored(defs, s, index)) return BigNum.Zero;
             rabbit = Rabbits.StationMultiplier(defs, s, index);
             for (int i = 0; i < defs.Count; i++)
             {
                 var other = defs[i];
-                if (other.Kind == StationKind.Ingredient && s.Levels[i] > 0 && other.Boosts(d.Id))
+                if (other.Kind == StationKind.Ingredient && s.Levels[i] > 0 && other.Boosts(d.Id) && !Layout.IsStored(defs, s, i))
                     ingredients *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
             }
             return IncomePerCycle(defs, s, index) / d.CycleSeconds;
@@ -137,7 +137,7 @@ namespace VuonTra.Core
             for (int i = 0; i < defs.Count; i++)
             {
                 var d = defs[i];
-                if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d) continue;
+                if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d || Layout.IsStored(defs, s, i)) continue;
                 total += IncomePerCycle(defs, s, i) / d.CycleSeconds;
             }
             return total;

@@ -72,6 +72,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", card).Stretch(0, 1, 1, 1, 40, -120, 40, 40)
                 .AddText(L10n.T("shop.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var purse = UiKit.Rect("Have", card).Stretch(0, 1, 1, 1, 40, -170, 40, 120);
+            _purseRow = purse;
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", purse).Place(0f, 0.5f, 22, 0, 40, 40).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
             _have = UiKit.Rect("Text", purse).Stretch(0, 0, 1, 1, 56, 0, 300, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             // Golden carrots for money (#9): a small warm button at the end of the purse row opens the packs card.
@@ -570,6 +571,36 @@ namespace VuonTra.Game.UI
             RefreshHats(s);
             RefreshDecor(s);
             RefreshJar(s, day);
+            RefreshAd();
+        }
+
+        // ----- rewarded ad seam (#66) -----
+
+        RectTransform _purseRow;
+        /// <summary>"Xem để nhận 1 cà rốt vàng", a secondary pill in the golden carrots' row beside Buy more; null until attached.</summary>
+        public AdButton Ad { get; private set; }
+        /// <summary>How wide the pill is, and how far the purse's words then keep from the row's right end.</summary>
+        public const float AdWidth = 300f, AdGap = 14f;
+        const float BuyMoreWidth = 260f, HaveRight = 300f;
+
+        public AdButton AttachAd(Func<AdOffer> offer, Func<bool> busy, Action onWatch)
+        {
+            var rt = UiKit.Rect("Ad", _purseRow).Place(1f, 0.5f, -BuyMoreWidth - AdGap - AdWidth / 2f, 0, AdWidth, UiKit.MinTouch);
+            Ad = new AdButton(rt, _catalog, "ad.shop", "ad.shop.now", offer, busy, onWatch);
+            _have.resizeTextForBestFit = true; // the purse's words make room for the pill and shrink if they must
+            _have.resizeTextMinSize = 14;
+            _have.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            RefreshAd();
+            return Ad;
+        }
+
+        /// <summary>The ad pill as things stand, and room made for it in the row.</summary>
+        public void RefreshAd()
+        {
+            if (Ad == null) return;
+            Ad.Refresh();
+            float right = Ad.Shown ? BuyMoreWidth + AdGap + AdWidth + AdGap : HaveRight;
+            _have.rectTransform.offsetMax = new Vector2(-right, _have.rectTransform.offsetMax.y);
         }
     }
 }

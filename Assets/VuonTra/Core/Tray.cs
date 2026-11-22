@@ -154,7 +154,7 @@ namespace VuonTra.Core
             if (!(seconds > 0d)) return;
             for (int i = 0; i < defs.Count; i++)
             {
-                if (defs[i].Kind != StationKind.Brew || s.Levels[i] <= 0 || defs[i].CycleSeconds <= 0d) continue;
+                if (defs[i].Kind != StationKind.Brew || s.Levels[i] <= 0 || defs[i].CycleSeconds <= 0d || Layout.IsStored(defs, s, i)) continue;
                 Advance(s, i, seconds);
             }
         }

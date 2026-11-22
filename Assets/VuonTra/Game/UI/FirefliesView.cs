@@ -37,6 +37,8 @@ namespace VuonTra.Game.UI
 
         public FirefliesRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
+        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
+        public RectTransform ResultCard => _resultCard;
         /// <summary>Seconds into the night, the same clock the rules are settled on.</summary>
         public double Time => _time;
 

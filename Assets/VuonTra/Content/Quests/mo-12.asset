@@ -21,6 +21,6 @@ MonoBehaviour:
   RewardSeconds: 600
   RewardCarrots: 50000
   RewardClovers: 5
-  RewardGolden: 5
+  RewardGolden: 0
   RewardJars: 0
   Season: 0

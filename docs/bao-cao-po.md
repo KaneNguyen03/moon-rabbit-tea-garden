@@ -1471,6 +1471,86 @@ Sau khi sửa cả bốn xanh.
 - Nhập mã đúng sẽ đóng cả Hồ sơ lẫn thẻ Tạm nghỉ để thấy quà bay về ví; nhận thư thì ở lại hộp thư và chỉ hiện một dòng "Đã nhận …".
 - Chơi lại từ đầu thì danh sách mã đã dùng cũng mất, nên nhập lại được mã cũ.
 
+## #66 — Seam quảng cáo thưởng ở ba chỗ có trần ngày, và vé Bỏ quảng cáo (agent song song, nhánh agent-66)
+
+**Test:** 940/941 (1 Inconclusive có sẵn: SeasonTests, phụ thuộc mùa), 25 test mới. verify.sh RESULT GREEN.
+**Commit:** 6a544ac, merge 6e866b2. Main sau gộp: 976/977.
+
+Đã làm:
+- `Core/Ads.cs`: `IRewardedAds`, `FakeRewardedAds` (luôn sẵn sàng, trả kết quả sau 1 giây; chỉ dùng trong editor và test), `NoAds`; tên ba chỗ quảng cáo là hằng số; trần theo ngày đã kẹp, lưu thêm vào save (vẫn bản 14).
+- Ba chỗ, mỗi chỗ một nút phụ, chỉ hiện khi có gì để nhận: ×2 ở màn chào trở lại khi lượt miễn phí đã dùng (1/ngày; ×2 miễn phí và ×2 bằng cà rốt vàng giữ nguyên); thêm 1 lượt ở thẻ kết quả khi trò đã hết lượt (1/trò/ngày); "Xem để nhận 1 cà rốt vàng" ở hàng cà rốt vàng của Tiệm (2/ngày).
+- Vé "Bỏ quảng cáo · 30 ngày" (`vuontra.noads.30`) ở thẻ mua cà rốt vàng, giá lấy từ cửa hàng, chỉ bán khi quảng cáo bật; có vé thì mọi nút thành "Nhận ngay", cùng trần.
+- Công tắc duy nhất: `GameRunner.AdsInPlayerBuilds` (đang tắt). Mọi bản build cho người chơi, kể cả bản Mac, không có nút quảng cáo.
+- Mục 5 trong docs/khai-bao-du-lieu-cua-hang.md.
+- Nhịp chơi khi xem mọi quảng cáo (Logs/economy-ads.txt): cấp 5 lúc 7 phút 15 giây, cấp 10 lúc 8 giờ 27 phút → 8 giờ 30 phút, 12 ô đất ngày 3 không đổi; +14 cà rốt vàng/tuần; lượt gọi vàng 5 → 6.
+
+Ảnh: docs/anh/po-66/66-di-vang-xem.png, 66-tiem-xem.png, 66-ve-bo-quang-cao.png, 66-them-luot.png, 66-them-luot-nhan-ngay.png
+
+### Chưa đạt / cần PO quyết
+- Có quảng cáo hay không; ba chỗ và trần; giá vé và 30 ngày.
+- Lượt gọi bằng cà rốt vàng của người chơi xem mọi quảng cáo chạm đúng mức trần 6/tuần; nếu muốn chừa khoảng trống thì giảm quà ở Tiệm còn 1/ngày.
+- Mốc 12 ô đất chỉ cách vạch ngày 3 bảy phút ở cả ba cách chơi (có từ trước, không do quảng cáo).
+- Chưa cài SDK LevelPlay, chưa có hộp ATT/GDPR; chạm vào cối/giỏ/hũ khi hết lượt chưa mời xem thêm lượt.
+
+## #62 — Mưa và Thỏ Ếch (agent song song, nhánh agent-62)
+
+**Test:** 919/920 (1 test mùa vụ Inconclusive như trước), thêm 17 test (9 `WeatherTests`, 7 `RainScreenTests`, 1 `GardenPacingTests`). `tools/verify.sh` → RESULT GREEN.
+**Commit:** f213bce, merge 325e22d. Main sau gộp: 993/994; sau khi gộp cùng #64 và #66, các mốc nhịp không đổi.
+
+**Đã làm:**
+- `Core/Weather.cs`: mỗi ngày 2 cơn mưa 8 phút theo hạt giống ngày (cơn 1 trong 6:00–14:30, cơn 2 trong 14:30–23:00, không chồng); `FrogRabbit`: chỉ trong mưa, mỗi cơn một bé, ở 60 giây, chạm = 10 phút thu nhập (× thu nhập × tốc độ) + 1 cỏ xác suất 1/4, tối đa 2/ngày, lùi đồng hồ không thêm, chờ cấp vườn 15 và xong hướng dẫn.
+- Save giữ bản 14, thêm khối `"frog"` (save cũ: chưa gặp bé nào).
+- Màn vườn: màu mưa (ngày xám xanh, đêm xanh đậm), 90 vạch mưa xiên, giọt trên ao, đèn lồng sáng hơn 20 %. "Giảm chuyển động" tắt vạch và giọt, giữ màu. Thỏ nghỉ ở thảm và võng ngồi dưới gốc cây ven rừng (chỉ đổi chỗ vẽ). Thỏ Ếch = Thỏ Bông đội Mũ len nhuộm xanh có hai mắt, bước ra từ cổng trăng nhỏ cạnh ao.
+- Âm thanh: tiếng mưa của bài "Mưa" (#63) thành hàm chung, mưa thì thay nền ambient, theo thanh Âm thanh.
+- Thành tựu `ech-5` "Gặp Thỏ Ếch 5 lần" = 2 cỏ.
+
+**Nhịp (trước → sau, gặp đủ 2 ếch mỗi ngày):** GardenPacing thong thả cấp 5 6p03 / cấp 10 4g29 / cấp 15 35g06 không đổi. EconomySimulation thong thả cấp 10 8g27, 12 ô đất ngày 3 (48g07), trò chơi + đơn khách ngày 1 19,5 %, không đổi; gặp 10 ếch, +5 cỏ. Không nghỉ tay: cấp 10 5p35, 12 ô đất 9p11, không đổi.
+
+**Ảnh:** `docs/anh/po-62/62-mua-ngay.png`, `62-mua-dem.png`, `62-mua-giam-chuyen-dong.png`, `62-tho-tru-mua.png`, `62-tho-ech-den.png`, `62-tho-ech.png`.
+
+### Chưa đạt / cần PO quyết
+- PO quyết: Thỏ Ếch chỉ đến từ cấp vườn 15. Từ cấp 1 nó kéo phần trò chơi + đơn khách ngày 1 xuống 9,5 %; từ cấp 8 hoặc 10 nó mở đủ 12 ô đất ngay ngày 2; từ cấp 12 thì giữ nhịp.
+- PO quyết: mưa chỉ rơi từ 6:00 tới 23:00. Theo giờ thật chỉ có 16 phút mưa mỗi ngày, nên người chơi thong thả gặp ếch thưa, thành tựu 5 lần sẽ đến chậm.
+- Tiếng mưa theo thanh Âm thanh (như issue), còn nền ambient vẫn theo thanh Nhạc.
+- Chưa có mũ ếch vẽ (Antigravity); chưa có ảnh Thỏ Ếch trong mưa đêm; bài "Mưa" chưa tự bật khi trời mưa.
+
+## #53 — Mở rộng rừng theo vòng (agent song song, nhánh agent-53)
+
+- **Test:** 946/947 qua (1 inconclusive, 0 lỗi), thêm 29 test (ForestRingTests 18, ForestRingScreenTests 10, GardenLevelTests +1). tools/verify.sh: RESULT GREEN.
+- **Commit:** 3041061, merge 30f2ce1. Main sau gộp: 1022/1023.
+- **Đã làm:** Đất không còn mở theo đợt mà theo vòng rừng: R3 → 4 → 5 → 6 → 7, mỗi vòng thêm 2 ô trạm, 1 chỗ nghỉ và 6R + 6 ô lưới. Khi đủ điều kiện, biển "Mở rộng rừng" hiện ở mép bãi cỏ cạnh đất sắp mở; bấm thì vành rừng (#51) lùi ra, cỏ mới mọc từng búi ở chỗ cây vừa đứng và trên ô trống của vòng mới; Giảm chuyển động thì hiện ngay. Bảng tên đất trống và thẻ trong tab Trạm đổi thành "Mở rộng rừng · vòng N". Save vẫn version 14; save cũ đổi số ô đất thành R. GardenGrid chỉ thêm `EmptyTiles` và `NearestEmptyApart`.
+- **Nhịp:** mọi mốc giữ nguyên (thong thả: vòng 1 phút 4, vòng 2 phút 11, vòng 3 giờ 4–8, vòng 4 ngày 2–3; không nghỉ tay: vòng 4 phút 9).
+- **Ảnh:** docs/anh/po-53/ — 53-vong-1-truoc/giua/sau, 53-vong-2-truoc/sau, 53-vong-1-xa-truoc, 53-vong-2-xa-sau.
+
+### Chưa đạt / cần PO quyết
+- Giá vòng: giữ 25 % giá hai trạm (như đợt cũ). Giá 25 % một trạm làm vòng 1 mở lúc 1:33 nhưng hỏng hai luật kinh tế (trò chơi + đơn khách 11,7 % < 15 %, R7 về ngày 2). Muốn rẻ hơn thì phải chỉnh lại kinh tế.
+- Luật "R7 chờ ngày 3" mong manh: cấp 15 rơi lúc 32h35 hoặc 48h07 tùy seed. Cho R7 cần cấp 16 thì qua mọi seed, nhưng đổi bảng của issue.
+- `ClampView` không đổi (vườn đã rộng hơn R7; vòng 6–7 phần lớn nằm ngoài bề ngang bãi cỏ dọc).
+- Chỗ dạo của thỏ (#55) chưa lấy từ ô trống của lưới.
+- Ba khóa chữ cũ (`land.expand`, `plot.title`, `moment.plot.title`) không còn dùng nhưng vẫn để trong L10nStrings.
+
+## #54 — Chế độ Bố trí: kéo thả trạm sang ô trống, hoán đổi, cất vào kho (agent song song, nhánh agent-54)
+
+
+- **Test:** 943/944 (0 hỏng; 26 test mới: 12 Core `LayoutTests`, 14 màn hình `LayoutModeTests`). `tools/verify.sh` GREEN, 157 khung xem trước.
+- **Commit:** 3be8974, merge 582cd5b (sau #53). Main sau gộp: 1048/1049.
+
+**Đã làm**
+- Nút "Bố trí" (tổ ong 7 ô) ở đầu trái thanh tab, cạnh tab Trạm. Bật lên: HUD và thanh tab ẩn, mỗi ô trống có vòng nét đứt màu kem, dưới đáy có thanh với ô "Cất vào kho" và nút "Xong". Lần đầu hiện một dòng hướng dẫn.
+- Giữ 0,3 giây trên trạm, chỗ nghỉ hoặc đồ trang trí để nhấc lên (to 1,06, có bóng); nó đi theo ngón và ô đích sáng vàng. Thả lên ô trống thì đặt, lên thứ khác thì đổi chỗ, ra ngoài thì trượt về. Giảm chuyển động thì đặt tức thì. Cối, tiệm và quầy không di chuyển.
+- Cất vào kho: trạm giữ cấp, không sinh cà rốt, không làm hàng cho khay, khách không gọi món của nó, không tiếp sức trạm khác; thỏ ở đó về nghỉ. Đồ trang trí cất thì về kho trang trí cũ (#11). Lấy ra ở cuối tab Trạm, trạm đứng lên ô trống gần tâm nhất.
+- Core: `GardenGrid.Move/Swap/Store/TakeOut`, `Place` từ chối trạm đang cất, `Settle` chừa trạm đang cất; `Core/Layout.cs` (Drop, Store, TakeOut, IsStored). Save vẫn v14, thêm danh sách "stored" trong khối "grid", chỉ ghi khi có. Mùa trăng mới thì kho trống lại.
+- Bấm "Xong" sau khi có thay đổi thì dựng lại vườn để cảnh vật theo chỗ mới.
+
+- **Ảnh:** docs/anh/po-54/54-bo-tri-bat.png (chế độ bật, vòng nét đứt), 54-dang-nhac.png (đang nhấc giỏ lá), 54-sau-hoan-doi.png (nồi mứt đổi chỗ với ấm trà), 54-sau-xong.png (vườn sau "Xong")
+
+### Chưa đạt / cần PO quyết
+- Ấm trà chỉ dời được, không cất được, để vườn không bao giờ về 0 thu nhập. PO có muốn cho cất không?
+- Trạm mới mua vẫn về ô mặc định (#52), chỉ khi ô đó bị chiếm mới sang ô trống gần đó, chứ không phải "ô trống gần tâm nhất". Để sau khi gộp #53 mới quyết, vì #53 đổi cách mở đất.
+- Cảnh vật cố định (đường đá, đèn lối đi) dựng theo chỗ trạm khi dựng vườn: sau khi dời, có đèn đứng trước trạm (ảnh 54-sau-xong). Lấy trạm ra từ tab Trạm thì cảnh vật chưa dựng lại ngay.
+- Ô trống sát trạm có vòng đè lên mép đế trạm, vì ô cách nhau 150 đơn vị mà đế trạm rộng hơn.
+- "+5 % khi trạm tiếp sức đứng kề trạm được tiếp sức" để làm issue sau.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái

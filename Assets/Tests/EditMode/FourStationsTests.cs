@@ -110,7 +110,7 @@ namespace VuonTra.Core.Tests
         {
             for (int i = 0; i < 12; i++) Assert.AreEqual(0, defs[i].NeedGardenLevel, defs[i].Id);
             for (int i = 13; i < 16; i++) Assert.Greater(defs[i].NeedGardenLevel, defs[i - 1].NeedGardenLevel, defs[i].Id);
-            Assert.Greater(defs[12].NeedGardenLevel, Expansion.Waves[Expansion.Waves.Length - 1].NeedLevel, "after the last land wave");
+            Assert.Greater(defs[12].NeedGardenLevel, Expansion.Ring(7).NeedLevel, "after the ring that gives the twelfth station its land");
             Assert.LessOrEqual(defs[15].NeedGardenLevel, NewMoon.FirstLevel, "the last one comes before the first new moon can");
         }
 
@@ -142,7 +142,70 @@ namespace VuonTra.Core.Tests
         {
             GameState s = TwelveOpen(Garden.MaxLevel, 12);
             for (int i = 12; i < 16; i++) Assert.IsFalse(Economy.CanUnlock(defs, s, i), defs[i].Id);
-            Assert.IsNull(Expansion.Next(defs, s), "the land waves end at twelve plots until #53");
+            Assert.AreEqual(8, Expansion.Next(defs, s).RadiusAfter, "their land is the next ring of the forest");
+        }
+
+        // ----- Their land: the eighth and ninth rings (#67b) -----
+
+        /// <summary>A garden at R 7 with every old station open, the rabbits and kinds the rings ask for, and a full purse.</summary>
+        GameState AtRingSeven(int gardenLevel)
+        {
+            GameState s = TwelveOpen(gardenLevel, 12);
+            s.Grid.Radius = 7;
+            for (int i = 0; i < 12; i++) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" });
+            foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < 8) s.SeenKinds.Add(kind.Id);
+            GardenGrid.Settle(defs, s);
+            return s;
+        }
+
+        [Test]
+        public void The_Eighth_And_Ninth_Rings_Make_Room_For_Two_Stations_Each_At_The_Level_Of_The_First()
+        {
+            Assert.AreEqual(9, Expansion.LastRadius(defs), "sixteen stations: the forest steps back to nine rings");
+            Assert.AreEqual(defs[12].NeedGardenLevel, Expansion.Ring(8).NeedLevel, "R 8 asks what the lotus garden asks");
+            Assert.AreEqual(defs[14].NeedGardenLevel, Expansion.Ring(9).NeedLevel, "R 9 asks what the rice paddy asks");
+            Assert.AreEqual(Expansion.Ring(9).NeedLevel + Expansion.LevelStepBeyond, Expansion.Ring(10).NeedLevel, "past them, five more a ring");
+
+            GameState s = AtRingSeven(Expansion.Ring(8).NeedLevel - 1);
+            double price8 = (defs[12].BaseCost + defs[13].BaseCost) * Plots.CostShare;
+            Assert.AreEqual(price8, Expansion.CostOfNext(defs, s).ToDouble(), price8 * 1e-9, "a quarter of the two stations' price");
+            Assert.IsFalse(Expansion.CanExpand(defs, s), "a level short");
+            s.GardenXp = Garden.XpForLevel(Expansion.Ring(8).NeedLevel);
+            Assert.IsTrue(Expansion.Expand(defs, s));
+            Assert.AreEqual(14, s.Plots);
+            Assert.AreEqual(8, s.Grid.Radius);
+            for (int i = 12; i < 14; i++) Assert.AreEqual(GardenGrid.DefaultStationTile(i), s.Grid.TileOf(GardenGrid.StationId(defs[i])), defs[i].Id + " on its own tile");
+            Assert.IsNull(s.Grid.TileOf(GardenGrid.StationId(defs[14])), "the rice paddy waits for R 9");
+            Assert.IsTrue(Simulation.TryBuy(defs, s, 12), "the lotus garden can be opened");
+
+            double price9 = (defs[14].BaseCost + defs[15].BaseCost) * Plots.CostShare;
+            Assert.AreEqual(price9, Expansion.CostOfNext(defs, s).ToDouble(), price9 * 1e-9);
+            Assert.IsFalse(Expansion.Expand(defs, s), "R 9 asks for more");
+            s.GardenXp = Garden.XpForLevel(Expansion.Ring(9).NeedLevel);
+            Assert.IsTrue(Expansion.Expand(defs, s));
+            Assert.AreEqual(16, s.Plots);
+            Assert.AreEqual(9, s.Grid.Radius);
+            for (int i = 14; i < 16; i++) Assert.AreEqual(GardenGrid.DefaultStationTile(i), s.Grid.TileOf(GardenGrid.StationId(defs[i])), defs[i].Id + " on its own tile");
+            Assert.IsNull(Expansion.Next(defs, s), "every station has its land");
+        }
+
+        [Test]
+        public void The_Four_Default_Tiles_Stand_Apart_From_Everything_On_The_Lawn_Of_Their_Ring()
+        {
+            var others = new List<Hex>();
+            for (int i = 0; i < 12; i++) others.Add(GardenGrid.DefaultStationTile(i));
+            var things = new List<Hex>();
+            for (int n = 0; n < RestSpots.Max; n++) things.Add(GardenGrid.DefaultRestTile(n));
+            for (int n = 0; n < Decor.Spots; n++) things.Add(GardenGrid.DefaultDecorTile(n));
+            foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId }) things.Add(GardenGrid.DefaultTile(id, defs));
+            for (int i = 12; i < 16; i++)
+            {
+                Hex h = GardenGrid.DefaultStationTile(i);
+                Assert.LessOrEqual(GardenGrid.Distance(h), GardenGrid.RadiusForPlots(i + 1), defs[i].Id + " stands on the lawn its ring opens");
+                foreach (Hex o in others) Assert.GreaterOrEqual(GardenGrid.Distance(h, o), Expansion.StationSpacing, defs[i].Id + " keeps two tiles from the station at " + o);
+                foreach (Hex t in things) Assert.AreNotEqual(t, h, defs[i].Id + " takes no seat, decoration or prop tile");
+                others.Add(h);
+            }
         }
 
         // ----- An old save, and the new moon -----
@@ -228,7 +291,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Twelve_And_Sixteen_Stations_Open_Are_Quests_Paying_Clovers_And_Golden_Carrots()
+        public void Twelve_And_Sixteen_Stations_Open_Are_Quests_Paying_Five_Clovers()
         {
             List<QuestDef> quests = catalog.BuildQuests();
             foreach ((string id, int target) in new[] { ("mo-12", 12), ("mo-16", 16) })
@@ -238,7 +301,7 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(QuestMetric.StationsOpen, q.Metric, id);
                 Assert.AreEqual(target, q.Target, 1e-9, id);
                 Assert.AreEqual(5, q.RewardClovers, id);
-                Assert.AreEqual(5, q.RewardGolden, id);
+                Assert.AreEqual(0, q.RewardGolden, id + ": golden carrots would push the casual week past six golden calls");
                 Assert.IsFalse(q.Daily, id);
             }
             GameState s = TwelveOpen(30);
@@ -327,19 +390,43 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Garden_Shows_No_Waiting_Plot_Past_The_Twelfth_While_There_Is_No_Land_For_It()
+        public void With_Their_Rings_Open_The_Four_Stand_On_Their_Tiles_Inside_The_Garden()
         {
-            GameState s = TwelveOpen(30, 12);
+            GameState s = TwelveOpen(30);
+            for (int i = 12; i < 16; i++) s.Levels[i] = 1;
             using (var screen = new LiveScreen(catalog, s))
             {
-                Transform street = screen.Root.transform.Find("Canvas/Garden/Content");
-                Assert.IsNotNull(street, "the garden");
-                for (int i = 0; i < 12; i++)
-                    Assert.IsTrue(street.Find("Station " + defs[i].Id).gameObject.activeSelf, defs[i].Id + " stands");
+                var street = (RectTransform)screen.Root.transform.Find("Canvas/Garden/Content");
                 for (int i = 12; i < 16; i++)
                 {
                     Transform actor = street.Find("Station " + defs[i].Id);
-                    Assert.IsFalse(actor != null && actor.gameObject.activeSelf, defs[i].Id + " has no plot or sign yet");
+                    Assert.IsTrue(actor.gameObject.activeSelf, defs[i].Id + " stands in the garden");
+                    Vector2 spot = screen.View.StationSpot(i);
+                    Assert.AreEqual(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(i)), spot, defs[i].Id + " on its tile");
+                    Assert.IsTrue(spot.x > 200f && spot.x < street.sizeDelta.x - 200f && spot.y > 200f && spot.y < street.sizeDelta.y - 300f,
+                        defs[i].Id + " at " + spot + " stands well inside the garden of " + street.sizeDelta);
+                }
+            }
+        }
+
+        [Test]
+        public void Touching_A_New_Stations_Row_Slides_The_Garden_To_Its_Tile()
+        {
+            GameState s = TwelveOpen(30);
+            for (int i = 12; i < 16; i++) s.Levels[i] = 1;
+            using (var screen = new LiveScreen(catalog, s))
+            {
+                var world = (RectTransform)screen.Root.transform.Find("Canvas/Garden/Content");
+                screen.View.OpenSheet(0);
+                for (int f = 0; f < 10; f++) screen.View.Advance(1f / 30f);
+                for (int i = 12; i < 16; i++)
+                {
+                    screen.Root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row " + defs[i].Id).GetComponent<Button>().onClick.Invoke();
+                    for (int f = 0; f < 12; f++) screen.View.Advance(1f / 30f);
+                    Vector2 at = screen.View.StationSpot(i) * world.localScale.x + world.anchoredPosition;
+                    Assert.Greater(at.y, screen.View.SheetHeight + 60f, defs[i].Id + " stands above the sheet");
+                    Assert.Less(at.y, 1920f - 160f, defs[i].Id + " stands under the HUD");
+                    Assert.That(at.x, Is.InRange(0f, 1080f), defs[i].Id + " is on the screen");
                 }
             }
         }

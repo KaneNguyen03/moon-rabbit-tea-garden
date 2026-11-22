@@ -3018,31 +3018,155 @@ MonoBehaviour:
     m_Localized: Claimed {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 401943821279232
+  - m_Id: 401557395857408
+    m_Localized: "Watch 30 s \xB7 collect \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246016
+    m_Localized: "Collect \xD72 now"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246017
+    m_Localized: "Watch 30 s \xB7 one more round"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246018
+    m_Localized: One more round now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246019
+    m_Localized: Watch for 1 golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246020
+    m_Localized: Get 1 golden carrot now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246021
+    m_Localized: +1 golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246022
+    m_Localized: "Opening\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246023
+    m_Localized: Not watched to the end, so nothing yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246024
+    m_Localized: "No ads \xB7 30 days"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246025
+    m_Localized: "No ads \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246026
+    m_Localized: 'No ads for {0} days: every watch button now pays at once.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 401557404246027
+    m_Localized: No ads for {0} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840848687104
+    m_Localized: Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075712
+    m_Localized: The Frog Rabbit says hello!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075713
+    m_Localized: 'A rainy-day gift: {0} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075714
+    m_Localized: 'A rainy-day gift: {0} carrots and a clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 402840857075715
+    m_Localized: Meet the Frog Rabbit 5 times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865048494080
+    m_Localized: Widen the forest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882688
+    m_Localized: "Widen the forest \xB7 ring {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 406865056882689
+    m_Localized: The forest steps back!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026325442560
+    m_Localized: Arrange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831168
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831169
+    m_Localized: "Hold to pick up \xB7 drop on an empty tile, on something to swap, or in storage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831170
+    m_Localized: Store away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831171
+    m_Localized: 'In storage: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831172
+    m_Localized: Stored away
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831173
+    m_Localized: Only open stations and decorations can be stored
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831174
+    m_Localized: "{0} \xB7 level {1} \xB7 in storage"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831175
+    m_Localized: Take out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 408026333831176
+    m_Localized: The garden has no empty tile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 413240596094976
     m_Localized: Lotus Garden
     m_Metadata:
       m_Items: []
-  - m_Id: 401943829667840
+  - m_Id: 413240604483584
     m_Localized: Malt Candy Kiln
     m_Metadata:
       m_Items: []
-  - m_Id: 401943829667841
+  - m_Id: 413240604483585
     m_Localized: Sticky Rice Paddy
     m_Metadata:
       m_Items: []
-  - m_Id: 401943829667842
+  - m_Id: 413240604483586
     m_Localized: Night Tea Boat
     m_Metadata:
       m_Items: []
-  - m_Id: 401943829667843
+  - m_Id: 413240604483587
     m_Localized: All 12 rabbits awake
     m_Metadata:
       m_Items: []
-  - m_Id: 401943829667844
+  - m_Id: 413240604483588
     m_Localized: Have 16 stations
     m_Metadata:
       m_Items: []
-  - m_Id: 401943829667845
+  - m_Id: 413240604483589
     m_Localized: Needs garden level {0}
     m_Metadata:
       m_Items: []

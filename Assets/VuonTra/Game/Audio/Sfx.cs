@@ -60,8 +60,8 @@ namespace VuonTra.Game
             _bed.playOnAwake = false;
             _bed.spatialBlend = 0f;
             _bed.loop = true;
-            _bed.clip = Ambient();
-            _bed.volume = BedLevel * MusicGain;
+            _bed.clip = Raining ? RainBed() : Ambient();
+            _bed.volume = BedGain;
             if (Application.isPlaying) _bed.Play();
 
             _music = host.AddComponent<AudioSource>();
@@ -80,7 +80,7 @@ namespace VuonTra.Game
             Load();
             _musicGain = Mathf.Clamp01(gain);
             PlayerPrefs.SetFloat(MusicKey, _musicGain);
-            if (_bed != null) _bed.volume = BedLevel * MusicGain;
+            if (_bed != null) _bed.volume = BedGain;
             if (_music != null) _music.volume = MelodyLevel * MusicGain;
         }
 
@@ -89,6 +89,7 @@ namespace VuonTra.Game
             Load();
             _sfxGain = Mathf.Clamp01(gain);
             PlayerPrefs.SetFloat(SfxKey, _sfxGain);
+            if (_bed != null) _bed.volume = BedGain; // the rain's patter follows the Sound slider (#62)
         }
 
         /// <summary>The station sounds' own slider; <see cref="StationLoopPlayer"/> reads it every frame.</summary>
@@ -410,7 +411,7 @@ namespace VuonTra.Game
 
         /// <summary>
         /// "Mưa": slow (64 bpm) and sparse in A minor pentatonic, long soft notes over Am–F–C–G, with a quiet
-        /// patter of rain under it. There is no rain in the garden yet; the tune is there for whoever wants it.
+        /// patter of rain under it, the same patter the garden's own rain plays (#62).
         /// </summary>
         static AudioClip Rain()
         {
@@ -425,24 +426,68 @@ namespace VuonTra.Game
             int[] bass = { -12, -12, -16, -16, -9, -9, -14, -14, -12, -12, -16, -16, -9, -14, -12, -12 };
             return Compose("rain", 64f, 220f, lead, bass, new Voice(0.17f, 1.5f, 0.12f), new Voice(0.11f, 0.8f, 0.02f), data =>
             {
-                // The patter: soft filtered noise and the odd drop, folded so the loop has no seam.
-                var rng = new System.Random(23);
-                float[] bed = Seamless(data.Length, (buf, r) =>
-                {
-                    float low = 0f, lower = 0f;
-                    for (int i = 0; i < buf.Length; i++)
-                    {
-                        float white = (float)r.NextDouble() * 2f - 1f;
-                        low += (white - low) * 0.25f;
-                        lower += (low - lower) * 0.02f;
-                        buf[i] += (low - lower) * 0.05f;
-                    }
-                    int drops = (int)(buf.Length / (float)Rate * 7f);
-                    for (int k = 0; k < drops; k++)
-                        Ping(buf, r.Next(buf.Length), 1800f + (float)r.NextDouble() * 1600f, 0.04f + (float)r.NextDouble() * 0.05f, 90f, 0.03f);
-                }, rng);
+                float[] bed = Patter(data.Length, new System.Random(23));
                 for (int i = 0; i < data.Length; i++) data[i] += bed[i];
             });
+        }
+
+        /// <summary>The patter of rain: soft filtered noise and the odd drop, folded so the loop has no seam.</summary>
+        static float[] Patter(int n, System.Random rng)
+        {
+            return Seamless(n, (buf, r) =>
+            {
+                float low = 0f, lower = 0f;
+                for (int i = 0; i < buf.Length; i++)
+                {
+                    float white = (float)r.NextDouble() * 2f - 1f;
+                    low += (white - low) * 0.25f;
+                    lower += (low - lower) * 0.02f;
+                    buf[i] += (low - lower) * 0.05f;
+                }
+                int drops = (int)(buf.Length / (float)Rate * 7f);
+                for (int k = 0; k < drops; k++)
+                    Ping(buf, r.Next(buf.Length), 1800f + (float)r.NextDouble() * 1600f, 0.04f + (float)r.NextDouble() * 0.05f, 90f, 0.03f);
+            }, rng);
+        }
+
+        // ----- the rain in the garden (#62) -----
+
+        /// <summary>How loud the rain's patter sits under the Sound slider.</summary>
+        const float RainBedLevel = 0.45f;
+        static AudioClip _rainBed;
+
+        /// <summary>True while it rains in the garden: the patter plays in place of the ambient bed.</summary>
+        public static bool Raining { get; private set; }
+        /// <summary>The bed's clip and volume now (for tests).</summary>
+        public static AudioClip BedClip => _bed != null ? _bed.clip : null;
+        public static float BedVolume => _bed != null ? _bed.volume : 0f;
+        /// <summary>The ambient bed's clip, and the rain's.</summary>
+        public static AudioClip AmbientClip => Ambient();
+        public static AudioClip RainClip => RainBed();
+
+        /// <summary>The ambient bed follows the Music slider; the rain that replaces it is a sound, so it follows the Sound slider.</summary>
+        static float BedGain => Raining ? RainBedLevel * SfxGain : BedLevel * MusicGain;
+
+        /// <summary>Called every frame with whether it rains: the bed changes to the patter and back, the volume with it.</summary>
+        public static void SetRain(bool raining)
+        {
+            if (raining == Raining) return;
+            Raining = raining;
+            if (_bed == null) return;
+            _bed.clip = raining ? RainBed() : Ambient();
+            _bed.volume = BedGain;
+            if (Application.isPlaying) _bed.Play();
+        }
+
+        /// <summary>Six seconds of the patter on its own, levelled like the station loops.</summary>
+        static AudioClip RainBed()
+        {
+            if (_rainBed != null) return _rainBed;
+            float[] data = Patter(Samples(6f), new System.Random(62));
+            Level(data, 0.12f);
+            _rainBed = AudioClip.Create("rain-bed", data.Length, 1, Rate, false);
+            _rainBed.SetData(data, 0);
+            return _rainBed;
         }
 
         /// <summary>How one line of a tune sounds: how loud, how fast it dies away, how much bell is on top.</summary>

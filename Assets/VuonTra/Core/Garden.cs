@@ -94,93 +94,156 @@ namespace VuonTra.Core
         }
     }
 
-    /// <summary>One widening of the garden: two more plots and one more place to rest, for a garden that has grown enough.</summary>
-    public sealed class ExpansionWave
+    /// <summary>
+    /// One ring of the forest stepping back (#53): the lawn widens from <see cref="RadiusAfter"/> - 1 rings to
+    /// <see cref="RadiusAfter"/>, opening that ring's 6 × <see cref="RadiusAfter"/> tiles, the land of the next two
+    /// stations and one more place to rest, for a garden that has grown enough.
+    /// </summary>
+    public sealed class ForestRing
     {
-        /// <summary>How many plots the garden has once this wave is taken.</summary>
-        public int PlotsAfter;
+        /// <summary>How many rings wide the lawn is once this ring is opened.</summary>
+        public int RadiusAfter;
         public int NeedLevel, NeedRabbits, NeedKinds;
+        /// <summary>The tiles this ring opens: going from R to R + 1 opens 6R + 6.</summary>
+        public int Tiles => 6 * RadiusAfter;
     }
 
     /// <summary>
-    /// The garden grows in waves from the middle outward. Each wave asks for a garden level, for rabbits
-    /// (or kinds met), and for carrots: the price of the plots it opens, by the plot rule.
+    /// The garden widens ring by ring (#53): when it has grown enough the player presses "Mở rộng rừng", the forest
+    /// at the lawn's edge steps back and the lawn is one ring wider. Each ring asks for a garden level, for rabbits
+    /// (or kinds met), and for carrots: <see cref="Plots.CostShare"/> of the price of the stations its land makes room for.
+    /// The lawn starts <see cref="GardenGrid.StartingRadius"/> rings wide with <see cref="Plots.Starting"/> plots, and each
+    /// ring brings <see cref="PlotsPerRing"/> more, so the rings are the old land waves: R 3 → 4 is the first, around
+    /// minute four, R 6 → 7 the last of today's twelve stations, on day three. Past the table every ring asks
+    /// <see cref="LevelStepBeyond"/> levels more; rings open as far as the catalog has stations for (<see cref="LastRadius"/>).
     /// </summary>
     public static class Expansion
     {
-        public static readonly ExpansionWave[] Waves =
+        public const int PlotsPerRing = 2;
+        public const int LevelStepBeyond = 5;
+
+        /// <summary>
+        /// The rings the garden opens first, re-based on the hex grid's three starting rings (#52): the issue's
+        /// R 2 → 3 … 5 → 6 are R 3 → 4 … 6 → 7 here, with the levels and rabbits of the land waves they replace. The first asks
+        /// for no rabbits (the owner's note on #53); three come in the first minute anyway, so it still opens around minute four.
+        /// </summary>
+        public static readonly ForestRing[] Rings =
         {
-            new ExpansionWave { PlotsAfter = 6,  NeedLevel = 3,  NeedRabbits = 3 },
-            new ExpansionWave { PlotsAfter = 8,  NeedLevel = 6,  NeedRabbits = 6 },
-            new ExpansionWave { PlotsAfter = 10, NeedLevel = 10, NeedRabbits = 10 },
-            new ExpansionWave { PlotsAfter = 12, NeedLevel = 15, NeedKinds = 8 },
+            new ForestRing { RadiusAfter = 4, NeedLevel = 3 },
+            new ForestRing { RadiusAfter = 5, NeedLevel = 6,  NeedRabbits = 6 },
+            new ForestRing { RadiusAfter = 6, NeedLevel = 10, NeedRabbits = 10 },
+            new ForestRing { RadiusAfter = 7, NeedLevel = 15, NeedKinds = 8 },
+            // The rings for the four stations after the star observatory (#67b): each asks for the garden level of the first
+            // station it makes room for (16 for the lotus garden, 20 for the rice paddy), not the five more a ring of the rule
+            // below would ask (20 and 25), so a casual player opens the thirteenth station on day four or five and the sixteenth
+            // by day nine to twelve. Past these the rule takes over again: R 10 asks for 25, R 11 for 30.
+            new ForestRing { RadiusAfter = 8, NeedLevel = 16, NeedKinds = 8 },
+            new ForestRing { RadiusAfter = 9, NeedLevel = 20, NeedKinds = 8 },
         };
 
-        /// <summary>Index of the next wave this garden can take, or -1 when it has all its land.</summary>
-        public static int NextIndex(IReadOnlyList<StationDef> defs, GameState s)
+        /// <summary>The ring that widens the lawn to <paramref name="radiusAfter"/> rings; past the table, five levels more each time. Null for no such ring.</summary>
+        public static ForestRing Ring(int radiusAfter)
         {
-            if (s.Plots >= defs.Count) return -1;
-            for (int i = 0; i < Waves.Length; i++)
-                if (Waves[i].PlotsAfter > s.Plots) return i;
-            return -1;
-        }
-
-        public static ExpansionWave Next(IReadOnlyList<StationDef> defs, GameState s)
-        {
-            int i = NextIndex(defs, s);
-            return i < 0 ? null : Waves[i];
-        }
-
-        /// <summary>How many waves a garden with this many plots has already taken.</summary>
-        public static int WavesTaken(int plots)
-        {
-            // Holding any plot beyond the wave before means this wave was taken (old saves could buy plots one at a time).
-            int n = 0, before = Plots.Starting;
-            for (int i = 0; i < Waves.Length; i++)
+            if (radiusAfter <= GardenGrid.StartingRadius || radiusAfter > GardenGrid.MaxRadius) return null;
+            int i = radiusAfter - GardenGrid.StartingRadius - 1;
+            if (i < Rings.Length) return Rings[i];
+            ForestRing last = Rings[Rings.Length - 1];
+            return new ForestRing
             {
-                if (plots > before) n = i + 1;
-                before = Waves[i].PlotsAfter;
-            }
-            return n;
+                RadiusAfter = radiusAfter,
+                NeedLevel = last.NeedLevel + LevelStepBeyond * (radiusAfter - last.RadiusAfter),
+                NeedRabbits = last.NeedRabbits,
+                NeedKinds = last.NeedKinds,
+            };
         }
+
+        /// <summary>How many rings wide the lawn is: the grid's own count, and never less than the plots held call for.</summary>
+        public static int Radius(GameState s)
+        {
+            int byPlots = GardenGrid.RadiusForPlots(s.Plots);
+            return s.Grid != null ? Math.Max(s.Grid.Radius, byPlots) : byPlots;
+        }
+
+        /// <summary>How many rings the garden has opened since it was new.</summary>
+        public static int RingsTaken(GameState s) => Math.Max(0, Radius(s) - GardenGrid.StartingRadius);
+
+        /// <summary>How many plots a lawn this many rings wide holds: four to start, two more for every ring, never more than there are stations.</summary>
+        public static int PlotsForRadius(IReadOnlyList<StationDef> defs, int radius) =>
+            Math.Min(defs.Count, Plots.Starting + PlotsPerRing * Math.Max(0, radius - GardenGrid.StartingRadius));
+
+        /// <summary>The widest the lawn goes for now: the ring that gives every station of the catalog its land.</summary>
+        public static int LastRadius(IReadOnlyList<StationDef> defs) => Math.Min(GardenGrid.MaxRadius, GardenGrid.RadiusForPlots(defs.Count));
+
+        /// <summary>The next ring this garden can open, or null when it has all its land.</summary>
+        public static ForestRing Next(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            int radius = Radius(s);
+            return radius >= LastRadius(defs) ? null : Ring(radius + 1);
+        }
+
+        /// <summary>
+        /// How many rings a garden with this many plots has already opened (an old save's land converts to rings this way:
+        /// 4 plots is R 3, 6 is R 4, 8 is R 5, 10 is R 6, 12 is R 7). Holding any plot beyond the ring before means the ring
+        /// was opened (old saves could buy plots one at a time).
+        /// </summary>
+        public static int WavesTaken(int plots) => plots <= Plots.Starting ? 0 : (plots - Plots.Starting + PlotsPerRing - 1) / PlotsPerRing;
 
         /// <summary>The garden level a garden with this many plots must have had.</summary>
         public static int LevelForPlots(IReadOnlyList<StationDef> defs, int plots)
         {
-            int taken = WavesTaken(plots);
-            return taken <= 0 ? 1 : Waves[taken - 1].NeedLevel;
+            ForestRing ring = Ring(GardenGrid.StartingRadius + WavesTaken(plots));
+            return ring == null ? 1 : ring.NeedLevel;
         }
 
-        /// <summary>Carrots for the next wave: every plot it opens, each at a quarter of its station's price.</summary>
-        public static BigNum Cost(IReadOnlyList<StationDef> defs, GameState s)
+        /// <summary>
+        /// Carrots for the next ring: <see cref="Plots.CostShare"/> of what each station it makes room for costs, so the land
+        /// for the next two stations costs a quarter of their price, as a land wave did (the pace stays as it was, #53).
+        /// </summary>
+        public static BigNum CostOfNext(IReadOnlyList<StationDef> defs, GameState s)
         {
-            ExpansionWave wave = Next(defs, s);
-            if (wave == null) return BigNum.Zero;
+            if (Next(defs, s) == null) return BigNum.Zero;
             BigNum cost = BigNum.Zero;
-            for (int i = s.Plots; i < wave.PlotsAfter && i < defs.Count; i++) cost += new BigNum(defs[i].BaseCost * Plots.CostShare);
+            for (int i = s.Plots; i < PlotsForRadius(defs, Radius(s) + 1); i++) cost += new BigNum(defs[i].BaseCost * Plots.CostShare);
             return cost;
         }
 
-        public static bool HasLevel(ExpansionWave w, GameState s) => Garden.Level(s) >= w.NeedLevel;
-        public static bool HasRabbits(ExpansionWave w, GameState s) => s.Rabbits.Count >= w.NeedRabbits && s.SeenKinds.Count >= w.NeedKinds;
-        public static bool HasCarrots(IReadOnlyList<StationDef> defs, GameState s) => s.Coins >= Cost(defs, s);
+        public static bool HasLevel(ForestRing ring, GameState s) => Garden.Level(s) >= ring.NeedLevel;
+        public static bool HasRabbits(ForestRing ring, GameState s) => s.Rabbits.Count >= ring.NeedRabbits && s.SeenKinds.Count >= ring.NeedKinds;
+        public static bool HasCarrots(IReadOnlyList<StationDef> defs, GameState s) => s.Coins >= CostOfNext(defs, s);
 
         public static bool CanExpand(IReadOnlyList<StationDef> defs, GameState s)
         {
-            ExpansionWave wave = Next(defs, s);
-            return wave != null && HasLevel(wave, s) && HasRabbits(wave, s) && HasCarrots(defs, s);
+            ForestRing ring = Next(defs, s);
+            return ring != null && HasLevel(ring, s) && HasRabbits(ring, s) && HasCarrots(defs, s);
         }
 
-        /// <summary>Takes the next wave: pays, opens its plots, and opens one more place to rest.</summary>
-        public static bool TryExpand(IReadOnlyList<StationDef> defs, GameState s)
+        /// <summary>
+        /// Opens the next ring: pays, widens the lawn by one ring, opens the land of the next stations and one more place to
+        /// rest. Each new station stands on its own tile from the garden's layout; if that tile is taken, on the empty tile
+        /// nearest the centre that keeps clear of the other stations (until the player can lay the garden out, #54).
+        /// </summary>
+        public static bool Expand(IReadOnlyList<StationDef> defs, GameState s)
         {
             if (!CanExpand(defs, s)) return false;
-            int index = NextIndex(defs, s);
-            s.Coins -= Cost(defs, s);
-            s.Plots = Math.Min(defs.Count, Waves[index].PlotsAfter);
-            s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + index + 1));
-            GardenGrid.Settle(defs, s); // the new plots' stations and the new place to rest take their tiles; the lawn gains a ring (#52)
+            s.Coins -= CostOfNext(defs, s);
+            GardenGrid grid = s.Grid ?? (s.Grid = new GardenGrid());
+            int before = s.Plots;
+            grid.Radius = Radius(s) + 1;
+            s.Plots = Math.Max(s.Plots, PlotsForRadius(defs, grid.Radius));
+            s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + RingsTaken(s)));
+            for (int i = before; i < s.Plots && i < defs.Count; i++)
+            {
+                string id = GardenGrid.StationId(defs[i]);
+                if (grid.TileOf(id) != null) continue;
+                Hex home = GardenGrid.DefaultStationTile(i);
+                if (grid.InLawn(home) && grid.OccupantAt(home.Q, home.R) == null) { grid.Place(id, home.Q, home.R); continue; }
+                if (grid.NearestEmptyApart(StationSpacing, out Hex spare)) grid.Place(id, spare.Q, spare.R);
+            }
+            GardenGrid.Settle(defs, s); // the new place to rest takes its tile, and anything still without one
             return true;
         }
+
+        /// <summary>A station's art is about two tiles wide, so a station placed for the player keeps this many tiles from every other.</summary>
+        public const int StationSpacing = 2;
     }
 }
