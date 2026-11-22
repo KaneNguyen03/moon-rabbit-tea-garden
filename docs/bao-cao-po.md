@@ -1391,6 +1391,16 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt / cần PO quyết
 - Giữ 1 và 2 vàng ở mốc 10/20 hay nới mốc 12 ô đất. Bảng thu nhập chưa có dòng sổ thỏ; chế độ chụp chưa chọn được khung Đủ bộ. Chưa thử tay.
 
+## #65 — Nhắc tôi: thông báo tại máy khi khay đầy, quà ngày, mùa về (agent song song, nhánh agent-65)
+
+- Test: 868/869 EditMode qua trên main sau khi gộp. Nhánh riêng 852/853 + `verify --build` xanh: `RemindersTests` 13, `GardenScreenTests` 3.
+- Commit `aeb1c42` (nhánh agent-65), gộp vào main qua `240b6d8` + seed lại bảng chuỗi, đã push. Issue #65 đã comment (bảng 9 ý), nhãn chờ-PO-duyệt. Save không đổi.
+- Lõi `Core/Reminders.cs` (`Plan(state, now, offset, mods, on)`: tối đa 4 nhắc, ưu tiên mùa > quà ngày > khay đầy > nhớ bạn, cách nhau ≥ 4 giờ, 21h–9h dời tới 9h, ngày như `TodayNumber`). `Game/Platform/Notifications.cs`: `MobileNotifier` (gói `com.unity.mobile.notifications` 2.5.0, define `VUONTRA_NOTIFICATIONS`, chỉ trên máy thật) và `LogNotifier` (Mac, editor). `GameRunner` đăng ký khi vào nền/thoát, xoá khi quay lại. Bản iOS tắt xin quyền lúc mở app. Tấm Tạm nghỉ thêm dòng "Nhắc tôi" (cao 1500), mặc định Tắt.
+- Ảnh (docs/anh/po-65/): `65-nhac-toi.png`, `65-nhac-toi-en.png`.
+
+### Chưa đạt
+- Thử trên máy thật chờ #41. Khởi động lại máy thì mất nhắc; giờ mùa hè có thể lệch một giờ; bấm thông báo chỉ mở game.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
