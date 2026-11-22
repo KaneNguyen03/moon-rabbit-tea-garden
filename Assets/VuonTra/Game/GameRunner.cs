@@ -11,6 +11,7 @@ namespace VuonTra.Game
     {
         public GameCatalog Catalog;
         /// <summary>Where the save file lives; null is the player's own save folder. Tests point it at a folder of their own.</summary>
+        /// <summary>Where the save lives; leave empty for the platform's data folder (the scene stores "" here, #70).</summary>
         public string SaveDirectory;
 
         const float AutosaveSeconds = 5f;
@@ -845,6 +846,9 @@ namespace VuonTra.Game
             _shopBought = false;
             if (milestone && _ready) SyncNow(SyncReason.Milestone);
         }
+
+        /// <summary>The folder the save is read from and written to, once the runner has started; null before.</summary>
+        public string SaveFolder => _store?.Folder;
 
         public void Save()
         {

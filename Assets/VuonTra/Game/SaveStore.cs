@@ -12,9 +12,23 @@ namespace VuonTra.Game
         readonly string _dir;
         bool _readOnly;
 
+        /// <summary>
+        /// Where the save goes when no folder is named: the platform's own data folder. A field, so tests can point
+        /// it at a temporary folder instead of the real save of the editor (which shares the Mac build's folder).
+        /// </summary>
+        public static Func<string> DefaultDirectory = () => Application.persistentDataPath;
+
+        /// <summary>The folder this store reads and writes.</summary>
+        public string Folder => _dir;
+
+        /// <summary>
+        /// A store in <paramref name="directory"/>, or in the default folder when it is null, empty or blank. A scene
+        /// serialises an unset string field as "", never null, so a blank name must mean "not set" (#70): an empty
+        /// folder made every save fail and every load read the working directory instead.
+        /// </summary>
         public SaveStore(string directory = null)
         {
-            _dir = directory ?? Application.persistentDataPath;
+            _dir = string.IsNullOrWhiteSpace(directory) ? DefaultDirectory() : directory;
         }
 
         string MainPath => Path.Combine(_dir, "save.json");
