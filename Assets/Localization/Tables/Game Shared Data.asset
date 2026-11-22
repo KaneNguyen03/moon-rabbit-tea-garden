@@ -3187,6 +3187,34 @@ MonoBehaviour:
     m_Key: bond.ten.sub
     m_Metadata:
       m_Items: []
+  - m_Id: 416720798867456
+    m_Key: station.ho-sen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256064
+    m_Key: station.lo-keo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256065
+    m_Key: station.ruong-nep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256066
+    m_Key: station.thuyen-tra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256067
+    m_Key: quest.mo-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256068
+    m_Key: quest.mo-16
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256069
+    m_Key: row.needlevel
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

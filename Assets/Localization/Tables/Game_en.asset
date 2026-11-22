@@ -3198,6 +3198,34 @@ MonoBehaviour:
     m_Localized: "Best of friends \xB7 +{0} golden carrots"
     m_Metadata:
       m_Items: []
+  - m_Id: 416720798867456
+    m_Localized: Lotus Garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256064
+    m_Localized: Malt Candy Kiln
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256065
+    m_Localized: Sticky Rice Paddy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256066
+    m_Localized: Night Tea Boat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256067
+    m_Localized: All 12 rabbits awake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256068
+    m_Localized: Have 16 stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 416720807256069
+    m_Localized: Needs garden level {0}
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
