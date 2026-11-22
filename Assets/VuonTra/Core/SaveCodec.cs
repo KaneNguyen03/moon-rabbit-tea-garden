@@ -132,6 +132,8 @@ namespace VuonTra.Core
             sb.Append(",\"golden\":").Append(s.GoldenCarrots.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftDay\":").Append(s.GiftDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftStreak\":").Append(s.GiftStreak.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"giftBig\":").Append(s.GiftBigDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"giftBigGolden\":").Append(s.GiftBigGolden ? "true" : "false");
             sb.Append(",\"visitorBought\":").Append(s.VisitorBoughtDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"visitorSeen\":").Append(s.VisitorSeenDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"tutorialClover\":").Append(s.TutorialCloverGiven ? "true" : "false");
@@ -484,6 +486,9 @@ namespace VuonTra.Core
             s.GoldenCarrots = TryNumber(root, "golden", out double goldenCarrots) ? (int)Math.Max(0d, Math.Min(goldenCarrots, int.MaxValue)) : 0;
             s.GiftDay = TryNumber(root, "giftDay", out double giftDay) ? ToLong(giftDay) : -1;
             s.GiftStreak = TryNumber(root, "giftStreak", out double giftStreak) ? (int)Math.Max(0d, Math.Min(giftStreak, 100000)) : 0;
+            // The first week's big gift (#57), added within version 14: a save without it has the big gift still to come.
+            s.GiftBigDay = TryNumber(root, "giftBig", out double giftBig) ? Math.Max(-1L, ToLong(giftBig)) : -1;
+            s.GiftBigGolden = root.TryGetValue("giftBigGolden", out object bigGolden) && bigGolden is bool bg && bg;
             s.VisitorBoughtDay = TryNumber(root, "visitorBought", out double visitorBought) ? ToLong(visitorBought) : -1;
             s.VisitorSeenDay = TryNumber(root, "visitorSeen", out double visitorSeen) ? ToLong(visitorSeen) : -1;
             s.PhotosWithGoldRabbit = TryNumber(root, "photosGold", out double photosGold) ? Math.Max(0, ToLong(photosGold)) : 0;

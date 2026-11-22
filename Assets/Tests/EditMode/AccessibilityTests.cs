@@ -321,6 +321,47 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(wrong, string.Join("\n", wrong));
         }
 
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void Every_Gift_Day_Label_Fits_On_One_Line_Clear_Of_Its_Pictures(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            // Day seven waiting (the big tile with the hat and clover), the rest taken with ticks: every look at once.
+            runner.State.GiftDay = runner.TodayNumber - 1;
+            runner.State.GiftStreak = 6;
+            screen.OpenShop();
+            screen.Refresh();
+            Layout();
+            Transform days = root.transform.Find("Canvas/Shop/Card/Today/Days");
+            var wrong = new List<string>();
+            Rect row = WorldRect((RectTransform)days.parent);
+            for (int i = 1; i <= VuonTra.Core.Shop.WeekDays; i++)
+            {
+                Transform tile = days.Find("Day " + i);
+                Rect tileRect = WorldRect((RectTransform)tile);
+                if (!row.Contains(tileRect.min) || !row.Contains(tileRect.max)) wrong.Add(Path(tile) + " runs out of today's panel");
+                foreach (string label in new[] { "Day", "Amount" })
+                {
+                    Text text = tile.Find(label).GetComponent<Text>();
+                    string line = OneLine(text);
+                    if (line != null) wrong.Add(line);
+                    Rect box = WorldRect(text.rectTransform);
+                    foreach (string part in new[] { "Golden", "Hat", "Clover", "Tick" })
+                    {
+                        Transform p = tile.Find(part);
+                        if (p.gameObject.activeSelf && WorldRect((RectTransform)p).Overlaps(box)) wrong.Add(Path(text.transform) + " \"" + text.text + "\" runs into its " + part);
+                    }
+                }
+            }
+            Assert.IsTrue(days.Find("Day 7/Hat").gameObject.activeSelf, "the big tile was measured");
+            Assert.IsEmpty(wrong, string.Join("\n", wrong));
+        }
+
         [TestCase("Canvas/Fireflies", "Timer")]
         [TestCase("Canvas/Leaves", "Timer")]
         [TestCase("Canvas/Pound", "Beats")]

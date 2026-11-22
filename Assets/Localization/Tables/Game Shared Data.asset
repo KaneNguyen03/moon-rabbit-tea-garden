@@ -2615,6 +2615,26 @@ MonoBehaviour:
     m_Key: away.double.done
     m_Metadata:
       m_Items: []
+  - m_Id: 360216427225088
+    m_Key: shop.gift.day
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613696
+    m_Key: shop.gift.big
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613697
+    m_Key: shop.gift.big.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613698
+    m_Key: shop.gift.big.hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 360216435613699
+    m_Key: shop.gift.big.golden
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

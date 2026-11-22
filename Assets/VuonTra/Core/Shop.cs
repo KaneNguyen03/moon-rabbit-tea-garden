@@ -10,9 +10,43 @@ namespace VuonTra.Core
     /// </summary>
     public static class Shop
     {
-        /// <summary>The daily gift by streak day: 1, 1, 2, 2, 3, 3, 5, then 3, 3, 5 again and again. A missed day starts over.</summary>
+        /// <summary>The daily gift by streak day: 1, 1, 2, 2, 3, 3, 5, then 3, 3, 5 again and again.</summary>
         static readonly int[] GiftChain = { 1, 1, 2, 2, 3, 3, 5 };
         const int GiftLoopFrom = 4; // after day 7 the chain repeats from day 5
+
+        /// <summary>
+        /// Streak days one missed day takes back (#57). Each missed day steps back one: day 5, one day missed, and the next
+        /// gift is day 4's; two days missed, day 3's. Never below day 1.
+        /// </summary>
+        public const int MissPenalty = 1;
+
+        /// <summary>The gift calendar's length: seven tiles, seen ahead in the shop (#57).</summary>
+        public const int WeekDays = 7;
+
+        /// <summary>The first week's seventh day also brings the conical hat and a clover, once per garden (#57).</summary>
+        public const string BigGiftHat = "hat-non-la";
+        public const int BigGiftClovers = 1;
+        /// <summary>Golden carrots in the hat's place when the player owns it already, or it is not in the catalogue (its shop price).</summary>
+        public const int BigGiftHatGolden = 20;
+
+        /// <summary>What the first week's big gift brought besides the day's golden carrots.</summary>
+        public struct BigGift
+        {
+            public bool Given;
+            /// <summary>The conical hat put in the wardrobe, or null when golden carrots came in its place.</summary>
+            public Item Hat;
+            /// <summary>Golden carrots in the hat's place, 0 when the hat came.</summary>
+            public int Golden;
+            public int Clovers;
+        }
+
+        /// <summary>One tile of the gift calendar: its streak day, its golden carrots, and how it stands today.</summary>
+        public struct GiftTile
+        {
+            public int Day;
+            public int Golden;
+            public bool Claimed, Today, Big;
+        }
 
         public static int GiftAt(int streakDay)
         {
@@ -25,22 +59,73 @@ namespace VuonTra.Core
         /// <summary>True while today's gift is still to be had. A clock set back to a day already paid gets nothing.</summary>
         public static bool GiftWaiting(GameState s, long day) => day > s.GiftDay;
 
-        /// <summary>The streak day today would be: one more when yesterday was paid, else back to one.</summary>
-        public static int StreakFor(GameState s, long day) => s.GiftDay >= 0 && day == s.GiftDay + 1 ? s.GiftStreak + 1 : 1;
+        /// <summary>
+        /// The streak day today would be: one more when yesterday was paid; after missed days, <see cref="MissPenalty"/>
+        /// back for each of them, never below one. The first gift ever is day one.
+        /// </summary>
+        public static int StreakFor(GameState s, long day)
+        {
+            if (s.GiftDay < 0) return 1;
+            if (day <= s.GiftDay) return Math.Max(1, s.GiftStreak);
+            if (day == s.GiftDay + 1) return s.GiftStreak + 1;
+            long missed = day - s.GiftDay - 1;
+            return (int)Math.Max(1L, s.GiftStreak - Math.Min(missed, 100000L) * MissPenalty);
+        }
+
+        /// <summary>True when the gift of this streak day is the first week's big gift, which no garden has had yet.</summary>
+        public static bool IsBigDay(GameState s, int streakDay) => streakDay == WeekDays && !s.GiftBigClaimed;
+
+        /// <summary>
+        /// The seven tiles of the calendar around today: the week of streak days today falls in (days 1–7, then 8–14 with
+        /// the chain's repeating tail, and so on), each claimed, today's, or still to come, and the big gift marked.
+        /// </summary>
+        public static GiftTile[] Week(GameState s, long day)
+        {
+            bool waiting = GiftWaiting(s, day);
+            int today = StreakFor(s, day);
+            int first = (today - 1) / WeekDays * WeekDays + 1;
+            // The big gift shows while it is still to come, and on the day it was taken.
+            bool bigShown = !s.GiftBigClaimed || (!waiting && s.GiftBigDay == s.GiftDay);
+            var tiles = new GiftTile[WeekDays];
+            for (int i = 0; i < WeekDays; i++)
+            {
+                int d = first + i;
+                tiles[i] = new GiftTile
+                {
+                    Day = d, Golden = GiftAt(d), Today = d == today,
+                    Claimed = d < today || (d == today && !waiting),
+                    Big = d == WeekDays && bigShown
+                };
+            }
+            return tiles;
+        }
 
         /// <summary>Pays today's gift once. How many golden carrots it brought, 0 when today is already paid or the clock went back.</summary>
-        public static int ClaimDailyGift(GameState s, long day) => ClaimDailyGift(s, day, null, out _);
+        public static int ClaimDailyGift(GameState s, long day) => ClaimDailyGift(s, day, null, null, out _, out _);
 
         /// <summary>
         /// The same, and on a season's last day the gift also brings the season's kind to a garden that has none (#8),
         /// so that everyone who plays through a season meets its rabbit. <paramref name="seasonRabbit"/> is that rabbit, or null.
         /// </summary>
-        public static int ClaimDailyGift(GameState s, long day, string name, out Rabbit seasonRabbit)
+        public static int ClaimDailyGift(GameState s, long day, string name, out Rabbit seasonRabbit) => ClaimDailyGift(s, day, name, null, out seasonRabbit, out _);
+
+        /// <summary>
+        /// The same, and on the first week's seventh day the big gift (#57): the conical hat from <paramref name="items"/>
+        /// into the wardrobe, or its price in golden carrots when it is owned already, and a clover. The golden carrots
+        /// returned include any paid in the hat's place.
+        /// </summary>
+        public static int ClaimDailyGift(GameState s, long day, string name, IReadOnlyList<ItemDef> items, out Rabbit seasonRabbit, out BigGift big)
         {
             seasonRabbit = null;
+            big = default;
             if (!GiftWaiting(s, day)) return 0;
             int streak = StreakFor(s, day);
             int gift = GiftAt(streak);
+            if (IsBigDay(s, streak))
+            {
+                big = PayBigGift(s, items, day);
+                gift += big.Golden;
+            }
             s.GoldenCarrots += gift;
             s.GiftDay = day;
             s.GiftStreak = streak;
@@ -48,6 +133,18 @@ namespace VuonTra.Core
             if (Seasons.IsLastDay(day) && !Seasons.HasSeasonRabbit(s, season))
                 seasonRabbit = Rabbits.ArriveKind(s, Seasons.KindOf(season).Id, name ?? Seasons.KindOf(season).NameVi);
             return gift;
+        }
+
+        static BigGift PayBigGift(GameState s, IReadOnlyList<ItemDef> items, long day)
+        {
+            var big = new BigGift { Given = true, Clovers = BigGiftClovers };
+            ItemDef hat = Items.DefOf(items, BigGiftHat);
+            if (hat != null && !Items.Owns(s, BigGiftHat)) big.Hat = Items.Grant(s, hat, hat.Tier);
+            else big.Golden = hat != null && hat.Price > 0 ? hat.Price : BigGiftHatGolden;
+            s.Clovers += big.Clovers;
+            s.GiftBigDay = day;
+            s.GiftBigGolden = big.Hat == null;
+            return big;
         }
 
         /// <summary>Calling a rabbit with golden carrots: the price, and the odds that favour the rarer tiers.</summary>
