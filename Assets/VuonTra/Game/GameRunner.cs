@@ -30,6 +30,8 @@ namespace VuonTra.Game
         public event Action<int, BigNum> Payout;
         /// <summary>Amount earned while away and the seconds that counted.</summary>
         public event Action<BigNum, double> AwayClaimed;
+        /// <summary>A season's last-day gift brought the season's rabbit (#8).</summary>
+        public event Action<Rabbit> SeasonArrived;
 
         SaveStore _store;
         float _sinceSave;
@@ -40,7 +42,9 @@ namespace VuonTra.Game
         static long Now => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         /// <summary>The day number the daily things turn over on, for screens that show "today".</summary>
-        public long TodayNumber => Today;
+        /// <summary>The day the game goes by: the local calendar day, never earlier than the latest day this save has seen (#8).</summary>
+        public long TodayNumber => Seasons.Clamp(State, Today);
+        public Season SeasonNow => Seasons.SeasonOf(TodayNumber);
 
         /// <summary>The player's local calendar day as a number, so daily quests turn over at their midnight.</summary>
         static long Today
@@ -253,13 +257,14 @@ namespace VuonTra.Game
         /// <summary>Takes today's gift at the shop. How many golden carrots it brought; 0 when there was none to take.</summary>
         public int ClaimDailyGift()
         {
-            int gift = Shop.ClaimDailyGift(State, Today);
+            int gift = Shop.ClaimDailyGift(State, TodayNumber, PickName(), out Rabbit seasonRabbit);
+            if (seasonRabbit != null) SeasonArrived?.Invoke(seasonRabbit);
             if (gift > 0) Changed();
             return gift;
         }
 
         /// <summary>Who is visiting the shop today.</summary>
-        public Shop.Visitor VisitorToday => Shop.VisitorFor(State, Today);
+        public Shop.Visitor VisitorToday => Shop.VisitorFor(State, TodayNumber);
 
         /// <summary>True while today's visitor has not been looked at yet.</summary>
         public bool VisitorUnseen => State.VisitorSeenDay != Today;
@@ -275,7 +280,7 @@ namespace VuonTra.Game
         /// <summary>Buys today's visitor; null when it cannot be bought.</summary>
         public Rabbit BuyVisitor()
         {
-            Rabbit rabbit = Shop.BuyVisitor(State, Today, PickName());
+            Rabbit rabbit = Shop.BuyVisitor(State, TodayNumber, PickName());
             _shopBought = rabbit != null;
             if (rabbit != null) Changed();
             return rabbit;
@@ -284,7 +289,7 @@ namespace VuonTra.Game
         /// <summary>Calls a rabbit with golden carrots at the shop's odds; null when there are not enough.</summary>
         public Rabbit SummonGoldenRabbit()
         {
-            Rabbit rabbit = Shop.SummonGolden(State, _rng.NextDouble(), PickName(), _rng.NextDouble());
+            Rabbit rabbit = Shop.SummonGolden(State, _rng.NextDouble(), PickName(), _rng.NextDouble(), TodayNumber);
             _shopBought = rabbit != null;
             if (rabbit != null) Changed();
             return rabbit;

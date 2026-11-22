@@ -390,6 +390,22 @@ namespace VuonTra.EditorTools
             { "quest.anh-1", "Chụp tấm ảnh đầu tiên", "Take your first photo" },
             { "quest.gia-3sao", "Giã bánh 3 sao lần đầu", "First three-star mooncake" },
             { "quest.gia-30", "Giã 30 ván", "Pound thirty mooncakes" },
+            { "quest.mua-gap-trung-thu", "Gặp Thỏ Đèn Ông Sao", "Meet the Star Lantern Rabbit" },
+            { "quest.mua-nghe-trung-thu", "Xếp Thỏ Đèn Ông Sao vào đúng nghề", "Put the Star Lantern Rabbit to its trade" },
+            { "quest.mua-anh-trung-thu", "Chụp ảnh có Thỏ Đèn Ông Sao", "Take a photo with the Star Lantern Rabbit" },
+            { "quest.mua-gap-tet", "Gặp Thỏ Áo Dài", "Meet the Áo Dài Rabbit" },
+            { "quest.mua-nghe-tet", "Xếp Thỏ Áo Dài vào đúng nghề", "Put the Áo Dài Rabbit to its trade" },
+            { "quest.mua-anh-tet", "Chụp ảnh có Thỏ Áo Dài", "Take a photo with the Áo Dài Rabbit" },
+            { "quest.mua-gap-noel", "Gặp Thỏ Noel", "Meet the Noel Rabbit" },
+            { "quest.mua-nghe-noel", "Xếp Thỏ Noel vào đúng nghề", "Put the Noel Rabbit to its trade" },
+            { "quest.mua-anh-noel", "Chụp ảnh có Thỏ Noel", "Take a photo with the Noel Rabbit" },
+            // ----- seasons (#8) -----
+            { "season.midautumn", "Trung thu", "Mid-Autumn" },
+            { "season.tet", "Tết", "Tết" },
+            { "season.christmas", "Giáng sinh", "Christmas" },
+            { "album.season", "Thỏ theo mùa · {0}/{1}", "Seasonal rabbits · {0}/{1}" },
+            { "album.season.only", "Chỉ có trong {0}", "Only during {0}" },
+            { "quest.season.note", "Chỉ trong mùa; hết mùa thì mất", "Only this season; gone when it ends" },
 
             // ----- the mooncake game -----
             { "pound.title", "Giã bánh trăng", "Pound the mooncake" },

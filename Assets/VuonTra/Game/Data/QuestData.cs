@@ -21,12 +21,14 @@ namespace VuonTra.Game
         public double RewardCarrots = 10;
         public int RewardClovers;
         public int RewardGolden;
+        [Tooltip("A quest of a season shows only while that season runs; None is every day.")]
+        public Season Season;
 
         public QuestDef ToDef() => new QuestDef
         {
             Id = Id, Title = Title, Metric = Metric, StationId = Station != null ? Station.Id : null,
             Target = Target, Daily = Daily, RewardSeconds = RewardSeconds,
-            RewardCarrots = RewardCarrots, RewardClovers = RewardClovers, RewardGolden = RewardGolden
+            RewardCarrots = RewardCarrots, RewardClovers = RewardClovers, RewardGolden = RewardGolden, Season = Season
         };
     }
 }

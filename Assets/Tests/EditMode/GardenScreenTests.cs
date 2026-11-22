@@ -901,7 +901,9 @@ namespace VuonTra.Core.Tests
                 cells++;
                 bool seen = runner.State.SeenKinds.Contains(kind.Id);
                 if (seen) met++;
-                Assert.AreEqual(seen ? L10n.T("kind." + kind.Id) : "???", cell.Find("Name").GetComponent<Text>().text);
+                // An unmet everyday kind is a question; an unmet seasonal kind says when it can be met (#8).
+                string unmet = kind.Season != Season.None ? L10n.T("album.season.only", L10n.Season(kind.Season)) : "???";
+                Assert.AreEqual(seen ? L10n.T("kind." + kind.Id) : unmet, cell.Find("Name").GetComponent<Text>().text);
             }
             Assert.AreEqual(RabbitKinds.All.Count, cells);
             Assert.AreEqual(3, met);

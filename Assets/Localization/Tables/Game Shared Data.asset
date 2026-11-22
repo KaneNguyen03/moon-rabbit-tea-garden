@@ -2183,6 +2183,78 @@ MonoBehaviour:
     m_Key: privacy.delete.partly
     m_Metadata:
       m_Items: []
+  - m_Id: 251714404868096
+    m_Key: kind.tho-den-ong-sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256704
+    m_Key: kind.tho-ao-dai
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256705
+    m_Key: kind.tho-noel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465726349312
+    m_Key: quest.mua-gap-trung-thu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320832
+    m_Key: quest.mua-nghe-trung-thu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320833
+    m_Key: quest.mua-anh-trung-thu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320834
+    m_Key: quest.mua-gap-tet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320835
+    m_Key: quest.mua-nghe-tet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320836
+    m_Key: quest.mua-anh-tet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320837
+    m_Key: quest.mua-gap-noel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320838
+    m_Key: quest.mua-nghe-noel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320839
+    m_Key: quest.mua-anh-noel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320840
+    m_Key: season.midautumn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320841
+    m_Key: season.tet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320842
+    m_Key: season.christmas
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320843
+    m_Key: album.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320844
+    m_Key: album.season.only
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320845
+    m_Key: quest.season.note
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

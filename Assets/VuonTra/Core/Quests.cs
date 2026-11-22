@@ -38,7 +38,13 @@ namespace VuonTra.Core
         /// <summary>Firefly nights played, in all.</summary>
         FirefliesGames,
         /// <summary>Guests' tea orders delivered in full (#20).</summary>
-        OrdersDelivered
+        OrdersDelivered,
+        /// <summary>1 once a rabbit of the running season lives in the garden (#8).</summary>
+        SeasonKindMet,
+        /// <summary>1 while a rabbit of the running season works at a station of its trade.</summary>
+        SeasonKindInTrade,
+        /// <summary>Pictures taken with a rabbit of the running season in the garden.</summary>
+        PhotosWithSeasonRabbit
     }
 
     /// <summary>
@@ -60,6 +66,8 @@ namespace VuonTra.Core
         public double RewardCarrots;
         public int RewardClovers;
         public int RewardGolden;
+        /// <summary>A quest of a season shows only while that season runs (#8); None is every day.</summary>
+        public Season Season;
     }
 
     public static class Quests
@@ -134,6 +142,12 @@ namespace VuonTra.Core
                     foreach (Rabbit r in s.Rabbits) if (Rabbits.IsMaxLevel(r)) capped++;
                     return capped;
                 }
+                case QuestMetric.SeasonKindMet:
+                    return Seasons.HasSeasonRabbit(s, Seasons.SeasonOf(s.MaxDaySeen)) ? 1 : 0;
+                case QuestMetric.SeasonKindInTrade:
+                    return Seasons.SeasonRabbitInTrade(defs, s, Seasons.SeasonOf(s.MaxDaySeen)) ? 1 : 0;
+                case QuestMetric.PhotosWithSeasonRabbit:
+                    return s.PhotosWithSeasonRabbit;
                 case QuestMetric.OrdersDelivered:
                     return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
                 default:
@@ -143,6 +157,9 @@ namespace VuonTra.Core
 
         public static bool IsClaimed(QuestDef q, GameState s) => s.Claimed.Contains(q.Id);
 
+        /// <summary>A quest of a season is only there while the season runs; the others always are.</summary>
+        public static bool IsAvailable(QuestDef q, long day) => q.Season == Season.None || Seasons.SeasonOf(day) == q.Season;
+
         public static bool IsComplete(QuestDef q, IReadOnlyList<StationDef> defs, GameState s)
         {
             double target = TargetOf(q, s);
@@ -151,7 +168,7 @@ namespace VuonTra.Core
 
         public static bool CanClaim(QuestDef q, IReadOnlyList<StationDef> defs, GameState s)
         {
-            return !IsClaimed(q, s) && IsComplete(q, defs, s);
+            return !IsClaimed(q, s) && IsComplete(q, defs, s) && IsAvailable(q, s.MaxDaySeen);
         }
 
         public static BigNum RewardOf(QuestDef q, IReadOnlyList<StationDef> defs, GameState s, Modifiers m)

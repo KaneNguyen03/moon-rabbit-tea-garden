@@ -2186,6 +2186,78 @@ MonoBehaviour:
     m_Localized: "\u0110\xE3 xo\xE1 tr\xEAn m\xE1y; b\u1EA3n tr\xEAn m\xE2y kh\xF4ng xo\xE1 \u0111\u01B0\u1EE3c, th\u1EED l\u1EA1i khi c\xF3 m\u1EA1ng"
     m_Metadata:
       m_Items: []
+  - m_Id: 251714404868096
+    m_Localized: "Th\u1ECF \u0110\xE8n \xD4ng Sao"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256704
+    m_Localized: "Th\u1ECF \xC1o D\xE0i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 251714413256705
+    m_Localized: "Th\u1ECF Noel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465726349312
+    m_Localized: "G\u1EB7p Th\u1ECF \u0110\xE8n \xD4ng Sao"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320832
+    m_Localized: "X\u1EBFp Th\u1ECF \u0110\xE8n \xD4ng Sao v\xE0o \u0111\xFAng ngh\u1EC1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320833
+    m_Localized: "Ch\u1EE5p \u1EA3nh c\xF3 Th\u1ECF \u0110\xE8n \xD4ng Sao"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320834
+    m_Localized: "G\u1EB7p Th\u1ECF \xC1o D\xE0i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320835
+    m_Localized: "X\u1EBFp Th\u1ECF \xC1o D\xE0i v\xE0o \u0111\xFAng ngh\u1EC1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320836
+    m_Localized: "Ch\u1EE5p \u1EA3nh c\xF3 Th\u1ECF \xC1o D\xE0i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320837
+    m_Localized: "G\u1EB7p Th\u1ECF Noel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320838
+    m_Localized: "X\u1EBFp Th\u1ECF Noel v\xE0o \u0111\xFAng ngh\u1EC1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320839
+    m_Localized: "Ch\u1EE5p \u1EA3nh c\xF3 Th\u1ECF Noel"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320840
+    m_Localized: Trung thu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320841
+    m_Localized: "T\u1EBFt"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320842
+    m_Localized: "Gi\xE1ng sinh"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320843
+    m_Localized: "Th\u1ECF theo m\xF9a \xB7 {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320844
+    m_Localized: "Ch\u1EC9 c\xF3 trong {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 252465747320845
+    m_Localized: "Ch\u1EC9 trong m\xF9a; h\u1EBFt m\xF9a th\xEC m\u1EA5t"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

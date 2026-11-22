@@ -23,6 +23,7 @@ namespace VuonTra.Core
         {
             s.PhotosTaken++;
             if (HasGoldRabbit(s)) s.PhotosWithGoldRabbit++;
+            if (Seasons.HasSeasonRabbit(s, Seasons.SeasonOf(day))) s.PhotosWithSeasonRabbit++;
             if (s.RestSpots >= RestSpots.Max) s.PhotosWithFullRest++;
             if (!string.IsNullOrEmpty(path))
             {

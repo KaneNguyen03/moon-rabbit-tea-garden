@@ -38,10 +38,13 @@ namespace VuonTra.Core
         public bool OwnOutline;
         /// <summary>Something grows where a hat would go (antlers, horns, flame): a hat still counts but is not drawn.</summary>
         public bool NoHat;
+        /// <summary>The stretch of the year this kind can be met in (#8); None for the kinds of every day.</summary>
+        public Season Season;
 
         public RabbitKind(string id, int tier, RabbitTrade trade, string nameVi, string nameEn, bool ownGlow = false,
-            float hatX = 0f, float hatY = 0f, bool ownOutline = false, bool noHat = false)
+            float hatX = 0f, float hatY = 0f, bool ownOutline = false, bool noHat = false, Season season = Season.None)
         {
+            Season = season;
             Id = id; Tier = tier; Trade = trade; NameVi = nameVi; NameEn = nameEn; OwnGlow = ownGlow;
             HatX = hatX; HatY = hatY; OwnOutline = ownOutline; NoHat = noHat;
         }
@@ -131,6 +134,10 @@ namespace VuonTra.Core
             new RabbitKind("tho-ngoc", 5, RabbitTrade.Brewer, "Thỏ Ngọc", "Jade Rabbit", ownOutline: true, hatX: 0.059f, hatY: -0.070f),
             new RabbitKind("tho-rong", 5, RabbitTrade.Baker, "Thỏ Rồng", "Dragon Rabbit", ownOutline: true, hatX: -0.027f, hatY: 0.038f, noHat: true),
             new RabbitKind("tho-chom-sao", 5, RabbitTrade.Stargazer, "Thỏ Chòm Sao", "Constellation Rabbit", ownOutline: true, hatX: 0.123f, hatY: -0.047f),
+            // The seasons' own kinds (#8): Gold tier, met only while their season runs, kept for good once met.
+            new RabbitKind("tho-den-ong-sao", 4, RabbitTrade.Stargazer, "Thỏ Đèn Ông Sao", "Star Lantern Rabbit", season: Season.MidAutumn),
+            new RabbitKind("tho-ao-dai", 4, RabbitTrade.Brewer, "Thỏ Áo Dài", "Áo Dài Rabbit", season: Season.Tet),
+            new RabbitKind("tho-noel", 4, RabbitTrade.Baker, "Thỏ Noel", "Noel Rabbit", season: Season.Christmas),
         };
 
         public static IReadOnlyList<RabbitKind> All => Table;
@@ -151,11 +158,21 @@ namespace VuonTra.Core
             return -1;
         }
 
-        public static IReadOnlyList<RabbitKind> OfTier(int tier)
+        /// <summary>The tier's kinds of every day; with a <paramref name="season"/>, that season's kind as well.</summary>
+        public static IReadOnlyList<RabbitKind> OfTier(int tier, Season season = Season.None)
         {
             var list = new List<RabbitKind>(2);
             for (int i = 0; i < Table.Length; i++)
-                if (Table[i].Tier == tier) list.Add(Table[i]);
+                if (Table[i].Tier == tier && (Table[i].Season == Season.None || Table[i].Season == season)) list.Add(Table[i]);
+            return list;
+        }
+
+        /// <summary>The kinds that belong to a season, in table order.</summary>
+        public static IReadOnlyList<RabbitKind> Seasonal()
+        {
+            var list = new List<RabbitKind>(3);
+            for (int i = 0; i < Table.Length; i++)
+                if (Table[i].Season != Season.None) list.Add(Table[i]);
             return list;
         }
 

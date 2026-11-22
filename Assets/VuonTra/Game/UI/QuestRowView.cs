@@ -93,7 +93,7 @@ namespace VuonTra.Game.UI
             QuestDef q = quests[_index];
             bool claimed = Quests.IsClaimed(q, s);
             // A finished achievement leaves the list; a finished daily stays as "done for today".
-            bool show = q.Daily || !claimed;
+            bool show = (q.Daily || !claimed) && Quests.IsAvailable(q, s.MaxDaySeen);
             if (_root.activeSelf != show) _root.SetActive(show);
             CanClaim = false;
             if (!show) return;
