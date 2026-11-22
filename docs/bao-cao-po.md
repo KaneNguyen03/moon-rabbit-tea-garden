@@ -1305,6 +1305,23 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Không mở rộng `WorldW`. Save cũ nhớ zoom 1,0 mở ở 1,0 tới khi đổi zoom. Hàng cây đỉnh trên lò bánh nằm dưới HUD ở mặc định khi cuộn lên đỉnh. Chưa thử tay.
 
+## QA #71–#77 — Bảy lỗi giao diện nhỏ (agent song song, nhánh qa-nits, mỗi issue một commit)
+
+- Test: 767/768 EditMode qua trên main sau khi gộp (1 inconclusive có chủ ý của #8). Nhánh riêng 759/760: thêm 15 ca test, mỗi test đỏ trên code cũ, xanh sau khi sửa.
+- Commit: #71 `3dbe0c3` (+ `fddbbe9` sau khi gộp), #72 `eeb7390`, #73 `5e8b01e`, #74 `49e8156`, #75 `9492bfa`, #76 `be72b83`, #77 `21ea82d`; gộp vào main qua `4df9b72`, đã push. Bảy issue đã comment bảng đối chiếu, nhãn chờ-PO-duyệt.
+- #71: viên "Khách!" không đè biển nào của vườn khi camera ở ấm trà. Agent dời xuống y −244; khi gộp chung với #50 (zoom và lọ đom đóm đổi chỗ) vị trí đó lại đè biển lọ, nên viên đưa về sát dưới hàng HUD (y −176). Test đo theo đơn vị màn 1080×1920.
+- #72: tỷ lệ gọi tiếng Anh "60%" thay vì "60.0%" (`ShopView.Odds` định dạng `0.#` trước khi đổi dấu thập phân).
+- #73: "Cấp 500 ✦✦✦" co về một dòng trong viên ở thẻ trạm và hàng trạm.
+- #74: nút "Cấp tối đa" không còn icon cà rốt.
+- #75: thanh nút chụp ảnh lên y 240, tên vườn và ngày ở chân khung hiện đủ.
+- #76: tên mũ và đồ trang trí ở Tiệm một dòng ("Mushroom stools" co chữ), không chạm viên giá.
+- #77: điểm và đồng hồ/số nhịp ở ba trò chơi nhỏ cách hai mép 24.
+- Ảnh: `docs/anh/qa-71` … `qa-77` (`qa-NN-truoc.png`, `qa-NN-sau.png`; #73 thêm `-hang`, #77 thêm `-gia-banh`).
+- Kỹ thuật: `AccessibilityTests` có thêm `RectIn`, `OnPhone` (đổi về đơn vị màn 1080×1920 khi so HUD với vườn) và `OneLine` (kiểm chữ best-fit nằm một dòng ở cỡ thật sự vẽ).
+
+### Chưa đạt
+- Viên "▲ N" ở mép trên có thể đè biển "Giã bánh" (nêu trong #71). Code chưa có vùng an toàn ngang. Chưa thử tay.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
