@@ -1084,6 +1084,18 @@ Sau khi sửa cả bốn xanh.
 - Bảy `product_<id>.png` chép vào Art/Final, seed tự gán `StationData.Product`; khay dùng `khay_go` làm đĩa dưới từng món (khung khay vẫn tấm giấy chuẩn vì khay gỗ tròn không kéo dài được thành khung 5 ô).
 - Ảnh (docs/anh/po-37/): `37-khay-hinh.png`.
 
+## #44 lượt 3 — Đồ cho thỏ: mũ chỉ để đẹp và nhuộm lông (agent song song, nhánh agent-44)
+
+- Test: 622/622 EditMode qua trên main sau khi gộp (verify.sh: seed, 107 ảnh, biên dịch, test). Nhánh riêng 621/621: +2 test luật (`ShopTests.cs`), +2 màn hình, 1 khẳng định thêm vào test quà nhiệm vụ. Các audit dễ đọc vẫn xanh.
+- Commit `7b81fe9` (nhánh agent-44), gộp vào main qua `9763ceb`, đã push. Issue #44 đã comment lượt 3 (bảng 7 ý); cả ba lượt xong, nhãn chờ-PO-duyệt giữ nguyên. Save không đổi phiên bản, thêm `dye` cho từng thỏ; item có `effect` 3 (`None`).
+- Luật trong `Core/Items.cs`, `Core/Shop.cs`: `ItemEffect.None`, `ItemDef.Price/Tier/HatLift`; `Shop.BuyItem` (mỗi loại một chiếc, trả cà rốt vàng, về tủ đồ chưa đội); `Shop.Dyes` 8 màu, `DyeRabbit` 8 củ mỗi lần, `Wash` miễn phí. Sửa luôn lỗi phát hiện khi làm: quà nhiệm vụ chỉ rút trong món có `Price = 0`, không rút mũ của tiệm.
+- Tấm Tiệm cao 1560: mục "Đồ cho thỏ" giữa Gọi vàng và Kiếm ở, 6 ô mũ (hình, tên, giá), chạm hỏi rồi chạm lại trong 2 giây là mua, "Đã có" khi đã mua. Tấm thỏ cao 1520: hàng "Nhuộm lông · 8 cà rốt vàng mỗi lần" với 8 chấm (vòng mực quanh màu đang mang, vùng chạm 88), nút chữ "Gội lại".
+- Màu nhuộm phủ 60 % lên trắng rồi nhân vào hình loài (`RabbitGridView.Fur`), áp ở lưới, tấm, trạm, ghế, thỏ đi dạo, thỏ đang đi tới trạm, thẻ trạm. Mũ đặt theo tỉ lệ hình, chân mũ trên đường đỉnh đầu + `HatLift` riêng (`RabbitGridView.PlaceHat`, dùng chung lưới và trạm).
+- Hình: 6 file `hat_*.png` từ docs/anh/po-44 (vẽ bằng Antigravity) vào Art/Final. Ảnh (docs/anh/po-44/): `44-sau-do-cho-tho.png`, `44-sau-nhuom.png`.
+
+### Chưa đạt
+- Chưa thử tay trên máy thật (hai chạm trong 2 giây; màu nhuộm nhẹ trên thỏ tối).
+
 ## Bàn giao (22/11 ~16:00, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
