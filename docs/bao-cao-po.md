@@ -1006,6 +1006,29 @@ Sau khi sửa cả bốn xanh.
 ### Chưa đạt
 - Lá, lá vàng, quả thông là hình tròn tô màu; tán cây và giỏ dùng hình sẵn có. Chưa thử tay. Phần 2 "Đêm đom đóm" đang làm trên nhánh agent-10b.
 
+## #38 — Lưu mây: lõi đồng bộ save, không phụ thuộc nhà cung cấp
+
+- Test: 578/578 EditMode qua (chạy sau lần sửa cuối trong Assets). Thêm 16 test lõi (`CloudSaveTests.cs`) và 3 test màn hình.
+- Commit `d88b60c`, đã push. Issue #38 để mở (phần nhà cung cấp thật là #39/#40), đã comment đối chiếu từng ý, nhãn chờ-PO-duyệt.
+- Lõi (`Core/CloudSave.cs`): bản trên mây là phong bì `{cloud, version, savedAt, level, rabbits, kinds, played, seen, code, check, save}`; `check` là FNV-1a trên phiên bản + thời điểm + nội dung; bản cắt cụt, sửa tay, không phải phong bì → Corrupt (bỏ qua, báo, ghi lại bản trên máy); phiên bản mới hơn → để yên, không ghi đè. `CloudSync` quyết bằng `SaveSync.Choose`: giống hệt → không làm gì; máy tiến xa hơn → đẩy lên; mây tiến xa hơn hoặc mỗi bên hơn một điểm → `NeedsChoice`, gợi ý bản cấp vườn cao hơn, rồi nhiều thỏ hơn, rồi mới hơn; không bao giờ tự thay bản trên máy. Lúc nào: mở game, ra nền, mốc lớn (thêm đất, thỏ Vàng trở lên, mua ở Tiệm), hẹn giờ tối đa 180 giây một lần; nâng cấp thường không đồng bộ (test). Mất mạng: Offline, bản trên máy nguyên, lần sau thử lại (test). `MemoryCloudSave` (mây trong bộ nhớ, bật/tắt mạng) cho test, preview và bản chưa có nhà cung cấp.
+- Không mất save trên máy: `SaveStore.Backup/WriteBackup/ReadBackup` (`save.backup.json`); trước khi lấy bản trên mây, bản trên máy được chép sang sao lưu; "Khôi phục bản sao lưu trên máy" trong Hồ sơ đổi chỗ hai bản (không mất bản nào).
+- Màn hình: tấm `CloudChoice` ("Hai bản vườn khác nhau") hai cột Trên máy / Trên mây với cấp vườn, số thỏ · loài, đã chơi, lần cuối; pill "Gợi ý" và nút màu cam ở bản được gợi ý; hai nút "Giữ bản trên máy" / "Lấy bản trên mây". Hồ sơ (mục Sao lưu) thêm dòng trạng thái ("Chưa có nơi lưu mây trên bản này" / "Chưa lưu lên mây" / "Đã lưu lên mây lúc HH:mm dd/MM" / "Không có mạng…" / "Bản trên mây hỏng…" / "…bản game mới hơn…"), nút "Lưu ngay", "Khôi phục từ mây", và dòng khôi phục sao lưu trên máy khi có.
+- Save: thêm `playSeconds` (tổng thời gian chơi, cộng mỗi khung khi không tạm nghỉ; save cũ = 0), không tăng version. `SaveSummary` thêm Kinds, PlaySeconds.
+- Ảnh (docs/anh/po-38/): `38-chon-ban.png` (tấm chọn bản, mây tiến xa hơn được gợi ý), `38-ho-so-may.png` (Hồ sơ sau khi Lưu ngay).
+
+### Đã làm (đối chiếu với #38)
+- Lớp `ICloudSave` tải lên/tải xuống, thông tin bản trên mây (thời điểm, cấp vườn, số thỏ, số loài, tổng thời gian chơi): đủ (phong bì + `SaveSummary`).
+- Khi nào đồng bộ (mở game, ra nền, mốc lớn, tối đa vài phút một lần, không mỗi lần nâng cấp): đủ, có test.
+- Hai bản lệch: không tự ghi đè, tấm so hai bản, gợi ý bản tiến xa hơn: đủ, có test.
+- Không bao giờ mất save trên máy, khôi phục được trong Cài đặt: đủ (sao lưu trước khi thay; dòng khôi phục trong Hồ sơ, mở từ Tạm nghỉ).
+- Không có mạng: đủ, có test.
+- Chống gian lận nhẹ (phiên bản + mã kiểm, bản hỏng bỏ qua và báo): đủ, có test.
+- Cài đặt: trạng thái, Lưu ngay, Khôi phục từ mây: đủ (đặt ở Hồ sơ, mục Sao lưu, vì tấm Tạm nghỉ đã đầy).
+- Test lõi: chọn bản khi lệch, khứ hồi qua mây giả, bản hỏng, save cũ phiên bản thấp, mất mạng giữa chừng: đủ.
+
+### Chưa đạt so với #38
+- Chưa có nhà cung cấp thật (Game Center / Play Games là #39/#40): `Cloud` mặc định vẫn `LocalOnlyCloudSave`, mọi nút nói rõ "Chưa có nơi lưu mây trên bản này". Thử tay tấm chọn bản trên máy thật.
+
 ## Bàn giao (22/11 06:30, phiên code thứ hai dừng tại đây)
 
 ### Trạng thái
@@ -1035,7 +1058,8 @@ Sau khi sửa cả bốn xanh.
 - #45 Giã bánh trăng (`7ce83c9`): trò chơi nhỏ đầu tiên theo đề xuất đã duyệt; save v14; hai thành tựu. Còn hình chày/bánh ba trạng thái.
 - #28 phần code còn lại (`fcf3f64`): cây, đèn lồng, ao, đom đóm theo đàn chuyển động; thỏ đi dạo từ ghế ra lối và về; thỏ được xếp đi bộ tới trạm. Còn chớp mắt/vẫy tai (cần hình).
 - #34 (`ab2aab2`): lớp đất (đất mòn, đá lát, thảm hoa, vệt trăng), bóng đổ dưới mọi đồ vật, tán cây viền trượt 0,9, trang trí có chủ đích quanh từng trạm với bồn hoa và đèn đá; cối giã dời lên trên ấm trà.
-- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`; #16 đã tick.
+- #38 lõi lưu mây (`d88b60c`): phong bì có mã kiểm, `CloudSync` (khi nào đồng bộ, chọn bản, không tự ghi đè), sao lưu trên máy trước khi thay, tấm chọn bản, trạng thái + Lưu ngay + Khôi phục trong Hồ sơ, thời gian chơi trong save. Còn nhà cung cấp thật (#39/#40).
+- Mỗi issue có comment đối chiếu từng ý, nhãn `chờ-PO-duyệt`, mục riêng trong file này, ảnh trong `docs/anh/po-17`, `po-46`, `po-47`, `po-48`, `po-26`, `po-32`, `po-31`, `po-45`, `po-28`, `po-34`, `po-38`; #16 đã tick.
 
 ### Chưa đụng tới (theo thứ tự trong #16)
 - Mốc trạm nhìn thấy được ở cấp 25, 100, 300 (cần hình hoặc quy ước đổi dáng đạo cụ; chưa có issue).
