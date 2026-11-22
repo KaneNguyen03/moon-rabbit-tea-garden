@@ -169,6 +169,8 @@ namespace VuonTra.EditorTools
             { "moment.unlock", "Trạm mới thức dậy!", "A new station wakes up!" },
             { "moment.milestone.title", "Cấp {0}!", "Level {0}!" },
             { "moment.milestone.sub", "{0} giờ thu gấp đôi", "{0} now earns double" },
+            { "moment.rank.title", "Trạm lên bậc {0}!", "Station rank {0}!" },
+            { "moment.rank.sub", "{0} · cấp {1}, giờ thu gấp đôi", "{0} · level {1}, now earns double" },
             { "moment.plot.title", "Khu vườn rộng thêm!", "The garden grows!" },
             { "moment.plot.sub", "Có chỗ cho {0}", "Room for {0}" },
             { "moment.summon.title", "Bé {0} đã tới!", "{0} has arrived!" },

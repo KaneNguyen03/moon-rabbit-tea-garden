@@ -1922,6 +1922,14 @@ MonoBehaviour:
     m_Localized: Take the cloud's
     m_Metadata:
       m_Items: []
+  - m_Id: 216240961347584
+    m_Localized: Station rank {0}!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 216240986513408
+    m_Localized: "{0} \xB7 level {1}, now earns double"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

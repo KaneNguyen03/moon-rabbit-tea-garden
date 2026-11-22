@@ -1763,9 +1763,9 @@ namespace VuonTra.Core.Tests
             screen.Advance(0.1f);
             string midway = chip.text;
             Assert.AreNotEqual("Cấp 1", midway);
-            Assert.AreNotEqual("Cấp " + level, midway, "it is on its way");
+            Assert.AreNotEqual(L10n.StationLevel(level), midway, "it is on its way");
             for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
-            Assert.AreEqual("Cấp " + level, chip.text);
+            Assert.AreEqual(L10n.StationLevel(level), chip.text, "the number lands, with the rank marks the level has earned");
         }
 
         [Test]
@@ -2542,7 +2542,7 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.IsFalse(Find("Canvas/Card/Buy").interactable);
             Assert.AreEqual(L10n.T("row.maxlevel"), T("Canvas/Card/Buy/Face/Top").text);
-            Assert.AreEqual(L10n.T("station.level", Economy.MaxLevel), T("Canvas/Card/Level/Text").text);
+            Assert.AreEqual(L10n.StationLevel(Economy.MaxLevel), T("Canvas/Card/Level/Text").text);
         }
 
         [Test]
@@ -3499,6 +3499,65 @@ namespace VuonTra.Core.Tests
             runner.State.Plots++;
             runner.Buy(0);
             Assert.AreEqual(2, cloud.Pushes, "so is more land");
+        }
+
+        [Test]
+        public void A_Station_Wears_Its_Rank_From_25_100_And_300_And_Every_Level_Text_Says_So()
+        {
+            Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra");
+            Text plate = station.Find("Level/Text").GetComponent<Text>();
+            Motion.SetReduced(true); // the level number lands in one frame instead of running up
+            void Show() { screen.Refresh(); screen.Advance(0.1f); }
+            runner.State.Levels[0] = 24;
+            Show();
+            Assert.IsFalse(station.Find("Bunting").gameObject.activeSelf, "nothing before 25");
+            Assert.AreEqual(L10n.T("station.level", 24), plate.text);
+
+            runner.State.Levels[0] = 25;
+            Show();
+            Assert.IsTrue(station.Find("Bunting").gameObject.activeSelf, "bunting from 25");
+            Assert.IsFalse(station.Find("RankLanterns").gameObject.activeSelf);
+            Assert.AreEqual(L10n.T("station.level", 25) + " ✦", plate.text);
+            Assert.AreEqual(Palette.Paper, station.Find("Level").GetComponent<Image>().color);
+
+            runner.State.Levels[0] = 100;
+            Show();
+            Assert.IsTrue(station.Find("RankLanterns").gameObject.activeSelf, "stone lanterns from 100");
+            Assert.AreNotEqual(Palette.Paper, station.Find("Level").GetComponent<Image>().color, "and a golden plate");
+            Assert.IsFalse(station.Find("RankHalo").gameObject.activeSelf);
+            StringAssert.EndsWith("✦✦", plate.text);
+
+            runner.State.Levels[0] = 300;
+            Show();
+            Assert.IsTrue(station.Find("RankHalo").gameObject.activeSelf, "a halo from 300");
+            StringAssert.EndsWith("✦✦✦", plate.text);
+            screen.Advance(0.3f);
+            Assert.AreEqual(Vector3.one, station.Find("RankHalo").localScale, "the halo holds still under reduced motion");
+
+            screen.FocusStation(0);
+            Show();
+            StringAssert.EndsWith("✦✦✦", root.transform.Find("Canvas/Card/Level/Text").GetComponent<Text>().text, "the card carries the marks");
+            StringAssert.EndsWith("✦✦✦", root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Level/Text").GetComponent<Text>().text, "and so does the row");
+
+            // A closed station wears nothing, whatever its number.
+            runner.State.Levels[1] = 0;
+            screen.Refresh();
+            Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station gio-la/Bunting").gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Reaching_A_Rank_Is_A_Moment_That_Names_It()
+        {
+            screen.Shell.StartGame();
+            runner.State.Levels[0] = 24;
+            runner.State.Coins = new BigNum(1e15);
+            runner.State.BuyMode = 1;
+            screen.FocusStation(0);
+            screen.Refresh();
+            Find("Canvas/Card/Buy").onClick.Invoke();
+            Assert.AreEqual(25, runner.State.Levels[0]);
+            StringAssert.Contains(L10n.T("moment.rank.title", 1), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
+            Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Station am-tra/Bunting").gameObject.activeSelf, "and the bunting is up at once");
         }
     }
 }
