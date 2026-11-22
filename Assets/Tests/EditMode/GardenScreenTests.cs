@@ -2309,6 +2309,25 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Speed_Burst_Rims_The_Screen_With_Light_Until_It_Runs_Out()
+        {
+            screen.Shell.StartGame();
+            Transform rim = root.transform.Find("Canvas/BoostEdge");
+            Assert.IsFalse(rim.gameObject.activeSelf);
+            runner.State.Energy = Energy.Max;
+            Assert.IsTrue(runner.Boost());
+            for (int i = 0; i < 15; i++) screen.Advance(1f / 30f);
+            Assert.IsTrue(rim.gameObject.activeSelf);
+            Image bottom = rim.Find("Bottom").GetComponent<Image>();
+            Assert.Greater(bottom.color.a, 0.3f, "lit after half a second");
+            Assert.AreEqual(4, rim.childCount, "one band on every edge");
+
+            runner.State.BoostSecondsLeft = 0d;
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(rim.gameObject.activeSelf, "gone within half a second of the burst ending");
+        }
+
+        [Test]
         public void Away_Popup_Shows_And_Closes()
         {
             Transform away = root.transform.Find("Canvas/Away");

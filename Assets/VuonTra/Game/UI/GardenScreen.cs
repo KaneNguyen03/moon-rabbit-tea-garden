@@ -256,6 +256,7 @@ namespace VuonTra.Game.UI
             UpdateWorld(dt);
             UpdateFireflies();
             UpdateGuide(dt);
+            UpdateBoostEdge(boosting, dt);
 
             // The counter counts up instead of snapping.
             double target = s.Coins.ToDouble();
@@ -1613,6 +1614,10 @@ namespace VuonTra.Game.UI
         /// <summary>The hour of the day the garden is lit for. Tests and previews set their own.</summary>
         public System.Func<double> ClockHours = () => System.DateTime.Now.TimeOfDay.TotalHours;
         Image _daylight, _moonGlow;
+        /// <summary>The light round the edges of the screen while a speed burst runs, and how far it has come up.</summary>
+        GameObject _boostEdge;
+        readonly List<Image> _boostEdges = new List<Image>();
+        float _boostGlow;
         static readonly Color MoonGlowColor = new Color(0.80f, 0.90f, 1f, 0.26f);
 
         void BuildAtmosphere(GameCatalog catalog)
@@ -1620,6 +1625,24 @@ namespace VuonTra.Game.UI
             // The time of day lies over the garden as a wash of colour: amber at dusk, rose and blue at dawn,
             // a pale warmth by day, and nothing at all at night, which is how the garden is meant to be seen.
             _daylight = UiKit.Rect("Daylight", _canvas).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            // While a speed burst runs the whole screen is rimmed with the tea bar's green, so the garden
+            // itself says the burst is on. Four fading bands, one per edge, that pulse and then go.
+            var edge = UiKit.Rect("BoostEdge", _canvas).Stretch(0, 0, 1, 1);
+            _boostEdges.Clear();
+            const float Band = 240f;
+            _boostEdges.Add(UiKit.Rect("Bottom", edge).Stretch(0, 0, 1, 0, 0, 0, 0, -Band).AddImage(UiKit.FadeUp, Palette.Moss));
+            var top = UiKit.Rect("Top", edge).Stretch(0, 1, 1, 1, 0, -Band, 0, 0);
+            top.localRotation = Quaternion.Euler(0, 0, 180f); // the band is its own mirror, so it stays where it is
+            _boostEdges.Add(top.AddImage(UiKit.FadeUp, Palette.Moss));
+            var left = UiKit.Rect("Left", edge).Place(0f, 0.5f, Band / 2f, 0, ScreenH, Band);
+            left.localRotation = Quaternion.Euler(0, 0, -90f);
+            _boostEdges.Add(left.AddImage(UiKit.FadeUp, Palette.Moss));
+            var right = UiKit.Rect("Right", edge).Place(1f, 0.5f, -Band / 2f, 0, ScreenH, Band);
+            right.localRotation = Quaternion.Euler(0, 0, 90f);
+            _boostEdges.Add(right.AddImage(UiKit.FadeUp, Palette.Moss));
+            _boostEdge = edge.gameObject;
+            _boostEdge.SetActive(false);
+            _boostGlow = 0f;
             // The moon itself is above the canopy; its glow spills in at the top corner.
             _moonGlow = UiKit.Rect("MoonGlow", _canvas).Place(1f, 1f, -140, -200, 1300, 1300)
                 .AddImage(catalog.Glow, MoonGlowColor);
@@ -1630,6 +1653,19 @@ namespace VuonTra.Game.UI
                 raw.texture = catalog.BgVignette;
                 raw.raycastTarget = false;
             }
+        }
+
+        /// <summary>The rim of light comes up in 0,4 s when a burst starts, breathes while it runs, and goes the same way.</summary>
+        void UpdateBoostEdge(bool boosting, float dt)
+        {
+            if (_boostEdge == null) return;
+            _boostGlow = Mathf.MoveTowards(_boostGlow, boosting && Shell.State == ShellState.Playing ? 1f : 0f, dt / 0.4f);
+            bool shown = _boostGlow > 0f;
+            if (_boostEdge.activeSelf != shown) _boostEdge.SetActive(shown);
+            if (!shown) return;
+            float breathe = Motion.Reduced ? 1f : 0.82f + 0.18f * Mathf.Sin(_clock * 4f);
+            Color c = Palette.Alpha(Palette.Moss, 0.55f * _boostGlow * breathe);
+            foreach (Image band in _boostEdges) band.color = c;
         }
 
         /// <summary>Lights the garden for the hour: the wash, the moon's glow and how many fireflies are out.</summary>
