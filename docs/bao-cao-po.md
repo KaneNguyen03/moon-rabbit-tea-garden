@@ -1551,6 +1551,29 @@ Sau khi sửa cả bốn xanh.
 - Ô trống sát trạm có vòng đè lên mép đế trạm, vì ô cách nhau 150 đơn vị mà đế trạm rộng hơn.
 - "+5 % khi trạm tiếp sức đứng kề trạm được tiếp sức" để làm issue sau.
 
+## #58a — Tim thân thiết thành điểm, 10 tim cộng hệ số, luật ao câu (agent song song, nhánh agent-58a)
+
+
+- **Test:** 1017/1018 qua, 0 lỗi (24 test mới), `tools/verify.sh` GREEN.
+- **Commit:** `1ba7649`, merge `bd032e7`. Main sau gộp: 1072/1073.
+
+**Đã làm**
+- `Core/Fishing.cs`: 5 mồi, mỗi mồi hồi sau 24 phút; lùi đồng hồ không thêm mồi và không trả lại phút đã chờ. Một lần câu: phao nổi 2–6 giây, chìm 0,5 giây; chạm khi chìm được cá, chạm sớm phao nổi lại, không chạm mất mồi. 6 loại cá (1 / 3 / 5 / 8 / 12 / 30 điểm; 45 / 25 / 15 / 9 / 5 / 1 %), giỏ cá lưu trong save.
+- Tim thành điểm, 10 tim (mốc 10 … 8.880 và 18.880). Tim cũ đổi đúng mốc. Vuốt +10 điểm/ngày. Câu thoại ở 3 tim, cỏ ở 5 tim. 10 tim tặng 3 cà rốt vàng một lần.
+- Hệ số theo tim trong `Rabbits.Multiplier`, tới ×2,6.
+- Thành tựu "Câu 50 con cá" (2 cỏ) và "Một bé thỏ đạt 10 tim" (3 cà rốt vàng).
+- API `GameRunner` cho 58b; ô thỏ hiện "♥7" khi quá 5 tim; tấm thỏ hiện 10 tim vừa một dòng.
+
+**Nhịp** (mỗi buổi thả hết mồi, chạm đúng 80 %, cho hết cá vào thỏ ở trạm thu nhiều nhất và vuốt nó mỗi ngày): cấp 5, cấp 10, cấp 15 và 12 ô đất gần như không đổi ở cả bốn người chơi. Tim cao nhất sau một tuần 3–4 (×1,2–1,3 ở một trạm).
+
+### Chưa đạt / cần PO quyết
+- Tim thứ 10 ở 18.880 điểm: đề xuất chỉ có 9 mốc cho 10 tim.
+- Câu thoại 3 tim và cỏ 5 tim tới muộn hơn nếu chỉ vuốt (ngày 8 và ngày 38 thay vì ngày 3 và ngày 5).
+- "Trò chơi + khách ngày 1 ≥ 15 %" giờ được đo bằng trung bình 17 hạt. Ở hạt cũ, chỉ một lần vuốt thỏ đầu tiên đã đẩy tỉ lệ từ 19,5 % xuống 7,2 %; ngay trong game hiện tại 6/17 hạt đã dưới 15 %.
+- Đủ 12 ô đất ở ngày 2 trên 9/17 hạt, có từ trước #58: luật "chờ ngày 3" chỉ đúng ở hạt cũ.
+- Bảng quảng cáo (#66) cho kết quả khác nhau giữa các lần chạy giống hệt (129 hoặc 132 thỏ).
+- Phần 58b chưa làm.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
