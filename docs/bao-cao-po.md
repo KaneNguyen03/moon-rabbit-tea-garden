@@ -1854,6 +1854,18 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - #85: khi ô mặc định của một trạm đã bị chiếm, trạm có thể đứng sát trạm khác; chờ luật khoảng cách của #88 (agent khác làm).
 - #88: agent này đã làm dở rồi dừng theo lệnh điều phối; không commit gì, bản dở nằm ở `/tmp/rfsim/issue88-unfinished.patch`.
 
+## #89–#90 — Màn đi vắng ×2 và quà ngày 7 của save cũ (agent away-gift)
+
+
+- Test: #89 verify GREEN 1186/1187; #90 1189/1191 (1 test kinh tế quá thời gian 180 giây do máy thiếu bộ nhớ, coi là xanh theo điều phối; 1 inconclusive mùa có sẵn). 9 lượt test mới.
+- Commit: e7da8ef (#89), 5b9b11d (#90), merge 6345d4c. Main sau gộp: 1197/1198 qua, 0 lỗi.
+- #89: ×2 trên tấm "Mừng bạn quay lại" (miễn phí, cà rốt vàng, quảng cáo) trả đúng số tấm đang hiện, một lần; lần vắng ngắn khi tấm còn mở không thay báo cáo và không trả lại ×2.
+- #90: save cũ đã qua ngày 7 nhận nón lá và cỏ ba lá ở ngày thứ 7 kế tiếp của lịch (14, 21, …), đúng một lần; save mới không đổi.
+
+### Chưa đạt / cần PO quyết
+- #90: chọn giữ mặc định (ngày thứ 7 kế tiếp), hay (a) coi như đã nhận, hay (b) tặng qua thư.
+- #89: lần vắng hơn 5 phút trong lúc đang xem video ×2 làm số bay lên lệch với số được trả (hiếm, chưa sửa).
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
