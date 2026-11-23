@@ -29,7 +29,7 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
-        /// <summary>The rings the vertical garden's lawn started with: a saved "radius" past it counts its open land (the horizontal garden).</summary>
+        /// <summary>The rings the vertical garden's lawn started with: a saved "radius" past it counts its open land (the horizontal garden, then the 2D map).</summary>
         const int LegacyStartingRadius = 3;
 
         /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view. The hex grid under the garden (#52) is an additive block, no new version.</summary>
@@ -312,10 +312,10 @@ namespace VuonTra.Core
                 }
             }
             sb.Append("},\"passUntil\":").Append(s.NoAdsUntilDay.ToString(CultureInfo.InvariantCulture)).Append('}');
-            // The hex grid (#52), an additive block: how many segments of the strip are open, and the tile of everything standing
-            // on it. Empty tiles follow. "segments" marks the horizontal garden's tiles; a block with "radius" holds the vertical
-            // garden's, from before it.
-            sb.Append(",\"grid\":{\"segments\":").Append(s.Grid.Segments.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
+            // The hex grid (#52), an additive block: how many segments of the map are open, and the tile of everything standing
+            // on it. Empty tiles follow. "map" marks the 2D map's tiles (#91); a block with "segments" holds the horizontal strip's,
+            // and one with "radius" the vertical garden's, from before it.
+            sb.Append(",\"grid\":{\"map\":").Append(s.Grid.Segments.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
             {
                 var ids = new List<string>();
                 foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) ids.Add(o.Key);
@@ -821,9 +821,9 @@ namespace VuonTra.Core
             s.Grid = new GardenGrid(GardenGrid.SegmentsForPlots(s.Plots));
             if (root.TryGetValue("grid", out object gridObj) && gridObj is Dictionary<string, object> grid)
             {
-                if (TryNumber(grid, "segments", out double segments))
+                if (TryNumber(grid, "map", out double map))
                 {
-                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(segments, GardenGrid.MaxSegments));
+                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(map, GardenGrid.MaxSegments));
                     if (grid.TryGetValue("tiles", out object tilesObj) && tilesObj is List<object> tiles)
                         foreach (object raw in tiles)
                         {
@@ -835,13 +835,14 @@ namespace VuonTra.Core
                             s.Grid.Place(id, at.Q, at.R, true);
                         }
                 }
-                else if (TryNumber(grid, "radius", out double radius))
+                else if (LegacySegments(grid, out double legacy))
                 {
-                    // The vertical garden's grid (before the horizontal garden): the lawn's rings past the first three are the
-                    // segments it has open, and its tiles mean nothing on the strip, so everything stands on its own default tile
-                    // (or the empty tile nearest it, Settle below). What was stored stays stored. The view it remembers looked at
-                    // that column, so the garden opens on the teapot at the usual zoom instead.
-                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(radius - LegacyStartingRadius, GardenGrid.MaxSegments));
+                    // The horizontal strip's grid (before the 2D map, #91) or the vertical garden's (before the strip): the map
+                    // opens as many segments as the strip had, or as the column had rings past its first three, and their tiles
+                    // are not the map's, so everything stands on its own default tile, or on the free tile nearest it that keeps the
+                    // stations apart (Settle below). What was stored stays stored. The view it remembers looked at a smaller
+                    // garden, so the garden opens on the teapot at the usual zoom instead.
+                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(legacy, GardenGrid.MaxSegments));
                     s.ViewX = s.ViewY = s.ViewZoom = 0d;
                 }
                 // The stations put away (#54); Settle lets go of any that is not an open station with a plot.
@@ -899,6 +900,15 @@ namespace VuonTra.Core
             var sb = new StringBuilder((value ?? "").Length + 2);
             WriteString(sb, value);
             return sb.ToString();
+        }
+
+        /// <summary>The segments open in a grid block from before the 2D map (#91): the strip's "segments", or the vertical garden's "radius" less its first three rings.</summary>
+        static bool LegacySegments(Dictionary<string, object> grid, out double segments)
+        {
+            if (TryNumber(grid, "segments", out segments)) return true;
+            if (!TryNumber(grid, "radius", out double radius)) return false;
+            segments = radius - LegacyStartingRadius;
+            return true;
         }
 
         public static bool TryNumber(Dictionary<string, object> obj, string key, out double value)

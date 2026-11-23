@@ -623,9 +623,9 @@ namespace VuonTra.Core.Tests
                 foreach (KeyValuePair<string, Rect> piece in rim)
                     Assert.GreaterOrEqual(Clearance(at, piece.Value), 200f, path + " keeps 200 units from the rim; " + piece.Key + " at " + piece.Value);
             }
-            // The open lawn's ends on the strip (the horizontal garden): half a tile past the last tile of the rows on each side.
-            float heart = GardenScreen.CellToWorld(new Hex(0, 0)).x, left = heart - (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * GardenGrid.LeftOf(GardenGrid.SegmentsForPlots(plots)) + 1) * 75f,
-                right = heart + (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * GardenGrid.RightOf(GardenGrid.SegmentsForPlots(plots)) + 1) * 75f;
+            // The open lawn's ends on the map (#91): half a tile past the last tile of the rows on each side.
+            float heart = GardenScreen.CellToWorld(new Hex(0, 0)).x, left = heart - (GardenGrid.Reach(GardenGrid.SegmentsForPlots(plots), GardenSide.Left) + 1) * 75f,
+                right = heart + (GardenGrid.Reach(GardenGrid.SegmentsForPlots(plots), GardenSide.Right) + 1) * 75f;
             foreach (KeyValuePair<string, Rect> piece in rim)
                 Assert.IsTrue(piece.Value.xMax <= left + 0.5f || piece.Value.xMin >= right - 0.5f, piece.Key + " at " + piece.Value + " stands at the lawn's end, not on it");
         }
@@ -852,7 +852,8 @@ namespace VuonTra.Core.Tests
 
             screen.CloseSheet();
             for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
-            Assert.AreEqual((1920f - world.sizeDelta.y * world.localScale.y) / 2f, world.anchoredPosition.y, 0.5f, "closed again, the strip settles back in the middle");
+            // #91: the map is taller than the screen, so the view stays where it went, inside the garden (the strip settled back in the middle).
+            Assert.That(world.anchoredPosition.y, Is.InRange(1920f - world.sizeDelta.y * world.localScale.y - 0.5f, 0.5f), "closed again, the view stays inside the garden");
         }
 
         [Test]
@@ -1247,12 +1248,12 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_World_Is_A_Strip_That_Scrolls_Sideways_And_Stations_Do_Not_Overlap()
+        public void The_World_Is_A_Map_That_Scrolls_Both_Ways_And_Stations_Do_Not_Overlap()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
-            float visible = 1080f / GardenScreen.ZoomDefault, band = (1920f - 160f - 196f) / GardenScreen.ZoomDefault;
+            float visible = 1080f / GardenScreen.ZoomDefault, tall = 1920f / GardenScreen.ZoomDefault;
             Assert.That(world.sizeDelta.x / visible, Is.InRange(3f, 4f), "three to four screens wide at the usual zoom");
-            Assert.That(world.sizeDelta.y / band, Is.InRange(1.1f, 1.2f), "1.1 to 1.2 times the height the view shows between the HUD and the tab bar");
+            Assert.That(world.sizeDelta.y / tall, Is.InRange(2f, 2.5f), "two to two and a half screens tall (#91: the bands up and down)");
             var scroll = world.parent.GetComponent<UnityEngine.UI.ScrollRect>();
             Assert.IsTrue(scroll.horizontal);
             for (int a = 0; a < runner.Defs.Count; a++)
@@ -1274,12 +1275,12 @@ namespace VuonTra.Core.Tests
 
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
-            // The whole strip fits top to bottom with room to spare, clear of the HUD and the tab bar.
+            // The middle's seven rows and their art fit top to bottom with room to spare, clear of the HUD and the tab bar (#91:
+            // the map is taller than that; the strip's whole height fitted).
             Assert.AreEqual(1920f, 2970f * world.localScale.y, 0.5f, "far spans 2970 garden units top to bottom");
-            Assert.Less(world.sizeDelta.y * world.localScale.y, 1920f - 160f - 196f, "the strip's whole height between the HUD and the tab bar");
+            Assert.Less(1620f * world.localScale.y, 1920f - 160f - 196f, "the middle's rows between the HUD and the tab bar");
             Assert.IsFalse(plate.activeSelf, "no level plates from far away");
-            // Shorter than the screen: the strip sits in the middle top to bottom, not against an edge.
-            Assert.AreEqual((1920f - world.sizeDelta.y * world.localScale.y) / 2f, world.anchoredPosition.y, 0.5f);
+            Assert.That(world.anchoredPosition.y, Is.InRange(1920f - world.sizeDelta.y * world.localScale.y - 0.5f, 0.5f), "the view inside the garden");
 
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
             Assert.IsTrue(plate.activeSelf);
@@ -1303,7 +1304,7 @@ namespace VuonTra.Core.Tests
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
             Assert.AreEqual(GardenScreen.ZoomFar, screen.ZoomScale, 1e-4f, "the same far for every garden");
-            Assert.LessOrEqual(world.sizeDelta.y * world.localScale.y, 1920f - 160f - 196f, "the whole strip fits between the HUD and the tab bar");
+            Assert.LessOrEqual(1620f * world.localScale.y, 1920f - 160f - 196f, "the middle's rows fit between the HUD and the tab bar (#91: the map is taller)");
             for (int i = 0; i < runner.Defs.Count; i++)
             {
                 screen.LookAt(screen.StationSpot(i));
@@ -1390,7 +1391,7 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(shown, 5, "five or more plots are in view after opening, the teapot among them");
             Vector2 pot = screen.StationSpot(0) * world.localScale.x + world.anchoredPosition;
             Assert.AreEqual(540f, pot.x, 1f, "the teapot in the middle");
-            Assert.AreEqual(1920f / 2f, pot.y, 1f, "and the strip in the middle top to bottom");
+            Assert.That(pot.y, Is.InRange(340f, 1920f - 160f), "and clear of the HUD and the tray (#91: the map is taller than the screen, so the strip no longer sits in the middle)");
         }
 
         [Test]
@@ -3902,9 +3903,9 @@ namespace VuonTra.Core.Tests
             screen.Advance(1f / 30f);
             Assert.Less(Count(down), waiting, "the touch flew to the nearest waiting station, which is now in view");
 
-            // Close in and look at the foot of the far right of the strip: the teapot has scrolled away, the way home shows.
+            // Close in and look at the foot of the map, by the night tea boat on the band down (#91): the teapot has scrolled away, the way home shows.
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(13)) + new Vector2(0f, -200f));
+            screen.LookAt(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(15)) + new Vector2(0f, -200f));
             screen.Advance(1f / 30f);
             Assert.IsTrue(home.activeSelf, "the teapot is out of view");
             Assert.IsTrue(up.activeSelf, "and the stations above wait");
@@ -3914,7 +3915,7 @@ namespace VuonTra.Core.Tests
 
             runner.State.Coins = BigNum.Zero; // nothing to raise, nobody dozing: nothing to point at
             screen.Refresh();
-            screen.LookAt(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(13)) + new Vector2(0f, -200f));
+            screen.LookAt(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(15)) + new Vector2(0f, -200f));
             screen.Advance(1f / 30f);
             Assert.IsFalse(down.activeSelf);
             Assert.IsFalse(up.activeSelf);
@@ -6265,7 +6266,7 @@ namespace VuonTra.Core.Tests
             var scroll = World.parent.GetComponent<ScrollRect>();
             Assert.IsTrue(scroll.horizontal, "dragged sideways");
             Assert.IsTrue(scroll.inertia, "and it carries on a little when let go");
-            Assert.IsFalse(scroll.vertical, "at the usual zoom the strip is shorter than the screen: nothing to drag up and down");
+            Assert.IsTrue(scroll.vertical, "at the usual zoom the map is taller than the screen: it drags up and down too (#91)");
             foreach (float push in new[] { -2400f, 2400f })
             {
                 screen.SimulateGardenDrag(new Vector2(push, 0f));
@@ -6357,16 +6358,19 @@ namespace VuonTra.Core.Tests
             string leftText = leftPill.transform.Find("Text").GetComponent<Text>().text, rightText = rightPill.transform.Find("Text").GetComponent<Text>().text;
             StringAssert.StartsWith("◀ ", leftText);
             StringAssert.EndsWith(" ▶", rightText);
-            int offLeft = 0, offRight = 0;
+            int offLeft = 0, offRight = 0, offUp = 0;
             for (int i = 0; i < runner.Defs.Count; i++)
             {
-                float x = OnView(screen.StationSpot(i)).x - 540f;
+                Vector2 on = OnView(screen.StationSpot(i));
+                float x = on.x - 540f, y = on.y - 960f;
+                if (Mathf.Abs(y) >= 960f + 160f) { if (y > 0f) offUp++; continue; } // off above or below: the pills up and down count it (#91)
                 if (x <= -540f - 120f) offLeft++;
                 if (x >= 540f + 120f) offRight++;
             }
             Assert.AreEqual(offLeft, int.Parse(leftText.Substring(2)), "the left pill counts the stations off to the left");
             Assert.AreEqual(offRight, int.Parse(rightText.Substring(0, rightText.Length - 2)), "and the right one those off to the right");
-            Assert.IsFalse(root.transform.Find("Canvas/EdgeUp").gameObject.activeSelf, "nothing waits above the strip");
+            GameObject upPill = root.transform.Find("Canvas/EdgeUp").gameObject;
+            Assert.AreEqual(offUp > 0, upPill.activeSelf, "the stations of the band up wait above, if any");
             Find("Canvas/EdgeRight").onClick.Invoke();
             screen.Advance(1f / 30f);
             int now = rightPill.activeSelf ? int.Parse(rightPill.transform.Find("Text").GetComponent<Text>().text.Split(' ')[0]) : 0;
@@ -6623,6 +6627,7 @@ namespace VuonTra.Core.Tests
                 // The first shut segment on each side, at the edge it shares with the open lawn.
                 for (int n = open + 1; n <= Mathf.Min(last, open + 2); n++)
                 {
+                    if (GardenGrid.SideOf(n) != GardenSide.Right && GardenGrid.SideOf(n) != GardenSide.Left) continue; // #91: the bands up and down have no side edge; their edge is #91b's
                     Vector2 span = GardenScreen.SegmentSpan(n);
                     bool right = GardenGrid.SideOf(n) == GardenSide.Right;
                     float edge = right ? span.x : span.y, inward = right ? 1f : -1f;

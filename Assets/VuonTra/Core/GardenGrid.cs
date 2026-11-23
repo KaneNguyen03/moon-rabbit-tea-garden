@@ -27,8 +27,8 @@ namespace VuonTra.Core
         Reserved
     }
 
-    /// <summary>Which way a segment of the strip opens from the middle (the horizontal garden).</summary>
-    public enum GardenSide { Middle = 0, Right = 1, Left = -1 }
+    /// <summary>Which way a segment of the map opens from the middle (the 2D map, #91): right, left, up or down.</summary>
+    public enum GardenSide { Middle = 0, Right = 1, Left = -1, Up = 2, Down = -2 }
 
     public struct TileData
     {
@@ -40,9 +40,11 @@ namespace VuonTra.Core
     }
 
     /// <summary>
-    /// The garden stands on a hexagonal grid (#52) laid out as a horizontal strip (the horizontal garden, 23 Nov): seven rows of
-    /// pointy-top tiles, the teapot at the centre tile (0,0). The lawn starts as the middle of the strip and widens one
-    /// segment at a time, the mist clearing three tiles a row to the right, then to the left, and so on. Each thing in the
+    /// The garden stands on a hexagonal grid (#52) laid out as a 2D map (#91): pointy-top tiles around the teapot at the centre
+    /// tile (0,0), with the tea shop just above it. The lawn starts as the middle, seven rows of seven or eight tiles, and grows
+    /// one segment at a time, the mist clearing a band on one side: right, left, right, left (the oven side and the pond side,
+    /// as on the horizontal strip before), then up and down (the land of #67's stations). After every segment the lawn is a
+    /// rectangle of rows and doubled columns, so a band up or down runs the whole width open by then. Each thing in the
     /// garden has one tile of its own; the hexes are coordinates only, the ground is drawn as one continuous lawn.
     /// Stations are "station:&lt;id&gt;", places to rest "rest:&lt;n&gt;", decorations "decor:&lt;n&gt;" for decoration spot n, and
     /// the props that come with the garden are <see cref="MortarId"/>, <see cref="ShopId"/> and <see cref="CounterId"/>.
@@ -51,17 +53,16 @@ namespace VuonTra.Core
     /// </summary>
     public sealed class GardenGrid
     {
-        /// <summary>The strip is this many rows above and below the teapot's row: seven rows in all.</summary>
+        /// <summary>The middle is this many rows above and below the teapot's row: seven rows in all.</summary>
         public const int HalfRows = 3;
         /// <summary>
-        /// The middle of the strip, open from the start, in doubled columns (a tile's column is 2q + r, so the tiles of a row are
-        /// two apart and the rows interleave): |2q + r| ≤ 7, four tiles each side of the teapot on the odd rows, three on the even.
+        /// The middle, open from the start, in doubled columns (a tile's column is 2q + r, so the tiles of a row are two apart
+        /// and the rows interleave): |2q + r| ≤ 7, four tiles each side of the teapot on the odd rows, three on the even.
         /// </summary>
         public const int StartHalfWidth = 7;
-        /// <summary>Each segment widens one side of the lawn by this many doubled columns: three tiles a row, 21 tiles a segment.</summary>
-        public const int SegmentWidth = 6;
-        public const int TilesPerSegment = (2 * HalfRows + 1) * SegmentWidth / 2;
-        /// <summary>The most segments the strip has room for: as many as the rings of the vertical garden past its three (R 4 … R 12).</summary>
+        /// <summary>The tiles of the middle: four rows of eight and three of seven.</summary>
+        public const int StartTiles = 53;
+        /// <summary>The most segments the map has room for: the six of the catalog's sixteen stations, and three more.</summary>
         public const int MaxSegments = 9;
         /// <summary>World units between neighbouring tiles in a row, and between rows: a pointy-top lattice stretched tall.</summary>
         public const double PitchX = 150d, PitchY = 200d;
@@ -69,12 +70,56 @@ namespace VuonTra.Core
 
         static readonly Hex[] Directions = { new Hex(1, 0), new Hex(1, -1), new Hex(0, -1), new Hex(-1, 0), new Hex(-1, 1), new Hex(0, 1) };
 
+        /// <summary>One segment of the map: the side it opens and how deep its band is, in doubled columns (right, left) or rows (up, down).</summary>
+        struct Band
+        {
+            public GardenSide Side;
+            public int Depth;
+            public Band(GardenSide side, int depth) { Side = side; Depth = depth; }
+        }
+
+        /// <summary>
+        /// The segments in the order they open (#91). The first four keep the horizontal strip's sides: the oven side to the
+        /// right (three tiles a row), the pond side to the left, then six tiles a row more on each (the strip's third and fifth,
+        /// fourth and sixth segments in one). The fifth opens eight rows up and the sixth eight rows down, the whole width
+        /// across: the land of #67's stations. Past the catalog's sixteen stations the map goes on right, left and up.
+        /// Fully open for sixteen stations the lawn is 51 doubled columns by 23 rows: 3 900 by 4 600 units, about three screens
+        /// wide and two tall at the usual zoom before the wood around it.
+        /// </summary>
+        static readonly Band[] Bands =
+        {
+            new Band(GardenSide.Right, 6), new Band(GardenSide.Left, 6),
+            new Band(GardenSide.Right, 12), new Band(GardenSide.Left, 12),
+            new Band(GardenSide.Up, 8), new Band(GardenSide.Down, 8),
+            new Band(GardenSide.Right, 6), new Band(GardenSide.Left, 6), new Band(GardenSide.Up, 4),
+        };
+
+        /// <summary>How far the lawn reaches from the teapot's tile with n segments open, n = 0 … MaxSegments: doubled columns right and left, rows up and down.</summary>
+        static readonly int[] ReachRight = new int[MaxSegments + 1], ReachLeft = new int[MaxSegments + 1], ReachUp = new int[MaxSegments + 1], ReachDown = new int[MaxSegments + 1];
+
+        static GardenGrid()
+        {
+            ReachRight[0] = ReachLeft[0] = StartHalfWidth;
+            ReachUp[0] = ReachDown[0] = HalfRows;
+            for (int n = 1; n <= MaxSegments; n++)
+            {
+                Band b = Bands[n - 1];
+                ReachRight[n] = ReachRight[n - 1] + (b.Side == GardenSide.Right ? b.Depth : 0);
+                ReachLeft[n] = ReachLeft[n - 1] + (b.Side == GardenSide.Left ? b.Depth : 0);
+                ReachUp[n] = ReachUp[n - 1] + (b.Side == GardenSide.Up ? b.Depth : 0);
+                ReachDown[n] = ReachDown[n - 1] + (b.Side == GardenSide.Down ? b.Depth : 0);
+            }
+        }
+
         /// <summary>
         /// Where station i stands by default, in the catalog's order. The teapot is the heart; the oven side (the bakeries, the
-        /// beehive, the grape vine, the lotus, the rice paddy) grows to the right, the pond and stream side (the star jar, the
-        /// flower spring, the observatory, the night tea boat) to the left. Each stands on the land of its own segment, but the
-        /// moon milk tea and the sticky rice paddy, which stand on land the segment before opened on the other side, next to
-        /// the leaf basket and the candy kiln that feed them. Every ingredient station stands within 520 units of what it feeds.
+        /// beehive, the grape vine) grows to the right, the pond and stream side (the star jar, the flower spring, the
+        /// observatory) to the left, as on the horizontal strip, and #67's stations open up and down (#91): the lotus garden,
+        /// the malt candy kiln and the sticky rice paddy on the band above the oven side, the night tea boat on the band below
+        /// the pond side. Each stands on the land of its own segment, but the moon milk tea, on the first segment's land above
+        /// the leaf basket that feeds it, and the sticky rice paddy, on the fifth's beside the candy kiln it feeds. Every
+        /// ingredient station stands within 520 units of what it feeds: the mooncake bakery stands two rows up, beside the
+        /// grape vine, so the lotus garden on the band above is near it.
         /// </summary>
         static readonly Hex[] StationTiles =
         {
@@ -87,13 +132,13 @@ namespace VuonTra.Core
             new Hex(5, -2),  //  6 moon milk tea: segment 1's land, above the leaf basket that feeds it (segment 2)
             new Hex(-5, 2),  //  7 star jar: segment 2, left
             new Hex(8, -2),  //  8 grape vine: segment 3, right, beside the milk tea
-            new Hex(9, 0),   //  9 mooncake bakery: segment 3, right
+            new Hex(10, -2), //  9 mooncake bakery: segment 3, right, beside the grape vine, under the lotus
             new Hex(-8, 2),  // 10 flower spring: segment 4, left, beside the star jar
             new Hex(-8, 0),  // 11 star observatory: segment 4, left, above the spring
-            new Hex(11, -2), // 12 lotus garden: segment 5, right, above the bakery it feeds
-            new Hex(10, 2),  // 13 malt candy kiln: segment 5, right
-            new Hex(12, 0),  // 14 sticky rice paddy: segment 5's land, beside the candy kiln it feeds (segment 6)
-            new Hex(-11, 0), // 15 night tea boat: segment 6, the far left
+            new Hex(11, -4), // 12 lotus garden: segment 5, up, above the bakery it feeds
+            new Hex(13, -5), // 13 malt candy kiln: segment 5, up
+            new Hex(11, -6), // 14 sticky rice paddy: segment 5's land, beside the candy kiln it feeds (segment 6)
+            new Hex(-7, 5),  // 15 night tea boat: segment 6, down, on the pond side
         };
         /// <summary>
         /// The places to rest: the two stumps by the tea table left of the teapot, then one on the land each of the first four
@@ -105,7 +150,7 @@ namespace VuonTra.Core
         /// <summary>The mortar just above the teapot; the tea shop at the top of the middle, home, with the guests' counter beside it.</summary>
         static readonly Hex MortarTile = new Hex(1, -1), ShopTile = new Hex(1, -3), CounterTile = new Hex(3, -3);
 
-        /// <summary>How many segments of the strip are open beside the middle.</summary>
+        /// <summary>How many segments of the map are open around the middle.</summary>
         public int Segments;
         readonly Dictionary<string, Hex> _tileOf = new Dictionary<string, Hex>();
         readonly Dictionary<Hex, string> _occupantAt = new Dictionary<Hex, string>();
@@ -118,31 +163,64 @@ namespace VuonTra.Core
         /// <summary>A tile's doubled column: 2q + r. The tiles of one row are two apart; x is 75 units a column.</summary>
         public static int Column(Hex h) => 2 * h.Q + h.R;
 
-        /// <summary>Which side segment <paramref name="segment"/> (1 for the first) opens: the odd ones to the right, the even ones to the left.</summary>
-        public static GardenSide SideOf(int segment) => segment <= 0 ? GardenSide.Middle : segment % 2 == 1 ? GardenSide.Right : GardenSide.Left;
+        /// <summary>Which side segment <paramref name="segment"/> (1 for the first) opens: right, left, right, left, up, down, then right, left, up.</summary>
+        public static GardenSide SideOf(int segment) => segment < 1 || segment > MaxSegments ? GardenSide.Middle : Bands[segment - 1].Side;
 
-        /// <summary>How many of the first <paramref name="segments"/> segments opened to the right, and to the left.</summary>
-        public static int RightOf(int segments) => Math.Max(0, segments + 1) / 2;
-        public static int LeftOf(int segments) => Math.Max(0, segments) / 2;
+        /// <summary>How deep segment <paramref name="segment"/>'s band is: doubled columns for one to the right or left, rows for one up or down; 0 for none.</summary>
+        public static int DepthOf(int segment) => segment < 1 || segment > MaxSegments ? 0 : Bands[segment - 1].Depth;
+
+        /// <summary>How many of the first <paramref name="segments"/> segments opened to the right, the left, up and down.</summary>
+        public static int RightOf(int segments) => Count(segments, GardenSide.Right);
+        public static int LeftOf(int segments) => Count(segments, GardenSide.Left);
+        public static int UpOf(int segments) => Count(segments, GardenSide.Up);
+        public static int DownOf(int segments) => Count(segments, GardenSide.Down);
+
+        static int Count(int segments, GardenSide side)
+        {
+            int n = 0;
+            for (int i = 1; i <= Math.Min(segments, MaxSegments); i++) if (Bands[i - 1].Side == side) n++;
+            return n;
+        }
+
+        /// <summary>
+        /// How far the lawn reaches from the teapot's tile on one side with this many segments open: the outermost doubled
+        /// column to the right or left (7 for the middle), the outermost row up or down (3 for the middle). The lawn's edge is
+        /// half a tile past it.
+        /// </summary>
+        public static int Reach(int segments, GardenSide side)
+        {
+            int n = Math.Max(0, Math.Min(MaxSegments, segments));
+            switch (side)
+            {
+                case GardenSide.Right: return ReachRight[n];
+                case GardenSide.Left: return ReachLeft[n];
+                case GardenSide.Up: return ReachUp[n];
+                case GardenSide.Down: return ReachDown[n];
+                default: return 0;
+            }
+        }
+
+        /// <summary>Whether a tile is on the lawn of a map with this many segments open: inside its rectangle of rows and doubled columns.</summary>
+        static bool Within(Hex h, int n)
+        {
+            int c = Column(h);
+            return h.R >= -ReachUp[n] && h.R <= ReachDown[n] && c >= -ReachLeft[n] && c <= ReachRight[n];
+        }
 
         /// <summary>
         /// The segment whose opening brings a tile onto the lawn: 0 for the middle, open from the start, 1, 2, … for the segments,
-        /// and -1 for a tile off the strip (above or below its rows, or past its last segment).
+        /// and -1 for a tile off the map (past its last segment on any side).
         /// </summary>
         public static int SegmentOf(Hex h)
         {
-            if (Math.Abs(h.R) > HalfRows) return -1;
-            int c = Column(h);
-            if (Math.Abs(c) <= StartHalfWidth) return 0;
-            int along = (Math.Abs(c) - StartHalfWidth + SegmentWidth - 1) / SegmentWidth; // 1 for the first segment on that side
-            int segment = c > 0 ? 2 * along - 1 : 2 * along;
-            return segment <= MaxSegments ? segment : -1;
+            for (int n = 0; n <= MaxSegments; n++) if (Within(h, n)) return n;
+            return -1;
         }
 
-        /// <summary>How many tiles a lawn with this many segments open holds: 53 in the middle, 21 more a segment.</summary>
-        public static int TileCount(int segments) => segments < 0 ? 0 : StartTiles + TilesPerSegment * Math.Min(segments, MaxSegments);
-        /// <summary>The tiles of the middle: four rows of eight and three of seven.</summary>
-        public const int StartTiles = 53;
+        /// <summary>How many tiles a lawn with this many segments open holds: 53 in the middle, then 21, 21, 42, 42, 204 and 204 for the catalog's six.</summary>
+        public static int TileCount(int segments) => segments < 0 ? 0 : Strip(segments).Count;
+        /// <summary>How many tiles segment <paramref name="segment"/> opens; 0 for none.</summary>
+        public static int SegmentTileCount(int segment) => segment < 1 || segment > MaxSegments ? 0 : TileCount(segment) - TileCount(segment - 1);
         /// <summary>How many tiles the lawn holds now.</summary>
         public int LawnTiles => TileCount(Segments);
 
@@ -183,26 +261,27 @@ namespace VuonTra.Core
 
         static readonly List<Hex>[] StripCache = new List<Hex>[MaxSegments + 1];
 
-        /// <summary>Every tile of a lawn with this many segments open, nearest the teapot first (ring by ring).</summary>
+        /// <summary>Every tile of a lawn with this many segments open, nearest the teapot first (ring by ring). The name is the strip's; it is the whole map's lawn.</summary>
         public static IReadOnlyList<Hex> Strip(int segments)
         {
             int n = Math.Max(0, Math.Min(MaxSegments, segments));
             List<Hex> cached = StripCache[n];
             if (cached != null) return cached;
-            var all = new List<Hex>(TileCount(n));
-            for (int radius = 0; all.Count < TileCount(n); radius++)
+            int count = 0;
+            for (int r = -ReachUp[n]; r <= ReachDown[n]; r++)
+                for (int c = -ReachLeft[n]; c <= ReachRight[n]; c++)
+                    if (((c - r) & 1) == 0) count++;
+            var all = new List<Hex>(count);
+            for (int radius = 0; all.Count < count; radius++)
                 foreach (Hex h in Ring(radius))
-                {
-                    int segment = SegmentOf(h);
-                    if (segment >= 0 && segment <= n) all.Add(h);
-                }
+                    if (Within(h, n)) all.Add(h);
             return StripCache[n] = all;
         }
 
         /// <summary>The tiles segment <paramref name="segment"/> opens, nearest the teapot first.</summary>
         public static List<Hex> SegmentTiles(int segment)
         {
-            var tiles = new List<Hex>(TilesPerSegment);
+            var tiles = new List<Hex>(SegmentTileCount(segment));
             if (segment < 1 || segment > MaxSegments) return tiles;
             foreach (Hex h in Strip(segment)) if (SegmentOf(h) == segment) tiles.Add(h);
             return tiles;
@@ -302,12 +381,35 @@ namespace VuonTra.Core
         public static Hex DefaultStationTile(int index)
         {
             if (index >= 0 && index < StationTiles.Length) return StationTiles[index];
-            // More stations than the table knows: the two of each further segment stand in the middle of its land, one in the
-            // upper rows and one in the lower, on the side it opens.
+            // More stations than the table knows: the two of each further segment stand in the middle of its band, one in the
+            // upper rows and one in the lower of a band to the right or left, one left and one right of a band up or down.
             int segment = Expansion.WavesTaken(Math.Max(index, StationTiles.Length) + 1);
-            int along = (segment + 1) / 2, column = 6 * along + 4, r = index % 2 == 0 ? -2 : 2;
-            if (SideOf(segment) == GardenSide.Left) column = -column;
-            return new Hex((column - r) / 2, r);
+            bool first = index % 2 == 0;
+            int c, r;
+            if (segment > MaxSegments)
+            {
+                // Past the map: further out right and left in turn, off the lawn; Settle stands such a station on the lawn.
+                int past = segment - MaxSegments;
+                c = (ReachRight[MaxSegments] + 4 * ((past + 1) / 2) + 1) * (past % 2 == 1 ? 1 : -1);
+                r = first ? -2 : 2;
+            }
+            else
+            {
+                GardenSide side = SideOf(segment);
+                int middle = Reach(segment - 1, side) + DepthOf(segment) / 2;
+                if (side == GardenSide.Right || side == GardenSide.Left)
+                {
+                    r = first ? -2 : 2;
+                    c = side == GardenSide.Right ? middle : -middle;
+                }
+                else
+                {
+                    r = side == GardenSide.Up ? -middle : middle;
+                    c = first ? -6 : 6;
+                }
+            }
+            if (((c - r) & 1) != 0) c += c > 0 ? 1 : -1; // a tile's column and row are both odd or both even
+            return new Hex((c - r) / 2, r);
         }
 
         public static Hex DefaultRestTile(int n) => n >= 0 && n < RestTiles.Length ? RestTiles[n] : new Hex(-5 - n, 3);
@@ -364,7 +466,9 @@ namespace VuonTra.Core
                 if (g._tileOf.ContainsKey(id)) continue;
                 Hex home = DefaultTile(id, defs);
                 if (g.Seat(id, home)) continue;
-                if (g.NearestEmpty(home, out Hex spare)) g.Seat(id, spare);
+                // A station keeps its distance from the others (#88) when its own tile is taken, as long as the lawn has room.
+                bool found = id.StartsWith("station:") ? g.NearestEmptyApart(home, Expansion.StationSpacing, id, out Hex spare) : g.NearestEmpty(home, out spare);
+                if (found) g.Seat(id, spare);
             }
         }
 
@@ -398,7 +502,7 @@ namespace VuonTra.Core
             }
         }
 
-        // ----- Widening the lawn (#53, the horizontal garden) -----
+        // ----- Widening the lawn (#53, the 2D map of #91) -----
 
         /// <summary>The tiles of the lawn with nothing standing on them, nearest the teapot first.</summary>
         public List<Hex> EmptyTiles()
@@ -420,6 +524,24 @@ namespace VuonTra.Core
                 if (ApartFromStations(h, spacing, null, null)) { found = h; return true; }
             }
             return NearestEmpty(out found);
+        }
+
+        /// <summary>
+        /// The empty lawn tile nearest <paramref name="near"/> that keeps at least <paramref name="spacing"/> tiles from every
+        /// station but <paramref name="self"/>; ties go as in <see cref="NearestEmpty(Hex, out Hex)"/>. The plain nearest empty
+        /// tile when no tile keeps that far. False when the lawn is full.
+        /// </summary>
+        public bool NearestEmptyApart(Hex near, int spacing, string self, out Hex found)
+        {
+            found = default;
+            int best = int.MaxValue;
+            foreach (Hex h in Strip(Segments))
+            {
+                if (_occupantAt.ContainsKey(h) || IsReserved(h)) continue;
+                int d = Distance(h, near);
+                if (d < best && ApartFromStations(h, spacing, self, null)) { best = d; found = h; }
+            }
+            return best != int.MaxValue || NearestEmpty(near, out found);
         }
 
         /// <summary>True when no station but <paramref name="self"/> and <paramref name="partner"/> stands closer than <paramref name="spacing"/> tiles to <paramref name="h"/>.</summary>

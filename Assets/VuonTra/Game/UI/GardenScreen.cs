@@ -23,10 +23,10 @@ namespace VuonTra.Game.UI
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
-        // The garden is a horizontal strip (the horizontal garden, 23 Nov): seven rows of tiles, as wide as every segment of
-        // the catalog's land (GardenGrid: 25 doubled columns each side of the teapot, 1950 units) plus 450 of wood at each end,
-        // and about 1.2 times the height the view shows between the HUD and the tab bar at the usual zoom.
-        const float WorldW = 4800f, WorldH = 2200f;
+        // The garden is a 2D map (#91, core part): as wide as every segment of the catalog's land (GardenGrid: 25 doubled
+        // columns each side of the teapot, 1950 units) plus 450 of wood at each end, and as tall as its rows (11 up and 11 down
+        // once the bands up and down are open, 2300 units each way) plus 400 of wood at each end.
+        const float WorldW = 4800f, WorldH = 5400f;
         /// <summary>The feet of the nearest trees of the wood stand this far past the lawn's sides: clear of every station by 200 and more.</summary>
         const float RimLeft = -300f, RimRight = WorldW + 310f;
         /// <summary>No tree of the wood comes nearer than this to a station's sign, pad, rabbit or prop, or to the props that must be read (#50).</summary>
@@ -6469,6 +6469,8 @@ namespace VuonTra.Game.UI
         const float ForestSignOut = 50f;
         /// <summary>New grass and the sign keep this far from the garden's top and bottom, where the wood closes over the lawn.</summary>
         const float RingGrassBand = 540f;
+        /// <summary>Half the height of the strip's world before the 2D map (#91), from which the grass band above is measured.</summary>
+        const float StripHalfH = 1100f;
 
         /// <summary>Where the sign's foot stands in the garden: at the lawn's edge, beside the land the next segment opens.</summary>
         public Vector2 ForestSignSpot { get; private set; }
@@ -6483,7 +6485,7 @@ namespace VuonTra.Game.UI
             var spots = new List<Vector2>();
             void Add(Vector2 at)
             {
-                if (at.y < RingGrassBand || at.y > WorldH - RingGrassBand) return;
+                if (Mathf.Abs(at.y - Heart.y) > StripHalfH - RingGrassBand) return; // #91: the strip's rows, measured from the heart as the world grew
                 foreach (Vector2 other in spots) if (Vector2.Distance(other, at) < 60f) return;
                 spots.Add(at);
             }
@@ -6558,8 +6560,7 @@ namespace VuonTra.Game.UI
         /// <summary>The x of the open lawn's edge on one side with this many segments open: half a tile past the last tile of its rows.</summary>
         static float LawnEdgeX(int segments, GardenSide side)
         {
-            int along = side == GardenSide.Left ? GardenGrid.LeftOf(segments) : GardenGrid.RightOf(segments);
-            float half = (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * along + 1) * (float)GardenGrid.PitchX / 2f;
+            float half = (GardenGrid.Reach(segments, side == GardenSide.Left ? GardenSide.Left : GardenSide.Right) + 1) * (float)GardenGrid.PitchX / 2f;
             return Heart.x + (side == GardenSide.Left ? -half : half);
         }
 
@@ -6599,9 +6600,10 @@ namespace VuonTra.Game.UI
         public static Vector2 SegmentSpan(int segment)
         {
             GardenSide side = GardenGrid.SideOf(segment);
-            int along = side == GardenSide.Left ? GardenGrid.LeftOf(segment) : GardenGrid.RightOf(segment);
-            float inner = (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * (along - 1) + 1) * (float)GardenGrid.PitchX / 2f;
-            float outer = inner + GardenGrid.SegmentWidth * (float)GardenGrid.PitchX / 2f;
+            if (side == GardenSide.Up || side == GardenSide.Down) // a band up or down runs the whole width open by then (#91)
+                return new Vector2(LawnEdgeX(segment, GardenSide.Left), LawnEdgeX(segment, GardenSide.Right));
+            float inner = (GardenGrid.Reach(segment - 1, side) + 1) * (float)GardenGrid.PitchX / 2f;
+            float outer = (GardenGrid.Reach(segment, side) + 1) * (float)GardenGrid.PitchX / 2f;
             return side == GardenSide.Left ? new Vector2(Heart.x - outer, Heart.x - inner) : new Vector2(Heart.x + inner, Heart.x + outer);
         }
 
@@ -6609,12 +6611,30 @@ namespace VuonTra.Game.UI
         static readonly float MistLow = -760f, MistHigh = 860f;
 
         /// <summary>
+        /// The garden y a segment's mist covers, bottom and top, from the heart: the middle's rows and their art for a band to
+        /// the side; for a band up or down, from the open lawn's edge to the band's far edge and the art there (#91 core; the
+        /// bands' look is #91b's).
+        /// </summary>
+        static Vector2 MistRows(int segment)
+        {
+            GardenSide side = GardenGrid.SideOf(segment);
+            float pitch = (float)GardenGrid.PitchY, edge = pitch * (GardenGrid.HalfRows + 0.5f);
+            if (side == GardenSide.Up)
+                return new Vector2(pitch * (GardenGrid.Reach(segment - 1, side) + 0.5f), pitch * (GardenGrid.Reach(segment, side) + 0.5f) + MistHigh - edge);
+            if (side == GardenSide.Down)
+                return new Vector2(-pitch * (GardenGrid.Reach(segment, side) + 0.5f) + MistLow + edge, -pitch * (GardenGrid.Reach(segment - 1, side) + 0.5f));
+            return new Vector2(MistLow, MistHigh);
+        }
+
+        /// <summary>
         /// Soft mist over one segment's land: watercolour washes of pale blue-white that overlap into a cloud bank, a little
         /// over the edge on both sides so no seam shows. It hides the dashed plots and the grass that wait under it.
         /// </summary>
         CanvasGroup BuildMist(GameCatalog catalog, int segment)
         {
-            Vector2 span = SegmentSpan(segment);
+            Vector2 span = SegmentSpan(segment), rows = MistRows(segment);
+            float MistLow = rows.x, MistHigh = rows.y; // #91: the rows of this segment's band
+            bool aside = GardenGrid.SideOf(segment) == GardenSide.Right || GardenGrid.SideOf(segment) == GardenSide.Left;
             var mist = UiKit.Rect("Segment Mist " + segment, _street).Stretch(0, 0, 1, 1);
             CanvasGroup group = mist.gameObject.AddComponent<CanvasGroup>();
             group.blocksRaycasts = false;
@@ -6627,9 +6647,10 @@ namespace VuonTra.Game.UI
             // land still to open reads as such on the dark grass. The washes over it keep it soft.
             bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
             float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
-            UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (MistLow + MistHigh) / 2f, MistEdgeWidth, MistHigh - MistLow + 200f)
-                .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
-            const int Across = 3, Down = 9;
+            if (aside) // #91: a band up or down has no side edge; its edge is #91b's to draw
+                UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (MistLow + MistHigh) / 2f, MistEdgeWidth, MistHigh - MistLow + 200f)
+                    .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
+            int Across = aside ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9; // #91: a band up or down runs the whole width
             for (int a = 0; a < Across; a++)
                 for (int d = 0; d < Down; d++)
                 {

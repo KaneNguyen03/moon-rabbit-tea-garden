@@ -95,27 +95,27 @@ namespace VuonTra.Core
     }
 
     /// <summary>
-    /// One segment of the strip coming out of the mist (the horizontal garden, which replaced the forest's rings of #53): the
-    /// lawn widens by <see cref="GardenGrid.TilesPerSegment"/> tiles on one side, opening the land of the next two stations and
-    /// one more place to rest, for a garden that has grown enough. Segment n asks what the ring R (3 + n) of the vertical
-    /// garden asked, so the pace is the same.
+    /// One segment of the map coming out of the mist (the 2D map of #91, which replaced the horizontal strip and, before it,
+    /// the forest's rings of #53): the lawn grows by one band to the right, the left, up or down (<see cref="GardenGrid.SideOf"/>),
+    /// opening the land of the next two stations and one more place to rest, for a garden that has grown enough. Segment n
+    /// asks what the strip's segment n asked, and that what the ring R (3 + n) of the vertical garden asked, so the pace is the same.
     /// </summary>
     public sealed class MistSegment
     {
         /// <summary>How many segments are open once this one is: 1 for the first.</summary>
         public int SegmentsAfter;
         public int NeedLevel, NeedRabbits, NeedKinds;
-        /// <summary>Which side of the strip it opens: right for the odd ones, left for the even ones.</summary>
+        /// <summary>Which side of the map it opens: right, left, right, left, up, down (#91).</summary>
         public GardenSide Side => GardenGrid.SideOf(SegmentsAfter);
-        /// <summary>The tiles it opens: three a row on its side.</summary>
-        public int Tiles => GardenGrid.TilesPerSegment;
+        /// <summary>The tiles it opens: its band's, 21 for each of the first two, 42 for the next two, 204 for the bands up and down.</summary>
+        public int Tiles => GardenGrid.SegmentTileCount(SegmentsAfter);
     }
 
     /// <summary>
-    /// The garden widens segment by segment: when it has grown enough the player presses "Mở rộng rừng", the mist at one end
-    /// of the strip clears and the lawn is three tiles a row wider there. Each segment asks for a garden level, for rabbits (or
+    /// The garden grows segment by segment: when it has grown enough the player presses "Mở rộng rừng", the mist over the next
+    /// band of the map clears, right, left, right, left, then up and down (#91). Each segment asks for a garden level, for rabbits (or
     /// kinds met), and for carrots: <see cref="Plots.CostShare"/> of the price of the stations its land makes room for. The lawn
-    /// starts as the middle of the strip with <see cref="Plots.Starting"/> plots, and each segment brings
+    /// starts as the middle of the map with <see cref="Plots.Starting"/> plots, and each segment brings
     /// <see cref="PlotsPerSegment"/> more, so the segments are the old land waves and the forest's rings (#53): the first
     /// around minute four, the fourth the last of the first twelve stations, on day three. Past the table every segment asks
     /// <see cref="LevelStepBeyond"/> levels more; segments open as far as the catalog has stations for (<see cref="LastSegments"/>).
@@ -219,7 +219,7 @@ namespace VuonTra.Core
         }
 
         /// <summary>
-        /// Opens the next segment: pays, clears the mist from three more tiles a row on its side, opens the land of the next
+        /// Opens the next segment: pays, clears the mist from its band of the map, opens the land of the next
         /// stations and one more place to rest. Each new station stands on its own tile from the garden's layout; if that tile
         /// is taken, on the empty tile nearest the teapot that keeps clear of the other stations.
         /// </summary>
