@@ -1664,6 +1664,82 @@ Sau khi sửa cả bốn xanh.
 - Phao đứng trước mặt trăng của hình ao và dây câu đi ngang mặt trăng; nếu vướng thì dời phao sang trái hoặc xuống dưới một chút.
 - Ảnh "trước" không có khung phao đang nổi vì khung đó mới thêm trong lần chụp sau.
 
+## #84 — Bong bóng đơn khách che bảng Câu cá (agent-84)
+- **Test:** 1133/1134 (verify GREEN). Mới: `AccessibilityTests.The_Guest_s_Order_Bubble_Covers_No_Plate_Nor_The_Shop_Nor_The_Guest` × 8 (vi/en × chữ thường/to × zoom mặc định/gần); trước khi sửa 8/8 đỏ.
+- **Commit:** `c7a53ab`, merge `f1f8a74`. Main sau gộp: 1133/1134.
+- **Đã làm:** bong bóng đơn neo mép trái ngay trên đầu khách và mọc sang phải (trước: căn giữa, lệch phải 34, nên tràn trái lên bảng); bảng "Câu cá N/5" dời trái 35 và hẹp 210 → 180. Ô quầy, ô ao và danh sách ô giữ chỗ không đổi (test ô giữ chỗ vẫn xanh). Thêm khung preview `84-khach-cho-ao`, `84-khach-cho-ao-gan`.
+- **Ảnh:** `docs/anh/qa-84/qa-84-truoc.png`, `qa-84-sau.png`, `qa-84-truoc-gan.png`, `qa-84-sau-gan.png`.
+
+### Chưa đạt / cần PO quyết
+- Bong bóng giờ nằm ngay trên lọ đom đóm (lọ ở phía dưới, bảng "Đom đóm · còn N lượt" vẫn đọc được). PO xem có ổn không.
+- Chưa thử trên máy thật.
+
+## Ảnh xem trước lẫn chữ Anh/Việt (QA, nhánh fix/preview-rebuild-vi)
+
+- `52d73ff` (QA): thêm `screen.RebuildUi()` sau khi đổi về tiếng Việt ở `PreviewShot.cs`, nên các khung 15-*, 16-*, 17-rest-*, 31-* sau bộ ảnh tiếng Anh không còn lẫn hai thứ tiếng. Chỉ đổi công cụ chụp ảnh, không đổi game. Gộp cùng lượt #84, main xanh 1133/1134.
+
+## #83 — Nhịp chơi đứng vững trên nhiều seed (agent-83)
+
+
+- **Test:** verify xanh 1128/1129 (thêm 3 test: hai test "cùng hạt chơi lại ra y hệt" cho EconomySimulationTests và GardenPacingTests, một test hệ số tiếp sức của hai trạm nguyên liệu mới). Mô phỏng chạy khoảng 5 phút trong Unity.
+- **Commit:** b9e2364, merge 939c936. Main sau gộp: 1136/1137.
+
+**Đã làm:**
+- Mỗi lần chạy mô phỏng nay lặp lại được: mã người chơi (thứ quyết định thỏ ghé tiệm mỗi ngày) trước lấy từ GUID nên bảng quảng cáo #66 lúc 129 lúc 132 thỏ; nay lấy từ hạt. Xúc xắc Thỏ Ếch và câu cá cũng lấy từ hạt.
+- Mọi luật nhịp trong EconomySimulationTests và GardenPacingTests đo trên 17 hạt: dùng trung vị hoặc "đúng trên ≥ 15/17 hạt"; giới hạn game tự chặn (hũ trăng, Thỏ Ếch) đúng trên mọi hạt. Log ghi bảng từng hạt kèm dòng trung vị.
+- Vòng rừng R 7 cần cấp vườn 16 (trước 15): đủ 12 ô đất ngày 3 trên 17/17 hạt (trước chỉ 8–9/17).
+- Vườn hoa sen và Ruộng lúa nếp tiếp sức 7 % mức thường: thu nhập ngày 7 của người chơi chăm từ ×131 về ×8,8 so với trước #67; test giữ trần ×10.
+
+| Mốc (trung vị 17 hạt) | Trước #67 | main 44cbcae | Sau |
+|---|---|---|---|
+| Cấp 5 (chăm / đều) | 4,9 / 6,6 phút | 4,8 / 6,1 phút | 4,8 / 6,1 phút |
+| Cấp 10, chăm | 8,45 giờ (ngày 1, 17/17) | như trước | như trước |
+| 12 ô đất, chăm | ngày 2 (10/17 hạt) | ngày 2 (9/17) | ngày 3 (17/17) |
+| 12 ô đất, đều | ngày 3 | ngày 3 | ngày 4 |
+| R 8 / R 9, chăm | – | ngày 3 / 4 | ngày 3 / 4 |
+| Trạm 13 / 16 (chăm; đều) | – | ngày 4/5; 5/9 | ngày 4/5; 5/9 |
+| Trò chơi + khách ngày 1 | 9,0 % | 17,5 % | 17,5 % |
+| Gọi vàng tuần 1 | 6 | 6 | 6 (≤ 6 ở 16/17) |
+| Thu/giây hết ngày 7, chăm | 6,39e21 | 8,40e23 (×131) | 5,60e22 (×8,8) |
+| Không nghỉ tay sau 2 giờ | 1,78e21 | 2,52e24 (×1416) | 1,27e23 (×71) |
+| Cấp 30 trong 14 ngày (chăm / đều) | 0/17 / 0/17 | 17/17 / 0/17 | 17/17 / 0/17 |
+
+### Chưa đạt / cần PO quyết
+- Duyệt hai hằng số: R 7 cấp 15 → 16; hệ số tiếp sức của Vườn hoa sen và Ruộng lúa nếp 1 → 0,07.
+- Cấp 5 ~7 phút: người chơi chăm 4,8 phút (từ trước #67 đã 4,9), người chơi đều 6,1 phút; muốn đạt phải đổi đường kinh nghiệm, ảnh hưởng cấp 10 và tỉ lệ trò chơi + khách.
+- Người chơi đều nay đủ 12 ô ở ngày 4 (trước ngày 3): không có mức cấp nào vừa giữ ngày 3 cho người chơi đều vừa chặn ngày 2 của người chơi chăm.
+- Người chơi chăm tới cấp 30 (Mùa trăng mới) ở ngày 9–10 kể từ #67.
+- Xem mọi quảng cáo: gọi vàng 7 lần/tuần (trung vị).
+- Không nghỉ tay: vẫn ×71 sau 2 giờ, mở 12 ô lúc ~10 phút.
+
+## #63 / #58 (sửa tiếp) — Chỉnh tiếng trạm và tiếng câu cá theo số đo QA (agent sound-tune)
+
+
+- **Test:** `tools/verify.sh` GREEN, 1156/1157 (1 inconclusive là `SeasonTests` phụ thuộc ngày, không liên quan). Mới: `SoundLevelTests` (24 ca) và bộ đo `SoundMeter` (đỉnh, RMS, trọng tâm phổ, năng lượng > 4 kHz, như QA đo). Sửa: test mức mặc định của "Tiếng trạm" (0,5, giá trị đã lưu được giữ).
+- **Commit:** `d43a577`, merge `c160de7`. Main sau gộp: 1159/1160.
+
+**Đã làm:**
+- Tiếng trạm: lọc thấp shake 4,0 / rustle 3,5 / crackle 4,5 / stream 5,0 kHz; mức nền vòng lặp 0,12 → 0,035 RMS; mặc định thanh "Tiếng trạm" 0,7 → 0,5. Ở mức mặc định, tiếng trạm nhỏ hơn nhạc 1,4–2,2 dB (trước: to hơn 7–12 dB).
+- Câu cá: thêm bồi âm 0,8–2 kHz cho sink, reel, bait-lost, float-up; đỉnh giới hạn −3,1 dBFS; độ dài, thời điểm phát không đổi.
+
+| Tiếng | Trước: đỉnh / RMS / trọng tâm / > 4 kHz | Sau |
+|---|---|---|
+| shake | −4,0 / −28,5 / 8,6 kHz / 70 % | −10,1 / −35,1 / 2,5 kHz / 16 % |
+| rustle | −4,6 / −21,5 / 7,0 kHz / 60 % | −16,9 / −35,1 / 2,4 kHz / 11 % |
+| crackle | −4,0 / −30,3 / 5,8 kHz / 48 % | −11,4 / −35,1 / 1,6 kHz / 10 % |
+| stream | −9,4 / −21,5 / 4,9 kHz / 39 % | −22,3 / −35,1 / 2,2 kHz / 13 % |
+| sink | −13,1 / −26,3 / 0,27 kHz / 0 % | −11,1 / −30,7 / 1,06 kHz / 0 % |
+| reel | −13,4 / −31,6 / 0,22 kHz / 0 % | −12,6 / −32,8 / 0,96 kHz / 1 % |
+| bait-lost | −16,2 / −27,7 / 0,36 kHz / 0 % | −12,6 / −27,8 / 0,85 kHz / 0 % |
+| float-up | −20,0 / −33,0 / 0,42 kHz / 0 % | −15,9 / −31,9 / 0,94 kHz / 0 % |
+
+(Tiếng trạm đo ở mức thanh trượt mặc định 0,7 trước / 0,5 sau; câu cá đo ở mức phát × Âm thanh 0,8. Nhạc không đổi: −32,9 / −33,7 / −32,9 dBFS.)
+
+### Chưa đạt / cần PO quyết
+- Chưa ai nghe bằng tai: PO cần nghe trên điện thoại thật cả tiếng trạm (rustle còn ra lá, crackle còn ra lửa, shake còn ra đá) lẫn 4 tiếng câu cá.
+- Người chơi đã lưu mức "Tiếng trạm" vẫn giữ con số của mình, nhưng nghe nhỏ hơn khoảng 10,7 dB vì mức nền giảm. Nếu muốn giữ nguyên độ to cho họ thì phải tính lại theo giá trị đã lưu.
+- Sink nhỏ hơn khoảng 4 dB RMS trên loa tốt (tai nghe, laptop); PO quyết có cần nâng không. Hiện test giới hạn mức phát tiếng câu cá ở 0,5 × Âm thanh, và sink đã ở mức trần đó.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
@@ -1737,3 +1813,64 @@ Bản đầy đủ: `docs/de-xuat-1.md`; đã đăng lên #1. Bốn điểm issu
 4. **Save:** thêm `Season` (save cũ = 0), không tăng version; test đọc save cũ và mô phỏng mùa 1.
 
 Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu hình ứng viên trong `docs/anh/po-8/`.
+
+## Vườn thành dải toàn cảnh cuộn ngang (#16, agent-ngang)
+
+
+- **Test:** 1182/1183 xanh trên main, `verify.sh --build` xanh (bản Mac chạy, Player.log sạch) (1 inconclusive như trên main); `tools/verify.sh` GREEN; 214 ảnh preview.
+- **Commit:** main fast-forward tới 6c3a3fb; 24cceaf (Core: lưới dải, đoạn mở rộng, save cũ), 07f09e4 (màn hình: camera, sương, parallax, ao, khách, thỏ dạo, ảnh), 6c3a3fb (seed lại bảng chữ).
+
+**Đã làm**
+- Lưới: dải 7 hàng; giữa 53 ô, mỗi đoạn thêm 21 ô, đoạn lẻ mở bên phải, đoạn chẵn bên trái. Bảng mặc định mới cho 16 trạm, 6 ghế, 8 chỗ trang trí, 3 đạo cụ.
+- Mở rộng: `MistSegment` thay `ForestRing`; 6 đoạn giữ cấp, thỏ, loài và giá của R4…R9.
+- Save v14: khối "radius" cũ mở thành số đoạn tương ứng, mọi thứ về ô mặc định, đồ cất vẫn cất, góc nhìn đặt lại.
+- Màn hình: kéo ngang có quán tính và nảy về trong đất đã mở + 360; nút về tiệm trà; bấm dòng tab Trạm lướt ngang; nút cạnh "◀ N" / "N ▶"; sương mềm cho từng đoạn chưa mở; viền rừng và biển trên mặt đất; parallax ngang (tắt khi Giảm chuyển động).
+- Bảng "Câu cá" sang bờ phải; khách tới từ bên phải; thỏ dạo ra ô trống của đất đã mở.
+
+
+- **Nhịp:** 17 hạt, trước = sau, giống hệt từng con số.
+
+- **Ảnh:** `docs/anh/po-vuon-ngang/` — `truoc-mo-dau`, `truoc-nhin-xa`, `truoc-nhin-xa-vong-9`, `truoc-sau-mo-rong`, `truoc-bam-dong-tram`; `sau-mo-dau`, `sau-nhin-xa`, `sau-nhin-xa-vong-9`, `sau-sau-mo-rong`, `sau-bam-dong-tram`, `sau-suong-tan-giua`.
+
+### Chưa đạt / cần PO quyết
+- Độ dày của sương (hiện nhạt trên nền cỏ tối).
+- Trà sữa và ruộng lúa đứng ngoài đoạn của mình để giữ luật trạm tiếp sức đứng gần.
+- Chữ "Mở rộng vườn · đoạn N" thay chữ "rừng · vòng".
+- Khách đi qua sương của đoạn 1 khi đoạn đó chưa mở; biển ở mép phải bị cắt một phần trong khung mở đầu; nút về tiệm trà chưa có chữ.
+- Thấy khi xem ảnh: câu nói của thỏ ("Nước vừa sôi…") có lúc che biển "Giã bánh"; bảng "Câu cá" sát mép trái trong khung sau khi mở rộng.
+
+## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
+
+### Trạng thái
+- main = origin/main tại commit này (ngay sau `a62eb2d`). `tools/verify.sh --build` xanh trên `6c3a3fb` (vườn ngang): seed, 214 ảnh preview, biên dịch, 1182/1183 EditMode (1 test mùa vụ không kết luận, có chủ ý), bản Mac `Build/Mac/VuonTraTho.app` chạy 8 giây, Player.log sạch. Mốc trước đó (`5c08ee7`, 1159/1160) là bản dọc cuối cùng.
+- Cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`) và các thư mục bị bỏ qua (`.agent/`, `.agents/`, `.github/`, `skills-lock.json`). `docs/de-xuat-vuon-ngang.md` đã commit cùng vườn ngang.
+- Không còn worktree agent nào (chỉ `qa-test` của session QA). Không có agent nào đang chạy.
+- Save vẫn v14; mọi khối thêm từ 22–23/11 (lưới, kho Bố trí, hũ trăng, mưa và Thỏ Ếch, quảng cáo, mã quà và hộp thư, câu cá và tim, nhắc tôi) đều là khối bổ sung, save cũ mở được (có test).
+- Mã quà: khoá thật `Assets/Resources/keys.json` đã có trên máy này và nằm trong bản Mac; mã ký tạo bằng `tools/make-code.sh` được nhận, mã sửa một ký tự hoặc kiểm bằng khoá khác bị từ chối (#68). Giữ một bản sao khoá ở nơi an toàn.
+
+### Đã gộp từ tối 22/11 tới trưa 23/11 (mỗi issue có comment đối chiếu, nhãn chờ-PO-duyệt, mục riêng ở trên)
+- Vườn: #52 lưới lục giác, #53 mở rộng rừng theo vòng, #54 chế độ Bố trí (+ ô giữ chỗ cho lọ đom đóm, giỏ lá, cối, ao), #67 bốn trạm mới trên vòng R8/R9 (+ zoom xa thấy cả vườn), #84 bong bóng khách không che bảng Câu cá.
+- Hoạt động: #58 câu cá và tim 10 (lõi, tấm ao, nút Cho ăn, tiếng, hình phao/nước), #62 mưa và Thỏ Ếch, #64 hũ trăng (+ hình vẽ tay), #68 mã quà và hộp thư, #66 seam quảng cáo (chỉ bản giả, bản build không có nút).
+- Âm thanh: #63 tiếng trạm khi zoom gần, thanh Tiếng trạm, chọn nhạc; chỉnh theo số đo QA (lọc chói, mặc định 0,5, câu cá nghe được trên loa điện thoại).
+- Kinh tế: #83 nhịp đo trên 17 seed, mô phỏng lặp lại được, R7 cần cấp 16, tiếp sức của Vườn hoa sen và Ruộng lúa nếp còn 7 %.
+- Lỗi QA: #79, #80, #81, #82; ảnh preview không còn lẫn chữ Anh/Việt (`52d73ff`).
+- Vườn thành dải toàn cảnh cuộn ngang (#16, `24cceaf` + `07f09e4` + `6c3a3fb`): dải 7 hàng, tiệm trà ở giữa; 6 đoạn sương mở phải/trái giữ cấp và giá của R4–R9 (nhịp 17 seed giống hệt); kéo ngang có quán tính, nút về tiệm trà, nút cạnh ◀/▶, parallax rừng xa; save dọc cũ mở đúng chỗ. Đã ghi chú lên #50–#54, #67.
+
+### Cần chủ project quyết hoặc thử tay
+- Duyệt các hằng số: #83 (R7 cấp 16; hệ số tiếp sức 0,07), #67 (cấp mở trạm 16/18/20/23; R8/R9 cấp 16/20; hai nhiệm vụ chỉ thưởng cỏ), #64 và #62 (hũ trăng từ nhiệm vụ/đom đóm và Thỏ Ếch chỉ từ cấp vườn 15), #58 (tim thứ 10 ở 18.880 điểm), #53 (giá vòng ¼ giá hai trạm), #52 (lưới bắt đầu bán kính 3), #68 (hạn mã công khai, quà thư), #66 (có quảng cáo hay không, ba chỗ, giá vé).
+- Bố cục: thảm picnic dời về (-2,2) giữa nồi mứt và ấm trà; giỏ hứng lá đứng yên khi dời trạm Giỏ lá; ấm trà không cất kho được; bong bóng khách nằm trên lọ đom đóm.
+- Nghe trên điện thoại thật: tiếng trạm sau khi lọc, mức Tiếng trạm 0,5, sáu tiếng câu cá, ba bài nhạc.
+- Còn mở ngoài chờ duyệt: #4 (thử tay bản Mac), #16 (hàng đợi).
+
+### Việc tiếp theo
+- Vườn ngang, chờ chủ project quyết: độ dày của sương; trà sữa và ruộng lúa đứng ngoài đoạn của mình (luật trạm tiếp sức đứng gần); chữ "Mở rộng vườn · đoạn N".
+- Vườn ngang, việc nhỏ còn lại: khách đi qua sương đoạn 1 khi đoạn đó chưa mở; biển mép phải bị cắt trong khung mở đầu; nút về tiệm trà chưa có chữ (`edge.home`); câu nói của thỏ có lúc che biển "Giã bánh".
+- Thử tay bản Mac mới (kéo ngang, mở đoạn, Bố trí trên dải, câu cá, mã quà).
+
+### Lưu ý kỹ thuật mới
+- Tối đa 5 agent song song (16 GB RAM); mỗi agent một worktree `../VuonTraNam-NN` với bản sao Library; hai nhánh cùng đụng một chỗ thì gộp theo thứ tự cố định.
+- Sau mỗi lần gộp: bảng chuỗi lấy bản nào cũng được rồi seed lại; khối nối cuối file (L10nStrings, PreviewShot, cuối GardenScreen, test) giữ cả hai và thêm `}`/`#endregion` bị mất ở chỗ nối.
+- `GardenScreen.StationSpot/RestSpot/DecorSpotAt/MortarSpot/ShopSpot/GuestSpot` là thành viên instance (đọc lưới), không còn static.
+- Vườn ngang: `GardenGrid.Segments` thay `Radius`, `Expansion.Segment(n)`/`Segments(s)` thay `Ring`/`Radius`; thế giới 4800 × 2200; `PreviewShot` nhắm camera qua `At(x, y)`.
+- Test màn hình mới đặt `screen.Raining = () => false;` trong SetUp, nếu không đồng hồ thật rơi vào cơn mưa làm test chập chờn.
+- Mô phỏng kinh tế thuần C#: dựng nhanh ngoài Unity bằng .NET SDK trong bản Unity; test nhịp giờ chạy 17 seed (~5 phút trong Unity).

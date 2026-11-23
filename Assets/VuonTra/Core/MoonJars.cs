@@ -7,8 +7,8 @@ namespace VuonTra.Core
     /// Moon jars (#64): an hour of the garden's income kept in a jar, opened from the purse whenever the player likes.
     /// A jar is worth what an hour earns at the moment it is opened, with the charms and the speed but never time
     /// away's own bonus, so it stays a fair prize however far the garden has come. The shop sells three a day for
-    /// golden carrots from garden level 3. Every tenth garden level brings one free, and from garden level 15 (all the
-    /// garden's land) the daily harvest quest and a three-star firefly night do too, each in place of the prize it
+    /// golden carrots from garden level 3. Every tenth garden level brings one free, and from garden level 15 (one short
+    /// of the last plots) the daily harvest quest and a three-star firefly night do too, each in place of the prize it
     /// used to give; the free sources together give one a day at most. Nine fit on the shelf.
     /// </summary>
     public static class MoonJars
@@ -27,7 +27,7 @@ namespace VuonTra.Core
         public const int LevelStep = 10;
         /// <summary>
         /// The garden level the daily sources (the harvest quest, the firefly night) start paying jars at: the level the
-        /// last plots need. Earlier, an hour of a small income is many times the purse: from the start, the harvest's jar
+        /// last plots needed until R 7 moved to 16 (#83). Earlier, an hour of a small income is many times the purse: from the start, the harvest's jar
         /// at minute two brought all twelve plots a day early, and from level 10 the casual player's second-morning jar
         /// still did (EconomySimulationTests). Before it they pay their clover and golden carrot as they always did.
         /// </summary>

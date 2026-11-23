@@ -24,6 +24,7 @@ MonoBehaviour:
   Boosts:
   - {fileID: 11400000, guid: eb2626f9c048e4ac293f7be19d405012, type: 2}
   - {fileID: 11400000, guid: e6fb321e741614ef294b3df42a7b3ff2, type: 2}
+  BoostScale: 1
   Prop: {fileID: 21300000, guid: f703a14c0d32f4849ac9e5b1161762d4, type: 3}
   Product: {fileID: 0}
   Rabbit: {fileID: 0}

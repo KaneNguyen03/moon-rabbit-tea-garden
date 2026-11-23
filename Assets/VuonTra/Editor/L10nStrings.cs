@@ -803,6 +803,11 @@ namespace VuonTra.EditorTools
             { "feed.points", "+{0} điểm", "+{0} pts" },
             { "feed.empty", "Giỏ trống · câu ở ao", "Basket empty · fish at the pond" },
             { "feed.full", "Đã đủ 10 tim", "All 10 hearts" },
+            // ----- horizontal garden (vườn ngang) -----
+            { "garden.expand", "Mở rộng vườn", "Widen the garden" },
+            { "garden.segment", "Mở rộng vườn · đoạn {0}", "Widen the garden · part {0}" },
+            { "moment.segment.title", "Sương tan, vườn rộng thêm!", "The mist clears: more garden!" },
+            { "edge.home", "Về tiệm trà", "Back to the tea shop" },
         };
     }
 }

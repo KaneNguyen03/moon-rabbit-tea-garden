@@ -91,6 +91,12 @@ namespace VuonTra.Core
             return level <= 0 ? 1d : 1d + 0.10d * level * MilestoneMultiplier(level);
         }
 
+        /// <summary>The multiplier this Ingredient station gives at this level: the rise of <see cref="IngredientBoost(int)"/>, scaled by its <see cref="StationDef.BoostScale"/> (#83).</summary>
+        public static double IngredientBoost(StationDef d, int level)
+        {
+            return 1d + (IngredientBoost(level) - 1d) * d.BoostScale;
+        }
+
         /// <summary>Sương one finished cycle pays. Zero for Ingredient or locked stations.</summary>
         public static BigNum IncomePerCycle(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
@@ -105,7 +111,7 @@ namespace VuonTra.Core
                 if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0 || Layout.IsStored(defs, s, i)) continue;
                 // A rabbit at an ingredient station strengthens the bonus it gives, not the base 1; so do the album's sets (#61).
                 if (other.Boosts(d.Id))
-                    income *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
+                    income *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
             }
             // The album's complete sets of the station's trade (#61): +3 % each.
             return income * Rabbits.StationMultiplier(defs, s, index) * AlbumSets.StationFactor(defs, s, index);
@@ -126,7 +132,7 @@ namespace VuonTra.Core
             {
                 var other = defs[i];
                 if (other.Kind == StationKind.Ingredient && s.Levels[i] > 0 && other.Boosts(d.Id) && !Layout.IsStored(defs, s, i))
-                    ingredients *= 1d + (IngredientBoost(s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
+                    ingredients *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
             }
             return IncomePerCycle(defs, s, index) / d.CycleSeconds;
         }

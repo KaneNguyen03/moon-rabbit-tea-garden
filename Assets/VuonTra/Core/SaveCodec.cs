@@ -29,6 +29,9 @@ namespace VuonTra.Core
     /// </summary>
     public static class SaveCodec
     {
+        /// <summary>The rings the vertical garden's lawn started with: a saved "radius" past it counts its open land (the horizontal garden).</summary>
+        const int LegacyStartingRadius = 3;
+
         /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view. The hex grid under the garden (#52) is an additive block, no new version.</summary>
         public const int CurrentVersion = 14;
 
@@ -309,8 +312,10 @@ namespace VuonTra.Core
                 }
             }
             sb.Append("},\"passUntil\":").Append(s.NoAdsUntilDay.ToString(CultureInfo.InvariantCulture)).Append('}');
-            // The hex grid (#52), an additive block: how wide the lawn is, and the tile of everything standing on it. Empty tiles follow.
-            sb.Append(",\"grid\":{\"radius\":").Append(s.Grid.Radius.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
+            // The hex grid (#52), an additive block: how many segments of the strip are open, and the tile of everything standing
+            // on it. Empty tiles follow. "segments" marks the horizontal garden's tiles; a block with "radius" holds the vertical
+            // garden's, from before it.
+            sb.Append(",\"grid\":{\"segments\":").Append(s.Grid.Segments.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
             {
                 var ids = new List<string>();
                 foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) ids.Add(o.Key);
@@ -809,18 +814,32 @@ namespace VuonTra.Core
 
             // The hex grid (#52). A save from before stands on the default table: every plot's station, place to rest and
             // decoration standing gets its tile, so nothing is lost. A tile claimed twice keeps its first claimant.
-            s.Grid = new GardenGrid(GardenGrid.RadiusForPlots(s.Plots));
+            s.Grid = new GardenGrid(GardenGrid.SegmentsForPlots(s.Plots));
             if (root.TryGetValue("grid", out object gridObj) && gridObj is Dictionary<string, object> grid)
             {
-                if (TryNumber(grid, "radius", out double radius)) s.Grid.Radius = (int)Math.Max(0d, Math.Min(radius, GardenGrid.MaxRadius));
-                if (grid.TryGetValue("tiles", out object tilesObj) && tilesObj is List<object> tiles)
-                    foreach (object raw in tiles)
-                    {
-                        if (!(raw is Dictionary<string, object> tile) || !TryNumber(tile, "q", out double q) || !TryNumber(tile, "r", out double r)) continue;
-                        if (!(tile.TryGetValue("id", out object idObj) && idObj is string id) || !GardenGrid.Known(id) || s.Grid.TileOf(id) != null) continue;
-                        if (Math.Abs(q) > GardenGrid.MaxRadius * 2 || Math.Abs(r) > GardenGrid.MaxRadius * 2 || s.Grid.OccupantAt((int)q, (int)r) != null) continue;
-                        s.Grid.Place(id, (int)q, (int)r, true);
-                    }
+                if (TryNumber(grid, "segments", out double segments))
+                {
+                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(segments, GardenGrid.MaxSegments));
+                    if (grid.TryGetValue("tiles", out object tilesObj) && tilesObj is List<object> tiles)
+                        foreach (object raw in tiles)
+                        {
+                            if (!(raw is Dictionary<string, object> tile) || !TryNumber(tile, "q", out double q) || !TryNumber(tile, "r", out double r)) continue;
+                            if (!(tile.TryGetValue("id", out object idObj) && idObj is string id) || !GardenGrid.Known(id) || s.Grid.TileOf(id) != null) continue;
+                            if (Math.Abs(q) > 1000d || Math.Abs(r) > 1000d) continue;
+                            var at = new Hex((int)q, (int)r);
+                            if (GardenGrid.SegmentOf(at) < 0 || s.Grid.OccupantAt(at.Q, at.R) != null) continue;
+                            s.Grid.Place(id, at.Q, at.R, true);
+                        }
+                }
+                else if (TryNumber(grid, "radius", out double radius))
+                {
+                    // The vertical garden's grid (before the horizontal garden): the lawn's rings past the first three are the
+                    // segments it has open, and its tiles mean nothing on the strip, so everything stands on its own default tile
+                    // (or the empty tile nearest it, Settle below). What was stored stays stored. The view it remembers looked at
+                    // that column, so the garden opens on the teapot at the usual zoom instead.
+                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(radius - LegacyStartingRadius, GardenGrid.MaxSegments));
+                    s.ViewX = s.ViewY = s.ViewZoom = 0d;
+                }
                 // The stations put away (#54); Settle lets go of any that is not an open station with a plot.
                 if (grid.TryGetValue("stored", out object storedObj) && storedObj is List<object> stored)
                     foreach (object raw in stored)

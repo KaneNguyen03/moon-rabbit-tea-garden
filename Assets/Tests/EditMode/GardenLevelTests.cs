@@ -105,11 +105,11 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_First_Ring_Needs_Level_And_Carrots_Both()
+        public void The_First_Segment_Needs_Level_And_Carrots_Both()
         {
-            ForestRing ring = Expansion.Next(defs, s);
-            Assert.AreEqual(4, ring.RadiusAfter);
-            Assert.AreEqual(0, ring.NeedRabbits, "the first ring asks for no rabbits (#53)");
+            MistSegment ring = Expansion.Next(defs, s);
+            Assert.AreEqual(1, ring.SegmentsAfter);
+            Assert.AreEqual(0, ring.NeedRabbits, "the first segment asks for no rabbits, as the first ring did (#53)");
             BigNum cost = Expansion.CostOfNext(defs, s);
             Assert.AreEqual((1e5 + 1e6) * Plots.CostShare, cost.ToDouble(), 1e-3, "the land of the two stations it makes room for, each a quarter of its station");
 
@@ -120,18 +120,18 @@ namespace VuonTra.Core.Tests
             s.Coins = cost - BigNum.One;
             Assert.IsFalse(Expansion.Expand(defs, s), "one carrot short");
             Assert.AreEqual(4, s.Plots);
-            Assert.AreEqual(3, s.Grid.Radius);
+            Assert.AreEqual(0, s.Grid.Segments);
 
             s.Coins = cost;
             Assert.IsTrue(Expansion.Expand(defs, s));
             Assert.AreEqual(6, s.Plots);
-            Assert.AreEqual(4, s.Grid.Radius, "the forest stepped back a ring");
-            Assert.AreEqual(3, s.RestSpots, "a ring also opens a place to rest");
+            Assert.AreEqual(1, s.Grid.Segments, "the mist cleared from a segment");
+            Assert.AreEqual(3, s.RestSpots, "a segment also opens a place to rest");
             Assert.IsTrue(s.Coins.Equals(BigNum.Zero));
         }
 
         [Test]
-        public void The_Second_Ring_Needs_Rabbits_Too()
+        public void The_Second_Segment_Needs_Rabbits_Too()
         {
             s.Coins = BigNum.FromParts(1, 40);
             s.GardenXp = Garden.XpForLevel(6);
@@ -140,11 +140,11 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Expansion.Expand(defs, s), "one rabbit short");
             Rabbit(1);
             Assert.IsTrue(Expansion.Expand(defs, s));
-            Assert.AreEqual(5, s.Grid.Radius);
+            Assert.AreEqual(2, s.Grid.Segments);
         }
 
         [Test]
-        public void The_Rings_Go_Four_Five_Six_Seven_And_Then_Stop()
+        public void The_Segments_Go_One_Two_Three_Four_And_Then_Stop()
         {
             s.Coins = BigNum.FromParts(1, 40);
             s.GardenXp = Garden.XpForLevel(20);
@@ -153,9 +153,9 @@ namespace VuonTra.Core.Tests
             int[] expected = { 6, 8, 10, 12 };
             for (int i = 0; i < expected.Length; i++)
             {
-                Assert.IsTrue(Expansion.Expand(defs, s), "ring " + i);
+                Assert.IsTrue(Expansion.Expand(defs, s), "segment " + i);
                 Assert.AreEqual(expected[i], s.Plots);
-                Assert.AreEqual(4 + i, s.Grid.Radius);
+                Assert.AreEqual(1 + i, s.Grid.Segments);
                 Assert.AreEqual(3 + i, s.RestSpots);
             }
             Assert.IsNull(Expansion.Next(defs, s), "twelve stations, twelve plots: the forest stays where it is");
@@ -164,13 +164,13 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Last_Ring_Asks_For_Kinds_Met_Not_For_A_Head_Count()
+        public void The_Last_Segment_Asks_For_Kinds_Met_Not_For_A_Head_Count()
         {
             s.Plots = 10;
             GardenGrid.Settle(defs, s);
             s.Coins = BigNum.FromParts(1, 40);
-            s.GardenXp = Garden.XpForLevel(15);
-            Assert.AreEqual(7, Expansion.Next(defs, s).RadiusAfter);
+            s.GardenXp = Garden.XpForLevel(Expansion.Segment(4).NeedLevel);
+            Assert.AreEqual(4, Expansion.Next(defs, s).SegmentsAfter);
             Assert.IsFalse(Expansion.CanExpand(defs, s));
             foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < 8) s.SeenKinds.Add(kind.Id);
             Assert.IsTrue(Expansion.CanExpand(defs, s), "no rabbits owned right now, but eight kinds met");
@@ -181,7 +181,7 @@ namespace VuonTra.Core.Tests
         [TestCase(6, 1, 3)]
         [TestCase(7, 2, 6)]
         [TestCase(10, 3, 10)]
-        [TestCase(12, 4, 15)]
+        [TestCase(12, 4, 16)] // the fourth segment (the old R 7) asks for level 16 since #83
         public void Land_Already_Held_Says_Which_Waves_Were_Taken(int plots, int waves, int level)
         {
             Assert.AreEqual(waves, Expansion.WavesTaken(plots));

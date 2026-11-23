@@ -19,6 +19,8 @@ namespace VuonTra.Game
         public int NeedGardenLevel;
         [Tooltip("Ingredient only: the Brew stations this one makes more valuable.")]
         public StationData[] Boosts = new StationData[0];
+        [Tooltip("Ingredient only: how much of the usual boost this station gives, 1 for all of it (#83).")]
+        public double BoostScale = 1;
         public Sprite Prop;
         [Tooltip("What this station makes for the tray. Empty: the prop stands in for it.")]
         public Sprite Product;
@@ -38,6 +40,7 @@ namespace VuonTra.Game
                 BaseCost = BaseCost, CostGrowth = CostGrowth,
                 BaseIncome = BaseIncome, CycleSeconds = CycleSeconds,
                 BoostsIds = ids,
+                BoostScale = BoostScale,
                 Trade = Trade,
                 NeedGardenLevel = NeedGardenLevel
             };

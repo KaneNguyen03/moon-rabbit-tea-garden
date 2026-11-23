@@ -24,6 +24,12 @@ namespace VuonTra.Core
         public double CycleSeconds;
         /// <summary>Ingredient only: ids of the Brew stations it boosts.</summary>
         public string[] BoostsIds = Array.Empty<string>();
+        /// <summary>
+        /// Ingredient only: how much of <see cref="Economy.IngredientBoost(int)"/>'s rise this station gives, 1 for all of it.
+        /// The two after the star observatory give 7 % (#83): at full strength they stacked onto the top brews and made
+        /// day seven's income over a hundred times what it was before them.
+        /// </summary>
+        public double BoostScale = 1d;
         /// <summary>The trade this station belongs to; a rabbit of that trade is worth more here. None gives nobody a bonus.</summary>
         public RabbitTrade Trade;
         /// <summary>The garden level a station asks for before it can be opened, besides its price and its plot (#67); 0 asks for none.</summary>
