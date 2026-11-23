@@ -28,7 +28,7 @@ namespace VuonTra.Core.Tests
         [SetUp]
         public void SetUp()
         {
-            stationBefore = PlayerPrefs.GetFloat("vol.station", 0.7f);
+            stationBefore = PlayerPrefs.GetFloat("vol.station", Sfx.DefaultStationGain);
             tuneBefore = (Sfx.Tune)PlayerPrefs.GetInt("music.tune", 0);
             L10n.SetLocale("vi");
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
@@ -251,12 +251,20 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Station_Volume_Starts_At_Seven_Tenths()
+        public void The_Station_Volume_Starts_At_One_Half_And_A_Saved_Level_Is_Kept()
         {
+            // 0.7 until 23 Nov, when QA measured the loops 7–12 dB over the music at the default sliders.
             PlayerPrefs.DeleteKey("vol.station");
             var host = new GameObject("Host");
             Sfx.Attach(host);
-            Assert.AreEqual(0.7f, Sfx.StationGain, 1e-4f);
+            Assert.AreEqual(0.5f, Sfx.DefaultStationGain);
+            Assert.AreEqual(0.5f, Sfx.StationGain, 1e-4f, "a new player starts at the default");
+            Object.DestroyImmediate(host);
+
+            PlayerPrefs.SetFloat("vol.station", 0.7f); // someone who kept the old default, or chose it
+            host = new GameObject("Host");
+            Sfx.Attach(host);
+            Assert.AreEqual(0.7f, Sfx.StationGain, 1e-4f, "a saved level is the player's own, not the default");
             Object.DestroyImmediate(host);
         }
 
