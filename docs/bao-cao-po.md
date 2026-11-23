@@ -1678,6 +1678,40 @@ Sau khi sửa cả bốn xanh.
 
 - `52d73ff` (QA): thêm `screen.RebuildUi()` sau khi đổi về tiếng Việt ở `PreviewShot.cs`, nên các khung 15-*, 16-*, 17-rest-*, 31-* sau bộ ảnh tiếng Anh không còn lẫn hai thứ tiếng. Chỉ đổi công cụ chụp ảnh, không đổi game. Gộp cùng lượt #84, main xanh 1133/1134.
 
+## #83 — Nhịp chơi đứng vững trên nhiều seed (agent-83)
+
+
+- **Test:** verify xanh 1128/1129 (thêm 3 test: hai test "cùng hạt chơi lại ra y hệt" cho EconomySimulationTests và GardenPacingTests, một test hệ số tiếp sức của hai trạm nguyên liệu mới). Mô phỏng chạy khoảng 5 phút trong Unity.
+- **Commit:** b9e2364, merge 939c936. Main sau gộp: 1136/1137.
+
+**Đã làm:**
+- Mỗi lần chạy mô phỏng nay lặp lại được: mã người chơi (thứ quyết định thỏ ghé tiệm mỗi ngày) trước lấy từ GUID nên bảng quảng cáo #66 lúc 129 lúc 132 thỏ; nay lấy từ hạt. Xúc xắc Thỏ Ếch và câu cá cũng lấy từ hạt.
+- Mọi luật nhịp trong EconomySimulationTests và GardenPacingTests đo trên 17 hạt: dùng trung vị hoặc "đúng trên ≥ 15/17 hạt"; giới hạn game tự chặn (hũ trăng, Thỏ Ếch) đúng trên mọi hạt. Log ghi bảng từng hạt kèm dòng trung vị.
+- Vòng rừng R 7 cần cấp vườn 16 (trước 15): đủ 12 ô đất ngày 3 trên 17/17 hạt (trước chỉ 8–9/17).
+- Vườn hoa sen và Ruộng lúa nếp tiếp sức 7 % mức thường: thu nhập ngày 7 của người chơi chăm từ ×131 về ×8,8 so với trước #67; test giữ trần ×10.
+
+| Mốc (trung vị 17 hạt) | Trước #67 | main 44cbcae | Sau |
+|---|---|---|---|
+| Cấp 5 (chăm / đều) | 4,9 / 6,6 phút | 4,8 / 6,1 phút | 4,8 / 6,1 phút |
+| Cấp 10, chăm | 8,45 giờ (ngày 1, 17/17) | như trước | như trước |
+| 12 ô đất, chăm | ngày 2 (10/17 hạt) | ngày 2 (9/17) | ngày 3 (17/17) |
+| 12 ô đất, đều | ngày 3 | ngày 3 | ngày 4 |
+| R 8 / R 9, chăm | – | ngày 3 / 4 | ngày 3 / 4 |
+| Trạm 13 / 16 (chăm; đều) | – | ngày 4/5; 5/9 | ngày 4/5; 5/9 |
+| Trò chơi + khách ngày 1 | 9,0 % | 17,5 % | 17,5 % |
+| Gọi vàng tuần 1 | 6 | 6 | 6 (≤ 6 ở 16/17) |
+| Thu/giây hết ngày 7, chăm | 6,39e21 | 8,40e23 (×131) | 5,60e22 (×8,8) |
+| Không nghỉ tay sau 2 giờ | 1,78e21 | 2,52e24 (×1416) | 1,27e23 (×71) |
+| Cấp 30 trong 14 ngày (chăm / đều) | 0/17 / 0/17 | 17/17 / 0/17 | 17/17 / 0/17 |
+
+### Chưa đạt / cần PO quyết
+- Duyệt hai hằng số: R 7 cấp 15 → 16; hệ số tiếp sức của Vườn hoa sen và Ruộng lúa nếp 1 → 0,07.
+- Cấp 5 ~7 phút: người chơi chăm 4,8 phút (từ trước #67 đã 4,9), người chơi đều 6,1 phút; muốn đạt phải đổi đường kinh nghiệm, ảnh hưởng cấp 10 và tỉ lệ trò chơi + khách.
+- Người chơi đều nay đủ 12 ô ở ngày 4 (trước ngày 3): không có mức cấp nào vừa giữ ngày 3 cho người chơi đều vừa chặn ngày 2 của người chơi chăm.
+- Người chơi chăm tới cấp 30 (Mùa trăng mới) ở ngày 9–10 kể từ #67.
+- Xem mọi quảng cáo: gọi vàng 7 lần/tuần (trung vị).
+- Không nghỉ tay: vẫn ×71 sau 2 giờ, mở 12 ô lúc ~10 phút.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
