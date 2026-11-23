@@ -3447,6 +3447,84 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(root.transform.Find("Canvas/Away").gameObject.activeSelf);
         }
 
+        /// <summary>The sheet is up with a long time away, then the player looks at another app for a minute (#89).</summary>
+        AwayReport SheetUpThenAMinuteAway()
+        {
+            screen.Shell.StartGame();
+            runner.State.MaxDaySeen = runner.TodayNumber + 1; // pins the day: midnight passing mid-test cannot give the free ×2 back
+            var twoHours = new AwayReport { Paid = new BigNum(8000), Seconds = 2 * 3600 };
+            runner.ShowAwayForTest(twoHours);
+            screen.ShowAway(twoHours); // in play the runner's event does this (wired in Start)
+            Assert.IsTrue(screen.AwayCard.IsOpen);
+            var minute = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
+            runner.ShowAwayForTest(minute);
+            screen.ShowAway(minute);
+            Assert.IsTrue(screen.AwayCard.IsOpen, "the minute away leaves the sheet up");
+            Assert.AreEqual("+" + new BigNum(8000).Short(), root.transform.Find("Canvas/Away/Card/Carrots/Amount").GetComponent<Text>().text);
+            return twoHours;
+        }
+
+        [Test]
+        public void A_Minute_Away_While_The_Sheet_Is_Up_Leaves_Its_Free_Times_Two_On_The_Two_Hours_It_Shows()
+        {
+            AwayReport shown = SheetUpThenAMinuteAway();
+            GameState s = runner.State;
+            Assert.AreEqual(L10n.T("away.double.free"), screen.AwayCard.DoubleLabel, "the free ×2 is still there");
+            BigNum before = s.Coins;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6, "×2 pays the two hours the sheet shows, not the minute");
+            Assert.AreEqual(runner.TodayNumber, s.AwayDoubleDay, "the day's free ×2 is used, once");
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+
+            // A second ×2 is refused, even after another short absence.
+            var again = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
+            runner.ShowAwayForTest(again);
+            screen.ShowAway(again);
+            Assert.IsTrue(runner.LastAwayDoubled, "a short absence does not give the ×2 back");
+            Assert.IsFalse(runner.DoubleAway(), "one doubling per time away");
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6);
+        }
+
+        [Test]
+        public void A_Minute_Away_While_The_Sheet_Is_Up_Leaves_Its_Golden_Times_Two_On_The_Two_Hours_It_Shows()
+        {
+            AwayReport shown = SheetUpThenAMinuteAway();
+            GameState s = runner.State;
+            s.AwayDoubleDay = runner.TodayNumber; // today's free one is spent (the day is pinned by now)
+            s.GoldenCarrots = 9;
+            screen.AwayCard.RefreshDouble();
+            Assert.AreEqual(L10n.T("away.double.cost", Away.DoubleCost), screen.AwayCard.DoubleLabel);
+            BigNum before = s.Coins;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6, "five golden carrots buy the two hours again");
+            Assert.AreEqual(9 - Away.DoubleCost, s.GoldenCarrots);
+            Assert.IsFalse(runner.DoubleAway(), "one doubling per time away");
+            Assert.AreEqual(9 - Away.DoubleCost, s.GoldenCarrots, "a refused ×2 costs nothing");
+        }
+
+        [Test]
+        public void A_New_Long_Time_Away_After_The_Sheet_Closed_Brings_A_Fresh_Report_And_Times_Two()
+        {
+            SheetUpThenAMinuteAway();
+            GameState s = runner.State;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+            Assert.IsTrue(runner.LastAwayDoubled);
+
+            s.GoldenCarrots = 9;
+            var night = new AwayReport { Paid = new BigNum(12000), Seconds = 6 * 3600 };
+            runner.ShowAwayForTest(night);
+            screen.ShowAway(night);
+            Assert.IsTrue(screen.AwayCard.IsOpen);
+            Assert.AreEqual("+" + new BigNum(12000).Short(), root.transform.Find("Canvas/Away/Card/Carrots/Amount").GetComponent<Text>().text);
+            Assert.IsFalse(runner.LastAwayDoubled, "a fresh report, a fresh ×2");
+            Assert.AreEqual(L10n.T("away.double.cost", Away.DoubleCost), screen.AwayCard.DoubleLabel, "the day's free one stays spent");
+            BigNum before = s.Coins;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual((before + night.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6);
+            Assert.AreEqual(9 - Away.DoubleCost, s.GoldenCarrots);
+        }
+
         [Test]
         public void The_Pause_Card_Leads_To_A_Profile_With_Name_Code_Avatar_And_A_Local_Only_Backup()
         {
@@ -6417,6 +6495,216 @@ namespace VuonTra.Core.Tests
                 }
             }
             Assert.Greater(screen.LawnSpots.Count, before, "every segment open offers more");
+        }
+
+        // ----- The horizontal garden: the small things left after #16 -----
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(6)]
+        public void A_Guest_Walks_To_The_Counter_Only_Over_Open_Land(int segments)
+        {
+            HavePlots(Expansion.PlotsForSegments(runner.Defs, segments));
+            Assert.AreEqual(segments, Expansion.Segments(runner.State));
+            for (float t = 0f; t <= 1.001f; t += 0.02f)
+            {
+                Vector2 at = screen.GuestPathAt(t);
+                int segment = GardenGrid.SegmentOf(GardenScreen.WorldToCell(at));
+                Assert.That(segment, Is.InRange(0, segments), "with " + segments + " open, at " + t + " the guest at " + at + " is on open land, not in the mist of segment " + segment);
+            }
+            Assert.Greater(screen.GuestEntry.x - screen.GuestSpot.x, 200f, "it still walks a little way in from the right");
+        }
+
+        /// <summary>Where the pond's "Câu cá" plate is on the phone's screen, in canvas units from the bottom left.</summary>
+        Rect PondPlateOnScreen()
+        {
+            var plate = (RectTransform)World.Find("PondTap/Plate");
+            Assert.IsTrue(plate.gameObject.activeInHierarchy, "the plate is out");
+            var corners = new Vector3[4];
+            plate.GetWorldCorners(corners);
+            var view = (RectTransform)World.parent;
+            Vector2 a = (Vector2)view.InverseTransformPoint(corners[0]) - view.rect.min, b = (Vector2)view.InverseTransformPoint(corners[2]) - view.rect.min;
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        void AssertPondPlateReads(string where)
+        {
+            Rect r = PondPlateOnScreen();
+            Assert.GreaterOrEqual(r.xMin, 24f, where + ": the plate " + r + " keeps 24 from the left edge");
+            Assert.LessOrEqual(r.xMax, 1080f - 24f, where + ": and from the right edge");
+        }
+
+        [Test]
+        public void The_Pond_s_Plate_Keeps_24_From_The_Edge_In_The_Opening_View_And_After_The_First_Segment_Opens()
+        {
+            Motion.SetReduced(true);
+            GameState s = runner.State;
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            screen.Refresh();
+            AssertPondPlateReads("the opening view");
+            screen.LookAt(GardenScreen.PondSpot + new Vector2(-120f, -300f)); // the pond's own frame
+            AssertPondPlateReads("looking at the pond");
+            screen.LookAt(Teapot);
+            AssertPondPlateReads("looking at the teapot");
+
+            // Ready for the first segment; the view goes to the sign at the lawn's end, as far right as the lawn lets it.
+            MistSegment next = Expansion.Next(runner.Defs, s);
+            s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
+            s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
+            screen.Refresh();
+            screen.LookAt(screen.ForestSignSpot + new Vector2(0f, 120f));
+            AssertPondPlateReads("looking at the sign");
+            Find("Canvas/Garden/Content/Forest Sign/Board").onClick.Invoke();
+            screen.Refresh();
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(1, Expansion.Segments(s), "the first segment came out of the mist");
+            AssertPondPlateReads("after the first segment opens");
+        }
+
+        /// <summary>Readable copies of the art the mist is painted with, so a test can read its alpha.</summary>
+        readonly Dictionary<Texture, Texture2D> _readable = new Dictionary<Texture, Texture2D>();
+
+        float AlphaOf(Sprite sprite, Vector2 uv)
+        {
+            if (sprite == null) return 1f;
+            if (!_readable.TryGetValue(sprite.texture, out Texture2D copy))
+            {
+                if (sprite.texture.isReadable) copy = sprite.texture; // painted by the game itself
+                else
+                {
+                    copy = new Texture2D(2, 2);
+                    copy.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(sprite.texture)));
+                }
+                _readable[sprite.texture] = copy;
+            }
+            Rect r = sprite.textureRect;
+            float w = sprite.texture.width, h = sprite.texture.height;
+            return copy.GetPixelBilinear((r.x + uv.x * r.width) / w, (r.y + uv.y * r.height) / h).a;
+        }
+
+        /// <summary>How much the mist hides at a garden point: every veil and wash over it, laid one over another as they are drawn.</summary>
+        float MistCoverAt(Vector2 at)
+        {
+            float clear = 1f;
+            for (int n = 1; n <= Expansion.LastSegments(runner.Defs); n++)
+            {
+                CanvasGroup mist = screen.MistOf(n);
+                if (mist == null || !mist.gameObject.activeInHierarchy) continue;
+                foreach (Image wash in mist.GetComponentsInChildren<Image>(false))
+                {
+                    RectTransform rt = wash.rectTransform;
+                    var c = new Vector3[4];
+                    rt.GetWorldCorners(c);
+                    Vector2 a = World.InverseTransformPoint(c[0]), b = World.InverseTransformPoint(c[2]);
+                    Rect r = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+                    if (!r.Contains(at)) continue;
+                    Vector2 uv = new Vector2((at.x - r.xMin) / r.width, (at.y - r.yMin) / r.height);
+                    clear *= 1f - mist.alpha * wash.color.a * AlphaOf(wash.sprite, uv);
+                }
+            }
+            return 1f - clear;
+        }
+
+        /// <summary>The least the mist hides just inside a shut segment, where it meets the open lawn.</summary>
+        public const float MistEdgeLeast = 0.6f;
+
+        [Test]
+        public void The_Mist_Reads_Thick_Where_A_Shut_Segment_Meets_The_Open_Lawn()
+        {
+            Motion.SetReduced(true);
+            int last = Expansion.LastSegments(runner.Defs);
+            var thin = new List<string>();
+            float least = 1f;
+            for (int open = 0; open < last; open++)
+            {
+                HavePlots(Expansion.PlotsForSegments(runner.Defs, open));
+                // The first shut segment on each side, at the edge it shares with the open lawn.
+                for (int n = open + 1; n <= Mathf.Min(last, open + 2); n++)
+                {
+                    Vector2 span = GardenScreen.SegmentSpan(n);
+                    bool right = GardenGrid.SideOf(n) == GardenSide.Right;
+                    float edge = right ? span.x : span.y, inward = right ? 1f : -1f;
+                    foreach (float depth in new[] { 20f, 60f })
+                        for (float y = Teapot.y - 600f; y <= Teapot.y + 600f; y += 25f)
+                        {
+                            var at = new Vector2(edge + inward * depth, y);
+                            float cover = MistCoverAt(at);
+                            least = Mathf.Min(least, cover);
+                            if (cover < MistEdgeLeast) thin.Add("segment " + n + " (" + open + " open) at " + at + ": " + cover.ToString("0.00"));
+                        }
+                }
+            }
+            Assert.IsEmpty(thin, "the least is " + least.ToString("0.00") + "; thin at " + thin.Count + " points:\n" + string.Join("\n", thin.GetRange(0, Mathf.Min(20, thin.Count))));
+        }
+
+        [Test]
+        public void No_Plate_Or_Sign_Of_The_Open_Lawn_Lies_Under_The_Mist()
+        {
+            Motion.SetReduced(true);
+            GameState s = runner.State;
+            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket, the jar and the pond are out
+            int last = Expansion.LastSegments(runner.Defs);
+            var under = new List<string>();
+            int measured = 0;
+            for (int open = 0; open < last; open++)
+            {
+                HavePlots(Expansion.PlotsForSegments(runner.Defs, open));
+                // Ready for the next segment, so the sign stands at the lawn's edge.
+                MistSegment next = Expansion.Next(runner.Defs, s);
+                s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
+                while (s.Rabbits.Count < next.NeedRabbits) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" + s.NextRabbitId });
+                foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
+                s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
+                screen.Refresh();
+                var readable = new List<RectTransform>();
+                foreach (Transform child in World)
+                {
+                    if (!child.gameObject.activeInHierarchy) continue;
+                    Transform plate = child.name.StartsWith("Station ") ? child.Find("Level") : (child.name == "Forest Sign" ? child.Find("Board") : (child.name.StartsWith("Spot ") ? null : child.Find("Plate")));
+                    if (plate != null && plate.gameObject.activeInHierarchy) readable.Add((RectTransform)plate);
+                }
+                Assert.IsTrue(World.Find("Forest Sign").gameObject.activeSelf, "the sign is up with " + open + " open");
+                int mistTop = -1;
+                for (int n = open + 1; n <= last; n++) mistTop = Mathf.Max(mistTop, screen.MistOf(n).transform.GetSiblingIndex());
+                foreach (RectTransform plate in readable)
+                {
+                    var c = new Vector3[4];
+                    plate.GetWorldCorners(c);
+                    Vector2 a = World.InverseTransformPoint(c[0]), b = World.InverseTransformPoint(c[2]);
+                    Rect r = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+                    int segment = GardenGrid.SegmentOf(GardenScreen.WorldToCell(r.center));
+                    bool sign = plate.parent.name == "Forest Sign";
+                    if (!sign && (segment < 0 || segment > open)) continue; // a plate out on the land still to open
+                    measured++;
+                    Transform top = plate;
+                    while (top.parent != World) top = top.parent;
+                    if (top.GetSiblingIndex() > mistTop) continue; // drawn over the mist
+                    float most = 0f;
+                    for (float x = r.xMin; x <= r.xMax; x += 10f)
+                        for (float y = r.yMin; y <= r.yMax; y += 10f) most = Mathf.Max(most, MistCoverAt(new Vector2(x, y)));
+                    if (most > 0.05f) under.Add(top.name + "/" + plate.name + " at " + r + " with " + open + " open: mist " + most.ToString("0.00"));
+                }
+            }
+            Assert.Greater(measured, 20, "the plates of the open lawn were measured");
+            Assert.IsEmpty(under, under.Count + " under the mist:\n" + string.Join("\n", under));
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_Opening_A_Segment_Clears_Its_Mist_Edge_And_All_At_Once()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            HavePlots(Plots.Starting);
+            CanvasGroup mist = screen.MistOf(1);
+            Assert.IsTrue(mist.gameObject.activeSelf);
+            Vector2 edge = new Vector2(GardenScreen.SegmentSpan(1).x + 20f, Teapot.y);
+            Assert.Greater(MistCoverAt(edge), MistEdgeLeast);
+            HavePlots(Plots.Starting + 2);
+            Assert.IsFalse(mist.gameObject.activeSelf, "no time passes: the mist is simply gone");
+            Assert.AreEqual(0f, MistCoverAt(edge), 1e-4f, "its thick edge with it");
+            Assert.IsTrue(screen.MistOf(2).gameObject.activeSelf, "the next segment's mist stays");
         }
     }
 }

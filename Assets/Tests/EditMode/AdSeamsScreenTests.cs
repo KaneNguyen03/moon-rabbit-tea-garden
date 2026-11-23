@@ -115,6 +115,32 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Minute_Away_While_The_Sheet_Is_Up_Leaves_Its_Video_Times_Two_On_The_Report_It_Shows()
+        {
+            // #89: a short absence while the sheet is up used to replace the report the video ×2 paid.
+            GameState s = runner.State;
+            s.MaxDaySeen = runner.TodayNumber + 1; // pins the day for the free ×2 and the video's one a day
+            AwayReport shown = ComeBackAfterTheFreeDoubleIsSpent();
+            var minute = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
+            runner.ShowAwayForTest(minute);
+            screen.ShowAway(minute);
+            Assert.IsTrue(screen.AwayCard.IsOpen);
+            Assert.IsTrue(screen.AwayCard.Ad.Shown, "the video ×2 is still offered for the shown report");
+
+            BigNum before = s.Coins;
+            Find("Canvas/Away/Card/Ad").onClick.Invoke();
+            fake.Finish();
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6, "the video pays the report the sheet shows");
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+
+            runner.ShowAwayForTest(minute);
+            screen.ShowAway(minute);
+            Assert.AreEqual(AdOffer.None, runner.AdOfferFor(Ads.AwayDouble), "no second video ×2 for the same report");
+            Assert.IsFalse(runner.DoubleAway(), "nor a golden one");
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6);
+        }
+
+        [Test]
         public void A_Video_Closed_Before_The_End_Pays_Nothing()
         {
             ComeBackAfterTheFreeDoubleIsSpent();

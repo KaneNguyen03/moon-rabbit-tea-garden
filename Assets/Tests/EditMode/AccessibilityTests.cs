@@ -1008,5 +1008,148 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(lines, string.Join("\n", lines));
             Assert.Greater(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content").GetComponentsInChildren<Text>(false).Length, 24);
         }
+
+        // ----- The horizontal garden: the small things left after #16 -----
+
+        [TestCase("vi", false, 0)]
+        [TestCase("en", false, 0)]
+        [TestCase("vi", true, 0)]
+        [TestCase("en", true, 0)]
+        [TestCase("vi", false, 1)]
+        [TestCase("en", false, 1)]
+        [TestCase("vi", true, 1)]
+        [TestCase("en", true, 1)]
+        public void Every_Widen_The_Garden_Sign_In_The_Opening_View_Reads_Whole_24_Inside_The_Screen(string code, bool large, int segments)
+        {
+            // The sign at the lawn's end and the plate of the next station's land both say "Mở rộng vườn"; the plate of the
+            // station on the first segment stood half off the right edge of the opening view.
+            Motion.SetReduced(true);
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            GameState s = runner.State;
+            s.Plots = Expansion.PlotsForSegments(runner.Defs, segments);
+            for (int i = 0; i < s.Plots; i++) s.Levels[i] = 1;
+            MistSegment next = Expansion.Next(runner.Defs, s);
+            s.GardenXp = Garden.XpForLevel(next.NeedLevel);
+            while (s.Rabbits.Count < next.NeedRabbits) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" + s.NextRabbitId });
+            foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
+            s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
+            GardenGrid.Settle(runner.Defs, s);
+            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
+            Layout();
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var view = (RectTransform)root.transform.Find("Canvas/Garden");
+            Vector2 pot = (Vector2)view.InverseTransformPoint(((RectTransform)street.Find("Station " + runner.Defs[0].Id)).position) - view.rect.min;
+            Assert.AreEqual(540f, pot.x, 1f, "the opening view: the teapot in the middle");
+
+            string expand = L10n.T("garden.expand");
+            var signs = new List<RectTransform>();
+            Transform sign = street.Find("Forest Sign");
+            Assert.IsTrue(sign.gameObject.activeSelf, "the garden can widen, so the sign is up");
+            signs.Add((RectTransform)sign.Find("Board"));
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Transform front = street.Find("Station " + runner.Defs[i].Id + " Front");
+                if (front == null || !front.gameObject.activeInHierarchy) continue;
+                if (front.Find("Level/Text").GetComponent<Text>().text != expand) continue;
+                float x = OnPhone((RectTransform)street.Find("Station " + runner.Defs[i].Id), view, Vector2.zero).center.x;
+                if (x >= 0f && x <= 1080f) signs.Add((RectTransform)front.Find("Level")); // its land is in the opening view
+            }
+            Assert.GreaterOrEqual(signs.Count, segments == 1 ? 2 : 1, "the land plate on the first segment counts too");
+            var cut = new List<string>();
+            foreach (RectTransform rt in signs)
+            {
+                Rect r = OnPhone(rt, view, Vector2.zero);
+                if (r.xMin < 24f || r.xMax > 1080f - 24f || r.yMin < 24f || r.yMax > 1920f - 24f) cut.Add(Path(rt) + " " + r);
+            }
+            Assert.IsEmpty(cut, "cut off in the opening view:\n" + string.Join("\n", cut));
+            Text words = sign.Find("Board/Face/Text").GetComponent<Text>();
+            Assert.IsNull(Wrapped(words, 16), "the sign's words fit its board");
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Home_Button_Says_Where_It_Goes_Is_Big_Enough_And_Its_Words_Fit(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            GameState s = runner.State;
+            s.Plots = runner.Defs.Count;
+            for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
+            GardenGrid.Settle(runner.Defs, s);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            screen.LookAt(screen.StationSpot(0) + new Vector2(1700f, 0f));
+            screen.Advance(1f / 30f);
+            Transform home = root.transform.Find("Canvas/Home");
+            Assert.IsTrue(home.gameObject.activeSelf, "far to the right the way home shows");
+            Layout();
+            Text words = home.Find("Text") != null ? home.Find("Text").GetComponent<Text>() : null;
+            Assert.IsNotNull(words, "the button says where it goes");
+            Assert.AreEqual(L10n.T("edge.home"), words.text);
+            Rect touch = TouchArea(home.GetComponent<Button>());
+            Assert.GreaterOrEqual(Mathf.Min(touch.width, touch.height) + 0.01f, UiKit.MinTouch, "big enough to press: " + touch);
+            Assert.IsNull(Wrapped(words, 18), "its words fit at a size that reads");
+            // It hangs from the screen's bottom right corner, the tray from the middle of the foot: measured from those corners.
+            var canvas = (RectTransform)root.transform.Find("Canvas");
+            Rect r = OnPhone((RectTransform)home, canvas, new Vector2(1f, 0f));
+            Assert.That(r.xMin, Is.GreaterThanOrEqualTo(24f), "inside the left edge: " + r);
+            Assert.That(r.xMax, Is.LessThanOrEqualTo(1080f - 24f), "and keeps 24 from the right: " + r);
+            Rect tray = OnPhone((RectTransform)root.transform.Find("Canvas/Tray"), canvas, Vector2.zero);
+            Assert.GreaterOrEqual(r.yMin, tray.yMax, "above the tray " + tray + ": " + r);
+            Rect pill = OnPhone((RectTransform)root.transform.Find("Canvas/EdgeRight"), canvas, new Vector2(1f, 0f));
+            Assert.LessOrEqual(r.yMax, pill.yMin, "and under the side pill " + pill + ": " + r);
+        }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void An_Idle_Line_At_Any_Station_Or_Seat_Of_A_Full_Garden_Covers_No_Plate(string code, bool large)
+        {
+            // #59's bubble stood over the teapot's rabbit on the mortar's "Giã bánh" and the pond's "Câu cá" plates.
+            Motion.SetReduced(true);
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            GameState s = runner.State;
+            s.Plots = runner.Defs.Count;
+            for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
+            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket, the jar and the pond are out, with their plates
+            s.RestSpots = RestSpots.Max;
+            GardenGrid.Settle(runner.Defs, s);
+            for (int i = 0; i < runner.Defs.Count; i++) Rabbits.Assign(s, Rabbits.Arrive(s, 0, "T" + i, 0.1 * (i % 10)).Id, i);
+            for (int k = 0; k < RestSpots.Max; k++) Rabbits.Arrive(s, 0, "N" + k, 0.1 * k); // resting, on the seats
+            PhotoAsks.Decline(s);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Layout();
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var covered = new List<string>();
+            int spoke = 0;
+            foreach (Rabbit r in new List<Rabbit>(s.Rabbits))
+            {
+                if (!screen.ChatterBy(r.Id)) continue;
+                spoke++;
+                Layout();
+                var line = (RectTransform)street.Find("ChatLine");
+                Assert.IsTrue(line.gameObject.activeSelf);
+                Rect b = GardenRect(line, street);
+                foreach (RectTransform plate in GardenPlates())
+                {
+                    if (plate.parent.name.StartsWith("Spot ")) continue; // a free decoration spot's faint "+"
+                    Rect p = GardenRect(plate, street);
+                    if (p.Overlaps(b)) covered.Add(r.Name + (r.Station >= 0 ? " at " + runner.Defs[r.Station].Id : " resting") + ": the line " + b + " covers " + Path(plate) + " " + p);
+                }
+            }
+            Assert.GreaterOrEqual(spoke, (runner.Defs.Count + RestSpots.Max) * 2 / 3, "most rabbits still find room for a line");
+            Assert.IsEmpty(covered, covered.Count + " covered:\n" + string.Join("\n", covered));
+        }
     }
 }

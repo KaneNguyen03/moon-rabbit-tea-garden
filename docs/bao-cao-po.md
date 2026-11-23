@@ -1839,6 +1839,55 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Khách đi qua sương của đoạn 1 khi đoạn đó chưa mở; biển ở mép phải bị cắt một phần trong khung mở đầu; nút về tiệm trà chưa có chữ.
 - Thấy khi xem ảnh: câu nói của thỏ ("Nước vừa sôi…") có lúc che biển "Giã bánh"; bảng "Câu cá" sát mép trái trong khung sau khi mở rộng.
 
+## #85–#87 — Ba lỗi từ lần rà code (agent review-fix)
+
+
+- **Test:** `tools/verify.sh` GREEN, 1189/1190 (1 ca inconclusive có từ trước: SeasonTests), thêm 7 ca test mới.
+- **Commit:** `133edae`, `038d540`, `adcdb87`, merge `78764e1`; thêm `8cb6f99` (test nhịp dài được 10 phút, tránh quá thời gian khi máy bận). Main sau gộp: 1189/1190.
+
+- #85: sau Mùa trăng mới, ấm trà, ghế và đồ trang trí đã kéo sang đất bị đóng tự về bãi cỏ giữa, ấm trà về ô nhà; trạm cất trong kho vẫn ở trong kho.
+- #86: save cũ có số ô đất lẻ được làm tròn lên cho đủ đoạn đã mở (tặng nhiều nhất 1 ô), nên trạm kế mở được theo điều kiện của chính nó; nhịp game không đổi.
+- #87: test màn mã quà chạy trên ngày ghim qua đồng hồ ngày mới của runner, nên không còn hỏng sau 31/3/2027; mã và hạn dùng không đổi.
+
+### Chưa đạt / cần PO quyết
+- #86: PO xác nhận chấp nhận tặng 1 ô cho save cũ mua từng ô; nếu không, cần sửa nút mở rộng để bán nốt ô thiếu.
+- #85: khi ô mặc định của một trạm đã bị chiếm, trạm có thể đứng sát trạm khác; chờ luật khoảng cách của #88 (agent khác làm).
+- #88: agent này đã làm dở rồi dừng theo lệnh điều phối; không commit gì, bản dở nằm ở `/tmp/rfsim/issue88-unfinished.patch`.
+
+## #89–#90 — Màn đi vắng ×2 và quà ngày 7 của save cũ (agent away-gift)
+
+
+- Test: #89 verify GREEN 1186/1187; #90 1189/1191 (1 test kinh tế quá thời gian 180 giây do máy thiếu bộ nhớ, coi là xanh theo điều phối; 1 inconclusive mùa có sẵn). 9 lượt test mới.
+- Commit: e7da8ef (#89), 5b9b11d (#90), merge 6345d4c. Main sau gộp: 1197/1198 qua, 0 lỗi.
+- #89: ×2 trên tấm "Mừng bạn quay lại" (miễn phí, cà rốt vàng, quảng cáo) trả đúng số tấm đang hiện, một lần; lần vắng ngắn khi tấm còn mở không thay báo cáo và không trả lại ×2.
+- #90: save cũ đã qua ngày 7 nhận nón lá và cỏ ba lá ở ngày thứ 7 kế tiếp của lịch (14, 21, …), đúng một lần; save mới không đổi.
+
+### Chưa đạt / cần PO quyết
+- #90: chọn giữ mặc định (ngày thứ 7 kế tiếp), hay (a) coi như đã nhận, hay (b) tặng qua thư.
+- #89: lần vắng hơn 5 phút trong lúc đang xem video ×2 làm số bay lên lệch với số được trả (hiếm, chưa sửa).
+
+## Vườn ngang: năm việc nhỏ (#16, agent ngang-nits)
+
+
+- **Test:** tools/verify.sh GREEN, 1206/1207 (1 inconclusive như trước), preview 221 khung. 36 ca test mới.
+- **Commit:** 3998f17, 3c6e433, bb4353e, 3761c2d, 6b663f3, 0e82d57, ảnh ca4539a (nhánh ngang-nits), merge `77da06d`. Main sau gộp: 1221/1222.
+
+- Khách chỉ đi trên đất đã mở: bước ra ở mép bãi cỏ, không đi xuyên sương.
+- Bảng "Mở rộng vườn" của trạm trên đoạn 1 và biển ở mép bãi cỏ đọc trọn trong khung mở đầu, cách mép ≥ 24 (vi/en, chữ to).
+- Nút về nhà có chữ "Về tiệm trà" / "Back to the tea shop", nút 270×92, chữ vừa khi chữ to.
+- Bong bóng thỏ nói không che bảng nào (cấp trạm, "Giã bánh", giỏ, lọ, "Câu cá", biển); hết chỗ thì không nói.
+- Bảng "Câu cá" dời dọc bờ ao, cách mép trái ≥ 24 ở khung mở đầu và sau khi mở đoạn đầu; ô giữ chỗ vẫn khớp.
+- Sương dày ở mép đoạn chưa mở (≥ 0,6, trước 0,19), mép mềm; bảng, lọ đom đóm và biển nằm trên sương; giảm chuyển động thì tan ngay.
+
+
+- **Ảnh:** docs/anh/po-vuon-ngang/nits-1…6-truoc.png và nits-1…6-sau.png, thêm nits-6-xa-truoc/sau.png (nhìn xa).
+
+### Chưa đạt / cần PO quyết
+- Mép dải sương mới khá thẳng và rõ (xem nits-6-sau, nits-6-xa-sau): PO xem có muốn mềm hơn hay vẽ tay không.
+- Bong bóng thỏ nói có thể tràn ra mép màn hình (chỉ tránh bảng, chưa tránh mép khung nhìn).
+- Bảng "Còn thiếu …" có thể bị cắt ở mép khi đứng ở biển sau khi mở rộng (ngoài khung mở đầu).
+- Chủ game đã quyết (23/11): sương dày hơn một chút (việc 6); trà sữa và ruộng lúa giữ chỗ, luật 520 không nới; đồng ý chữ "Mở rộng vườn · đoạn N".
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái

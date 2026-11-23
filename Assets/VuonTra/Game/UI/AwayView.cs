@@ -28,6 +28,8 @@ namespace VuonTra.Game.UI
         GameObject _portrait;
 
         public BottomSheet Sheet { get; }
+        /// <summary>The time away this sheet shows; its ×2 pays this, whatever came after it (#89).</summary>
+        public AwayReport Report { get; private set; }
         public bool IsOpen => Sheet.IsOpen;
         /// <summary>The words on the ×2 button right now: the tests read it.</summary>
         public string DoubleLabel => _doubleLabel.text;
@@ -120,6 +122,7 @@ namespace VuonTra.Game.UI
 
         public void Open(AwayReport away, GameState s)
         {
+            Report = away;
             _amount.text = "+" + away.Paid.Short();
             _time.text = L10n.T(away.Capped ? "away.time.capped" : "away.time", GardenScreen.Span(away.Seconds));
             _tray.text = away.TrayAdded > 0

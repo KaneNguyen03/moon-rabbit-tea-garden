@@ -266,6 +266,12 @@ namespace VuonTra.Game.UI
         public static Vector2 PondSpot => Heart + new Vector2(-450f, 430f);
         /// <summary>Nothing that must be read stands further right than this: the canopy's crowns reach in from the edge.</summary>
         public const float ReadableRight = WorldW - 80f;
+        /// <summary>What must be read keeps this far inside the screen's edges, in canvas units.</summary>
+        public const float ReadMargin = 24f;
+        /// <summary>How far either side of the teapot the opening view shows, at the usual zoom, less <see cref="ReadMargin"/>.</summary>
+        const float OpeningReach = (ScreenW / 2f - ReadMargin) / ZoomDefault;
+        /// <summary>A station's level plate is drawn at this size, whatever the station's own.</summary>
+        const float PlateScale = 0.78f;
         int _sheetRun, _glideRun;
         float _sheetDragSpeed;
 
@@ -500,9 +506,12 @@ namespace VuonTra.Game.UI
         /// <summary>The garden x the view may show, left and right: the open lawn and <see cref="ViewMargin"/> past each end, inside the world.</summary>
         public Vector2 OpenSpan()
         {
-            int open = Runner != null && Runner.State != null ? Expansion.Segments(Runner.State) : 0;
+            int open = OpenSegments;
             return new Vector2(Mathf.Max(0f, LawnEdgeX(open, GardenSide.Left) - ViewMargin), Mathf.Min(WorldW, LawnEdgeX(open, GardenSide.Right) + ViewMargin));
         }
+
+        /// <summary>How many segments of the strip are open beside the middle.</summary>
+        int OpenSegments => Runner != null && Runner.State != null ? Expansion.Segments(Runner.State) : 0;
 
         /// <summary>A finger is dragging the garden right now (the scroll's own drag): the view is not pulled back while it does.</summary>
         bool _dragging;
@@ -1328,8 +1337,8 @@ namespace VuonTra.Game.UI
                 actor.BaseScale = StationSize(i);
                 actor.Root.localScale = Vector3.one * StationSize(i);
                 actor.SyncFront();
-                // Every station's level reads at the same size, clear of the rabbit's feet and the prop.
-                actor.PlacePlate(0.78f / StationSize(i), new Vector2(0, -26f));
+                // Every station's level reads at the same size, clear of the rabbit's feet and the prop, and whole in the opening view.
+                actor.PlacePlate(PlateScale / StationSize(i), new Vector2(PlateNudge(spot, StationSize(i)) / StationSize(i), -26f));
                 _actors.Add(actor);
                 _workerIds = new long[_actors.Count];
                 standing.Add(new KeyValuePair<float, Transform>(spot.y - 112f * StationSize(i), actor.Root));
@@ -1532,6 +1541,10 @@ namespace VuonTra.Game.UI
             // The mist over the segments still to open lies over everything on their land (the horizontal garden); the sign stands
             // in front of it, at the lawn's end.
             foreach (CanvasGroup mist in _mist) mist.transform.SetAsLastSibling();
+            // What must be read stays over the mist's thick edge (#16): the firefly jar, whose plate reaches to the lawn's left
+            // end, and every station's front (its level plate) and the sign.
+            if (_jarProp != null) _jarProp.SetAsLastSibling();
+            foreach (StationActorView actor in _actors) actor.Front.SetAsLastSibling();
             if (_forestSign != null) _forestSign.SetAsLastSibling();
 
             BuildFireflies(catalog);
@@ -1551,6 +1564,19 @@ namespace VuonTra.Game.UI
             var entry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.BeginDrag };
             entry.callback.AddListener(_ => { _glideRun++; DismissHint(); });
             drag.triggers.Add(entry);
+        }
+
+        /// <summary>
+        /// How far, in garden units, a station's level plate hangs towards the teapot so it reads whole in the opening view (#16):
+        /// only for a station that stands in that view with its plate reaching past the view's edge, as the land plate of the
+        /// station on the first segment did ("Mở rộng vư…").
+        /// </summary>
+        float PlateNudge(Vector2 spot, float size)
+        {
+            float teapot = StationSpot(0).x, reach = OpeningReach - StationActorView.PlateW * PlateScale / 2f;
+            if (Mathf.Abs(spot.x - teapot) > OpeningReach) return 0f;
+            float middle = spot.x + StationActorView.PlateX * size - teapot;
+            return Mathf.Clamp(middle, -reach, reach) - middle;
         }
 
         /// <summary>The ground a station takes up, plates included, in garden units.</summary>
@@ -3679,10 +3705,10 @@ namespace VuonTra.Game.UI
                 OnDoubleAway);
         }
 
-        /// <summary>The ×2 on the welcome-back sheet: the latest time away paid once more, then the sheet closes.</summary>
+        /// <summary>The ×2 on the welcome-back sheet: the time away it shows paid once more, then the sheet closes.</summary>
         void OnDoubleAway()
         {
-            BigNum paid = Runner.LastAway.Paid;
+            BigNum paid = AwayCard.Report.Paid;
             if (!Runner.DoubleAway())
             {
                 AwayCard.RefreshDouble();
@@ -4114,7 +4140,7 @@ namespace VuonTra.Game.UI
 
         /// <summary>
         /// Coming back (#69): five minutes away or more opens the welcome-back sheet; a shorter absence just sends
-        /// the carrots up to the purse.
+        /// the carrots up to the purse and leaves a sheet that is up, and its ×2, as they are (#89).
         /// </summary>
         public void ShowAway(AwayReport away)
         {
@@ -4149,16 +4175,29 @@ namespace VuonTra.Game.UI
             _edgeRight.sizeDelta = new Vector2(120f, 56f);
             _edgeRight.anchoredPosition = new Vector2(-70f, SideEdgeY);
 
-            var home = UiKit.Rect("Home", _canvas).Place(1f, 0f, -72, bottom + 4f, 92, 92);
+            // The way home: a paper pill at the bottom right, just over the tray, with the teapot and the words for where it goes (#16).
+            var home = UiKit.Rect("Home", _canvas).Place(1f, 0f, -(ReadMargin + HomeW / 2f), bottom + 32f, HomeW, HomeH);
             home.AddShadow(14f, 10f, 0.3f);
-            Image homeBack = home.AddImage(catalog.Round, Palette.Paper);
+            Image homeBack = home.AddImage(catalog.Panel, Palette.Paper, true);
             homeBack.raycastTarget = true;
             var homeButton = home.gameObject.AddComponent<Button>();
             homeButton.transition = Selectable.Transition.None;
             homeButton.targetGraphic = homeBack;
             homeButton.onClick.AddListener(GlideHome);
             Sprite teapot = catalog.Stations.Length > 0 ? catalog.Stations[0].Prop : null;
-            if (teapot != null) UiKit.Rect("Icon", home).Stretch(0, 0, 1, 1, 12, 12, 12, 12).AddImage(teapot, Color.white).preserveAspect = true;
+            if (teapot != null)
+            {
+                Image icon = UiKit.Rect("Icon", home).Place(0f, 0.5f, 48f, 0f, 68f, 68f).AddImage(teapot, Color.white);
+                icon.preserveAspect = true;
+                icon.raycastTarget = false;
+            }
+            Text homeText = UiKit.Rect("Text", home).Stretch(0, 0, 1, 1, 90, 8, 16, 8)
+                .AddText(L10n.T("edge.home"), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            homeText.raycastTarget = false;
+            homeText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            homeText.resizeTextForBestFit = true; // "Back to the tea shop" takes two lines, and at large text a smaller size
+            homeText.resizeTextMinSize = 18;
+            homeText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
             _home = home.gameObject;
             _home.SetActive(false);
         }
@@ -4178,6 +4217,9 @@ namespace VuonTra.Game.UI
             pill.gameObject.SetActive(false);
             return pill;
         }
+
+        /// <summary>The home button's size: wide enough for its teapot and "Về tiệm trà" or "Back to the tea shop" on two lines.</summary>
+        const float HomeW = 270f, HomeH = 92f;
 
         /// <summary>Where the home button looks: the tea shop above the teapot, the middle of the strip.</summary>
         public Vector2 HomeSpot => Heart + new Vector2(0f, 120f);
@@ -4934,9 +4976,12 @@ namespace VuonTra.Game.UI
         public Vector2 GuestSpot => PropSpot(GardenGrid.CounterId);
         /// <summary>
         /// Where a guest comes in from and goes back to: along the top of the lawn from the right, the side away from the pond
-        /// (the horizontal garden), as far from the counter as the column garden's left edge was.
+        /// (the horizontal garden), as far from the counter as the column garden's left edge was, but never past the open lawn's
+        /// end: a guest steps out of the mist there and walks only over land that is open (#16).
         /// </summary>
-        public Vector2 GuestEntry => new Vector2(GuestSpot.x + 855f, GuestSpot.y - 40f);
+        public Vector2 GuestEntry => new Vector2(Mathf.Min(GuestSpot.x + 855f, LawnEdgeX(OpenSegments, GardenSide.Right) - GuestEdgeGap), GuestSpot.y - 40f);
+        /// <summary>How far inside the open lawn's end a guest comes in.</summary>
+        const float GuestEdgeGap = 60f;
 
         /// <summary>Where a walking guest is at <paramref name="t"/> of the way from <see cref="GuestEntry"/> to the counter (0 to 1).</summary>
         public Vector2 GuestPathAt(float t) => Vector2.Lerp(GuestEntry, GuestSpot, t);
@@ -5670,11 +5715,11 @@ namespace VuonTra.Game.UI
             if (ChatShown)
             {
                 _chatLeft -= dt;
-                if (_chatLeft <= 0f || ChatBlocked || PhotoMode || !AskSpot(_chatRabbitId, out Vector2 head, out _))
+                if (_chatLeft <= 0f || ChatBlocked || PhotoMode || !AskSpot(_chatRabbitId, out Vector2 head, out _) || !PlaceChat(head, out Vector2 at))
                     _chatLine.gameObject.SetActive(false);
                 else
                 {
-                    _chatLine.anchoredPosition = head;
+                    _chatLine.anchoredPosition = at;
                     float age = Chatter.Seconds - _chatLeft, grow = age / Motion.Panel, shrink = _chatLeft / Motion.PanelOut;
                     float scale = Motion.Reduced ? 1f : grow < 1f ? Ease.OutBack(grow) : shrink < 1f ? Ease.OutCubic(shrink) : 1f;
                     _chatLine.localScale = Vector3.one * scale;
@@ -5717,8 +5762,36 @@ namespace VuonTra.Game.UI
             }
             if (who.Count == 0) return false;
             int pick = Mathf.Min(who.Count - 1, Mathf.FloorToInt(Hash(_clock + 5f) * who.Count));
-            Rabbit speaker = who[pick];
-            int station = where[pick];
+            return SayIdleLine(who[pick], where[pick]);
+        }
+
+        /// <summary>
+        /// Rabbit <paramref name="id"/> says a line now, wherever it is: at work, or resting on its seat or out for a stroll.
+        /// False when it cannot (asleep, not out, asking for a photo, no room clear of the plates), or a bond line or a guest is up.
+        /// </summary>
+        public bool ChatterBy(long id)
+        {
+            if (ChatBlocked || PhotoMode || Runner == null || Runner.State == null) return false;
+            GameState s = Runner.State;
+            Rabbit asking = PhotoAsks.Asking(s);
+            if (asking != null && asking.Id == id) return false;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                Rabbit r = Rabbits.AtStation(s, i);
+                if (r == null || r.Id != id) continue;
+                if (s.Levels[i] <= 0 || _actors[i].Dozing || !_actors[i].Root.gameObject.activeSelf) return false;
+                return SayIdleLine(r, i);
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length; k++)
+                if (_seatIds[k] == id) return SayIdleLine(Rabbits.Find(s, id), -1);
+            return false;
+        }
+
+        /// <summary>The line itself: picked for the speaker's trade, the time of day and the season, in a bubble near its head.</summary>
+        bool SayIdleLine(Rabbit speaker, int station)
+        {
+            if (speaker == null) return false;
+            GameState s = Runner.State;
             bool resting = station < 0;
             int booster = resting ? -1 : Chatter.BoosterOf(Runner.Defs, s, station);
             bool dressed = speaker.Dye >= 0 || VuonTra.Core.Items.Worn(s, speaker.Id, ItemSlot.Hat) != null;
@@ -5727,10 +5800,13 @@ namespace VuonTra.Game.UI
             string key = Chatter.Pick(keys, Hash(_clock + 7f));
             if (key == null || !AskSpot(speaker.Id, out Vector2 head, out _)) return false;
             if (_chatLine == null) BuildChatLine();
+            KeepChatOff();
+            _chatShift = Vector2.zero;
+            if (!PlaceChat(head, out Vector2 at)) return false; // no room clear of the plates: the line waits for another time
             _chatText.text = key == Chatter.BoostKey ? L10n.T(key, L10n.Station(Runner.Defs[booster].Id)) : L10n.T(key);
             _chatRabbitId = speaker.Id;
             _chatLeft = Chatter.Seconds;
-            _chatLine.anchoredPosition = head;
+            _chatLine.anchoredPosition = at;
             _chatLine.SetAsLastSibling();
             _chatLine.localScale = Motion.Reduced ? Vector3.one : Vector3.zero; // reduced motion: it simply appears
             _chatLine.gameObject.SetActive(true);
@@ -5739,10 +5815,68 @@ namespace VuonTra.Game.UI
             return true;
         }
 
+        /// <summary>Where the line stands from the rabbit's head: straight over it, unless that covers a plate (#16).</summary>
+        Vector2 _chatShift;
+        /// <summary>The line's paper, as <see cref="BuildChatLine"/> makes it; it stands on its foot.</summary>
+        static readonly Vector2 ChatSize = new Vector2(560f, 84f);
+        /// <summary>The places a line tries from the rabbit's head: over it, a little higher, then to either side, then higher still.</summary>
+        static readonly Vector2[] ChatShifts =
+        {
+            new Vector2(0f, 0f), new Vector2(0f, 60f), new Vector2(-150f, 0f), new Vector2(150f, 0f), new Vector2(0f, 120f),
+            new Vector2(-150f, 60f), new Vector2(150f, 60f), new Vector2(-240f, 0f), new Vector2(240f, 0f),
+            new Vector2(-240f, 90f), new Vector2(240f, 90f), new Vector2(0f, 180f),
+        };
+        /// <summary>The plates a line keeps off, gathered when it starts.</summary>
+        readonly List<RectTransform> _chatKeepOff = new List<RectTransform>();
+
+        /// <summary>
+        /// The plates of the garden a line must not cover (#16): every station's level plate, the mortar's "Giã bánh", the
+        /// basket's, the jar's and the pond's "Câu cá" plates, and the sign at the lawn's end.
+        /// </summary>
+        void KeepChatOff()
+        {
+            _chatKeepOff.Clear();
+            foreach (Transform child in _street)
+            {
+                if (child.name.StartsWith("Spot ")) continue; // a decoration spot's faint "+" is no plate to read
+                Transform plate = child.name.StartsWith("Station ") ? child.Find("Level") : child.name == "Forest Sign" ? child.Find("Board") : child.Find("Plate");
+                if (plate != null) _chatKeepOff.Add((RectTransform)plate);
+            }
+        }
+
+        /// <summary>
+        /// Where the line stands, near the rabbit's head and over none of the plates: where it stood if that is still clear, else
+        /// the first clear place of <see cref="ChatShifts"/>, inside the readable part of the garden. False when there is no room.
+        /// </summary>
+        bool PlaceChat(Vector2 head, out Vector2 at)
+        {
+            var plates = new List<Rect>(_chatKeepOff.Count);
+            foreach (RectTransform plate in _chatKeepOff)
+                if (plate != null && plate.gameObject.activeInHierarchy) plates.Add(StreetRect(plate));
+            at = head + _chatShift;
+            if (ChatClear(at, plates)) return true;
+            foreach (Vector2 shift in ChatShifts)
+            {
+                at = head + shift;
+                if (!ChatClear(at, plates)) continue;
+                _chatShift = shift;
+                return true;
+            }
+            return false;
+        }
+
+        static bool ChatClear(Vector2 foot, List<Rect> plates)
+        {
+            var line = new Rect(foot.x - ChatSize.x / 2f, foot.y, ChatSize.x, ChatSize.y);
+            if (line.xMin < WorldW - ReadableRight || line.xMax > ReadableRight) return false;
+            foreach (Rect plate in plates) if (plate.Overlaps(line)) return false;
+            return true;
+        }
+
         /// <summary>A paper bubble like the bond line's, standing on the garden; it never takes a touch.</summary>
         void BuildChatLine()
         {
-            _chatLine = UiKit.Rect("ChatLine", _street).Place(0f, 0f, 0, 0, 560, 84);
+            _chatLine = UiKit.Rect("ChatLine", _street).Place(0f, 0f, 0, 0, ChatSize.x, ChatSize.y);
             _chatLine.pivot = new Vector2(0.5f, 0f);
             _chatLine.AddShadow(10f, 6f, 0.25f);
             _chatLine.AddImage(Runner.Catalog.Panel, Palette.Paper, true).raycastTarget = false;
@@ -5968,10 +6102,10 @@ namespace VuonTra.Game.UI
             if (Runner.AdShowing) RefreshAdSeams(); // "opening" while the video plays
         }
 
-        /// <summary>The welcome-back sheet's ad option: the latest time away paid once more, as the ×2 button does.</summary>
+        /// <summary>The welcome-back sheet's ad option: the time away it shows paid once more, as the ×2 button does.</summary>
         void OnAwayAd()
         {
-            BigNum paid = Runner.LastAway.Paid;
+            BigNum paid = AwayCard.Report.Paid;
             WatchAd(Ads.AwayDouble, null, ok =>
             {
                 if (!ok) { AwayCard.RefreshDouble(); return; }
@@ -6402,6 +6536,10 @@ namespace VuonTra.Game.UI
             // Just inside the lawn's end, so the whole board is in view when the garden looks at that end.
             GardenSide side = GardenGrid.SideOf(segments + 1);
             float x = LawnEdgeX(segments, side) - (side == GardenSide.Left ? -1f : 1f) * (ForestSignW / 2f + 10f);
+            // Whole in the opening view when it stands in it, and short of the trees at the garden's ends (#16).
+            float teapot = StationSpot(0).x, reach = OpeningReach - ForestSignW / 2f;
+            if (Mathf.Abs(x - teapot) < OpeningReach) x = Mathf.Clamp(x, teapot - reach, teapot + reach);
+            x = Mathf.Clamp(x, WorldW - ReadableRight + ForestSignW / 2f, ReadableRight - ForestSignW / 2f);
             var plates = new List<Rect>();
             foreach (RectTransform rt in _street.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "Level" || rt.name == "Plate") plates.Add(StreetRect(rt));
@@ -6485,6 +6623,12 @@ namespace VuonTra.Game.UI
             // A broad veil first, so the land reads as hidden; the washes over it make the cloud bank's soft shapes.
             UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (MistLow + MistHigh) / 2f, span.y - span.x + 320f, MistHigh - MistLow + 300f)
                 .AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.18f), 0.75f)).raycastTarget = false;
+            // The bank at the edge it shares with the open lawn (#16): thick, with a wandering edge like a wash that dried, so the
+            // land still to open reads as such on the dark grass. The washes over it keep it soft.
+            bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
+            float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
+            UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (MistLow + MistHigh) / 2f, MistEdgeWidth, MistHigh - MistLow + 200f)
+                .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
             const int Across = 3, Down = 9;
             for (int a = 0; a < Across; a++)
                 for (int d = 0; d < Down; d++)
@@ -6497,6 +6641,44 @@ namespace VuonTra.Game.UI
                 }
             mist.gameObject.SetActive(true);
             return group;
+        }
+
+        /// <summary>The mist's bank at a shut segment's edge: how wide it is, and how far it reaches over the open lawn at most.</summary>
+        const float MistEdgeWidth = 330f, MistEdgeOut = 40f;
+        static Sprite _mistEdgeRight, _mistEdgeLeft;
+
+        /// <summary>
+        /// The bank's picture, painted once: white, clear on the lawn's side, rising to full over a short wandering edge, then
+        /// fading into the segment's own washes, with a little grain, and fading out at the top and the bottom.
+        /// </summary>
+        static Sprite MistEdgeSprite(bool right)
+        {
+            Sprite cached = right ? _mistEdgeRight : _mistEdgeLeft;
+            if (cached != null) return cached;
+            const int W = 64, H = 256;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { name = "Mist Edge", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var pixels = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                float v = (y + 0.5f) / H;
+                float wander = 0.5f + 0.25f * Mathf.Sin(v * 17.3f) + 0.15f * Mathf.Sin(v * 41.9f + 1.3f) + 0.1f * Mathf.Sin(v * 97.1f + 0.7f);
+                float edge = 0.08f * wander; // where the bank begins, from the lawn's side: never past the first tenth
+                float ends = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(v / 0.1f)) * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((1f - v) / 0.1f));
+                for (int x = 0; x < W; x++)
+                {
+                    float u = (x + 0.5f) / W, from = right ? u : 1f - u;
+                    float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((from - edge) / 0.12f));
+                    float fade = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((from - 0.55f) / 0.45f));
+                    float grain = 0.92f + 0.08f * Mathf.Sin(u * 31f + v * 53f) * Mathf.Sin(v * 23f - u * 11f);
+                    pixels[y * W + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(255f * rise * fade * ends * grain));
+                }
+            }
+            tex.SetPixels32(pixels);
+            tex.Apply(false, false);
+            Sprite sprite = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 100f);
+            sprite.name = "Mist Edge";
+            if (right) _mistEdgeRight = sprite; else _mistEdgeLeft = sprite;
+            return sprite;
         }
 
         /// <summary>The mist of segment <paramref name="segment"/> (1 for the first), for the tests and previews.</summary>
@@ -7301,8 +7483,9 @@ namespace VuonTra.Game.UI
             button.onClick.AddListener(OpenFishing);
             // The plate stands on the bank right of the water, towards the teapot, so the opening view reads it (the horizontal
             // garden): clear of the jar's plate below, the mortar's plate and the teapot's pad, and of the order bubble of a guest at
-            // the counter, which grows to the right from over the guest's head (#84).
-            var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, 200f, -150f, 180f, 44f);
+            // the counter, which grows to the right from over the guest's head (#84). Far enough right that it keeps 24 from the
+            // screen's left edge when the view stands as far right as the lawn lets it, at the sign of the first segment (#16).
+            var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, PondPlateX, -150f, 180f, 44f);
             plate.AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
             _pondPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _pondPlate.resizeTextForBestFit = true;
@@ -7311,6 +7494,9 @@ namespace VuonTra.Game.UI
             _pondTap.SetSiblingIndex(_pondGlow != null ? _pondGlow.GetSiblingIndex() : 0);
             RefreshPond();
         }
+
+        /// <summary>How far right of the pond's middle its plate stands; the tiles it reaches are kept clear (GardenGrid's reserved tiles).</summary>
+        const float PondPlateX = 240f;
 
         /// <summary>The pond shows while it can be fished, its plate counting the baits on hand.</summary>
         void RefreshPond()

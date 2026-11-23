@@ -16,6 +16,7 @@ namespace VuonTra.Core.Tests
     /// is a median or holds on at least <see cref="Enough"/> of the <see cref="Seeds"/>. Every roll comes from
     /// the seed, so the same seed plays the same week twice.
     /// </summary>
+    [Timeout(600000)] // 17 seeds per rule (#83): minutes on a busy machine, past the 180 s default
     public class EconomySimulationTests
     {
         const double Day = 86400d;

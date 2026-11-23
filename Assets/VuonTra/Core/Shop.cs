@@ -23,7 +23,10 @@ namespace VuonTra.Core
         /// <summary>The gift calendar's length: seven tiles, seen ahead in the shop (#57).</summary>
         public const int WeekDays = 7;
 
-        /// <summary>The first week's seventh day also brings the conical hat and a clover, once per garden (#57).</summary>
+        /// <summary>
+        /// The first week's seventh day also brings the conical hat and a clover, once per garden (#57). A save from
+        /// before #57 that is past day 7 gets it on the next seventh day of the calendar (day 14, 21, …) instead (#90).
+        /// </summary>
         public const string BigGiftHat = "hat-non-la";
         public const int BigGiftClovers = 1;
         /// <summary>Golden carrots in the hat's place when the player owns it already, or it is not in the catalogue (its shop price).</summary>
@@ -72,8 +75,12 @@ namespace VuonTra.Core
             return (int)Math.Max(1L, s.GiftStreak - Math.Min(missed, 100000L) * MissPenalty);
         }
 
-        /// <summary>True when the gift of this streak day is the first week's big gift, which no garden has had yet.</summary>
-        public static bool IsBigDay(GameState s, int streakDay) => streakDay == WeekDays && !s.GiftBigClaimed;
+        /// <summary>
+        /// True when the gift of this streak day brings the big gift this garden has not had yet: the seventh day of the
+        /// calendar's week. A new garden always meets it on day 7; a save from before #57 that was past day 7 meets it on
+        /// the next seventh day (14, 21, …), or on day 7 again if missed days step it back there. Once, either way (#90).
+        /// </summary>
+        public static bool IsBigDay(GameState s, int streakDay) => streakDay >= WeekDays && streakDay % WeekDays == 0 && !s.GiftBigClaimed;
 
         /// <summary>
         /// The seven tiles of the calendar around today: the week of streak days today falls in (days 1–7, then 8–14 with
@@ -94,7 +101,7 @@ namespace VuonTra.Core
                 {
                     Day = d, Golden = GiftAt(d), Today = d == today,
                     Claimed = d < today || (d == today && !waiting),
-                    Big = d == WeekDays && bigShown
+                    Big = d % WeekDays == 0 && bigShown
                 };
             }
             return tiles;
