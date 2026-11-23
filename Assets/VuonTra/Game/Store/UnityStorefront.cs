@@ -29,6 +29,7 @@ namespace VuonTra.Game.Store
             var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
             foreach (GoldenPack pack in Storefront.Packs) builder.AddProduct(pack.Id, ProductType.Consumable);
             builder.AddProduct(Storefront.NoAdsPass, ProductType.Consumable);
+            foreach (OfferDef offer in Offers.All) builder.AddProduct(offer.Id, ProductType.NonConsumable);
             UnityPurchasing.Initialize(this, builder);
         }
 

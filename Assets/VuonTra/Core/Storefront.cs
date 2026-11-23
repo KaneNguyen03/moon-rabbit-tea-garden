@@ -16,7 +16,8 @@ namespace VuonTra.Core
         Cancelled,
         Failed,
         Unavailable,
-        Duplicate
+        Duplicate,
+        Pending
     }
 
     public struct PurchaseResult
@@ -48,7 +49,8 @@ namespace VuonTra.Core
         public readonly Dictionary<string, string> Prices = new Dictionary<string, string>
         {
             { Storefront.Small, "25.000 ₫" }, { Storefront.Medium, "69.000 ₫" }, { Storefront.Large, "199.000 ₫" },
-            { Storefront.NoAdsPass, "75.000 ₫" }
+            { Storefront.NoAdsPass, "75.000 ₫" },
+            { Offers.Starter, "25.000 ₫" }, { Offers.Milestone10, "69.000 ₫" }, { Offers.Milestone20, "69.000 ₫" }, { Offers.Milestone30, "69.000 ₫" }
         };
 
         public event Action<PurchaseResult> Delivered;
@@ -92,7 +94,7 @@ namespace VuonTra.Core
 
         public const string NoAdsPass = "vuontra.noads.30";
 
-        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass;
+        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass || Offers.Find(productId) != null;
 
         public const int ReceiptMemory = 64;
 
@@ -103,15 +105,26 @@ namespace VuonTra.Core
             return null;
         }
 
-        public static bool Grant(GameState s, string packId, string transactionId)
+        public static bool Grant(GameState s, string packId, string transactionId) => Grant(s, packId, transactionId, null, null, 0d, out _);
+
+        public static bool Grant(GameState s, string packId, string transactionId, IReadOnlyList<ItemDef> items, string rabbitName, double roll, out OfferGift gift)
         {
+            gift = default;
             GoldenPack pack = Find(packId);
-            if (pack == null && packId != NoAdsPass) return false;
+            OfferDef offer = Offers.Find(packId);
+            if (pack == null && offer == null && packId != NoAdsPass) return false;
+            if (offer != null && Offers.Bought(s, packId)) return false;
             if (!string.IsNullOrEmpty(transactionId))
             {
                 if (s.PaidTransactions.Contains(transactionId)) return false;
                 s.PaidTransactions.Add(transactionId);
                 while (s.PaidTransactions.Count > ReceiptMemory) s.PaidTransactions.RemoveAt(0);
+            }
+            if (offer != null)
+            {
+                gift = Offers.Deliver(s, offer, items, rabbitName, roll);
+                s.PacksBought++;
+                return true;
             }
             if (pack == null)
             {

@@ -13,7 +13,7 @@ namespace VuonTra.Game.UI
     /// quests, rabbits) live in a sheet that opens over it. Views only read the state and call
     /// GameRunner; no rules live here.
     /// </summary>
-    public sealed class GardenScreen : MonoBehaviour
+    public sealed partial class GardenScreen : MonoBehaviour
     {
         public GameRunner Runner;
         public Camera Cam;
@@ -317,6 +317,7 @@ namespace VuonTra.Game.UI
             Runner.Payout -= OnPayout;
             Runner.ProductMade -= OnProductMade;
             Runner.AwayClaimed -= ShowAway;
+            if (_onOfferDelivered != null) Runner.OfferDelivered -= _onOfferDelivered;
         }
 
         void Update()
@@ -1257,6 +1258,7 @@ namespace VuonTra.Game.UI
             });
             BuildPond(catalog); // the moon pond's card and the rabbit's Feed button (#58b)
             BuildAdSeams(catalog); // the three rewarded-ad places and the no-ads pass (#66)
+            BuildOffers(catalog);
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -3922,6 +3924,7 @@ namespace VuonTra.Game.UI
             }
             UpgradeAll.Refresh(defs, s);
             Shop.Refresh(s);
+            RefreshOffers();
             RefreshDecor(s);
             RefreshOrders(s);
             bool anyGolden = s.GoldenCarrots > 0;
