@@ -3,6 +3,9 @@
 ## Code Comments
 Never add comments to code. No `//`, `/* */`, `///` XML docs, `#` notes or commented-out code in any file you write or edit. Names and structure carry the meaning. Leave existing comments as they are unless the task is to remove them.
 
+## Enforced Rules
+`tools/conventions.py` holds the rules a machine checks: no comments, no procedural animation math or scene searches in `Game`, no new per-frame `Update()`, and no quick-fix workarounds (a deferred frame, `Invoke` by name, `SendMessage`, a swallowed `catch {}`, a disabled warning). It counts them per file, with strings and comments told apart by a small C# lexer, against `tools/conventions.baseline`, which only goes down (`python3 tools/conventions.py --lower`). A Claude hook checks every edit, `.githooks/pre-commit` checks the staged snapshot (`git config core.hooksPath .githooks`), `tools/verify.sh` runs it first, and CI runs it with the Core tests (`tools/ci/core-tests.sh`, 701 tests in seconds without Unity). When a check fails, fix the cause; a workaround copied once becomes the pattern everyone copies.
+
 ## Unity Anti-Slop Rules
 1. **No Procedural Animation Math:** Never animate character limbs, props, or poses via `Mathf.Sin`/`Lerp` in C#. Use Unity `Animator`, `.anim` clips, or `2D Bone Rigging`.
 2. **Data-Driven Modularity:** Use `ScriptableObject` for all items, characters, and station stats. For 2D character customization/skins, use `SpriteLibrary` + `SpriteResolver` + `SortingGroup`, never duplicate prefabs per skin.

@@ -43,6 +43,9 @@ run_unity() { # name, logfile, args...
   return 0
 }
 
+echo "== 0/4 project rules"
+if python3 -I tools/conventions.py >Logs/conventions.log 2>&1; then note "rules" "ok"; else cat Logs/conventions.log >&2; note "rules" "FAIL (see Logs/conventions.log)"; fi
+
 echo "== 1/4 seed content and string tables"
 run_unity "seed" Logs/seed.log -executeMethod VuonTra.EditorTools.ContentSeeder.Seed -quit && note "seed" "ok"
 
