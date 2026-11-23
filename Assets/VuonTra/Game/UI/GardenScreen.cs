@@ -1154,7 +1154,7 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor,
-                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => GoldenPacks.Open(Runner.Store), OnBuyMoonJar);
+                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => { Runner.Analytics.LogGoldenPacksOpened(AnalyticsEvents.FromShop); GoldenPacks.Open(Runner.Store); }, OnBuyMoonJar);
             DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus),

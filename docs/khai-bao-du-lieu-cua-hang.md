@@ -1,6 +1,6 @@
 # Khai báo dữ liệu cho cửa hàng và nhóm tuổi (bản nháp cho #42)
 
-Viết 22/11/2026 theo mặc định được phép; chủ project duyệt trước khi điền lên App Store Connect và Google Play Console. Phản ánh đúng bản hiện tại: game **không gọi mạng, không thu thập gì**, save chỉ nằm trên máy; cập nhật khi #39/#40 (lưu mây theo nền tảng) hoặc #9 (mua bằng tiền thật) bật.
+Viết 22/11/2026 theo mặc định được phép; chủ project duyệt trước khi điền lên App Store Connect và Google Play Console. Phản ánh đúng bản hiện tại: game **không gọi mạng, không thu thập gì**, save chỉ nằm trên máy; cập nhật khi #39/#40 (lưu mây theo nền tảng), #9 (mua bằng tiền thật) hoặc #100 (analytics và báo lỗi, mục 6) bật.
 
 ## 1. App Store — App Privacy (Apple)
 
@@ -9,7 +9,7 @@ Viết 22/11/2026 theo mặc định được phép; chủ project duyệt trư�
 | Do you or your third-party partners collect data from this app? | **No, we do not collect data** | Vẫn **No**: Game Center và iCloud do Apple vận hành trên tài khoản của người chơi; app không nhận dữ liệu về máy chủ của mình | Vẫn **No**: giao dịch do Apple xử lý; app chỉ nhận biên lai để mở khoá |
 | Tracking (ATT) | Không theo dõi, không hiện hộp ATT | Không đổi | Không đổi |
 
-Ghi chú: nếu sau này thêm phân tích (analytics) hay quảng cáo thì phải khai "Yes" với các loại Identifiers, Usage Data, Diagnostics và liên kết với người dùng hay không.
+Ghi chú: nếu sau này thêm phân tích (analytics) hay quảng cáo thì phải khai "Yes" với các loại Identifiers, Usage Data, Diagnostics và liên kết với người dùng hay không. Cách khai khi bật analytics và báo lỗi ở mục 6, khi bật quảng cáo ở mục 5.
 
 ## 2. Google Play — Data safety
 
@@ -41,3 +41,39 @@ Ghi chú: nếu sau này thêm phân tích (analytics) hay quảng cáo thì ph�
   - Hộp đồng ý GDPR/CCPA (UMP của Google hoặc hộp đồng ý của LevelPlay) trước khi nạp quảng cáo ở EU/Anh/California; cập nhật `docs/chinh-sach-quyen-rieng-tu.md` nêu tên SDK quảng cáo và các mạng đối tác.
   - Nhóm tuổi: giữ "Ages 13 and over" ở Google Play; nếu nhắm cả trẻ em thì phải dùng mạng quảng cáo được chứng nhận cho Families, tắt quảng cáo cá nhân hoá.
 - **Vé "Bỏ quảng cáo" (`vuontra.noads.30`)** là gói mua qua cửa hàng như cà rốt vàng (#9), không thêm loại dữ liệu nào ngoài biên lai giao dịch; chỉ bày bán khi quảng cáo đã bật.
+
+## 6. Analytics và báo lỗi văng game (#100): chưa bật
+
+- **Hiện tại:** game **không gửi số liệu và không gửi báo lỗi**. Trong code chỉ có "chỗ cắm" `Core/Analytics.cs` (`IAnalytics`, `NoAnalytics`, `MemoryAnalytics`). Mọi bản build cho người chơi chạy `NoAnalytics`: không nạp SDK nào, không gọi mạng. Unity Editor chỉ giữ sự kiện trong bộ nhớ, không gửi đi. Hai bảng ở mục 1 và 2 **giữ nguyên "No"**.
+- **Công tắc:** `GameRunner.AnalyticsInPlayerBuilds` (mặc định `false`). Adapter Firebase (`Game/Platform/FirebaseAnalyticsAdapter.cs`) chỉ được biên dịch khi có define `VUONTRA_FIREBASE` trên bản iOS/Android. Bật công tắc khi chưa có define vẫn không gửi gì.
+
+### Thu thập gì khi bật
+
+| Nhóm | Cụ thể | Để làm gì |
+|---|---|---|
+| Sự kiện trong game (do game gửi) | Mở game, phiên chơi bắt đầu/kết thúc kèm độ dài (giây), từng bước hướng dẫn (hoặc bỏ qua), lên cấp vườn, mở trạm, mở đoạn đất, gọi thỏ (cỏ hay cà rốt vàng, bậc, loài), Mùa trăng mới, mở thẻ gói cà rốt vàng, mua thành công (mã gói, giá theo chữ cửa hàng trả về) hoặc thất bại (mã gói, lý do), xem quảng cáo có thưởng (chỗ, xem xong/đóng/vé bỏ quảng cáo). Thuộc tính người chơi: mùa trăng đang chơi, cấp vườn. | Đo tỉ lệ quay lại ngày 1/7/30, chỗ người chơi bỏ cuộc, nhịp chơi, doanh thu trên mỗi người chơi (ARPDAU) |
+| Firebase Analytics tự thu | ID cài đặt ứng dụng (app instance ID, ngẫu nhiên, không phải IDFA), đời máy, hệ điều hành, phiên bản game, ngôn ngữ, quốc gia suy từ IP (IP không lưu), các sự kiện tự động `first_open`, `session_start`, `user_engagement`, `in_app_purchase` | Như trên |
+| Firebase Crashlytics | Dấu vết lỗi văng game (stack trace), lỗi đã bắt được, đời máy, hệ điều hành, bộ nhớ trống, ID cài đặt Crashlytics | Sửa lỗi văng game |
+
+**Không gửi:** tên vườn, tên thỏ, mã người chơi `THO-…`, email, tiến trình save, mã giao dịch, số tiền ngoài chuỗi giá cửa hàng trả về, ID quảng cáo (IDFA/AAID: phải tắt như ghi ở bước bật). Không dùng để theo dõi quảng cáo.
+
+**Lưu bao lâu:** Google Analytics for Firebase: đặt thời hạn giữ dữ liệu theo người dùng là **2 tháng** (mặc định; không nâng lên 14 tháng). Crashlytics giữ báo lỗi **90 ngày** (cố định của Firebase).
+
+### Cách khai khi bật
+
+| Câu hỏi | Hiện tại | Khi bật analytics (#100) |
+|---|---|---|
+| App Store — Do you or your third-party partners collect data from this app? | No | **Yes** |
+| App Store — loại dữ liệu | (không) | *Identifiers → Device ID* (app instance ID); *Usage Data → Product Interaction*; *Purchases → Purchase History*; *Diagnostics → Crash Data, Performance Data, Other Diagnostic Data*; *Location → Coarse Location* nếu Apple coi quốc gia suy từ IP là vị trí (Firebase khuyên khai) |
+| App Store — mục đích | (không) | *Analytics* và *App Functionality* (báo lỗi) |
+| App Store — linked to the user's identity? | (không) | **No** (không có tài khoản, không gắn tên hay email) |
+| App Store — used to track (ATT)? | No | **No**, không hiện hộp ATT, với điều kiện không thu IDFA |
+| Google Play — Does your app collect or share any of the required user data types? | No | **Yes** |
+| Google Play — loại dữ liệu | (không) | *App activity → App interactions*; *Financial info → Purchase history*; *App info and performance → Crash logs, Diagnostics*; *Device or other IDs* (app instance ID); *Location → Approximate location* nếu theo hướng dẫn Data safety của Firebase lúc khai |
+| Google Play — collected / shared | (không) | Collected, **not shared** (Google xử lý thay mặt nhà phát hành, không tính là chia sẻ) |
+| Google Play — mục đích | (không) | *Analytics*; báo lỗi thêm *App functionality* |
+| Google Play — optional? | (không) | **Required** (chưa có nút tắt; nếu thêm nút tắt thì đổi thành Optional) |
+| Google Play — encrypted in transit | Không áp dụng | Yes |
+| Google Play — deletion | Yes (nút "Xoá dữ liệu của tôi") | Yes; nút đó xoá dữ liệu trên máy, còn số liệu Firebase tự hết hạn sau 2 tháng / 90 ngày (chưa nối nút với việc xoá ID analytics, xem "Chưa làm" ở #100) |
+
+Khi bật phải cập nhật `docs/chinh-sach-quyen-rieng-tu.md` (đã có sẵn mục "Khi bật phân tích và báo lỗi") và bỏ câu "không chạy phân tích" ở mục "Chúng tôi thu thập gì".
