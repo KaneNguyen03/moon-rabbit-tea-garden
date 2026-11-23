@@ -116,8 +116,9 @@ namespace VuonTra.Core
         {
             int tier = Rabbits.RollTier(roll, GoldenOdds);
             RabbitKind seasonKind = Seasons.KindOf(Seasons.SeasonOf(day));
-            if (seasonKind != null && tier == seasonKind.Tier && kindRoll < Seasons.GoldenCallShare)
+            if (seasonKind != null && tier == seasonKind.Tier)
             {
+                if (kindRoll >= Seasons.GoldenCallShare) return SummonGolden(s, roll, name, (kindRoll - Seasons.GoldenCallShare) / (1d - Seasons.GoldenCallShare));
                 if (s.GoldenCarrots < GoldenSummonCost) return null;
                 s.GoldenCarrots -= GoldenSummonCost;
                 return Rabbits.ArriveKind(s, seasonKind.Id, name);

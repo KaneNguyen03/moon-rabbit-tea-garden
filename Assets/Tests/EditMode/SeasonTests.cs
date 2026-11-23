@@ -116,6 +116,23 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Golden_Call_In_Season_That_Misses_The_Season_Kind_Can_Bring_Every_Everyday_Gold_Kind()
+        {
+            GameState s = GameState.NewGame(Fixture.Defs());
+            long inSeason = Day(2026, 12, 10);
+            double goldRoll = 0.001;
+            for (double r = 0d; r < 1d; r += 0.001) if (Rabbits.RollTier(r, Shop.GoldenOdds) == 4) { goldRoll = r; break; }
+            s.GoldenCarrots = 1000000;
+            var kinds = new HashSet<string>();
+            for (double k = Seasons.GoldenCallShare; k < 1d; k += 0.001) kinds.Add(Rabbits.KindOf(Shop.SummonGolden(s, goldRoll, "G", k, inSeason)));
+            var everyday = new HashSet<string>();
+            for (double k = 0d; k < 1d; k += 0.001) everyday.Add(RabbitKinds.Pick(4, k));
+            Assert.AreEqual(10, everyday.Count, "ten everyday gold kinds");
+            CollectionAssert.AreEquivalent(everyday, kinds, "the other half brings all ten, not only the upper five");
+            CollectionAssert.DoesNotContain(kinds, "tho-noel");
+        }
+
+        [Test]
         public void The_Day_The_Game_Goes_By_Never_Goes_Back()
         {
             GameState s = GameState.NewGame(Fixture.Defs());

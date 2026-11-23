@@ -470,7 +470,7 @@ namespace VuonTra.Core
 
         public bool TakeOut(string id)
         {
-            if (!IsStored(id) || !NearestEmpty(out Hex tile)) return false;
+            if (!IsStored(id) || !NearestEmptyApart(new Hex(0, 0), Expansion.StationSpacing, id, out Hex tile)) return false;
             _stored.Remove(id);
             return Seat(id, tile);
         }

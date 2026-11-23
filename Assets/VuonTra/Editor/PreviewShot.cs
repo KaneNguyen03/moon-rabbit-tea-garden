@@ -1302,8 +1302,8 @@ namespace VuonTra.EditorTools
                 screen.Refresh();
                 screen.Shell.StartGame();
                 Step(screen, 2f);
-                string name = "91b-" + segments + "-doan";
-                Debug.Log("91b preview " + segments + " segments: can widen " + Expansion.CanExpand(defs, s) + ", sign at " + screen.ForestSignSpot);
+                string name = "91c-" + segments + "-doan";
+                Debug.Log("91c preview " + segments + " segments: can widen " + Expansion.CanExpand(defs, s) + ", sign at " + screen.ForestSignSpot);
                 if (next != null)
                 {
                     screen.LookAt(screen.ForestSignSpot + new Vector2(0f, 120f));
@@ -1317,6 +1317,12 @@ namespace VuonTra.EditorTools
                 screen.LookAt(new Vector2(screen.StationSpot(0).x, -99999f));
                 Step(screen, 0.5f);
                 Capture(screen, name + "-duoi");
+                screen.LookAt(new Vector2(-99999f, screen.StationSpot(0).y));
+                Step(screen, 0.5f);
+                Capture(screen, name + "-trai");
+                screen.LookAt(new Vector2(99999f, screen.StationSpot(0).y));
+                Step(screen, 0.5f);
+                Capture(screen, name + "-phai");
                 screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
                 screen.LookAt(screen.StationSpot(0));
                 Step(screen, 0.5f);

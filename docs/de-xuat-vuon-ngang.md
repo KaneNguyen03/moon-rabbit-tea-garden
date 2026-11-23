@@ -1,6 +1,6 @@
-# Đề xuất: vườn là bản đồ 2D (lõi, #91a)
+# Vườn là bản đồ 2D (#91a, #91b, #91c)
 
-Ngày 24/11/2026. Thay cho dải ngang ngày 23/11 (phần "Lịch sử" ở cuối). Chủ project trả lại #91: vườn phải kéo được cả dọc lẫn ngang, game vẫn khung dọc. Tài liệu này chỉ tả phần lõi (`Core/`): lưới, mở rộng bốn phía, luật bố trí, save cũ, nhịp. Phần màn hình (camera, biên, sương, rừng viền, parallax, nút về tiệm) là #91b, session UI làm.
+Ngày 24/11/2026. Thay cho dải ngang ngày 23/11 (phần "Lịch sử" ở cuối). Chủ project trả lại #91: vườn phải kéo được cả dọc lẫn ngang, game vẫn khung dọc 1080 × 1920. Tài liệu tả bản đồ như hiện có: lõi (`Core/`: lưới, mở rộng bốn phía, luật bố trí, save cũ, nhịp, #91a) và màn hình (`GardenScreen`: camera, biên bốn phía, sương, rừng viền, biển, parallax, nút về tiệm, viên mép, #91b và #91c).
 
 ## Lưới
 
@@ -72,10 +72,18 @@ Mở hết (16 trạm): bãi cỏ 51 cột kép × 23 hàng = 3 900 × 4 600 đ�
 
 Nhịp chỉ phụ thuộc số đoạn, cấp/thỏ/loài/giá từng đoạn, số ô đất và chỗ nghỉ, đều không đổi. Chạy lại 17 hạt (#83) ngoài Unity: 102 lần chạy (6 mô phỏng × 17 hạt) giống từng byte, trừ khối `grid` trong save cuối (toạ độ và tên khoá mới).
 
-## Phần màn hình (#91b, chưa làm)
+## Màn hình (#91b, #91c)
 
-- `GardenScreen` mới chỉ đọc toạ độ mới: `WorldH` 2200 → 5400, `LawnEdgeX`/`SegmentSpan` đọc `GardenGrid.Reach`, sương đoạn 5/6 phủ đúng hàng của dải lên/xuống.
-- Còn phải làm: camera kéo dọc có biên theo đất đã mở (hiện `ClampView` cho kéo dọc hết thế giới), biên đàn hồi bốn phía, rìa sương dày của dải lên/xuống, biển "Mở rộng rừng" cho đoạn lên/xuống (đang đứng ở mép phải), rừng viền trên/dưới ôm theo đất mở, parallax dọc, nút về tiệm trà, viên ◀▶▲▼.
+- **Thế giới:** `WorldW` 4 800 × `WorldH` 5 400 đơn vị, tiệm trà ở giữa. Ở zoom thường 0,83 màn hình thấy 1 301 × 2 313 đơn vị; nhìn xa (`ZoomFar`, 2 970 đơn vị theo chiều cao) và nhìn gần 1,5 vẫn chụm hai ngón hoặc cuộn chuột.
+- **Kéo:** `ScrollRect` bật cả ngang lẫn dọc khi thế giới lớn hơn màn hình (ở zoom thường là cả hai), có quán tính; kéo chéo được.
+- **Biên bốn phía (`ClampView`):** ngang là `OpenSpan` = mép bãi cỏ đã mở ± 360 (`ViewMargin`), nới thêm cho vừa nhãn "Mở rộng vườn" của ô đất kế tiếp (#91c, để nhãn không bị mép màn hình cắt); dọc là `OpenRows` = mép trên/dưới bãi cỏ ± 600 (`ViewMarginY`), trong thế giới. Kéo quá biên thì thả ra vườn tự trượt về (`KeepInsideOpenLawn`, đàn hồi cả hai trục; Giảm chuyển động thì về ngay). Khi mới có phần giữa, biên dọc vẫn rộng hơn màn hình nên kéo dọc được ngay từ đầu; mỗi đoạn lên/xuống nới biên thêm 8 hàng về phía đó.
+- **Thứ tự mở:** phải, trái, phải, trái, lên, xuống (bảng ở trên). Đoạn lên/xuống mở hết bề ngang đã mở.
+- **Sương:** mỗi đoạn chưa mở có sương phủ đúng dải của nó; dải lên/xuống còn đóng có thêm một bờ sương dày ("Edge") nằm dọc mép bãi cỏ, quay 90°/270° để phía bãi cỏ trong. Sương tan dần trong `MistClear` khi đoạn mở.
+- **Rừng viền:** hai bên là viền rừng lùi dần theo đất mở; trên và dưới, một hàng cây ("Wood") mọc sát mép bãi cỏ khi dải lên/xuống đã mở (dải còn đóng thì bờ sương là mép), luôn cách mọi trạm đã mở ít nhất 200.
+- **Biển "Mở rộng vườn":** đoạn trái/phải thì biển đứng ở mép bên đó; đoạn 5/6 thì biển đứng giữa mép trên/dưới của bãi cỏ, không che bảng nào. Biển có viền mực như đạo cụ vẽ tay (#91c).
+- **Parallax:** cây ở tán (`Canopy`, rừng xa ở mép thế giới) đi theo mặt đất 9/10 tốc độ (`CanopyDrift`), đo từ góc nhìn đặt trên ấm trà, cả ngang lẫn dọc (#91c thêm chiều dọc). Chỉ là độ lệch tỉ lệ với vị trí nhìn, không có chuyển động theo thời gian. Giảm chuyển động thì tán đi đúng theo mặt đất.
+- **Camera:** nút "Về tiệm trà" (góc dưới phải) hiện khi ấm trà ra khỏi màn hình theo bất kỳ hướng nào, bấm thì trượt về tiệm trà; bấm dòng trạm trong tab Trạm thì vườn trượt tới trạm đó, kể cả trạm ở dải lên/xuống, dừng ở khoảng giữa tờ trạm và HUD. Viên ◀ ▶ ▲ ▼ ở mép đếm trạm ngoài màn hình đang chờ (nâng được hoặc thỏ ngủ), bấm thì bay tới trạm gần nhất; viên ▼ né sang bên khi tiệm trà đứng ngay sau nó (#91c), không đè nút về tiệm.
+- **Ảnh:** `docs/anh/po-vuon-2d/91b-*` (trước) và `91c-*` (sau): 0, 4, 5, 6 đoạn; ở biển, kéo lên, kéo xuống, kéo trái, kéo phải, nhìn xa. Menu `VuonTra/Render Map Edges`.
 
 ## Lịch sử: dải ngang (23/11)
 
