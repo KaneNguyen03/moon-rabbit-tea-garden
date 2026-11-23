@@ -6,7 +6,7 @@ using VuonTra.Game.Platform;
 
 namespace VuonTra.Game
 {
-    public sealed class GameRunner : MonoBehaviour
+    public sealed partial class GameRunner : MonoBehaviour
     {
         public GameCatalog Catalog;
         public string SaveDirectory;
@@ -70,6 +70,7 @@ namespace VuonTra.Game
 #if !UNITY_EDITOR
             Application.logMessageReceived += OnLogMessage;
 #endif
+            OfferCardsOn = true;
             if (!_ready) Init();
         }
 
@@ -87,7 +88,7 @@ namespace VuonTra.Game
                 if (State.UpgradeLevels == null || State.UpgradeLevels.Length != UpgradeDefs.Count)
                     Array.Resize(ref State.UpgradeLevels, UpgradeDefs.Count);
                 Mods = Modifiers.From(UpgradeDefs, State);
-                foreach (PurchaseResult r in _deliveriesWaiting) if (Storefront.Grant(State, r.PackId, r.TransactionId)) Analytics.LogPurchase(r, Store.PriceOf(r.PackId), true);
+                foreach (PurchaseResult r in _deliveriesWaiting) if (GrantPaid(r, true)) Analytics.LogPurchase(r, Store.PriceOf(r.PackId), true);
                 _deliveriesWaiting.Clear();
             }
             else
@@ -120,6 +121,7 @@ namespace VuonTra.Game
             _ready = true;
             Analytics.LogGameOpen(newGarden);
             StartSession();
+            NoteOffers();
             if (preset == null)
             {
                 PlatformServices.Install(this);
@@ -162,6 +164,7 @@ namespace VuonTra.Game
             {
                 if (Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods)) StateChanged?.Invoke();
                 if (CheckMail()) StateChanged?.Invoke();
+                if (NoteOffers()) StateChanged?.Invoke();
                 Save();
                 GreetSeason();
             }
@@ -451,19 +454,25 @@ namespace VuonTra.Game
         {
             if (r.Outcome != PurchaseOutcome.Paid) return;
             if (State == null) { _deliveriesWaiting.Add(r); return; }
-            if (!Storefront.Grant(State, r.PackId, r.TransactionId)) return;
+            if (!GrantPaid(r, true)) return;
             Analytics.LogPurchase(r, Store.PriceOf(r.PackId), true);
-            _shopBought = true;
             Changed();
         }
 
         public void BuyGolden(string packId, Action<PurchaseResult> done)
         {
+            if (Offers.Find(packId) != null && !Offers.CanBuy(State, packId, OfferNow))
+            {
+                PurchaseResult gone = PurchaseResult.Of(PurchaseOutcome.Unavailable, packId);
+                Analytics.LogPurchase(gone, Store.PriceOf(packId));
+                done?.Invoke(gone);
+                return;
+            }
             Store.Buy(packId, r =>
             {
                 if (r.Outcome == PurchaseOutcome.Paid)
                 {
-                    if (Storefront.Grant(State, r.PackId, r.TransactionId)) { _shopBought = true; Changed(); }
+                    if (GrantPaid(r, false)) Changed();
                     else r.Outcome = PurchaseOutcome.Duplicate;
                 }
                 Analytics.LogPurchase(r, Store.PriceOf(r.PackId));
@@ -788,6 +797,7 @@ namespace VuonTra.Game
             if (!Tutorial.IsDone(State)) Tutorial.Advance(State);
             _watch.Note(Defs, State, Analytics);
             NoteAlbum(true);
+            NoteOffers();
             Mods = Modifiers.From(UpgradeDefs, State);
             StateChanged?.Invoke();
             Save();

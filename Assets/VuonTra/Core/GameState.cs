@@ -98,6 +98,9 @@ namespace VuonTra.Core
 
         public int PacksBought;
         public List<string> PaidTransactions = new List<string>();
+        public List<OfferRecord> OfferRecords = new List<OfferRecord>();
+        public long OfferClock = -1;
+        public double OfferPlayMark;
 
         public int MoonJars;
         public long MoonJarBuyDay = -1;

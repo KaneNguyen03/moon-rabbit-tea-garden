@@ -12,6 +12,7 @@ namespace VuonTra.Game.UI
         public bool IsOpen => Sheet.IsOpen;
 
         readonly GameCatalog _catalog;
+        readonly Tweens _tweens;
         readonly Text _have, _giftTitle, _giftSub, _giftLabel, _goldenLabel, _odds, _visitorName, _visitorSub, _visitorLabel, _visitorNew;
         readonly ChunkyButton _gift, _golden, _buy;
         readonly RectTransform _visitorPortrait;
@@ -49,6 +50,7 @@ namespace VuonTra.Game.UI
         {
             _onBuyJar = onBuyJar;
             _catalog = catalog;
+            _tweens = tweens;
             _today = today;
             _hoursLeft = hoursLeft;
             _onBuyItem = onBuyItem;
@@ -527,6 +529,52 @@ namespace VuonTra.Game.UI
             RefreshDecor(s);
             RefreshJar(s, day);
             RefreshAd();
+        }
+
+        public const float OfferWidth = 320f, OfferHeight = UiKit.MinTouch, OfferTop = 12f;
+        RectTransform _offerRow;
+        Text _offerTitle, _offerLeft;
+
+        public bool OfferShown => _offerRow != null && _offerRow.gameObject.activeSelf;
+        public string OfferText => _offerTitle != null ? _offerTitle.text : null;
+        public string OfferLeft => _offerLeft != null ? _offerLeft.text : null;
+
+        public void AttachOffer(Action onTap)
+        {
+            _offerRow = UiKit.Rect("Offer", Sheet.Card).Place(1f, 1f, -40f - OfferWidth / 2f, -OfferTop - OfferHeight / 2f, OfferWidth, OfferHeight);
+            ChunkyButton button = null;
+            button = UiKit.Chunky(_offerRow, _catalog.Panel, () => { button.Press(_tweens); Sfx.Click(); onTap?.Invoke(); });
+            button.Face.color = Palette.Mix(Palette.Lantern, Palette.Paper, 0.35f);
+            button.Lip.color = Palette.Mix(Palette.Lantern, Palette.Ink, 0.3f);
+            if (_catalog.GiftBox != null) UiKit.Rect("Icon", button.FaceRect).Place(0f, 0.5f, 34, 0, 48, 48).AddImage(_catalog.GiftBox, Color.white).preserveAspect = true;
+            _offerTitle = UiKit.Rect("Title", button.FaceRect).Stretch(0, 0.5f, 1, 1, 64, 0, 10, 2).AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+            _offerTitle.resizeTextForBestFit = true;
+            _offerTitle.verticalOverflow = VerticalWrapMode.Truncate;
+            _offerTitle.resizeTextMinSize = 11;
+            _offerTitle.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _offerLeft = UiKit.Rect("Left", button.FaceRect).Stretch(0, 0, 1, 0.5f, 64, 2, 128, 0).AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleLeft);
+            _offerLeft.resizeTextForBestFit = true;
+            _offerLeft.verticalOverflow = VerticalWrapMode.Truncate;
+            _offerLeft.resizeTextMinSize = 11;
+            _offerLeft.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            var tag = UiKit.Rect("Once", button.FaceRect).Stretch(1, 0, 1, 0.5f, -124, 4, 8, 2);
+            tag.AddImage(_catalog.Panel, Palette.Carrot, true);
+            Text tagText = UiKit.Rect("Text", tag).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("offer.once"), 18, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            tagText.resizeTextForBestFit = true;
+            tagText.verticalOverflow = VerticalWrapMode.Truncate;
+            tagText.resizeTextMinSize = 10;
+            tagText.resizeTextMaxSize = UiKit.Scaled(18);
+            _offerRow.gameObject.SetActive(false);
+        }
+
+        public void RefreshOffer(OfferDef offer, long secondsLeft)
+        {
+            if (_offerRow == null) return;
+            bool on = offer != null && secondsLeft > 0L;
+            if (_offerRow.gameObject.activeSelf != on) _offerRow.gameObject.SetActive(on);
+            if (!on) return;
+            _offerTitle.text = OfferView.TitleOf(offer);
+            _offerLeft.text = L10n.T("offer.left", OfferView.Countdown(secondsLeft));
         }
 
         RectTransform _purseRow;

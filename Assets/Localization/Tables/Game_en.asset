@@ -3448,6 +3448,90 @@ MonoBehaviour:
     m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
     m_Metadata:
       m_Items: []
+  - m_Id: 799467463761920
+    m_Localized: Only once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733440
+    m_Localized: Starter pack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733441
+    m_Localized: A welcome bundle for new gardeners, sold once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733442
+    m_Localized: Garden level {0} pack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733443
+    m_Localized: For reaching garden level {0}, sold once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733444
+    m_Localized: '{0} left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733445
+    m_Localized: "{0} \xB7 {1} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733446
+    m_Localized: This pack has ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733447
+    m_Localized: Ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733448
+    m_Localized: '{0} golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733449
+    m_Localized: '{0} moon jars'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733450
+    m_Localized: '{0} clovers'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733451
+    m_Localized: 'Hat: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733452
+    m_Localized: 1 new {0} rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733453
+    m_Localized: "Buy \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733454
+    m_Localized: Maybe later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733455
+    m_Localized: Pack received. Thank you for supporting the tea garden!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733456
+    m_Localized: The store is waiting to confirm; the pack arrives by itself once it does
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733457
+    m_Localized: +{0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467497316352
+    m_Localized: +{0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 806681230434304
+    m_Localized: Bought
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

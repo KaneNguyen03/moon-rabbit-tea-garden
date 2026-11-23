@@ -3439,6 +3439,90 @@ MonoBehaviour:
     m_Key: upgradeall.locked
     m_Metadata:
       m_Items: []
+  - m_Id: 799467463761920
+    m_Key: offer.once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733440
+    m_Key: offer.starter.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733441
+    m_Key: offer.starter.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733442
+    m_Key: offer.milestone.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733443
+    m_Key: offer.milestone.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733444
+    m_Key: offer.left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733445
+    m_Key: offer.shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733446
+    m_Key: offer.ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733447
+    m_Key: offer.ended.short
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733448
+    m_Key: offer.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733449
+    m_Key: offer.jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733450
+    m_Key: offer.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733451
+    m_Key: offer.hat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733452
+    m_Key: offer.rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733453
+    m_Key: offer.buy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733454
+    m_Key: offer.later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733455
+    m_Key: offer.paid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733456
+    m_Key: offer.pending
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733457
+    m_Key: offer.jars.float
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467497316352
+    m_Key: offer.jars.float.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 806681230434304
+    m_Key: offer.bought.short
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

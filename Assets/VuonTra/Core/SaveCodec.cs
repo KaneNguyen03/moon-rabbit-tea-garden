@@ -358,7 +358,23 @@ namespace VuonTra.Core
             }
             sb.Append("],\"caught\":").Append(s.FishCaught.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"fed\":").Append(s.FishFed.ToString(CultureInfo.InvariantCulture));
-            sb.Append("}}");
+            sb.Append('}');
+            sb.Append(",\"offers\":{\"clock\":").Append(s.OfferClock.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"mark\":").Append(Sane(s.OfferPlayMark).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"list\":[");
+            for (int i = 0; i < s.OfferRecords.Count; i++)
+            {
+                OfferRecord offer = s.OfferRecords[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":");
+                WriteString(sb, offer.Id);
+                sb.Append(",\"start\":").Append(offer.Start.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"shown\":").Append(offer.Shown ? "true" : "false");
+                sb.Append(",\"bought\":").Append(offer.Bought ? "true" : "false");
+                sb.Append(",\"closed\":").Append(offer.Closed ? "true" : "false");
+                sb.Append('}');
+            }
+            sb.Append("]}}");
             return sb.ToString();
         }
 
@@ -792,6 +808,25 @@ namespace VuonTra.Core
                         if (basket[i] is double n && n > 0d) s.Fish[i] = (int)Math.Min(n, int.MaxValue);
                 s.FishCaught = Math.Max(0L, ToLong(ReadNumber(fishing, "caught")));
                 s.FishFed = Math.Max(0L, ToLong(ReadNumber(fishing, "fed")));
+            }
+            if (root.TryGetValue("offers", out object offersObj) && offersObj is Dictionary<string, object> offers)
+            {
+                s.OfferClock = TryNumber(offers, "clock", out double offerClock) && offerClock >= 0d ? ToLong(offerClock) : -1;
+                s.OfferPlayMark = Math.Max(0d, Math.Min(Sane(ReadNumber(offers, "mark")), s.PlaySeconds));
+                if (offers.TryGetValue("list", out object listObj) && listObj is List<object> list)
+                    foreach (object raw in list)
+                    {
+                        if (!(raw is Dictionary<string, object> o) || !(o.TryGetValue("id", out object idObj) && idObj is string id)) continue;
+                        if (Offers.Find(id) == null || Offers.RecordOf(s, id) != null) continue;
+                        s.OfferRecords.Add(new OfferRecord
+                        {
+                            Id = id,
+                            Start = Math.Max(0L, ToLong(ReadNumber(o, "start"))),
+                            Shown = o.TryGetValue("shown", out object shown) && shown is bool sh && sh,
+                            Bought = o.TryGetValue("bought", out object bought) && bought is bool bo && bo,
+                            Closed = o.TryGetValue("closed", out object closed) && closed is bool cl && cl,
+                        });
+                    }
             }
 
             result.Status = LoadStatus.Ok;
