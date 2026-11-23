@@ -120,5 +120,26 @@ namespace VuonTra.Core.Tests
             foreach (System.Text.RegularExpressions.Match m in System.Text.RegularExpressions.Regex.Matches(text, @"\{\d+\}")) found.Add(m.Value);
             return found;
         }
+
+        /// <summary>English keeps its own decimal point and one name per thing (#94).</summary>
+        [Test]
+        public void English_Lines_Use_A_Decimal_Point_And_One_Name_Per_Thing()
+        {
+            var bad = new System.Collections.Generic.List<string>();
+            for (int i = 0; i < L10nStrings.All.GetLength(0); i++)
+            {
+                string key = L10nStrings.All[i, 0], en = L10nStrings.All[i, 2];
+                if (System.Text.RegularExpressions.Regex.IsMatch(en, @"\d,\d(?!\d\d)")) bad.Add(key + ": decimal comma in " + en);
+                if (System.Text.RegularExpressions.Regex.IsMatch(en, @"(?i)\bseason \{")) bad.Add(key + ": a new moon is \"Moon {n}\": " + en);
+                if (System.Text.RegularExpressions.Regex.IsMatch(en, @"(?i)\bpress\b")) bad.Add(key + ": \"Tap\" everywhere: " + en);
+                if (System.Text.RegularExpressions.Regex.IsMatch(en, @"(?i)places? to rest|resting places")) bad.Add(key + ": \"rest spots\": " + en);
+            }
+            Assert.IsEmpty(bad, string.Join("\n", bad));
+            L10n.SetLocale("en");
+            Assert.AreEqual("Choose a trinket for Bông", L10n.T("picker.title", L10n.T("slot.charm"), "Bông"), "the tab is Charms; a rabbit wears a trinket");
+            Assert.AreNotEqual(L10n.T("photo.album"), L10n.T("rabbits.tab.album"), "the rabbit book is not the photo album");
+            Assert.AreEqual("Moon 2", L10n.T("hud.season", 2));
+            Assert.AreEqual("1.5", VuonTra.Game.UI.UiKit.Times(1.5), "times signs read with a point");
+        }
     }
 }

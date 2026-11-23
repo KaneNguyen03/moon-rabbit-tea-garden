@@ -131,7 +131,7 @@ namespace VuonTra.Core.Tests
             screen.Advance(NewMoonView.HoldSeconds + 0.1f);
             screen.NewMoonCard.Release();
             Assert.IsTrue(screen.NewMoonCard.Armed);
-            StringAssert.Contains("mùa 1", root.transform.Find("Canvas/NewMoon/Card/Begin/Face/Text").GetComponent<Text>().text);
+            StringAssert.Contains("Trăng 1", root.transform.Find("Canvas/NewMoon/Card/Begin/Face/Text").GetComponent<Text>().text);
             Assert.AreEqual(0, runner.State.Season, "armed is not begun");
 
             screen.NewMoonCard.Hold();
@@ -153,7 +153,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(NewMoon.MoonKind, moon.Kind);
             Transform chip = root.transform.Find("Canvas/Hud/Season");
             Assert.IsTrue(chip.gameObject.activeSelf);
-            Assert.AreEqual("Mùa 1", chip.Find("Text").GetComponent<Text>().text);
+            Assert.AreEqual("Trăng 1", chip.Find("Text").GetComponent<Text>().text);
             Assert.AreEqual(1.25d * RestSpots.Multiplier(runner.State), runner.Mods.IncomeMultiplier, 1e-9, "the season's quarter, times the seated rabbits' share (#60)");
         }
 
