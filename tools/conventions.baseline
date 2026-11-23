@@ -14,7 +14,7 @@ procedural-animation	Assets/VuonTra/Game/UI/BottomSheet.cs	1
 procedural-animation	Assets/VuonTra/Game/UI/Ease.cs	2
 procedural-animation	Assets/VuonTra/Game/UI/FeelLayer.cs	3
 procedural-animation	Assets/VuonTra/Game/UI/FirefliesView.cs	1
-procedural-animation	Assets/VuonTra/Game/UI/GardenScreen.cs	117
+procedural-animation	Assets/VuonTra/Game/UI/GardenScreen.cs	95
 procedural-animation	Assets/VuonTra/Game/UI/LeavesView.cs	4
 procedural-animation	Assets/VuonTra/Game/UI/PoundingView.cs	1
 procedural-animation	Assets/VuonTra/Game/UI/QuestRowView.cs	1
