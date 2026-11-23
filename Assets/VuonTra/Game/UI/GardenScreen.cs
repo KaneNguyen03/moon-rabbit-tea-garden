@@ -266,6 +266,12 @@ namespace VuonTra.Game.UI
         public static Vector2 PondSpot => Heart + new Vector2(-450f, 430f);
         /// <summary>Nothing that must be read stands further right than this: the canopy's crowns reach in from the edge.</summary>
         public const float ReadableRight = WorldW - 80f;
+        /// <summary>What must be read keeps this far inside the screen's edges, in canvas units.</summary>
+        public const float ReadMargin = 24f;
+        /// <summary>How far either side of the teapot the opening view shows, at the usual zoom, less <see cref="ReadMargin"/>.</summary>
+        const float OpeningReach = (ScreenW / 2f - ReadMargin) / ZoomDefault;
+        /// <summary>A station's level plate is drawn at this size, whatever the station's own.</summary>
+        const float PlateScale = 0.78f;
         int _sheetRun, _glideRun;
         float _sheetDragSpeed;
 
@@ -1331,8 +1337,8 @@ namespace VuonTra.Game.UI
                 actor.BaseScale = StationSize(i);
                 actor.Root.localScale = Vector3.one * StationSize(i);
                 actor.SyncFront();
-                // Every station's level reads at the same size, clear of the rabbit's feet and the prop.
-                actor.PlacePlate(0.78f / StationSize(i), new Vector2(0, -26f));
+                // Every station's level reads at the same size, clear of the rabbit's feet and the prop, and whole in the opening view.
+                actor.PlacePlate(PlateScale / StationSize(i), new Vector2(PlateNudge(spot, StationSize(i)) / StationSize(i), -26f));
                 _actors.Add(actor);
                 _workerIds = new long[_actors.Count];
                 standing.Add(new KeyValuePair<float, Transform>(spot.y - 112f * StationSize(i), actor.Root));
@@ -1554,6 +1560,19 @@ namespace VuonTra.Game.UI
             var entry = new UnityEngine.EventSystems.EventTrigger.Entry { eventID = UnityEngine.EventSystems.EventTriggerType.BeginDrag };
             entry.callback.AddListener(_ => { _glideRun++; DismissHint(); });
             drag.triggers.Add(entry);
+        }
+
+        /// <summary>
+        /// How far, in garden units, a station's level plate hangs towards the teapot so it reads whole in the opening view (#16):
+        /// only for a station that stands in that view with its plate reaching past the view's edge, as the land plate of the
+        /// station on the first segment did ("Mở rộng vư…").
+        /// </summary>
+        float PlateNudge(Vector2 spot, float size)
+        {
+            float teapot = StationSpot(0).x, reach = OpeningReach - StationActorView.PlateW * PlateScale / 2f;
+            if (Mathf.Abs(spot.x - teapot) > OpeningReach) return 0f;
+            float middle = spot.x + StationActorView.PlateX * size - teapot;
+            return Mathf.Clamp(middle, -reach, reach) - middle;
         }
 
         /// <summary>The ground a station takes up, plates included, in garden units.</summary>
@@ -6408,6 +6427,10 @@ namespace VuonTra.Game.UI
             // Just inside the lawn's end, so the whole board is in view when the garden looks at that end.
             GardenSide side = GardenGrid.SideOf(segments + 1);
             float x = LawnEdgeX(segments, side) - (side == GardenSide.Left ? -1f : 1f) * (ForestSignW / 2f + 10f);
+            // Whole in the opening view when it stands in it, and short of the trees at the garden's ends (#16).
+            float teapot = StationSpot(0).x, reach = OpeningReach - ForestSignW / 2f;
+            if (Mathf.Abs(x - teapot) < OpeningReach) x = Mathf.Clamp(x, teapot - reach, teapot + reach);
+            x = Mathf.Clamp(x, WorldW - ReadableRight + ForestSignW / 2f, ReadableRight - ForestSignW / 2f);
             var plates = new List<Rect>();
             foreach (RectTransform rt in _street.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "Level" || rt.name == "Plate") plates.Add(StreetRect(rt));

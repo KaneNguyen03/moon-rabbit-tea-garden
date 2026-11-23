@@ -218,7 +218,7 @@ namespace VuonTra.Game.UI
 
             // Level and cycle progress share one plate, centred under the station. Before the station is
             // built the same plate is the price sign.
-            _chipRect = UiKit.Rect("Level", Front).Place(0.5f, 0.5f, 16, -152, 236, 58);
+            _chipRect = UiKit.Rect("Level", Front).Place(0.5f, 0.5f, PlateX, -152, PlateW, 58);
             _chipHome = _chipRect.anchoredPosition;
             _chip = _chipRect.AddImage(catalog.Panel, Palette.Paper, true);
             var barBg = UiKit.Rect("Bar", _chipRect).Band(18, 18, 9, 10);
@@ -234,6 +234,9 @@ namespace VuonTra.Game.UI
             _label.resizeTextMaxSize = 27;
             _label.verticalOverflow = VerticalWrapMode.Truncate;
         }
+
+        /// <summary>How far right of the station's middle its level plate stands, and how wide it is, in the station's own units.</summary>
+        public const float PlateX = 16f, PlateW = 236f;
 
         /// <summary>Puts the front where the root is, at its size and scale, shown when the root is.</summary>
         public void SyncFront()

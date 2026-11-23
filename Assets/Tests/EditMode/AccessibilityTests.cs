@@ -1008,5 +1008,66 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(lines, string.Join("\n", lines));
             Assert.Greater(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content").GetComponentsInChildren<Text>(false).Length, 24);
         }
+
+        // ----- The horizontal garden: the small things left after #16 -----
+
+        [TestCase("vi", false, 0)]
+        [TestCase("en", false, 0)]
+        [TestCase("vi", true, 0)]
+        [TestCase("en", true, 0)]
+        [TestCase("vi", false, 1)]
+        [TestCase("en", false, 1)]
+        [TestCase("vi", true, 1)]
+        [TestCase("en", true, 1)]
+        public void Every_Widen_The_Garden_Sign_In_The_Opening_View_Reads_Whole_24_Inside_The_Screen(string code, bool large, int segments)
+        {
+            // The sign at the lawn's end and the plate of the next station's land both say "Mở rộng vườn"; the plate of the
+            // station on the first segment stood half off the right edge of the opening view.
+            Motion.SetReduced(true);
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            GameState s = runner.State;
+            s.Plots = Expansion.PlotsForSegments(runner.Defs, segments);
+            for (int i = 0; i < s.Plots; i++) s.Levels[i] = 1;
+            MistSegment next = Expansion.Next(runner.Defs, s);
+            s.GardenXp = Garden.XpForLevel(next.NeedLevel);
+            while (s.Rabbits.Count < next.NeedRabbits) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" + s.NextRabbitId });
+            foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
+            s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
+            GardenGrid.Settle(runner.Defs, s);
+            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
+            Layout();
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var view = (RectTransform)root.transform.Find("Canvas/Garden");
+            Vector2 pot = (Vector2)view.InverseTransformPoint(((RectTransform)street.Find("Station " + runner.Defs[0].Id)).position) - view.rect.min;
+            Assert.AreEqual(540f, pot.x, 1f, "the opening view: the teapot in the middle");
+
+            string expand = L10n.T("garden.expand");
+            var signs = new List<RectTransform>();
+            Transform sign = street.Find("Forest Sign");
+            Assert.IsTrue(sign.gameObject.activeSelf, "the garden can widen, so the sign is up");
+            signs.Add((RectTransform)sign.Find("Board"));
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                Transform front = street.Find("Station " + runner.Defs[i].Id + " Front");
+                if (front == null || !front.gameObject.activeInHierarchy) continue;
+                if (front.Find("Level/Text").GetComponent<Text>().text != expand) continue;
+                float x = OnPhone((RectTransform)street.Find("Station " + runner.Defs[i].Id), view, Vector2.zero).center.x;
+                if (x >= 0f && x <= 1080f) signs.Add((RectTransform)front.Find("Level")); // its land is in the opening view
+            }
+            Assert.GreaterOrEqual(signs.Count, segments == 1 ? 2 : 1, "the land plate on the first segment counts too");
+            var cut = new List<string>();
+            foreach (RectTransform rt in signs)
+            {
+                Rect r = OnPhone(rt, view, Vector2.zero);
+                if (r.xMin < 24f || r.xMax > 1080f - 24f || r.yMin < 24f || r.yMax > 1920f - 24f) cut.Add(Path(rt) + " " + r);
+            }
+            Assert.IsEmpty(cut, "cut off in the opening view:\n" + string.Join("\n", cut));
+            Text words = sign.Find("Board/Face/Text").GetComponent<Text>();
+            Assert.IsNull(Wrapped(words, 16), "the sign's words fit its board");
+        }
     }
 }
