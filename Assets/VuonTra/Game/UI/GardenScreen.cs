@@ -3679,10 +3679,10 @@ namespace VuonTra.Game.UI
                 OnDoubleAway);
         }
 
-        /// <summary>The ×2 on the welcome-back sheet: the latest time away paid once more, then the sheet closes.</summary>
+        /// <summary>The ×2 on the welcome-back sheet: the time away it shows paid once more, then the sheet closes.</summary>
         void OnDoubleAway()
         {
-            BigNum paid = Runner.LastAway.Paid;
+            BigNum paid = AwayCard.Report.Paid;
             if (!Runner.DoubleAway())
             {
                 AwayCard.RefreshDouble();
@@ -4114,7 +4114,7 @@ namespace VuonTra.Game.UI
 
         /// <summary>
         /// Coming back (#69): five minutes away or more opens the welcome-back sheet; a shorter absence just sends
-        /// the carrots up to the purse.
+        /// the carrots up to the purse and leaves a sheet that is up, and its ×2, as they are (#89).
         /// </summary>
         public void ShowAway(AwayReport away)
         {
@@ -5968,10 +5968,10 @@ namespace VuonTra.Game.UI
             if (Runner.AdShowing) RefreshAdSeams(); // "opening" while the video plays
         }
 
-        /// <summary>The welcome-back sheet's ad option: the latest time away paid once more, as the ×2 button does.</summary>
+        /// <summary>The welcome-back sheet's ad option: the time away it shows paid once more, as the ×2 button does.</summary>
         void OnAwayAd()
         {
-            BigNum paid = Runner.LastAway.Paid;
+            BigNum paid = AwayCard.Report.Paid;
             WatchAd(Ads.AwayDouble, null, ok =>
             {
                 if (!ok) { AwayCard.RefreshDouble(); return; }

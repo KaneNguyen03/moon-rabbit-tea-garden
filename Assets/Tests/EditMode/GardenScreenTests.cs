@@ -3447,6 +3447,84 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(root.transform.Find("Canvas/Away").gameObject.activeSelf);
         }
 
+        /// <summary>The sheet is up with a long time away, then the player looks at another app for a minute (#89).</summary>
+        AwayReport SheetUpThenAMinuteAway()
+        {
+            screen.Shell.StartGame();
+            runner.State.MaxDaySeen = runner.TodayNumber + 1; // pins the day: midnight passing mid-test cannot give the free ×2 back
+            var twoHours = new AwayReport { Paid = new BigNum(8000), Seconds = 2 * 3600 };
+            runner.ShowAwayForTest(twoHours);
+            screen.ShowAway(twoHours); // in play the runner's event does this (wired in Start)
+            Assert.IsTrue(screen.AwayCard.IsOpen);
+            var minute = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
+            runner.ShowAwayForTest(minute);
+            screen.ShowAway(minute);
+            Assert.IsTrue(screen.AwayCard.IsOpen, "the minute away leaves the sheet up");
+            Assert.AreEqual("+" + new BigNum(8000).Short(), root.transform.Find("Canvas/Away/Card/Carrots/Amount").GetComponent<Text>().text);
+            return twoHours;
+        }
+
+        [Test]
+        public void A_Minute_Away_While_The_Sheet_Is_Up_Leaves_Its_Free_Times_Two_On_The_Two_Hours_It_Shows()
+        {
+            AwayReport shown = SheetUpThenAMinuteAway();
+            GameState s = runner.State;
+            Assert.AreEqual(L10n.T("away.double.free"), screen.AwayCard.DoubleLabel, "the free ×2 is still there");
+            BigNum before = s.Coins;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6, "×2 pays the two hours the sheet shows, not the minute");
+            Assert.AreEqual(runner.TodayNumber, s.AwayDoubleDay, "the day's free ×2 is used, once");
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+
+            // A second ×2 is refused, even after another short absence.
+            var again = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
+            runner.ShowAwayForTest(again);
+            screen.ShowAway(again);
+            Assert.IsTrue(runner.LastAwayDoubled, "a short absence does not give the ×2 back");
+            Assert.IsFalse(runner.DoubleAway(), "one doubling per time away");
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6);
+        }
+
+        [Test]
+        public void A_Minute_Away_While_The_Sheet_Is_Up_Leaves_Its_Golden_Times_Two_On_The_Two_Hours_It_Shows()
+        {
+            AwayReport shown = SheetUpThenAMinuteAway();
+            GameState s = runner.State;
+            s.AwayDoubleDay = runner.TodayNumber; // today's free one is spent (the day is pinned by now)
+            s.GoldenCarrots = 9;
+            screen.AwayCard.RefreshDouble();
+            Assert.AreEqual(L10n.T("away.double.cost", Away.DoubleCost), screen.AwayCard.DoubleLabel);
+            BigNum before = s.Coins;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual((before + shown.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6, "five golden carrots buy the two hours again");
+            Assert.AreEqual(9 - Away.DoubleCost, s.GoldenCarrots);
+            Assert.IsFalse(runner.DoubleAway(), "one doubling per time away");
+            Assert.AreEqual(9 - Away.DoubleCost, s.GoldenCarrots, "a refused ×2 costs nothing");
+        }
+
+        [Test]
+        public void A_New_Long_Time_Away_After_The_Sheet_Closed_Brings_A_Fresh_Report_And_Times_Two()
+        {
+            SheetUpThenAMinuteAway();
+            GameState s = runner.State;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.IsFalse(screen.AwayCard.IsOpen);
+            Assert.IsTrue(runner.LastAwayDoubled);
+
+            s.GoldenCarrots = 9;
+            var night = new AwayReport { Paid = new BigNum(12000), Seconds = 6 * 3600 };
+            runner.ShowAwayForTest(night);
+            screen.ShowAway(night);
+            Assert.IsTrue(screen.AwayCard.IsOpen);
+            Assert.AreEqual("+" + new BigNum(12000).Short(), root.transform.Find("Canvas/Away/Card/Carrots/Amount").GetComponent<Text>().text);
+            Assert.IsFalse(runner.LastAwayDoubled, "a fresh report, a fresh ×2");
+            Assert.AreEqual(L10n.T("away.double.cost", Away.DoubleCost), screen.AwayCard.DoubleLabel, "the day's free one stays spent");
+            BigNum before = s.Coins;
+            Find("Canvas/Away/Card/Double").onClick.Invoke();
+            Assert.AreEqual((before + night.Paid).ToDouble(), s.Coins.ToDouble(), 1e-6);
+            Assert.AreEqual(9 - Away.DoubleCost, s.GoldenCarrots);
+        }
+
         [Test]
         public void The_Pause_Card_Leads_To_A_Profile_With_Name_Code_Avatar_And_A_Local_Only_Backup()
         {
