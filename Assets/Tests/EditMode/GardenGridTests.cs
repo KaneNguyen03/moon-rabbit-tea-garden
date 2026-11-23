@@ -586,7 +586,7 @@ namespace VuonTra.Core.Tests
             // A new save with a station on another's default tile: the other takes the nearest free tile.
             GameState strip = SaveCodec.Decode(ten, OldVerticalSave).State;
             Hex jamHome = GardenGrid.DefaultStationTile(2);
-            Assert.IsTrue(strip.Grid.Move(strip.Grid.TileOf("station:leaf").Value, new Hex(0, 1)));
+            Assert.IsTrue(strip.Grid.Place("station:leaf", 0, 1)); // beside the teapot, as a save may hold it; the arranging mode would refuse (#88)
             Assert.IsTrue(strip.Grid.Remove("station:jam"));
             Assert.IsTrue(strip.Grid.Place(GardenGrid.RestId(0), jamHome.Q, jamHome.R));
             GardenGrid.Settle(ten, strip);

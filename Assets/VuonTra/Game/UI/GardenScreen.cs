@@ -7169,13 +7169,13 @@ namespace VuonTra.Game.UI
         bool OverStore(Vector2 view) => ViewRect(_layoutStore).Contains(view);
         bool OverBar(Vector2 view) => ViewRect((RectTransform)_layoutBar.transform).Contains(view);
 
-        /// <summary>An empty tile on offer, or a tile holding another thing that is drawn and can move.</summary>
+        /// <summary>An empty tile on offer, or a tile holding another thing that is drawn and can move; never one that stands a station next to another (#88).</summary>
         bool Droppable(Hex to, Hex from)
         {
             if (to == from) return false;
-            string there = Grid.OccupantAt(to.Q, to.R);
-            if (there == null) return Grid.InLawn(to) && InWorld(to) && !Reserved(to);
-            return GardenGrid.Movable(there) && ItemShown(there);
+            string carried = Grid.OccupantAt(from.Q, from.R), there = Grid.OccupantAt(to.Q, to.R);
+            if (there == null) return Grid.InLawn(to) && InWorld(to) && !Reserved(to) && Grid.KeepsStationsApart(carried, to);
+            return GardenGrid.Movable(there) && ItemShown(there) && Grid.KeepsStationsApart(carried, to, there) && Grid.KeepsStationsApart(there, from, carried);
         }
 
         void Drop(Vector2 view)

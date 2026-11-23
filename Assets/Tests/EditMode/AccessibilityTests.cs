@@ -730,6 +730,50 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(covered, covered.Count + " covered:\n" + string.Join("\n", covered));
         }
 
+        [Test]
+        public void After_Any_Station_Move_The_Arranging_Mode_Takes_No_Two_Station_Plates_Overlap()
+        {
+            // #88: a station dropped on a tile next to another was drawn over it, one's "Cấp" plate on the other's. Every open
+            // station is tried on every empty tile within two of another station, the tiles where the art could meet.
+            Motion.SetReduced(true);
+            GameState s = runner.State;
+            for (int i = 0; i < 4; i++) s.Levels[i] = 1 + i;
+            GardenGrid.Settle(runner.Defs, s);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.Refresh();
+            GardenGrid grid = s.Grid;
+            int placed = 0, refused = 0;
+            var overlaps = new List<string>();
+            for (int i = 0; i < 4; i++)
+            {
+                string id = GardenGrid.StationId(runner.Defs[i]);
+                Hex home = grid.TileOf(id).Value;
+                foreach (Hex to in grid.EmptyTiles())
+                {
+                    bool close = false;
+                    for (int j = 0; j < 4; j++)
+                        if (j != i && GardenGrid.Distance(to, grid.TileOf(GardenGrid.StationId(runner.Defs[j])).Value) <= Expansion.StationSpacing) close = true;
+                    if (!close) continue;
+                    if (VuonTra.Core.Layout.Drop(runner.Defs, s, home, to) != LayoutDrop.Placed) { refused++; continue; }
+                    placed++;
+                    screen.RebuildUi();
+                    screen.Refresh();
+                    Layout();
+                    var plates = GardenPlates().FindAll(p => p.parent.name.StartsWith("Station "));
+                    Assert.GreaterOrEqual(plates.Count, 4, "every station's level plate is out");
+                    for (int a = 0; a < plates.Count; a++)
+                        for (int b = a + 1; b < plates.Count; b++)
+                            if (WorldRect(plates[a]).Overlaps(WorldRect(plates[b])))
+                                overlaps.Add(id + " on " + to + ": " + Path(plates[a]) + " over " + Path(plates[b]));
+                    Assert.AreEqual(LayoutDrop.Placed, VuonTra.Core.Layout.Drop(runner.Defs, s, to, home), "and back home");
+                }
+            }
+            Assert.IsEmpty(overlaps, overlaps.Count + " overlapping:\n" + string.Join("\n", overlaps));
+            Assert.Greater(placed, 0, "some tile near a station takes it");
+            Assert.Greater(refused, 0, "and the ones next to a station do not");
+        }
+
         // ----- Tiles kept clear for the props off the grid (#54 follow-up) -----
 
         /// <summary>The props off the grid and their plates, as the garden draws them.</summary>
@@ -795,7 +839,7 @@ namespace VuonTra.Core.Tests
             int leaf = -1;
             for (int i = 0; i < runner.Defs.Count; i++) if (runner.Defs[i].Id == "gio-la") leaf = i;
             Hex home = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[leaf])).Value;
-            Assert.IsTrue(s.Grid.NearestEmpty(new Hex(-2, 2), out Hex elsewhere));
+            Assert.IsTrue(s.Grid.NearestEmptyApart(Expansion.StationSpacing, out Hex elsewhere)); // two from every station (#88)
             Assert.IsTrue(s.Grid.Move(home, elsewhere));
             screen.RebuildUi();
             screen.Refresh();

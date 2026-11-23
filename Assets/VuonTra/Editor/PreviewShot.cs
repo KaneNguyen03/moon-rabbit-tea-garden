@@ -692,6 +692,7 @@ namespace VuonTra.EditorTools
             RenderQaNits2(); // #79–#82, on a freshly opened scene so the title shows again
             RenderReservedProps(); // #54 follow-up
             RenderGuestByPond(); // #84
+            RenderStationSpacing(); // #88
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1701,6 +1702,60 @@ namespace VuonTra.EditorTools
             Step(screen, 0.5f);
             Capture(screen, "84-khach-cho-ao-gan");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+        }
+
+        /// <summary>
+        /// #88: in the arranging mode the leaf basket (Lam at work) carried over the empty tile right below the jam pot, then let
+        /// go there. Before the fix that tile lit up and the basket stood on it, drawn over the jam pot; now it does not light up
+        /// and the basket springs back to its own tile.
+        /// </summary>
+        static void RenderStationSpacing()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(4);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.4).Id, 2);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            PlayerPrefs.SetInt(GardenScreen.LayoutHintKey, 1);
+            screen.Build();
+            screen.ClockHours = () => 13.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            screen.Shell.StartGame();
+            screen.SelectStation(-1);
+            Step(screen, 1.4f);
+            Hex basket = s.Grid.TileOf(GardenGrid.StationId(defs[1])).Value, jam = s.Grid.TileOf(GardenGrid.StationId(defs[2])).Value;
+            Hex below = jam;
+            foreach (Hex h in screen.LayoutEmptyTiles())
+                if (GardenGrid.Distance(h, jam) == 1 && h.R > jam.R && GardenGrid.Distance(h, basket) > 1) { below = h; break; }
+            screen.LookAt((GardenScreen.CellToWorld(jam) + GardenScreen.CellToWorld(basket)) / 2f + new Vector2(0f, -60f));
+            Step(screen, 0.5f);
+            screen.EnterLayoutMode();
+            Step(screen, 0.3f);
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(basket));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            screen.SimulateLayoutDrag((screen.LayoutViewPoint(basket) + screen.LayoutViewPoint(below)) / 2f);
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(below));
+            Step(screen, 0.1f);
+            Capture(screen, "88-keo-sat-tram");
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(below));
+            Step(screen, 0.6f);
+            Capture(screen, "88-tha-sat-tram");
+            screen.ExitLayoutMode();
+            Step(screen, 0.3f);
+            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
     }
 }
