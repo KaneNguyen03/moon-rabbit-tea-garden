@@ -2073,6 +2073,21 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 ### Chưa đạt / cần PO quyết
 - Còn ~16 KB rác/khung ở vườn đầy (định dạng chữ UI, số Graphic tăng sau #91): có mở việc riêng không.
 
+## #105 — Gói người mới và gói mốc cấp vườn 10/20/30 (agent-105)
+
+**Test:** full `tools/verify.sh` GREEN (1339/1340, rules ok, 255 frames); Core 732/732; 17 test mới trong `OffersTests` và 6 test mới trong `OfferScreenTests`.
+
+**Commit:** `502571f` (tính năng), `72fe9e6` (merge main 8c3f5f3), `0b83f3a` (ảnh); gộp main `aa12bea`, verify đầy đủ GREEN 1342/1343.
+
+**Đã làm:** `Core/Offers.cs` với đồng hồ kẹp, giao gói một lần qua `Storefront.Grant`, lưu thêm khối `"offers"`; thẻ giữa màn `OfferView`; pill ở đầu Tiệm; 3 sự kiện analytics; `PurchaseOutcome.Pending`; 4 mã Non-Consumable trong `UnityStorefront` và `CHECKLIST.md`; khung preview `105-*` (vi, en, chữ to).
+
+### Chưa đạt / cần PO quyết
+- Bậc Tím là chỉ số 3 hay 4.
+- Đổi hũ thừa thành 12 cà rốt vàng mỗi hũ, Nơ trăng trùng thành 40 cà rốt vàng.
+- Vườn cũ chỉ nhận mốc cao nhất và gói người mới.
+- Pill đầu Tiệm không ghi nội dung gói.
+- Khung gói vẽ tay chưa có.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
