@@ -33,10 +33,25 @@ public static class ThoBongRig
         new BoneSpec { Name = "Neck", Parent = 1, From = new Vector2(248, 325), To = new Vector2(245, 205) },
         new BoneSpec { Name = "EarBackRoot", Parent = 2, From = new Vector2(232, 212), To = new Vector2(222, 100) },
         new BoneSpec { Name = "EarFrontRoot", Parent = 2, From = new Vector2(292, 218), To = new Vector2(328, 112) },
-        new BoneSpec { Name = "Shoulder", Parent = 1, From = new Vector2(300, 355), To = new Vector2(296, 412) },
+        new BoneSpec { Name = "Shoulder", Parent = 1, From = new Vector2(300, 355), To = new Vector2(296, 409) },
+        new BoneSpec { Name = "Grip", Parent = 5, From = new Vector2(296, 409), To = new Vector2(295, 440) },
     };
 
-    const int Hip = 0, Spine = 1, Head = 2, EarBack = 3, EarFront = 4, Arm = 5;
+    static readonly (string category, string[] labels)[] Library =
+    {
+        ("Hat", new[] { "VuongMien", "VongHoa" }),
+        ("Tool", new[] { "Spoon", "RollingPin", "Basket", "Telescope" }),
+    };
+
+    static readonly (string state, string tool, string hat)[] Trades =
+    {
+        ("Brew", "Spoon", "VuongMien"),
+        ("Bake", "RollingPin", "VongHoa"),
+        ("Gather", "Basket", "VuongMien"),
+        ("Stargaze", "Telescope", "VongHoa"),
+    };
+
+    const int Hip = 0, Spine = 1, Head = 2, EarBack = 3, EarFront = 4, Arm = 5, Grip = 6;
 
     static Vector2 ToCharacter(Vector2 psd) => new Vector2(psd.x, Canvas - psd.y);
 
@@ -101,9 +116,13 @@ public static class ThoBongRig
                 if (psd.y < 340) return Blend(Head, Spine, Ramp(psd.y, 300, 340));
                 return Blend(Spine, Hip, Ramp(psd.y, 420, 460));
             case "Arm":
-            case "Tool":
-            case "Paw":
                 return new BoneWeight { boneIndex0 = Arm, weight0 = 1f };
+            case "Paw":
+            case "Spoon":
+            case "RollingPin":
+            case "Basket":
+            case "Telescope":
+                return new BoneWeight { boneIndex0 = Grip, weight0 = 1f };
             default:
                 return new BoneWeight { boneIndex0 = Head, weight0 = 1f };
         }
@@ -161,18 +180,20 @@ public static class ThoBongRig
         var serialized = new SerializedObject(importer);
         SerializedProperty categories = serialized.FindProperty("m_SpriteCategoryList.m_Categories");
         categories.ClearArray();
-        categories.InsertArrayElementAtIndex(0);
-        SerializedProperty hat = categories.GetArrayElementAtIndex(0);
-        hat.FindPropertyRelative("m_Name").stringValue = "Hat";
-        SerializedProperty labels = hat.FindPropertyRelative("m_Labels");
-        labels.ClearArray();
-        string[] hats = { "VuongMien", "VongHoa" };
-        for (int i = 0; i < hats.Length; i++)
+        for (int c = 0; c < Library.Length; c++)
         {
-            labels.InsertArrayElementAtIndex(i);
-            SerializedProperty label = labels.GetArrayElementAtIndex(i);
-            label.FindPropertyRelative("m_Name").stringValue = hats[i];
-            label.FindPropertyRelative("m_SpriteId").stringValue = SpriteIdOf(importer, hats[i]);
+            categories.InsertArrayElementAtIndex(c);
+            SerializedProperty category = categories.GetArrayElementAtIndex(c);
+            category.FindPropertyRelative("m_Name").stringValue = Library[c].category;
+            SerializedProperty labels = category.FindPropertyRelative("m_Labels");
+            labels.ClearArray();
+            for (int i = 0; i < Library[c].labels.Length; i++)
+            {
+                labels.InsertArrayElementAtIndex(i);
+                SerializedProperty label = labels.GetArrayElementAtIndex(i);
+                label.FindPropertyRelative("m_Name").stringValue = Library[c].labels[i];
+                label.FindPropertyRelative("m_SpriteId").stringValue = SpriteIdOf(importer, Library[c].labels[i]);
+            }
         }
         serialized.ApplyModifiedPropertiesWithoutUndo();
         importer.SaveAndReimport();
@@ -266,6 +287,7 @@ public static class ThoBongRig
         Key(brew, root, "Shoulder", "localEulerAnglesRaw.z", 1f, 0, 16, 4, -12, 0);
         Key(brew, root, "Shoulder", "m_LocalPosition.x", 1f, 0, 0.03f, 0, -0.03f, 0);
         Key(brew, root, "Shoulder", "m_LocalPosition.y", 1f, 0.03f, 0, -0.03f, 0, 0.03f);
+        Key(brew, root, "Grip", "localEulerAnglesRaw.z", 1f, 0, -8, -2, 6, 0);
         Key(brew, root, "Spine", "localEulerAnglesRaw.z", 1f, 0, -2.5f, 0, 2.5f, 0);
         Key(brew, root, "Neck", "localEulerAnglesRaw.z", 1f, 2, 0, -3, 0, 2);
         Key(brew, root, "EarBackRoot", "localEulerAnglesRaw.z", 1f, -4, 3, 6, -2, -4);
@@ -273,6 +295,40 @@ public static class ThoBongRig
         Key(brew, root, "Hip", "m_LocalScale.x", 1f, 1, 1.015f, 1, 1.015f, 1);
         Key(brew, root, "Hip", "m_LocalScale.y", 1f, 1, 0.975f, 1, 0.975f, 1);
         SaveClip(brew, "ThoBong_Brew");
+
+        var bake = new AnimationClip();
+        Key(bake, root, "Shoulder", "localEulerAnglesRaw.z", 1f, 8, 20, 8, -4, 8);
+        Key(bake, root, "Shoulder", "m_LocalPosition.x", 1f, 0, 0.05f, 0.09f, 0.04f, 0);
+        Key(bake, root, "Grip", "localEulerAnglesRaw.z", 1f, -8, -20, -8, 4, -8);
+        Key(bake, root, "Spine", "localEulerAnglesRaw.z", 1f, 0, -4, -6, -2, 0);
+        Key(bake, root, "Neck", "localEulerAnglesRaw.z", 1f, 2, -3, -5, 0, 2);
+        Key(bake, root, "EarBackRoot", "localEulerAnglesRaw.z", 1f, -6, 2, 8, 4, -6);
+        Key(bake, root, "EarFrontRoot", "localEulerAnglesRaw.z", 1f, -5, 3, 9, 3, -5);
+        Key(bake, root, "Hip", "m_LocalScale.x", 1f, 1, 1.03f, 1.05f, 1.02f, 1);
+        Key(bake, root, "Hip", "m_LocalScale.y", 1f, 1, 0.95f, 0.92f, 0.97f, 1);
+        SaveClip(bake, "ThoBong_Bake");
+
+        var gather = new AnimationClip();
+        Key(gather, root, "Shoulder", "localEulerAnglesRaw.z", 1f, 150, 168, 175, 160, 150);
+        Key(gather, root, "Grip", "localEulerAnglesRaw.z", 1f, 0, -10, 4, 10, 0);
+        Key(gather, root, "Spine", "localEulerAnglesRaw.z", 1f, 4, 7, 8, 5, 4);
+        Key(gather, root, "Neck", "localEulerAnglesRaw.z", 1f, -6, -10, -12, -8, -6);
+        Key(gather, root, "EarBackRoot", "localEulerAnglesRaw.z", 1f, 4, -3, -6, 2, 4);
+        Key(gather, root, "EarFrontRoot", "localEulerAnglesRaw.z", 1f, 5, -2, -7, 1, 5);
+        Key(gather, root, "Hip", "m_LocalPosition.y", 1f, 0, 0.08f, 0.12f, 0.05f, 0);
+        Key(gather, root, "Hip", "m_LocalScale.x", 1f, 1, 0.98f, 0.97f, 0.99f, 1);
+        Key(gather, root, "Hip", "m_LocalScale.y", 1f, 1, 1.03f, 1.04f, 1.01f, 1);
+        SaveClip(gather, "ThoBong_Gather");
+
+        var stargaze = new AnimationClip();
+        Key(stargaze, root, "Shoulder", "localEulerAnglesRaw.z", 2f, 150, 154, 148, 153, 150);
+        Key(stargaze, root, "Grip", "localEulerAnglesRaw.z", 2f, 18, 12, 20, 14, 18);
+        Key(stargaze, root, "Spine", "localEulerAnglesRaw.z", 2f, 9, 11, 10, 12, 9);
+        Key(stargaze, root, "Neck", "localEulerAnglesRaw.z", 2f, 8, 11, 9, 12, 8);
+        Key(stargaze, root, "EarBackRoot", "localEulerAnglesRaw.z", 2f, 6, 8, 5, 9, 6);
+        Key(stargaze, root, "EarFrontRoot", "localEulerAnglesRaw.z", 2f, 4, 7, 3, 8, 4);
+        Key(stargaze, root, "Hip", "m_LocalScale.y", 2f, 1, 0.99f, 1, 0.99f, 1);
+        SaveClip(stargaze, "ThoBong_Stargaze");
 
         var idle = new AnimationClip();
         Key(idle, root, "Hip", "m_LocalScale.x", 2f, 1, 1.012f, 1);
@@ -287,20 +343,26 @@ public static class ThoBongRig
         AssetDatabase.DeleteAsset(controllerPath);
         AnimatorController controller = AnimatorController.CreateAnimatorControllerAtPath(controllerPath);
         controller.AddParameter("Working", AnimatorControllerParameterType.Bool);
+        controller.AddParameter("Trade", AnimatorControllerParameterType.Int);
         AnimatorStateMachine machine = controller.layers[0].stateMachine;
         AnimatorState idleState = machine.AddState("Idle");
         idleState.motion = idle;
-        AnimatorState brewState = machine.AddState("Brew");
-        brewState.motion = brew;
         machine.defaultState = idleState;
-        AnimatorStateTransition toBrew = idleState.AddTransition(brewState);
-        toBrew.AddCondition(AnimatorConditionMode.If, 0, "Working");
-        toBrew.duration = 0.15f;
-        toBrew.hasExitTime = false;
-        AnimatorStateTransition toIdle = brewState.AddTransition(idleState);
-        toIdle.AddCondition(AnimatorConditionMode.IfNot, 0, "Working");
-        toIdle.duration = 0.2f;
-        toIdle.hasExitTime = false;
+        AnimationClip[] work = { brew, bake, gather, stargaze };
+        for (int i = 0; i < Trades.Length; i++)
+        {
+            AnimatorState state = machine.AddState(Trades[i].state);
+            state.motion = work[i];
+            AnimatorStateTransition enter = idleState.AddTransition(state);
+            enter.AddCondition(AnimatorConditionMode.If, 0, "Working");
+            enter.AddCondition(AnimatorConditionMode.Equals, i, "Trade");
+            enter.duration = 0.15f;
+            enter.hasExitTime = false;
+            AnimatorStateTransition leave = state.AddTransition(idleState);
+            leave.AddCondition(AnimatorConditionMode.IfNot, 0, "Working");
+            leave.duration = 0.2f;
+            leave.hasExitTime = false;
+        }
 
         instance.name = "ThoBong";
         instance.AddComponent<SortingGroup>();
@@ -327,19 +389,17 @@ public static class ThoBongRig
         Directory.CreateDirectory(outDir);
 
         GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>($"{RigFolder}/ThoBong.prefab");
-        AnimationClip idle = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{RigFolder}/ThoBong_Idle.anim");
-        AnimationClip brew = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{RigFolder}/ThoBong_Brew.anim");
-
         var actors = new List<(GameObject go, AnimationClip clip)>();
-        (AnimationClip clip, string hat)[] cast = { (idle, "VuongMien"), (brew, "VuongMien"), (brew, "VongHoa") };
-        for (int i = 0; i < cast.Length; i++)
+        for (int i = 0; i < Trades.Length; i++)
         {
+            AnimationClip clip = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{RigFolder}/ThoBong_{Trades[i].state}.anim");
             var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
-            go.transform.position = new Vector3(i * 3.4f, 0, 0);
+            go.transform.position = new Vector3(i * 3.6f, 0, 0);
             go.GetComponent<Animator>().enabled = false;
             foreach (SpriteResolver resolver in go.GetComponentsInChildren<SpriteResolver>(true))
             {
-                resolver.SetCategoryAndLabel("Hat", cast[i].hat);
+                string category = resolver.GetCategory();
+                resolver.SetCategoryAndLabel(category, category == "Hat" ? Trades[i].hat : Trades[i].tool);
                 resolver.ResolveSpriteToSpriteRenderer();
             }
             foreach (SpriteSkin skin in go.GetComponentsInChildren<SpriteSkin>(true))
@@ -347,11 +407,22 @@ public static class ThoBongRig
                 skin.alwaysUpdate = true;
                 skin.forceCpuDeformation = true;
             }
-            actors.Add((go, cast[i].clip));
+            actors.Add((go, clip));
         }
 
-        Bounds bounds = actors.SelectMany(a => a.go.GetComponentsInChildren<SpriteRenderer>()).Select(r => r.bounds)
-            .Aggregate((a, b) => { a.Encapsulate(b); return a; });
+        Bounds? union = null;
+        for (float probe = 0f; probe < 2f; probe += 0.125f)
+        {
+            foreach ((GameObject go, AnimationClip clip) in actors) clip.SampleAnimation(go, probe % clip.length);
+            Deform();
+            foreach (SpriteRenderer renderer in actors.SelectMany(a => a.go.GetComponentsInChildren<SpriteRenderer>()))
+            {
+                Bounds b = renderer.bounds;
+                if (union == null) union = b;
+                else { Bounds u = union.Value; u.Encapsulate(b); union = u; }
+            }
+        }
+        Bounds bounds = union.Value;
         Debug.Log($"[rig] bounds {bounds}; resolvers {actors[0].go.GetComponentsInChildren<SpriteResolver>(true).Length}; skins {actors[0].go.GetComponentsInChildren<SpriteSkin>(true).Length}");
         var camera = new GameObject("CaptureCamera").AddComponent<Camera>();
         camera.orthographic = true;

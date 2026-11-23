@@ -60,6 +60,14 @@ PrefabInstance:
       propertyPath: m_CategoryHash
       value: 1.7667347e-13
       objectReference: {fileID: 0}
+    - target: {fileID: 6501546032181838720, guid: 7a84df4a9f0ff4595a780cec635201f1, type: 3}
+      propertyPath: m_labelHash
+      value: 1.046046e-23
+      objectReference: {fileID: 0}
+    - target: {fileID: 6501546032181838720, guid: 7a84df4a9f0ff4595a780cec635201f1, type: 3}
+      propertyPath: m_CategoryHash
+      value: 1.7776602e-38
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

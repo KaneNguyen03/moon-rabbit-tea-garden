@@ -13,11 +13,13 @@ BUNNY = ART / "Bunny" / "tho-bong"
 FINAL = ART / "Final"
 
 
-def scaled(path, width=None, height=None, flip=False):
+def scaled(path, width=None, height=None, flip=False, turn=False):
     image = Image.open(path).convert("RGBA")
     image = image.crop(image.getbbox())
     if flip:
         image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
+    if turn:
+        image = image.transpose(Image.Transpose.ROTATE_90)
     if width:
         height = round(image.height * width / image.width)
     else:
@@ -57,7 +59,11 @@ hat = Group.new(name="Hat", parent=psd)
 add(hat, "VuongMien", centered_on(scaled(FINAL / "hat_vuong-mien.png", width=96), 246, 214))
 add(hat, "VongHoa", centered_on(scaled(FINAL / "hat_vong-hoa.png", width=150), 244, 222))
 
-add(psd, "Tool", gripped_at(scaled(FINAL / "tool_brewer.png", height=132, flip=True), 296, 409, 0.32))
+tool = Group.new(name="Tool", parent=psd)
+add(tool, "Spoon", gripped_at(scaled(FINAL / "tool_brewer.png", height=132, flip=True), 296, 409, 0.32))
+add(tool, "RollingPin", gripped_at(scaled(FINAL / "tool_baker.png", width=130, turn=True), 296, 412, 0.5))
+add(tool, "Basket", gripped_at(scaled(FINAL / "tool_gatherer.png", height=118, flip=True), 296, 409, 0.2))
+add(tool, "Telescope", gripped_at(scaled(FINAL / "tool_stargazer.png", height=112, flip=True), 296, 409, 0.45))
 add(psd, "Arm", bunny_part("arm"))
 add(psd, "Paw", bunny_part("paw"))
 
@@ -65,5 +71,5 @@ psd._record.header.version = 2
 psd.save(OUT)
 print(OUT, [layer.name for layer in psd.descendants()])
 
-preview = psd.composite(layer_filter=lambda layer: layer.name != "VongHoa" and layer.is_visible())
+preview = psd.composite(layer_filter=lambda layer: layer.name not in ("VongHoa", "RollingPin", "Basket", "Telescope") and layer.is_visible())
 preview.save(OUT.with_suffix(".preview.png"))
