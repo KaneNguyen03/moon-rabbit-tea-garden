@@ -10,7 +10,7 @@ Mọi việc dưới đây đã có trên `main` và đã push. Ảnh ở `docs/
 |---|---|---|
 | #52 Lưới ô lục giác | Lưới bắt đầu ở bán kính 3 (đề xuất là 2), mỗi đợt mở đất thêm một vòng: 4, 5, 6, 7 | Giữ bán kính 3 (bốn trạm đầu cần 3 vòng với ô 150×200) |
 | #53 Mở rộng rừng theo vòng | Giá mỗi vòng bằng giá hai trạm kế (thử 25 % giá một trạm thì trò chơi + đơn khách tụt còn 11,7 %); vòng R7 cần cấp vườn 15 | Đổi R7 sang cấp 16 để "đủ 12 ô không trước ngày 3" đúng với mọi seed (cấp 15 chỉ đúng với seed hiện tại) |
-| #54 Chế độ Bố trí | Ấm trà dời được nhưng không cất vào kho; giỏ lá, cối, lọ đom đóm, tiệm, quầy khách là ô giữ chỗ không đặt đồ lên được | Giữ hai quy tắc này |
+| #54 Chế độ Bố trí | (1) Ấm trà chỉ dời được, không cất vào kho; (2) trạm mới mua vẫn vào ô mặc định, không hỏi chọn ô; (3) đèn lối đi chỉ dựng lại khi bấm "Xong"; (4) giỏ hứng lá đứng cố định cạnh ô nhà của trạm Giỏ lá, không đi theo khi trạm bị dời; (5) mái tiệm trà chồm lên hai ô phía sau, đồ đặt ở đó đứng sau tiệm nên không che | Chấp nhận cả năm điểm, hay muốn đổi điểm nào |
 | #56 Thỏ xin chụp ảnh | Thêm nhiệm vụ ngày "Chụp 3 tấm thỏ xin ảnh" và giữ "Chạm bé thỏ 50 lần", nên có năm nhiệm vụ ngày | Giữ năm, hay bỏ "Chạm bé thỏ 50 lần" về bốn |
 | #58 Câu cá và tim | Tim lên 10, hệ số tim tới ×2,6; nút Cho ăn luôn dùng con cá điểm cao nhất | Giữ trần 10 tim; có cần bảng chọn từng loại cá khi cho ăn không |
 | #61 Sổ thỏ có thưởng | **Đã chốt 23/11:** mốc 10 loài 1 cà rốt vàng, mốc 20 loài 2 cà rốt vàng + 1 cỏ | Không còn gì; đóng sau khi xem ảnh |
