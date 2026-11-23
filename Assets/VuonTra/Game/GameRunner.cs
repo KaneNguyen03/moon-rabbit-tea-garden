@@ -65,7 +65,10 @@ namespace VuonTra.Game
 
         /// <summary>The day number the daily things turn over on, for screens that show "today".</summary>
         /// <summary>The day the game goes by: the local calendar day, never earlier than the latest day this save has seen (#8).</summary>
-        public long TodayNumber => Seasons.Clamp(State, Today);
+        public long TodayNumber => Seasons.Clamp(State, DayClock());
+
+        /// <summary>The calendar day the game reads, as a day number; tests pin it so a dated gift code or letter does not run out under them (#87).</summary>
+        public Func<long> DayClock = () => Today;
         public Season SeasonNow => Seasons.SeasonOf(TodayNumber);
 
         /// <summary>The player's local calendar day as a number, so daily quests turn over at their midnight.</summary>
@@ -1076,7 +1079,7 @@ namespace VuonTra.Game
         /// <summary>Buys the no-ads pass through the store; it is granted from today's clamped day.</summary>
         public void BuyNoAdsPass(Action<PurchaseResult> done)
         {
-            Seasons.Clamp(State, Today); // the pass counts from today
+            Seasons.Clamp(State, DayClock()); // the pass counts from today
             BuyGolden(Storefront.NoAdsPass, done);
         }
 
