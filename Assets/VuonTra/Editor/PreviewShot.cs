@@ -460,6 +460,7 @@ namespace VuonTra.EditorTools
             Capture(screen, "17-profile-en");
             screen.Profile.Close();
             L10n.SetLocale("vi");
+            screen.RebuildUi(); // edit mode has no Start(), so nothing else rebuilds the English canvas
 
             // The whole garden with every station open, to check the layout.
             screen.Shell.Resume();
