@@ -1839,12 +1839,12 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Khách đi qua sương của đoạn 1 khi đoạn đó chưa mở; biển ở mép phải bị cắt một phần trong khung mở đầu; nút về tiệm trà chưa có chữ.
 - Thấy khi xem ảnh: câu nói của thỏ ("Nước vừa sôi…") có lúc che biển "Giã bánh"; bảng "Câu cá" sát mép trái trong khung sau khi mở rộng.
 
-## Bàn giao (23/11 ~13:10, mốc trước vườn cuộn ngang)
+## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
-- main = origin/main tại commit này (ngay sau `5c08ee7`). `tools/verify.sh --build` xanh trên `5c08ee7`: seed, 214 ảnh preview, biên dịch, 1159/1160 EditMode (1 test mùa vụ không kết luận, có chủ ý), bản Mac `Build/Mac/VuonTraTho.app` chạy 8 giây, Player.log sạch. Đây là bản đủ mọi việc từ tối 22/11 tới trưa 23/11 để chủ project thử.
-- Cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`) và các thư mục bị bỏ qua (`.agent/`, `.agents/`, `.github/`, `skills-lock.json`). `docs/de-xuat-vuon-ngang.md` chưa commit, sẽ vào cùng phần (a) của vườn ngang.
-- Không còn worktree agent nào (chỉ `qa-test` của session QA).
+- main = origin/main tại commit này (ngay sau `a62eb2d`). `tools/verify.sh --build` xanh trên `6c3a3fb` (vườn ngang): seed, 214 ảnh preview, biên dịch, 1182/1183 EditMode (1 test mùa vụ không kết luận, có chủ ý), bản Mac `Build/Mac/VuonTraTho.app` chạy 8 giây, Player.log sạch. Mốc trước đó (`5c08ee7`, 1159/1160) là bản dọc cuối cùng.
+- Cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`) và các thư mục bị bỏ qua (`.agent/`, `.agents/`, `.github/`, `skills-lock.json`). `docs/de-xuat-vuon-ngang.md` đã commit cùng vườn ngang.
+- Không còn worktree agent nào (chỉ `qa-test` của session QA). Không có agent nào đang chạy.
 - Save vẫn v14; mọi khối thêm từ 22–23/11 (lưới, kho Bố trí, hũ trăng, mưa và Thỏ Ếch, quảng cáo, mã quà và hộp thư, câu cá và tim, nhắc tôi) đều là khối bổ sung, save cũ mở được (có test).
 - Mã quà: khoá thật `Assets/Resources/keys.json` đã có trên máy này và nằm trong bản Mac; mã ký tạo bằng `tools/make-code.sh` được nhận, mã sửa một ký tự hoặc kiểm bằng khoá khác bị từ chối (#68). Giữ một bản sao khoá ở nơi an toàn.
 
@@ -1854,6 +1854,7 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Âm thanh: #63 tiếng trạm khi zoom gần, thanh Tiếng trạm, chọn nhạc; chỉnh theo số đo QA (lọc chói, mặc định 0,5, câu cá nghe được trên loa điện thoại).
 - Kinh tế: #83 nhịp đo trên 17 seed, mô phỏng lặp lại được, R7 cần cấp 16, tiếp sức của Vườn hoa sen và Ruộng lúa nếp còn 7 %.
 - Lỗi QA: #79, #80, #81, #82; ảnh preview không còn lẫn chữ Anh/Việt (`52d73ff`).
+- Vườn thành dải toàn cảnh cuộn ngang (#16, `24cceaf` + `07f09e4` + `6c3a3fb`): dải 7 hàng, tiệm trà ở giữa; 6 đoạn sương mở phải/trái giữ cấp và giá của R4–R9 (nhịp 17 seed giống hệt); kéo ngang có quán tính, nút về tiệm trà, nút cạnh ◀/▶, parallax rừng xa; save dọc cũ mở đúng chỗ. Đã ghi chú lên #50–#54, #67.
 
 ### Cần chủ project quyết hoặc thử tay
 - Duyệt các hằng số: #83 (R7 cấp 16; hệ số tiếp sức 0,07), #67 (cấp mở trạm 16/18/20/23; R8/R9 cấp 16/20; hai nhiệm vụ chỉ thưởng cỏ), #64 và #62 (hũ trăng từ nhiệm vụ/đom đóm và Thỏ Ếch chỉ từ cấp vườn 15), #58 (tim thứ 10 ở 18.880 điểm), #53 (giá vòng ¼ giá hai trạm), #52 (lưới bắt đầu bán kính 3), #68 (hạn mã công khai, quà thư), #66 (có quảng cáo hay không, ba chỗ, giá vé).
@@ -1862,11 +1863,14 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Còn mở ngoài chờ duyệt: #4 (thử tay bản Mac), #16 (hàng đợi).
 
 ### Việc tiếp theo
-- Vườn thành dải toàn cảnh cuộn ngang (chủ game duyệt 23/11, #16 comment 7092835527, `docs/de-xuat-vuon-ngang.md`): phần (a) Core + mở rộng theo đoạn sương trái/phải + migrate save + test nhịp 17 seed, rồi phần (b) màn hình/camera. Chạy một mình vì đụng lưới, mở rộng và Bố trí.
+- Vườn ngang, chờ chủ project quyết: độ dày của sương; trà sữa và ruộng lúa đứng ngoài đoạn của mình (luật trạm tiếp sức đứng gần); chữ "Mở rộng vườn · đoạn N".
+- Vườn ngang, việc nhỏ còn lại: khách đi qua sương đoạn 1 khi đoạn đó chưa mở; biển mép phải bị cắt trong khung mở đầu; nút về tiệm trà chưa có chữ (`edge.home`); câu nói của thỏ có lúc che biển "Giã bánh".
+- Thử tay bản Mac mới (kéo ngang, mở đoạn, Bố trí trên dải, câu cá, mã quà).
 
 ### Lưu ý kỹ thuật mới
 - Tối đa 5 agent song song (16 GB RAM); mỗi agent một worktree `../VuonTraNam-NN` với bản sao Library; hai nhánh cùng đụng một chỗ thì gộp theo thứ tự cố định.
 - Sau mỗi lần gộp: bảng chuỗi lấy bản nào cũng được rồi seed lại; khối nối cuối file (L10nStrings, PreviewShot, cuối GardenScreen, test) giữ cả hai và thêm `}`/`#endregion` bị mất ở chỗ nối.
 - `GardenScreen.StationSpot/RestSpot/DecorSpotAt/MortarSpot/ShopSpot/GuestSpot` là thành viên instance (đọc lưới), không còn static.
+- Vườn ngang: `GardenGrid.Segments` thay `Radius`, `Expansion.Segment(n)`/`Segments(s)` thay `Ring`/`Radius`; thế giới 4800 × 2200; `PreviewShot` nhắm camera qua `At(x, y)`.
 - Test màn hình mới đặt `screen.Raining = () => false;` trong SetUp, nếu không đồng hồ thật rơi vào cơn mưa làm test chập chờn.
 - Mô phỏng kinh tế thuần C#: dựng nhanh ngoài Unity bằng .NET SDK trong bản Unity; test nhịp giờ chạy 17 seed (~5 phút trong Unity).
