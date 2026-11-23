@@ -69,6 +69,12 @@ namespace VuonTra.Core.Tests
         /// places offer. What those paid, kept apart.
         /// </summary>
         bool takeFreeDouble, everyAd;
+        /// <summary>
+        /// "Nâng tất cả" (#36, #99): the player also presses the station sheet's upgrade-everything button as each sitting opens
+        /// and before it ends, which buys what the game's button buys (<see cref="UpgradePlan.Plan"/> on <see cref="Simulation.Budget"/>).
+        /// Off by default: the pace above was set on a player who buys one level at a time.
+        /// </summary>
+        bool upgradeAll;
         BigNum earnedDoubles, earnedAds;
         int goldenAds, extraRounds;
 
@@ -118,7 +124,7 @@ namespace VuonTra.Core.Tests
             fishRng = new System.Random(unchecked(seed * 31 + 58));
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
-            takeFreeDouble = everyAd = false;
+            takeFreeDouble = everyAd = upgradeAll = false;
             earnedDoubles = earnedAds = BigNum.Zero;
             goldenAds = extraRounds = 0;
             levelAt.Clear();
@@ -491,8 +497,18 @@ namespace VuonTra.Core.Tests
         void Play(double seconds)
         {
             OpenSession();
+            UpgradeAll();
             for (int i = 0; i < seconds; i++) ActiveSecond();
+            UpgradeAll();
             SellTray(false);
+        }
+
+        /// <summary>Presses "Nâng tất cả" when <see cref="upgradeAll"/>: the plan the button shows, for the purse the button spends.</summary>
+        void UpgradeAll()
+        {
+            if (!upgradeAll) return;
+            List<UpgradeStep> plan = UpgradePlan.Plan(defs, s, Simulation.Budget(s));
+            if (plan.Count > 0 && UpgradePlan.Apply(defs, s, plan)) Note();
         }
 
         void Away(double seconds)
@@ -588,10 +604,11 @@ namespace VuonTra.Core.Tests
         }
 
         /// <summary>The casual week: each day 20 minutes of play, 8 hours away, 10 minutes of play, away to the end of the day; seven days.</summary>
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false)
         {
             Reset(false, seed);
             goFishing = fishing;
+            upgradeAll = pressUpgradeAll;
             takeFreeDouble = freeDouble;
             everyAd = watchEveryAd;
             var w = new Week { Seed = seed };
@@ -957,6 +974,69 @@ namespace VuonTra.Core.Tests
             TestContext.WriteLine(report.ToString());
 
             HardRules(ads, report.ToString());
+        }
+        // ----- a player who presses "Nâng tất cả" (#36, #99) -----
+
+        Week[] upgradeAllOverSeeds;
+
+        Week[] UpgradeAllOverSeeds()
+        {
+            if (upgradeAllOverSeeds == null)
+            {
+                upgradeAllOverSeeds = new Week[Seeds.Length];
+                for (int i = 0; i < Seeds.Length; i++) upgradeAllOverSeeds[i] = CasualWeek(false, false, false, Seeds[i], true);
+            }
+            return upgradeAllOverSeeds;
+        }
+
+        /// <summary>
+        /// The casual week above, also pressing the station sheet's "Nâng tất cả" as each sitting opens and before it ends, over
+        /// the seventeen seeds, beside the same week bought a level at a time. The button spends the hours of income the other
+        /// player leaves in the purse, so level 10 comes at the end of the first sitting, all twelve plots on day two, and play's
+        /// share of day one shrinks to a few percent. Those rules were set on the one-level buyer and are written beside it to
+        /// Logs/economy-upgrade-all.txt for the owner (#99), not asserted; the first minutes, level 10 on day one, segments that
+        /// never wait on rabbits, quests under a third of day one, a few golden calls a week, the jars and the frogs hold for both.
+        /// </summary>
+        [Test, Category("Slow")]
+        public void A_Casual_Week_With_Upgrade_All_Keeps_The_First_Minutes_And_Level_Ten_On_Day_One()
+        {
+            Week[] single = OverSeeds(false, false, false);
+            Week[] all = UpgradeAllOverSeeds();
+
+            var report = new StringBuilder();
+            report.AppendLine("# Người chơi thong thả bấm Nâng tất cả (#99)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi với EconomySimulationTests; người thứ hai bấm \"Nâng tất cả\" (UpgradePlan, cả ví) lúc mở mỗi buổi và trước khi rời. Trung vị trên " + Seeds.Length + " hạt.");
+            report.AppendLine();
+            report.AppendLine("| Luật (#6, #83) | Mua từng cấp | Bấm Nâng tất cả |");
+            report.AppendLine("|---|---|---|");
+            System.Action<string, Func<Week, bool>> rule = (label, holds) =>
+                report.AppendLine("| " + label + " | " + Count(single, holds) + "/" + single.Length + " | " + Count(all, holds) + "/" + all.Length + " |");
+            rule("Cấp 5 trong phút 4–12", w => w.Level5 >= 4 * 60 && w.Level5 <= 12 * 60);
+            rule("Cấp 10 trong ngày 1", w => w.LevelDayOne >= 10);
+            rule("Cấp 10 không trong buổi đầu (≥ 2 giờ)", w => w.Level10 >= 2 * 3600);
+            rule("12 ô đất không trước ngày 3", w => w.Plots12 < 0 || w.Plots12 >= 2 * Day);
+            rule("Ba đoạn đầu không chờ thỏ", w => w.Wait[0] <= 300 && w.Wait[1] <= 300 && w.Wait[2] <= 300);
+            rule("Nhiệm vụ < 35 % ngày 1", w => w.QuestShare < 35);
+            rule("Gọi vàng + thỏ ghé tiệm 2–6 trong tuần", w => w.Golden >= 2 && w.Golden <= 6);
+            report.AppendLine("| Trò chơi + khách ngày 1 (trung vị, luật 15–30 %) | " + Math.Round(Median(single, w => w.PlayShare), 1) + " % | " + Math.Round(Median(all, w => w.PlayShare), 1) + " % |");
+            report.AppendLine("| Thu/giây hết ngày 7 (trung vị, luật ≤ " + new BigNum(10 * DaySevenIncomeBeforeFourStations).ToShortString() + ") | " + new BigNum(Median(single, w => w.Income7)).ToShortString() + " | " + new BigNum(Median(all, w => w.Income7)).ToShortString() + " |");
+            report.AppendLine();
+            report.AppendLine("Bấm Nâng tất cả, từng hạt:");
+            report.Append(SeedTable(all));
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-upgrade-all.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Holds(all, w => w.Level5 >= 4 * 60 && w.Level5 <= 12 * 60, "garden level 5 between minute four and minute twelve", text);
+            Assert.LessOrEqual(Median(all, w => w.Level5), 9 * 60, "garden level 5 by minute nine on the median\n" + text);
+            Holds(all, w => w.LevelDayOne >= 10, "garden level 10 within day one", text);
+            Holds(all, w => w.Wait[0] <= 300 && w.Wait[1] <= 300 && w.Wait[2] <= 300, "no segment waits on rabbits", text);
+            Holds(all, w => w.QuestShare < 35, "quests should not dominate day one", text);
+            Holds(all, w => w.Golden >= 2 && w.Golden <= 6, "golden calls a few times a week, at most six", text);
+            Always(all, w => w.JarsOpened > 0 && w.MostFreeJars <= MoonJars.FreePerDay, "jars come, at most one free a day", text);
+            Always(all, w => w.FrogsMet > 0 && w.FrogsMet <= 7 * FrogRabbit.PerDay, "the Frog Rabbit, two a day at most", text);
         }
     }
 }
