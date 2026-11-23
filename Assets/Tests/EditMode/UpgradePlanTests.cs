@@ -14,6 +14,24 @@ namespace VuonTra.Core.Tests
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
             s.Levels = new[] { 5, 2, 1 };
+            s.GardenXp = Garden.XpForLevel(UpgradePlan.UnlockLevel);
+        }
+
+        [Test]
+        public void Upgrade_All_Opens_At_Garden_Level_Fifteen_And_Buys_Nothing_Before()
+        {
+            s.Coins = new BigNum(1e9);
+            s.GardenXp = Garden.XpForLevel(UpgradePlan.UnlockLevel - 1);
+            Assert.IsFalse(UpgradePlan.Unlocked(s));
+            Assert.AreEqual(0, UpgradePlan.Plan(defs, s, s.Coins).Count, "a closed button plans nothing");
+            var handMade = new List<UpgradeStep> { new UpgradeStep { Station = 0, Levels = 1, Cost = Economy.CostOfNext(defs[0], 5, 1) } };
+            Assert.IsFalse(UpgradePlan.Apply(defs, s, handMade), "nor buys a plan made elsewhere");
+            Assert.AreEqual(5, s.Levels[0]);
+
+            s.GardenXp = Garden.XpForLevel(UpgradePlan.UnlockLevel);
+            Assert.IsTrue(UpgradePlan.Unlocked(s));
+            Assert.Greater(UpgradePlan.Plan(defs, s, s.Coins).Count, 0);
+            Assert.AreEqual(15, UpgradePlan.UnlockLevel);
         }
 
         [Test]

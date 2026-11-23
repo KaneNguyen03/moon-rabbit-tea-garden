@@ -341,7 +341,7 @@ namespace VuonTra.Core.Tests
         sealed class Run
         {
             public int Seed;
-            public double Level5, Level10, Level15;
+            public double Level5, Level10, Level15, UpgradeAllOpens;
             public int LevelDayOne, SetsDayOne, LevelEnd, Plots, JarsOpened, MostFreeJars, FrogsMet, FishCaught, Summoned;
             public long RingSevenDay, Station13Day = -1, Station16Day = -1, Segment5Day = -1, Segment6Day = -1;
             public readonly long[] StationDay = { -1, -1, -1, -1 };
@@ -355,7 +355,7 @@ namespace VuonTra.Core.Tests
         {
             var r = new Run
             {
-                Seed = seed, Level5 = LevelAt(5), Level10 = LevelAt(10), Level15 = LevelAt(15), LevelDayOne = levelDayOne,
+                Seed = seed, Level5 = LevelAt(5), Level10 = LevelAt(10), Level15 = LevelAt(15), UpgradeAllOpens = LevelAt(UpgradePlan.UnlockLevel), LevelDayOne = levelDayOne,
                 SetsDayOne = setsDayOne == null ? 0 : setsDayOne.Count, LevelEnd = Garden.Level(s), Plots = s.Plots, JarsOpened = jarsOpened,
                 MostFreeJars = MostFreeJarsInADay(), FrogsMet = frogsMet, FishCaught = fishCaught, Summoned = summoned, RingSevenDay = ringSevenDay,
                 Coins = s.TotalEarned.ToDouble(), Xp = s.GardenXp
@@ -665,6 +665,8 @@ namespace VuonTra.Core.Tests
             sb.AppendLine("| Trạm 16 trong ngày 7–11 (#99) | " + Count(single, r => r.Station16Day >= 7 && r.Station16Day <= 11) + "/" + single.Length + " | " + Count(all, r => r.Station16Day >= 7 && r.Station16Day <= 11) + "/" + all.Length + " |");
             sb.AppendLine("| Trạm 13 không trước ngày 4 (#99) | " + Count(single, r => r.Station13Day >= 4) + "/" + single.Length + " | " + Count(all, r => r.Station13Day >= 4) + "/" + all.Length + " |");
             sb.AppendLine("| 12 ô đất không trước ngày 3 | " + Count(single, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3) + "/" + single.Length + " | " + Count(all, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3) + "/" + all.Length + " |");
+            sb.AppendLine("| Cấp 10 không trong buổi đầu, ≥ 2 giờ (#101) | " + Count(single, r => r.Level10 >= 2 * 3600) + "/" + single.Length + " | " + Count(all, r => r.Level10 >= 2 * 3600) + "/" + all.Length + " |");
+            sb.AppendLine("| Nâng tất cả mở ở cấp vườn " + UpgradePlan.UnlockLevel + " (#101) | – | " + Spread(all, r => r.UpgradeAllOpens, v => Clock(v)) + " |");
             return sb.ToString();
         }
 
@@ -685,6 +687,8 @@ namespace VuonTra.Core.Tests
             Holds(all, r => r.LevelEnd < NewMoon.FirstLevel, "no new moon in fourteen days", text);
             Always(all, r => r.Station13Day >= 4, "station 13 not before day four (#99)", text);
             Always(all, r => r.Segment5Day > Expansion.Segment(5).NeedDays && r.Segment6Day > Expansion.Segment(6).NeedDays, "segments 5 and 6 wait for their days played (#99)", text);
+            Holds(all, r => r.Level10 >= 2 * 3600, "garden level 10 not in the first sitting (#101)", text);
+            Holds(all, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3, "all twelve plots not before day three (#101)", text);
         }
 
         #endregion

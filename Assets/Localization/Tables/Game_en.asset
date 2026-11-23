@@ -3444,6 +3444,10 @@ MonoBehaviour:
     m_Localized: '{0} day played'
     m_Metadata:
       m_Items: []
+  - m_Id: 770959844827136
+    m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

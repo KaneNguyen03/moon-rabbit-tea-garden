@@ -814,6 +814,7 @@ namespace VuonTra.EditorTools
             { "expand.sign.days", "Còn {0} ngày", "{0} more days" },
             { "expand.sign.carrots", "Còn {0} cà rốt", "{0} more carrots" },
             { "expand.days", "chơi {0} ngày", "{0} days played" },
+            { "upgradeall.locked", "Nâng tất cả mở ở cấp vườn {0}. Giờ cứ nâng từng trạm nhé!", "Upgrade all opens at garden level {0}. Upgrade one station at a time for now!" },
         };
 
         /// <summary>

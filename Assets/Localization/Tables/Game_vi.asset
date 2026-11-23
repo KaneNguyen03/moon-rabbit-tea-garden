@@ -3322,6 +3322,10 @@ MonoBehaviour:
     m_Localized: "ch\u01A1i {0} ng\xE0y"
     m_Metadata:
       m_Items: []
+  - m_Id: 770959844827136
+    m_Localized: "N\xE2ng t\u1EA5t c\u1EA3 m\u1EDF \u1EDF c\u1EA5p v\u01B0\u1EDDn {0}. Gi\u1EDD c\u1EE9 n\xE2ng t\u1EEBng tr\u1EA1m nh\xE9!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

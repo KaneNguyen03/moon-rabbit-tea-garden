@@ -2429,6 +2429,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Upgrade_All_Shows_A_Summary_First_And_Spends_Only_The_Share_You_Chose()
         {
+            runner.State.GardenXp = Garden.XpForLevel(UpgradePlan.UnlockLevel);
             runner.State.Levels[1] = 1;
             runner.State.Coins = new BigNum(1e6);
             screen.Refresh();
@@ -2458,8 +2459,24 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Upgrade_All_Before_Its_Garden_Level_Says_When_It_Opens_And_Buys_Nothing()
+        {
+            runner.State.Coins = new BigNum(1e9);
+            screen.Refresh();
+            Find("Canvas/Sheet/Panel/Scroll/Content/UpgradeAll/Button").onClick.Invoke();
+            Transform overlay = root.transform.Find("Canvas/UpgradeAll");
+            Assert.IsTrue(overlay.gameObject.activeSelf);
+            Text note = overlay.Find("Card/Scroll/Content/Empty").GetComponent<Text>();
+            Assert.AreEqual(L10n.T("upgradeall.locked", UpgradePlan.UnlockLevel), note.text);
+            StringAssert.Contains(UpgradePlan.UnlockLevel.ToString(), note.text);
+            Assert.IsFalse(overlay.Find("Card/Confirm").GetComponent<Button>().interactable);
+            Assert.AreEqual(1, runner.State.Levels[0]);
+        }
+
+        [Test]
         public void Upgrade_All_With_Nothing_Affordable_Offers_Nothing()
         {
+            runner.State.GardenXp = Garden.XpForLevel(UpgradePlan.UnlockLevel);
             Find("Canvas/Sheet/Panel/Scroll/Content/UpgradeAll/Button").onClick.Invoke();
             Transform overlay = root.transform.Find("Canvas/UpgradeAll");
             Assert.IsNotNull(overlay.Find("Card/Scroll/Content/Empty"));

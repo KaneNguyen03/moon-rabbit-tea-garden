@@ -153,7 +153,8 @@ namespace VuonTra.Game.UI
             {
                 var note = UiKit.Rect("Empty", _content);
                 note.gameObject.AddComponent<LayoutElement>().preferredHeight = 100;
-                note.AddText(L10n.T("upgradeall.empty"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
+                string empty = UpgradePlan.Unlocked(s) ? L10n.T("upgradeall.empty") : L10n.T("upgradeall.locked", UpgradePlan.UnlockLevel);
+                note.AddText(empty, UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
                 _rows.Add(note.gameObject);
             }
             foreach (UpgradeStep step in Plan) AddRow(defs, step);

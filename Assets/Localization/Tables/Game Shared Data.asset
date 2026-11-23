@@ -3435,6 +3435,10 @@ MonoBehaviour:
     m_Key: expand.days.one
     m_Metadata:
       m_Items: []
+  - m_Id: 770959844827136
+    m_Key: upgradeall.locked
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

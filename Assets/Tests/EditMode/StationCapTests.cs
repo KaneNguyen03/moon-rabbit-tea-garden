@@ -67,7 +67,9 @@ namespace VuonTra.Core.Tests
         public void Upgrade_Everything_Stops_Every_Station_At_The_Cap()
         {
             s.Levels = new[] { 480, 495, 1 };
+            s.GardenXp = Garden.XpForLevel(UpgradePlan.UnlockLevel);
             List<UpgradeStep> plan = UpgradePlan.Plan(defs, s, s.Coins);
+            Assert.Greater(plan.Count, 0);
             foreach (UpgradeStep step in plan)
                 Assert.LessOrEqual(s.Levels[step.Station] + step.Levels, Economy.MaxLevel, "station " + step.Station);
         }

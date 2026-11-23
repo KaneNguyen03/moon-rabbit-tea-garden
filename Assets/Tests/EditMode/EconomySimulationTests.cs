@@ -529,7 +529,7 @@ namespace VuonTra.Core.Tests
         sealed class Week
         {
             public int Seed;
-            public double Level5, Level10, Level15, Plots12, R8At, R9At;
+            public double Level5, Level10, Level15, Plots12, R8At, R9At, UpgradeAllOpens;
             public int LevelDayOne, GoldenCalls, Visitors, Summoned, GoldenAds, ExtraRounds, Plots, Rabbits, LevelEnd, GoldenEarnedDayOne;
             public readonly double[] Wait = new double[3];
             public double DoubleShare, AdShare;
@@ -571,6 +571,7 @@ namespace VuonTra.Core.Tests
             w.Level5 = At(levelAt, 5);
             w.Level10 = At(levelAt, 10);
             w.Level15 = At(levelAt, 15);
+            w.UpgradeAllOpens = At(levelAt, UpgradePlan.UnlockLevel);
             w.Plots12 = At(plotsAt, 12);
             w.R8At = waveTakenAt.Length > 4 ? waveTakenAt[4] : -1;
             w.R9At = waveTakenAt.Length > 5 ? waveTakenAt[5] : -1;
@@ -895,6 +896,8 @@ namespace VuonTra.Core.Tests
             rule("Nhiệm vụ < 35 % ngày 1", w => w.QuestShare < 35);
             rule("Gọi vàng + thỏ ghé tiệm 2–6 trong tuần", w => w.Golden >= 2 && w.Golden <= 6);
             rule("Đoạn 5 (đất trạm 13) không trước ngày 4 (#99)", w => w.R8At < 0 || w.R8At >= 3 * Day);
+            report.AppendLine("| Thu/giây hết ngày 7 không quá ×10 người mua từng cấp cùng hạt (#101) | – | " + Count(Pairs(single, all), p => p.All <= 10 * p.Single) + "/" + all.Length + " |");
+            report.AppendLine("| Nâng tất cả mở ở cấp vườn " + UpgradePlan.UnlockLevel + " (trung vị, #101) | – | " + Clock(Median(all, w => Late(w.UpgradeAllOpens))) + " |");
             report.AppendLine("| Đoạn 5 mở (trung vị, #99) | " + Clock(Median(single, w => Late(w.R8At))) + " | " + Clock(Median(all, w => Late(w.R8At))) + " |");
             report.AppendLine("| Đoạn 6 mở (trung vị, #99; tuần chỉ có 7 ngày, đoạn 6 chờ tới ngày 8) | " + Clock(Median(single, w => Late(w.R9At))) + " | " + Clock(Median(all, w => Late(w.R9At))) + " |");
             report.AppendLine("| Trò chơi + khách ngày 1 (trung vị, luật 15–30 %) | " + Math.Round(Median(single, w => w.PlayShare), 1) + " % | " + Math.Round(Median(all, w => w.PlayShare), 1) + " % |");
@@ -917,6 +920,26 @@ namespace VuonTra.Core.Tests
             Always(all, w => w.FrogsMet > 0 && w.FrogsMet <= 7 * FrogRabbit.PerDay, "the Frog Rabbit, two a day at most", text);
             Always(all, w => w.R8At < 0 || w.R8At >= 3 * Day, "the land of station 13 (segment 5) not before day four (#99)", text);
             Always(single, w => w.R8At < 0 || w.R8At >= 3 * Day, "nor for the player buying a level at a time", text);
+
+            Holds(all, w => w.Level10 >= 2 * 3600, "garden level 10 not in the first sitting (#101)", text);
+            Holds(all, w => w.Plots12 < 0 || w.Plots12 >= 2 * Day, "all twelve plots wait for day three (#101)", text);
+            double share = Median(all, w => w.PlayShare);
+            Assert.GreaterOrEqual(share, 15, "the games and the guests matter on day one for the upgrade-all player too, on the median (#101)\n" + text);
+            Assert.LessOrEqual(share, 30, "but do not take over (#101)\n" + text);
+            Holds(Pairs(single, all), p => p.All <= 10 * p.Single, "day seven's income no more than ten times the one-level buyer's on the same seed (#101)", text);
+            Assert.Greater(Median(all, w => w.Income7), Median(single, w => w.Income7), "the button still pays: more income by day seven than buying a level at a time (#101)\n" + text);
+        }
+
+        sealed class IncomePair
+        {
+            public double Single, All;
+        }
+
+        static IncomePair[] Pairs(Week[] single, Week[] all)
+        {
+            var pairs = new IncomePair[all.Length];
+            for (int i = 0; i < all.Length; i++) pairs[i] = new IncomePair { Single = single[i].Income7, All = all[i].Income7 };
+            return pairs;
         }
 
         sealed class Seasons

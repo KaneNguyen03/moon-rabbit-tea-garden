@@ -14,9 +14,13 @@ namespace VuonTra.Core
     {
         public const int ChunkLevels = 10;
         public const int MaxSteps = 400;
+        public const int UnlockLevel = 15;
+
+        public static bool Unlocked(GameState s) => Garden.Level(s) >= UnlockLevel;
 
         public static List<UpgradeStep> Plan(IReadOnlyList<StationDef> defs, GameState s, BigNum budget)
         {
+            if (!Unlocked(s)) return new List<UpgradeStep>();
             var scratch = new GameState
             {
                 Levels = (int[])s.Levels.Clone(), Progress = s.Progress, Rabbits = s.Rabbits, Items = s.Items,
@@ -81,6 +85,7 @@ namespace VuonTra.Core
 
         public static bool Apply(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeStep> plan)
         {
+            if (!Unlocked(s)) return false;
             BigNum total = BigNum.Zero;
             foreach (UpgradeStep step in plan)
             {
