@@ -3448,6 +3448,57 @@ MonoBehaviour:
     m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
     m_Metadata:
       m_Items: []
+  - m_Id: 819612286443520
+    m_Localized: Enjoying the tea garden?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026432
+    m_Localized: Love it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026433
+    m_Localized: Not really
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026434
+    m_Localized: What could the garden do better?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026435
+    m_Localized: One line is enough
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026436
+    m_Localized: Goes to support by email, with your code {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026437
+    m_Localized: Send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026438
+    m_Localized: Not now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026439
+    m_Localized: Thank you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026440
+    m_Localized: "\u2605 Rate the game"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026441
+    m_Localized: Tea garden feedback {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026442
+    m_Localized: '{0}
+
+
+      Player code: {1}'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

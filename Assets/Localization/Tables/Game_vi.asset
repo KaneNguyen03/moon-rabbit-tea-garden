@@ -3326,6 +3326,54 @@ MonoBehaviour:
     m_Localized: "N\xE2ng t\u1EA5t c\u1EA3 m\u1EDF \u1EDF c\u1EA5p v\u01B0\u1EDDn {0}. Gi\u1EDD c\u1EE9 n\xE2ng t\u1EEBng tr\u1EA1m nh\xE9!"
     m_Metadata:
       m_Items: []
+  - m_Id: 819612286443520
+    m_Localized: "B\u1EA1n th\xEDch v\u01B0\u1EDDn tr\xE0 ch\u1EE9?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026432
+    m_Localized: "Th\xEDch l\u1EAFm"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026433
+    m_Localized: "Ch\u01B0a l\u1EAFm"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026434
+    m_Localized: "V\u01B0\u1EDDn tr\xE0 n\xEAn l\xE0m g\xEC t\u1ED1t h\u01A1n?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026435
+    m_Localized: "M\u1ED9t d\xF2ng g\xF3p \xFD l\xE0 \u0111\u1EE7"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026436
+    m_Localized: "G\u1EEDi t\u1EDBi email h\u1ED7 tr\u1EE3, k\xE8m m\xE3 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026437
+    m_Localized: "G\u1EEDi"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026438
+    m_Localized: "Th\xF4i"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026439
+    m_Localized: "C\u1EA3m \u01A1n b\u1EA1n!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026440
+    m_Localized: "\u2605 \u0110\xE1nh gi\xE1 game"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026441
+    m_Localized: "G\xF3p \xFD v\u01B0\u1EDDn tr\xE0 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 819612299026442
+    m_Localized: "{0}\n\nM\xE3 ng\u01B0\u1EDDi ch\u01A1i: {1}"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
