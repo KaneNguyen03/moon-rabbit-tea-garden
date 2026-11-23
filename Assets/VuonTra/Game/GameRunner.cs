@@ -90,6 +90,9 @@ namespace VuonTra.Game
             // A phone build talks to its store (#9); the editor, the tests and the Mac build keep the store in memory.
             Store = new VuonTra.Game.Store.UnityStorefront();
 #endif
+#if !UNITY_EDITOR
+            Application.logMessageReceived += OnLogMessage; // uncaught exceptions to the crash reports (#100)
+#endif
             if (!_ready) Init();
         }
 
@@ -101,6 +104,7 @@ namespace VuonTra.Game
             QuestDefs = Catalog.BuildQuests();
             ItemDefs = Catalog.BuildItems();
 
+            bool newGarden = false;
             if (preset != null)
             {
                 State = preset;
@@ -108,7 +112,7 @@ namespace VuonTra.Game
                     Array.Resize(ref State.UpgradeLevels, UpgradeDefs.Count);
                 Mods = Modifiers.From(UpgradeDefs, State);
                 // Purchases the store delivered before the save was here.
-                foreach (PurchaseResult r in _deliveriesWaiting) Storefront.Grant(State, r.PackId, r.TransactionId);
+                foreach (PurchaseResult r in _deliveriesWaiting) if (Storefront.Grant(State, r.PackId, r.TransactionId)) Analytics.LogPurchase(r, Store.PriceOf(r.PackId), true);
                 _deliveriesWaiting.Clear();
             }
             else
@@ -116,6 +120,7 @@ namespace VuonTra.Game
                 _store = new SaveStore(SaveDirectory);
                 LoadResult loaded = _store.Load(Defs, UpgradeDefs);
                 State = loaded.State;
+                newGarden = loaded.Status != LoadStatus.Ok;
                 if (loaded.Status == LoadStatus.Ok)
                 {
                     Mods = Modifiers.From(UpgradeDefs, State);
@@ -138,7 +143,10 @@ namespace VuonTra.Game
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
             NoteAlbum(false);
+            _watch.Reset(State);
             _ready = true;
+            Analytics.LogGameOpen(newGarden);
+            StartSession();
             if (preset == null)
             {
                 // The real game on a real device: the platform's sign-in and cloud go in before the first sync
@@ -203,14 +211,14 @@ namespace VuonTra.Game
             if (!State.HintSeen) State.HintSeen = true;
             bool ok = Simulation.Tap(Defs, State, index, Mods);
             // Taps do not save or refresh by themselves; the guidance's first step is the one thing that watches them.
-            if (ok && !Tutorial.IsDone(State) && Tutorial.Advance(State) > 0) StateChanged?.Invoke();
+            if (ok && !Tutorial.IsDone(State) && Tutorial.Advance(State) > 0) { _watch.Note(Defs, State, Analytics); StateChanged?.Invoke(); }
             return ok;
         }
 
         /// <summary>The player skips the first minute's guidance.</summary>
         public void SkipTutorial()
         {
-            Tutorial.Skip(State);
+            _watch.SkipTutorial(State, Analytics);
             Changed();
         }
 
@@ -350,6 +358,7 @@ namespace VuonTra.Game
         {
             Rabbit rabbit = Shop.SummonGolden(State, _rng.NextDouble(), PickName(), _rng.NextDouble(), TodayNumber);
             _shopBought = rabbit != null;
+            if (rabbit != null) Analytics.LogRabbitCalled(AnalyticsEvents.ViaGolden, rabbit);
             if (rabbit != null) Changed();
             return rabbit;
         }
@@ -523,6 +532,7 @@ namespace VuonTra.Game
             if (r.Outcome != PurchaseOutcome.Paid) return;
             if (State == null) { _deliveriesWaiting.Add(r); return; }
             if (!Storefront.Grant(State, r.PackId, r.TransactionId)) return;
+            Analytics.LogPurchase(r, Store.PriceOf(r.PackId), true);
             _shopBought = true;
             Changed();
         }
@@ -537,6 +547,7 @@ namespace VuonTra.Game
                     if (Storefront.Grant(State, r.PackId, r.TransactionId)) { _shopBought = true; Changed(); }
                     else r.Outcome = PurchaseOutcome.Duplicate;
                 }
+                Analytics.LogPurchase(r, Store.PriceOf(r.PackId));
                 done?.Invoke(r);
             });
         }
@@ -600,6 +611,7 @@ namespace VuonTra.Game
             _plotsSeen = State.Plots;
             _goldSeen = GoldRabbits();
             NoteAlbum(false);
+            _watch.Reset(State);
             StateChanged?.Invoke();
             Save();
         }
@@ -784,6 +796,7 @@ namespace VuonTra.Game
         public Rabbit SummonRabbit()
         {
             Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), PickName(), _rng.NextDouble());
+            if (rabbit != null) Analytics.LogRabbitCalled(AnalyticsEvents.ViaClover, rabbit);
             if (rabbit != null) Changed();
             return rabbit;
         }
@@ -886,6 +899,7 @@ namespace VuonTra.Game
             // day's claims stay claimed and nothing can be collected twice.
             Quests.RerollCarrotTarget(Defs, State, Modifiers.From(UpgradeDefs, State));
             _plotsSeen = State.Plots;
+            Analytics.LogNewMoon(State);
             Changed();
             return true;
         }
@@ -901,6 +915,7 @@ namespace VuonTra.Game
         void Changed()
         {
             if (!Tutorial.IsDone(State)) Tutorial.Advance(State);
+            _watch.Note(Defs, State, Analytics);
             NoteAlbum(true);
             // Upgrades, working rabbits and their items all feed the modifiers.
             Mods = Modifiers.From(UpgradeDefs, State);
@@ -1035,11 +1050,12 @@ namespace VuonTra.Game
         {
             AdOffer offer = AdShowing ? AdOffer.None : AdOfferFor(placement, game);
             if (offer == AdOffer.None) { done?.Invoke(false); return; }
-            if (offer == AdOffer.Instant) { done?.Invoke(ClaimAd(placement, game)); return; }
+            if (offer == AdOffer.Instant) { Analytics.LogRewardedAd(placement, game, AnalyticsEvents.AdPass); done?.Invoke(ClaimAd(placement, game)); return; }
             AdShowing = true;
             AdProvider.Show(placement, watched =>
             {
                 AdShowing = false;
+                Analytics.LogRewardedAd(placement, game, watched ? AnalyticsEvents.AdWatched : AnalyticsEvents.AdClosed);
                 done?.Invoke(watched && ClaimAd(placement, game));
             });
         }
@@ -1060,6 +1076,81 @@ namespace VuonTra.Game
             }
             if (ok) Changed();
             return ok;
+        }
+
+        // ----- analytics and crash reports (#100) -----
+
+        /// <summary>
+        /// THE switch for analytics and crash reports (#100). False (today): every build, players' and the editor's,
+        /// sends nothing anywhere (<see cref="NoAnalytics"/>; the editor keeps events in memory only). When the owner
+        /// has added the Firebase SDK, its two config files and the VUONTRA_FIREBASE define, set this to true and phone
+        /// builds report through <see cref="Platform.FirebaseAnalyticsAdapter"/>. See docs/khai-bao-du-lieu-cua-hang.md first.
+        /// </summary>
+        public static bool AnalyticsInPlayerBuilds = false;
+
+        IAnalytics _analytics;
+        /// <summary>Where events and caught exceptions go; tests set a <see cref="MemoryAnalytics"/>, null is none.</summary>
+        public IAnalytics Analytics
+        {
+            get { if (_analytics == null) _analytics = DefaultAnalytics(); return _analytics; }
+            set => _analytics = value ?? new NoAnalytics();
+        }
+
+        static IAnalytics DefaultAnalytics()
+        {
+#if UNITY_EDITOR
+            return AnalyticsFor(false);
+#else
+            return AnalyticsFor(true);
+#endif
+        }
+
+        /// <summary>
+        /// The provider a build starts on: the editor keeps events in memory, to look at; a player build has none
+        /// unless the switch is on and the Firebase adapter was compiled in (VUONTRA_FIREBASE).
+        /// </summary>
+        public static IAnalytics AnalyticsFor(bool playerBuild)
+        {
+            if (!playerBuild) return new MemoryAnalytics();
+            return AnalyticsInPlayerBuilds ? Platform.FirebaseAnalyticsAdapter.Create() ?? new NoAnalytics() : new NoAnalytics();
+        }
+
+        /// <summary>The clock play sessions are timed by, in unix seconds; tests pin it.</summary>
+        public Func<long> SessionClock = () => Now;
+        readonly AnalyticsWatch _watch = new AnalyticsWatch();
+        long _sessionStart = -1;
+
+        /// <summary>A play session begins: the game opened, or came back from the background.</summary>
+        void StartSession()
+        {
+            if (_sessionStart >= 0) return; // the engine also says "not paused" once at launch
+            _sessionStart = SessionClock();
+            Analytics.LogSessionStart(State);
+        }
+
+        /// <summary>The play session ends (the game went to the background or quit) with its length; once per session.</summary>
+        void EndSession()
+        {
+            if (_sessionStart < 0) return;
+            Analytics.LogSessionEnd(SessionClock() - _sessionStart);
+            _sessionStart = -1;
+        }
+
+        /// <summary>An exception the game caught and lived through goes to the crash reports, if any.</summary>
+        public void RecordException(Exception e) => Analytics.RecordException(e);
+
+        /// <summary>Unity's log: an exception nobody caught goes to the crash reports as well (listened to in player builds).</summary>
+        public void OnLogMessage(string condition, string stackTrace, LogType type)
+        {
+            if (type == LogType.Exception) Analytics.RecordException(new LoggedException(condition, stackTrace));
+        }
+
+        /// <summary>An exception as Unity's log reported it: the message and the stack trace it gave.</summary>
+        public sealed class LoggedException : Exception
+        {
+            readonly string _stack;
+            public LoggedException(string message, string stackTrace) : base(message) { _stack = stackTrace; }
+            public override string StackTrace => _stack;
         }
 
         // ----- rain and the Frog Rabbit (#62) -----
@@ -1170,16 +1261,20 @@ namespace VuonTra.Game
         {
             if (paused && _ready)
             {
+                EndSession();
                 Save();
                 SyncNow(SyncReason.Background);
                 PlanReminders();
             }
-            else if (!paused && _ready) Notifications.CameBack();
+            else if (!paused && _ready) { StartSession(); Notifications.CameBack(); }
         }
+
+        void OnDestroy() => Application.logMessageReceived -= OnLogMessage;
 
         void OnApplicationQuit()
         {
             if (!_ready) return;
+            EndSession();
             Save();
             PlanReminders();
         }
