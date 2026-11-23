@@ -242,7 +242,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Save_RoundTrip_Version_Four()
         {
-            s.Plots = 5;
+            s.Plots = 6;
             s.Energy = 37.5;
             s.BoostSecondsLeft = 12;
             Rabbit r = Add(3, 0);
@@ -252,7 +252,7 @@ namespace VuonTra.Core.Tests
             Items.Equip(s, hat.Id, r.Id);
 
             GameState back = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
-            Assert.AreEqual(5, back.Plots);
+            Assert.AreEqual(6, back.Plots);
             Assert.AreEqual(37.5, back.Energy, 1e-9);
             Assert.AreEqual(12, back.BoostSecondsLeft, 1e-9);
             Assert.AreEqual(17, back.Rabbits[0].Level);

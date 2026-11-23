@@ -123,11 +123,39 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 12; i++) stations.Add("{\"id\":\"s" + i + "\",\"level\":" + (i < plots ? 1 : 0) + "}");
             string json = "{\"version\":14,\"stations\":[" + string.Join(",", stations) + "],\"plots\":" + plots + "}";
             GameState old = SaveCodec.Decode(defs, json).State;
-            Assert.AreEqual(plots, old.Plots, "no plot is taken back");
+            Assert.AreEqual(Expansion.PlotsForSegments(defs, segments), old.Plots, "no plot is taken back, and a half-bought wave is whole (#86)");
             Assert.AreEqual(segments, old.Grid.Segments);
             Assert.AreEqual(segments, Expansion.Segments(old));
             MistSegment next = Expansion.Next(defs, old);
             if (segments < 4) Assert.AreEqual(segments + 1, next.SegmentsAfter); else Assert.IsNull(next);
+        }
+
+        // An old save that bought plots one at a time (#86): the station its open land is for opens on its own conditions.
+        [TestCase(5)]
+        [TestCase(7)]
+        [TestCase(9)]
+        [TestCase(11)]
+        public void An_Old_Save_With_An_Odd_Plot_Count_Opens_The_Next_Station_On_Its_Own_Conditions(int plots)
+        {
+            int need = Expansion.LevelForPlots(defs, plots) + 1; // one level past what the save's land is given on load
+            defs[plots].NeedGardenLevel = need;
+            var stations = new List<string>();
+            for (int i = 0; i < 12; i++) stations.Add("{\"id\":\"s" + i + "\",\"level\":" + (i < plots ? 1 : 0) + "}");
+            string json = "{\"version\":14,\"stations\":[" + string.Join(",", stations) + "],\"plots\":" + plots + "}";
+            GameState old = SaveCodec.Decode(defs, json).State;
+            int segments = Expansion.WavesTaken(plots);
+            Assert.AreEqual(segments, Expansion.Segments(old), "the half-bought wave still counts as its segment");
+            Assert.AreEqual(plots + 1, old.Plots, "the wave's other plot comes with it, and no more");
+            Assert.IsNotNull(old.Grid.TileOf("station:s" + plots), "the next station's plot has its tile");
+            Assert.IsTrue(old.Grid.InLawn(old.Grid.TileOf("station:s" + plots).Value), "on the open lawn");
+
+            Assert.AreEqual(need - 1, Garden.Level(old));
+            Assert.IsFalse(Economy.CanUnlock(defs, old, plots), "the station still asks its own garden level");
+            old.GardenXp = Garden.XpForLevel(need);
+            Assert.IsTrue(Economy.CanUnlock(defs, old, plots), "with its own conditions met it opens, with no new segment");
+            Assert.AreEqual(segments, Expansion.Segments(old));
+            MistSegment next = Expansion.Next(defs, old);
+            if (segments < Expansion.LastSegments(defs)) Assert.AreEqual(segments + 1, next.SegmentsAfter, "the next segment is for the station after it");
         }
 
         // An old vertical garden's rings, and the segments they come to on the strip (R 3 is the middle alone).
