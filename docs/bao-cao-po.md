@@ -1813,3 +1813,35 @@ Bản đầy đủ: `docs/de-xuat-1.md`; đã đăng lên #1. Bốn điểm issu
 4. **Save:** thêm `Season` (save cũ = 0), không tăng version; test đọc save cũ và mô phỏng mùa 1.
 
 Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu hình ứng viên trong `docs/anh/po-8/`.
+
+## Bàn giao (23/11 ~13:10, mốc trước vườn cuộn ngang)
+
+### Trạng thái
+- main = origin/main tại commit này (ngay sau `5c08ee7`). `tools/verify.sh --build` xanh trên `5c08ee7`: seed, 214 ảnh preview, biên dịch, 1159/1160 EditMode (1 test mùa vụ không kết luận, có chủ ý), bản Mac `Build/Mac/VuonTraTho.app` chạy 8 giây, Player.log sạch. Đây là bản đủ mọi việc từ tối 22/11 tới trưa 23/11 để chủ project thử.
+- Cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`) và các thư mục bị bỏ qua (`.agent/`, `.agents/`, `.github/`, `skills-lock.json`). `docs/de-xuat-vuon-ngang.md` chưa commit, sẽ vào cùng phần (a) của vườn ngang.
+- Không còn worktree agent nào (chỉ `qa-test` của session QA).
+- Save vẫn v14; mọi khối thêm từ 22–23/11 (lưới, kho Bố trí, hũ trăng, mưa và Thỏ Ếch, quảng cáo, mã quà và hộp thư, câu cá và tim, nhắc tôi) đều là khối bổ sung, save cũ mở được (có test).
+- Mã quà: khoá thật `Assets/Resources/keys.json` đã có trên máy này và nằm trong bản Mac; mã ký tạo bằng `tools/make-code.sh` được nhận, mã sửa một ký tự hoặc kiểm bằng khoá khác bị từ chối (#68). Giữ một bản sao khoá ở nơi an toàn.
+
+### Đã gộp từ tối 22/11 tới trưa 23/11 (mỗi issue có comment đối chiếu, nhãn chờ-PO-duyệt, mục riêng ở trên)
+- Vườn: #52 lưới lục giác, #53 mở rộng rừng theo vòng, #54 chế độ Bố trí (+ ô giữ chỗ cho lọ đom đóm, giỏ lá, cối, ao), #67 bốn trạm mới trên vòng R8/R9 (+ zoom xa thấy cả vườn), #84 bong bóng khách không che bảng Câu cá.
+- Hoạt động: #58 câu cá và tim 10 (lõi, tấm ao, nút Cho ăn, tiếng, hình phao/nước), #62 mưa và Thỏ Ếch, #64 hũ trăng (+ hình vẽ tay), #68 mã quà và hộp thư, #66 seam quảng cáo (chỉ bản giả, bản build không có nút).
+- Âm thanh: #63 tiếng trạm khi zoom gần, thanh Tiếng trạm, chọn nhạc; chỉnh theo số đo QA (lọc chói, mặc định 0,5, câu cá nghe được trên loa điện thoại).
+- Kinh tế: #83 nhịp đo trên 17 seed, mô phỏng lặp lại được, R7 cần cấp 16, tiếp sức của Vườn hoa sen và Ruộng lúa nếp còn 7 %.
+- Lỗi QA: #79, #80, #81, #82; ảnh preview không còn lẫn chữ Anh/Việt (`52d73ff`).
+
+### Cần chủ project quyết hoặc thử tay
+- Duyệt các hằng số: #83 (R7 cấp 16; hệ số tiếp sức 0,07), #67 (cấp mở trạm 16/18/20/23; R8/R9 cấp 16/20; hai nhiệm vụ chỉ thưởng cỏ), #64 và #62 (hũ trăng từ nhiệm vụ/đom đóm và Thỏ Ếch chỉ từ cấp vườn 15), #58 (tim thứ 10 ở 18.880 điểm), #53 (giá vòng ¼ giá hai trạm), #52 (lưới bắt đầu bán kính 3), #68 (hạn mã công khai, quà thư), #66 (có quảng cáo hay không, ba chỗ, giá vé).
+- Bố cục: thảm picnic dời về (-2,2) giữa nồi mứt và ấm trà; giỏ hứng lá đứng yên khi dời trạm Giỏ lá; ấm trà không cất kho được; bong bóng khách nằm trên lọ đom đóm.
+- Nghe trên điện thoại thật: tiếng trạm sau khi lọc, mức Tiếng trạm 0,5, sáu tiếng câu cá, ba bài nhạc.
+- Còn mở ngoài chờ duyệt: #4 (thử tay bản Mac), #16 (hàng đợi).
+
+### Việc tiếp theo
+- Vườn thành dải toàn cảnh cuộn ngang (chủ game duyệt 23/11, #16 comment 7092835527, `docs/de-xuat-vuon-ngang.md`): phần (a) Core + mở rộng theo đoạn sương trái/phải + migrate save + test nhịp 17 seed, rồi phần (b) màn hình/camera. Chạy một mình vì đụng lưới, mở rộng và Bố trí.
+
+### Lưu ý kỹ thuật mới
+- Tối đa 5 agent song song (16 GB RAM); mỗi agent một worktree `../VuonTraNam-NN` với bản sao Library; hai nhánh cùng đụng một chỗ thì gộp theo thứ tự cố định.
+- Sau mỗi lần gộp: bảng chuỗi lấy bản nào cũng được rồi seed lại; khối nối cuối file (L10nStrings, PreviewShot, cuối GardenScreen, test) giữ cả hai và thêm `}`/`#endregion` bị mất ở chỗ nối.
+- `GardenScreen.StationSpot/RestSpot/DecorSpotAt/MortarSpot/ShopSpot/GuestSpot` là thành viên instance (đọc lưới), không còn static.
+- Test màn hình mới đặt `screen.Raining = () => false;` trong SetUp, nếu không đồng hồ thật rơi vào cơn mưa làm test chập chờn.
+- Mô phỏng kinh tế thuần C#: dựng nhanh ngoài Unity bằng .NET SDK trong bản Unity; test nhịp giờ chạy 17 seed (~5 phút trong Unity).
