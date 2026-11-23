@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
+using TweenEase = DG.Tweening.Ease;
 
 namespace VuonTra.Game.UI
 {
@@ -69,6 +71,42 @@ namespace VuonTra.Game.UI
         public static float Time(float seconds) => Reduced ? 0.0001f : seconds;
 
         public static Func<float, float> Curve(Func<float, float> curve) => Reduced ? Ease.OutCubic : curve;
+
+        public static TweenEase Curve(TweenEase curve) => Reduced ? TweenEase.OutCubic : curve;
+
+        public static T OnUiClock<T>(this T tween, Component owner, LinkBehaviour link = LinkBehaviour.KillOnDestroy) where T : Tween =>
+            tween.SetUpdate(UpdateType.Manual).SetLink(owner.gameObject, link);
+
+        public static Tween After(float seconds, Component owner, TweenCallback then) =>
+            DOVirtual.DelayedCall(seconds, then).OnUiClock(owner);
+
+        public static Tween PopIn(Transform card, float from = 0.85f, float seconds = Panel)
+        {
+            card.DOKill();
+            card.localScale = Vector3.one * from;
+            return card.DOScale(1f, Time(seconds)).SetEase(Curve(TweenEase.OutBack)).OnUiClock(card);
+        }
+
+        public static Sequence ShakeX(RectTransform rect, float homeX, float amplitude, float seconds, int halfSwings) =>
+            Shake(rect, homeX, amplitude, seconds, halfSwings, (x, d) => rect.DOAnchorPosX(x, d));
+
+        public static Sequence ShakeAngle(Transform target, float amplitude, float seconds, int halfSwings) =>
+            Shake(target, 0f, amplitude, seconds, halfSwings, (z, d) => target.DOLocalRotate(new Vector3(0f, 0f, z), d));
+
+        static Sequence Shake(Component target, float home, float amplitude, float seconds, int halfSwings, Func<float, float, Tweener> toward)
+        {
+            target.DOKill();
+            float step = seconds / halfSwings;
+            Sequence shake = DOTween.Sequence().SetTarget(target);
+            for (int k = 0; k < halfSwings; k++)
+            {
+                float peak = (k + 0.5f) / halfSwings;
+                float value = home + (k % 2 == 0 ? 1f : -1f) * amplitude * (1f - peak);
+                shake.Append(toward(value, k == 0 ? step / 2f : step).SetEase(k == 0 ? TweenEase.OutSine : TweenEase.InOutSine));
+            }
+            shake.Append(toward(home, step / 2f).SetEase(TweenEase.InSine));
+            return shake.OnUiClock(target);
+        }
     }
 
     public sealed class Tweens
@@ -121,6 +159,7 @@ namespace VuonTra.Game.UI
                     item.Apply(item.Curve(item.T));
                 }
             }
+            DOTween.ManualUpdate(dt, dt);
         }
     }
 }
