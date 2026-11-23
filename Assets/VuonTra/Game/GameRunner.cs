@@ -57,7 +57,10 @@ namespace VuonTra.Game
         float _sinceSave;
         bool _ready;
         AwayReport _pendingAway;
-        /// <summary>The latest time away and whether it has been doubled yet: the sheet's ×2 button acts on it once.</summary>
+        /// <summary>
+        /// The time away the welcome-back sheet shows and whether it has been doubled yet: the sheet's ×2 (free, golden
+        /// or video) acts on it once. Only a long time away replaces it; a short one leaves it be (#89).
+        /// </summary>
         public AwayReport LastAway { get; private set; }
         public bool LastAwayDoubled { get; private set; }
 
@@ -931,19 +934,26 @@ namespace VuonTra.Game
                     AlbumMilestoneReached?.Invoke(milestone, milestone == AlbumSets.HatMilestone ? golden : 0);
         }
 
-        /// <summary>Remembers a time away for the ×2 button and tells the screen.</summary>
+        /// <summary>
+        /// Tells the screen of a time away. One long enough for the welcome-back sheet becomes the report the sheet
+        /// shows and its ×2 acts on. A short one (a minute in another app while the sheet is still up) only sends its
+        /// carrots to the purse: it neither replaces the shown report nor gives its ×2 back (#89).
+        /// </summary>
         void TellAway(AwayReport away)
         {
-            LastAway = away;
-            LastAwayDoubled = false;
+            if (away.WorthTelling)
+            {
+                LastAway = away;
+                LastAwayDoubled = false;
+            }
             AwayClaimed?.Invoke(away);
         }
 
-        /// <summary>What doubling the latest time away costs right now in golden carrots (0 for the day's first).</summary>
+        /// <summary>What doubling the shown time away costs right now in golden carrots (0 for the day's first).</summary>
         public int AwayDoubleCost => Away.DoubleCostToday(State, TodayNumber);
 
         /// <summary>
-        /// Pays the latest time away once more (#69): free once a day, then for golden carrots. False when it was
+        /// Pays the time away the sheet shows once more (#69): free once a day, then for golden carrots. False when it was
         /// doubled already, there is nothing to double, or the golden carrots are short.
         /// </summary>
         public bool DoubleAway()
@@ -1007,7 +1017,7 @@ namespace VuonTra.Game
         /// <summary>A video is playing; ad buttons wait.</summary>
         public bool AdShowing { get; private set; }
 
-        /// <summary>What the ad button at a place offers right now (the away one only while the latest time away is still to double).</summary>
+        /// <summary>What the ad button at a place offers right now (the away one only while the shown time away is still to double).</summary>
         public AdOffer AdOfferFor(string placement, string game = null)
         {
             if (placement == Ads.AwayDouble && (LastAwayDoubled || LastAway.Paid < BigNum.One)) return AdOffer.None;
