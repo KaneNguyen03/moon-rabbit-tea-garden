@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+using TweenEase = DG.Tweening.Ease;
 
 namespace VuonTra.Game.UI
 {
@@ -28,6 +30,7 @@ namespace VuonTra.Game.UI
         public int ParticleCount => _particles.Count;
         public int Flying { get; private set; }
         public const float FlyTime = 0.55f;
+        const float FlyPop = 1.35f;
         public bool BannerVisible => _banner.gameObject.activeSelf;
 
         public FeelLayer(RectTransform canvas, GameCatalog catalog, Tweens tweens)
@@ -82,25 +85,27 @@ namespace VuonTra.Game.UI
             count = Mathf.Clamp(count, 1, 12);
             for (int i = 0; i < count; i++)
             {
-                RectTransform rt = UiKit.Rect("Fly", _root).Place(0.5f, 0.5f, from.x, from.y, size, size);
-                Image img = rt.AddImage(sprite, color);
-                img.preserveAspect = true;
                 Vector2 start = from + new Vector2(Random.Range(-30f, 30f), Random.Range(-14f, 14f));
-                Vector2 mid = (start + to) * 0.5f + new Vector2(Random.Range(-60f, 60f), 150f + Random.Range(0f, 90f));
+                Vector2 bow = new Vector2(Random.Range(-60f, 60f), 150f + Random.Range(0f, 90f));
+                RectTransform rt = UiKit.Rect("Fly", _root).Place(0.5f, 0.5f, start.x, start.y, size, size);
+                RectTransform bit = UiKit.Rect("Bit", rt).Stretch(0, 0, 1, 1);
+                Image img = bit.AddImage(sprite, color);
+                img.preserveAspect = true;
                 bool last = i == count - 1;
                 Flying++;
-                _tweens.Add(Motion.Time(FlyTime), t =>
-                {
-                    if (rt == null) return;
-                    float u = 1f - t;
-                    rt.anchoredPosition = u * u * start + 2f * u * t * mid + t * t * to;
-                    rt.localScale = Vector3.one * (1f + 0.35f * Mathf.Sin(t * Mathf.PI));
-                }, Ease.InOutCubic, Motion.Time(i * 0.05f), () =>
-                {
-                    if (rt != null) Destroy(rt.gameObject);
-                    Flying--;
-                    if (last) onArrive?.Invoke();
-                });
+                float seconds = Motion.Time(FlyTime);
+                Motion.After(Motion.Time(i * 0.05f), rt, () => DOTween.Sequence()
+                    .Join(rt.DOJumpAnchorPos(to, bow.y / 2f, 1, seconds))
+                    .Join(bit.DOAnchorPosX(bow.x / 2f, seconds / 2f).SetEase(TweenEase.OutQuad).SetLoops(2, LoopType.Yoyo))
+                    .Join(rt.DOScale(FlyPop, seconds / 2f).SetEase(TweenEase.OutSine).SetLoops(2, LoopType.Yoyo))
+                    .SetEase(TweenEase.InOutCubic)
+                    .OnComplete(() =>
+                    {
+                        Destroy(rt.gameObject);
+                        Flying--;
+                        if (last) onArrive?.Invoke();
+                    })
+                    .SetTarget(rt).OnUiClock(rt));
             }
         }
 
