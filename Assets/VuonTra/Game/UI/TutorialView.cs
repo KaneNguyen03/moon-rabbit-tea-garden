@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
@@ -17,9 +18,9 @@ namespace VuonTra.Game.UI
         readonly Text _text, _progress;
         readonly FeelLayer _feel;
         int _step = -1;
-        float _clock;
-        Vector2 _handAt;
         const float Hole = 26f;
+        const float BobReach = 18f;
+        const float BobHalfPeriod = Mathf.PI / 3.2f / 2f;
 
         public TutorialView(RectTransform canvas, GameCatalog catalog, FeelLayer feel, Action onSkip)
         {
@@ -34,7 +35,10 @@ namespace VuonTra.Game.UI
             }
             _hand = UiKit.Rect("Hand", Root).Place(0.5f, 0.5f, 0, 0, 110, 110);
             _hand.pivot = FingertipPivot;
-            _hand.AddImage(catalog.Hand, Color.white).preserveAspect = true;
+            RectTransform finger = UiKit.Rect("Finger", _hand).Stretch(0, 0, 1, 1);
+            finger.AddImage(catalog.Hand, Color.white).preserveAspect = true;
+            finger.DOAnchorPos(new Vector2(BobReach, -BobReach), BobHalfPeriod).SetEase(DG.Tweening.Ease.OutSine).SetLoops(-1, LoopType.Yoyo)
+                .OnUiClock(finger, LinkBehaviour.PauseOnDisablePlayOnEnable);
 
             _plate = UiKit.Rect("Plate", Root).Place(0.5f, 1f, 0, -196, 1000, 88);
             _plate.AddShadow(14f, 8f, 0.28f);
@@ -68,7 +72,6 @@ namespace VuonTra.Game.UI
 
         public void Follow(RectTransform target, float dt)
         {
-            _clock += dt;
             Target = target;
             bool has = target != null && target.gameObject.activeInHierarchy;
             if (_hand.gameObject.activeSelf != has) _hand.gameObject.SetActive(has);
@@ -87,9 +90,7 @@ namespace VuonTra.Game.UI
             Box(_dim[2], -w / 2f, min.y, min.x, max.y);
             Box(_dim[3], max.x, min.y, w / 2f, max.y);
 
-            float bob = Mathf.Abs(Mathf.Sin(_clock * 3.2f)) * 18f;
-            _handAt = new Vector2(max.x - Hole + 10f, min.y + Hole - 10f) + new Vector2(bob, -bob);
-            _hand.anchoredPosition = _handAt;
+            _hand.anchoredPosition = new Vector2(max.x - Hole + 10f, min.y + Hole - 10f);
         }
 
         Vector2 Local(Vector3 world)
