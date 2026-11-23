@@ -1866,6 +1866,28 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - #90: chọn giữ mặc định (ngày thứ 7 kế tiếp), hay (a) coi như đã nhận, hay (b) tặng qua thư.
 - #89: lần vắng hơn 5 phút trong lúc đang xem video ×2 làm số bay lên lệch với số được trả (hiếm, chưa sửa).
 
+## Vườn ngang: năm việc nhỏ (#16, agent ngang-nits)
+
+
+- **Test:** tools/verify.sh GREEN, 1206/1207 (1 inconclusive như trước), preview 221 khung. 36 ca test mới.
+- **Commit:** 3998f17, 3c6e433, bb4353e, 3761c2d, 6b663f3, 0e82d57, ảnh ca4539a (nhánh ngang-nits), merge `77da06d`. Main sau gộp: 1221/1222.
+
+- Khách chỉ đi trên đất đã mở: bước ra ở mép bãi cỏ, không đi xuyên sương.
+- Bảng "Mở rộng vườn" của trạm trên đoạn 1 và biển ở mép bãi cỏ đọc trọn trong khung mở đầu, cách mép ≥ 24 (vi/en, chữ to).
+- Nút về nhà có chữ "Về tiệm trà" / "Back to the tea shop", nút 270×92, chữ vừa khi chữ to.
+- Bong bóng thỏ nói không che bảng nào (cấp trạm, "Giã bánh", giỏ, lọ, "Câu cá", biển); hết chỗ thì không nói.
+- Bảng "Câu cá" dời dọc bờ ao, cách mép trái ≥ 24 ở khung mở đầu và sau khi mở đoạn đầu; ô giữ chỗ vẫn khớp.
+- Sương dày ở mép đoạn chưa mở (≥ 0,6, trước 0,19), mép mềm; bảng, lọ đom đóm và biển nằm trên sương; giảm chuyển động thì tan ngay.
+
+
+- **Ảnh:** docs/anh/po-vuon-ngang/nits-1…6-truoc.png và nits-1…6-sau.png, thêm nits-6-xa-truoc/sau.png (nhìn xa).
+
+### Chưa đạt / cần PO quyết
+- Mép dải sương mới khá thẳng và rõ (xem nits-6-sau, nits-6-xa-sau): PO xem có muốn mềm hơn hay vẽ tay không.
+- Bong bóng thỏ nói có thể tràn ra mép màn hình (chỉ tránh bảng, chưa tránh mép khung nhìn).
+- Bảng "Còn thiếu …" có thể bị cắt ở mép khi đứng ở biển sau khi mở rộng (ngoài khung mở đầu).
+- Chủ game đã quyết (23/11): sương dày hơn một chút (việc 6); trà sữa và ruộng lúa giữ chỗ, luật 520 không nới; đồng ý chữ "Mở rộng vườn · đoạn N".
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
