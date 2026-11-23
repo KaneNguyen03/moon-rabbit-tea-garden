@@ -3326,6 +3326,46 @@ MonoBehaviour:
     m_Localized: "N\xE2ng t\u1EA5t c\u1EA3 m\u1EDF \u1EDF c\u1EA5p v\u01B0\u1EDDn {0}. Gi\u1EDD c\u1EE9 n\xE2ng t\u1EEBng tr\u1EA1m nh\xE9!"
     m_Metadata:
       m_Items: []
+  - m_Id: 809588260593664
+    m_Localized: "V\xE9 tr\u0103ng 30 ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565184
+    m_Localized: "V\xE9 tr\u0103ng \xB7 c\xF2n {0} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565185
+    m_Localized: "{0} ngay + {1} m\u1ED7i ng\xE0y = {2} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565186
+    m_Localized: "+{0} gi\u1EDD v\u1EAFng m\u1EB7t \xB7 th\xEAm 1 l\u01B0\u1EE3t \xD72 mi\u1EC5n ph\xED m\u1ED7i ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565187
+    m_Localized: "\u0110\xE3 c\u1ED9ng {0} c\xE0 r\u1ED1t v\xE0ng. V\xE9 c\xF2n {1} ng\xE0y, m\u1ED7i ng\xE0y m\u1EDF game c\xF3 th\u01B0 trong h\u1ED9p th\u01B0."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565188
+    m_Localized: "V\xE9 tr\u0103ng \xB7 +{0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565189
+    m_Localized: "V\xE9 tr\u0103ng ng\xE0y {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565190
+    m_Localized: "V\xE9 tr\u0103ng c\xF2n {0} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565191
+    m_Localized: "Mua th\xEAm khi c\xF2n h\u1EA1n s\u1EBD c\u1ED9ng d\u1ED3n {0} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565192
+    m_Localized: "\u0110\xE3 \u0111\u1ECDc th\u01B0 nh\u1EAFc"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

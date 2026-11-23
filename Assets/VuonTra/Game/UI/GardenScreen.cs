@@ -1214,6 +1214,7 @@ namespace VuonTra.Game.UI
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
             GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
+            GoldenPacks.AttachMoonPass(catalog, () => Runner.MoonPassDaysLeft, OnBuyMoonPass);
             NewMoonMoment = new NewMoonMomentView(_canvas, catalog);
             CloudChoice = new CloudChoiceView(_canvas, catalog, Tweens, takeRemote => Runner.ResolveSync(takeRemote, r =>
             {
@@ -3132,6 +3133,7 @@ namespace VuonTra.Game.UI
             _goldenText = UiKit.Rect("Text", _goldenChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _goldenChip.gameObject.SetActive(false);
             BuildJarChip(catalog); // the moon jars on the shelf, beside the golden carrots (#64)
+            BuildMoonPassPill(catalog);
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
@@ -3928,6 +3930,7 @@ namespace VuonTra.Game.UI
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
             _goldenText.text = s.GoldenCarrots.ToString();
             RefreshJarChip(s);
+            RefreshMoonPassPill();
             bool shopNews = Runner.GiftWaiting || Runner.VisitorUnseen; // a gift to take, or a visitor not yet looked at
             if (_shopBadge != null && _shopBadge.activeSelf != shopNews) _shopBadge.SetActive(shopNews);
             ProductTray.Refresh(s);
@@ -6137,7 +6140,7 @@ namespace VuonTra.Game.UI
             if (letter == null) return;
             Sfx.Reward();
             Haptics.Light();
-            Mail.ShowClaimed(L10n.T("mail.claimed", MailView.GiftOf(letter.Golden, letter.Clovers)));
+            Mail.ShowClaimed(letter.Kind == LetterKind.MoonPassRenew ? L10n.T("mail.moonpass.read") : L10n.T("mail.claimed", MailView.GiftOf(letter.Golden, letter.Clovers)));
             Mail.Refresh(Runner.Letters, Runner.TodayNumber);
             Shell.RefreshMail();
             Refresh(-1f);
@@ -6259,6 +6262,65 @@ namespace VuonTra.Game.UI
                     Sfx.Reward();
                     Haptics.Light();
                     Feel.FloatText(new Vector2(0, 420), L10n.T("noads.float", Ads.PassDays), Palette.Lantern, 44);
+                    Refresh(-1f);
+                }
+                done?.Invoke(result);
+            });
+        }
+
+        #endregion
+
+        #region Moon pass (#106)
+
+        RectTransform _moonPill;
+        Text _moonPillText;
+        public const float MoonPillWidth = 290f, MoonPillGap = 8f;
+
+        public RectTransform MoonPassPill => _moonPill;
+        public string MoonPassPillText => _moonPillText != null ? _moonPillText.text : null;
+
+        void BuildMoonPassPill(GameCatalog catalog)
+        {
+            _moonPill = UiKit.Rect("MoonPass", _hud).Place(0f, 1f, 0f, -154, MoonPillWidth, 44);
+            _moonPill.AddShadow(10f, 6f, 0.25f);
+            _moonPill.AddImage(catalog.Panel, Palette.Mix(Palette.Night, Palette.Paper, 0.25f), true);
+            UiKit.Rect("Moon", _moonPill).Place(0f, 0.5f, 24, 0, 24, 24).AddImage(catalog.Round, Palette.Lantern);
+            _moonPillText = UiKit.Rect("Text", _moonPill).Stretch(0, 0, 1, 1, 42, 0, 12, 0).AddText("", UiKit.TextSmall, Palette.Paper, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _moonPillText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _moonPillText.verticalOverflow = VerticalWrapMode.Truncate;
+            _moonPillText.resizeTextForBestFit = true;
+            _moonPillText.resizeTextMinSize = 12;
+            _moonPillText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _moonPill.gameObject.SetActive(false);
+        }
+
+        void RefreshMoonPassPill()
+        {
+            int days = Runner.MoonPassDaysLeft;
+            bool show = days > 0;
+            if (_moonPill.gameObject.activeSelf != show) _moonPill.gameObject.SetActive(show);
+            if (!show) return;
+            _moonPillText.text = L10n.T("moonpass.active", days);
+            RectTransform after = _jarChip.gameObject.activeSelf ? _jarChip : _goldenChip.gameObject.activeSelf ? _goldenChip : null;
+            float left = after != null ? after.anchoredPosition.x + after.sizeDelta.x / 2f + MoonPillGap : _goldenChip.anchoredPosition.x - _goldenChip.sizeDelta.x / 2f;
+            _moonPill.anchoredPosition = new Vector2(left + MoonPillWidth / 2f, _moonPill.anchoredPosition.y);
+        }
+
+        void OnBuyMoonPass(System.Action<PurchaseResult> done)
+        {
+            Runner.BuyMoonPass(result =>
+            {
+                if (result.Outcome == PurchaseOutcome.Paid)
+                {
+                    Sfx.Reward();
+                    Haptics.Light();
+                    GameCatalog catalog = Runner.Catalog;
+                    Vector2 from = GoldenPacks.MoonPassRow != null ? Feel.PointOf(GoldenPacks.MoonPassRow) : new Vector2(0, -120);
+                    if (!_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
+                    Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, 5, 44f,
+                        () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+                    Feel.FloatText(new Vector2(0, 420), L10n.T("moonpass.float", MoonPass.GoldenNow), Palette.Lantern, 44);
+                    Shell.RefreshMail();
                     Refresh(-1f);
                 }
                 done?.Invoke(result);

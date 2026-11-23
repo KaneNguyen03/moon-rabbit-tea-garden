@@ -48,7 +48,8 @@ namespace VuonTra.Core
         public readonly Dictionary<string, string> Prices = new Dictionary<string, string>
         {
             { Storefront.Small, "25.000 ₫" }, { Storefront.Medium, "69.000 ₫" }, { Storefront.Large, "199.000 ₫" },
-            { Storefront.NoAdsPass, "75.000 ₫" }
+            { Storefront.NoAdsPass, "75.000 ₫" },
+            { MoonPass.ProductId, MoonPass.ReferencePrice }
         };
 
         public event Action<PurchaseResult> Delivered;
@@ -92,7 +93,7 @@ namespace VuonTra.Core
 
         public const string NoAdsPass = "vuontra.noads.30";
 
-        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass;
+        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass || productId == MoonPass.ProductId;
 
         public const int ReceiptMemory = 64;
 
@@ -106,12 +107,17 @@ namespace VuonTra.Core
         public static bool Grant(GameState s, string packId, string transactionId)
         {
             GoldenPack pack = Find(packId);
-            if (pack == null && packId != NoAdsPass) return false;
+            if (pack == null && !Sells(packId)) return false;
             if (!string.IsNullOrEmpty(transactionId))
             {
                 if (s.PaidTransactions.Contains(transactionId)) return false;
                 s.PaidTransactions.Add(transactionId);
                 while (s.PaidTransactions.Count > ReceiptMemory) s.PaidTransactions.RemoveAt(0);
+            }
+            if (packId == MoonPass.ProductId)
+            {
+                MoonPass.Grant(s, s.MaxDaySeen);
+                return true;
             }
             if (pack == null)
             {

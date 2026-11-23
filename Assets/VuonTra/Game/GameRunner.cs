@@ -1092,11 +1092,23 @@ namespace VuonTra.Game
         public Letter ClaimLetter(string id)
         {
             Letter letter = Mailbox.Claim(State, id, TodayNumber);
-            if (letter != null) Changed();
+            if (letter != null) { Analytics.LogLetterClaimed(letter); Changed(); }
             return letter;
         }
 
         bool CheckMail() => Mailbox.Check(State, TodayNumber) > 0;
+
+        #endregion
+
+        #region Moon pass (#106)
+
+        public int MoonPassDaysLeft => MoonPass.DaysLeft(State, TodayNumber);
+
+        public void BuyMoonPass(Action<PurchaseResult> done)
+        {
+            Seasons.Clamp(State, DayClock());
+            BuyGolden(MoonPass.ProductId, done);
+        }
 
         #endregion
 

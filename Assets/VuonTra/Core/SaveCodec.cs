@@ -22,6 +22,7 @@ namespace VuonTra.Core
     public static class SaveCodec
     {
         const int LegacyStartingRadius = 3;
+        const int MaxPassDays = 100000;
         public const long LegacyFirstDay = 0;
 
         public const int CurrentVersion = 14;
@@ -338,9 +339,17 @@ namespace VuonTra.Core
                 sb.Append(",\"day\":").Append(letter.Day.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"golden\":").Append(letter.Golden.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
+                if (letter.Kind == LetterKind.MoonPassDay || letter.Kind == LetterKind.MoonPassRenew)
+                    sb.Append(",\"n\":").Append(letter.PassDay.ToString(CultureInfo.InvariantCulture)).Append(",\"of\":").Append(letter.PassDays.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
             sb.Append("]}");
+            sb.Append(",\"moonPass\":{\"from\":").Append(s.MoonPassFromDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"until\":").Append(s.MoonPassUntilDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"mail\":").Append(s.MoonPassMailDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"reminded\":").Append(s.MoonPassRemindedUntil.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"double\":").Append(s.MoonPassDoubleDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
             sb.Append(",\"frog\":{\"day\":").Append(s.FrogDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"showers\":").Append(s.FrogShowers.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
@@ -722,13 +731,15 @@ namespace VuonTra.Core
                         if (!(entry.TryGetValue("id", out object letterIdObj) && letterIdObj is string letterId && letterId.Length > 0)) continue;
                         if (s.Letters.Exists(l => l.Id == letterId)) continue;
                         double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season");
-                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season) continue;
+                        if (letterKind != Math.Floor(letterKind) || letterKind < (int)LetterKind.MakeUp || letterKind > (int)LetterKind.MoonPassRenew) continue;
                         s.Letters.Add(new Letter
                         {
                             Id = letterId,
                             Kind = (LetterKind)(int)letterKind,
                             Season = letterSeason >= 0d && letterSeason <= (double)Season.Christmas && letterSeason == Math.Floor(letterSeason) ? (Season)(int)letterSeason : Season.None,
                             Day = ToLong(ReadNumber(entry, "day")),
+                            PassDay = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "n"), MaxPassDays)),
+                            PassDays = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "of"), MaxPassDays)),
                         });
                     }
             }
@@ -743,6 +754,15 @@ namespace VuonTra.Core
                         if (n > 0) s.AdsToday.Used[key] = n;
                     }
                 s.NoAdsUntilDay = TryNumber(ads, "passUntil", out double passUntil) ? Math.Max(-1L, ToLong(passUntil)) : -1;
+            }
+
+            if (root.TryGetValue("moonPass", out object moonObj) && moonObj is Dictionary<string, object> moon)
+            {
+                s.MoonPassFromDay = TryNumber(moon, "from", out double moonFrom) ? Math.Max(-1L, ToLong(moonFrom)) : -1;
+                s.MoonPassUntilDay = TryNumber(moon, "until", out double moonUntil) ? Math.Max(-1L, ToLong(moonUntil)) : -1;
+                s.MoonPassMailDay = TryNumber(moon, "mail", out double moonMail) ? Math.Max(-1L, ToLong(moonMail)) : -1;
+                s.MoonPassRemindedUntil = TryNumber(moon, "reminded", out double moonReminded) ? Math.Max(-1L, ToLong(moonReminded)) : -1;
+                s.MoonPassDoubleDay = TryNumber(moon, "double", out double moonDouble) ? Math.Max(-1L, ToLong(moonDouble)) : -1;
             }
 
             s.Grid = new GardenGrid(GardenGrid.SegmentsForPlots(s.Plots));

@@ -115,6 +115,7 @@ namespace VuonTra.Game.UI
             _busy = false;
             _status.text = store != null && store.Ready ? "" : L10n.T("packs.notready");
             LayoutPass();
+            LayoutMoonPass();
             ShowRows();
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
@@ -134,6 +135,7 @@ namespace VuonTra.Game.UI
             }
             _restore.interactable = !_busy && _store != null && _store.Ready;
             ShowPass();
+            ShowMoonPass();
         }
 
         void OnPack(int index)
@@ -244,6 +246,98 @@ namespace VuonTra.Game.UI
                 switch (result.Outcome)
                 {
                     case PurchaseOutcome.Paid: _status.text = L10n.T("noads.paid", _passDays != null ? _passDays() : Ads.PassDays); break;
+                    case PurchaseOutcome.Cancelled: _status.text = L10n.T("packs.cancelled"); break;
+                    case PurchaseOutcome.Duplicate: _status.text = L10n.T("packs.duplicate"); break;
+                    case PurchaseOutcome.Unavailable: _status.text = L10n.T("packs.notready"); break;
+                    default: _status.text = L10n.T("packs.failed"); break;
+                }
+                ShowRows();
+            });
+        }
+
+        public const float MoonHeight = 180f, MoonExtra = 210f;
+        RectTransform _moonRow;
+        ChunkyButton _moonButton;
+        Text _moonLabel, _moonSub, _moonPrice;
+        Func<int> _moonDays;
+        Action<Action<PurchaseResult>> _onBuyMoon;
+
+        public bool MoonPassShown => _moonRow != null && _moonRow.gameObject.activeSelf;
+        public string MoonPassLabel => _moonLabel != null ? _moonLabel.text : null;
+        public string MoonPassSub => _moonSub != null ? _moonSub.text : null;
+        public RectTransform MoonPassRow => _moonRow;
+
+        public void AttachMoonPass(GameCatalog catalog, Func<int> daysLeft, Action<Action<PurchaseResult>> onBuy)
+        {
+            _moonDays = daysLeft;
+            _onBuyMoon = onBuy;
+            _moonRow = UiKit.Rect("MoonPass", _card).Place(0.5f, 1f, 0, PassY, 760, MoonHeight);
+            _moonButton = UiKit.Chunky(_moonRow, catalog.Panel, () => { _moonButton.Press(_tweens); OnMoonPass(); });
+            _moonButton.Face.color = Palette.Mix(Palette.Night, Palette.Paper, 0.8f);
+            _moonButton.Lip.color = Palette.Mix(Palette.Night, Palette.Paper, 0.45f);
+            var moon = UiKit.Rect("Moon", _moonButton.FaceRect).Place(0f, 1f, 66, -50, 84, 84);
+            moon.AddImage(catalog.Round, Palette.Lantern);
+            UiKit.Rect("Sky", moon).Stretch(0, 0, 1, 1, 5, 5, 5, 5).AddImage(catalog.Round, Palette.Mix(Palette.Night, Palette.Paper, 0.25f));
+            if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", moon).Stretch(0, 0, 1, 1, 12, 12, 12, 12).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
+            _moonLabel = UiKit.Rect("Text", _moonButton.FaceRect).Stretch(0, 0.5f, 1, 1, 124, 0, 236, 8)
+                .AddText(L10n.T("moonpass.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _moonLabel.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _moonLabel.verticalOverflow = VerticalWrapMode.Truncate;
+            _moonLabel.resizeTextForBestFit = true;
+            _moonLabel.resizeTextMinSize = 16;
+            _moonLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextTitle);
+            _moonSub = UiKit.Rect("Sub", _moonButton.FaceRect).Stretch(0, 0, 1, 0.5f, 124, 10, 24, 0)
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.UpperLeft);
+            _moonSub.horizontalOverflow = HorizontalWrapMode.Wrap;
+            _moonSub.verticalOverflow = VerticalWrapMode.Truncate;
+            _moonSub.resizeTextForBestFit = true;
+            _moonSub.resizeTextMinSize = 12;
+            _moonSub.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            var chip = UiKit.Rect("PriceChip", _moonButton.FaceRect).Place(1f, 1f, -120, -46, 200, 60);
+            chip.AddImage(catalog.Panel, Palette.Paper, true);
+            _moonPrice = UiKit.Rect("Price", chip).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _moonPrice.resizeTextForBestFit = true;
+            _moonPrice.resizeTextMinSize = 14;
+            _moonPrice.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+        }
+
+        void LayoutMoonPass()
+        {
+            if (_moonRow == null) return;
+            float top = PassY + 62f - (PassShown ? PassExtra : 0f);
+            _moonRow.anchoredPosition = new Vector2(0f, top - MoonHeight / 2f);
+            _card.sizeDelta = new Vector2(_card.sizeDelta.x, _card.sizeDelta.y + MoonExtra);
+            Vector2 at = _status.rectTransform.anchoredPosition;
+            _status.rectTransform.anchoredPosition = new Vector2(at.x, at.y - MoonExtra);
+        }
+
+        void ShowMoonPass()
+        {
+            if (!MoonPassShown) return;
+            string price = _store != null ? _store.PriceOf(MoonPass.ProductId) : null;
+            bool can = !_busy && _store != null && _store.Ready && price != null;
+            int days = _moonDays != null ? _moonDays() : 0;
+            _moonLabel.text = days > 0 ? L10n.T("moonpass.active", days) : L10n.T("moonpass.title");
+            _moonSub.text = L10n.T("moonpass.total", MoonPass.GoldenNow, MoonPass.GoldenPerDay, MoonPass.Total) + "\n"
+                + L10n.T("moonpass.perks", (int)(MoonPass.AwayBonusSeconds / 3600d));
+            _moonPrice.text = price ?? L10n.T("packs.price.unknown");
+            _moonButton.SetEnabled(can);
+            _moonLabel.color = can ? Palette.Ink : Palette.InkSoft;
+        }
+
+        void OnMoonPass()
+        {
+            if (_busy || _store == null || !_store.Ready || _onBuyMoon == null) return;
+            Sfx.Blip();
+            _busy = true;
+            _status.text = L10n.T("packs.buying");
+            ShowRows();
+            _onBuyMoon(result =>
+            {
+                _busy = false;
+                switch (result.Outcome)
+                {
+                    case PurchaseOutcome.Paid: _status.text = L10n.T("moonpass.paid", MoonPass.GoldenNow, _moonDays != null ? _moonDays() : MoonPass.Days); break;
                     case PurchaseOutcome.Cancelled: _status.text = L10n.T("packs.cancelled"); break;
                     case PurchaseOutcome.Duplicate: _status.text = L10n.T("packs.duplicate"); break;
                     case PurchaseOutcome.Unavailable: _status.text = L10n.T("packs.notready"); break;

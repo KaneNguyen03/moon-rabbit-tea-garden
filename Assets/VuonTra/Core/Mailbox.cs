@@ -6,7 +6,9 @@ namespace VuonTra.Core
     public enum LetterKind
     {
         MakeUp,
-        Season
+        Season,
+        MoonPassDay,
+        MoonPassRenew
     }
 
     public sealed class Letter
@@ -15,8 +17,21 @@ namespace VuonTra.Core
         public LetterKind Kind;
         public Season Season;
         public long Day;
+        public int PassDay, PassDays;
 
-        public int Golden => Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Mailbox.SeasonGolden;
+        public int Golden
+        {
+            get
+            {
+                switch (Kind)
+                {
+                    case LetterKind.MakeUp: return Mailbox.MakeUpGolden;
+                    case LetterKind.MoonPassDay: return MoonPass.GoldenPerDay;
+                    case LetterKind.MoonPassRenew: return 0;
+                    default: return Mailbox.SeasonGolden;
+                }
+            }
+        }
         public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : 0;
     }
 
@@ -38,7 +53,7 @@ namespace VuonTra.Core
             return s.Letters;
         }
 
-        static bool Add(GameState s, Letter letter)
+        internal static bool Add(GameState s, Letter letter)
         {
             foreach (Letter l in s.Letters) if (l.Id == letter.Id) return false;
             while (s.Letters.Count >= MaxLetters) s.Letters.RemoveAt(0);
@@ -52,10 +67,11 @@ namespace VuonTra.Core
         public static int Check(GameState s, long today)
         {
             Open(s, today);
-            if (today <= s.MailDay) return 0;
+            int pass = MoonPass.Deliver(s, today);
+            if (today <= s.MailDay) return pass;
             long from = s.MailDay;
             s.MailDay = today;
-            if (from < 0) return 0;
+            if (from < 0) return pass;
             from = Math.Max(from, today - LookBackDays);
 
             Season now = Seasons.SeasonOf(today);
@@ -73,7 +89,7 @@ namespace VuonTra.Core
             int added = 0;
             foreach (KeyValuePair<Season, int> m in missed)
                 if (Add(s, new Letter { Id = "season-" + m.Key + "-" + m.Value, Kind = LetterKind.Season, Season = m.Key, Day = today })) added++;
-            return added;
+            return added + pass;
         }
 
         static bool Greeted(GameState s, Season season, int year)

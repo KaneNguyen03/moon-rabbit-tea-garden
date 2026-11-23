@@ -815,6 +815,16 @@ namespace VuonTra.EditorTools
             { "expand.sign.carrots", "Còn {0} cà rốt", "{0} more carrots" },
             { "expand.days", "chơi {0} ngày", "{0} days played" },
             { "upgradeall.locked", "Nâng tất cả mở ở cấp vườn {0}. Giờ cứ nâng từng trạm nhé!", "Upgrade all opens at garden level {0}. Upgrade one station at a time for now!" },
+            { "moonpass.title", "Vé trăng 30 ngày", "Moon pass · 30 days" },
+            { "moonpass.active", "Vé trăng · còn {0} ngày", "Moon pass · {0} days left" },
+            { "moonpass.total", "{0} ngay + {1} mỗi ngày = {2} cà rốt vàng", "{0} now + {1} a day = {2} golden carrots" },
+            { "moonpass.perks", "+{0} giờ vắng mặt · thêm 1 lượt ×2 miễn phí mỗi ngày", "+{0} hours away · one more free ×2 a day" },
+            { "moonpass.paid", "Đã cộng {0} cà rốt vàng. Vé còn {1} ngày, mỗi ngày mở game có thư trong hộp thư.", "{0} golden carrots added. The pass runs {1} more days, with a letter in the mailbox each day you play." },
+            { "moonpass.float", "Vé trăng · +{0} cà rốt vàng", "Moon pass · +{0} golden carrots" },
+            { "mail.moonpass.day", "Vé trăng ngày {0}/{1}", "Moon pass day {0}/{1}" },
+            { "mail.moonpass.renew", "Vé trăng còn {0} ngày", "Moon pass: {0} days left" },
+            { "mail.moonpass.renew.sub", "Mua thêm khi còn hạn sẽ cộng dồn {0} ngày", "Buy again before it ends to add {0} days" },
+            { "mail.moonpass.read", "Đã đọc thư nhắc", "Reminder read" },
         };
 
         /// <summary>
@@ -842,6 +852,9 @@ namespace VuonTra.EditorTools
             { "away.guests.one", "{0} guest came by; nobody was at the counter" },
             { "mail.days.one", "{0} day left" },
             { "noads.active.one", "No ads · {0} day left" },
+            { "moonpass.active.one", "Moon pass · {0} day left" },
+            { "moonpass.perks.one", "+{0} hour away · one more free ×2 a day" },
+            { "mail.moonpass.renew.one", "Moon pass: {0} day left" },
             { "shop.gift.streak.one", "{0} day in a row · miss a day and it steps back one" },
             { "leaves.caught.one", "{0} leaf caught" },
             { "pound.score.one", "{0} point" },

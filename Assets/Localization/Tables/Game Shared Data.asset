@@ -3439,6 +3439,58 @@ MonoBehaviour:
     m_Key: upgradeall.locked
     m_Metadata:
       m_Items: []
+  - m_Id: 809588260593664
+    m_Key: moonpass.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565184
+    m_Key: moonpass.active
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565185
+    m_Key: moonpass.total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565186
+    m_Key: moonpass.perks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565187
+    m_Key: moonpass.paid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565188
+    m_Key: moonpass.float
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565189
+    m_Key: mail.moonpass.day
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565190
+    m_Key: mail.moonpass.renew
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565191
+    m_Key: mail.moonpass.renew.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565192
+    m_Key: mail.moonpass.read
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588289953792
+    m_Key: moonpass.active.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588289953793
+    m_Key: moonpass.perks.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588289953794
+    m_Key: mail.moonpass.renew.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

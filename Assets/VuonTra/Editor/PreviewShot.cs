@@ -630,6 +630,7 @@ namespace VuonTra.EditorTools
             RenderGiftCodes(runner, screen);
             RenderFourStations(runner, screen);
             RenderAdSeams(runner, screen);
+            RenderMoonPass(runner, screen);
             RenderForestRings(runner, screen);
             RenderMapEdges(runner, screen);
             RenderLayout(runner, screen);
@@ -1201,6 +1202,92 @@ namespace VuonTra.EditorTools
             screen.Pound.Close();
             s.NoAdsUntilDay = -1;
             screen.Refresh();
+            Step(screen, 0.4f);
+        }
+
+        static void RenderMoonPass(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 60, 30, 18, 12 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 8;
+            s.RestSpots = 3;
+            s.GardenXp = Garden.XpForLevel(12);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.6e6);
+            s.GoldenCarrots = 12;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            runner.Store = new FakeStorefront();
+            if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
+            if (screen.Shell.State == ShellState.Paused) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.4f);
+
+            screen.OpenShop();
+            Step(screen, 0.4f);
+            Press(screen, "Canvas/Shop/Card/Have/BuyMore");
+            Step(screen, 0.4f);
+            Capture(screen, "106-tiem-ve-trang");
+            Press(screen, "Canvas/GoldenPacks/Card/MoonPass");
+            Step(screen, 0.3f);
+            Capture(screen, "106-da-mua");
+            screen.GoldenPacks.Close();
+            screen.Shop.Close();
+            long today = runner.TodayNumber;
+            s.Letters.Add(new Letter { Id = "moonpass-renew-preview", Kind = LetterKind.MoonPassRenew, Day = today, PassDay = MoonPass.RemindAtDaysLeft, PassDays = MoonPass.Days });
+            Step(screen, 1.2f);
+            Capture(screen, "106-vien-dem-ngay");
+            MoonPassMail(screen, "106-thu-ve-trang");
+
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            Step(screen, 0.8f);
+            s.MoonJars = 2;
+            screen.Refresh();
+            Step(screen, 0.3f);
+            Capture(screen, "106-vien-dem-ngay-en");
+            screen.OpenShop();
+            Step(screen, 0.4f);
+            Press(screen, "Canvas/Shop/Card/Have/BuyMore");
+            Step(screen, 0.4f);
+            Capture(screen, "106-tiem-ve-trang-en");
+            screen.GoldenPacks.Close();
+            screen.Shop.Close();
+            Step(screen, 0.4f);
+            MoonPassMail(screen, "106-thu-ve-trang-en");
+            L10n.SetLocale("vi");
+
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            Step(screen, 0.8f);
+            Capture(screen, "106-vien-dem-ngay-chu-to");
+            screen.OpenShop();
+            Step(screen, 0.4f);
+            Press(screen, "Canvas/Shop/Card/Have/BuyMore");
+            Step(screen, 0.4f);
+            Capture(screen, "106-tiem-ve-trang-chu-to");
+            screen.GoldenPacks.Close();
+            screen.Shop.Close();
+            Step(screen, 0.4f);
+            MoonPassMail(screen, "106-thu-ve-trang-chu-to");
+            UiKit.SetLargeText(false);
+            screen.RebuildUi();
+            Step(screen, 0.4f);
+        }
+
+        static void MoonPassMail(GardenScreen screen, string name)
+        {
+            screen.Shell.OpenPause();
+            Step(screen, 0.5f);
+            Press(screen, "Canvas/Pause/Card/Mail");
+            Step(screen, 0.4f);
+            Capture(screen, name);
+            screen.Mail.Close();
+            screen.Shell.Resume();
             Step(screen, 0.4f);
         }
 

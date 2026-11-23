@@ -3448,6 +3448,58 @@ MonoBehaviour:
     m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
     m_Metadata:
       m_Items: []
+  - m_Id: 809588260593664
+    m_Localized: "Moon pass \xB7 30 days"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565184
+    m_Localized: "Moon pass \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565185
+    m_Localized: '{0} now + {1} a day = {2} golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565186
+    m_Localized: "+{0} hours away \xB7 one more free \xD72 a day"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565187
+    m_Localized: '{0} golden carrots added. The pass runs {1} more days, with a letter in the mailbox each day you play.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565188
+    m_Localized: "Moon pass \xB7 +{0} golden carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565189
+    m_Localized: Moon pass day {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565190
+    m_Localized: 'Moon pass: {0} days left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565191
+    m_Localized: Buy again before it ends to add {0} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588281565192
+    m_Localized: Reminder read
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588289953792
+    m_Localized: "Moon pass \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588289953793
+    m_Localized: "+{0} hour away \xB7 one more free \xD72 a day"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 809588289953794
+    m_Localized: 'Moon pass: {0} day left'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

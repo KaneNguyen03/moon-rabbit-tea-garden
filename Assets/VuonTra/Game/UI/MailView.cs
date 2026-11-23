@@ -104,7 +104,15 @@ namespace VuonTra.Game.UI
         }
 
         public static string TitleOf(Letter letter)
-            => letter.Kind == LetterKind.MakeUp ? L10n.T("mail.makeup") : L10n.T("mail.season", L10n.Season(letter.Season));
+        {
+            switch (letter.Kind)
+            {
+                case LetterKind.MakeUp: return L10n.T("mail.makeup");
+                case LetterKind.MoonPassDay: return L10n.T("mail.moonpass.day", letter.PassDay, letter.PassDays);
+                case LetterKind.MoonPassRenew: return L10n.T("mail.moonpass.renew", letter.PassDay);
+                default: return L10n.T("mail.season", L10n.Season(letter.Season));
+            }
+        }
 
         public static string GiftOf(int golden, int clovers)
         {
@@ -116,6 +124,7 @@ namespace VuonTra.Game.UI
 
         public static string SubOf(Letter letter, long today)
         {
+            if (letter.Kind == LetterKind.MoonPassRenew) return L10n.T("mail.moonpass.renew.sub", MoonPass.Days);
             int left = Mailbox.DaysLeft(letter, today);
             return GiftOf(letter.Golden, letter.Clovers) + " · " + (left > 0 ? L10n.T("mail.days", left) : L10n.T("mail.lastday"));
         }
