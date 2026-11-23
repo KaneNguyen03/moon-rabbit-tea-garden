@@ -4,10 +4,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The device reminders (#65): what is planned when the game goes to the background. Every test passes the local
-    /// time and its offset, so none depends on the zone of the machine running it.
-    /// </summary>
     public class RemindersTests
     {
         const int VietNam = 7 * 3600;
@@ -84,7 +80,7 @@ namespace VuonTra.Core.Tests
         public void A_Save_That_Has_Hit_The_Away_Cap_Gets_No_Tray_Reminder()
         {
             long now = At(2026, 5, 5, 10);
-            s.LastSeenUnixSeconds = now - 4 * 3600; // last seen at six: the three hours ran out at nine
+            s.LastSeenUnixSeconds = now - 4 * 3600;
             List<Reminder> list = Plan(now);
 
             Assert.IsFalse(Has(list, ReminderKind.TrayFull), "the tray is full already: " + Describe(list));
@@ -99,7 +95,7 @@ namespace VuonTra.Core.Tests
             long now = At(2026, 5, 5, 10);
             s.LastSeenUnixSeconds = now;
             Modifiers mods = Modifiers.None;
-            mods.AwayCapSeconds += 2 * 3600; // one level of the charm
+            mods.AwayCapSeconds += 2 * 3600;
             Assert.AreEqual(At(2026, 5, 5, 15), Only(Plan(now, mods: mods), ReminderKind.TrayFull).AtUnixSeconds);
         }
 
@@ -108,9 +104,8 @@ namespace VuonTra.Core.Tests
         {
             long now = At(2026, 5, 5, 20);
             s.LastSeenUnixSeconds = now;
-            s.GiftDay = LocalDay(now, VietNam); // today's gift taken, so the gift is tomorrow at nine too
+            s.GiftDay = LocalDay(now, VietNam);
             List<Reminder> list = Plan(now);
-            // The tray fills at 23:00; quiet hours move it to 9:00, where the gift is: the gift wins.
             Assert.IsFalse(Has(list, ReminderKind.TrayFull), Describe(list));
             Assert.AreEqual(At(2026, 5, 6, 9), Only(list, ReminderKind.DailyGift).AtUnixSeconds);
 
@@ -161,7 +156,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(At(2026, 12, 1, 9), season.AtUnixSeconds);
             Assert.AreEqual(Season.Christmas, season.Season);
 
-            // Greeted already this morning: the next one is Tết's, on 15 January.
             s.SeasonGreetedDay = LocalDay(now, VietNam);
             season = Only(Plan(now), ReminderKind.SeasonBegins);
             Assert.AreEqual(At(2027, 1, 15, 9), season.AtUnixSeconds);
@@ -177,7 +171,7 @@ namespace VuonTra.Core.Tests
                 for (long now = start; now < start + 366L * 86400; now += 3600 * 5 + 1234)
                 {
                     s = GameState.NewGame(defs);
-                    s.LastSeenUnixSeconds = now - (now % 7) * 3600; // sometimes just now, sometimes hours ago
+                    s.LastSeenUnixSeconds = now - (now % 7) * 3600;
                     if (now % 3 == 0) s.GiftDay = LocalDay(now, offset);
                     List<Reminder> list = Plan(now, offset);
                     Assert.LessOrEqual(list.Count, Reminders.MaxCount);
@@ -196,7 +190,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Clash_Keeps_The_More_Important_Reminder()
         {
-            // Leaves at 7:00 on the first of September: the season at 9:00, the tray at 10:00, the gift at 9:00.
             long now = At(2026, 9, 1, 7);
             s.LastSeenUnixSeconds = now;
             List<Reminder> list = Plan(now);

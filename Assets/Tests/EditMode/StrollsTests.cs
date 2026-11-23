@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Resting rabbits stroll to empty spots of the lawn (#55): where they may go, how many at once, what they do there.</summary>
     public class StrollsTests
     {
         static Vec2 At(float x, float y) => new Vec2(x, y);
@@ -13,7 +12,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Spot_Is_Picked_Within_The_Radius_And_Never_Beside_A_Blocked_Point()
         {
-            var blocked = new List<Vec2> { At(300, 120) }; // on top of the second spot
+            var blocked = new List<Vec2> { At(300, 120) };
             for (int k = 0; k < 20; k++)
             {
                 int pick = Strolls.PickSpot(spots, blocked, At(0, 0), 450f, k / 20.0);
@@ -26,7 +25,6 @@ namespace VuonTra.Core.Tests
         {
             var none = new List<Vec2>();
             Assert.AreEqual(Strolls.PickSpot(spots, none, At(0, 0), 450f, 0.37), Strolls.PickSpot(spots, none, At(0, 0), 450f, 0.37));
-            // Three spots are within reach: the roll walks through them in order.
             Assert.AreEqual(0, Strolls.PickSpot(spots, none, At(0, 0), 450f, 0.0));
             Assert.AreEqual(2, Strolls.PickSpot(spots, none, At(0, 0), 450f, 0.5));
             Assert.AreEqual(4, Strolls.PickSpot(spots, none, At(0, 0), 450f, 0.999));
@@ -37,7 +35,7 @@ namespace VuonTra.Core.Tests
         public void No_Spot_In_Reach_Means_No_Pick()
         {
             Assert.AreEqual(-1, Strolls.PickSpot(spots, new List<Vec2>(), At(0, 0), 50f, 0.5), "all too far");
-            var onEach = new List<Vec2> { At(150, 0), At(0, 400), At(-250, 0) }; // within the clearance of every spot in reach
+            var onEach = new List<Vec2> { At(150, 0), At(0, 400), At(-250, 0) };
             Assert.AreEqual(-1, Strolls.PickSpot(spots, onEach, At(0, 0), 450f, 0.5), "every near spot stands within the clearance of a blocked point");
             Assert.AreEqual(-1, Strolls.PickSpot(new List<Vec2>(), new List<Vec2>(), At(0, 0), 450f, 0.5), "no spots at all");
         }
@@ -45,7 +43,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Path_To_A_Spot_Keeps_Clear_Of_Blocked_Points()
         {
-            // The spot at (0, 400) is clear itself, but a station stands halfway along the way to it.
             var blocked = new List<Vec2> { At(40, 200) };
             for (int k = 0; k < 20; k++)
                 Assert.AreNotEqual(2, Strolls.PickSpot(spots, blocked, At(0, 0), 450f, k / 20.0), "the way is blocked");

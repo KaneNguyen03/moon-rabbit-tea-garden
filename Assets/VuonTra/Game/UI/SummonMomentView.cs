@@ -4,13 +4,8 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The moment a rabbit arrives: the moon gate appears, its light turns the colour of the rabbit's tier, a
-    /// shadow steps out, and then it is revealed with its name and kind. A tap skips to the end; another closes.
-    /// </summary>
     public sealed class SummonMomentView
     {
-        /// <summary>Seconds from the gate appearing to the rabbit fully revealed.</summary>
         public const float Length = 2.3f;
         const float GateIn = 0.45f, FlashEnd = 1.15f, StepEnd = 1.85f;
 
@@ -28,7 +23,6 @@ namespace VuonTra.Game.UI
         bool _isNew;
 
         public bool IsOpen => _root.activeSelf;
-        /// <summary>True once the rabbit has been revealed (or the player skipped to it).</summary>
         public bool Revealed => _t >= Length;
         public bool ShowsNew => _newBadge.activeSelf;
 
@@ -41,22 +35,18 @@ namespace VuonTra.Game.UI
             button.transition = Selectable.Transition.None;
             button.onClick.AddListener(Tap);
 
-            // A second veil: one alone still lets the page behind show through the name.
             UiKit.Rect("Veil", overlay).Stretch(0, 0, 1, 1).AddImage(null, Palette.Alpha(Palette.Mix(Palette.Night, Color.black, 0.45f), 0.8f));
             _burst = UiKit.Rect("Burst", overlay).Place(0.5f, 0.5f, 0, 170, 1300, 1300).AddImage(catalog.Glow, Color.white);
             _gate = UiKit.Rect("Gate", overlay).Place(0.5f, 0.5f, 0, 170, 640, 648);
             if (catalog.MoonGate != null) _gate.AddImage(catalog.MoonGate, Color.white).preserveAspect = true;
             else _gate.AddImage(catalog.Round, Palette.Lantern);
-            // The light inside the gate takes the tier's colour.
             _tint = UiKit.Rect("Tint", _gate).Place(0.5f, 0.5f, 4, -18, 372, 430).AddImage(catalog.Round, Color.white);
-            // The season's dressing hangs from the top of the arch and swings a little (#8); nothing hangs out of season.
             _gateDecor = UiKit.Rect("GateDecor", _gate).Place(0.5f, 1f, 0, -40, 520, 200);
             _gateDecor.pivot = new Vector2(0.5f, 1f);
             _gateDecorImage = _gateDecor.AddImage(null, Color.white);
             _gateDecorImage.preserveAspect = true;
             _gateDecor.gameObject.SetActive(false);
 
-            // Glints round the gate. Every arrival has a few; silver, whose colour is nearly the gate's own, has many and bright.
             for (int i = 0; i < _sparkles.Length; i++)
             {
                 float angle = i * Mathf.PI * 2f / _sparkles.Length + 0.3f, reach = 300f + (i % 3) * 46f;
@@ -98,8 +88,6 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <param name="kindLine">The kind and tier, e.g. "Thỏ Sao · bậc Vàng".</param>
-        /// <param name="silver">The commonest tier: its light is white with a shower of glints instead of a colour.</param>
         public void Show(Sprite art, string name, string kindLine, Color tier, bool isNew, string newLabel, string hint, bool silver = false)
         {
             _silver = silver;
@@ -117,7 +105,6 @@ namespace VuonTra.Game.UI
             Apply();
         }
 
-        /// <summary>A tap skips straight to the rabbit; a tap after that closes the moment.</summary>
         public void Tap()
         {
             if (!IsOpen) return;
@@ -134,7 +121,6 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>What hangs on the arch: the season's dressing while a season runs and its picture exists, else nothing.</summary>
         public void SetSeasonDecor(Sprite decor)
         {
             bool show = decor != null;
@@ -148,7 +134,6 @@ namespace VuonTra.Game.UI
             if (!IsOpen || _t >= Length + 1f) return;
             _t += dt;
             Apply();
-            // The dressing swings from its hook between fixed bounds; still under reduced motion.
             if (_gateDecor.gameObject.activeSelf)
                 _gateDecor.localRotation = Quaternion.Euler(0, 0, Motion.Reduced ? 0f : Mathf.Sin(_t * 1.6f) * 2.5f);
         }
@@ -157,11 +142,9 @@ namespace VuonTra.Game.UI
 
         void Apply()
         {
-            // The gate pops in.
             float gate = Ease.OutBack(Span(_t, 0f, GateIn));
             _gate.localScale = Vector3.one * Mathf.LerpUnclamped(0.3f, 1f, gate);
 
-            // Its light swells to the tier's colour, then settles.
             float flash = Span(_t, GateIn, FlashEnd), pulse = Mathf.Sin(flash * Mathf.PI);
             float held = Mathf.Max(flash * 0.55f, pulse);
             Color light = _silver ? Color.white : _tier;
@@ -179,13 +162,11 @@ namespace VuonTra.Game.UI
             }
             _burst.rectTransform.localScale = Vector3.one * (0.7f + pulse * 0.5f);
 
-            // A shadow steps out of the gate towards us.
             float step = Ease.OutCubic(Span(_t, FlashEnd - 0.15f, StepEnd));
             _rabbit.gameObject.SetActive(_t >= FlashEnd - 0.15f);
             _rabbit.anchoredPosition = new Vector2(0, Mathf.Lerp(210f, 20f, step) + Mathf.Abs(Mathf.Sin(step * Mathf.PI * 3f)) * 14f * (1f - step));
             _rabbit.localScale = Vector3.one * Mathf.Lerp(0.42f, 1f, step);
 
-            // Then the shadow lifts and it is itself.
             float reveal = Span(_t, StepEnd, Length);
             _rabbitImage.color = Color.Lerp(new Color(0.05f, 0.03f, 0.1f, 0.95f), Color.white, Ease.OutCubic(reveal));
             _textGroup.alpha = reveal;

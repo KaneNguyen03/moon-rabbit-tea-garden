@@ -6,10 +6,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The tea shop's sheet: today's gift with its streak and the seven-day calendar around it (#57), and the golden call with its odds beside the
-    /// clover call's. Everything it shows is read off the state each refresh.
-    /// </summary>
     public sealed class ShopView
     {
         public BottomSheet Sheet { get; private set; }
@@ -23,37 +19,28 @@ namespace VuonTra.Game.UI
         readonly Func<double> _hoursLeft;
         GameObject _portrait;
 
-        /// <summary>One tile of the gift calendar (#57): its plate, the bright ring of today, the tick of a day taken, and what it brings.</summary>
         sealed class DayTile { public Image Plate, Ring, Golden, Hat, Clover; public Text Day, Amount; public GameObject Tick; }
         readonly DayTile[] _days = new DayTile[Shop.WeekDays];
-        /// <summary>A tile's size in the calendar row, and the gap between tiles.</summary>
         public const float DayTileWidth = 124f, DayTileHeight = 172f, DayTileGap = 9f;
 
-        /// <summary>One hat on sale: its tile and the parts that change.</summary>
         sealed class HatTile { public ItemDef Def; public Button Button; public Image Plate, PriceChip; public Text Price; public GameObject Owned; }
         readonly List<HatTile> _hats = new List<HatTile>();
         readonly Action<string> _onBuyItem;
-        /// <summary>The hat whose tile was tapped once, waiting for the second tap that buys, and when.</summary>
         string _armed;
         float _armedAt;
-        /// <summary>A tap that asks is forgotten after this long.</summary>
         public const float ConfirmSeconds = 2f;
         GameState _last;
 
-        /// <summary>One decoration on the shelf (#11): its tile, the price chip that doubles as the ask, and the "owned" badge.</summary>
         sealed class DecorTile { public DecorKind Kind; public Button Button; public Image Plate, PriceChip; public Text Price, OwnedText; public GameObject Owned; }
         readonly List<DecorTile> _decor = new List<DecorTile>();
         readonly Action<string> _onBuyDecor;
         readonly Action<int> _onLanternColor;
-        /// <summary>The lantern colour dots: each a button, each with a ring that shows when its colour is hung.</summary>
         readonly List<Button> _lanternDots = new List<Button>();
         readonly List<GameObject> _lanternRings = new List<GameObject>();
-        /// <summary>The moon jar on the shelf (#64), at the far end of the decorations' row: the same two taps buy it.</summary>
         sealed class JarTile { public Button Button; public Image Plate, PriceChip; public Text Price, LeftText; public GameObject Left; }
         JarTile _jar;
         readonly Action _onBuyJar;
         public const string JarKey = "jar";
-        /// <summary>How tall the sheet stands: everything down to the note on where golden carrots come from, under the HUD.</summary>
         public const float Height = 1770f;
 
         public ShopView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<long> today, Func<double> hoursLeft, Action onGift, Action onGoldenSummon, Action onBuyVisitor,
@@ -75,7 +62,6 @@ namespace VuonTra.Game.UI
             _purseRow = purse;
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", purse).Place(0f, 0.5f, 22, 0, 40, 40).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
             _have = UiKit.Rect("Text", purse).Stretch(0, 0, 1, 1, 56, 0, 300, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            // Golden carrots for money (#9): a small warm button at the end of the purse row opens the packs card.
             var buyMore = UiKit.Rect("BuyMore", purse).Place(1f, 0.5f, -130, 0, 260, UiKit.MinTouch);
             ChunkyButton buyMoreButton = null;
             buyMoreButton = UiKit.Chunky(buyMore, catalog.Panel, () => { buyMoreButton.Press(tweens); Sfx.Click(); onBuyMore?.Invoke(); });
@@ -86,7 +72,6 @@ namespace VuonTra.Game.UI
             buyMoreText.resizeTextMinSize = 14;
             buyMoreText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
 
-            // Today: the gift, its streak, and the button that takes it, over the seven-day calendar (#57).
             var today_ = UiKit.Rect("Today", card).Stretch(0, 1, 1, 1, 40, -510, 40, 190);
             today_.AddImage(catalog.Panel, Palette.Card, true);
             if (catalog.GiftBox != null) UiKit.Rect("Icon", today_).Place(0f, 1f, 74, -64, 96, 96).AddImage(catalog.GiftBox, Color.white).preserveAspect = true;
@@ -103,7 +88,6 @@ namespace VuonTra.Game.UI
             _giftLabel.resizeTextMaxSize = UiKit.TextBody;
             BuildDays(UiKit.Rect("Days", today_).Band(0, 0, 10, DayTileHeight + 8f), catalog);
 
-            // Today's visitor: a rabbit of Blue or rarer, here until midnight, for golden carrots.
             var visitor = UiKit.Rect("Visitor", card).Stretch(0, 1, 1, 1, 40, -760, 40, 530);
             visitor.AddImage(catalog.Panel, Palette.Card, true);
             _visitorPortrait = UiKit.Rect("PortraitHolder", visitor).Place(0f, 0.5f, 110, 0, 200, 200);
@@ -129,7 +113,6 @@ namespace VuonTra.Game.UI
             _visitorLabel.resizeTextMinSize = 14;
             _visitorLabel.resizeTextMaxSize = UiKit.TextBody;
 
-            // The golden call.
             var golden = UiKit.Rect("Golden", card).Stretch(0, 1, 1, 1, 40, -1010, 40, 780);
             golden.AddImage(catalog.Panel, Palette.Mix(Palette.Lantern, Palette.Paper, 0.6f), true);
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", golden).Place(0f, 0.5f, 90, 10, 110, 110).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
@@ -144,18 +127,16 @@ namespace VuonTra.Game.UI
             _goldenLabel.resizeTextForBestFit = true;
             _goldenLabel.resizeTextMinSize = 14;
             _goldenLabel.resizeTextMaxSize = UiKit.TextBody;
-            // Both calls' odds, side by side, as the design promised.
             _odds = UiKit.Rect("Odds", golden).Stretch(0, 0, 1, 0.2f, 24, 10, 24, 0).AddText(OddsText(), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleLeft);
             _odds.resizeTextForBestFit = true;
             _odds.resizeTextMinSize = 12;
             _odds.resizeTextMaxSize = UiKit.TextSmall;
 
-            // Things for rabbits (#44 round 3): six hats for looks, one tile each; a tap asks, a second tap within two seconds buys.
             var hats = UiKit.Rect("Hats", card).Stretch(0, 1, 1, 1, 40, -1350, 40, 1030);
             hats.AddImage(catalog.Panel, Palette.Card, true);
             UiKit.Rect("Heading", hats).Stretch(0, 1, 1, 1, 24, -56, 24, 8).AddText(L10n.T("shop.hats.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             Text hatsSub = UiKit.Rect("Sub", hats).Stretch(0, 1, 1, 1, 24, -100, 24, 54).AddText(L10n.T("shop.hats.sub"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
-            hatsSub.verticalOverflow = VerticalWrapMode.Truncate; // best fit only shrinks for height when overflow is not allowed
+            hatsSub.verticalOverflow = VerticalWrapMode.Truncate;
             hatsSub.resizeTextForBestFit = true;
             hatsSub.resizeTextMinSize = 12;
             hatsSub.resizeTextMaxSize = UiKit.TextSmall;
@@ -177,8 +158,6 @@ namespace VuonTra.Game.UI
                     tile.Button.onClick.AddListener(() => OnHatTap(defId));
                     Image icon = UiKit.Rect("Icon", rt).Place(0.5f, 1f, 0, -64, 108, 108).AddImage(catalog.ItemIcon(def.Id), Color.white);
                     icon.preserveAspect = true;
-                    // One line between the picture and the price: too short a box for two, so a long name such as "Mushroom stools"
-                    // shrinks instead of wrapping onto the price chip (#76).
                     Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -138, tileW - 12f, 32).AddText(L10n.T("item." + def.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                     name.resizeTextForBestFit = true;
                     name.resizeTextMinSize = 11;
@@ -209,8 +188,6 @@ namespace VuonTra.Game.UI
                     n++;
                 }
 
-            // Decorating the garden (#11): four things to stand in the garden, bought as often as there is room, and the
-            // lantern colour as a row of dots beside the heading. The same two-tap buy as the hats.
             var decorPanel = UiKit.Rect("Decor", card).Stretch(0, 1, 1, 1, 40, -1650, 40, 1350);
             decorPanel.AddImage(catalog.Panel, Palette.Card, true);
             Text decorHeading = UiKit.Rect("Heading", decorPanel).Stretch(0, 1, 0, 1, 24, -72, -326, 8).AddText(L10n.T("shop.decor.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -235,7 +212,6 @@ namespace VuonTra.Game.UI
                 UiKit.Touchable(dot, 64, 64);
                 var ring = UiKit.Rect("Ring", dot).Stretch(0, 0, 1, 1, -7, -7, -7, -7);
                 ring.AddImage(catalog.Round, Palette.Ink);
-                // A thin rim under every dot, so the paper one still reads on the cream panel.
                 UiKit.Rect("Rim", dot).Stretch(0, 0, 1, 1, -2, -2, -2, -2).AddImage(catalog.Round, Palette.Mix(Palette.Paper, Palette.Ink, 0.35f));
                 UiKit.Rect("Fill", dot).Stretch(0, 0, 1, 1).AddImage(catalog.Round, Palette.Hex(Decor.LanternColors[i]));
                 _lanternDots.Add(dotButton);
@@ -256,8 +232,6 @@ namespace VuonTra.Game.UI
                 tile.Button.onClick.AddListener(() => OnDecorTap(kindId));
                 Image icon = UiKit.Rect("Icon", rt).Place(0.5f, 1f, 0, -64, 112, 108).AddImage(catalog.DecorArt(kind.Id), Color.white);
                 icon.preserveAspect = true;
-                // One line between the picture and the price: too short a box for two, so a long name such as "Mushroom stools"
-                // shrinks instead of wrapping onto the price chip (#76).
                 Text name = UiKit.Rect("Name", rt).Place(0.5f, 1f, 0, -138, tileW - 12f, 32).AddText(L10n.T("decor." + kind.Id), 18, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 name.resizeTextForBestFit = true;
                 name.resizeTextMinSize = 11;
@@ -276,7 +250,6 @@ namespace VuonTra.Game.UI
                 tile.Price.resizeTextForBestFit = true;
                 tile.Price.resizeTextMinSize = 11;
                 tile.Price.resizeTextMaxSize = UiKit.TextSmall;
-                // How many are owned already, as a small moss badge over the top corner: the price stays, since more can be bought.
                 var owned = UiKit.Rect("Owned", rt).Place(0f, 1f, 50, -22, 96, 32);
                 owned.AddImage(catalog.Panel, Palette.Moss, true);
                 tile.OwnedText = UiKit.Rect("Text", owned).Stretch(0, 0, 1, 1, 4, 0, 4, 0).AddText("", 16, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -293,7 +266,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Earn", card).Stretch(0, 1, 1, 1, 40, -1730, 40, 1650).AddText(L10n.T("shop.earn"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
         }
 
-        /// <summary>The moon jar's tile (#64): the jar, its name, its price chip, and how many the shop still sells today.</summary>
         JarTile BuildJar(RectTransform row, GameCatalog catalog, float tileW, float tileH)
         {
             var tile = new JarTile();
@@ -323,7 +295,6 @@ namespace VuonTra.Game.UI
             tile.Price.resizeTextForBestFit = true;
             tile.Price.resizeTextMinSize = 11;
             tile.Price.resizeTextMaxSize = UiKit.TextSmall;
-            // How many the shop still sells today, as a small moss badge over the top corner, like the decorations' count.
             var left = UiKit.Rect("Left", rt).Place(0f, 1f, 50, -22, 96, 32);
             left.AddImage(catalog.Panel, Palette.Moss, true);
             tile.LeftText = UiKit.Rect("Text", left).Stretch(0, 0, 1, 1, 4, 0, 4, 0).AddText("", 16, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -334,7 +305,6 @@ namespace VuonTra.Game.UI
             return tile;
         }
 
-        /// <summary>The jar's tile tapped: the same two taps as a hat or a decoration, sharing the one asking tile.</summary>
         void OnJarTap()
         {
             bool confirmed = _armed == JarKey && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
@@ -345,11 +315,9 @@ namespace VuonTra.Game.UI
             else if (_last != null) RefreshJar(_last, _today());
         }
 
-        /// <summary>The price while one can be bought, "Kệ đầy" while the shelf is full, "Mai mua tiếp" once today's three are sold; hidden below garden level 3.</summary>
         void RefreshJar(GameState s, long day)
         {
             _last = s;
-            // Like the purse's button, the jar waits for garden level 3: nothing strange for a new player.
             bool shown = MoonJars.Shown(s);
             if (_jar.Button.gameObject.activeSelf != shown) _jar.Button.gameObject.SetActive(shown);
             if (!shown) return;
@@ -365,10 +333,6 @@ namespace VuonTra.Game.UI
             _jar.Plate.color = armed ? Palette.Mix(Palette.Paper, Palette.Lantern, 0.5f) : Palette.Mix(Palette.Paper, Palette.Lantern, 0.25f);
         }
 
-        /// <summary>
-        /// The seven tiles of the gift calendar: the day, its golden carrots, and on the first week's seventh day the hat and
-        /// the clover beside them. The look of each (taken, today's, still to come) is set by <see cref="RefreshDays"/>.
-        /// </summary>
         void BuildDays(RectTransform row, GameCatalog catalog)
         {
             float span = Shop.WeekDays * DayTileWidth + (Shop.WeekDays - 1) * DayTileGap;
@@ -384,7 +348,6 @@ namespace VuonTra.Game.UI
                 tile.Day.resizeTextMaxSize = UiKit.Scaled(20);
                 tile.Golden = UiKit.Rect("Golden", rt).Place(0.5f, 0.5f, 0, 2, 64, 64).AddImage(catalog.GoldenCarrot, Color.white);
                 tile.Golden.preserveAspect = true;
-                // The big gift: the hat in the middle, a golden carrot and the clover under it.
                 tile.Hat = UiKit.Rect("Hat", rt).Place(0.5f, 0.5f, 0, 14, 62, 62).AddImage(catalog.ItemIcon(Shop.BigGiftHat), Color.white);
                 tile.Hat.preserveAspect = true;
                 tile.Clover = UiKit.Rect("Clover", rt).Place(0.5f, 0.5f, 32, -24, 40, 40).AddImage(catalog.Clover, Color.white);
@@ -393,7 +356,6 @@ namespace VuonTra.Game.UI
                 tile.Amount.resizeTextForBestFit = true;
                 tile.Amount.resizeTextMinSize = 11;
                 tile.Amount.resizeTextMaxSize = UiKit.TextSmall;
-                // The tick sits on the picture's upper corner like a stamp, clear of the day above and the amount below.
                 var tick = UiKit.Rect("Tick", rt).Place(0.5f, 0.5f, 38, 26, 36, 36);
                 tick.AddImage(catalog.Round, Palette.Moss);
                 UiKit.Rect("Text", tick).Stretch(0, 0, 1, 1).AddText("✓", 22, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -402,7 +364,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>Taken days solid with a tick, today's ringed bright, later ones faded but readable with their gift.</summary>
         void RefreshDays(GameState s, long day)
         {
             Shop.GiftTile[] week = Shop.Week(s, day);
@@ -422,7 +383,6 @@ namespace VuonTra.Game.UI
                 tile.Amount.color = ink;
                 Color picture = later ? new Color(1f, 1f, 1f, 0.55f) : Color.white;
                 tile.Golden.color = tile.Hat.color = tile.Clover.color = picture;
-                // On the big day the golden carrot steps down to the left, to make room for the hat over it.
                 RectTransform golden = tile.Golden.rectTransform;
                 golden.anchoredPosition = t.Big ? new Vector2(-32, -24) : new Vector2(0, 2);
                 golden.sizeDelta = t.Big ? new Vector2(40, 40) : new Vector2(64, 64);
@@ -431,7 +391,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>A hat tile tapped: the first tap asks, a second on the same tile soon after buys.</summary>
         void OnHatTap(string defId)
         {
             bool confirmed = _armed == defId && Time.realtimeSinceStartup - _armedAt < ConfirmSeconds;
@@ -442,7 +401,6 @@ namespace VuonTra.Game.UI
             else if (_last != null) RefreshHats(_last);
         }
 
-        /// <summary>A decoration tile tapped: the same two taps as a hat. The hats and the shelf share the one asking tile.</summary>
         void OnDecorTap(string kindId)
         {
             string key = "decor:" + kindId;
@@ -496,7 +454,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>"Bạc 60% · Xanh lá 25% · … · Vàng 0,9%" for a table of odds: whole numbers without a trailing ",0" in either language (#72).</summary>
         public static string Odds(double[] odds)
         {
             var sb = new System.Text.StringBuilder();
@@ -537,7 +494,6 @@ namespace VuonTra.Game.UI
             else
             {
                 _giftTitle.text = L10n.T("shop.today");
-                // The day the big gift came, the line says what it was: the hat, or golden carrots in its place.
                 bool bigToday = s.GiftBigClaimed && s.GiftBigDay == s.GiftDay;
                 _giftSub.text = !bigToday ? L10n.T("shop.gift.streak", s.GiftStreak)
                     : s.GiftBigGolden ? L10n.T("shop.gift.big.golden", hatName, Shop.BigGiftHatGolden, Shop.BigGiftClovers)
@@ -547,7 +503,6 @@ namespace VuonTra.Game.UI
             RefreshDays(s, day);
             _gift.SetEnabled(waiting);
             _giftLabel.color = ChunkyButton.InkFor(waiting);
-            // The visitor: who, what it costs, how long it stays, and whether it has already gone home with you.
             Shop.Visitor v = Shop.VisitorFor(s, day);
             var shown = new Rabbit { Tier = v.Tier, Kind = v.Kind, Name = "" };
             if (_portrait != null) { if (Application.isPlaying) UnityEngine.Object.Destroy(_portrait); else UnityEngine.Object.DestroyImmediate(_portrait); }
@@ -574,12 +529,8 @@ namespace VuonTra.Game.UI
             RefreshAd();
         }
 
-        // ----- rewarded ad seam (#66) -----
-
         RectTransform _purseRow;
-        /// <summary>"Xem để nhận 1 cà rốt vàng", a secondary pill in the golden carrots' row beside Buy more; null until attached.</summary>
         public AdButton Ad { get; private set; }
-        /// <summary>How wide the pill is, and how far the purse's words then keep from the row's right end.</summary>
         public const float AdWidth = 300f, AdGap = 14f;
         const float BuyMoreWidth = 260f, HaveRight = 300f;
 
@@ -587,14 +538,13 @@ namespace VuonTra.Game.UI
         {
             var rt = UiKit.Rect("Ad", _purseRow).Place(1f, 0.5f, -BuyMoreWidth - AdGap - AdWidth / 2f, 0, AdWidth, UiKit.MinTouch);
             Ad = new AdButton(rt, _catalog, "ad.shop", "ad.shop.now", offer, busy, onWatch);
-            _have.resizeTextForBestFit = true; // the purse's words make room for the pill and shrink if they must
+            _have.resizeTextForBestFit = true;
             _have.resizeTextMinSize = 14;
             _have.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
             RefreshAd();
             return Ad;
         }
 
-        /// <summary>The ad pill as things stand, and room made for it in the row.</summary>
         public void RefreshAd()
         {
             if (Ad == null) return;

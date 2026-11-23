@@ -5,7 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The seasons (#8): when they run, who can be met in them, and the clock that never goes back.</summary>
     public class SeasonTests
     {
         static bool Has(IReadOnlyList<RabbitKind> list, RabbitKind kind) { foreach (RabbitKind k in list) if (k == kind) return true; return false; }
@@ -53,7 +52,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(RabbitTrade.Stargazer, Seasons.KindOf(Season.MidAutumn).Trade);
             Assert.AreEqual(RabbitTrade.Brewer, Seasons.KindOf(Season.Tet).Trade);
             Assert.AreEqual(RabbitTrade.Baker, Seasons.KindOf(Season.Christmas).Trade);
-            // Everyday picking never lands on a season kind.
             for (int i = 0; i < 200; i++) Assert.IsNull(RabbitKinds.Find(RabbitKinds.Pick(4, i / 200d)).Season == Season.None ? null : "x");
         }
 
@@ -71,7 +69,6 @@ namespace VuonTra.Core.Tests
             Assert.That(seasonal, Is.InRange(4, 16), "about a third of thirty days: " + seasonal);
             for (long day = Day(2026, 10, 1); day <= Day(2026, 11, 30); day++)
                 Assert.AreNotEqual("tho-den-ong-sao", Shop.VisitorFor(s, day).Kind, "out of season");
-            // Across many gardens the share comes out at a third.
             int hits = 0, tries = 0;
             foreach (string code in new[] { "THO-AAAAAA", "THO-BBBBBB", "THO-CCCCCC", "THO-DDDDDD", "THO-EEEEEE", "THO-FFFFFF", "THO-GGGGGG", "THO-HHHHHH", "THO-JJJJJJ", "THO-KKKKKK" })
             {
@@ -95,7 +92,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Seasons.HasSeasonRabbit(s, Season.MidAutumn));
             Assert.AreEqual(0, Shop.ClaimDailyGift(s, last, "Sao", out Rabbit again), "the day is paid");
             Assert.IsNull(again);
-            // Next year's last day: the garden has one, so none comes.
             Shop.ClaimDailyGift(s, Day(2027, 9, 30), "Sao", out Rabbit next);
             Assert.IsNull(next);
             Assert.AreEqual(1, s.Rabbits.Count);
@@ -106,7 +102,7 @@ namespace VuonTra.Core.Tests
         {
             GameState s = GameState.NewGame(Fixture.Defs());
             long inSeason = Day(2026, 12, 10), outSeason = Day(2026, 7, 10);
-            double goldRoll = 0.001; // lands on the gold tier of the golden odds? find a roll that does
+            double goldRoll = 0.001;
             for (double r = 0d; r < 1d; r += 0.001) if (Rabbits.RollTier(r, Shop.GoldenOdds) == 4) { goldRoll = r; break; }
             Assert.AreEqual(4, Rabbits.RollTier(goldRoll, Shop.GoldenOdds));
             s.GoldenCarrots = 1000;
@@ -166,7 +162,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Quests.CanClaim(met, defs, s));
             Seasons.Clamp(s, Day(2027, 6, 1));
             Assert.IsFalse(Quests.CanClaim(met, defs, s), "gone with the season, unclaimed");
-            // In trade: the Tết rabbit is a brewer; the teapot is a brewing station in the fixture.
             Seasons.Clamp(s, Day(2028, 2, 1));
             var trade = new QuestDef { Id = "mua-nghe-tet", Metric = QuestMetric.SeasonKindInTrade, Target = 1, Season = Season.Tet };
             Assert.AreEqual(0, Quests.Progress(trade, defs, s));
@@ -176,7 +171,6 @@ namespace VuonTra.Core.Tests
             s.Levels[brew] = Math.Max(1, s.Levels[brew]);
             mai.Station = brew;
             Assert.AreEqual(1, Quests.Progress(trade, defs, s));
-            // Photos: a picture with the season rabbit in the garden counts.
             var photo = new QuestDef { Id = "mua-anh-tet", Metric = QuestMetric.PhotosWithSeasonRabbit, Target = 1, Season = Season.Tet };
             Photos.Take(s, Day(2028, 2, 2), null);
             Assert.AreEqual(1, Quests.Progress(photo, defs, s));

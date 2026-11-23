@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The new moon (#1): when it opens, what it keeps and takes, what it gives, and that it lasts.</summary>
     public class NewMoonTests
     {
         List<StationDef> defs;
@@ -35,7 +34,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(48, NewMoon.LevelNeeded(6), "the seventh season asks for level 48");
         }
 
-        /// <summary>The levels each new moon asks for (#98): three more a season, from 30 for the first to 48 for the seventh, then none.</summary>
         [Test]
         public void The_Seven_New_Moons_Ask_For_Levels_Thirty_To_Forty_Eight()
         {
@@ -55,10 +53,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(NewMoon.CanBegin(s), "after the seventh, no more");
         }
 
-        /// <summary>
-        /// Garden experience is multiplied by the new moon's bonus, like income (#98): the same thing done on the third season
-        /// (two new moons begun) is worth one and a half times as much, so a later season climbs as fast as the first.
-        /// </summary>
         [Test]
         public void Garden_Experience_Grows_With_The_Same_Bonus_As_Income()
         {
@@ -70,14 +64,12 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(100d, first.GardenXp, 1e-9, "the first season as before");
             Assert.AreEqual(150d, third.GardenXp, 1e-9, "times 1 + 2 x " + NewMoon.BonusPerSeason);
 
-            // Every source goes through it: a level bought on the third season is worth one and a half points.
             third.Coins = new BigNum(1e9);
             third.BuyMode = Simulation.BuyOne;
             double xp = third.GardenXp;
             Assert.IsTrue(Simulation.TryBuy(defs, third, 0));
             Assert.AreEqual(xp + Garden.XpPerLevelBought * NewMoon.Bonus(2), third.GardenXp, 1e-9);
 
-            // The levels it brings pay as levels always do: a clover each.
             var seventh = GameState.NewGame(defs);
             seventh.Season = NewMoon.MaxSeasons;
             int clovers = seventh.Clovers;
@@ -87,10 +79,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0d, NewMoon.Bonus(0) - 1d, 1e-12, "and nothing changes before the first new moon");
         }
 
-        /// <summary>
-        /// Golden carrots from every fifth garden level come once (#98): on a later season the levels up to the one the last new
-        /// moon asked for are climbed again for their clovers, and only the fifth levels past it pay golden carrots.
-        /// </summary>
         [Test]
         public void A_Later_Season_Pays_Golden_Carrots_Only_For_Fifth_Levels_Past_Its_Last_New_Moon()
         {
@@ -117,10 +105,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(NewMoon.LevelNeeded(NewMoon.MaxSeasons - 1), NewMoon.LevelPassed(seventh), "the seventh new moon asked for 48");
         }
 
-        /// <summary>
-        /// A save from before #98, far into a season: its experience loads as it was saved (never multiplied again), and the
-        /// new moon it can begin is judged by the new steps, so a second-season garden at level 34, which needed 35, can go on.
-        /// </summary>
         [TestCase(0, 31, true)]
         [TestCase(1, 34, true)]
         [TestCase(2, 38, true)]
@@ -130,7 +114,7 @@ namespace VuonTra.Core.Tests
             GameState g = GrownGarden();
             g.Season = season;
             SetGardenLevel(g, level);
-            double xp = g.GardenXp + 7d; // part way into the level
+            double xp = g.GardenXp + 7d;
             g.GardenXp = xp;
             string json = SaveCodec.Encode(defs, g);
             StringAssert.Contains("\"version\":14", json, "the save stays on version 14");
@@ -231,7 +215,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, first.Station, "the teapot's rabbit keeps its place");
             foreach (Rabbit r in g.Rabbits)
                 Assert.IsTrue(r.Station <= 0, r.Name + " cannot work at a closed station");
-            // More resting rabbits than places: they are all still here, only not all out in the garden.
             Assert.LessOrEqual(RestSpots.Seated(g).Count, RestSpots.Starting);
             Assert.AreEqual(4, g.Rabbits.Count);
         }
@@ -269,7 +252,6 @@ namespace VuonTra.Core.Tests
             Modifiers m = Modifiers.From(null, s);
             Assert.AreEqual(1.25d, m.IncomeMultiplier, 1e-12);
 
-            // The bonus pays on a station's cycle like any other multiplier.
             var plain = GameState.NewGame(defs);
             var season = GameState.NewGame(defs);
             season.Season = 1;
@@ -325,7 +307,6 @@ namespace VuonTra.Core.Tests
             NewMoon.Begin(defs, g, "Non", out Rabbit moon);
             Assert.IsNotNull(moon);
             int tier = moon.Tier;
-            // Two plain rabbits of the moon rabbit's tier: with the moon rabbit that would be three, but it does not count.
             Rabbits.ArriveKind(g, RabbitKinds.OfTier(tier)[0].Id, "A");
             Rabbits.ArriveKind(g, RabbitKinds.OfTier(tier)[0].Id, "B");
             Assert.AreEqual(2, Rabbits.CountOfTier(g, tier), "the moon rabbit is not merge material");

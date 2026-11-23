@@ -151,10 +151,6 @@ namespace VuonTra.Game
         }
         public static string ItemName(Item item) => T("item." + item.DefId);
 
-        /// <summary>
-        /// The "Mở rộng vườn" sign over land still in the mist (#99): the sign's own words once the next segment can open, else
-        /// the one thing it still waits for, "Còn 3 ngày" or "Còn 1,2M cà rốt" (see <see cref="Expansion.Missing"/>).
-        /// </summary>
         public static string ExpandSign(System.Collections.Generic.IReadOnlyList<StationDef> defs, GameState s)
         {
             MistSegment next = Expansion.Next(defs, s);

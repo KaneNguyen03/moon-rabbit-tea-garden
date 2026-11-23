@@ -9,11 +9,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// Rain and the Frog Rabbit on the real screen (#62): the colour, the streaks and the brighter lanterns, what reduced
-    /// motion keeps, the patter under the Sound slider, the resting rabbits under the trees, and the frog from the gate to
-    /// the pond and the tap that greets it.
-    /// </summary>
     public class RainScreenTests
     {
         GameObject root;
@@ -62,7 +57,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Rain_Lays_Its_Colour_And_Streaks_Over_The_Garden_And_Lights_The_Lanterns_A_Fifth_Brighter()
         {
-            Motion.SetReduced(true); // the lanterns hold still, so their glow can be read exactly
+            Motion.SetReduced(true);
             screen.Advance(0.1f);
             Assert.AreEqual(0f, screen.RainLevel);
             Assert.IsFalse(root.transform.Find("Canvas/Rain").gameObject.activeSelf, "dry: no rain layer");
@@ -82,7 +77,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(streak.GetComponent<Image>().raycastTarget, "the rain never takes a touch");
             Assert.IsFalse(root.transform.Find("Canvas/Rain/Tint").GetComponent<Image>().raycastTarget);
 
-            // Reduced motion: no streaks, the colour stays.
             Motion.SetReduced(true);
             screen.Advance(0.1f);
             Assert.IsFalse(screen.RainStreaksShown, "reduced motion takes the streaks away");
@@ -173,7 +167,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(-72f, Mathf.DeltaAngle(0f, Seat(4).Find("Art").localEulerAngles.z), 0.01f, "back in the hammock, lying down");
         }
 
-        /// <summary>The middle of today's first shower, by the clamped day the game goes by.</summary>
         double ShowerHour() => Weather.ShowerStarts(runner.TodayNumber)[0] + 1d / 60d;
 
         void FrogGarden()
@@ -224,7 +217,6 @@ namespace VuonTra.Core.Tests
             Step(GardenScreen.FrogWalkSeconds + 0.8f);
             Assert.IsFalse(screen.FrogShown, "it hops home");
 
-            // The rest of this shower brings no other.
             Step(2f);
             Assert.IsFalse(screen.FrogShown);
             Assert.AreEqual(1, s.FrogsToday);

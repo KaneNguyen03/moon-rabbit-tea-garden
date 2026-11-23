@@ -6,7 +6,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>The overlay where the player picks which of their rabbits works at a station.</summary>
     public sealed class WorkerPickerView
     {
         readonly GameObject _root;
@@ -20,7 +19,6 @@ namespace VuonTra.Game.UI
         string _signature;
 
         public bool IsOpen => Sheet.IsOpen;
-        /// <summary>The sliding card this view lives on.</summary>
         public BottomSheet Sheet { get; private set; }
 
         public WorkerPickerView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long, int> onAssign)
@@ -47,7 +45,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Text", close).Stretch(0, 0, 1, 1).AddText("×", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var scrollRt = UiKit.Rect("Scroll", _card).Stretch(0, 0, 1, 1, 0, 28, 0, 130);
-            scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
+            scrollRt.AddTapCatcher();
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.scrollSensitivity = 40f;
@@ -117,7 +115,6 @@ namespace VuonTra.Game.UI
                 return;
             }
 
-            // Rabbits of the station's own trade first; within each group the one worth most here.
             var rabbits = new List<Rabbit>(s.Rabbits);
             rabbits.Sort((a, b) =>
             {

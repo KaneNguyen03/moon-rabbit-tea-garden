@@ -8,6 +8,7 @@
 /[Mm]emoryCaptures/
 /[Rr]ecordings/
 *.csproj
+!/tools/ci/*.csproj
 *.sln
 *.slnx
 *.suo
@@ -24,6 +25,7 @@ crashlytics-build.properties
 # local tool config
 .claude/*
 !.claude/skills/
+!.claude/settings.json
 # Addressables writes and removes this at build time (#12)
 /Assets/AddressableAssetsData/link.xml
 /Assets/AddressableAssetsData/link.xml.meta

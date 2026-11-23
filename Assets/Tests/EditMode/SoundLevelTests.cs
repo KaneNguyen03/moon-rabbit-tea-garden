@@ -4,25 +4,14 @@ using VuonTra.Game;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The levels and colour QA measured on 22 Nov (docs/qa-22-11.md on qa-test), held as numbers: the station loops
-    /// no longer hiss above 4 kHz or sit over the music, and the pond's low sounds reach up where a phone speaker plays.
-    /// Edit mode cannot listen, so these read the made clips' samples through <see cref="SoundMeter"/>.
-    /// </summary>
     public class SoundLevelTests
     {
         static readonly string[] Loops = { "boil", "simmer", "crackle", "shake", "tinkle", "thump", "drip", "stream", "rustle" };
         static readonly string[] LowFishing = { "sink", "reel", "bait-lost", "float-up" };
 
-        // Before 23 Nov shake, rustle and crackle had 48–70 % of their energy above 4 kHz (centroids 5.9–8.6 kHz).
-        // A loop's centre may sit up to 4.5 kHz, and at most a fifth of its energy may lie above 4 kHz.
         const float MaxLoopCentroidHz = 4500f;
         const float MaxLoopAbove4k = 0.20f;
-        // At the default sliders a loop up close is no louder than the quietest tune, and not lost under it either:
-        // QA had them 7–12 dB over; now 0 to 6 dB under.
         const float MaxLoopOverMusicDb = 0f, MinLoopOverMusicDb = -6f;
-        // Phone speakers give little below 400 Hz: the pond's low sounds keep their centre at 0.7 kHz or above
-        // (they sat at 0.2–0.4 kHz) and their peaks at −3 dBFS or under, so the added partials never clip.
         const float MinFishingCentroidHz = 700f;
         const float MaxFishingPeakDb = -3f;
 

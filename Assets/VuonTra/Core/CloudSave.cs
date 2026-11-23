@@ -5,55 +5,37 @@ using System.Text;
 
 namespace VuonTra.Core
 {
-    /// <summary>Why a sync is being tried; the timer one is the only kind that is rationed.</summary>
     public enum SyncReason
     {
         Open, Background, Milestone, Timer, Manual,
-        /// <summary>The cloud said another device wrote its copy (#39).</summary>
         Remote
     }
 
     public enum SyncOutcome
     {
-        /// <summary>Nowhere to sync to: the game has no cloud behind it on this build.</summary>
         Unavailable,
-        /// <summary>A timer sync that came too soon after the last attempt.</summary>
         Skipped,
-        /// <summary>The cloud could not be reached; the save on the device is untouched and the next attempt will try again.</summary>
         Offline,
-        /// <summary>The copy up there is not a save this game wrote (or its check failed): ignored, and the device's copy sent up in its place.</summary>
         Corrupt,
-        /// <summary>The copy up there came from a newer build: left alone, nothing sent up.</summary>
         NewerVersion,
-        /// <summary>The two copies are the same garden at the same point.</summary>
         Same,
-        /// <summary>The device's copy went up.</summary>
         Pushed,
-        /// <summary>Each copy is ahead in something, or the cloud is ahead: the player decides, shown both.</summary>
         NeedsChoice,
-        /// <summary>The cloud's copy replaced the device's, after the device's was backed up.</summary>
         TookRemote,
-        /// <summary>Nothing is up there yet.</summary>
         Nothing,
-        /// <summary>The save is bigger than the cloud holds (#39): nothing was sent and the device's copy is untouched.</summary>
         TooLarge
     }
 
-    /// <summary>What one sync attempt found and did.</summary>
     public sealed class SyncReport
     {
         public SyncOutcome Outcome;
         public SaveSummary Local, Remote;
-        /// <summary>The save text from the cloud, when it was readable.</summary>
         public string RemoteSave;
-        /// <summary>For a choice: which copy the game suggests, by level, then rabbits, then time.</summary>
         public bool SuggestRemote;
-        /// <summary>The copy up there was unreadable and has been replaced by this one.</summary>
         public bool RemoteWasCorrupt;
         public long At;
     }
 
-    /// <summary>What the cloud holds: the save text, the save's version, when it was sent, and a check on all of it.</summary>
     public struct CloudEnvelope
     {
         public int Version;
@@ -64,18 +46,12 @@ namespace VuonTra.Core
 
     public enum EnvelopeStatus { Ok, Corrupt, NewerVersion }
 
-    /// <summary>
-    /// The text that goes up to the cloud: the save wrapped with its version, the time it was sent, the few numbers a
-    /// player needs to compare two copies, and a check. A copy that fails the check is ignored, never loaded.
-    /// </summary>
     public static class CloudSave
     {
         public const int EnvelopeVersion = 1;
 
-        /// <summary>How many bytes a text takes up there, as UTF-8: what a store's limit is measured in.</summary>
         public static int Bytes(string text) => text == null ? 0 : Encoding.UTF8.GetByteCount(text);
 
-        /// <summary>True when a text fits under a store's limit, where 0 means no limit.</summary>
         public static bool Fits(string text, int maxBytes) => maxBytes <= 0 || Bytes(text) <= maxBytes;
 
         public static string Wrap(string save, SaveSummary summary, long now)
@@ -119,7 +95,6 @@ namespace VuonTra.Core
 
         static double Number(Dictionary<string, object> root, string key) => SaveCodec.TryNumber(root, key, out double v) ? v : 0d;
 
-        /// <summary>FNV-1a over the version, the time and the save text: catches a truncated or edited copy, not a determined one.</summary>
         public static string Check(string save, int version, long savedAt)
         {
             const ulong Prime = 1099511628211UL;
@@ -132,15 +107,8 @@ namespace VuonTra.Core
         }
     }
 
-    /// <summary>
-    /// The sync itself, with no idea of disks or screens: it reads the device's copy and the cloud's, decides with
-    /// <see cref="SaveSync.Choose"/>, sends the device's copy up when it is safe, and otherwise hands the player the
-    /// choice. The device's copy is never replaced here except through <see cref="Resolve"/> or <see cref="Restore"/>,
-    /// and then only through the replace callback, which is expected to back the old copy up first.
-    /// </summary>
     public sealed class CloudSync
     {
-        /// <summary>Timer syncs come at most this often; every other reason goes at once.</summary>
         public const int MinSecondsBetweenTimerSyncs = 180;
 
         readonly ICloudSave _cloud;
@@ -153,20 +121,15 @@ namespace VuonTra.Core
         }
 
         public ICloudSave Cloud => _cloud;
-        /// <summary>When the device's copy last went up, in Unix seconds; -1 for never.</summary>
         public long LastPushedAt { get; private set; } = -1;
         public long LastAttemptAt { get; private set; } = -1;
-        /// <summary>The last attempt that reached the cloud (or failed to), for the settings screen to show.</summary>
         public SyncReport Last { get; private set; }
-        /// <summary>A choice waiting on the player, or null.</summary>
         public SyncReport Pending { get; private set; }
 
         public bool Due(SyncReason reason, long now) => reason != SyncReason.Timer || LastAttemptAt < 0 || now - LastAttemptAt >= MinSecondsBetweenTimerSyncs;
 
-        /// <summary>A sync is waiting on the cloud right now; one asked for meanwhile is skipped rather than run on top of it.</summary>
         public bool InFlight { get; private set; }
 
-        /// <summary>One attempt. <paramref name="localSave"/> is the device's copy as text; <paramref name="local"/> its summary.</summary>
         public void Sync(SyncReason reason, string localSave, SaveSummary local, Action<SyncReport> onDone)
         {
             var r = new SyncReport { Local = local, At = _now() };
@@ -199,8 +162,6 @@ namespace VuonTra.Core
                 switch (SaveSync.Choose(local, env.Summary))
                 {
                     case SaveChoice.Same:
-                        // The same garden at the same point by the summary; still sent up when the text itself differs
-                        // (two milestones inside one second, say), so the cloud never trails the device.
                         if (!string.Equals(localSave, env.Save, StringComparison.Ordinal)) { Push(localSave, r, finish); break; }
                         r.Outcome = SyncOutcome.Same;
                         if (LastPushedAt < 0) LastPushedAt = env.SavedAt;
@@ -221,7 +182,6 @@ namespace VuonTra.Core
             });
         }
 
-        /// <summary>Which copy to put forward: the higher garden level, then more rabbits, then the one seen later.</summary>
         public static bool Suggest(SaveSummary local, SaveSummary remote)
         {
             if (remote.GardenLevel != local.GardenLevel) return remote.GardenLevel > local.GardenLevel;
@@ -229,7 +189,6 @@ namespace VuonTra.Core
             return remote.LastSeenUnixSeconds > local.LastSeenUnixSeconds;
         }
 
-        /// <summary>The player chose. Taking the cloud's copy goes through <paramref name="replace"/>; keeping the device's sends it up.</summary>
         public void Resolve(bool takeRemote, string localSave, Func<string, bool> replace, Action<SyncReport> onDone)
         {
             SyncReport p = Pending;
@@ -245,7 +204,6 @@ namespace VuonTra.Core
             else Push(localSave, p, onDone);
         }
 
-        /// <summary>"Save now": the device's copy goes up whatever is there.</summary>
         public void PushNow(string localSave, SaveSummary local, Action<SyncReport> onDone)
         {
             var r = new SyncReport { Local = local, At = _now() };
@@ -255,7 +213,6 @@ namespace VuonTra.Core
             Push(localSave, r, onDone);
         }
 
-        /// <summary>"Restore from the cloud": whatever is up there replaces the device's copy, through <paramref name="replace"/>, which backs the old one up.</summary>
         public void Restore(SaveSummary local, Func<string, bool> replace, Action<SyncReport> onDone)
         {
             var r = new SyncReport { Local = local, At = _now() };
@@ -299,11 +256,9 @@ namespace VuonTra.Core
         }
     }
 
-    /// <summary>What the settings screen shows about the cloud: whether there is one, when the save last went up, the last attempt, and the backup on the device.</summary>
     public struct CloudStatus
     {
         public bool Available;
-        /// <summary>There is a cloud on this build but the device is not signed in to it (iCloud off in the settings), so the row says that rather than "no cloud".</summary>
         public bool SignedOut;
         public long LastPushedAt;
         public SyncReport Last;
@@ -311,24 +266,20 @@ namespace VuonTra.Core
         public long LocalBackupAt;
     }
 
-    /// <summary>A cloud that lives in memory: for tests, previews and a build with no store behind it yet. It can be switched off to play "no network".</summary>
     public sealed class MemoryCloudSave : ICloudSave
     {
         public bool Online = true;
         public string Text;
         public int Pushes, Pulls;
-        /// <summary>A cap like a real store's, or 0 for none; a push over it fails like iCloud's would.</summary>
         public int MaxBytes;
 
         public bool Available => true;
 
         int ICloudSave.MaxBytes => MaxBytes;
 
-        /// <summary>While true, answers wait until <see cref="Release"/>: a slow network for the tests.</summary>
         public bool Hold;
         readonly System.Collections.Generic.Queue<Action> _held = new System.Collections.Generic.Queue<Action>();
 
-        /// <summary>Delivers every answer held back so far, in order.</summary>
         public void Release()
         {
             while (_held.Count > 0) _held.Dequeue()();

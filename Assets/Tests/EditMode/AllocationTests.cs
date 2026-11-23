@@ -3,16 +3,11 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using VuonTra.Game;
-using UnityEngine.TestTools.Constraints; // ConstraintExpression.AllocatingGCMemory()
+using UnityEngine.TestTools.Constraints;
 using AllocIs = UnityEngine.TestTools.Constraints.Is;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// A full garden earns without making garbage (#97). The income sums asked the album again for every pair of stations,
-    /// and each ask boxed a list's enumerator; whether a station was stored joined a new id string each time. On sixteen
-    /// stations that came to 5–9 KB a call and about 5 MB a second, and the GC ran nearly every second.
-    /// </summary>
     public class AllocationTests
     {
         List<StationDef> defs;
@@ -29,7 +24,6 @@ namespace VuonTra.Core.Tests
             ups = catalog.BuildUpgrades();
         }
 
-        /// <summary>Every station open, 160 rabbits (one at each station, the rest resting), every kind in the album; one station stored if asked.</summary>
         GameState FullGarden(bool storeOne)
         {
             var s = GameState.NewGame(defs, ups.Count);
@@ -44,7 +38,6 @@ namespace VuonTra.Core.Tests
             return s;
         }
 
-        /// <summary>Bytes a call by the runtime's own counter, after a warm-up. Logged; the recorder below is what asserts.</summary>
         static long BytesPerCall(Action call, int calls)
         {
             for (int k = 0; k < 20; k++) call();
@@ -65,7 +58,6 @@ namespace VuonTra.Core.Tests
 
             Action income = () => Economy.IncomePerSecond(defs, s);
             Action shares = () => { for (int i = 0; i < defs.Count; i++) Economy.StationIncomePerSecond(defs, s, i, out _, out _); };
-            // Ten seconds at 60 frames a second: cycles finish and pay, the tray fills.
             Action tenSeconds = () => { for (int k = 0; k < 600; k++) Simulation.Tick(defs, s, 1d / 60d, null, mods, roll); };
             var questDefs = new List<QuestDef>();
             foreach (QuestMetric metric in Enum.GetValues(typeof(QuestMetric))) questDefs.Add(new QuestDef { Id = "q", Metric = metric, StationId = defs[2].Id, Target = 1 });
@@ -74,7 +66,6 @@ namespace VuonTra.Core.Tests
             TestContext.WriteLine("IncomePerSecond: " + BytesPerCall(income, 1000) + " B a call; 16 StationIncomePerSecond: " + BytesPerCall(shares, 200)
                 + " B; 600 ticks: " + BytesPerCall(tenSeconds, 5) + " B (stored " + s.Grid.StoredCount + ")");
 
-            // The recorder must see a plain allocation, or the checks below would prove nothing.
             Assert.That(() => { sink = new object[4]; }, AllocIs.AllocatingGCMemory(), "the GC.Alloc recorder works here");
             Assert.That(() => income(), AllocIs.Not.AllocatingGCMemory(), "Economy.IncomePerSecond on a full garden");
             Assert.That(() => shares(), AllocIs.Not.AllocatingGCMemory(), "each station's share of the income");
@@ -85,7 +76,6 @@ namespace VuonTra.Core.Tests
             Assert.That(() => { count = RestSpots.SeatedCount(s); }, AllocIs.Not.AllocatingGCMemory(), "how many rabbits are seated");
         }
 
-        /// <summary>The album read once (#97) gives every station the very factor it gave before, as the album fills.</summary>
         [Test]
         public void The_Album_Read_Once_Gives_Each_Station_The_Same_Factor()
         {

@@ -2,14 +2,9 @@ using System;
 
 namespace VuonTra.Core
 {
-    /// <summary>
-    /// "Trà lực": a bar that refills by itself and is spent on a short burst where the whole
-    /// garden works at double speed. It never punishes: an empty bar just means no burst.
-    /// </summary>
     public static class Energy
     {
         public const double Max = 100d;
-        /// <summary>Empty to full in ten minutes.</summary>
         public const double RegenPerSecond = Max / 600d;
         public const double BoostCost = 50d;
         public const double BoostSeconds = 30d;
@@ -17,7 +12,6 @@ namespace VuonTra.Core
 
         public static bool CanBoost(GameState s) => s.Energy >= BoostCost && s.BoostSecondsLeft <= 0d;
 
-        /// <summary>How long the bar needs to refill to the cost of a burst; zero once it is there.</summary>
         public static double SecondsUntilBoost(GameState s) => Math.Max(0d, (BoostCost - s.Energy) / RegenPerSecond);
 
         public static bool TryBoost(GameState s)
@@ -28,10 +22,6 @@ namespace VuonTra.Core
             return true;
         }
 
-        /// <summary>
-        /// Moves the bar and any running burst forward by <paramref name="dt"/> seconds and returns
-        /// how many seconds of station work that was (burst time counts double).
-        /// </summary>
         public static double Advance(GameState s, double dt)
         {
             if (!(dt > 0d)) return 0d;
@@ -41,7 +31,6 @@ namespace VuonTra.Core
             return boosted * BoostSpeed + (dt - boosted);
         }
 
-        /// <summary>Time away refills the bar and lets any burst run out, without paying burst speed.</summary>
         public static void PassAway(GameState s, double seconds)
         {
             if (!(seconds > 0d)) return;

@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The firefly night: its swarm, the catching, the scoring, the plays per day and the capped pay.</summary>
     public class FirefliesTests
     {
         List<StationDef> defs;
@@ -18,11 +17,9 @@ namespace VuonTra.Core.Tests
             s.GardenXp = Garden.XpForLevel(5);
         }
 
-        /// <summary>A fly that crosses from left to right at height <paramref name="y"/> between <paramref name="appears"/> and five seconds later, without wobble.</summary>
         static Firefly Crossing(int index, double appears, double y, bool golden = false) =>
             new Firefly { Index = index, Appears = appears, Crossing = 5d, FromX = 0d, ToX = 1d, Y = y, Wobble = 0d, Waves = 1d, Phase = 0d, Golden = golden };
 
-        /// <summary>Plays a seeded game through: every fly tapped where it is just after it appears, until the score reaches <paramref name="wanted"/>.</summary>
         static FirefliesRun Play(long seed, int wanted = int.MaxValue)
         {
             var run = FirefliesRun.FromSeed(seed);
@@ -122,7 +119,6 @@ namespace VuonTra.Core.Tests
         public void A_Tap_Catches_The_Nearest_Visible_Fly_Within_Reach_And_Only_Once()
         {
             var run = new FirefliesRun(new[] { Crossing(0, 0.0, 0.3), Crossing(1, 0.0, 0.5), Crossing(2, 10.0, 0.5) });
-            // At 2.5 s both early flies are at x = 0.5; the tap is nearer the one at 0.5 high.
             Assert.AreEqual(1, run.Catch(0.5, 0.45, 2.5));
             Assert.AreEqual(1, run.Score);
             Assert.AreEqual(1, run.Caught);
@@ -244,7 +240,7 @@ namespace VuonTra.Core.Tests
             Modifiers m = Modifiers.None;
             Assert.IsTrue(Fireflies.Start(s, 10));
             BigNum before = s.Coins;
-            s.Leaves.StarToday = true; // the other games' gifts today have nothing to do with this one
+            s.Leaves.StarToday = true;
             s.PoundingThreeToday = true;
             FirefliesResult first = Fireflies.Finish(defs, s, m, Play(5));
             Assert.AreEqual(3, first.Stars);
@@ -261,7 +257,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Fireflies.CloversMost, s.Fireflies.CloversToday);
             Assert.AreEqual(1, s.Fireflies.GoldenToday);
 
-            // The second full game of the day: the caps are reached, so carrots only, and the card says so.
             Assert.IsTrue(Fireflies.Start(s, 10));
             before = s.Coins;
             FirefliesResult second = Fireflies.Finish(defs, s, m, Play(6));
@@ -275,7 +270,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, s.GoldenCarrots);
             Assert.AreEqual(2, s.Fireflies.Games);
 
-            // Tomorrow the caps are back: a two-star game brings its clovers and no golden carrot, uncapped.
             Assert.IsTrue(Fireflies.Start(s, 11));
             Assert.AreEqual(0, s.Fireflies.CloversToday, "a new day starts the day's gifts over");
             Assert.AreEqual(0, s.Fireflies.GoldenToday);
@@ -290,7 +284,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Fireflies.CloversMost + third.Clovers, s.Clovers);
             Assert.AreEqual(3, s.Fireflies.BestStars, "the best stays");
 
-            // A game with nothing caught pays nothing at all.
             Assert.IsTrue(Fireflies.Start(s, 11));
             var poor = new FirefliesRun(new[] { Crossing(0, 1.0, 0.5) });
             FirefliesResult zero = Fireflies.Finish(defs, s, m, poor);

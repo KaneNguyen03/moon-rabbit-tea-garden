@@ -9,10 +9,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The pond's own sounds (#58 follow-up): the cast, the float going under, the strike, the reel to the basket, the
-    /// lost bait and the float popping back up, each at its moment of a cast, short, not silent, under the Sound slider.
-    /// </summary>
     public class FishingSoundTests
     {
         static readonly string[] Sounds = { "cast", "sink", "strike", "reel", "bait-lost", "float-up" };
@@ -107,7 +103,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(CastPhase.Sinking, runner.Cast.Phase);
         }
 
-        /// <summary>One cast that is caught, one let go, one tapped too early: what plays when.</summary>
         void PlayACast(bool checkTiming)
         {
             OpenPond();
@@ -200,7 +195,6 @@ namespace VuonTra.Core.Tests
                 Assert.LessOrEqual(Sfx.LastVolumeOf(name), 0.5f * 0.8f, name + " sits low, like the other small sounds");
             }
 
-            // The Sound slider at nought: silent, whatever Music and the stations are set to.
             Object.DestroyImmediate(root);
             Build();
             Sfx.SetSfx(0f);
@@ -209,7 +203,6 @@ namespace VuonTra.Core.Tests
             PlayACast(false);
             foreach (string name in Sounds) Assert.AreEqual(0f, Sfx.LastVolumeOf(name), name + " is silent");
 
-            // And Music or the stations at nought do not quiet them.
             Sfx.SetSfx(1f);
             Sfx.SetMusic(0f);
             Sfx.SetStation(0f);

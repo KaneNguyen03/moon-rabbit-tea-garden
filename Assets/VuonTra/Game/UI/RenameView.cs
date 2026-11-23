@@ -5,7 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>The small overlay where the player types a new name for a rabbit.</summary>
     public sealed class RenameView
     {
         readonly GameObject _root;
@@ -41,7 +40,7 @@ namespace VuonTra.Game.UI
             fieldImage.raycastTarget = true;
             Text text = UiKit.Rect("Text", field).Stretch(0, 0, 1, 1, 32, 0, 32, 0)
                 .AddText("", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            text.supportRichText = false; // a typed "<b>" is just text
+            text.supportRichText = false;
             Text hint = UiKit.Rect("Hint", field).Stretch(0, 0, 1, 1, 32, 0, 32, 0)
                 .AddText(L10n.T("rename.hint", Rabbits.MaxNameLength), UiKit.TextBody, Palette.OffInk, TextAnchor.MiddleLeft);
             _input = field.gameObject.AddComponent<InputField>();
@@ -70,7 +69,6 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>Whether the edit ended because Enter was pressed (not because focus moved away).</summary>
         static bool Input_SubmitPressed()
         {
             var keyboard = UnityEngine.InputSystem.Keyboard.current;
@@ -85,7 +83,6 @@ namespace VuonTra.Game.UI
             Open(L10n.T("rename.title"), rabbit.Name ?? "", Rabbits.MaxNameLength, name => _onSave(_rabbitId, name));
         }
 
-        /// <summary>The same card for any name: the title says what is being named, the limit is the thing's own.</summary>
         public void Open(string title, string current, int maxLength, Action<string> onSave)
         {
             _onSaveText = onSave;
@@ -101,7 +98,6 @@ namespace VuonTra.Game.UI
         public void Save()
         {
             if (!IsOpen) return;
-            // An empty name is not saved; the card stays open so the player can type one or cancel.
             if (Rabbits.CleanName(_input.text) == null) return;
             _onSaveText(_input.text);
             Close();

@@ -7,17 +7,9 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The firefly night on screen: the garden washed dark, a swarm of glowing dots crossing it on the night's
-    /// schedule, and a glass jar at the bottom that brightens with every catch. The rules live in
-    /// <see cref="FirefliesRun"/>; this only draws them, keeps the clock and turns taps into catches.
-    /// Every fly is placed from the clock each frame from a fixed pool, never moved by accumulation.
-    /// </summary>
     public sealed class FirefliesView
     {
-        /// <summary>The field the flies cross: half its width, and its bottom and top, in canvas units.</summary>
         const float FieldHalf = 450f, FieldBottom = -520f, FieldTop = 260f;
-        /// <summary>A caught fly swells and fades for this long.</summary>
         const float Pop = 0.35f;
 
         readonly GameObject _root, _result;
@@ -37,9 +29,7 @@ namespace VuonTra.Game.UI
 
         public FirefliesRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
-        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
         public RectTransform ResultCard => _resultCard;
-        /// <summary>Seconds into the night, the same clock the rules are settled on.</summary>
         public double Time => _time;
 
         public FirefliesView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onQuit, Action<FirefliesRun> onFinished)
@@ -50,7 +40,6 @@ namespace VuonTra.Game.UI
 
             _overlay = UiKit.Rect("Fireflies", canvas).Stretch(0, 0, 1, 1);
             _root = _overlay.gameObject;
-            // The night wash: the garden shows through, dark enough for the flies to glow.
             _overlay.AddImage(null, Palette.Alpha(Palette.Night, 0.88f)).raycastTarget = true;
             Canvas canvasComponent = canvas.GetComponent<Canvas>();
             var trigger = _root.AddComponent<EventTrigger>();
@@ -65,20 +54,17 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("fireflies.title"), 48, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold).AddShadow();
             UiKit.Rect("Hint", _overlay).Place(0.5f, 1f, 0, -300, 980, 44)
                 .AddText(L10n.T("fireflies.hint"), UiKit.TextBody, Palette.Alpha(Palette.Paper, 0.85f), TextAnchor.MiddleCenter);
-            // The score and the count keep 24 from either edge of the screen (#77).
             _score = UiKit.Rect("Score", _overlay).Place(0f, 1f, 164, -400, 280, 60)
                 .AddText("", UiKit.TextTitle, Palette.Lantern, TextAnchor.MiddleLeft, FontStyle.Bold);
             _timer = UiKit.Rect("Timer", _overlay).Place(1f, 1f, -184, -400, 320, 60)
                 .AddText("", UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleRight, FontStyle.Bold);
 
-            // The jar at the bottom: glass, a glow inside that grows with the catch, and a cork.
             var jar = UiKit.Rect("Jar", _overlay).Place(0.5f, 0.5f, 0, -720, 220, 260);
             _jarGlow = UiKit.Rect("Glow", jar).Place(0.5f, 0.5f, 0, -20, 320, 320);
             _jarGlowImage = _jarGlow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0f));
             UiKit.Rect("Glass", jar).Stretch(0, 0, 1, 1, 0, 0, 0, 36).AddImage(catalog.Panel, Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Night, 0.2f), 0.35f), true);
             UiKit.Rect("Cork", jar).Place(0.5f, 1f, 0, -18, 120, 44).AddImage(catalog.Panel, Palette.Mix(Palette.Carrot, Palette.Ink, 0.45f), true);
 
-            // The swarm: one slot per fly, each a glow with a bright core, drawn from the clock while its fly is out.
             var field = UiKit.Rect("Field", _overlay).Stretch(0, 0, 1, 1);
             for (int i = 0; i < Fireflies.Count; i++)
             {
@@ -101,9 +87,8 @@ namespace VuonTra.Game.UI
             quitButton.onClick.AddListener(() => { Sfx.Click(); Close(); _onQuit(); });
             UiKit.Rect("Text", quit).Stretch(0, 0, 1, 1).AddText(L10n.T("fireflies.quit"), UiKit.TextBody, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // The result: stars, the score and what it paid.
             var result = UiKit.Rect("Result", _overlay).Stretch(0, 0, 1, 1);
-            result.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true; // taps on the field behind are swallowed
+            result.AddTapCatcher();
             _result = result.gameObject;
             _resultCard = UiKit.Rect("Card", result).Place(0.5f, 0.5f, 0, 0, 860, 760);
             _resultCard.AddShadow(26f, 16f, 0.45f);
@@ -128,7 +113,6 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>A pointer position in screen pixels as a place on the field, both 0 to 1.</summary>
         bool PointerSpot(Vector2 screen, Canvas canvas, out Vector2 spot)
         {
             spot = Vector2.zero;
@@ -138,10 +122,8 @@ namespace VuonTra.Game.UI
             return true;
         }
 
-        /// <summary>A place on the field as canvas units.</summary>
         static Vector2 FieldPoint(double x, double y) => new Vector2(-FieldHalf + (float)x * 2f * FieldHalf, FieldBottom + (float)y * (FieldTop - FieldBottom));
 
-        /// <summary>Starts a night.</summary>
         public void Open(FirefliesRun run)
         {
             Run = run;
@@ -164,7 +146,6 @@ namespace VuonTra.Game.UI
             Run = null;
         }
 
-        /// <summary>A tap at (<paramref name="x"/>, <paramref name="y"/>) on the field, both 0 to 1: the nearest fly within reach is caught.</summary>
         public void Tap(float x, float y)
         {
             if (Run == null || _resultShown || _time >= Fireflies.Seconds) return;
@@ -186,7 +167,6 @@ namespace VuonTra.Game.UI
             Draw();
         }
 
-        /// <summary>The clock. When the twenty seconds are up the result comes up.</summary>
         public void Update(float dt)
         {
             if (!IsOpen || Run == null) return;
@@ -205,7 +185,6 @@ namespace VuonTra.Game.UI
             Draw();
         }
 
-        /// <summary>Every fly that is out, placed from the clock; a caught one swells and fades where it was taken.</summary>
         void Place()
         {
             IReadOnlyList<Firefly> schedule = Run.Schedule;
@@ -232,7 +211,6 @@ namespace VuonTra.Game.UI
                 }
                 else if (!Motion.Reduced)
                 {
-                    // Each fly breathes on its own beat; steady under reduced motion.
                     float pulse = 0.5f + 0.5f * Mathf.Sin(t * 5f + i * 1.7f);
                     scale = 0.8f + 0.35f * pulse;
                     alpha = 0.55f + 0.45f * pulse;
@@ -242,7 +220,6 @@ namespace VuonTra.Game.UI
                 _slotGlows[i].color = Palette.Alpha(glow, alpha);
                 _slotCores[i].color = Palette.Alpha(Palette.Mix(glow, Color.white, 0.6f), alpha);
             }
-            // The jar brightens with the catch.
             float lit = Mathf.Clamp01(Run.Score / (float)Fireflies.MaxScore);
             _jarGlowImage.color = Palette.Alpha(Palette.Lantern, 0.15f + 0.75f * lit);
             _jarGlow.localScale = Vector3.one * (0.6f + 0.6f * lit);
@@ -261,7 +238,6 @@ namespace VuonTra.Game.UI
             _onFinished(Run);
         }
 
-        /// <summary>Fills the result card once the night has been paid.</summary>
         public void ShowPaid(FirefliesResult result)
         {
             _resultTitle.text = L10n.T("fireflies.result");

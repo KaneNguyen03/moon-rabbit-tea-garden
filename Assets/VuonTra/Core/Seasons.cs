@@ -2,16 +2,10 @@ using System;
 
 namespace VuonTra.Core
 {
-    /// <summary>A stretch of the year a kind of rabbit belongs to (#8). None is every day.</summary>
     public enum Season { None, MidAutumn, Tet, Christmas }
 
-    /// <summary>
-    /// The seasons by the calendar on the device, counted in the same day numbers the daily quests use, and the
-    /// guard against a clock turned back: the largest day a save has seen is the day the game believes in.
-    /// </summary>
     public static class Seasons
     {
-        /// <summary>The day number's calendar date: day numbers count local midnights, so the UTC date of that instant is the local date.</summary>
         public static DateTime DateOf(long day) => DateTimeOffset.FromUnixTimeSeconds(day * 86400L).UtcDateTime.Date;
 
         public static Season SeasonOf(long day)
@@ -24,13 +18,8 @@ namespace VuonTra.Core
             return Season.None;
         }
 
-        /// <summary>True on the last day of a season: tomorrow is out of it.</summary>
         public static bool IsLastDay(long day) => SeasonOf(day) != Season.None && SeasonOf(day + 1) != SeasonOf(day);
 
-        /// <summary>
-        /// The day the game goes by: never earlier than the latest day this save has seen, so a clock set back does
-        /// not reopen a season that has passed or pay a gift again. Records the day as it goes, and the first one (#99).
-        /// </summary>
         public static long Clamp(GameState s, long day)
         {
             if (s == null) return day;
@@ -39,16 +28,8 @@ namespace VuonTra.Core
             return s.MaxDaySeen;
         }
 
-        /// <summary>
-        /// Whole days from the first day this save saw to the latest (#99): 0 on the first day, 4 on the fifth. Counted on the
-        /// clamped days, so a clock turned back adds none.
-        /// </summary>
         public static long DaysPlayed(GameState s) => s == null || s.FirstDaySeen < 0 || s.MaxDaySeen < s.FirstDaySeen ? 0 : s.MaxDaySeen - s.FirstDaySeen;
 
-        /// <summary>
-        /// Whether a season's greeting is due today: once per season per year, the first day the game sees of it.
-        /// Marks the greeting as given. False out of season or when this season has been greeted already.
-        /// </summary>
         public static bool ShouldGreet(GameState s, long day)
         {
             Season now = SeasonOf(day);
@@ -58,19 +39,16 @@ namespace VuonTra.Core
             return true;
         }
 
-        /// <summary>The year a season's day belongs to; Tết's February days count with its January.</summary>
         static int SeasonYear(long day) => DateOf(day).Year;
 
-        /// <summary>The kind that belongs to a season, or null.</summary>
         public static RabbitKind KindOf(Season season)
         {
             if (season == Season.None) return null;
             System.Collections.Generic.IReadOnlyList<RabbitKind> all = RabbitKinds.All;
-            for (int i = 0; i < all.Count; i++) if (all[i].Season == season) return all[i]; // by index: a foreach boxes the enumerator (#97)
+            for (int i = 0; i < all.Count; i++) if (all[i].Season == season) return all[i];
             return null;
         }
 
-        /// <summary>True when one of the player's rabbits is of the season's kind.</summary>
         public static bool HasSeasonRabbit(GameState s, Season season)
         {
             RabbitKind kind = KindOf(season);
@@ -79,7 +57,6 @@ namespace VuonTra.Core
             return false;
         }
 
-        /// <summary>True when a rabbit of the season's kind works at a station of its own trade.</summary>
         public static bool SeasonRabbitInTrade(System.Collections.Generic.IReadOnlyList<StationDef> defs, GameState s, Season season)
         {
             RabbitKind kind = KindOf(season);
@@ -88,9 +65,7 @@ namespace VuonTra.Core
             return false;
         }
 
-        /// <summary>The share of golden calls at the season kind's tier that bring the season kind while its season runs.</summary>
         public const double GoldenCallShare = 0.5;
-        /// <summary>The share of shop visitors that are the season kind while its season runs.</summary>
         public const double VisitorShare = 1d / 3d;
     }
 }

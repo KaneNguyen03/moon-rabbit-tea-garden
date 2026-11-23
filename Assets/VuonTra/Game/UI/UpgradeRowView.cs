@@ -6,7 +6,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>One garden-wide upgrade ("bùa") card.</summary>
     public sealed class UpgradeRowView
     {
         readonly int _index;
@@ -29,7 +28,6 @@ namespace VuonTra.Game.UI
             layout.minHeight = 200;
             UiKit.Rect("Card", root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Card, true);
 
-            // The drawn charm fills the tile on its own; only a charm with no picture yet gets a coloured disc.
             var icon = UiKit.Rect("Icon", root).Place(0f, 0.5f, 100, 4, 148, 148);
             if (data.Icon != null)
                 UiKit.Rect("Art", icon).Stretch(0, 0, 1, 1).AddImage(data.Icon, Color.white).preserveAspect = true;
@@ -43,7 +41,6 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("upgrade." + data.Id + ".name"), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             name.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-            // One dot per level the charm can reach, lit as they are learnt: the level reads at a glance.
             var dots = UiKit.Rect("Dots", root).Place(1f, 1f, -392, -52, 190, 24);
             float pitch = Mathf.Min(22f, 190f / Mathf.Max(1, data.MaxLevel));
             for (int i = 0; i < data.MaxLevel; i++)
@@ -58,7 +55,6 @@ namespace VuonTra.Game.UI
             sub.verticalOverflow = VerticalWrapMode.Truncate;
             sub.resizeTextMinSize = 14;
             sub.resizeTextMaxSize = UiKit.TextSmall;
-            // What it does now, and what one more level would make it.
             _effect = UiKit.Rect("Effect", root).Stretch(0, 0.08f, 1, 0.36f, 190, 0, 330, 0)
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.UpperLeft, FontStyle.Bold);
             _effect.resizeTextForBestFit = true;
@@ -74,7 +70,6 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
-        /// <summary>The charm's effect at a level in the player's words: "+0,4 giây mỗi chạm", "×4 cà rốt".</summary>
         public static string EffectText(UpgradeDef u, int level)
         {
             double value = Upgrades.EffectAt(u, level);
@@ -87,7 +82,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>A number with at most one decimal, written with the comma Vietnamese uses; English gets its point.</summary>
         static string Decimal(double value) => L10n.Number(value.ToString("0.#", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ','));
 
         public void Refresh(IReadOnlyList<UpgradeDef> upgrades, GameState s)

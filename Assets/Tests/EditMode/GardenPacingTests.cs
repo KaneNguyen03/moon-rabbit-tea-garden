@@ -6,15 +6,8 @@ using VuonTra.Game;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// Plays the shipped game with a simple, steady player and checks the pace the design promises:
-    /// garden level 5 in about the first ten minutes, level 10 within the first day, and no widening of
-    /// the garden held up for want of rabbits. The numbers it finds are written to Logs/garden-pacing.txt.
-    /// Every rule is judged over seventeen seeds (#83), as a median or on at least <see cref="Enough"/> of the
-    /// <see cref="Seeds"/>, and every roll comes from the seed, so the same seed plays the same game twice.
-    /// </summary>
-    [Category("Slow")] // multi-seed pacing sims: run by the full verify, skipped by tools/verify.sh --fast
-    [Timeout(600000)] // 17 seeds per rule (#83): minutes on a busy machine, past the 180 s default
+    [Category("Slow")]
+    [Timeout(600000)]
     public class GardenPacingTests
     {
         List<StationDef> defs;
@@ -23,62 +16,36 @@ namespace VuonTra.Core.Tests
         GameState s;
         Modifiers mods;
         System.Random rng;
-        double clock; // seconds of the player's day
+        double clock;
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
         readonly double[] waveLevelAt = new double[Expansion.Table.Length], waveRabbitsAt = new double[Expansion.Table.Length], waveTakenAt = new double[Expansion.Table.Length];
-        /// <summary>The day each segment came out of the mist, or -1.</summary>
         readonly long[] waveTakenOn = new long[Expansion.Table.Length];
         int summoned;
-        /// <summary>How the simulated player plays: taps a second, seconds between purchases, seconds between looking at quests.</summary>
         int tapsPerSecond = 1, buyEvery = 3, buysAtOnce = 1, questEvery = 30;
-        /// <summary>
-        /// Moon jars (#64): the player opens every jar the moment the purse shows them (garden level 3), the plainest rule.
-        /// With <see cref="OldRules"/> the game is played as before jars: the harvest quest pays its clover and no jar is opened.
-        /// </summary>
         bool openJars = true;
         long today = 1;
         int jarsHeld, jarsOpened;
         BigNum earnedJars;
         readonly Dictionary<long, int> freeJars = new Dictionary<long, int>();
-        /// <summary>
-        /// The Frog Rabbit (#62), modelled at its most: every sitting that opens while the day still has a frog opens in
-        /// the rain, and the player greets it at once, so the casual player meets both of each day's frogs. Its clover
-        /// roll has its own dice, drawn from the seed, so the rest of the week plays out the same with frogs or without.
-        /// </summary>
         bool meetFrogs = true;
         int frogsMet, frogClovers;
         BigNum earnedFrogs;
         System.Random frogRng;
-        /// <summary>
-        /// The moon pond (#58): every sitting opens with every bait that came back since the last one cast, a fixed share
-        /// of them caught (<see cref="FishCatchRate"/>, the rest tapped too late), every fish fed to the rabbit at the
-        /// station that earns most, which is also stroked once a day. The casts have their own dice, drawn from the seed,
-        /// so the rest of the week plays out the same with fishing or without.
-        /// </summary>
         bool goFishing = true;
         const double FishCatchRate = 0.8;
         int casts, fishCaught, fishPoints;
         System.Random fishRng;
-        /// <summary>
-        /// "Nâng tất cả" (#36, #99): the player also presses the station sheet's upgrade-everything button as each sitting opens
-        /// and before it ends, which buys what the game's button buys (<see cref="UpgradePlan.Plan"/> on <see cref="Simulation.Budget"/>).
-        /// Off by default: the rules above were set on a player who buys one level at a time.
-        /// </summary>
         bool upgradeAll;
 
-        /// <summary>The seed the detailed reports in the logs are played on.</summary>
         const int Seed = 20261122;
 
-        /// <summary>The seeds every pacing rule is judged on (#83): the one above and sixteen more.</summary>
         static readonly int[] Seeds = { Seed, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
 
-        /// <summary>A rule that is not a median holds on at least this many of the seventeen seeds.</summary>
         const int Enough = 15;
 
         [SetUp]
         public void SetUp() => Begin(Seed);
 
-        /// <summary>A new garden and a new player, every roll drawn from <paramref name="seed"/>.</summary>
         void Begin(int seed)
         {
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
@@ -87,11 +54,11 @@ namespace VuonTra.Core.Tests
             ups = catalog.BuildUpgrades();
             quests = catalog.BuildQuests();
             s = GameState.NewGame(defs, ups.Count);
-            s.Profile.Code = Fixture.CodeFor(seed); // a new garden's code comes from a GUID (#83)
+            s.Profile.Code = Fixture.CodeFor(seed);
             mods = Modifiers.From(ups, s);
             rng = new System.Random(seed);
             clock = 0;
-            tapsPerSecond = 1; buyEvery = 3; buysAtOnce = 1; questEvery = 30; // NUnit keeps one instance: a tireless test before must not set the pace of the next
+            tapsPerSecond = 1; buyEvery = 3; buysAtOnce = 1; questEvery = 30;
             levelAt.Clear();
             summoned = 0;
             for (int i = 0; i < waveLevelAt.Length; i++) { waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1; waveTakenOn[i] = -1; }
@@ -107,7 +74,7 @@ namespace VuonTra.Core.Tests
             meetFrogs = true;
             frogsMet = frogClovers = 0;
             earnedFrogs = BigNum.Zero;
-            frogRng = new System.Random(unchecked(seed * 31 + 62)); // the frog's and the pond's dice come from the seed too (#83)
+            frogRng = new System.Random(unchecked(seed * 31 + 62));
             goFishing = true;
             casts = fishCaught = fishPoints = 0;
             fishRng = new System.Random(unchecked(seed * 31 + 58));
@@ -115,11 +82,10 @@ namespace VuonTra.Core.Tests
             levelDayOne = 0;
             setsDayOne = null;
             ringSevenDay = -1;
-            Seasons.Clamp(s, today); // the game asks the day as it opens: the first day played (#99)
+            Seasons.Clamp(s, today);
             Quests.RollDaily(quests, defs, s, 1, mods);
         }
 
-        /// <summary>The game as it was before moon jars (#64): the harvest quest's clover, and jars never opened.</summary>
         void OldRules()
         {
             openJars = false;
@@ -127,7 +93,6 @@ namespace VuonTra.Core.Tests
                 if (quest.RewardJars > 0) { quest.RewardClovers += quest.RewardJars; quest.RewardJars = 0; }
         }
 
-        /// <summary>Counts the jars that came since the last look (all free here: this player buys none) and opens them while the purse shows them.</summary>
         void Jars()
         {
             if (s.MoonJars > jarsHeld)
@@ -143,11 +108,10 @@ namespace VuonTra.Core.Tests
             jarsHeld = s.MoonJars;
         }
 
-        /// <summary>A sitting opens in the next shower of the day that still has its frog, which the player greets at once (#62).</summary>
         void MeetFrog()
         {
             if (!meetFrogs) return;
-            Tutorial.Advance(s); // as the game does on every change: the frog waits for the first minute's guidance
+            Tutorial.Advance(s);
             double[] showers = Weather.ShowerStarts(today);
             for (int k = 0; k < showers.Length; k++)
             {
@@ -164,7 +128,6 @@ namespace VuonTra.Core.Tests
             }
         }
 
-        /// <summary>The open brew station that earns most: where the player sends the fish.</summary>
         int BusiestStation()
         {
             int best = -1;
@@ -178,7 +141,6 @@ namespace VuonTra.Core.Tests
             return best;
         }
 
-        /// <summary>A sitting opens at the pond (#58): every bait cast, most caught, every fish fed to the busiest station's rabbit, stroked once a day.</summary>
         void GoFishing()
         {
             if (!goFishing) return;
@@ -230,7 +192,6 @@ namespace VuonTra.Core.Tests
                 + earnedJars.ToShortString() + " cà rốt (" + (total > 0 ? System.Math.Round(earnedJars.ToDouble() / total * 1000d) / 10d : 0d) + " % so với cà rốt kiếm được), còn " + s.MoonJars + " hũ";
         }
 
-        /// <summary>One second of an attentive player: a few taps, then spend on the cheapest useful thing.</summary>
         void ActiveSecond()
         {
             for (int tap = 0; tap < tapsPerSecond; tap++) Simulation.Tap(defs, s, 0, mods);
@@ -241,12 +202,11 @@ namespace VuonTra.Core.Tests
             {
                 if (Expansion.Expand(defs, s))
                 {
-                    if (Expansion.Segments(s) <= waveTakenAt.Length) { waveTakenAt[Expansion.Segments(s) - 1] = clock; waveTakenOn[Expansion.Segments(s) - 1] = today; } // a segment of the strip came out of the mist
-                    if (Expansion.Segments(s) == 4) ringSevenDay = today; // all twelve plots: the fourth segment, the old R 7
-                    mods = Modifiers.From(ups, s); // one more place to rest (#60)
+                    if (Expansion.Segments(s) <= waveTakenAt.Length) { waveTakenAt[Expansion.Segments(s) - 1] = clock; waveTakenOn[Expansion.Segments(s) - 1] = today; }
+                    if (Expansion.Segments(s) == 4) ringSevenDay = today;
+                    mods = Modifiers.From(ups, s);
                     continue;
                 }
-                // The cheapest thing on offer: a level, the next station, or a charm.
                 int best = -1;
                 bool bestIsUpgrade = false;
                 BigNum bestCost = BigNum.Zero;
@@ -271,7 +231,6 @@ namespace VuonTra.Core.Tests
             if ((int)clock % questEvery == 0)
                 foreach (QuestDef quest in quests) Quests.TryClaim(quest, defs, s, mods, out _);
             Jars();
-            // Every clover calls a rabbit, and nobody is ever merged away: the plainest way to play.
             bool called = false;
             while (s.Clovers >= Rabbits.SummonCost)
             {
@@ -280,7 +239,6 @@ namespace VuonTra.Core.Tests
                 Rabbits.AutoAssign(defs, s);
                 called = true;
             }
-            // As in the game, who works and who rests feeds the modifiers (#60).
             if (called) mods = Modifiers.From(ups, s);
             Note();
         }
@@ -301,7 +259,6 @@ namespace VuonTra.Core.Tests
 
         readonly StringBuilder trace = new StringBuilder();
 
-        /// <summary>Presses "Nâng tất cả" when <see cref="upgradeAll"/>: the plan the button shows, for the purse the button spends.</summary>
         void UpgradeAll()
         {
             if (!upgradeAll) return;
@@ -343,12 +300,8 @@ namespace VuonTra.Core.Tests
             return total >= 3600 ? (total / 3600) + " giờ " + (total % 3600 / 60) + " phút" : (total / 60) + " phút " + (total % 60) + " giây";
         }
 
-
-        // ----- the rules over the seeds (#83) -----
-
         int levelDayOne;
         List<AlbumSet> setsDayOne;
-        /// <summary>The day the seventh ring (all twelve plots) was opened, or -1.</summary>
         long ringSevenDay;
 
         static double Median(IEnumerable<double> values)
@@ -373,21 +326,18 @@ namespace VuonTra.Core.Tests
             return n;
         }
 
-        /// <summary>The rule holds on at least <see cref="Enough"/> of the seeds.</summary>
         static void Holds(IList<Run> runs, System.Func<Run, bool> rule, string what, string report)
         {
             int n = Count(runs, rule);
             Assert.GreaterOrEqual(n, Enough, what + ": on " + n + " of " + runs.Count + " seeds, at least " + Enough + " asked\n" + report);
         }
 
-        /// <summary>The rule holds on every seed: for what the game itself caps, such as one free jar a day.</summary>
         static void Always(IList<Run> runs, System.Func<Run, bool> rule, string what, string report)
         {
             int n = Count(runs, rule);
             Assert.AreEqual(runs.Count, n, what + ": on " + n + " of " + runs.Count + " seeds, every one asked\n" + report);
         }
 
-        /// <summary>Where one play-through ended up, for the rules over the seeds.</summary>
         sealed class Run
         {
             public int Seed;
@@ -425,7 +375,6 @@ namespace VuonTra.Core.Tests
 
         double LevelAt(int level) => levelAt.TryGetValue(level, out double t) ? t : -1;
 
-        /// <summary>The same play-through on every seed, each from a new garden.</summary>
         Run[] OverSeeds(System.Action<int> play)
         {
             var runs = new Run[Seeds.Length];
@@ -438,7 +387,6 @@ namespace VuonTra.Core.Tests
             return runs;
         }
 
-        /// <summary>The tireless player's first day: 20 minutes, then four visits of five minutes, two hours apart.</summary>
         void TirelessDay()
         {
             tapsPerSecond = 3; buyEvery = 1; buysAtOnce = 4; questEvery = 1;
@@ -459,7 +407,6 @@ namespace VuonTra.Core.Tests
             return sb.ToString();
         }
 
-        /// <summary>A garden on its second season (#1) earns a quarter more, so the same casual player climbs faster, and still climbs.</summary>
         [Test]
         public void The_Second_Season_Climbs_Faster_Than_The_First_And_Still_Passes_The_Marks()
         {
@@ -482,7 +429,6 @@ namespace VuonTra.Core.Tests
             Holds(second, r => r.LevelEnd >= 5, "the ten-minute mark still holds on the second season", text);
         }
 
-        /// <summary>Not a pass or fail: writes how a tireless, perfect player fares, to show the fastest the game can go.</summary>
         [Test]
         public void Report_For_A_Tireless_Player()
         {
@@ -505,10 +451,6 @@ namespace VuonTra.Core.Tests
             Assert.Pass(report.ToString());
         }
 
-        /// <summary>
-        /// The casual player's week: on the first day twenty minutes at the start, then four visits of five minutes, two
-        /// hours apart; on days two to seven three visits of five minutes each, dailies renewed each morning.
-        /// </summary>
         void CasualWeek(int lastDay = 7)
         {
             Play(20 * 60);
@@ -518,12 +460,12 @@ namespace VuonTra.Core.Tests
                 Play(5 * 60);
             }
             levelDayOne = Garden.Level(s);
-            setsDayOne = AlbumSets.Completed(s); // the album's sets (#61)
+            setsDayOne = AlbumSets.Completed(s);
             for (int day = 2; day <= lastDay; day++)
             {
                 Away(8 * 3600);
                 today = day;
-                Seasons.Clamp(s, today); // days played (#99) count from the clamped day, as in the game
+                Seasons.Clamp(s, today);
                 Quests.RollDaily(quests, defs, s, day, mods);
                 for (int visit = 0; visit < 3; visit++)
                 {
@@ -533,10 +475,6 @@ namespace VuonTra.Core.Tests
             }
         }
 
-        /// <summary>
-        /// Every roll comes from the seed (#83): the casual week and the tireless day each play the very same game twice,
-        /// the other played in between, and another seed plays another one.
-        /// </summary>
         [Test]
         public void The_Same_Seed_Plays_The_Same_Game_Twice()
         {
@@ -552,7 +490,6 @@ namespace VuonTra.Core.Tests
         {
             Run[] runs = OverSeeds(seed => CasualWeek());
 
-            // The detailed report on the shipped seed.
             Begin(Seed);
             CasualWeek();
             double activeDayOne = (20 + 4 * 5) * 60;
@@ -581,17 +518,11 @@ namespace VuonTra.Core.Tests
             Holds(runs, r => r.Level5 >= 5 * 60 && r.Level5 <= 12 * 60, "level 5 in about the first ten minutes: between minute five and minute twelve", text);
             Assert.LessOrEqual(Median(runs, r => r.Level5), 9 * 60, "level 5 by minute nine on the median (the owner: about seven)\n" + text);
             Holds(runs, r => r.LevelDayOne >= 10, "level 10 within the first day", text);
-            // One to four by seed: which kinds the first day's calls meet is the luck of the draw, so the rule is on the median.
             Assert.LessOrEqual(Median(runs, r => r.SetsDayOne), 2, "the album's sets come slowly: one or two on the first day on the median (#61)\n" + text);
-            // Rabbits must be ready by the time the level is; a short lag while a quest is claimed is fine.
             Holds(runs, r => r.Wait[0] <= 300 && r.Wait[1] <= 300 && r.Wait[2] <= 300, "the first three rings never wait on rabbits", text);
             Holds(runs, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3, "all twelve plots not before day three", text);
         }
 
-        /// <summary>
-        /// Moon jars (#64): the casual week played twice on each seed, as before jars and with them opened the moment the
-        /// purse shows them. The free sources bring at most one a day, and level 10 comes no more than a fifth sooner on the median.
-        /// </summary>
         [Test]
         public void Moon_Jars_Come_Free_At_Most_One_A_Day_And_Bring_Level_Ten_No_More_Than_A_Fifth_Sooner()
         {
@@ -610,11 +541,6 @@ namespace VuonTra.Core.Tests
             Always(tireless, r => r.MostFreeJars <= MoonJars.FreePerDay, "the tireless player too", report);
         }
 
-        /// <summary>
-        /// The Frog Rabbit (#62): the casual week played on each seed without it and with both of each day's frogs greeted.
-        /// The frogs bring level 10 no more than a fifth sooner on the median, the five-minute floor still holds, and nobody
-        /// meets more than two a day.
-        /// </summary>
         [Test]
         public void Frog_Rabbits_Greeted_Twice_A_Day_Bring_Level_Ten_No_More_Than_A_Fifth_Sooner()
         {
@@ -630,12 +556,6 @@ namespace VuonTra.Core.Tests
             Always(after, r => r.FrogsMet > 0 && r.FrogsMet <= 7 * FrogRabbit.PerDay, "the casual player meets frogs, two a day at most", report);
         }
 
-        /// <summary>
-        /// The moon pond and the hearts it feeds (#58): the casual week played on each seed without fishing and with every
-        /// bait cast each sitting, four in five caught and every fish fed to the busiest station's rabbit. The hearts bring
-        /// level 10 no more than 30 % sooner on the median (the issue's rule), the ten-minute mark still holds, and the
-        /// tireless player's day is written beside it.
-        /// </summary>
         [Test]
         public void Fishing_And_Feeding_Every_Sitting_Bring_Level_Ten_No_More_Than_Thirty_Percent_Sooner()
         {
@@ -660,10 +580,8 @@ namespace VuonTra.Core.Tests
 
         #region Four new stations (#67a, #67b)
 
-        /// <summary>The day each station after the twelfth was opened, by its index.</summary>
         readonly Dictionary<int, long> newStationOpenedOn = new Dictionary<int, long>();
         readonly Dictionary<int, double> newStationOpenedAt = new Dictionary<int, double>();
-        /// <summary>The garden level at the end of each day of play.</summary>
         readonly SortedDictionary<long, int> levelOnDay = new SortedDictionary<long, int>();
 
         void NoteNewStations()
@@ -676,13 +594,6 @@ namespace VuonTra.Core.Tests
         string NewStationLine(int i) => "  trạm " + (i + 1) + " (" + defs[i].Name + ", cấp vườn " + defs[i].NeedGardenLevel + "): "
             + (newStationOpenedOn.ContainsKey(i) ? "mở ngày " + newStationOpenedOn[i] + " (" + Clock(newStationOpenedAt[i]) + " trên đồng hồ chơi)" : "chưa mở");
 
-        /// <summary>
-        /// The four stations after the star observatory (#67): the casual player of the week above, played on to day fourteen,
-        /// opens the eighth and ninth rings of the forest (#53) when the garden is grown enough, and with them the thirteenth
-        /// station on day three to five and the sixteenth on day eight to twelve, on at least fifteen of the seventeen seeds;
-        /// with the days those segments wait for (#99), the thirteenth on day five give or take one and the sixteenth on day
-        /// nine give or take two.
-        /// </summary>
         [Test]
         public void A_Casual_Player_Opens_Station_Thirteen_On_Day_Three_To_Five_And_Sixteen_On_Day_Eight_To_Twelve()
         {
@@ -719,7 +630,6 @@ namespace VuonTra.Core.Tests
             Holds(runs, r => r.LevelEnd < NewMoon.FirstLevel, "the casual player does not reach the new moon in fourteen days (#1)", text);
         }
 
-        /// <summary>A median and the lowest and highest over the seeds, a value of -1 (not reached) shown as "–".</summary>
         static string Spread(Run[] runs, System.Func<Run, double> value, System.Func<double, string> show)
         {
             var values = new List<double>();
@@ -729,7 +639,6 @@ namespace VuonTra.Core.Tests
             return one(Median(values)) + " [" + one(values[0]) + "–" + one(values[values.Count - 1]) + "]";
         }
 
-        /// <summary>The two buyers side by side: the milestones, and on how many seeds the four stations fall in the days of #67.</summary>
         string UpgradeAllTable(Run[] single, Run[] all)
         {
             var sb = new StringBuilder();
@@ -759,18 +668,6 @@ namespace VuonTra.Core.Tests
             return sb.ToString();
         }
 
-        /// <summary>
-        /// "Nâng tất cả" (#36, #99): the casual player above, played to day fourteen on every seed twice: buying a level at a time,
-        /// as the rules above were set, and also pressing the upgrade-everything button as each sitting opens and before it ends.
-        /// The button spends the hours of income the first player leaves in the purse, so the garden is near level 22 at the end
-        /// of day one, and every gate below that (the twelve plots, the four new stations and their segments) falls on day one or
-        /// two. No garden level puts the thirteenth station on day three to five for both players (the first is at level 15 to 18
-        /// on those days, the second past 22), so the fifth and sixth segments also wait for days played and cost more (#99, the
-        /// owner's direction B): this player opens the thirteenth station on day four at the soonest and the sixteenth on day
-        /// eight. What both players keep is: level 5 in about ten minutes, level 10 on day one, all sixteen stations by day
-        /// fourteen in order, one free jar a day, and no new moon in two weeks. The rest of this player's first week (level 10
-        /// in the first sitting, twelve plots on day two) is #101, written to Logs/garden-pacing-upgrade-all.txt, not asserted.
-        /// </summary>
         [Test, Category("Slow")]
         public void A_Casual_Player_Who_Presses_Upgrade_All_Keeps_The_First_Hour_And_Opens_All_Four_Stations_In_Order()
         {

@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>A station stops at level 500: no buy mode, button or plan takes it past.</summary>
     public class StationCapTests
     {
         List<StationDef> defs;

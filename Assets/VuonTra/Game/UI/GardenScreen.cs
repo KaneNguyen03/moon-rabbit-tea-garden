@@ -3928,7 +3928,7 @@ namespace VuonTra.Game.UI
                 _actors[i].SetRank(look == StationLook.Open ? Economy.Rank(s.Levels[i]) : 0);
                 if (look == StationLook.Land)
                 {
-                    _actors[i].SetSign(L10n.ExpandSign(defs, s), Expansion.CanExpand(defs, s)); // #53; #99 says what is still missing
+                    _actors[i].SetSign(L10n.ExpandSign(defs, s), Expansion.CanExpand(defs, s));
                 }
                 else if (look == StationLook.Unbuilt)
                 {
@@ -4119,7 +4119,7 @@ namespace VuonTra.Game.UI
                 parts.Add(Mark(s.Rabbits.Count >= wave.NeedRabbits, L10n.T("expand.rabbits", wave.NeedRabbits) + (s.Rabbits.Count >= wave.NeedRabbits ? "" : L10n.T("expand.have", s.Rabbits.Count))));
             if (wave.NeedKinds > 0)
                 parts.Add(Mark(s.SeenKinds.Count >= wave.NeedKinds, L10n.T("expand.kinds", wave.NeedKinds) + (s.SeenKinds.Count >= wave.NeedKinds ? "" : L10n.T("expand.have", s.SeenKinds.Count))));
-            if (wave.NeedDays > 0) parts.Add(Mark(Expansion.HasDays(wave, s), L10n.T("expand.days", wave.NeedDays) + (Expansion.HasDays(wave, s) ? "" : L10n.T("expand.have", Seasons.DaysPlayed(s))))); // #99
+            if (wave.NeedDays > 0) parts.Add(Mark(Expansion.HasDays(wave, s), L10n.T("expand.days", wave.NeedDays) + (Expansion.HasDays(wave, s) ? "" : L10n.T("expand.have", Seasons.DaysPlayed(s)))));
             parts.Add(Mark(Expansion.HasCarrots(defs, s), L10n.T("expand.carrots", Expansion.CostOfNext(defs, s).Short())));
             return string.Join(" · ", parts);
         }

@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Plots, energy, rabbit levels and items.</summary>
     public class GrowthTests
     {
         List<StationDef> defs;
@@ -28,8 +27,6 @@ namespace VuonTra.Core.Tests
             s.Rabbits.Add(r);
             return r;
         }
-
-        // ----- plots -----
 
         [Test]
         public void New_Garden_Has_Four_Plots_Or_Fewer_Stations()
@@ -57,8 +54,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Plots.TryBuy(defs, s));
         }
 
-        // ----- energy -----
-
         [Test]
         public void Energy_Starts_Full_And_Refills_To_The_Cap()
         {
@@ -77,7 +72,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(50, s.Energy, 1e-9);
             Assert.IsFalse(Energy.TryBoost(s), "already running");
             Assert.AreEqual(20, Energy.Advance(s, 10), 1e-9);
-            // 20 s of burst left, then 10 s of normal time
             Assert.AreEqual(20 * 2 + 10, Energy.Advance(s, 30), 1e-9);
             Assert.AreEqual(0, s.BoostSecondsLeft);
             Assert.AreEqual(5, Energy.Advance(s, 5), 1e-9);
@@ -110,8 +104,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(20, s.Energy, 1e-9);
             Assert.AreEqual(0, s.BoostSecondsLeft);
         }
-
-        // ----- rabbit levels -----
 
         [Test]
         public void Levels_Raise_The_Multiplier_Up_To_The_Tier_Cap()
@@ -152,8 +144,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(7, Rabbits.Merge(s, 0).Level);
         }
 
-        // ----- items -----
-
         [Test]
         public void Granted_Items_Scale_With_Tier()
         {
@@ -166,7 +156,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Hat_Raises_Its_Wearers_Station()
         {
-            s.Levels[0] = 10; // 10 × 2 (milestone) = 20 per cycle
+            s.Levels[0] = 10;
             Rabbit r = Add(0, 0);
             Item hat = Items.Grant(s, Straw, 0);
             Assert.IsTrue(Items.Equip(s, hat.Id, r.Id));
@@ -196,8 +186,8 @@ namespace VuonTra.Core.Tests
         public void Garden_Wide_Items_Only_Count_While_The_Wearer_Works()
         {
             Rabbit r = Add(0);
-            Items.Equip(s, Items.Grant(s, Chef, 2).Id, r.Id);   // +10% speed
-            Items.Equip(s, Items.Grant(s, Lamp, 0).Id, r.Id);   // +10% away
+            Items.Equip(s, Items.Grant(s, Chef, 2).Id, r.Id);
+            Items.Equip(s, Items.Grant(s, Lamp, 0).Id, r.Id);
             Modifiers resting = Modifiers.From(null, s);
             Assert.AreEqual(1, resting.SpeedMultiplier, 1e-12);
             Assert.AreEqual(1, resting.AwayIncomeMultiplier, 1e-12);
@@ -216,7 +206,7 @@ namespace VuonTra.Core.Tests
             Modifiers m = Modifiers.From(null, s);
             s.LastSeenUnixSeconds = 0;
             BigNum paid = Simulation.ClaimAway(defs, s, 100, out _, m);
-            Assert.AreEqual(100 * 1.1 * 1.1, paid.ToDouble(), 1e-6); // rabbit ×1.1, lamp ×1.1
+            Assert.AreEqual(100 * 1.1 * 1.1, paid.ToDouble(), 1e-6);
             var fresh = GameState.NewGame(defs);
             Simulation.Tick(defs, fresh, 10, null, m);
             Assert.AreEqual(10, fresh.Coins.ToDouble(), 1e-9);
@@ -236,8 +226,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, hatB.WornBy, "the slot was taken");
             Assert.AreEqual(merged.Id, lamp.WornBy);
         }
-
-        // ----- save -----
 
         [Test]
         public void Save_RoundTrip_Version_Four()

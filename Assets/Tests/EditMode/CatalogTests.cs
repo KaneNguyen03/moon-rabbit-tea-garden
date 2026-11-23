@@ -5,7 +5,6 @@ using VuonTra.Game;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Checks the shipped content, so a bad edit to an asset fails here instead of in play.</summary>
     public class CatalogTests
     {
         GameCatalog catalog;
@@ -24,7 +23,7 @@ namespace VuonTra.Core.Tests
             foreach (StationData s in catalog.Stations) ids.Add(s.Id);
             CollectionAssert.AreEqual(
                 new[] { "am-tra", "gio-la", "noi-mut", "coi-hoa", "lo-banh", "to-mat", "tra-sua", "binh-sao", "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao",
-                        "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" }, ids); // the four after the star observatory (#67)
+                        "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" }, ids);
         }
 
         [Test]
@@ -69,9 +68,6 @@ namespace VuonTra.Core.Tests
         {
             foreach (StationData s in catalog.Stations) Assert.IsNotNull(s.Prop, s.Id);
             Assert.IsNotNull(catalog.Rabbit);
-            // A station either has its own dressed rabbit or wears the shared tinted scarf.
-            // The eight newest stations have no costume drawn yet and show the plain shared rabbit.
-            // Remove an id from this list when its rabbit_<id>.png lands in Art/Final.
             var awaitingArt = new HashSet<string> { "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao", "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" };
             foreach (StationData s in catalog.Stations)
                 if (s.Rabbit == null && !awaitingArt.Contains(s.Id))
