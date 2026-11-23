@@ -5,18 +5,12 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The mooncake game on screen: the mortar in the middle, a pestle that comes down on every beat, a ring
-    /// that shrinks onto the cake so the player sees the beat coming, and a tap anywhere to pound. The rules
-    /// live in <see cref="PoundingRun"/>; this only draws them and keeps the clock.
-    /// </summary>
     public sealed class PoundingView
     {
         readonly GameObject _root, _result, _chewy, _helper;
         readonly RectTransform _mortar, _ring, _cake, _shake, _resultCard, _pestle;
         readonly Image _cakeImage, _helperArt, _resultCake;
         readonly GameCatalog _catalog;
-        /// <summary>Seconds the dented cake is still shown after a miss.</summary>
         float _dentedFor;
         const float PestleRest = 20f, PestleDrop = 60f;
         readonly Text _score, _beats, _judge, _helperName, _resultTitle, _resultStars, _resultScore, _resultCarrots, _resultExtra;
@@ -29,9 +23,7 @@ namespace VuonTra.Game.UI
 
         public PoundingRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
-        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
         public RectTransform ResultCard => _resultCard;
-        /// <summary>Seconds into the game, the same clock the rules are scored on.</summary>
         public double Time => _time;
 
         public PoundingView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onQuit, Action<PoundingRun> onFinished)
@@ -52,31 +44,24 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("pound.title"), 48, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold).AddShadow();
             UiKit.Rect("Hint", overlay).Place(0.5f, 1f, 0, -300, 900, 44)
                 .AddText(L10n.T("pound.hint"), UiKit.TextBody, Palette.Alpha(Palette.Paper, 0.85f), TextAnchor.MiddleCenter);
-            // The score and the count keep 24 from either edge of the screen (#77).
             _score = UiKit.Rect("Score", overlay).Place(0f, 1f, 164, -400, 280, 60)
                 .AddText("", UiKit.TextTitle, Palette.Lantern, TextAnchor.MiddleLeft, FontStyle.Bold);
             _beats = UiKit.Rect("Beats", overlay).Place(1f, 1f, -164, -400, 280, 60)
                 .AddText("", UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleRight, FontStyle.Bold);
 
-            // Everything that shakes on a miss hangs from one node, so the shake is one number.
             _shake = UiKit.Rect("Shake", overlay).Stretch(0, 0, 1, 1);
             _mortar = UiKit.Rect("Mortar", _shake).Place(0.5f, 0.5f, 0, -60, 520, 520);
             _mortar.pivot = new Vector2(0.5f, 0.2f);
             _mortar.anchoredPosition = new Vector2(0, -60 - 520 * 0.3f);
-            // The empty mortar when it is drawn, so the pestle can be its own; the garden's mortar-with-pestle until then.
             Sprite mortarArt = catalog.MortarEmpty != null ? catalog.MortarEmpty : catalog.Mortar;
             Image mortarImage = _mortar.AddImage(mortarArt, Color.white);
             mortarImage.preserveAspect = true;
             if (mortarArt == null) mortarImage.color = Palette.Mix(Palette.Ink, Palette.Paper, 0.3f);
-            // The ring shrinks onto the cake between beats; the cake sits in the mortar's bowl. The mortar art
-            // carries its own pestle, so a pound is the mortar squashing rather than a second pestle.
-            // The dough, drawn when its pictures exist (raw, being worked, done, dented); a plain yellow disc until then.
             _cake = UiKit.Rect("Cake", _shake).Place(0.5f, 0.5f, 0, -30, 170, 150);
             _cakeImage = _cake.AddImage(catalog.Dough != null ? catalog.Dough : catalog.Round, catalog.Dough != null ? Color.white : Palette.Lantern);
             _cakeImage.preserveAspect = true;
             _ring = UiKit.Rect("Ring", _shake).Place(0.5f, 0.5f, 0, -30, 120, 120);
             _ring.AddImage(catalog.Round, Palette.Alpha(Palette.Paper, 0.35f));
-            // The pestle hangs over the dough, held at a slant, and comes down on every pound.
             _pestle = UiKit.Rect("Pestle", _shake).Place(0.5f, 0.5f, 44, PestleRest, 72, 236);
             _pestle.pivot = new Vector2(0.5f, 0f);
             _pestle.localRotation = Quaternion.Euler(0, 0, -10f);
@@ -93,7 +78,6 @@ namespace VuonTra.Game.UI
             _chewy = chewy.gameObject;
             _chewy.SetActive(false);
 
-            // The baker who pounds along stands beside the mortar.
             var helper = UiKit.Rect("Helper", _shake).Place(0.5f, 0.5f, -330, -120, 220, 230);
             _helperArt = UiKit.Rect("Art", helper).Stretch(0, 0, 1, 1).AddImage(catalog.Rabbit, Color.white);
             _helperArt.preserveAspect = true;
@@ -111,9 +95,8 @@ namespace VuonTra.Game.UI
             quitButton.onClick.AddListener(() => { Sfx.Click(); Close(); _onQuit(); });
             UiKit.Rect("Text", quit).Stretch(0, 0, 1, 1).AddText(L10n.T("pound.quit"), UiKit.TextBody, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // The result: stars, the score and what it paid.
             var result = UiKit.Rect("Result", overlay).Stretch(0, 0, 1, 1);
-            result.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true; // taps on the garden behind are swallowed
+            result.AddTapCatcher();
             _result = result.gameObject;
             _resultCard = UiKit.Rect("Card", result).Place(0.5f, 0.5f, 0, 0, 860, 720);
             _resultCard.AddShadow(26f, 16f, 0.45f);
@@ -123,7 +106,6 @@ namespace VuonTra.Game.UI
                 .AddText("", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _resultStars = UiKit.Rect("Stars", _resultCard).Place(0.5f, 1f, 0, -190, 760, 90)
                 .AddText("", 72, Palette.Lantern, TextAnchor.MiddleCenter, FontStyle.Bold);
-            // The cake itself on the card: done when it earned a star, dented when it did not.
             _resultCake = UiKit.Rect("Cake", _resultCard).Place(0f, 1f, 130, -220, 170, 150).AddImage(catalog.Cake, Color.white);
             _resultCake.preserveAspect = true;
             _resultCake.gameObject.SetActive(catalog.Cake != null);
@@ -142,7 +124,6 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>Starts a game. <paramref name="helperArt"/> is the baker who pounds along, or null.</summary>
         public void Open(PoundingRun run, Sprite helperArt, string helperName)
         {
             Run = run;
@@ -176,7 +157,6 @@ namespace VuonTra.Game.UI
             Run = null;
         }
 
-        /// <summary>A touch anywhere on the screen: one pound.</summary>
         public void Tap()
         {
             if (Run == null || Run.Finished || _resultShown) return;
@@ -187,7 +167,6 @@ namespace VuonTra.Game.UI
             Draw();
         }
 
-        /// <summary>The clock. Beats that pass untouched are misses; when the last one has gone the result comes up.</summary>
         public void Update(float dt)
         {
             if (!IsOpen || Run == null) return;
@@ -199,7 +178,6 @@ namespace VuonTra.Game.UI
             _shakeLeft = Mathf.Max(0f, _shakeLeft - dt);
             _dentedFor = Mathf.Max(0f, _dentedFor - dt);
 
-            // The ring closes onto the cake as the next beat comes.
             float ring = 1f;
             if (!Run.Finished)
             {
@@ -210,7 +188,6 @@ namespace VuonTra.Game.UI
             _ring.localScale = Vector3.one * ring;
             float pound = _pestleDown > 0f ? Ease.Pop(1f - _pestleDown) : 0f;
             _mortar.localScale = new Vector3(1f + 0.05f * pound, 1f - 0.08f * pound, 1f);
-            // The pestle drops into the dough and comes back up, between two fixed heights.
             _pestle.anchoredPosition = new Vector2(44f, PestleRest - PestleDrop * pound);
             _shake.anchoredPosition = _shakeLeft > 0f && !Motion.Reduced ? new Vector2(Mathf.Sin(_shakeLeft * 60f) * 14f * _shakeLeft / 0.25f, 0) : Vector2.zero;
             Color judge = _judge.color;
@@ -234,13 +211,12 @@ namespace VuonTra.Game.UI
             {
                 _shakeLeft = 0.25f;
                 _dentedFor = 0.6f;
-                if (_catalog.Dough == null) _cakeImage.color = Palette.Mix(Palette.Lantern, Palette.Ink, 0.35f); // dented, in colour only
+                if (_catalog.Dough == null) _cakeImage.color = Palette.Mix(Palette.Lantern, Palette.Ink, 0.35f);
             }
             else if (_catalog.Dough == null) _cakeImage.color = Palette.Lantern;
             if (_chewy.activeSelf != Run.Chewy) _chewy.SetActive(Run.Chewy);
         }
 
-        /// <summary>Which picture the dough shows: dented for a moment after a miss, done once the game is over, worked from the middle of the game, raw before.</summary>
         public Sprite CakeArt()
         {
             if (_catalog.Dough == null) return null;
@@ -265,7 +241,6 @@ namespace VuonTra.Game.UI
             _onFinished(Run);
         }
 
-        /// <summary>Fills the result card once the game has been paid.</summary>
         public void ShowPaid(PoundingResult result)
         {
             _resultTitle.text = L10n.T("pound.result");

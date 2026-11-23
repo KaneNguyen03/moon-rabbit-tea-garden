@@ -4,10 +4,6 @@ using UnityEngine.UI;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The moment a new moon begins (#1): night falls over the garden, the full moon sinks behind the hills,
-    /// and a thin new moon rises in its place with the season's number. Three seconds; a tap ends it early.
-    /// </summary>
     public sealed class NewMoonMomentView
     {
         public const float Length = 3f;
@@ -35,7 +31,6 @@ namespace VuonTra.Game.UI
             button.transition = Selectable.Transition.None;
             button.onClick.AddListener(Tap);
 
-            // A few stars, fixed, so the moon has a sky to cross.
             for (int i = 0; i < 14; i++)
             {
                 float x = -480f + (i * 173f) % 960f, y = 120f + (i * 311f) % 640f;
@@ -44,10 +39,8 @@ namespace VuonTra.Game.UI
             _moon = UiKit.Rect("Moon", overlay).Place(0.5f, 0.5f, 0, High, 300, 300);
             _moon.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
             UiKit.Rect("Disc", _moon).Place(0.5f, 0.5f, 0, 0, 170, 170).AddImage(catalog.Round, Palette.Lantern);
-            // The shade that turns the full disc into a crescent as it rises again.
             _shade = UiKit.Rect("Shade", _moon).Place(0.5f, 0.5f, 0, 0, 160, 160);
             _shade.AddImage(catalog.Round, Palette.Mix(Palette.Night, Color.black, 0.5f));
-            // The hills the moon sinks behind: drawn after the moon so they cover it.
             UiKit.Rect("Hills", overlay).Stretch(-0.1f, 0f, 1.1f, 0.36f).AddImage(catalog.Panel, Palette.Mix(Palette.Night, Palette.Ink, 0.35f), true);
 
             var words = UiKit.Rect("Words", overlay).Place(0.5f, 0.5f, 0, -60, 900, 300);
@@ -93,7 +86,6 @@ namespace VuonTra.Game.UI
             if (_t >= stay) Finish();
         }
 
-        /// <summary>A tap ends the moment at once.</summary>
         public void Tap() => Finish();
 
         void Finish()

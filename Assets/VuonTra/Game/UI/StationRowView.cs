@@ -7,10 +7,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// One card in the station list: the picture, what the station earns each second as the main number,
-    /// how far it is to the next doubling, and the button to raise it.
-    /// </summary>
     public sealed class StationRowView
     {
         readonly int _index;
@@ -30,12 +26,10 @@ namespace VuonTra.Game.UI
 
         public void Build(Transform parent, GameCatalog catalog, StationData data, Action<int> onBuy, Action<int> onOpen = null)
         {
-            // The card is a lip with a lighter face on top, like the buttons.
             Root = UiKit.Rect("Row " + data.Id, parent);
             Image lip = Root.AddImage(catalog.Panel, Palette.CardLip, true);
             if (onOpen != null)
             {
-                // Touching the card itself (not its button) shows the station in the garden.
                 lip.raycastTarget = true;
                 var open = Root.gameObject.AddComponent<Button>();
                 open.transition = Selectable.Transition.None;
@@ -57,7 +51,6 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.Station(data.Id), UiKit.TextBody, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             name.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-            // The number that matters: carrots a second, or how much this station raises prices by.
             _main = UiKit.Rect("PerSec", Root).Stretch(0, 0.44f, 1, 0.72f, left, 0, right, 0)
                 .AddText("", UiKit.TextTitle, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
             _main.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -66,7 +59,6 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft);
             if (data.Kind == StationKind.Ingredient)
             {
-                // An ingredient station feeds other stations: say which with their own small pictures.
                 var feeds = UiKit.Rect("Feeds", Root).Stretch(0, 0.26f, 1, 0.46f, left + 150f, 0, right, 0);
                 _feeds = feeds.gameObject;
                 int n = 0;
@@ -83,13 +75,11 @@ namespace VuonTra.Game.UI
             var chip = UiKit.Rect("Level", Root).Place(1f, 1f, -392, -52, 152, 46);
             _levelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
             _level = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
-            // "Cấp 500 ✦✦✦" is wider than the pill at full size: the words shrink to stay on one line (#73).
             _level.resizeTextForBestFit = true;
             _level.resizeTextMinSize = 14;
             _level.resizeTextMaxSize = _level.fontSize;
             _level.verticalOverflow = VerticalWrapMode.Truncate;
 
-            // The way to the next doubling: a bar that says how many levels are left.
             var track = UiKit.Rect("Milestone", Root).Band(left, right, 22, 34);
             track.AddImage(catalog.Panel, Palette.Track, true);
             _milestone = track.gameObject;
@@ -106,7 +96,6 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
-        /// <param name="deltaTime">Seconds since the last refresh; negative jumps bars straight to their value.</param>
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, float deltaTime)
         {
             StationDef d = defs[_index];
@@ -128,7 +117,7 @@ namespace VuonTra.Game.UI
                 _levelChip.color = Palette.OffLip;
                 if (!next) _sub.text = LockedReason(defs, s, _index);
                 canAfford = next && s.Coins >= cost;
-                bool shortOnly = next && !canAfford; // only carrots are missing: say how many
+                bool shortOnly = next && !canAfford;
                 _buyTop.text = shortOnly ? L10n.T("need.more") : L10n.T("row.open");
                 _buyCost.text = shortOnly ? (cost - s.Coins).Short() : cost.Short();
                 milestone = 0f;
@@ -141,7 +130,7 @@ namespace VuonTra.Game.UI
                 int prev = Economy.PreviousMilestone(level);
                 _level.text = L10n.StationLevel(level);
                 _levelChip.color = Palette.Moss;
-                bool capped = count <= 0; // level 500: nothing left to buy
+                bool capped = count <= 0;
                 canAfford = !capped && s.Coins >= cost;
                 _buyTop.text = capped ? L10n.T("row.maxlevel") : (canAfford ? L10n.T("row.upgrade", count) : L10n.T("need.more"));
                 _buyCost.text = capped ? "" : (canAfford ? cost.Short() : (cost - s.Coins).Short());
@@ -149,7 +138,6 @@ namespace VuonTra.Game.UI
                 _milestoneText.text = toNext > 0 ? L10n.T("row.tonext", toNext - level) : L10n.T("row.topmilestone");
             }
             if (_milestone.activeSelf == locked) _milestone.SetActive(!locked);
-            // The fed stations' pictures sit after "feeds"; a row that says something else instead hides them.
             bool feeds = _feeds != null && (!locked || next);
             if (_feeds != null && _feeds.activeSelf != feeds) _feeds.SetActive(feeds);
 
@@ -158,18 +146,12 @@ namespace VuonTra.Game.UI
             _buyTop.color = ink;
             _buyCost.color = ink;
             _main.color = locked ? Palette.InkSoft : Palette.CarrotLip;
-            // The next station to open is lit like an invitation; the ones after it wait in the shade.
             _face.color = !locked ? Palette.Card : (next ? Palette.Mix(Palette.Lantern, Palette.Paper, 0.62f) : Palette.Mix(Palette.Card, Palette.CardLip, 0.45f));
 
-            // Bars animate, never snap.
             _shownMilestone = deltaTime < 0f ? milestone : Mathf.Lerp(_shownMilestone, milestone, Mathf.Clamp01(deltaTime * 8f));
             _milestoneFill.anchorMax = new Vector2(Mathf.Clamp01(_shownMilestone), 1f);
         }
 
-        /// <summary>
-        /// Why a closed station cannot be opened yet: the garden level it asks for (#67), then its plot, then the station
-        /// before it. Empty when it can be opened.
-        /// </summary>
         public static string LockedReason(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
             if (!Economy.HasGardenLevel(defs, s, index)) return L10n.T("row.needlevel", defs[index].NeedGardenLevel);
@@ -177,13 +159,11 @@ namespace VuonTra.Game.UI
             return Economy.CanUnlock(defs, s, index) ? "" : L10n.T("row.needprev");
         }
 
-        /// <summary>What one cycle pays at a level: the real figure when the station is open, the base figure before.</summary>
         static BigNum PerCycle(IReadOnlyList<StationDef> defs, GameState s, int index, int level)
         {
             return s.Levels[index] > 0 ? Economy.IncomePerCycle(defs, s, index) : new BigNum(defs[index].BaseIncome * level);
         }
 
-        /// <summary>The row's main number: "+3,2K/giây" for a brew station, "×3,4" for an ingredient station.</summary>
         public static string MainNumber(IReadOnlyList<StationDef> defs, GameState s, int index, int level, Modifiers m)
         {
             StationDef d = defs[index];
@@ -192,7 +172,6 @@ namespace VuonTra.Game.UI
             return L10n.T("persec", perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
         }
 
-        /// <summary>One line on what a station does at a level: what it earns, or whose prices it raises.</summary>
         public static string Describe(IReadOnlyList<StationDef> defs, GameState s, int index, int level, Modifiers m)
         {
             StationDef d = defs[index];

@@ -10,20 +10,11 @@ using Firebase.Extensions;
 
 namespace VuonTra.Game.Platform
 {
-    /// <summary>
-    /// Firebase Analytics and Crashlytics behind the analytics seam (#100). Compiled in only with the VUONTRA_FIREBASE
-    /// define on an iOS or Android target; without it this class is an empty shell and <see cref="Create"/> gives null, so
-    /// no build references a Firebase assembly. To switch it on the owner adds the Firebase Unity SDK (Analytics and
-    /// Crashlytics), GoogleService-Info.plist and google-services.json under Assets/, the define in Player Settings, and
-    /// sets <see cref="GameRunner.AnalyticsInPlayerBuilds"/> to true. The Game assembly references Firebase's DLLs by
-    /// itself (they are auto-referenced precompiled assemblies), so the asmdef needs no change.
-    /// </summary>
     public sealed class FirebaseAnalyticsAdapter
 #if VUONTRA_FIREBASE && (UNITY_IOS || UNITY_ANDROID)
         : IAnalytics
 #endif
     {
-        /// <summary>The Firebase provider, or null when this build was made without it.</summary>
         public static IAnalytics Create()
         {
 #if VUONTRA_FIREBASE && (UNITY_IOS || UNITY_ANDROID)
@@ -34,7 +25,6 @@ namespace VuonTra.Game.Platform
         }
 
 #if VUONTRA_FIREBASE && (UNITY_IOS || UNITY_ANDROID)
-        /// <summary>Calls made before Firebase said it was ready; played back in order once it is, dropped if it never is.</summary>
         readonly List<Action> _waiting = new List<Action>();
         bool _ready, _failed;
 
@@ -49,7 +39,6 @@ namespace VuonTra.Game.Platform
                     UnityEngine.Debug.LogWarning("[VuonTra] Firebase is not available: " + task.Result);
                     return;
                 }
-                // Unity's uncaught exceptions are reported by Crashlytics itself, as fatal.
                 Crashlytics.ReportUncaughtExceptionsAsFatal = true;
                 _ready = true;
                 foreach (Action call in _waiting) call();
@@ -84,7 +73,6 @@ namespace VuonTra.Game.Platform
 
         public void RecordException(Exception e)
         {
-            // An exception Unity's log reported was uncaught: Crashlytics has it already.
             if (e == null || e is GameRunner.LoggedException) return;
             Run(() => Crashlytics.LogException(e));
         }

@@ -4,10 +4,6 @@ using UnityEngine.UI;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The layer that answers the player: floating gains, carrot bursts, the flash-and-banner
-    /// moment for milestones. Everything here is cosmetic and runs on unscaled time.
-    /// </summary>
     public sealed class FeelLayer
     {
         const int MaxParticles = 90;
@@ -30,9 +26,7 @@ namespace VuonTra.Game.UI
         int _bannerToken;
 
         public int ParticleCount => _particles.Count;
-        /// <summary>How many things are on their way somewhere right now.</summary>
         public int Flying { get; private set; }
-        /// <summary>How long a thing takes to fly from where it was earned to where it is kept.</summary>
         public const float FlyTime = 0.55f;
         public bool BannerVisible => _banner.gameObject.activeSelf;
 
@@ -55,17 +49,14 @@ namespace VuonTra.Game.UI
             _banner.gameObject.SetActive(false);
         }
 
-        /// <summary>Lifts the layer over every card opened so far, so what it shows reads over a rabbit's open sheet (#58b).</summary>
         public void BringToFront() => _root.SetAsLastSibling();
 
-        /// <summary>Where a UI object sits, in this layer's coordinates.</summary>
         public Vector2 PointOf(RectTransform target, Vector2 offset = default)
         {
             Vector3 local = _root.InverseTransformPoint(target.TransformPoint(offset));
             return new Vector2(local.x, local.y);
         }
 
-        /// <summary>A whole-screen flash of a colour that fades out: a camera, a milestone.</summary>
         public void Flash(Color color, float seconds = 0.1f)
         {
             _flash.gameObject.SetActive(true);
@@ -73,7 +64,6 @@ namespace VuonTra.Game.UI
                 done: () => _flash.gameObject.SetActive(false));
         }
 
-        /// <summary>"+12" rising and fading.</summary>
         public void FloatText(Vector2 at, string text, Color color, int size = 40)
         {
             if (_particles.Count >= MaxParticles) return;
@@ -87,11 +77,6 @@ namespace VuonTra.Game.UI
             });
         }
 
-        /// <summary>
-        /// A few copies of a sprite arc from one place to another, one after the other, and vanish on
-        /// arrival; <paramref name="onArrive"/> runs when the last one lands. Both ends are fixed when the
-        /// flight starts, so nothing that moves meanwhile can bend it.
-        /// </summary>
         public void Fly(Vector2 from, Vector2 to, Sprite sprite, Color color, int count, float size, System.Action onArrive = null)
         {
             count = Mathf.Clamp(count, 1, 12);
@@ -119,7 +104,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>A handful of sprites thrown up and out.</summary>
         public void Burst(Vector2 at, Sprite sprite, Color[] colors, int count, float speed = 520f, float size = 34f)
         {
             for (int i = 0; i < count && _particles.Count < MaxParticles; i++)
@@ -139,10 +123,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>
-        /// The milestone moment: flash, banner springs in, confetti, hold, banner leaves.
-        /// Input stays live throughout; this is a layer over play, never a lock.
-        /// </summary>
         public void Moment(string title, string sub)
         {
             int token = ++_bannerToken;
