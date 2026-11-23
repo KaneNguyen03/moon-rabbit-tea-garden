@@ -40,6 +40,13 @@ class Counting(unittest.TestCase):
     def test_event_invoke_is_not_invoke_by_name(self):
         self.assertEqual(self.counts("Changed?.Invoke(1); handler.Invoke(); Invoke(\"Go\", 0f);\n").get("workaround"), 1)
 
+    def test_math_that_builds_data_is_not_animation(self):
+        line = "var a = Mathf.Sin(1) * Mathf.Lerp(0, 1, 0.5f);\n"
+        for path in ("Assets/VuonTra/Game/Audio/Sfx.cs", "Assets/VuonTra/Game/UI/Palette.cs", "Assets/VuonTra/Game/UI/PaperGrain.cs"):
+            self.assertNotIn("procedural-animation", self.counts(line, path), path)
+        for path in ("Assets/VuonTra/Game/UI/FishingView.cs", "Assets/VuonTra/Game/Audio/StationLoopPlayer.cs"):
+            self.assertEqual(self.counts(line, path).get("procedural-animation"), 2, path)
+
     def test_game_only_rules_skip_core(self):
         self.assertEqual(self.counts("var a = Mathf.Sin(1);\n", "Assets/VuonTra/Core/Probe.cs"), {})
 

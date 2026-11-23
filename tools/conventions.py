@@ -10,14 +10,20 @@ ROOT = os.path.realpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),
 BASELINE = "tools/conventions.baseline"
 SCANNED = ("Assets/VuonTra/*.cs", "Assets/Tests/*.cs")
 
+BUILDS_DATA_NOT_FRAMES = (
+    "Assets/VuonTra/Game/Audio/Sfx.cs",
+    "Assets/VuonTra/Game/UI/Palette.cs",
+    "Assets/VuonTra/Game/UI/PaperGrain.cs",
+)
+
 RULES = [
-    ("procedural-animation", "Assets/VuonTra/Game/*.cs",
+    ("procedural-animation", "Assets/VuonTra/Game/*.cs", BUILDS_DATA_NOT_FRAMES,
      r"Mathf\.(Sin|Cos|PingPong|Lerp|LerpUnclamped|SmoothStep|SmoothDamp)\b|\b(Vector2|Vector3|Color|Quaternion)\.(Lerp|Slerp|LerpUnclamped)\b"),
-    ("scene-search", "Assets/VuonTra/Game/*.cs",
+    ("scene-search", "Assets/VuonTra/Game/*.cs", (),
      r"GameObject\.Find|\bFind(Objects?OfType|FirstObjectByType|AnyObjectByType|ObjectsByType)\b"),
-    ("per-frame-update", "Assets/VuonTra/Game/*.cs",
+    ("per-frame-update", "Assets/VuonTra/Game/*.cs", (),
      r"\bvoid\s+(Update|LateUpdate|FixedUpdate)\s*\(\s*\)"),
-    ("workaround", "Assets/*.cs",
+    ("workaround", "Assets/*.cs", (),
      r"yield\s+return\s+null\b|WaitForEndOfFrame|(?<![.?\w])Invoke\(\s*(\"|nameof)|\bInvokeRepeating\b|\bSendMessage\(|DelayedCall\(\s*0(\.0*)?f?\s*,"
      r"|\bcatch\s*(\([^)]*\))?\s*\{\s*\}|#pragma\s+warning\s+disable|\bSuppressMessage\b"),
 ]
@@ -94,8 +100,8 @@ def count(path, text):
     counts = {}
     if comments:
         counts["comment"] = comments
-    for rule, scope, pattern in RULES:
-        if fnmatch.fnmatchcase(path, scope):
+    for rule, scope, exempt, pattern in RULES:
+        if fnmatch.fnmatchcase(path, scope) and path not in exempt:
             hits = len(re.findall(pattern, code))
             if hits:
                 counts[rule] = hits

@@ -10,7 +10,6 @@ comment	Assets/VuonTra/Game/UI/StationActorView.cs	101
 per-frame-update	Assets/VuonTra/Game/GameRunner.cs	1
 per-frame-update	Assets/VuonTra/Game/UI/GardenScreen.cs	1
 per-frame-update	Assets/VuonTra/Game/UI/PressDip.cs	1
-procedural-animation	Assets/VuonTra/Game/Audio/Sfx.cs	49
 procedural-animation	Assets/VuonTra/Game/UI/AwayView.cs	1
 procedural-animation	Assets/VuonTra/Game/UI/BottomSheet.cs	2
 procedural-animation	Assets/VuonTra/Game/UI/CloudChoiceView.cs	1
@@ -25,8 +24,6 @@ procedural-animation	Assets/VuonTra/Game/UI/LeavesView.cs	7
 procedural-animation	Assets/VuonTra/Game/UI/MailView.cs	1
 procedural-animation	Assets/VuonTra/Game/UI/NewMoonMomentView.cs	2
 procedural-animation	Assets/VuonTra/Game/UI/NewMoonView.cs	1
-procedural-animation	Assets/VuonTra/Game/UI/Palette.cs	4
-procedural-animation	Assets/VuonTra/Game/UI/PaperGrain.cs	3
 procedural-animation	Assets/VuonTra/Game/UI/PoundingView.cs	3
 procedural-animation	Assets/VuonTra/Game/UI/ProfileView.cs	2
 procedural-animation	Assets/VuonTra/Game/UI/QuestRowView.cs	1
