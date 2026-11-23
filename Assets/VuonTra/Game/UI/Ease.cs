@@ -77,6 +77,20 @@ namespace VuonTra.Game.UI
         public static T OnUiClock<T>(this T tween, Component owner, LinkBehaviour link = LinkBehaviour.KillOnDestroy) where T : Tween =>
             tween.SetUpdate(UpdateType.Manual).SetLink(owner.gameObject, link);
 
+        public static EaseFunction Eased(Func<float, float> curve) => (time, duration, overshoot, period) => curve(time / duration);
+
+        public static void Breathe(Transform target, bool on, float reach, float halfPeriod)
+        {
+            DOTween.Kill(target, BreathId);
+            target.localScale = Vector3.one;
+            if (!on) return;
+            target.localScale = Vector3.one * (1f - reach);
+            target.DOScale(1f + reach, halfPeriod).SetEase(TweenEase.InOutSine).SetLoops(-1, LoopType.Yoyo).SetId(BreathId)
+                .OnUiClock(target).Goto(halfPeriod / 2f, true);
+        }
+
+        const string BreathId = "breathe";
+
         public static void After(float seconds, Component owner, TweenCallback then)
         {
             if (seconds > 0f) DOVirtual.DelayedCall(seconds, then).OnUiClock(owner);
