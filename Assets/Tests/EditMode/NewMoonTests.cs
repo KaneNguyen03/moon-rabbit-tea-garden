@@ -19,7 +19,7 @@ namespace VuonTra.Core.Tests
         static void SetGardenLevel(GameState s, int level) => s.GardenXp = Garden.XpForLevel(level);
 
         [Test]
-        public void Opens_At_Garden_Level_Thirty_And_Asks_Five_More_Each_Season()
+        public void Opens_At_Garden_Level_Thirty_And_Asks_Three_More_Each_Season()
         {
             SetGardenLevel(s, 29);
             Assert.IsFalse(NewMoon.CanBegin(s));
@@ -27,12 +27,120 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(NewMoon.CanBegin(s));
 
             s.Season = 1;
-            Assert.AreEqual(35, NewMoon.LevelNeeded(1));
-            SetGardenLevel(s, 34);
+            Assert.AreEqual(33, NewMoon.LevelNeeded(1));
+            SetGardenLevel(s, 32);
             Assert.IsFalse(NewMoon.CanBegin(s));
-            SetGardenLevel(s, 35);
+            SetGardenLevel(s, 33);
             Assert.IsTrue(NewMoon.CanBegin(s));
-            Assert.AreEqual(60, NewMoon.LevelNeeded(6), "the seventh season asks for level 60");
+            Assert.AreEqual(48, NewMoon.LevelNeeded(6), "the seventh season asks for level 48");
+        }
+
+        /// <summary>The levels each new moon asks for (#98): three more a season, from 30 for the first to 48 for the seventh, then none.</summary>
+        [Test]
+        public void The_Seven_New_Moons_Ask_For_Levels_Thirty_To_Forty_Eight()
+        {
+            var levels = new List<int>();
+            for (int done = 0; done < NewMoon.MaxSeasons; done++) levels.Add(NewMoon.LevelNeeded(done));
+            CollectionAssert.AreEqual(new[] { 30, 33, 36, 39, 42, 45, 48 }, levels);
+            for (int done = 0; done < NewMoon.MaxSeasons; done++)
+            {
+                s.Season = done;
+                SetGardenLevel(s, NewMoon.LevelNeeded(done) - 1);
+                Assert.IsFalse(NewMoon.CanBegin(s), "season " + done + ": a level short");
+                SetGardenLevel(s, NewMoon.LevelNeeded(done));
+                Assert.IsTrue(NewMoon.CanBegin(s), "season " + done + ": at its level");
+            }
+            s.Season = NewMoon.MaxSeasons;
+            SetGardenLevel(s, Garden.MaxLevel);
+            Assert.IsFalse(NewMoon.CanBegin(s), "after the seventh, no more");
+        }
+
+        /// <summary>
+        /// Garden experience is multiplied by the new moon's bonus, like income (#98): the same thing done on the third season
+        /// (two new moons begun) is worth one and a half times as much, so a later season climbs as fast as the first.
+        /// </summary>
+        [Test]
+        public void Garden_Experience_Grows_With_The_Same_Bonus_As_Income()
+        {
+            var first = GameState.NewGame(defs);
+            var third = GameState.NewGame(defs);
+            third.Season = 2;
+            Garden.AddXp(first, 100d);
+            Garden.AddXp(third, 100d);
+            Assert.AreEqual(100d, first.GardenXp, 1e-9, "the first season as before");
+            Assert.AreEqual(150d, third.GardenXp, 1e-9, "times 1 + 2 x " + NewMoon.BonusPerSeason);
+
+            // Every source goes through it: a level bought on the third season is worth one and a half points.
+            third.Coins = new BigNum(1e9);
+            third.BuyMode = Simulation.BuyOne;
+            double xp = third.GardenXp;
+            Assert.IsTrue(Simulation.TryBuy(defs, third, 0));
+            Assert.AreEqual(xp + Garden.XpPerLevelBought * NewMoon.Bonus(2), third.GardenXp, 1e-9);
+
+            // The levels it brings pay as levels always do: a clover each.
+            var seventh = GameState.NewGame(defs);
+            seventh.Season = NewMoon.MaxSeasons;
+            int clovers = seventh.Clovers;
+            int gained = Garden.AddXp(seventh, Garden.XpForLevel(3));
+            Assert.AreEqual(Garden.LevelOf(Garden.XpForLevel(3) * NewMoon.Bonus(NewMoon.MaxSeasons)) - 1, gained);
+            Assert.AreEqual(clovers + gained * Garden.CloversPerLevel, seventh.Clovers);
+            Assert.AreEqual(0d, NewMoon.Bonus(0) - 1d, 1e-12, "and nothing changes before the first new moon");
+        }
+
+        /// <summary>
+        /// Golden carrots from every fifth garden level come once (#98): on a later season the levels up to the one the last new
+        /// moon asked for are climbed again for their clovers, and only the fifth levels past it pay golden carrots.
+        /// </summary>
+        [Test]
+        public void A_Later_Season_Pays_Golden_Carrots_Only_For_Fifth_Levels_Past_Its_Last_New_Moon()
+        {
+            var first = GameState.NewGame(defs);
+            Assert.AreEqual(0, NewMoon.LevelPassed(first));
+            Garden.AddXp(first, Garden.XpForLevel(30));
+            Assert.AreEqual(Shop.GoldenForLevels(1, 30), first.GoldenCarrots, "the first season pays every fifth level up to 30");
+
+            var second = GameState.NewGame(defs);
+            second.Season = 1;
+            Assert.AreEqual(30, NewMoon.LevelPassed(second), "the first new moon asked for 30");
+            int clovers = second.Clovers;
+            int gained = Garden.AddXp(second, Garden.XpForLevel(30) / NewMoon.Bonus(1));
+            Assert.AreEqual(29, gained);
+            Assert.AreEqual(0, second.GoldenCarrots, "levels 5 to 30 again: no golden carrots");
+            Assert.AreEqual(clovers + 29 * Garden.CloversPerLevel, second.Clovers, "a clover a level as ever");
+            second.GardenXp = Garden.XpForLevel(34);
+            Garden.AddXp(second, (Garden.XpForLevel(36) - Garden.XpForLevel(34)) / NewMoon.Bonus(1));
+            Assert.AreEqual(36, Garden.Level(second));
+            Assert.AreEqual(Shop.GoldenPerFifthLevel, second.GoldenCarrots, "level 35 is new: it pays");
+
+            var seventh = GameState.NewGame(defs);
+            seventh.Season = NewMoon.MaxSeasons;
+            Assert.AreEqual(NewMoon.LevelNeeded(NewMoon.MaxSeasons - 1), NewMoon.LevelPassed(seventh), "the seventh new moon asked for 48");
+        }
+
+        /// <summary>
+        /// A save from before #98, far into a season: its experience loads as it was saved (never multiplied again), and the
+        /// new moon it can begin is judged by the new steps, so a second-season garden at level 34, which needed 35, can go on.
+        /// </summary>
+        [TestCase(0, 31, true)]
+        [TestCase(1, 34, true)]
+        [TestCase(2, 38, true)]
+        [TestCase(6, 47, false)]
+        public void An_Old_Save_Past_Level_Thirty_Loads_Its_Level_And_Takes_The_New_Steps(int season, int level, bool canBegin)
+        {
+            GameState g = GrownGarden();
+            g.Season = season;
+            SetGardenLevel(g, level);
+            double xp = g.GardenXp + 7d; // part way into the level
+            g.GardenXp = xp;
+            string json = SaveCodec.Encode(defs, g);
+            StringAssert.Contains("\"version\":14", json, "the save stays on version 14");
+            LoadResult back = SaveCodec.Decode(defs, json);
+            Assert.AreEqual(LoadStatus.Ok, back.Status);
+            Assert.AreEqual(season, back.State.Season);
+            Assert.AreEqual(xp, back.State.GardenXp, 1e-9, "the saved experience, not multiplied again");
+            Assert.AreEqual(level, Garden.Level(back.State));
+            Assert.AreEqual(30 + 3 * season, NewMoon.LevelNeeded(back.State.Season));
+            Assert.AreEqual(canBegin, NewMoon.CanBegin(back.State));
         }
 
         [Test]

@@ -23,8 +23,12 @@ namespace VuonTra.Core
     /// </summary>
     public static class NewMoon
     {
-        /// <summary>The garden level the first new moon asks for; each later one asks for this many more; after the last, no more.</summary>
-        public const int FirstLevel = 30, LevelStep = 5, MaxSeasons = 7;
+        /// <summary>
+        /// The garden level the first new moon asks for; each later one asks for this many more (33, 36 … 48 for the second to
+        /// the seventh); after the last, no more. The step was five until #98: a season brings about the same garden experience
+        /// as the first, so at five more levels nobody reached the second new moon in six weeks.
+        /// </summary>
+        public const int FirstLevel = 30, LevelStep = 3, MaxSeasons = 7;
         /// <summary>Each season begun multiplies income by one more of this, added up (season 4 is ×2).</summary>
         public const double BonusPerSeason = 0.25;
         public const int GiftClovers = 3, GiftGolden = 5;
@@ -33,6 +37,12 @@ namespace VuonTra.Core
 
         /// <summary>The garden level needed to begin the season after this many.</summary>
         public static int LevelNeeded(int seasonsDone) => FirstLevel + LevelStep * Math.Max(0, seasonsDone);
+
+        /// <summary>
+        /// The garden level this garden is known to have reached in an earlier season: the one its last new moon asked for, and 0
+        /// on the first season. Levels up to it pay no golden carrots again (#98), with no new field in the save.
+        /// </summary>
+        public static int LevelPassed(GameState s) => s.Season > 0 ? LevelNeeded(Math.Min(s.Season, MaxSeasons) - 1) : 0;
 
         public static bool AtCap(GameState s) => s.Season >= MaxSeasons;
 

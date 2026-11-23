@@ -1038,5 +1038,119 @@ namespace VuonTra.Core.Tests
             Always(all, w => w.JarsOpened > 0 && w.MostFreeJars <= MoonJars.FreePerDay, "jars come, at most one free a day", text);
             Always(all, w => w.FrogsMet > 0 && w.FrogsMet <= 7 * FrogRabbit.PerDay, "the Frog Rabbit, two a day at most", text);
         }
+        // ----- the seasons after the first new moon (#98) -----
+
+        /// <summary>Where five weeks of the casual player ended up: the day of each new moon, golden calls each week, and the longest wait for anything new.</summary>
+        sealed class Seasons
+        {
+            public int Seed;
+            public readonly List<long> MoonDays = new List<long>();
+            public readonly List<int> GoldenByWeek = new List<int>();
+            /// <summary>The most days in a row, from day eight on, that ended with no garden level gained and nothing opened (a station, a segment, a season).</summary>
+            public int LongestStill;
+            public long MoonDay(int n) => MoonDays.Count >= n ? MoonDays[n - 1] : 99;
+        }
+
+        static List<string> WeeklyMedians(Seasons[] runs, int weeks)
+        {
+            var medians = new List<string>();
+            for (int w = 0; w < weeks; w++) { int week = w; medians.Add(Median(runs, r => r.GoldenByWeek[week]).ToString()); }
+            return medians;
+        }
+
+        /// <summary>The new moon as the pause card offers it: begun the moment the garden is far enough, as the game's runner begins it.</summary>
+        bool TakeNewMoon(Seasons run)
+        {
+            if (!NewMoon.Begin(defs, s, "M", out _)) return false;
+            Quests.RerollCarrotTarget(defs, s, Modifiers.From(ups, s));
+            mods = Modifiers.From(ups, s);
+            run.MoonDays.Add(Today);
+            return true;
+        }
+
+        /// <summary>A sitting that takes the new moon as it opens, every minute and as it ends.</summary>
+        void PlayTakingNewMoons(double seconds, Seasons run)
+        {
+            OpenSession();
+            TakeNewMoon(run);
+            UpgradeAll();
+            for (int i = 0; i < seconds; i++)
+            {
+                ActiveSecond();
+                if ((int)sessionClock % 60 == 0) TakeNewMoon(run);
+            }
+            UpgradeAll();
+            TakeNewMoon(run);
+            SellTray(false);
+        }
+
+        /// <summary>The casual week above, played on for <paramref name="days"/> days and taking every new moon offered.</summary>
+        Seasons CasualSeasons(int seed, int days)
+        {
+            Reset(false, seed);
+            var run = new Seasons { Seed = seed };
+            int callsBefore = 0, levelBefore = 0, openBefore = 0, segmentsBefore = 0, seasonBefore = 0, still = 0;
+            for (int day = 1; day <= days; day++)
+            {
+                PlayTakingNewMoons(20 * 60, run);
+                Away(8 * 3600);
+                PlayTakingNewMoons(10 * 60, run);
+                Away(Day - 8 * 3600 - 30 * 60);
+                if (day % 7 == 0)
+                {
+                    run.GoldenByWeek.Add(goldenCalls + visitorsBought - callsBefore);
+                    callsBefore = goldenCalls + visitorsBought;
+                }
+                int open = 0;
+                for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0) open++;
+                int level = Garden.Level(s), segments = Expansion.Segments(s);
+                bool news = s.Season > seasonBefore || level > levelBefore || open > openBefore || segments > segmentsBefore;
+                if (day >= 8) { still = news ? 0 : still + 1; run.LongestStill = Math.Max(run.LongestStill, still); }
+                levelBefore = level; openBefore = open; segmentsBefore = segments; seasonBefore = s.Season;
+            }
+            return run;
+        }
+
+        /// <summary>
+        /// The seasons after the first (#98): the casual player of the week above, played on to day 35 over the seventeen seeds,
+        /// taking each new moon the moment it is offered. A later season earns garden experience with the same bonus as carrots
+        /// and the next new moon asks for three levels more, not five, so the second comes before day 25 and the third before
+        /// day 35, no three days in a row pass without a garden level or something opening, and the golden calls stay at six a
+        /// week or fewer. The days go to Logs/economy-seasons.txt.
+        /// </summary>
+        [Test, Category("Slow"), Timeout(1800000)] // five weeks on seventeen seeds
+        public void A_Casual_Player_Reaches_The_Second_New_Moon_Before_Day_25_And_The_Third_Before_Day_35()
+        {
+            const int days = 35;
+            var runs = new Seasons[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++) runs[i] = CasualSeasons(Seeds[i], days);
+
+            var report = new StringBuilder();
+            report.AppendLine("# Các mùa sau mùa trăng mới đầu tiên (#98)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả như trên, chơi tới ngày " + days + ", bắt đầu Mùa trăng mới ngay khi được. Mùa trăng mới cần cấp " + NewMoon.LevelNeeded(0) + ", rồi mỗi mùa thêm " + NewMoon.LevelStep
+                + " cấp; điểm vườn mùa n nhân " + NewMoon.BonusPerSeason + "·n như thu nhập.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Trăng mới 1 | 2 | 3 | Gọi vàng + thỏ ghé tiệm mỗi tuần | Chuỗi ngày dài nhất không lên cấp, không mở gì |");
+            report.AppendLine("|---|---|---|---|---|---|");
+            foreach (Seasons r in runs)
+                report.AppendLine("| " + r.Seed + " | " + r.MoonDay(1) + " | " + r.MoonDay(2) + " | " + r.MoonDay(3) + " | " + string.Join(" / ", r.GoldenByWeek) + " | " + r.LongestStill + " |");
+            report.AppendLine("| **trung vị** | " + Median(runs, r => r.MoonDay(1)) + " | " + Median(runs, r => r.MoonDay(2)) + " | " + Median(runs, r => r.MoonDay(3)) + " | "
+                + string.Join(" / ", WeeklyMedians(runs, days / 7)) + " | " + Median(runs, r => r.LongestStill) + " |");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-seasons.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Holds(runs, r => r.MoonDay(1) >= 7, "the first new moon not before day seven", text);
+            Holds(runs, r => r.MoonDay(2) < 25, "the second new moon before day 25", text);
+            Holds(runs, r => r.MoonDay(3) < 35, "the third new moon before day 35", text);
+            Holds(runs, r => r.LongestStill <= 3, "never more than three days without a garden level or something opening", text);
+            for (int w = 0; w < days / 7; w++)
+            {
+                int week = w;
+                Holds(runs, r => r.GoldenByWeek[week] <= 6, "golden calls at most six in week " + (week + 1), text);
+            }
+        }
     }
 }
