@@ -339,7 +339,9 @@ namespace VuonTra.Core
         /// <summary>
         /// Brings the grid in step with the garden: every plot's station, every place to rest, every decoration standing and
         /// the props have a tile, and nothing else does. A thing without a tile takes its default one, or the nearest empty
-        /// tile when that is taken. The lawn is never narrower than the plots call for.
+        /// tile when that is taken. The lawn is never narrower than the plots call for. A thing standing past the open lawn (the
+        /// new moon closed its land, or a save put it there) goes back the same way, the teapot to its own tile (#85); what
+        /// was stored stays stored.
         /// </summary>
         public static void Settle(IReadOnlyList<StationDef> defs, GameState s)
         {
@@ -356,12 +358,31 @@ namespace VuonTra.Core
             foreach (string id in g._tileOf.Keys) if (!keep.Contains(id)) gone.Add(id);
             foreach (string id in gone) g.Remove(id);
             g.LeaveReserved();
+            g.LeaveClosedLand(defs);
             foreach (string id in wanted)
             {
                 if (g._tileOf.ContainsKey(id)) continue;
                 Hex home = DefaultTile(id, defs);
                 if (g.Seat(id, home)) continue;
                 if (g.NearestEmpty(home, out Hex spare)) g.Seat(id, spare);
+            }
+        }
+
+        /// <summary>
+        /// Takes what stands past the open lawn off its tile, for Settle to stand it again on its default tile or the empty tile
+        /// nearest it (#85). The teapot goes home: whatever the player stood on its tile meanwhile makes way for it first.
+        /// </summary>
+        void LeaveClosedLand(IReadOnlyList<StationDef> defs)
+        {
+            var closed = new List<string>();
+            foreach (KeyValuePair<string, Hex> o in _tileOf) if (!InLawn(o.Value)) closed.Add(o.Key);
+            if (closed.Count == 0) return;
+            foreach (string id in closed) Remove(id);
+            if (defs != null && defs.Count > 0)
+            {
+                string teapot = StationId(defs[0]);
+                Hex home = DefaultStationTile(0);
+                if (closed.Contains(teapot) && _occupantAt.TryGetValue(home, out string there) && Movable(there)) Remove(there);
             }
         }
 

@@ -203,7 +203,7 @@ namespace VuonTra.Core.Tests
             // Seven plots bought one at a time under the old rule, and almost nothing else done.
             const string v7 = "{\"version\":7,\"stations\":[{\"id\":\"s0\",\"level\":1,\"progress\":0}],\"plots\":7}";
             GameState r = SaveCodec.Decode(defs, v7).State;
-            Assert.AreEqual(7, r.Plots, "no plot is ever taken back");
+            Assert.AreEqual(8, r.Plots, "no plot is ever taken back, and the half-bought second wave is whole (#86)");
             Assert.AreEqual(6, Garden.Level(r), "seven plots means the second wave: level 6");
             Assert.AreEqual(0, r.Clovers, "the catch-up hands out no clovers");
         }

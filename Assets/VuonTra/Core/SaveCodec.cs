@@ -554,6 +554,10 @@ namespace VuonTra.Core
                 if (s.Levels[i] > 0) highestOpen = i + 1;
             int plots = TryNumber(root, "plots", out double savedPlots) ? (int)Math.Min(savedPlots, defs.Count) : 0;
             s.Plots = Math.Min(defs.Count, Math.Max(Math.Max(plots, highestOpen), Math.Min(defs.Count, Plots.Starting)));
+            // Land comes two plots a segment, and a save that bought plots one at a time counts a half-bought wave as its
+            // segment taken (#86): it gets the wave's other plot, so the station the open land is for can open on its own
+            // conditions instead of waiting for the next segment's.
+            s.Plots = Math.Max(s.Plots, Expansion.PlotsForSegments(defs, Expansion.WavesTaken(s.Plots)));
 
             s.Energy = TryNumber(root, "energy", out double energy) ? Math.Max(0d, Math.Min(energy, Energy.Max)) : Energy.Max;
             s.BoostSecondsLeft = Math.Max(0d, Math.Min(ReadNumber(root, "boost"), Energy.BoostSeconds));

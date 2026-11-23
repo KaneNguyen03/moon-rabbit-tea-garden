@@ -16,6 +16,9 @@ namespace VuonTra.Core.Tests
         GameRunner runner;
         GardenScreen screen;
 
+        /// <summary>The day these tests play on, inside the playtest codes' dates, whatever the machine's calendar says (#87).</summary>
+        public static readonly long PinnedDay = GiftCodes.Day(2026, 11, 23);
+
         [SetUp]
         public void SetUp()
         {
@@ -27,6 +30,7 @@ namespace VuonTra.Core.Tests
             cam.transform.SetParent(root.transform);
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
+            runner.DayClock = () => PinnedDay; // before Init, which already reads the day for the quests
             runner.Init(GameState.NewGame(catalog.BuildDefs())); // preset: never touches the save file
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
