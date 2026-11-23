@@ -1787,7 +1787,7 @@ namespace VuonTra.Game.UI
                 _cardBuyTop.text = capped ? L10n.T("row.maxlevel") : L10n.T("row.upgrade", count);
             }
             // Short of carrots and nothing else: the plate says how many are missing.
-            bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Next(defs, s) != null && Expansion.HasLevel(Expansion.Next(defs, s), s) && Expansion.HasRabbits(Expansion.Next(defs, s), s) : (level > 0 || Economy.CanUnlock(defs, s, i)));
+            bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Missing(defs, s) == ExpandNeed.Carrots : (level > 0 || Economy.CanUnlock(defs, s, i)));
             if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
             _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
             if (_cardBuyCarrot.activeSelf == capped) _cardBuyCarrot.SetActive(!capped); // at the cap nothing is paid, so no carrot (#74)
@@ -3928,7 +3928,7 @@ namespace VuonTra.Game.UI
                 _actors[i].SetRank(look == StationLook.Open ? Economy.Rank(s.Levels[i]) : 0);
                 if (look == StationLook.Land)
                 {
-                    _actors[i].SetSign(L10n.T("garden.expand"), Expansion.CanExpand(defs, s)); // #53
+                    _actors[i].SetSign(L10n.ExpandSign(defs, s), Expansion.CanExpand(defs, s)); // #53; #99 says what is still missing
                 }
                 else if (look == StationLook.Unbuilt)
                 {
@@ -4119,6 +4119,7 @@ namespace VuonTra.Game.UI
                 parts.Add(Mark(s.Rabbits.Count >= wave.NeedRabbits, L10n.T("expand.rabbits", wave.NeedRabbits) + (s.Rabbits.Count >= wave.NeedRabbits ? "" : L10n.T("expand.have", s.Rabbits.Count))));
             if (wave.NeedKinds > 0)
                 parts.Add(Mark(s.SeenKinds.Count >= wave.NeedKinds, L10n.T("expand.kinds", wave.NeedKinds) + (s.SeenKinds.Count >= wave.NeedKinds ? "" : L10n.T("expand.have", s.SeenKinds.Count))));
+            if (wave.NeedDays > 0) parts.Add(Mark(Expansion.HasDays(wave, s), L10n.T("expand.days", wave.NeedDays) + (Expansion.HasDays(wave, s) ? "" : L10n.T("expand.have", Seasons.DaysPlayed(s))))); // #99
             parts.Add(Mark(Expansion.HasCarrots(defs, s), L10n.T("expand.carrots", Expansion.CostOfNext(defs, s).Short())));
             return string.Join(" · ", parts);
         }

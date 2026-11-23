@@ -29,14 +29,21 @@ namespace VuonTra.Core
 
         /// <summary>
         /// The day the game goes by: never earlier than the latest day this save has seen, so a clock set back does
-        /// not reopen a season that has passed or pay a gift again. Records the day as it goes.
+        /// not reopen a season that has passed or pay a gift again. Records the day as it goes, and the first one (#99).
         /// </summary>
         public static long Clamp(GameState s, long day)
         {
             if (s == null) return day;
             if (day > s.MaxDaySeen) s.MaxDaySeen = day;
+            if (s.FirstDaySeen < 0) s.FirstDaySeen = s.MaxDaySeen;
             return s.MaxDaySeen;
         }
+
+        /// <summary>
+        /// Whole days from the first day this save saw to the latest (#99): 0 on the first day, 4 on the fifth. Counted on the
+        /// clamped days, so a clock turned back adds none.
+        /// </summary>
+        public static long DaysPlayed(GameState s) => s == null || s.FirstDaySeen < 0 || s.MaxDaySeen < s.FirstDaySeen ? 0 : s.MaxDaySeen - s.FirstDaySeen;
 
         /// <summary>
         /// Whether a season's greeting is due today: once per season per year, the first day the game sees of it.

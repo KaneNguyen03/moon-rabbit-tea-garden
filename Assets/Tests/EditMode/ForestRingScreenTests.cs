@@ -56,6 +56,7 @@ namespace VuonTra.Core.Tests
             s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(ring.NeedLevel));
             while (s.Rabbits.Count < ring.NeedRabbits) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" + s.NextRabbitId });
             foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < ring.NeedKinds) s.SeenKinds.Add(kind.Id);
+            if (!Expansion.HasDays(ring, s)) { s.MaxDaySeen = System.Math.Max(s.MaxDaySeen, 20000); s.FirstDaySeen = s.MaxDaySeen - ring.NeedDays; } // the days played it asks (#99)
             s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
             for (int i = 0; i < s.Plots; i++) if (s.Levels[i] <= 0) s.Levels[i] = 1;
             screen.Refresh();

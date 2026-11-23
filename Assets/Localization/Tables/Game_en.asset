@@ -3404,6 +3404,46 @@ MonoBehaviour:
     m_Localized: +{0} bond point
     m_Metadata:
       m_Items: []
+  - m_Id: 749040500203520
+    m_Localized: Needs garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175040
+    m_Localized: '{0} more rabbits'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175041
+    m_Localized: '{0} more kinds to meet'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175042
+    m_Localized: '{0} more days'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175043
+    m_Localized: '{0} more carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175044
+    m_Localized: '{0} days played'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952256
+    m_Localized: '{0} more rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952257
+    m_Localized: '{0} more kind to meet'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952258
+    m_Localized: '{0} more day'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952259
+    m_Localized: '{0} day played'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

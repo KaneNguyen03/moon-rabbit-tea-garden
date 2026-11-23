@@ -161,6 +161,7 @@ namespace VuonTra.Core.Tests
         {
             sessionClock = 0;
             lastSale = 0;
+            VuonTra.Core.Seasons.Clamp(s, Today); // the game asks the day as it opens: days played (#99) count from the clamped day
             Quests.RollDaily(quests, defs, s, Today, mods);
             goldenGift += Shop.ClaimDailyGift(s, Today, null, BigGiftHat, out _, out _); // the first seventh day brings the hat and a clover (#57)
             if (Photos.Take(s, Today)) goldenPhoto += Photos.GiftGolden;
@@ -526,7 +527,7 @@ namespace VuonTra.Core.Tests
 
         static string Clock(double seconds)
         {
-            if (seconds < 0) return "chưa đạt";
+            if (seconds < 0 || seconds >= int.MaxValue) return "chưa đạt"; // a median of milestones not reached (Late) is past any clock
             int total = (int)seconds;
             if (total >= 86400) return "ngày " + (total / 86400 + 1) + " (" + (total / 3600) + " giờ " + (total % 3600 / 60) + " phút)";
             return total >= 3600 ? (total / 3600) + " giờ " + (total % 3600 / 60) + " phút" : (total / 60) + " phút " + (total % 60) + " giây";
@@ -995,8 +996,9 @@ namespace VuonTra.Core.Tests
         /// the seventeen seeds, beside the same week bought a level at a time. The button spends the hours of income the other
         /// player leaves in the purse, so level 10 comes at the end of the first sitting, all twelve plots on day two, and play's
         /// share of day one shrinks to a few percent. Those rules were set on the one-level buyer and are written beside it to
-        /// Logs/economy-upgrade-all.txt for the owner (#99), not asserted; the first minutes, level 10 on day one, segments that
-        /// never wait on rabbits, quests under a third of day one, a few golden calls a week, the jars and the frogs hold for both.
+        /// Logs/economy-upgrade-all.txt for the owner (#99, #101), not asserted; the first minutes, level 10 on day one, segments that
+        /// never wait on rabbits, quests under a third of day one, a few golden calls a week, the jars and the frogs hold for both,
+        /// and the fifth segment (the thirteenth station's land) waits for day four or later (#99).
         /// </summary>
         [Test, Category("Slow")]
         public void A_Casual_Week_With_Upgrade_All_Keeps_The_First_Minutes_And_Level_Ten_On_Day_One()
@@ -1020,6 +1022,9 @@ namespace VuonTra.Core.Tests
             rule("Ba đoạn đầu không chờ thỏ", w => w.Wait[0] <= 300 && w.Wait[1] <= 300 && w.Wait[2] <= 300);
             rule("Nhiệm vụ < 35 % ngày 1", w => w.QuestShare < 35);
             rule("Gọi vàng + thỏ ghé tiệm 2–6 trong tuần", w => w.Golden >= 2 && w.Golden <= 6);
+            rule("Đoạn 5 (đất trạm 13) không trước ngày 4 (#99)", w => w.R8At < 0 || w.R8At >= 3 * Day);
+            report.AppendLine("| Đoạn 5 mở (trung vị, #99) | " + Clock(Median(single, w => Late(w.R8At))) + " | " + Clock(Median(all, w => Late(w.R8At))) + " |");
+            report.AppendLine("| Đoạn 6 mở (trung vị, #99; tuần chỉ có 7 ngày, đoạn 6 chờ tới ngày 8) | " + Clock(Median(single, w => Late(w.R9At))) + " | " + Clock(Median(all, w => Late(w.R9At))) + " |");
             report.AppendLine("| Trò chơi + khách ngày 1 (trung vị, luật 15–30 %) | " + Math.Round(Median(single, w => w.PlayShare), 1) + " % | " + Math.Round(Median(all, w => w.PlayShare), 1) + " % |");
             report.AppendLine("| Thu/giây hết ngày 7 (trung vị, luật ≤ " + new BigNum(10 * DaySevenIncomeBeforeFourStations).ToShortString() + ") | " + new BigNum(Median(single, w => w.Income7)).ToShortString() + " | " + new BigNum(Median(all, w => w.Income7)).ToShortString() + " |");
             report.AppendLine();
@@ -1038,6 +1043,8 @@ namespace VuonTra.Core.Tests
             Holds(all, w => w.Golden >= 2 && w.Golden <= 6, "golden calls a few times a week, at most six", text);
             Always(all, w => w.JarsOpened > 0 && w.MostFreeJars <= MoonJars.FreePerDay, "jars come, at most one free a day", text);
             Always(all, w => w.FrogsMet > 0 && w.FrogsMet <= 7 * FrogRabbit.PerDay, "the Frog Rabbit, two a day at most", text);
+            Always(all, w => w.R8At < 0 || w.R8At >= 3 * Day, "the land of station 13 (segment 5) not before day four (#99)", text);
+            Always(single, w => w.R8At < 0 || w.R8At >= 3 * Day, "nor for the player buying a level at a time", text);
         }
         // ----- the seasons after the first new moon (#98) -----
 

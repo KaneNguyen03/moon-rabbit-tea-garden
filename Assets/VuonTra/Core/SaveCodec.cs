@@ -31,6 +31,8 @@ namespace VuonTra.Core
     {
         /// <summary>The rings the vertical garden's lawn started with: a saved "radius" past it counts its open land (the horizontal garden).</summary>
         const int LegacyStartingRadius = 3;
+        /// <summary>The first day a save from before #99 is given: day 0, so its days played are every day since 1970.</summary>
+        public const long LegacyFirstDay = 0;
 
         /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view. The hex grid under the garden (#52) is an additive block, no new version.</summary>
         public const int CurrentVersion = 14;
@@ -146,6 +148,7 @@ namespace VuonTra.Core
             sb.Append(",\"photosRest\":").Append(s.PhotosWithFullRest.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosSeason\":").Append(s.PhotosWithSeasonRabbit.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"maxDay\":").Append(s.MaxDaySeen.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"firstDay\":").Append(s.FirstDaySeen.ToString(CultureInfo.InvariantCulture)); // #99, additive in version 14
             sb.Append(",\"seasonGreeted\":").Append(s.SeasonGreetedDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"awayDouble\":").Append(s.AwayDoubleDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"playSeconds\":").Append(Sane(s.PlaySeconds).ToString("R", CultureInfo.InvariantCulture));
@@ -624,6 +627,8 @@ namespace VuonTra.Core
             s.PhotosWithFullRest = TryNumber(root, "photosRest", out double photosRest) ? Math.Max(0, ToLong(photosRest)) : 0;
             s.PhotosWithSeasonRabbit = TryNumber(root, "photosSeason", out double photosSeason) ? Math.Max(0, ToLong(photosSeason)) : 0;
             s.MaxDaySeen = TryNumber(root, "maxDay", out double maxDay) ? ToLong(maxDay) : -1;
+            // A save from before #99 never wrote its first day: it counts as played long since, so no segment it reaches waits on days.
+            s.FirstDaySeen = TryNumber(root, "firstDay", out double firstDay) ? ToLong(firstDay) : LegacyFirstDay;
             s.SeasonGreetedDay = TryNumber(root, "seasonGreeted", out double greeted) ? ToLong(greeted) : -1;
             s.AwayDoubleDay = TryNumber(root, "awayDouble", out double awayDouble) ? ToLong(awayDouble) : -1;
             s.PlaySeconds = TryNumber(root, "playSeconds", out double played) ? Math.Max(0d, Sane(played)) : 0d;

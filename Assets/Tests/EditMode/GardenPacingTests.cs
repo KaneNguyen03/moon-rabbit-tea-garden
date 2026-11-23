@@ -115,6 +115,7 @@ namespace VuonTra.Core.Tests
             levelDayOne = 0;
             setsDayOne = null;
             ringSevenDay = -1;
+            Seasons.Clamp(s, today); // the game asks the day as it opens: the first day played (#99)
             Quests.RollDaily(quests, defs, s, 1, mods);
         }
 
@@ -522,6 +523,7 @@ namespace VuonTra.Core.Tests
             {
                 Away(8 * 3600);
                 today = day;
+                Seasons.Clamp(s, today); // days played (#99) count from the clamped day, as in the game
                 Quests.RollDaily(quests, defs, s, day, mods);
                 for (int visit = 0; visit < 3; visit++)
                 {
@@ -677,7 +679,9 @@ namespace VuonTra.Core.Tests
         /// <summary>
         /// The four stations after the star observatory (#67): the casual player of the week above, played on to day fourteen,
         /// opens the eighth and ninth rings of the forest (#53) when the garden is grown enough, and with them the thirteenth
-        /// station on day three to five and the sixteenth on day eight to twelve, on at least fifteen of the seventeen seeds.
+        /// station on day three to five and the sixteenth on day eight to twelve, on at least fifteen of the seventeen seeds;
+        /// with the days those segments wait for (#99), the thirteenth on day five give or take one and the sixteenth on day
+        /// nine give or take two.
         /// </summary>
         [Test]
         public void A_Casual_Player_Opens_Station_Thirteen_On_Day_Three_To_Five_And_Sixteen_On_Day_Eight_To_Twelve()
@@ -688,7 +692,8 @@ namespace VuonTra.Core.Tests
             Begin(Seed);
             CasualWeek(14);
             var report = new StringBuilder();
-            report.AppendLine("Bốn trạm mới (#67), người chơi thong thả như trên, chơi tới ngày 14, hạt " + Seed + "; đất cho trạm 13–16 là đoạn 5 (cấp " + Expansion.Segment(5).NeedLevel + ") và đoạn 6 (cấp " + Expansion.Segment(6).NeedLevel + "), giá một phần tư giá hai trạm.");
+            report.AppendLine("Bốn trạm mới (#67), người chơi thong thả như trên, chơi tới ngày 14, hạt " + Seed + "; đất cho trạm 13–16 là đoạn 5 (cấp " + Expansion.Segment(5).NeedLevel + ", chơi " + Expansion.Segment(5).NeedDays + " ngày) và đoạn 6 (cấp " + Expansion.Segment(6).NeedLevel + ", chơi " + Expansion.Segment(6).NeedDays
+                + " ngày), giá một phần tư giá hai trạm ×" + Expansion.Segment56CostTimes + " (#99).");
             for (int i = 12; i < defs.Count; i++) report.AppendLine(NewStationLine(i));
             for (int w = 0; w < waveLevelAt.Length; w++)
                 report.AppendLine("  đoạn " + Expansion.Table[w].SegmentsAfter + " (cấp " + Expansion.Table[w].NeedLevel + "): đủ cấp lúc " + Clock(waveLevelAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
@@ -708,6 +713,8 @@ namespace VuonTra.Core.Tests
             Always(runs, r => r.Plots == defs.Count, "every station has its land by day fourteen", text);
             Holds(runs, r => r.Station13Day >= 3 && r.Station13Day <= 5, "station 13 opens on day three to five", text);
             Holds(runs, r => r.Station16Day >= 8 && r.Station16Day <= 12, "station 16 opens on day eight to twelve", text);
+            Holds(runs, r => r.Station13Day >= 4 && r.Station13Day <= 6, "station 13 opens on day five, give or take one (#99)", text);
+            Holds(runs, r => r.Station16Day >= 7 && r.Station16Day <= 11, "station 16 opens on day nine, give or take two (#99)", text);
             Always(runs, r => r.NewStationsInOrder, "all four open, in order", text);
             Holds(runs, r => r.LevelEnd < NewMoon.FirstLevel, "the casual player does not reach the new moon in fourteen days (#1)", text);
         }
@@ -727,7 +734,8 @@ namespace VuonTra.Core.Tests
         {
             var sb = new StringBuilder();
             sb.AppendLine("Nâng tất cả (#99): người chơi thong thả như trên, chơi tới ngày 14 trên " + Seeds.Length + " hạt; trung vị [thấp nhất–cao nhất]. Ngưỡng: đoạn 4 cấp " + Expansion.Segment(4).NeedLevel
-                + ", đoạn 5 cấp " + Expansion.Segment(5).NeedLevel + ", đoạn 6 cấp " + Expansion.Segment(6).NeedLevel + ", trạm 13–16 cấp " + defs[12].NeedGardenLevel + "/" + defs[13].NeedGardenLevel + "/" + defs[14].NeedGardenLevel + "/" + defs[15].NeedGardenLevel + ".");
+                + ", đoạn 5 cấp " + Expansion.Segment(5).NeedLevel + " + chơi " + Expansion.Segment(5).NeedDays + " ngày, đoạn 6 cấp " + Expansion.Segment(6).NeedLevel + " + chơi " + Expansion.Segment(6).NeedDays
+                + " ngày, giá hai đoạn ×" + Expansion.Segment56CostTimes + " (#99), trạm 13–16 cấp " + defs[12].NeedGardenLevel + "/" + defs[13].NeedGardenLevel + "/" + defs[14].NeedGardenLevel + "/" + defs[15].NeedGardenLevel + ".");
             sb.AppendLine();
             sb.AppendLine("| Mốc | Mua từng cấp | Bấm Nâng tất cả đầu và cuối mỗi buổi |");
             sb.AppendLine("|---|---|---|");
@@ -744,6 +752,9 @@ namespace VuonTra.Core.Tests
             row("Cấp ngày 14", r => r.LevelEnd, v => v.ToString());
             sb.AppendLine("| Trạm 13 trong ngày 3–5 | " + Count(single, r => r.Station13Day >= 3 && r.Station13Day <= 5) + "/" + single.Length + " | " + Count(all, r => r.Station13Day >= 3 && r.Station13Day <= 5) + "/" + all.Length + " |");
             sb.AppendLine("| Trạm 16 trong ngày 8–12 | " + Count(single, r => r.Station16Day >= 8 && r.Station16Day <= 12) + "/" + single.Length + " | " + Count(all, r => r.Station16Day >= 8 && r.Station16Day <= 12) + "/" + all.Length + " |");
+            sb.AppendLine("| Trạm 13 trong ngày 4–6 (#99) | " + Count(single, r => r.Station13Day >= 4 && r.Station13Day <= 6) + "/" + single.Length + " | " + Count(all, r => r.Station13Day >= 4 && r.Station13Day <= 6) + "/" + all.Length + " |");
+            sb.AppendLine("| Trạm 16 trong ngày 7–11 (#99) | " + Count(single, r => r.Station16Day >= 7 && r.Station16Day <= 11) + "/" + single.Length + " | " + Count(all, r => r.Station16Day >= 7 && r.Station16Day <= 11) + "/" + all.Length + " |");
+            sb.AppendLine("| Trạm 13 không trước ngày 4 (#99) | " + Count(single, r => r.Station13Day >= 4) + "/" + single.Length + " | " + Count(all, r => r.Station13Day >= 4) + "/" + all.Length + " |");
             sb.AppendLine("| 12 ô đất không trước ngày 3 | " + Count(single, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3) + "/" + single.Length + " | " + Count(all, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3) + "/" + all.Length + " |");
             return sb.ToString();
         }
@@ -754,9 +765,11 @@ namespace VuonTra.Core.Tests
         /// The button spends the hours of income the first player leaves in the purse, so the garden is near level 22 at the end
         /// of day one, and every gate below that (the twelve plots, the four new stations and their segments) falls on day one or
         /// two. No garden level puts the thirteenth station on day three to five for both players (the first is at level 15 to 18
-        /// on those days, the second past 22), so those days are written to Logs/garden-pacing-upgrade-all.txt for the owner and
-        /// not asserted. What both players keep is: level 5 in about ten minutes, level 10 on day one, all sixteen stations by
-        /// day fourteen in order, one free jar a day, and no new moon in two weeks.
+        /// on those days, the second past 22), so the fifth and sixth segments also wait for days played and cost more (#99, the
+        /// owner's direction B): this player opens the thirteenth station on day four at the soonest and the sixteenth on day
+        /// eight. What both players keep is: level 5 in about ten minutes, level 10 on day one, all sixteen stations by day
+        /// fourteen in order, one free jar a day, and no new moon in two weeks. The rest of this player's first week (level 10
+        /// in the first sitting, twelve plots on day two) is #101, written to Logs/garden-pacing-upgrade-all.txt, not asserted.
         /// </summary>
         [Test, Category("Slow")]
         public void A_Casual_Player_Who_Presses_Upgrade_All_Keeps_The_First_Hour_And_Opens_All_Four_Stations_In_Order()
@@ -773,6 +786,8 @@ namespace VuonTra.Core.Tests
             Always(all, r => r.Plots == defs.Count && r.NewStationsInOrder, "every station has its land by day fourteen, the four new ones opened in order", text);
             Always(all, r => r.MostFreeJars <= MoonJars.FreePerDay, "at most one free jar a day", text);
             Holds(all, r => r.LevelEnd < NewMoon.FirstLevel, "no new moon in fourteen days", text);
+            Always(all, r => r.Station13Day >= 4, "station 13 not before day four (#99)", text);
+            Always(all, r => r.Segment5Day > Expansion.Segment(5).NeedDays && r.Segment6Day > Expansion.Segment(6).NeedDays, "segments 5 and 6 wait for their days played (#99)", text);
         }
 
         #endregion

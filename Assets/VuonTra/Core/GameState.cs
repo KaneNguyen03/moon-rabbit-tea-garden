@@ -93,6 +93,11 @@ namespace VuonTra.Core
         /// <summary>The mooncake game: today's plays, the day's once-only gifts, and the lifetime counts.</summary>
         /// <summary>The latest day this save has seen (#8): the day the game goes by when the clock is turned back.</summary>
         public long MaxDaySeen = -1;
+        /// <summary>
+        /// The first day this save saw (#99): days played count from it to <see cref="MaxDaySeen"/>. -1 until the game first
+        /// asks the day; a save from before #99 reads as day 0, played long since.
+        /// </summary>
+        public long FirstDaySeen = -1;
         /// <summary>The day a season's greeting was last shown, so each season is greeted once a year.</summary>
         public long SeasonGreetedDay = -1;
         /// <summary>The day the free doubling of time away was used (#69); -1 never.</summary>

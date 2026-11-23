@@ -178,7 +178,15 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 12; i++) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" });
             foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < 8) s.SeenKinds.Add(kind.Id);
             GardenGrid.Settle(defs, s);
+            Played(s, Expansion.Segment6Days); // days enough for both (#99); the tests of the day gate below set their own
             return s;
+        }
+
+        /// <summary>The save's first day is day 20000 and the game has since seen <paramref name="days"/> more (#99).</summary>
+        static void Played(GameState s, long days)
+        {
+            s.FirstDaySeen = 20000;
+            s.MaxDaySeen = 20000 + days;
         }
 
         [Test]
@@ -190,8 +198,8 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Expansion.Segment(6).NeedLevel + Expansion.LevelStepBeyond, Expansion.Segment(7).NeedLevel, "past them, five more a segment");
 
             GameState s = AtRingSeven(Expansion.Segment(5).NeedLevel - 1);
-            double price8 = (defs[12].BaseCost + defs[13].BaseCost) * Plots.CostShare;
-            Assert.AreEqual(price8, Expansion.CostOfNext(defs, s).ToDouble(), price8 * 1e-9, "a quarter of the two stations' price");
+            double price8 = (defs[12].BaseCost + defs[13].BaseCost) * Plots.CostShare * Expansion.Segment56CostTimes;
+            Assert.AreEqual(price8, Expansion.CostOfNext(defs, s).ToDouble(), price8 * 1e-9, "a quarter of the two stations' price, times the segment's own factor (#99)");
             Assert.IsFalse(Expansion.CanExpand(defs, s), "a level short");
             s.GardenXp = Garden.XpForLevel(Expansion.Segment(5).NeedLevel);
             Assert.IsTrue(Expansion.Expand(defs, s));
@@ -201,7 +209,7 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(s.Grid.TileOf(GardenGrid.StationId(defs[14])), "the rice paddy waits for the sixth");
             Assert.IsTrue(Simulation.TryBuy(defs, s, 12), "the lotus garden can be opened");
 
-            double price9 = (defs[14].BaseCost + defs[15].BaseCost) * Plots.CostShare;
+            double price9 = (defs[14].BaseCost + defs[15].BaseCost) * Plots.CostShare * Expansion.Segment56CostTimes;
             Assert.AreEqual(price9, Expansion.CostOfNext(defs, s).ToDouble(), price9 * 1e-9);
             Assert.IsFalse(Expansion.Expand(defs, s), "the sixth asks for more");
             s.GardenXp = Garden.XpForLevel(Expansion.Segment(6).NeedLevel);
@@ -210,6 +218,212 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(6, s.Grid.Segments);
             for (int i = 14; i < 16; i++) Assert.AreEqual(GardenGrid.DefaultStationTile(i), s.Grid.TileOf(GardenGrid.StationId(defs[i])), defs[i].Id + " on its own tile");
             Assert.IsNull(Expansion.Next(defs, s), "every station has its land");
+        }
+
+        // ----- #99: the fifth and sixth segments also wait for days played and cost more -----
+
+        [Test]
+        public void The_First_Four_Segments_Ask_No_Days_And_The_Plain_Share()
+        {
+            for (int n = 1; n <= 4; n++)
+            {
+                Assert.AreEqual(0, Expansion.Segment(n).NeedDays, "segment " + n);
+                Assert.AreEqual(1d, Expansion.Segment(n).CostTimes, "segment " + n);
+            }
+            Assert.AreEqual(4, Expansion.Segment(5).NeedDays, "the fifth opens on day five at the soonest");
+            Assert.AreEqual(7, Expansion.Segment(6).NeedDays, "the sixth on day eight at the soonest");
+            Assert.That(Expansion.Segment56CostTimes, Is.InRange(2d, 3d), "about two to three times the plain share");
+            Assert.AreEqual(Expansion.Segment56CostTimes, Expansion.Segment(5).CostTimes);
+            Assert.AreEqual(Expansion.Segment56CostTimes, Expansion.Segment(6).CostTimes);
+        }
+
+        [Test]
+        public void The_Fifth_Segment_Waits_For_Its_Level_Its_Days_And_Its_Price_Each()
+        {
+            int level = Expansion.Segment(5).NeedLevel, days = Expansion.Segment(5).NeedDays;
+            GameState s = AtRingSeven(level);
+            Played(s, days - 1);
+            s.Coins = Expansion.CostOfNext(defs, s);
+            Assert.IsFalse(Expansion.CanExpand(defs, s), "a day short");
+            Assert.AreEqual(ExpandNeed.Days, Expansion.Missing(defs, s));
+            Assert.AreEqual(1, Expansion.DaysLeft(Expansion.Next(defs, s), s));
+            Assert.IsFalse(Expansion.Expand(defs, s));
+            Assert.AreEqual(4, s.Grid.Segments, "nothing changed");
+
+            Played(s, days);
+            Assert.IsTrue(Expansion.HasDays(Expansion.Next(defs, s), s));
+            s.GardenXp = Garden.XpForLevel(level - 1);
+            Assert.AreEqual(ExpandNeed.Level, Expansion.Missing(defs, s), "a level short, with days enough");
+            Assert.IsFalse(Expansion.CanExpand(defs, s));
+
+            s.GardenXp = Garden.XpForLevel(level);
+            s.Coins = Expansion.CostOfNext(defs, s) - BigNum.One;
+            Assert.AreEqual(ExpandNeed.Carrots, Expansion.Missing(defs, s), "a carrot short of the dearer price");
+            Assert.IsFalse(Expansion.CanExpand(defs, s));
+            double plain = (defs[12].BaseCost + defs[13].BaseCost) * Plots.CostShare;
+            Assert.Greater(s.Coins.ToDouble(), plain, "the plain quarter would have been paid already");
+
+            s.Coins += BigNum.One;
+            Assert.AreEqual(ExpandNeed.Nothing, Expansion.Missing(defs, s));
+            Assert.IsTrue(Expansion.Expand(defs, s));
+            Assert.AreEqual(5, s.Grid.Segments);
+            Assert.IsTrue(s.Coins.Equals(BigNum.Zero), "the dearer price was paid");
+        }
+
+        [Test]
+        public void The_Sixth_Segment_Waits_For_Its_Own_Days()
+        {
+            GameState s = AtRingSeven(Expansion.Segment(6).NeedLevel);
+            Played(s, Expansion.Segment(6).NeedDays - 1);
+            Assert.IsTrue(Expansion.Expand(defs, s), "the fifth's days have passed");
+            Assert.AreEqual(ExpandNeed.Days, Expansion.Missing(defs, s), "the sixth's have not");
+            Assert.AreEqual(1, Expansion.DaysLeft(Expansion.Next(defs, s), s));
+            Assert.IsFalse(Expansion.Expand(defs, s));
+            Played(s, Expansion.Segment(6).NeedDays);
+            Assert.IsTrue(Expansion.Expand(defs, s));
+            Assert.AreEqual(ExpandNeed.AllOpen, Expansion.Missing(defs, s));
+        }
+
+        [Test]
+        public void Days_Played_Count_From_The_First_Day_Seen_And_A_Clock_Turned_Back_Adds_None()
+        {
+            GameState s = GameState.NewGame(defs);
+            Assert.AreEqual(-1, s.FirstDaySeen, "a new garden has not seen a day yet");
+            Assert.AreEqual(0, Seasons.DaysPlayed(s));
+            Seasons.Clamp(s, 20000);
+            Assert.AreEqual(20000, s.FirstDaySeen, "the first day the game asks is the first day played");
+            Assert.AreEqual(0, Seasons.DaysPlayed(s));
+            Seasons.Clamp(s, 20003);
+            Assert.AreEqual(3, Seasons.DaysPlayed(s));
+            Assert.AreEqual(20003, Seasons.Clamp(s, 19990), "the clock set back: the game keeps the latest day");
+            Assert.AreEqual(3, Seasons.DaysPlayed(s), "and the days played do not change");
+            Assert.AreEqual(20000, s.FirstDaySeen, "nor does the first day");
+            Seasons.Clamp(s, 20001);
+            Assert.AreEqual(3, Seasons.DaysPlayed(s), "turning it forward again to a day already seen adds none");
+
+            // A clock turned back before the first day: still none played, the first day stays.
+            GameState fresh = GameState.NewGame(defs);
+            Seasons.Clamp(fresh, 20000);
+            Seasons.Clamp(fresh, 19000);
+            Assert.AreEqual(0, Seasons.DaysPlayed(fresh));
+            Assert.AreEqual(20000, fresh.FirstDaySeen);
+
+            // At the fifth segment, the clock turned back does not open it.
+            GameState g = AtRingSeven(Expansion.Segment(5).NeedLevel);
+            g.FirstDaySeen = g.MaxDaySeen = -1;
+            Seasons.Clamp(g, 20000);
+            Seasons.Clamp(g, 20000 + Expansion.Segment(5).NeedDays - 1);
+            Seasons.Clamp(g, 19000);
+            Assert.AreEqual(ExpandNeed.Days, Expansion.Missing(defs, g));
+        }
+
+        [Test]
+        public void The_First_Day_Is_Saved_And_Comes_Back()
+        {
+            GameState s = TwelveOpen(16, 12);
+            Played(s, 2);
+            GameState back = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(20000, back.FirstDaySeen);
+            Assert.AreEqual(2, Seasons.DaysPlayed(back));
+            GameState unseen = SaveCodec.Decode(defs, SaveCodec.Encode(defs, GameState.NewGame(defs))).State;
+            Assert.AreEqual(-1, unseen.FirstDaySeen, "a garden that has not seen a day yet starts counting on its first");
+        }
+
+        /// <summary>A save from before #99, of version 14 with no first day, its segments open as the save says.</summary>
+        GameState OldSave(int segments, int plots, long maxDay)
+        {
+            var stations = new List<string>();
+            for (int i = 0; i < defs.Count; i++) stations.Add("{\"id\":\"" + defs[i].Id + "\",\"level\":" + (i < plots ? 50 : 0) + "}");
+            string json = "{\"version\":14,\"stations\":[" + string.Join(",", stations) + "],\"plots\":" + plots + ",\"maxDay\":" + maxDay
+                + ",\"coinsMantissa\":1,\"coinsExponent\":30,\"grid\":{\"segments\":" + segments + ",\"tiles\":[]}}";
+            LoadResult loaded = SaveCodec.Decode(defs, json);
+            Assert.AreEqual(LoadStatus.Ok, loaded.Status);
+            return loaded.State;
+        }
+
+        [Test]
+        public void An_Old_Save_Keeps_The_Land_It_Opened_And_Waits_On_No_Days()
+        {
+            GameState s = OldSave(5, 14, 20410);
+            Assert.AreEqual(SaveCodec.LegacyFirstDay, s.FirstDaySeen, "a save from before #99 counts as played long since");
+            Assert.AreEqual(5, Expansion.Segments(s), "the fifth segment stays open");
+            Assert.AreEqual(14, s.Plots);
+            Assert.IsTrue(s.Grid.InLawn(s.Grid.TileOf(GardenGrid.StationId(defs[12])).Value), "the lotus garden's land is still open lawn");
+            MistSegment next = Expansion.Next(defs, s);
+            Assert.AreEqual(6, next.SegmentsAfter);
+            Assert.IsTrue(Expansion.HasDays(next, s), "the sixth waits on no days");
+            Seasons.Clamp(s, 20000); // a clock turned back after the update
+            Assert.IsTrue(Expansion.HasDays(next, s), "nor after the clock is turned back");
+
+            GameState all = OldSave(6, 16, 20410);
+            Assert.AreEqual(6, Expansion.Segments(all));
+            Assert.AreEqual(16, all.Plots);
+            Assert.IsNull(Expansion.Next(defs, all), "all its land stays open");
+
+            GameState twelve = OldSave(4, 12, -1);
+            Seasons.Clamp(twelve, 20410); // an old save that never recorded a day, opened today
+            Assert.AreEqual(SaveCodec.LegacyFirstDay, twelve.FirstDaySeen);
+            Assert.IsTrue(Expansion.HasDays(Expansion.Next(defs, twelve), twelve), "the fifth waits on no days either");
+
+            GameState saved = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(SaveCodec.LegacyFirstDay, saved.FirstDaySeen, "once saved again it keeps counting as long since");
+        }
+
+        // ----- #99: the "Mở rộng vườn" sign says what is still missing -----
+
+        [Test]
+        public void The_Widen_Sign_Says_The_One_Thing_Still_Missing()
+        {
+            L10n.SetLocale("vi");
+            MistSegment five = Expansion.Segment(5);
+            GameState s = AtRingSeven(five.NeedLevel - 1);
+            Assert.AreEqual(L10n.T("expand.sign.level", five.NeedLevel), L10n.ExpandSign(defs, s), "a level short first");
+            Assert.AreEqual("Cần cấp vườn " + five.NeedLevel, L10n.ExpandSign(defs, s));
+
+            s.GardenXp = Garden.XpForLevel(five.NeedLevel);
+            Played(s, five.NeedDays - 3);
+            Assert.AreEqual("Còn 3 ngày", L10n.ExpandSign(defs, s));
+            Played(s, five.NeedDays - 1);
+            Assert.AreEqual("Còn 1 ngày", L10n.ExpandSign(defs, s));
+
+            Played(s, five.NeedDays);
+            BigNum price = Expansion.CostOfNext(defs, s);
+            s.Coins = price * 0.4;
+            Assert.AreEqual(L10n.T("expand.sign.carrots", (price - s.Coins).Short()), L10n.ExpandSign(defs, s), "what is still to find, not the whole price");
+            StringAssert.StartsWith("Còn ", L10n.ExpandSign(defs, s));
+            StringAssert.EndsWith(" cà rốt", L10n.ExpandSign(defs, s));
+
+            s.Coins = Expansion.CostOfNext(defs, s);
+            Assert.AreEqual(L10n.T("garden.expand"), L10n.ExpandSign(defs, s), "all met: the sign's own words");
+
+            GameState early = GameState.NewGame(defs);
+            early.Plots = 6; GardenGrid.Settle(defs, early);
+            early.GardenXp = Garden.XpForLevel(6);
+            for (int i = 0; i < 4; i++) early.Rabbits.Add(new Rabbit { Id = ++early.NextRabbitId, Tier = 0, Name = "R" });
+            Assert.AreEqual("Còn 2 bé thỏ", L10n.ExpandSign(defs, early), "the second segment asks six rabbits");
+
+            GameState kinds = GameState.NewGame(defs);
+            kinds.Plots = 10; GardenGrid.Settle(defs, kinds);
+            kinds.GardenXp = Garden.XpForLevel(Expansion.Segment(4).NeedLevel);
+            foreach (RabbitKind kind in RabbitKinds.All) if (kinds.SeenKinds.Count < 7) kinds.SeenKinds.Add(kind.Id);
+            Assert.AreEqual("Còn 1 loài thỏ", L10n.ExpandSign(defs, kinds));
+        }
+
+        [Test]
+        public void In_English_The_Widen_Sign_Reads_One_Day_And_Several_Days()
+        {
+            Assert.IsTrue(L10n.SetLocale("en"));
+            MistSegment five = Expansion.Segment(5);
+            GameState s = AtRingSeven(five.NeedLevel);
+            Played(s, five.NeedDays - 1);
+            Assert.AreEqual("1 more day", L10n.ExpandSign(defs, s));
+            Played(s, five.NeedDays - 2);
+            Assert.AreEqual("2 more days", L10n.ExpandSign(defs, s));
+            s.GardenXp = Garden.XpForLevel(five.NeedLevel - 1);
+            Assert.AreEqual("Needs garden level " + five.NeedLevel, L10n.ExpandSign(defs, s));
+            Played(s, five.NeedDays);
+            s.GardenXp = Garden.XpForLevel(five.NeedLevel);
+            Assert.AreEqual("Widen the garden", L10n.ExpandSign(defs, s));
         }
 
         [Test]

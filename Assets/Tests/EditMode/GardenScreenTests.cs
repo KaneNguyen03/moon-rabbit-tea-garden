@@ -2104,7 +2104,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(oven.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Front("lo-banh").Find("Pad").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Prop").gameObject.activeSelf);
-            Assert.AreEqual("Mở rộng vườn", Front("lo-banh").Find("Level/Text").GetComponent<Text>().text); // #53
+            Assert.AreEqual("Cần cấp vườn 3", Front("lo-banh").Find("Level/Text").GetComponent<Text>().text); // #53; #99: the sign says what is missing
 
             // One of your rabbits arrives: the rabbit shows and the pad goes.
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
@@ -6656,6 +6656,7 @@ namespace VuonTra.Core.Tests
                 s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
                 while (s.Rabbits.Count < next.NeedRabbits) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" + s.NextRabbitId });
                 foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
+                if (!Expansion.HasDays(next, s)) { s.MaxDaySeen = System.Math.Max(s.MaxDaySeen, 20000); s.FirstDaySeen = s.MaxDaySeen - next.NeedDays; } // the days played it asks (#99)
                 s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
                 screen.Refresh();
                 var readable = new List<RectTransform>();

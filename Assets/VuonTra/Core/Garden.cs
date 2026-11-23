@@ -103,6 +103,9 @@ namespace VuonTra.Core
         }
     }
 
+    /// <summary>What the next segment of the garden still waits for (#99), one at a time: see <see cref="Expansion.Missing"/>.</summary>
+    public enum ExpandNeed { Nothing, Level, Rabbits, Kinds, Days, Carrots, AllOpen }
+
     /// <summary>
     /// One segment of the strip coming out of the mist (the horizontal garden, which replaced the forest's rings of #53): the
     /// lawn widens by <see cref="GardenGrid.TilesPerSegment"/> tiles on one side, opening the land of the next two stations and
@@ -114,6 +117,10 @@ namespace VuonTra.Core
         /// <summary>How many segments are open once this one is: 1 for the first.</summary>
         public int SegmentsAfter;
         public int NeedLevel, NeedRabbits, NeedKinds;
+        /// <summary>Whole days played since the save's first day (#99, <see cref="Seasons.DaysPlayed"/>); 0 asks for none.</summary>
+        public int NeedDays;
+        /// <summary>Its land costs this many times <see cref="Plots.CostShare"/> of its stations' price (#99); 1 for the plain share.</summary>
+        public double CostTimes = 1d;
         /// <summary>Which side of the strip it opens: right for the odd ones, left for the even ones.</summary>
         public GardenSide Side => GardenGrid.SideOf(SegmentsAfter);
         /// <summary>The tiles it opens: three a row on its side.</summary>
@@ -151,9 +158,19 @@ namespace VuonTra.Core
             // station it makes room for (16 for the lotus garden, 20 for the rice paddy), not the five more of the rule below
             // (20 and 25), so a casual player opens the thirteenth station on day four or five and the sixteenth by day nine to
             // twelve. Past these the rule takes over again: the seventh asks for 25, the eighth for 30.
-            new MistSegment { SegmentsAfter = 5, NeedLevel = 16, NeedKinds = 8 },    // was R 8
-            new MistSegment { SegmentsAfter = 6, NeedLevel = 20, NeedKinds = 8 },    // was R 9
+            // #99: the garden level alone cannot hold them for a player who presses "Nâng tất cả" (level 22 by the end of day one),
+            // so they also wait for days played and cost more carrots than the plain quarter. A player buying a level at a time
+            // still opens the thirteenth station on day five and the sixteenth around day nine.
+            new MistSegment { SegmentsAfter = 5, NeedLevel = 16, NeedKinds = 8, NeedDays = Segment5Days, CostTimes = Segment56CostTimes }, // was R 8
+            new MistSegment { SegmentsAfter = 6, NeedLevel = 20, NeedKinds = 8, NeedDays = Segment6Days, CostTimes = Segment56CostTimes }, // was R 9
         };
+
+        /// <summary>Days played the fifth segment waits for (#99): it opens on day five at the soonest.</summary>
+        public const int Segment5Days = 4;
+        /// <summary>Days played the sixth segment waits for (#99): it opens on day eight at the soonest.</summary>
+        public const int Segment6Days = 7;
+        /// <summary>The fifth and sixth segments' land costs this many times the plain share (#99).</summary>
+        public const double Segment56CostTimes = 2.5;
 
         /// <summary>The segment that brings the open count to <paramref name="segmentsAfter"/>; past the table, five levels more each time. Null for no such segment.</summary>
         public static MistSegment Segment(int segmentsAfter)
@@ -167,6 +184,8 @@ namespace VuonTra.Core
                 NeedLevel = last.NeedLevel + LevelStepBeyond * (segmentsAfter - last.SegmentsAfter),
                 NeedRabbits = last.NeedRabbits,
                 NeedKinds = last.NeedKinds,
+                NeedDays = last.NeedDays,
+                CostTimes = last.CostTimes,
             };
         }
 
@@ -211,20 +230,42 @@ namespace VuonTra.Core
         /// </summary>
         public static BigNum CostOfNext(IReadOnlyList<StationDef> defs, GameState s)
         {
-            if (Next(defs, s) == null) return BigNum.Zero;
+            MistSegment next = Next(defs, s);
+            if (next == null) return BigNum.Zero;
             BigNum cost = BigNum.Zero;
-            for (int i = s.Plots; i < PlotsForSegments(defs, Segments(s) + 1); i++) cost += new BigNum(defs[i].BaseCost * Plots.CostShare);
+            for (int i = s.Plots; i < PlotsForSegments(defs, Segments(s) + 1); i++) cost += new BigNum(defs[i].BaseCost * Plots.CostShare * next.CostTimes);
             return cost;
         }
 
         public static bool HasLevel(MistSegment segment, GameState s) => Garden.Level(s) >= segment.NeedLevel;
         public static bool HasRabbits(MistSegment segment, GameState s) => s.Rabbits.Count >= segment.NeedRabbits && s.SeenKinds.Count >= segment.NeedKinds;
+        public static bool HasDays(MistSegment segment, GameState s) => Seasons.DaysPlayed(s) >= segment.NeedDays;
         public static bool HasCarrots(IReadOnlyList<StationDef> defs, GameState s) => s.Coins >= CostOfNext(defs, s);
+
+        /// <summary>Days still to play before <paramref name="segment"/> opens (#99); 0 once enough have passed.</summary>
+        public static long DaysLeft(MistSegment segment, GameState s) => Math.Max(0L, segment.NeedDays - Seasons.DaysPlayed(s));
 
         public static bool CanExpand(IReadOnlyList<StationDef> defs, GameState s)
         {
             MistSegment segment = Next(defs, s);
-            return segment != null && HasLevel(segment, s) && HasRabbits(segment, s) && HasCarrots(defs, s);
+            return segment != null && HasLevel(segment, s) && HasRabbits(segment, s) && HasDays(segment, s) && HasCarrots(defs, s);
+        }
+
+        /// <summary>
+        /// The one thing the next segment still waits for, as the "Mở rộng vườn" sign says it (#99): the garden level first,
+        /// then rabbits, then kinds met, then days played, then carrots; <see cref="ExpandNeed.Nothing"/> when it can open, and
+        /// <see cref="ExpandNeed.AllOpen"/> when every station has its land.
+        /// </summary>
+        public static ExpandNeed Missing(IReadOnlyList<StationDef> defs, GameState s)
+        {
+            MistSegment segment = Next(defs, s);
+            if (segment == null) return ExpandNeed.AllOpen;
+            if (!HasLevel(segment, s)) return ExpandNeed.Level;
+            if (s.Rabbits.Count < segment.NeedRabbits) return ExpandNeed.Rabbits;
+            if (s.SeenKinds.Count < segment.NeedKinds) return ExpandNeed.Kinds;
+            if (!HasDays(segment, s)) return ExpandNeed.Days;
+            if (!HasCarrots(defs, s)) return ExpandNeed.Carrots;
+            return ExpandNeed.Nothing;
         }
 
         /// <summary>

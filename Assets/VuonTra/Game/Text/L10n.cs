@@ -150,5 +150,23 @@ namespace VuonTra.Game
             return n <= Rabbits.GiftHearts ? " " + new string('♥', n) : " ♥" + n;
         }
         public static string ItemName(Item item) => T("item." + item.DefId);
+
+        /// <summary>
+        /// The "Mở rộng vườn" sign over land still in the mist (#99): the sign's own words once the next segment can open, else
+        /// the one thing it still waits for, "Còn 3 ngày" or "Còn 1,2M cà rốt" (see <see cref="Expansion.Missing"/>).
+        /// </summary>
+        public static string ExpandSign(System.Collections.Generic.IReadOnlyList<StationDef> defs, GameState s)
+        {
+            MistSegment next = Expansion.Next(defs, s);
+            switch (Expansion.Missing(defs, s))
+            {
+                case ExpandNeed.Level: return T("expand.sign.level", next.NeedLevel);
+                case ExpandNeed.Rabbits: return T("expand.sign.rabbits", next.NeedRabbits - s.Rabbits.Count);
+                case ExpandNeed.Kinds: return T("expand.sign.kinds", next.NeedKinds - s.SeenKinds.Count);
+                case ExpandNeed.Days: return T("expand.sign.days", Expansion.DaysLeft(next, s));
+                case ExpandNeed.Carrots: return T("expand.sign.carrots", (Expansion.CostOfNext(defs, s) - s.Coins).Short());
+                default: return T("garden.expand");
+            }
+        }
     }
 }
