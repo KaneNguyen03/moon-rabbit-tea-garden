@@ -6515,5 +6515,52 @@ namespace VuonTra.Core.Tests
             }
             Assert.Greater(screen.GuestEntry.x - screen.GuestSpot.x, 200f, "it still walks a little way in from the right");
         }
+
+        /// <summary>Where the pond's "Câu cá" plate is on the phone's screen, in canvas units from the bottom left.</summary>
+        Rect PondPlateOnScreen()
+        {
+            var plate = (RectTransform)World.Find("PondTap/Plate");
+            Assert.IsTrue(plate.gameObject.activeInHierarchy, "the plate is out");
+            var corners = new Vector3[4];
+            plate.GetWorldCorners(corners);
+            var view = (RectTransform)World.parent;
+            Vector2 a = (Vector2)view.InverseTransformPoint(corners[0]) - view.rect.min, b = (Vector2)view.InverseTransformPoint(corners[2]) - view.rect.min;
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        void AssertPondPlateReads(string where)
+        {
+            Rect r = PondPlateOnScreen();
+            Assert.GreaterOrEqual(r.xMin, 24f, where + ": the plate " + r + " keeps 24 from the left edge");
+            Assert.LessOrEqual(r.xMax, 1080f - 24f, where + ": and from the right edge");
+        }
+
+        [Test]
+        public void The_Pond_s_Plate_Keeps_24_From_The_Edge_In_The_Opening_View_And_After_The_First_Segment_Opens()
+        {
+            Motion.SetReduced(true);
+            GameState s = runner.State;
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            screen.Refresh();
+            AssertPondPlateReads("the opening view");
+            screen.LookAt(GardenScreen.PondSpot + new Vector2(-120f, -300f)); // the pond's own frame
+            AssertPondPlateReads("looking at the pond");
+            screen.LookAt(Teapot);
+            AssertPondPlateReads("looking at the teapot");
+
+            // Ready for the first segment; the view goes to the sign at the lawn's end, as far right as the lawn lets it.
+            MistSegment next = Expansion.Next(runner.Defs, s);
+            s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
+            s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
+            screen.Refresh();
+            screen.LookAt(screen.ForestSignSpot + new Vector2(0f, 120f));
+            AssertPondPlateReads("looking at the sign");
+            Find("Canvas/Garden/Content/Forest Sign/Board").onClick.Invoke();
+            screen.Refresh();
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            Assert.AreEqual(1, Expansion.Segments(s), "the first segment came out of the mist");
+            AssertPondPlateReads("after the first segment opens");
+        }
     }
 }

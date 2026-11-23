@@ -7435,8 +7435,9 @@ namespace VuonTra.Game.UI
             button.onClick.AddListener(OpenFishing);
             // The plate stands on the bank right of the water, towards the teapot, so the opening view reads it (the horizontal
             // garden): clear of the jar's plate below, the mortar's plate and the teapot's pad, and of the order bubble of a guest at
-            // the counter, which grows to the right from over the guest's head (#84).
-            var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, 200f, -150f, 180f, 44f);
+            // the counter, which grows to the right from over the guest's head (#84). Far enough right that it keeps 24 from the
+            // screen's left edge when the view stands as far right as the lawn lets it, at the sign of the first segment (#16).
+            var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, PondPlateX, -150f, 180f, 44f);
             plate.AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
             _pondPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _pondPlate.resizeTextForBestFit = true;
@@ -7445,6 +7446,9 @@ namespace VuonTra.Game.UI
             _pondTap.SetSiblingIndex(_pondGlow != null ? _pondGlow.GetSiblingIndex() : 0);
             RefreshPond();
         }
+
+        /// <summary>How far right of the pond's middle its plate stands; the tiles it reaches are kept clear (GardenGrid's reserved tiles).</summary>
+        const float PondPlateX = 240f;
 
         /// <summary>The pond shows while it can be fished, its plate counting the baits on hand.</summary>
         void RefreshPond()
