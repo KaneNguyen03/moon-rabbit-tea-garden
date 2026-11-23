@@ -1,6 +1,8 @@
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
+using TweenEase = DG.Tweening.Ease;
 
 namespace VuonTra.Game.UI
 {
@@ -8,9 +10,10 @@ namespace VuonTra.Game.UI
     {
         public const float Height = 1240f;
         public const float ShowSeconds = 0.5f, FlySeconds = 0.55f;
-        const float SinkDepth = 46f;
+        const float SinkDepth = 46f, CatchArc = 140f;
         public const float RippleSeconds = 2f * RingGap + RingLife;
-        const float RingGap = 0.18f, RingLife = 0.72f;
+        const float RingGap = 0.18f, RingLife = 0.72f, RingRise = 0.12f;
+        const float BobReach = 7f, BobHalfPeriod = Mathf.PI / 3.4f, SwellReach = 3f, SwellHalfPeriod = Mathf.PI / 7.1f;
         const float FloatArtScale = 0.3f, RingArtScale = 0.45f, WaterArtMax = 1.5f;
         const float DishY = -69f, LineUpY = 37f, LineDownY = 27f;
         static readonly Color[] FishTints =
@@ -24,7 +27,7 @@ namespace VuonTra.Game.UI
         readonly GameRunner _runner;
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
-        readonly RectTransform _card, _water, _float, _floatArt, _ring, _catch, _basket, _line, _ripples;
+        readonly RectTransform _card, _water, _float, _bob, _floatArt, _ring, _catch, _basket, _line, _ripples;
         readonly Image _cap, _body, _ringImage, _catchImage;
         readonly Text _baits, _next, _status, _castLabel;
         readonly Image[] _dots = new Image[Fishing.BaitCap];
@@ -34,11 +37,12 @@ namespace VuonTra.Game.UI
         readonly ChunkyButton _castButton;
         readonly Image _picture;
         readonly Image[] _rings;
+        readonly Tween[] _bobLoops;
         readonly Sprite _floatUp, _floatDown;
         readonly Color _capColor = Palette.Mix(Palette.Carrot, new Color(0.85f, 0.2f, 0.2f), 0.6f);
         Say _say;
         string _caughtLine = "";
-        float _clock, _popAge = 9f, _rippleAge = 99f;
+        float _popAge = 9f;
         Sprite _shownFloat;
         int _shownBaits = -1, _shownCast = -1;
         long _shownNext = -1;
@@ -141,7 +145,8 @@ namespace VuonTra.Game.UI
             _float = UiKit.Rect("Float", _water).Place(0.5f, 0.5f, -40, -40, 80, 130);
             _ring = UiKit.Rect("Ring", _float).Place(0.5f, 0.5f, 0, -38, 230, 96);
             _ringImage = _ring.AddImage(catalog.Glow, new Color(0.85f, 0.93f, 1f, 0.3f));
-            _floatArt = UiKit.Rect("Art", _float).Stretch(0, 0, 1, 1);
+            _bob = UiKit.Rect("Bob", _float).Stretch(0, 0, 1, 1);
+            _floatArt = UiKit.Rect("Art", _bob).Stretch(0, 0, 1, 1);
             _line = UiKit.Rect("Line", _floatArt).Place(0.5f, 0.5f, 0, 52 + 110, 3, 220);
             _line.AddImage(null, new Color(1f, 1f, 1f, 0.45f));
             var stick = UiKit.Rect("Stick", _floatArt).Place(0.5f, 0.5f, 0, 36, 8, 34);
@@ -163,6 +168,17 @@ namespace VuonTra.Game.UI
                 _cap.gameObject.SetActive(false);
                 _ring.gameObject.SetActive(false);
             }
+            _bob.anchoredPosition = new Vector2(0f, -BobReach);
+            _floatArt.anchoredPosition = new Vector2(0f, -SwellReach);
+            _ring.localScale = Vector3.one * 0.96f;
+            _ringImage.color = new Color(0.85f, 0.93f, 1f, 0.17f);
+            _bobLoops = new Tween[]
+            {
+                Breathe(_bob.DOAnchorPosY(BobReach, BobHalfPeriod), _bob),
+                Breathe(_floatArt.DOAnchorPosY(SwellReach, SwellHalfPeriod), _floatArt),
+                Breathe(_ring.DOScale(1.04f, BobHalfPeriod), _ring),
+                Breathe(_ringImage.DOFade(0.33f, BobHalfPeriod), _ring),
+            };
             _float.gameObject.SetActive(false);
 
             _status = UiKit.Rect("Status", _card).Place(0.5f, 1f, 0, -752, 940, 64)
@@ -211,37 +227,66 @@ namespace VuonTra.Game.UI
             _line.anchoredPosition = new Vector2(0f, (art == _floatDown ? LineDownY : LineUpY) + 110f);
         }
 
-        void Ripple()
+        static Tween Breathe(Tweener loop, Component owner) =>
+            loop.SetEase(TweenEase.InOutSine).SetLoops(-1, LoopType.Yoyo).OnUiClock(owner);
+
+        void Bobbing(bool on)
         {
-            if (_rings.Length > 0) _rippleAge = 0f;
+            if (on == _bobLoops[0].IsPlaying()) return;
+            foreach (Tween loop in _bobLoops)
+            {
+                if (on) loop.Restart();
+                else loop.Pause();
+            }
+            if (!on) _bob.anchoredPosition = Vector2.zero;
         }
 
-        void DrawRipples()
+        void StillWater()
         {
+            foreach (Image ring in _rings)
+            {
+                ring.DOKill();
+                ring.gameObject.SetActive(false);
+            }
+        }
+
+        void Ripple()
+        {
+            StillWater();
             for (int i = 0; i < _rings.Length; i++)
             {
-                bool show;
                 if (Motion.Reduced)
                 {
-                    show = i == Mathf.Min(1, _rings.Length - 1) && _rippleAge < RippleSeconds;
-                    if (show)
-                    {
-                        _rings[i].transform.localScale = Vector3.one;
-                        _rings[i].color = new Color(1f, 1f, 1f, 0.8f);
-                    }
+                    if (i == Mathf.Min(1, _rings.Length - 1)) StillRing(_rings[i]);
                 }
-                else
-                {
-                    float u = (_rippleAge - i * RingGap) / RingLife;
-                    show = u >= 0f && u < 1f;
-                    if (show)
-                    {
-                        _rings[i].transform.localScale = Vector3.one * Mathf.Lerp(0.8f, 1.15f, Ease.OutCubic(u));
-                        _rings[i].color = new Color(1f, 1f, 1f, 0.85f * Mathf.Min(1f, u / 0.12f) * (1f - u));
-                    }
-                }
-                if (_rings[i].gameObject.activeSelf != show) _rings[i].gameObject.SetActive(show);
+                else Spread(_rings[i], i * RingGap);
             }
+        }
+
+        static void StillRing(Image ring)
+        {
+            ring.transform.localScale = Vector3.one;
+            ring.color = new Color(1f, 1f, 1f, 0.8f);
+            DOTween.Sequence()
+                .AppendCallback(() => ring.gameObject.SetActive(true))
+                .AppendInterval(RippleSeconds)
+                .AppendCallback(() => ring.gameObject.SetActive(false))
+                .SetTarget(ring).OnUiClock(ring);
+        }
+
+        static void Spread(Image ring, float delay)
+        {
+            Transform rt = ring.transform;
+            rt.localScale = Vector3.one * 0.8f;
+            ring.color = new Color(1f, 1f, 1f, 0f);
+            float rise = RingLife * RingRise;
+            DOTween.Sequence()
+                .InsertCallback(delay, () => ring.gameObject.SetActive(true))
+                .Insert(delay, rt.DOScale(1.15f, RingLife).SetEase(TweenEase.OutCubic))
+                .Insert(delay, ring.DOFade(0.85f * (1f - RingRise), rise).SetEase(TweenEase.Linear))
+                .Insert(delay + rise, ring.DOFade(0f, RingLife - rise).SetEase(TweenEase.Linear))
+                .AppendCallback(() => ring.gameObject.SetActive(false))
+                .SetTarget(ring).OnUiClock(ring);
         }
 
         static Image FishImage(RectTransform rt, GameCatalog catalog, int fish)
@@ -259,7 +304,7 @@ namespace VuonTra.Game.UI
             _shownCast = -1;
             _shownNext = -1;
             _catch.gameObject.SetActive(false);
-            _rippleAge = 99f;
+            StillWater();
             for (int i = 0; i < _pending.Length; i++) _pending[i] = 0;
             FishFlying = 0;
             Sheet.Open();
@@ -275,7 +320,7 @@ namespace VuonTra.Game.UI
             if (_runner.StartCast() == null)
             {
                 Sfx.Deny();
-                _castButton.Shake(_tweens);
+                _castButton.Shake();
                 return;
             }
             Sfx.Cast();
@@ -323,34 +368,33 @@ namespace VuonTra.Game.UI
             float size = 0.6f + 0.1f * fish;
             _catch.anchoredPosition = from;
             _catch.localScale = Vector3.zero;
-            _tweens.Add(Motion.Time(0.25f), t => { if (_catch != null) _catch.localScale = Vector3.one * size * t; }, Motion.Curve(Ease.OutBack));
-            bool reeling = false;
-            _tweens.Add(Motion.Time(FlySeconds), t =>
+            _catch.DOScale(size, Motion.Time(0.25f)).SetEase(Motion.Curve(TweenEase.OutBack)).OnUiClock(_catch);
+            float fly = Motion.Time(FlySeconds);
+            Motion.After(Motion.Time(ShowSeconds), _catch, () =>
             {
-                if (!reeling) { reeling = true; Sfx.Reel(); }
-                if (_catch == null) return;
-                Vector2 mid = (from + to) * 0.5f + new Vector2(0f, 140f);
-                float u = 1f - t;
-                _catch.anchoredPosition = u * u * from + 2f * u * t * mid + t * t * to;
-                _catch.localScale = Vector3.one * Mathf.Lerp(size, 0.35f, t);
-            }, Ease.InOutCubic, Motion.Time(ShowSeconds), () =>
-            {
-                _pending[fish] = Mathf.Max(0, _pending[fish] - 1);
-                FishFlying = Mathf.Max(0, FishFlying - 1);
-                if (_catch == null) return;
-                if (FishFlying == 0) _catch.gameObject.SetActive(false);
-                _tweens.Add(Motion.Tap, t => { if (_basket != null) _basket.localScale = Vector3.one * (1f + 0.15f * Ease.Pop(t)); }, Ease.Linear, 0f,
-                    () => { if (_basket != null) _basket.localScale = Vector3.one; });
-                Draw();
+                Sfx.Reel();
+                DOTween.Sequence()
+                    .Join(_catch.DOJumpAnchorPos(to, CatchArc / 2f, 1, fly))
+                    .Join(_catch.DOScale(0.35f, fly).SetEase(TweenEase.Linear))
+                    .SetEase(TweenEase.InOutCubic)
+                    .OnComplete(() =>
+                    {
+                        _pending[fish] = Mathf.Max(0, _pending[fish] - 1);
+                        FishFlying = Mathf.Max(0, FishFlying - 1);
+                        if (FishFlying == 0) _catch.gameObject.SetActive(false);
+                        _basket.DOKill();
+                        _basket.localScale = Vector3.one;
+                        _basket.DOScale(1.15f, Motion.Tap / 2f).SetEase(TweenEase.OutSine).SetLoops(2, LoopType.Yoyo).OnUiClock(_basket);
+                        Draw();
+                    })
+                    .OnUiClock(_catch);
             });
         }
 
         public void Update(float dt)
         {
             if (!IsOpen) return;
-            _clock += dt;
             _popAge += dt;
-            _rippleAge += dt;
             FishingCast cast = _runner.Cast;
             if (cast != null)
             {
@@ -401,7 +445,6 @@ namespace VuonTra.Game.UI
             }
             _status.text = StatusLine(cast, baits);
             DrawFloat(cast);
-            DrawRipples();
         }
 
         string StatusLine(FishingCast cast, int baits)
@@ -425,11 +468,12 @@ namespace VuonTra.Game.UI
             bool sinking = cast.Phase == CastPhase.Sinking;
             float k = sinking ? Mathf.Clamp01((float)((cast.Elapsed - cast.BobSeconds) / Fishing.SinkSeconds)) : 0f;
             float pop = !Motion.Reduced && _popAge < 0.3f ? Ease.Pop(_popAge / 0.3f) : 0f;
+            Bobbing(!Motion.Reduced && !sinking);
             if (_picture != null)
             {
                 ShowFloat(sinking ? _floatDown : _floatUp);
-                float drawnBob = Motion.Reduced || sinking ? 0f : 7f * Mathf.Sin(_clock * 3.4f) + 3f * Mathf.Sin(_clock * 7.1f + 1f);
-                _floatArt.anchoredPosition = Motion.Reduced ? Vector2.zero : new Vector2(0f, drawnBob - SinkDepth * 0.25f * k);
+                if (Motion.Reduced) _floatArt.anchoredPosition = Vector2.zero;
+                else if (sinking) _floatArt.anchoredPosition = new Vector2(0f, -SinkDepth * 0.25f * k);
                 _floatArt.localScale = Vector3.one * (1f + 0.2f * pop);
                 return;
             }
@@ -443,13 +487,13 @@ namespace VuonTra.Game.UI
                 _ring.localScale = Vector3.one;
                 return;
             }
-            float bob = sinking ? 0f : 7f * Mathf.Sin(_clock * 3.4f) + 3f * Mathf.Sin(_clock * 7.1f + 1f);
-            _floatArt.anchoredPosition = new Vector2(0f, bob - SinkDepth * k);
+            if (sinking) _floatArt.anchoredPosition = new Vector2(0f, -SinkDepth * k);
             _floatArt.localScale = Vector3.one * (1f + 0.25f * pop - 0.25f * k);
             _cap.color = sinking ? Palette.Mix(_capColor, Palette.Lantern, 0.6f) : _capColor;
             _body.color = Palette.Alpha(Palette.Paper, 1f - 0.6f * k);
-            _ringImage.color = new Color(0.85f, 0.93f, 1f, sinking ? 0.6f + 0.3f * k : 0.25f + 0.08f * Mathf.Sin(_clock * 3.4f));
-            _ring.localScale = Vector3.one * (sinking ? 1f + 0.5f * k : 1f + 0.04f * Mathf.Sin(_clock * 3.4f));
+            if (!sinking) return;
+            _ringImage.color = new Color(0.85f, 0.93f, 1f, 0.6f + 0.3f * k);
+            _ring.localScale = Vector3.one * (1f + 0.5f * k);
         }
     }
 }

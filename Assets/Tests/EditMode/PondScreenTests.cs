@@ -200,7 +200,7 @@ namespace VuonTra.Core.Tests
 
             Find(Card + "/Cast").onClick.Invoke();
             Assert.AreSame(c.FloatUp, screen.FishingCard.FloatSprite, "afloat");
-            Assert.IsFalse(At(Card + "/Water/Float/Art/Cap").gameObject.activeSelf, "the code-drawn float steps aside");
+            Assert.IsFalse(At(Card + "/Water/Float/Bob/Art/Cap").gameObject.activeSelf, "the code-drawn float steps aside");
             screen.Advance(1f / 30f);
             Assert.AreEqual(1, screen.FishingCard.RipplesShowing, "the first ring as the float lands");
             float small = At(Card + "/Water/Ripples/Ripple 0").localScale.x;
@@ -266,7 +266,7 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(At(Card + "/Water/Moon").gameObject.activeSelf, "the moon drawn in code");
                 Find(Card + "/Cast").onClick.Invoke();
                 Assert.IsNull(screen.FishingCard.FloatSprite);
-                Assert.IsTrue(At(Card + "/Water/Float/Art/Cap").gameObject.activeSelf, "the float drawn in code");
+                Assert.IsTrue(At(Card + "/Water/Float/Bob/Art/Cap").gameObject.activeSelf, "the float drawn in code");
                 Color bobbing = screen.FishingCard.FloatColor;
                 screen.Advance(1f / 30f);
                 Assert.AreEqual(0, screen.FishingCard.RipplesShowing, "no rings to show");
@@ -311,7 +311,7 @@ namespace VuonTra.Core.Tests
         {
             OpenPond();
             Find(Card + "/Cast").onClick.Invoke();
-            var art = (RectTransform)root.transform.Find(Card + "/Water/Float/Art");
+            var art = (RectTransform)root.transform.Find(Card + "/Water/Float/Bob/Art");
             Vector2 at = art.anchoredPosition;
             for (int k = 0; k < 20; k++)
             {
