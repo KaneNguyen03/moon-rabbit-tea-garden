@@ -4577,6 +4577,115 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0f, ripple.GetComponent<Image>().color.a);
         }
 
+        float[] Spreads(int frames, params System.Func<Vector4>[] samples)
+        {
+            var first = new Vector4[samples.Length];
+            var spread = new float[samples.Length];
+            for (int k = 0; k < samples.Length; k++) first[k] = samples[k]();
+            for (int i = 0; i < frames; i++)
+            {
+                screen.Advance(1f / 30f);
+                for (int k = 0; k < samples.Length; k++) spread[k] = Mathf.Max(spread[k], (samples[k]() - first[k]).magnitude);
+            }
+            return spread;
+        }
+
+        static Vector4 Pose(Transform t) => new Vector4(t.localPosition.x, t.localPosition.y, t.localScale.y + t.localScale.x * 10f, t.localRotation.eulerAngles.z);
+
+        [Test]
+        public void Under_Reduced_Motion_The_Looping_Garden_Motions_Hold_Still()
+        {
+            screen.Shell.StartGame();
+            GameState s = runner.State;
+            s.Coins = new BigNum(1e12);
+            s.Levels[1] = 1;
+            s.RestSpots = 3;
+            for (long id = 2; id <= 4; id++) s.Rabbits.Add(new Rabbit { Id = id, Tier = 0, Kind = "tho-bong", Name = "Nghỉ " + id });
+            GiveWorker();
+            for (int i = 0; i < 90; i++) screen.Advance(1f / 30f);
+
+            Transform world = root.transform.Find("Canvas/Garden/Content");
+            Transform rabbit = world.Find("Station am-tra/Rabbit");
+            Transform pad = world.Find("Station gio-la Front/Pad");
+            Transform arrow = world.Find("Station am-tra Front/CanUp");
+            Transform sign = world.Find("Station " + runner.Defs[2].Id + " Front/Level");
+            Transform seat = null;
+            for (int k = 0; k < RestSpots.Max && seat == null; k++)
+            {
+                Transform candidate = world.Find("Seat " + k);
+                if (candidate != null && candidate.gameObject.activeSelf) seat = candidate;
+            }
+            Transform fireflies = world.Find("Fireflies");
+            Transform gold = root.transform.Find("Canvas/GoldFirefly");
+            Assert.IsTrue(rabbit.gameObject.activeSelf, "a rabbit works at the first station");
+            Assert.IsTrue(pad.gameObject.activeSelf, "the second station waits for one");
+            Assert.IsTrue(arrow.gameObject.activeSelf, "the first station can be raised");
+            Assert.IsNotNull(seat, "a resting rabbit sits in the garden");
+            Assert.Greater(fireflies.childCount, 0);
+            Transform firefly = fireflies.GetChild(0);
+            Image fireflyGlow = firefly.GetComponent<Image>();
+            screen.SpawnGoldFirefly();
+
+            System.Func<Vector4>[] loops =
+            {
+                () => Pose(rabbit),
+                () => Pose(pad),
+                () => Pose(sign),
+                () => Pose(arrow),
+                () => Pose(seat),
+                () => Pose(firefly) + new Vector4(0f, 0f, fireflyGlow.color.a, 0f),
+                () => Pose(gold),
+            };
+            string[] names = { "station rabbit", "empty pad", "price sign", "upgrade arrow", "rest-spot rabbit", "firefly", "golden firefly" };
+            float[] moving = Spreads(45, loops);
+            for (int k = 0; k < loops.Length; k++) Assert.Greater(moving[k], 0.001f, "the " + names[k] + " moves with full motion");
+
+            Motion.SetReduced(true);
+            screen.SpawnGoldFirefly();
+            screen.DozeSomeone();
+            screen.PlayPayout(0, new BigNum(5));
+            screen.Advance(1f / 30f);
+            float[] still = Spreads(60, loops);
+            for (int k = 0; k < loops.Length; k++) Assert.AreEqual(0f, still[k], 1e-4f, "the " + names[k] + " holds still under reduced motion");
+            Assert.AreEqual(-9f, Mathf.DeltaAngle(0f, rabbit.localRotation.eulerAngles.z), 0.01f, "a dozing rabbit rests at its nodding lean");
+            Assert.AreEqual(Vector3.one, rabbit.localScale, "no breathing");
+            Assert.AreEqual(Quaternion.identity, seat.localRotation);
+            Assert.Greater(((RectTransform)gold).anchoredPosition.x, 0f, "the golden firefly waits where it can be seen");
+            Assert.IsTrue(gold.gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_Bursts_Flights_And_Shakes_Stay_Still()
+        {
+            screen.Shell.StartGame();
+            Motion.SetReduced(true);
+            Transform feel = root.transform.Find("Canvas/Feel");
+            int before = screen.Feel.ParticleCount;
+            screen.Feel.Burst(Vector2.zero, runner.Catalog.Round, new[] { Palette.Lantern }, 12);
+            Assert.AreEqual(before, screen.Feel.ParticleCount, "no bits burst out");
+
+            bool arrived = false;
+            screen.Feel.Fly(new Vector2(-200, -300), new Vector2(300, 700), runner.Catalog.Currency, Color.white, 5, 40f, () => arrived = true);
+            for (int i = 0; i < feel.childCount; i++)
+                Assert.IsFalse(feel.GetChild(i).name == "Fly" && feel.GetChild(i).gameObject.activeSelf, "no carrot crosses the screen");
+            for (int i = 0; i < 3; i++) screen.Advance(1f / 30f);
+            Assert.IsTrue(arrived, "the purse still hears that they came");
+            Assert.AreEqual(0, screen.Feel.Flying);
+
+            runner.State.Coins = BigNum.Zero;
+            screen.OpenSheet(0);
+            screen.Refresh();
+            var buy = (RectTransform)root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy");
+            var face = (RectTransform)buy.Find("Face");
+            buy.GetComponent<PressDip>().Click();
+            Assert.AreEqual("deny", Sfx.Last, "it still says no");
+            for (int i = 0; i < 12; i++)
+            {
+                screen.Advance(1f / 30f);
+                Assert.AreEqual(0f, face.offsetMin.x, "the button does not shake");
+            }
+        }
+
         void Trigger(string path, UnityEngine.EventSystems.EventTriggerType type)
         {
             Transform t = root.transform.Find(path);
