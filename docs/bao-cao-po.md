@@ -1933,6 +1933,41 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Save cũ có trạm chồng nhau không tự dời ra.
 - Ảnh xem trước `54-sau-hoan-doi` giờ cho thấy Giỏ lá bật về thay vì đứng sát ấm trà.
 
+## #98–#99 — Mùa trăng mới đi tiếp và "Nâng tất cả" không mở trạm quá sớm (agent econ-98-99)
+
+
+- **Test:** `tools/verify.sh` (đầy đủ) GREEN, 1231/1232 (1 inconclusive có từ trước: `Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit`). Mới: 7 ca `NewMoonTests`, 3 test mô phỏng chậm (`[Category("Slow")]`).
+- **Commit:** `8f0792b` (#99, chỉ test), `b8c806a` (#98), nhánh `econ-98-99`, merge `5f165ac`. Main sau gộp: 1266/1267.
+
+**Đã làm**
+- #98: điểm vườn nhân hệ số mùa trăng mới; `NewMoon.LevelStep` 5 → 3 (mùa 2–7 cần cấp 33…48); vàng mỗi 5 cấp chỉ trả một lần (trên cấp mùa trước đã đòi), để gọi vàng của người chăm giữ ≤ 6/tuần. Save vẫn version 14.
+- #99: thêm người thong thả bấm "Nâng tất cả" (đúng `UpgradePlan` như nút) vào hai bộ test nhịp, 17 hạt, ghi bảng ra Logs. Không đổi ngưỡng trạm/đoạn.
+
+| | Thong thả, từng cấp | Thong thả, Nâng tất cả | Chăm, từng cấp | Chăm, Nâng tất cả |
+|---|---|---|---|---|
+| Trăng mới 1 / 2 / 3 (ngày) | 10 / – / – → 10 / 21 / 31 | 9 / – / – → 9 / 19 / 28 | 7 / – / – → 7 / 16 / 24 | 7 / – / – → 7 / 16 / 24 |
+| Số mùa tới ngày 42 | 1 → 4 | 1 → 4 | 1 → 6 | 1 → 5 |
+| Gọi vàng, tuần cao nhất trong tuần 2–6 | 6 → 5 | 6 → 5 | 5 → 6 | 5 → 6 |
+| Trạm 13 / 16 (ngày; người 15 ph/ngày) | 5 / 9 | 1 / 1 | – | – |
+| Cấp 5, cấp 10, 12 ô đất | không đổi | không đổi | không đổi | không đổi |
+
+### Chưa đạt / cần PO quyết
+- #99: không ngưỡng cấp vườn nào đưa trạm 13 vào ngày 3–5 và trạm 16 vào ngày 8–12 cho cả người mua từng cấp lẫn người bấm Nâng tất cả. Đề xuất 25/26/27/28 làm người 15 phút/ngày mua từng cấp không mở được 4 trạm trong 14 ngày (test #67: 0/17). Cần chọn: A (bỏ luật #67 cho người này), B (chặn đoạn 5–6 bằng thứ khác ngoài cấp vườn), hoặc C (chỉnh lại tuần đầu theo người bấm Nâng tất cả).
+- Người bấm Nâng tất cả trên `main` còn trượt: cấp 10 trong buổi đầu, 12 ô đất ngày 2, trò chơi + khách 1,1 % ngày 1, thu nhập ngày 7 vượt trần ~50 lần.
+- #98 cần duyệt: `LevelStep` 3, điểm vườn × hệ số mùa, vàng mỗi 5 cấp chỉ trả một lần.
+- Người chăm tuần 1 vẫn gọi vàng 7 lần (có từ trước).
+
+## #100 — Seam analytics và báo lỗi (agent analytics-crash)
+
+- **Test:** `tools/verify.sh` xanh, 1240/1241; 19 test mới (`AnalyticsTests` 7, `AnalyticsRunnerTests` 11, `AnalyticsScreenTests` 1).
+- **Commit:** `2a0ec7c` merge `d999d2f`. Main sau gộp: 1266/1267.
+- **Đã làm:** `Core/Analytics.cs` theo mẫu seam quảng cáo #66 (`IAnalytics`, `NoAnalytics` mặc định, `MemoryAnalytics` cho test/editor, `RecordException`); công tắc `GameRunner.AnalyticsInPlayerBuilds = false`; 15 sự kiện snake_case (mở game, phiên chơi kèm độ dài, bước hướng dẫn, lên cấp vườn, mở trạm, mở đoạn đất, gọi thỏ cỏ/vàng kèm bậc, Mùa trăng mới, mở thẻ gói cà rốt vàng, mua thành công/thất bại kèm lý do, quảng cáo có thưởng), mỗi chỗ một dòng trong `GameRunner` và một dòng trong `GardenScreen`; adapter Firebase Analytics + Crashlytics chỉ biên dịch với `VUONTRA_FIREBASE`; cập nhật bản khai dữ liệu cửa hàng (mục 6) và chính sách quyền riêng tư (mục "khi bật"). Không đổi save (v14), kinh tế hay lối chơi.
+
+### Chưa đạt / cần PO quyết
+- Chọn công cụ: Firebase (đã có adapter) hay GameAnalytics; bật cần SDK, hai file cấu hình, define và công tắc (danh sách trong comment #100).
+- Có cần nút tắt analytics hoặc hộp đồng ý cho người chơi EU không (hiện chưa có; Data safety sẽ khai Required).
+- Nối "Xoá dữ liệu của tôi" với việc xoá ID analytics và chuyển lỗi ghi save sang báo lỗi: chưa làm.
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
