@@ -51,7 +51,7 @@ namespace VuonTra.Core.Tests
         [TestCase(4, 3, 0, 0, 4)]
         [TestCase(5, 6, 6, 0, 6)]
         [TestCase(6, 10, 10, 0, 8)]
-        [TestCase(7, 15, 0, 8, 10)]
+        [TestCase(7, 16, 0, 8, 10)] // R 7 asks one level more than its land wave did, so the twelfth plot waits for day three on every seed (#83)
         public void The_First_Four_Rings_Ask_What_The_Land_Waves_Asked(int radius, int level, int rabbits, int kinds, int firstStation)
         {
             ForestRing ring = Expansion.Ring(radius);

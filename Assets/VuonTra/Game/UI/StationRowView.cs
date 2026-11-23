@@ -187,7 +187,7 @@ namespace VuonTra.Game.UI
         public static string MainNumber(IReadOnlyList<StationDef> defs, GameState s, int index, int level, Modifiers m)
         {
             StationDef d = defs[index];
-            if (d.Kind != StationKind.Brew) return "×" + UiKit.Times(Economy.IngredientBoost(level));
+            if (d.Kind != StationKind.Brew) return "×" + UiKit.Times(Economy.IngredientBoost(d, level));
             BigNum perSecond = PerCycle(defs, s, index, level) / d.CycleSeconds * (m.IncomeMultiplier * m.SpeedMultiplier);
             return L10n.T("persec", perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
         }
@@ -206,7 +206,7 @@ namespace VuonTra.Game.UI
                 if (names.Length > 0) names.Append(", ");
                 names.Append(L10n.Station(defs[i].Id));
             }
-            return L10n.T("row.boost", UiKit.Times(Economy.IngredientBoost(level)), names);
+            return L10n.T("row.boost", UiKit.Times(Economy.IngredientBoost(d, level)), names);
         }
     }
 }

@@ -24,5 +24,17 @@ namespace VuonTra.Core.Tests
         };
 
         public static List<StationDef> Defs() => new List<StationDef> { Tea(), Leaf(), Jam() };
+
+        /// <summary>
+        /// A player code drawn from a simulation's seed (#83). A new garden's code comes from a GUID, and the shop's
+        /// visitor of the day is drawn from the code, so a simulated week that should come out the same twice sets it.
+        /// </summary>
+        public static string CodeFor(int seed)
+        {
+            var rng = new System.Random(seed ^ 0x5eed);
+            var chars = new char[Profile.CodeLength];
+            for (int i = 0; i < chars.Length; i++) chars[i] = Profile.CodeAlphabet[rng.Next(Profile.CodeAlphabet.Length)];
+            return Profile.CodePrefix + new string(chars);
+        }
     }
 }

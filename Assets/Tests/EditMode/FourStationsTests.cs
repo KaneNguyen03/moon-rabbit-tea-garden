@@ -103,6 +103,28 @@ namespace VuonTra.Core.Tests
             }
         }
 
+        /// <summary>
+        /// The two new ingredient stations give 7 % of the usual rise (#83), the old ones all of it: at full strength they
+        /// stacked onto the top brews and made day seven's income over a hundredfold (EconomySimulationTests holds the tenfold cap).
+        /// The Stations tab shows the boost they really give.
+        /// </summary>
+        [Test]
+        public void The_Two_New_Ingredient_Stations_Give_Seven_Percent_Of_The_Usual_Boost()
+        {
+            for (int i = 0; i < 12; i++) Assert.AreEqual(1d, defs[i].BoostScale, 1e-12, defs[i].Id);
+            Assert.AreEqual(0.07, defs[12].BoostScale, 1e-12, "the lotus garden");
+            Assert.AreEqual(0.07, defs[14].BoostScale, 1e-12, "the rice paddy");
+            Assert.AreEqual(1d + 2d * 0.07, Economy.IngredientBoost(defs[12], 10), 1e-12, "level 10: ×3 for an old one, ×1.14 here");
+            Assert.AreEqual(Economy.IngredientBoost(10), Economy.IngredientBoost(defs[10], 10), 1e-12, "the old ones as before");
+
+            GameState s = TwelveOpen(30);
+            BigNum before = Economy.IncomePerCycle(defs, s, 11);
+            s.Levels[12] = 10;
+            double rabbit = Rabbits.StationMultiplier(defs, s, 12) * AlbumSets.StationFactor(defs, s, 12);
+            Assert.AreEqual(before.ToDouble() * (1d + 2d * 0.07 * rabbit), Economy.IncomePerCycle(defs, s, 11).ToDouble(), before.ToDouble() * 1e-9, "the star observatory, fed by the lotus garden");
+            Assert.AreEqual("×" + UiKit.Times(1.14), StationRowView.MainNumber(defs, s, 12, 10, Modifiers.None));
+        }
+
         // ----- The garden level each asks for -----
 
         [Test]
@@ -110,7 +132,8 @@ namespace VuonTra.Core.Tests
         {
             for (int i = 0; i < 12; i++) Assert.AreEqual(0, defs[i].NeedGardenLevel, defs[i].Id);
             for (int i = 13; i < 16; i++) Assert.Greater(defs[i].NeedGardenLevel, defs[i - 1].NeedGardenLevel, defs[i].Id);
-            Assert.Greater(defs[12].NeedGardenLevel, Expansion.Ring(7).NeedLevel, "after the ring that gives the twelfth station its land");
+            // R 7 asks for 16 too since #83: the lotus garden still waits for its own ring, R 8, which comes after R 7.
+            Assert.GreaterOrEqual(defs[12].NeedGardenLevel, Expansion.Ring(7).NeedLevel, "not before the ring that gives the twelfth station its land");
             Assert.LessOrEqual(defs[15].NeedGardenLevel, NewMoon.FirstLevel, "the last one comes before the first new moon can");
         }
 
