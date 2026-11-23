@@ -3849,18 +3849,18 @@ namespace VuonTra.Core.Tests
         public void The_Game_Opens_Where_The_Player_Last_Looked_And_Keeps_Noting_Where_That_Is()
         {
             runner.State.ViewX = 2600d;
-            runner.State.ViewY = 800d;
+            runner.State.ViewY = 2400d;
             runner.State.ViewZoom = 1.5d;
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             screen.Shell.StartGame();
             for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(1.5f, screen.ZoomScale, 1e-3f, "the zoom comes back too");
             Assert.AreEqual(2600f, (1080f / 2f - world.anchoredPosition.x) / world.localScale.x, 1f);
-            Assert.AreEqual(800f, (1920f / 2f - world.anchoredPosition.y) / world.localScale.y, 1f, "the spot under the middle of the screen is the one saved");
+            Assert.AreEqual(2400f, (1920f / 2f - world.anchoredPosition.y) / world.localScale.y, 1f, "the spot under the middle of the screen is the one saved");
 
-            screen.LookAt(new Vector2(2400f, 1300f));
+            screen.LookAt(new Vector2(2400f, 2900f));
             screen.Advance(1f / 30f);
-            Assert.AreEqual(1300d - 0.1d * 1920d / 1.5d, runner.State.ViewY, 1d, "looking elsewhere is noted at once, so the next save keeps it");
+            Assert.AreEqual(2900d - 0.1d * 1920d / 1.5d, runner.State.ViewY, 1d, "looking elsewhere is noted at once, so the next save keeps it");
             Assert.AreEqual(2400d, runner.State.ViewX, 1d);
             Assert.AreEqual(1.5d, runner.State.ViewZoom, 1e-3d);
         }

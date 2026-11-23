@@ -455,6 +455,8 @@ namespace VuonTra.Game.UI
         // #51: land not bought yet is a dashed ring on clear grass; the forest rim at the lawn's edge steps back as the land opens.
         readonly List<CanvasGroup> _landRings = new List<CanvasGroup>(), _landBlooms = new List<CanvasGroup>();
         readonly List<RimPiece> _rim = new List<RimPiece>();
+        readonly List<RimPiece> _wood = new List<RimPiece>();
+        int _woodSegments = -1;
         /// <summary>What the rim keeps clear of whatever land is open, and by how much: the props with a plate to read by 200, the pond, seats and decoration spots by a hair.</summary>
         readonly List<KeyValuePair<Rect, float>> _rimKeepOff = new List<KeyValuePair<Rect, float>>();
         int _landPlots = -1;
@@ -490,11 +492,25 @@ namespace VuonTra.Game.UI
         /// </summary>
         Vector2 ClampView(Vector2 pos, float zoom, float lift = 0f)
         {
-            Vector2 span = OpenSpan();
-            float w = (span.y - span.x) * zoom, h = WorldH * zoom, middle = (ScreenH - h) / 2f;
+            Vector2 span = OpenSpan(), rows = OpenRows();
+            float w = (span.y - span.x) * zoom, h = (rows.y - rows.x) * zoom, middle = ScreenH / 2f - (rows.x + rows.y) / 2f * zoom, floor = -rows.x * zoom;
             return new Vector2(
                 w <= ScreenW ? ScreenW / 2f - (span.x + span.y) / 2f * zoom : Mathf.Clamp(pos.x, ScreenW - span.y * zoom, -span.x * zoom),
-                h <= ScreenH ? Mathf.Clamp(pos.y, middle, Mathf.Max(middle, lift)) : Mathf.Clamp(pos.y, ScreenH - h, lift));
+                h <= ScreenH ? Mathf.Clamp(pos.y, middle, Mathf.Max(middle, floor + lift)) : Mathf.Clamp(pos.y, ScreenH - rows.y * zoom, floor + lift));
+        }
+
+        public const float ViewMarginY = 600f;
+
+        public Vector2 OpenRows()
+        {
+            int open = OpenSegments;
+            return new Vector2(Mathf.Max(0f, LawnEdgeY(open, GardenSide.Down) - ViewMarginY), Mathf.Min(WorldH, LawnEdgeY(open, GardenSide.Up) + ViewMarginY));
+        }
+
+        public static float LawnEdgeY(int segments, GardenSide side)
+        {
+            float half = (GardenGrid.Reach(segments, side == GardenSide.Down ? GardenSide.Down : GardenSide.Up) + 0.5f) * (float)GardenGrid.PitchY;
+            return Heart.y + (side == GardenSide.Down ? -half : half);
         }
 
         /// <summary>How far past the open lawn's ends the view may go: a strip of mist and wood, so the end of the lawn reads as an edge.</summary>
@@ -521,11 +537,12 @@ namespace VuonTra.Game.UI
         {
             if (_street == null || _dragging || _pinching || _padPinching || LayoutMode) return;
             float lift = SheetOpen ? SheetLift : 0f;
-            float x = _street.anchoredPosition.x, target = ClampView(_street.anchoredPosition, _zoom, lift).x;
-            if (Mathf.Abs(target - x) < 0.5f) return;
-            if (_scroll != null) _scroll.velocity = new Vector2(0f, _scroll.velocity.y);
-            float k = Motion.Reduced || dt <= 0f ? 1f : Mathf.Clamp01(dt * 9f);
-            _street.anchoredPosition = new Vector2(Mathf.Abs(target - x) < 1f ? target : Mathf.Lerp(x, target, k), _street.anchoredPosition.y);
+            Vector2 at = _street.anchoredPosition, target = ClampView(at, _zoom, lift), off = target - at;
+            bool outX = Mathf.Abs(off.x) >= 0.5f, outY = Mathf.Abs(off.y) >= 0.5f;
+            if (!outX && !outY) return;
+            if (_scroll != null) _scroll.velocity = new Vector2(outX ? 0f : _scroll.velocity.x, outY ? 0f : _scroll.velocity.y);
+            float k = Motion.Reduced || dt <= 0f || off.magnitude < 1f ? 1f : Mathf.Clamp01(dt * 9f);
+            _street.anchoredPosition = Vector2.Lerp(at, target, k);
         }
 
         /// <summary>A drag of the garden by a finger, for the tests: the view moves by <paramref name="delta"/> view units, then is let go.</summary>
@@ -1315,7 +1332,7 @@ namespace VuonTra.Game.UI
             // Land the garden has not bought yet is clear grass with a faint dashed ring where the station will stand (#51);
             // the forest rim at the lawn's edge is what is not opened. When the land is bought the ring goes and fresh grass
             // and flowers come up on it. Both lie flat on the ground, under everything that stands.
-            _landRings.Clear(); _landBlooms.Clear(); _rim.Clear(); _rimKeepOff.Clear(); _landPlots = -1;
+            _landRings.Clear(); _landBlooms.Clear(); _rim.Clear(); _wood.Clear(); _woodSegments = -1; _rimKeepOff.Clear(); _landPlots = -1;
             for (int i = 0; i < count; i++)
             {
                 if (i < Plots.Starting) { _landRings.Add(null); _landBlooms.Add(null); continue; }
@@ -1530,6 +1547,8 @@ namespace VuonTra.Game.UI
                 standing.Add(new KeyValuePair<float, Transform>(jarAt.y, _jarProp));
             }
             BuildDecorSpots(catalog, standing);
+            for (int n = 1; n <= _mist.Count; n++)
+                if (GardenGrid.SideOf(n) == GardenSide.Up) standing.Add(new KeyValuePair<float, Transform>(LawnEdgeY(n - 1, GardenSide.Up) + 0.1f, _mist[n - 1].transform));
             standing.Sort((a, b) => b.Key.CompareTo(a.Key));
             foreach (KeyValuePair<float, Transform> item in standing) item.Value.SetAsLastSibling();
             // Every station's front (its level plate and "Xếp thỏ +" button) over everything that stands, so a decoration
@@ -1537,7 +1556,13 @@ namespace VuonTra.Game.UI
             foreach (StationActorView actor in _actors) actor.Front.SetAsLastSibling();
             // The mist over the segments still to open lies over everything on their land (the horizontal garden); the sign stands
             // in front of it, at the lawn's end.
-            foreach (CanvasGroup mist in _mist) mist.transform.SetAsLastSibling();
+            for (int n = 1; n <= _mist.Count; n++)
+                if (GardenGrid.SideOf(n) != GardenSide.Up) _mist[n - 1].transform.SetAsLastSibling();
+            foreach (RimPiece piece in _wood)
+            {
+                if (piece.Shade != null) piece.Shade.SetAsLastSibling();
+                piece.Art.SetAsLastSibling();
+            }
             // What must be read stays over the mist's thick edge (#16): the firefly jar, whose plate reaches to the lawn's left
             // end, and every station's front (its level plate) and the sign.
             if (_jarProp != null) _jarProp.SetAsLastSibling();
@@ -2566,6 +2591,8 @@ namespace VuonTra.Game.UI
             /// <summary>Where its foot stands up the lawn, its size, which side (-1 left, +1 right), and how far behind the edge line its row stands.</summary>
             public float Y, Width, Height, Depth, ShadeAlpha;
             public int Side;
+            public GardenSide Band;
+            public int Reach;
             public float X, Target = float.NaN;
             public int Run;
         }
@@ -2860,14 +2887,27 @@ namespace VuonTra.Game.UI
             Transform rimParent = _street;
             List<KeyValuePair<float, Transform>> rimInto = standing;
             const int RimTree = 0, RimSapling = 1, RimMushrooms = 2, RimBush = 3, RimStones = 4, RimLantern = 5;
-            void AddRim(int template, int side, float y, float depth, float seed)
+            Sprite RimSprite(int template)
             {
                 if (template == RimLantern && catalog.StoneLantern == null) template = RimBush;
-                Sprite sprite = template == RimLantern ? catalog.StoneLantern : d[template == RimTree || template == RimSapling ? Tree : template == RimMushrooms ? Mushrooms : template == RimBush ? Bush : Stones];
-                if (sprite == null) return;
-                string[] names = { "Rim Tree", "Rim Sapling", "Rim Mushrooms", "Rim Bush", "Rim Stones", "Rim Lantern" };
-                float[] low = { 380f, 230f, 92f, 130f, 74f, 150f / DecorScale }, high = { 460f, 280f, 110f, 150f, 86f, 150f / DecorScale };
-                float height = Mathf.Lerp(low[template], high[template], Hash(seed)) * DecorScale;
+                return template == RimLantern ? catalog.StoneLantern : d[template == RimTree || template == RimSapling ? Tree : template == RimMushrooms ? Mushrooms : template == RimBush ? Bush : Stones];
+            }
+            float[] rimLow = { 380f, 230f, 92f, 130f, 74f, 150f / DecorScale }, rimHigh = { 460f, 280f, 110f, 150f, 86f, 150f / DecorScale };
+            float RimHeight(int template, float seed) => Mathf.Lerp(rimLow[template], rimHigh[template], Hash(seed)) * DecorScale;
+            void AddRim(int template, int side, float y, float depth, float seed)
+            {
+                RimPiece piece = MakeRim(template, side, y, depth, seed, "Rim ");
+                if (piece == null) return;
+                PlaceRim(piece, RimX(piece, Plots.Starting), 1f);
+                _rim.Add(piece);
+            }
+            RimPiece MakeRim(int template, int side, float y, float depth, float seed, string prefix)
+            {
+                Sprite sprite = RimSprite(template);
+                if (template == RimLantern && catalog.StoneLantern == null) template = RimBush;
+                if (sprite == null) return null;
+                string[] names = { "Tree", "Sapling", "Mushrooms", "Bush", "Stones", "Lantern" };
+                float height = RimHeight(template, seed);
                 float width = height * sprite.rect.width / sprite.rect.height;
                 var piece = new RimPiece { Y = y, Width = width, Height = height, Depth = depth, Side = side };
                 if (template != RimStones)
@@ -2883,13 +2923,35 @@ namespace VuonTra.Game.UI
                 piece.Image = AddDecor(rimParent, sprite, 0f, y, height, template == RimLantern ? Color.white : soft);
                 piece.Image.raycastTarget = false;
                 piece.Art = piece.Image.rectTransform;
-                piece.Art.name = names[template];
+                piece.Art.name = prefix + names[template];
                 piece.Art.pivot = new Vector2(0.5f, 0f);
                 if (Hash(seed + 0.5f) < 0.5f) piece.Art.localScale = new Vector3(-1f, 1f, 1f);
                 if (template == RimTree || template == RimSapling) _swayTrees.Add(piece.Art);
                 rimInto.Add(new KeyValuePair<float, Transform>(y, piece.Art));
-                PlaceRim(piece, RimX(piece, Plots.Starting), 1f);
-                _rim.Add(piece);
+                return piece;
+            }
+            void AddWood(int template, GardenSide side, int reach, int shownUntil, float x, float gap, float seed)
+            {
+                Sprite sprite = RimSprite(template);
+                if (sprite == null) return;
+                float height = RimHeight(template == RimLantern && catalog.StoneLantern == null ? RimBush : template, seed), width = height * sprite.rect.width / sprite.rect.height;
+                float edge = LawnEdgeY(shownUntil, side), outward = side == GardenSide.Up ? 1f : -1f;
+                int plots = Expansion.PlotsForSegments(Runner.Defs, shownUntil);
+                float y = side == GardenSide.Up ? edge + gap : edge - gap - height;
+                int step = 0;
+                while (!RimClear(new Rect(x - width / 2f, y, width, height), plots))
+                {
+                    if (++step > 20) return;
+                    y += outward * 20f;
+                }
+                RimPiece piece = MakeRim(template, 0, y, 0f, seed, "Wood ");
+                if (piece == null) return;
+                piece.Band = side;
+                piece.Reach = reach;
+                PlaceRim(piece, x, 1f);
+                piece.Art.gameObject.SetActive(false);
+                if (piece.Shade != null) piece.Shade.gameObject.SetActive(false);
+                _wood.Add(piece);
             }
             for (int side = -1; side <= 1; side += 2)
             {
@@ -2905,6 +2967,22 @@ namespace VuonTra.Game.UI
                     if (edge == lastEdge) edge = edge == RimMushrooms ? RimBush : RimMushrooms;
                     AddRim(edge, side, y + Hash(seed + 6f) * 30f, Hash(seed + 7f) * 16f, seed + 8f);
                     lastEdge = edge;
+                }
+            }
+
+            int lastSegments = Expansion.LastSegments(Runner.Defs);
+            float woodFrom = LawnEdgeX(lastSegments, GardenSide.Left) + 40f, woodTo = LawnEdgeX(lastSegments, GardenSide.Right) - 40f;
+            foreach (GardenSide band in new[] { GardenSide.Up, GardenSide.Down })
+            {
+                int reach = GardenGrid.Reach(lastSegments, band);
+                for (float x = woodFrom; x <= woodTo; x += 125f)
+                {
+                    float seed = x * 0.31f + (int)band * 7f + reach * 3f;
+                    if (band == GardenSide.Up)
+                        AddWood(Hash(seed + 2f) < 0.6f ? RimTree : RimSapling, band, reach, lastSegments, x + (Hash(seed + 1f) - 0.5f) * 40f, 50f + Hash(seed + 3f) * 50f, seed + 4f);
+                    float pick = Hash(seed + 5f);
+                    int low = pick < 0.4f ? RimBush : pick < 0.75f ? RimMushrooms : RimStones;
+                    AddWood(low, band, reach, lastSegments, x + 60f, Hash(seed + 7f) * 16f, seed + 8f);
                 }
             }
 
@@ -4031,7 +4109,48 @@ namespace VuonTra.Game.UI
                     else PlaceRim(p, to, 2f * t - 1f);
                 }, t => t);
             }
+            RefreshWood(Expansion.Segments(s), growing);
             _landPlots = plots;
+        }
+
+        void RefreshWood(int segments, bool growing)
+        {
+            if (segments == _woodSegments) return;
+            float from = LawnEdgeX(segments, GardenSide.Left), to = LawnEdgeX(segments, GardenSide.Right);
+            foreach (RimPiece p in _wood)
+            {
+                bool show = p.Reach == GardenGrid.Reach(segments, p.Band) && p.X >= from && p.X <= to;
+                float want = show ? 1f : 0f;
+                if (p.Target == want) continue;
+                p.Target = want;
+                RimPiece piece = p;
+                int run = ++piece.Run;
+                if (show) ShowWood(piece, true);
+                if (!growing || _woodSegments < 0)
+                {
+                    PlaceRim(piece, piece.X, 1f);
+                    if (!show) ShowWood(piece, false);
+                    continue;
+                }
+                float delay = show ? RimStep / 2f : 0f;
+                PlaceRim(piece, piece.X, show ? 0f : 1f);
+                Tweens.Add(RimStep / 2f, t =>
+                {
+                    if (piece.Run == run && piece.Art != null) PlaceRim(piece, piece.X, show ? t : 1f - t);
+                }, null, delay, () =>
+                {
+                    if (piece.Run != run || piece.Art == null) return;
+                    PlaceRim(piece, piece.X, 1f);
+                    if (!show) ShowWood(piece, false);
+                });
+            }
+            _woodSegments = segments;
+        }
+
+        static void ShowWood(RimPiece p, bool on)
+        {
+            p.Art.gameObject.SetActive(on);
+            if (p.Shade != null) p.Shade.gameObject.SetActive(on);
         }
 
         /// <summary>Resting rabbits that have a place sit in the garden as themselves; the rest are not out.</summary>
@@ -6479,9 +6598,11 @@ namespace VuonTra.Game.UI
         List<Vector2> RingGrassSpots(int segment, int stations)
         {
             var spots = new List<Vector2>();
+            GardenSide band = GardenGrid.SideOf(segment);
+            bool aside = band == GardenSide.Left || band == GardenSide.Right;
             void Add(Vector2 at)
             {
-                if (Mathf.Abs(at.y - Heart.y) > StripHalfH - RingGrassBand) return;
+                if (aside ? Mathf.Abs(at.y - Heart.y) > StripHalfH - RingGrassBand : at.y < RingGrassBand || at.y > WorldH - RingGrassBand) return;
                 foreach (Vector2 other in spots) if (Vector2.Distance(other, at) < 60f) return;
                 spots.Add(at);
             }
@@ -6533,6 +6654,7 @@ namespace VuonTra.Game.UI
             Vector2 plot = StationSpot(next);
             // Just inside the lawn's end, so the whole board is in view when the garden looks at that end.
             GardenSide side = GardenGrid.SideOf(segments + 1);
+            if (side == GardenSide.Up || side == GardenSide.Down) return BandSignSpot(Heart.x, segments, side);
             float x = LawnEdgeX(segments, side) - (side == GardenSide.Left ? -1f : 1f) * (ForestSignW / 2f + 10f);
             // Whole in the opening view when it stands in it, and short of the trees at the garden's ends (#16).
             float teapot = StationSpot(0).x, reach = OpeningReach - ForestSignW / 2f;
@@ -6554,6 +6676,26 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>The x of the open lawn's edge on one side with this many segments open: half a tile past the last tile of its rows.</summary>
+        Vector2 BandSignSpot(float near, int segments, GardenSide side)
+        {
+            float edge = LawnEdgeY(segments, side), tall = ForestSignH + ForestPostH;
+            float y = side == GardenSide.Up ? edge - tall - 40f : edge + 40f;
+            Vector2 span = SegmentSpan(segments + 1);
+            float low = span.x + 200f + ForestSignW / 2f, high = span.y - 200f - ForestSignW / 2f, start = Mathf.Clamp(near, low, high);
+            var plates = new List<Rect>();
+            foreach (RectTransform rt in _street.GetComponentsInChildren<RectTransform>(true))
+                if (rt.name == "Level" || rt.name == "Plate") plates.Add(StreetRect(rt));
+            for (int n = 0; n < 80; n++)
+            {
+                float x = Mathf.Clamp(start + (n % 2 == 0 ? -1f : 1f) * ((n + 1) / 2) * 30f, low, high);
+                var sign = new Rect(x - ForestSignW / 2f - 160f, y - 60f, ForestSignW + 320f, tall + 120f);
+                bool clear = true;
+                foreach (Rect plate in plates) if (plate.Overlaps(sign)) { clear = false; break; }
+                if (clear) return new Vector2(x, y);
+            }
+            return new Vector2(start, y);
+        }
+
         static float LawnEdgeX(int segments, GardenSide side)
         {
             float half = (GardenGrid.Reach(segments, side == GardenSide.Left ? GardenSide.Left : GardenSide.Right) + 1) * (float)GardenGrid.PitchX / 2f;
@@ -6575,6 +6717,8 @@ namespace VuonTra.Game.UI
             Transform parent = _street;
             _forestSign = UiKit.Rect("Forest Sign", parent).Place(0f, 0f, 0f, 0f, ForestSignW, ForestSignH + ForestPostH);
             _forestSign.pivot = new Vector2(0.5f, 0f);
+            UiKit.Rect("Shadow", _forestSign).Place(0.5f, 0f, 4f, 6f, 120f, 34f)
+                .AddImage(catalog.Glow, Palette.Alpha(Palette.Night, 0.35f)).raycastTarget = false;
             UiKit.Rect("Post", _forestSign).Place(0.5f, 0f, 0f, ForestPostH / 2f + 4f, 22f, ForestPostH + 8f)
                 .AddImage(catalog.Panel, Palette.Mix(Palette.Carrot, Palette.Ink, 0.55f), true).raycastTarget = false;
             var board = UiKit.Rect("Board", _forestSign).Place(0.5f, 1f, 0f, -ForestSignH / 2f, ForestSignW, ForestSignH);
@@ -6641,6 +6785,14 @@ namespace VuonTra.Game.UI
             if (aside)
                 UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (MistLow + MistHigh) / 2f, MistEdgeWidth, MistHigh - MistLow + 200f)
                     .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
+            else
+            {
+                bool up = GardenGrid.SideOf(segment) == GardenSide.Up;
+                float lawn = LawnEdgeY(segment - 1, up ? GardenSide.Up : GardenSide.Down), outward = up ? 1f : -1f;
+                RectTransform bank = UiKit.Rect("Edge", mist).Place(0f, 0f, (span.x + span.y) / 2f, lawn + outward * (MistEdgeWidth / 2f - MistEdgeOut), MistEdgeWidth, span.y - span.x + 400f);
+                bank.localRotation = Quaternion.Euler(0f, 0f, up ? 90f : -90f);
+                bank.AddImage(MistEdgeSprite(true), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
+            }
             int Across = aside ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9;
             for (int a = 0; a < Across; a++)
                 for (int d = 0; d < Down; d++)

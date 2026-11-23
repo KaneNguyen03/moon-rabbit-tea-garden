@@ -631,6 +631,7 @@ namespace VuonTra.EditorTools
             RenderFourStations(runner, screen);
             RenderAdSeams(runner, screen);
             RenderForestRings(runner, screen);
+            RenderMapEdges(runner, screen);
             RenderLayout(runner, screen);
             RenderPond(runner, screen);
             RenderQaNits2();
@@ -1256,6 +1257,69 @@ namespace VuonTra.EditorTools
                 screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
                 Step(screen, 0.2f);
                 Capture(screen, "53-vong-" + (ring + 1) + "-xa-sau");
+                screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            }
+        }
+
+        [MenuItem("VuonTra/Render Map Edges")]
+        public static void RenderMapEdgesOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderMapEdges(runner, screen);
+        }
+
+        static void RenderMapEdges(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            foreach (int segments in new[] { 0, 4, 5, 6 })
+            {
+                GameState s = GameState.NewGame(defs);
+                s.HintSeen = true;
+                s.TutorialStep = Tutorial.Steps;
+                s.Plots = Expansion.PlotsForSegments(defs, segments);
+                s.Grid.Segments = segments;
+                for (int i = 0; i < s.Plots; i++) s.Levels[i] = 8 - i / 3;
+                Rabbits.GiftFirst(s, "Bông");
+                MistSegment next = Expansion.Next(defs, s);
+                if (next != null)
+                {
+                    s.GardenXp = Garden.XpForLevel(next.NeedLevel);
+                    while (s.Rabbits.Count < next.NeedRabbits) Rabbits.Arrive(s, 0, "Thỏ " + (s.Rabbits.Count + 1), (s.Rabbits.Count * 0.37) % 1d);
+                    foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
+                    s.Coins = Expansion.CostOfNext(defs, s) * new BigNum(1.2);
+                }
+                runner.Init(s);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                screen.Shell.StartGame();
+                Step(screen, 2f);
+                string name = "91b-" + segments + "-doan";
+                Debug.Log("91b preview " + segments + " segments: can widen " + Expansion.CanExpand(defs, s) + ", sign at " + screen.ForestSignSpot);
+                if (next != null)
+                {
+                    screen.LookAt(screen.ForestSignSpot + new Vector2(0f, 120f));
+                    Step(screen, 0.5f);
+                    Capture(screen, name + "-bien");
+                }
+                screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+                screen.LookAt(new Vector2(screen.StationSpot(0).x, 99999f));
+                Step(screen, 0.5f);
+                Capture(screen, name + "-tren");
+                screen.LookAt(new Vector2(screen.StationSpot(0).x, -99999f));
+                Step(screen, 0.5f);
+                Capture(screen, name + "-duoi");
+                screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+                screen.LookAt(screen.StationSpot(0));
+                Step(screen, 0.5f);
+                Capture(screen, name + "-xa");
                 screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
             }
         }
