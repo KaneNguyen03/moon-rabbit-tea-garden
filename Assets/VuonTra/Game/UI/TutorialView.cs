@@ -5,15 +5,11 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The first minute's guidance: a line at the top saying what to do, a hand pointing at the one thing
-    /// to touch, and a dim over everything else with a hole round that thing. Nothing is locked: every
-    /// touch still goes through, and Skip ends it.
-    /// </summary>
     public sealed class TutorialView
     {
+        static readonly Vector2 FingertipPivot = new Vector2(0.15f, 0.9f);
+
         public RectTransform Root { get; private set; }
-        /// <summary>What the hand points at right now, or null.</summary>
         public RectTransform Target { get; private set; }
 
         readonly RectTransform _canvas, _hand, _plate;
@@ -30,18 +26,16 @@ namespace VuonTra.Game.UI
             _canvas = canvas;
             _feel = feel;
             Root = UiKit.Rect("Tutorial", canvas).Stretch(0, 0, 1, 1);
-            // The dim: four panels round a hole. None of them catches a touch.
             string[] names = { "DimTop", "DimBottom", "DimLeft", "DimRight" };
             for (int i = 0; i < 4; i++)
             {
                 _dim[i] = UiKit.Rect(names[i], Root);
                 _dim[i].AddImage(null, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.45f));
             }
-            _hand = UiKit.Rect("Hand", Root).Place(0.5f, 0.5f, 0, 0, 110, 110); // placed from the centre, like the hole
-            _hand.pivot = new Vector2(0.15f, 0.9f); // the fingertip
+            _hand = UiKit.Rect("Hand", Root).Place(0.5f, 0.5f, 0, 0, 110, 110);
+            _hand.pivot = FingertipPivot;
             _hand.AddImage(catalog.Hand, Color.white).preserveAspect = true;
 
-            // What to do, at the top, with the way out beside it.
             _plate = UiKit.Rect("Plate", Root).Place(0.5f, 1f, 0, -196, 1000, 88);
             _plate.AddShadow(14f, 8f, 0.28f);
             UiKit.Rect("Body", _plate).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.Paper, true);
@@ -56,7 +50,6 @@ namespace VuonTra.Game.UI
             Root.gameObject.SetActive(false);
         }
 
-        /// <summary>Shows a step; the same step again changes nothing.</summary>
         public void Show(int step)
         {
             if (!Root.gameObject.activeSelf) Root.gameObject.SetActive(true);
@@ -73,7 +66,6 @@ namespace VuonTra.Game.UI
             Target = null;
         }
 
-        /// <summary>Points the hand at <paramref name="target"/> (null: nothing to point at, no dim) and keeps up with it.</summary>
         public void Follow(RectTransform target, float dt)
         {
             _clock += dt;
@@ -83,7 +75,6 @@ namespace VuonTra.Game.UI
             foreach (RectTransform dim in _dim) if (dim.gameObject.activeSelf != has) dim.gameObject.SetActive(has);
             if (!has) return;
 
-            // The target's box in the layer's own units; the hole follows it wherever it scrolls.
             Vector3[] corners = new Vector3[4];
             target.GetWorldCorners(corners);
             Vector2 min = Local(corners[0]), max = Local(corners[2]);
@@ -96,7 +87,6 @@ namespace VuonTra.Game.UI
             Box(_dim[2], -w / 2f, min.y, min.x, max.y);
             Box(_dim[3], max.x, min.y, w / 2f, max.y);
 
-            // The hand rests at the lower right of the target and taps towards it.
             float bob = Mathf.Abs(Mathf.Sin(_clock * 3.2f)) * 18f;
             _handAt = new Vector2(max.x - Hole + 10f, min.y + Hole - 10f) + new Vector2(bob, -bob);
             _hand.anchoredPosition = _handAt;

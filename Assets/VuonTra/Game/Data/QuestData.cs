@@ -3,7 +3,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game
 {
-    /// <summary>A quest as an asset: a daily goal or a one-time achievement.</summary>
     [CreateAssetMenu(menuName = "VuonTra/Quest", fileName = "Quest")]
     public sealed class QuestData : ScriptableObject
     {

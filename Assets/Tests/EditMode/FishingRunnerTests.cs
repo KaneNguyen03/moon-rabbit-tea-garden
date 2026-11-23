@@ -6,7 +6,6 @@ using L10n = VuonTra.Game.L10n;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The runner's side of the moon pond (#58a): what the pond's card and the rabbit's Feed button will call.</summary>
     public class FishingRunnerTests
     {
         GameObject root;

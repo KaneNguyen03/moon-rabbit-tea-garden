@@ -6,10 +6,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The summary before upgrading everything: how much of the purse to spend, which station rises by
-    /// how many levels for how much, the total, and the button that does it.
-    /// </summary>
     public sealed class UpgradeAllView
     {
         static readonly double[] Shares = { 1d, 0.5d, 0.25d };
@@ -28,7 +24,6 @@ namespace VuonTra.Game.UI
         string _signature;
 
         public bool IsOpen => _root.activeSelf;
-        /// <summary>The plan on show, so what the player confirms is what they read.</summary>
         public List<UpgradeStep> Plan { get; private set; } = new List<UpgradeStep>();
 
         public UpgradeAllView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<double> onShare, Action onConfirm)
@@ -59,7 +54,6 @@ namespace VuonTra.Game.UI
             closeButton.onClick.AddListener(Close);
             UiKit.Rect("Text", close).Stretch(0, 0, 1, 1).AddText("×", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // How much of the purse may go: all of it, half, a quarter.
             UiKit.Rect("KeepLabel", _card).Stretch(0, 1, 0.42f, 1, 40, -186, 0, 126)
                 .AddText(L10n.T("upgradeall.keep"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
             var track = UiKit.Rect("Shares", _card).Place(1f, 1f, -230, -156, 400, 64);
@@ -80,7 +74,7 @@ namespace VuonTra.Game.UI
             }
 
             var scrollRt = UiKit.Rect("Scroll", _card).Stretch(0, 0, 1, 1, 0, 230, 0, 200);
-            scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
+            scrollRt.AddTapCatcher();
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.scrollSensitivity = 40f;
@@ -127,7 +121,6 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>Plans again whenever the purse, the levels or the share have changed.</summary>
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s)
         {
             if (!IsOpen) return;

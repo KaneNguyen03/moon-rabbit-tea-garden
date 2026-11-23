@@ -3,10 +3,6 @@ using UnityEngine;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// Measures a sound the way QA did on 22 Nov (docs/qa-22-11.md on qa-test): mono, peak and RMS in dBFS,
-    /// and from the averaged power spectrum the spectral centroid and the share of energy above 4 kHz.
-    /// </summary>
     public readonly struct SoundMeter
     {
         public readonly float PeakDb, RmsDb, CentroidHz, Above4k;
@@ -21,7 +17,6 @@ namespace VuonTra.Core.Tests
 
         public static float Db(double amplitude) => (float)(20d * Math.Log10(Math.Max(amplitude, 1e-9)));
 
-        /// <summary>A clip's samples, channels averaged to one.</summary>
         public static float[] Mono(AudioClip clip)
         {
             var data = new float[clip.samples * clip.channels];
@@ -39,10 +34,6 @@ namespace VuonTra.Core.Tests
 
         public static SoundMeter Of(AudioClip clip, float volume = 1f) => Of(Mono(clip), clip.frequency, volume);
 
-        /// <summary>
-        /// <paramref name="volume"/> scales peak and RMS (the level it is played at); the spectrum's shape does not
-        /// depend on it. The spectrum is Welch's: 4096-sample Hann windows, half overlapping, powers averaged.
-        /// </summary>
         public static SoundMeter Of(float[] samples, int rate, float volume = 1f)
         {
             double sum = 0d;
@@ -55,7 +46,6 @@ namespace VuonTra.Core.Tests
             var re = new double[size];
             var im = new double[size];
             int hop = size / 2;
-            // A clip shorter than one window is zero-padded into a single one.
             for (int start = 0; start == 0 || start + size <= samples.Length; start += hop)
             {
                 for (int i = 0; i < size; i++)
@@ -70,7 +60,7 @@ namespace VuonTra.Core.Tests
             }
 
             double total = 0d, weighted = 0d, high = 0d;
-            for (int k = 1; k <= size / 2; k++) // the DC bin is not a sound
+            for (int k = 1; k <= size / 2; k++)
             {
                 double hz = k * (double)rate / size;
                 total += power[k];
@@ -82,7 +72,6 @@ namespace VuonTra.Core.Tests
             return new SoundMeter(Db(peak * volume), Db(rms * volume), centroid, above);
         }
 
-        /// <summary>In-place radix-2 FFT; the length must be a power of two.</summary>
         static void Fft(double[] re, double[] im)
         {
             int n = re.Length;

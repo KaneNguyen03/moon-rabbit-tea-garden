@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Arranging the garden (#54): moving things to empty tiles, swapping two, putting a station away and taking it out.</summary>
     public class LayoutTests
     {
         List<StationDef> defs;
@@ -14,7 +13,7 @@ namespace VuonTra.Core.Tests
         {
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
-            s.Levels[1] = 5; s.Levels[2] = 3; // tea, leaf and jam all open
+            s.Levels[1] = 5; s.Levels[2] = 3;
         }
 
         static Hex Tile(GameState s, string id) => s.Grid.TileOf(id).Value;
@@ -70,12 +69,9 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(tea, Tile(s, "station:jam"));
         }
 
-        // ----- Stations keep apart (#88) -----
-
         [Test]
         public void A_Station_Cannot_Be_Moved_Onto_A_Tile_Next_To_Another_Station()
         {
-            // #88: a station dropped right beside another was drawn over it, its level plate on the other's rabbit.
             GardenGrid g = s.Grid;
             Hex jam = Tile(s, "station:jam"), tea = Tile(s, "station:tea"), leaf = Tile(s, "station:leaf");
             foreach (Hex h in new[] { new Hex(-1, 1), new Hex(0, 1), new Hex(1, 1), new Hex(3, 0) })
@@ -96,7 +92,6 @@ namespace VuonTra.Core.Tests
         {
             GardenGrid g = s.Grid;
             Hex tea = Tile(s, "station:tea");
-            // A save from before #88 may already have the jam pot touching the leaf basket.
             Assert.IsTrue(g.Place("station:jam", 2, 1));
             Hex jam = new Hex(2, 1);
             Assert.AreEqual(1, GardenGrid.Distance(jam, Tile(s, "station:leaf")));
@@ -106,12 +101,10 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, jam, tea));
             Assert.AreEqual(tea, Tile(s, "station:tea"));
             Assert.AreEqual(jam, Tile(s, "station:jam"));
-            // A place to rest beside a station is fine, and the station that takes its tile lands two from the others.
             Hex seat = Tile(s, "rest:0");
             Assert.AreEqual(LayoutDrop.Swapped, Layout.Drop(defs, s, jam, seat), "the jam pot goes to the stump, the stump beside the leaf basket");
             Assert.AreEqual(seat, Tile(s, "station:jam"));
             Assert.AreEqual(jam, Tile(s, "rest:0"));
-            // Two stations that each land two from the rest swap as before.
             Assert.IsTrue(g.Swap(tea, Tile(s, "station:leaf")));
         }
 
@@ -191,7 +184,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Layout.Store(defs, s, "rest:0"), "a place to rest");
             Assert.IsFalse(Layout.Store(defs, s, GardenGrid.ShopId));
             Assert.IsFalse(Layout.Store(defs, s, "station:nothing"));
-            // A decoration goes back to the decorations' own storage (#11).
             s.GoldenCarrots = 100;
             Assert.IsTrue(Decor.Buy(s, "den-da"));
             Assert.IsTrue(Decor.Place(s, 2, "den-da"));
@@ -234,7 +226,6 @@ namespace VuonTra.Core.Tests
             GardenGrid.Settle(defs, s);
             Assert.IsNull(s.Grid.TileOf("station:jam"), "settling does not stand it back");
             Assert.IsTrue(s.Grid.IsStored("station:jam"));
-            // A new moon: every station starts again at nothing, and the store is emptied with it.
             s.GardenXp = Garden.XpForLevel(NewMoon.LevelNeeded(0));
             Assert.IsTrue(NewMoon.Begin(defs, s, "Trăng", out _));
             Assert.IsFalse(s.Grid.IsStored("station:jam"));
@@ -268,7 +259,6 @@ namespace VuonTra.Core.Tests
             StringAssert.DoesNotContain("stored", SaveCodec.Encode(defs, plain), "nothing stored, nothing written: the text is as before");
             GameState old = SaveCodec.Decode(defs, "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":3},{\"id\":\"leaf\",\"level\":2},{\"id\":\"jam\",\"level\":1}],\"plots\":3}").State;
             Assert.AreEqual(0, old.Grid.StoredCount);
-            // A stored id the game cannot keep (not a station, or not built) is dropped and the station stands.
             GameState odd = SaveCodec.Decode(defs, "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":3},{\"id\":\"leaf\",\"level\":0},{\"id\":\"jam\",\"level\":1}],\"plots\":3,"
                 + "\"grid\":{\"radius\":3,\"tiles\":[],\"stored\":[\"station:leaf\",\"rest:0\",\"ghost\",\"station:jam\"]}}").State;
             Assert.AreEqual(1, odd.Grid.StoredCount);

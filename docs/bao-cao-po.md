@@ -1888,6 +1888,86 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Bảng "Còn thiếu …" có thể bị cắt ở mép khi đứng ở biển sau khi mở rộng (ngoài khung mở đầu).
 - Chủ game đã quyết (23/11): sương dày hơn một chút (việc 6); trà sữa và ruộng lúa giữ chỗ, luật 520 không nới; đồng ý chữ "Mở rộng vườn · đoạn N".
 
+## #97 — Bớt rác bộ nhớ mỗi khung hình (agent perf-97)
+
+
+- **Test:** verify GREEN, 1187/1188 (0 hỏng, 1 inconclusive có sẵn: `SeasonTests.Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit`). Test mới `AllocationTests` (5 test): vườn đầy 16 trạm, 160 thỏ, album đủ, có và không cất trạm; `IncomePerSecond`, 16 `StationIncomePerSecond`, 600 tick, tiến độ mọi nhiệm vụ đều 0 lần cấp phát (recorder GC.Alloc của Unity, `GC.GetAllocatedBytesForCurrentThread` ghi 0 B); hệ số album đọc một lần bằng đúng `StationFactor` ở mọi mức album.
+- **Commit:** 949ffa6, merge d09ef30. Main sau đợt gộp: 1237/1238.
+
+**Làm gì:** `Economy` đọc album một lần mỗi lần tính thay vì mỗi cặp trạm, `AlbumSets.Met` duyệt theo chỉ số (hết box enumerator); `Layout.IsStored` dùng id giữ sẵn `StationDef.GridId` thay vì nối `"station:" + Id`; `GameRunner` giữ một delegate `Roll`; `RestSpots.SeatedCount` cho nhiệm vụ và bảng thu nhập; `Seasons.KindOf`/`KindsMet` duyệt theo chỉ số; `BigNum` giữ sẵn hậu tố aa…zz. Không đổi con số nào, save vẫn bản 14, không đụng `GardenScreen.cs`, `Garden.cs`, `GardenGrid.cs`.
+
+**Số đo (Core, .NET, vườn 16 trạm):** `IncomePerSecond` 5 520 / 9 592 B mỗi lần (không cất / cất 1 trạm) → 0; `Tick` 8,8 / 527 B → 0; `AlbumSets.Met` ~33,7 KB/khung (~2 MB/giây ở 60 fps) → 0; `Quests.Progress` 4 584 B → 0. Kinh tế 17 hạt × 6 người chơi giống hệt từng byte trước và sau sửa; sim chạy nhanh gấp ~2.
+
+### Chưa đạt / cần PO quyết
+- Phần `GardenGrid.StationId` gọi từ `GardenScreen.StationSpot` mỗi khung còn nguyên, làm sau #91 (đổi sang `Runner.Defs[i].GridId`, một dòng).
+- Chữ số trên UI vẫn tạo chuỗi mới mỗi lần làm mới (~10 KB/khung theo QA); muốn về gần 0 phải chỉ làm mới chữ khi số đổi, việc của UI.
+- Chưa đo lại fps/GC trong bản build: cần QA chạy lại bước đo của #97 sau khi gộp perf-97 (và sau #91).
+
+## #92–#96 — Soát chữ vi/en (agent text-fix)
+
+- Test: 1188/1189 qua, 0 hỏng, 1 inconclusive (SeasonTests tự bỏ qua theo ngày thật) · verify GREEN · có 5 test mới trong L10nTests
+- Commit: fa3c14e (#92) · 05e40c7 (#93) · 3d29f6d (#94) · 54712bb (#95) · a3daf0a (#96) · a399818 (bảng chữ + ảnh), nhánh text-fix, merge 8007364; main sau đợt gộp 1237/1238
+- #92: 5 key + RabbitGridView. Nhiệm vụ đếm trạm thì nói trạm, quà 5 tim là "Đã thân nhau", sổ thỏ hiện x/72 khớp mốc, thanh tiếng trạm tiếng Anh là "Ambience"
+- #93: L10n.T đọc `key.one` khi tiếng Anh và số đầu tiên là 1 (25 key). 7 dòng nhiều số viết kiểu "Rabbits: 1 · Stations: 1". Tiếng Việt không đổi
+- #94: 14 key. trinket / Rabbit book / Rest spots / Trăng–Moon {n} / Chạm–Tap / ×1.5
+- #95: 15 key vi. xoá, khoá, "+5%", "bé thỏ", "cỏ bốn lá". Có test quét chặn kiểu viết cũ
+- #96: 48 key en theo bảng đề xuất. Nhãn nút ngắn hơn, chính tả Anh–Mỹ, thỏ nói dạng rút gọn
+Ảnh: docs/anh/text-fix/ — 7 cặp *-truoc / *-sau (nhiệm vụ, tab thỏ, thẻ thỏ, tạm nghỉ, hồ sơ, thu nhập, so sánh trăng mới)
+
+### Chưa đạt / cần PO quyết
+- "Station sounds" bị xuống dòng trên thẻ Tạm nghỉ khi bật chữ to, nên tạm dùng "Ambience". PO chọn chữ khác nếu muốn.
+- Vòng trăng mới đổi "Mùa {n}" → "Trăng {n}" cả ở vi, theo đề xuất #94. Nếu PO muốn giữ "Mùa" ở vi thì chỉ cần sửa lại 5 key.
+- Chưa có ảnh xem trước cho Tiệm tiếng Anh ("+1 golden carrot") và cho khoảnh khắc quà 5 tim, nên hai chỗ này chưa có ảnh trước/sau. Đã có test bao phần chữ.
+- Việc nhỏ của #96 chưa làm: xoá 33 key không dùng, tên thỏ tiếng Anh.
+
+## #88 — Bố trí không cho đặt trạm sát trạm khác (agent layout-88)
+- **Test:** 1187/1188 xanh (`tools/verify.sh` RESULT GREEN; 1 test mùa `Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit` báo inconclusive vì phụ thuộc đồng hồ thật, cũng có ở lần chạy trước khi sửa). Thêm 5 test mới; trước khi sửa 4 test trong số đó đỏ.
+- **Commit:** `ba24e79` trên nhánh `layout-88`, merge `40b60e8`. Main sau đợt gộp: 1237/1238.
+- **Đã làm:** dời trạm (`GardenGrid.Move`) và đổi chỗ (`Swap`) giờ giữ khoảng cách hai ô giữa các trạm, cùng luật với trạm game tự đặt (`Expansion.StationSpacing`), gom vào một hàm `KeepsStationsApart`. Đổi chỗ kiểm cả hai chỗ mới; ghế nghỉ và đồ trang trí được miễn. `Layout.Drop` trả `Back`. Ô sáng khi kéo trong chế độ Bố trí dùng cùng luật: ô sát trạm không sáng, thả ra thì trạm bật về. Thêm khung xem trước `88-keo-sat-tram` và `88-tha-sat-tram`.
+- **Ảnh:** `docs/anh/po-54/88-truoc.png`, `docs/anh/po-54/88-sau.png`
+
+### Chưa đạt / cần PO quyết
+- Lấy trạm ra khỏi kho vẫn có thể đặt sát trạm khác (`TakeOut` dùng `NearestEmpty`). Sửa một dòng, đã có sẵn trong bản vá dở của review-fix (`/tmp/rfsim/issue88-unfinished.patch`). Cần PO cho làm tiếp.
+- Hai trạm vốn đã sát nhau (save cũ) vẫn đổi chỗ cho nhau được. Bản vá review-fix thì chặn luôn trường hợp này. PO chọn một trong hai.
+- Vòng nét đứt vẫn hiện trên ô sát trạm khi đang cầm trạm; chỉ ô sáng dưới ngón tay là đã lọc. Có nên ẩn vòng theo thứ đang cầm không?
+- Save cũ có trạm chồng nhau không tự dời ra.
+- Ảnh xem trước `54-sau-hoan-doi` giờ cho thấy Giỏ lá bật về thay vì đứng sát ấm trà.
+
+## #98–#99 — Mùa trăng mới đi tiếp và "Nâng tất cả" không mở trạm quá sớm (agent econ-98-99)
+
+
+- **Test:** `tools/verify.sh` (đầy đủ) GREEN, 1231/1232 (1 inconclusive có từ trước: `Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit`). Mới: 7 ca `NewMoonTests`, 3 test mô phỏng chậm (`[Category("Slow")]`).
+- **Commit:** `8f0792b` (#99, chỉ test), `b8c806a` (#98), nhánh `econ-98-99`, merge `5f165ac`. Main sau gộp: 1266/1267.
+
+**Đã làm**
+- #98: điểm vườn nhân hệ số mùa trăng mới; `NewMoon.LevelStep` 5 → 3 (mùa 2–7 cần cấp 33…48); vàng mỗi 5 cấp chỉ trả một lần (trên cấp mùa trước đã đòi), để gọi vàng của người chăm giữ ≤ 6/tuần. Save vẫn version 14.
+- #99: thêm người thong thả bấm "Nâng tất cả" (đúng `UpgradePlan` như nút) vào hai bộ test nhịp, 17 hạt, ghi bảng ra Logs. Không đổi ngưỡng trạm/đoạn.
+
+| | Thong thả, từng cấp | Thong thả, Nâng tất cả | Chăm, từng cấp | Chăm, Nâng tất cả |
+|---|---|---|---|---|
+| Trăng mới 1 / 2 / 3 (ngày) | 10 / – / – → 10 / 21 / 31 | 9 / – / – → 9 / 19 / 28 | 7 / – / – → 7 / 16 / 24 | 7 / – / – → 7 / 16 / 24 |
+| Số mùa tới ngày 42 | 1 → 4 | 1 → 4 | 1 → 6 | 1 → 5 |
+| Gọi vàng, tuần cao nhất trong tuần 2–6 | 6 → 5 | 6 → 5 | 5 → 6 | 5 → 6 |
+| Trạm 13 / 16 (ngày; người 15 ph/ngày) | 5 / 9 | 1 / 1 | – | – |
+| Cấp 5, cấp 10, 12 ô đất | không đổi | không đổi | không đổi | không đổi |
+
+### Chưa đạt / cần PO quyết
+- #99: không ngưỡng cấp vườn nào đưa trạm 13 vào ngày 3–5 và trạm 16 vào ngày 8–12 cho cả người mua từng cấp lẫn người bấm Nâng tất cả. Đề xuất 25/26/27/28 làm người 15 phút/ngày mua từng cấp không mở được 4 trạm trong 14 ngày (test #67: 0/17). Cần chọn: A (bỏ luật #67 cho người này), B (chặn đoạn 5–6 bằng thứ khác ngoài cấp vườn), hoặc C (chỉnh lại tuần đầu theo người bấm Nâng tất cả).
+- Người bấm Nâng tất cả trên `main` còn trượt: cấp 10 trong buổi đầu, 12 ô đất ngày 2, trò chơi + khách 1,1 % ngày 1, thu nhập ngày 7 vượt trần ~50 lần.
+- #98 cần duyệt: `LevelStep` 3, điểm vườn × hệ số mùa, vàng mỗi 5 cấp chỉ trả một lần.
+- Người chăm tuần 1 vẫn gọi vàng 7 lần (có từ trước).
+
+## #100 — Seam analytics và báo lỗi (agent analytics-crash)
+
+- **Test:** `tools/verify.sh` xanh, 1240/1241; 19 test mới (`AnalyticsTests` 7, `AnalyticsRunnerTests` 11, `AnalyticsScreenTests` 1).
+- **Commit:** `2a0ec7c` merge `d999d2f`. Main sau gộp: 1266/1267.
+- **Đã làm:** `Core/Analytics.cs` theo mẫu seam quảng cáo #66 (`IAnalytics`, `NoAnalytics` mặc định, `MemoryAnalytics` cho test/editor, `RecordException`); công tắc `GameRunner.AnalyticsInPlayerBuilds = false`; 15 sự kiện snake_case (mở game, phiên chơi kèm độ dài, bước hướng dẫn, lên cấp vườn, mở trạm, mở đoạn đất, gọi thỏ cỏ/vàng kèm bậc, Mùa trăng mới, mở thẻ gói cà rốt vàng, mua thành công/thất bại kèm lý do, quảng cáo có thưởng), mỗi chỗ một dòng trong `GameRunner` và một dòng trong `GardenScreen`; adapter Firebase Analytics + Crashlytics chỉ biên dịch với `VUONTRA_FIREBASE`; cập nhật bản khai dữ liệu cửa hàng (mục 6) và chính sách quyền riêng tư (mục "khi bật"). Không đổi save (v14), kinh tế hay lối chơi.
+
+### Chưa đạt / cần PO quyết
+- Chọn công cụ: Firebase (đã có adapter) hay GameAnalytics; bật cần SDK, hai file cấu hình, define và công tắc (danh sách trong comment #100).
+- Có cần nút tắt analytics hoặc hộp đồng ý cho người chơi EU không (hiện chưa có; Data safety sẽ khai Required).
+- Nối "Xoá dữ liệu của tôi" với việc xoá ID analytics và chuyển lỗi ghi save sang báo lỗi: chưa làm.
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái

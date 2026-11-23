@@ -7,18 +7,10 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The leaf-catching game on screen: a tea tree's canopy at the top, leaves and pine cones falling from it on
-    /// the game's schedule, and a basket at the bottom that follows the finger. The rules live in
-    /// <see cref="LeavesRun"/>; this only draws them, keeps the clock and turns touches into a basket position.
-    /// Every falling thing is placed from the clock each frame, never moved by accumulation.
-    /// </summary>
     public sealed class LeavesView
     {
-        /// <summary>Falling things on screen at once, at most: a leaf's slot is its index in the schedule modulo this.</summary>
         const int Pool = 12;
         const float FieldHalf = 450f, SpawnY = 170f, LandY = -540f, BasketY = -660f;
-        /// <summary>After landing, a missed leaf keeps falling and fading for this long; a caught one shrinks into the basket.</summary>
         const float Linger = 0.4f;
 
         readonly GameObject _root, _result, _stunPill;
@@ -40,11 +32,8 @@ namespace VuonTra.Game.UI
 
         public LeavesRun Run { get; private set; }
         public bool IsOpen => _root.activeSelf;
-        /// <summary>The result card, where the extra round's ad button hangs (#66).</summary>
         public RectTransform ResultCard => _resultCard;
-        /// <summary>Seconds into the game, the same clock the rules are settled on.</summary>
         public double Time => _time;
-        /// <summary>Where the basket stands, 0 at the left edge of the field and 1 at the right.</summary>
         public float BasketX => _basketX;
 
         public LeavesView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onQuit, Action<LeavesRun> onFinished)
@@ -56,7 +45,6 @@ namespace VuonTra.Game.UI
             _overlay = UiKit.Rect("Leaves", canvas).Stretch(0, 0, 1, 1);
             _root = _overlay.gameObject;
             _overlay.AddImage(null, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Grass, 0.35f), 0.86f)).raycastTarget = true;
-            // Touches anywhere on the field: a tap sends the basket there, a drag carries it along.
             Canvas canvasComponent = canvas.GetComponent<Canvas>();
             var trigger = _root.AddComponent<EventTrigger>();
             Add(trigger, EventTriggerType.PointerDown, e => MoveBasket(PointerX(((PointerEventData)e).position, canvasComponent)));
@@ -66,20 +54,17 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("leaves.title"), 48, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold).AddShadow();
             UiKit.Rect("Hint", _overlay).Place(0.5f, 1f, 0, -300, 980, 44)
                 .AddText(L10n.T("leaves.hint"), UiKit.TextBody, Palette.Alpha(Palette.Paper, 0.85f), TextAnchor.MiddleCenter);
-            // The score and the count keep 24 from either edge of the screen (#77).
             _score = UiKit.Rect("Score", _overlay).Place(0f, 1f, 164, -400, 280, 60)
                 .AddText("", UiKit.TextTitle, Palette.Lantern, TextAnchor.MiddleLeft, FontStyle.Bold);
             _timer = UiKit.Rect("Timer", _overlay).Place(1f, 1f, -184, -400, 320, 60)
                 .AddText("", UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleRight, FontStyle.Bold);
 
-            // The canopy: the garden's tree when there is one, else a round of moss.
             Sprite tree = catalog.Decor != null && catalog.Decor.Length > 0 ? catalog.Decor[0] : null;
             var canopy = UiKit.Rect("Canopy", _overlay).Place(0.5f, 0.5f, 0, 290, 640, 480);
             Image canopyImage = canopy.AddImage(tree != null ? tree : catalog.Round, tree != null ? Color.white : Palette.Moss);
             canopyImage.preserveAspect = true;
             if (tree == null) canopy.sizeDelta = new Vector2(760, 340);
 
-            // The falling things: a fixed pool, each drawn from the clock while its leaf is in the air.
             var field = UiKit.Rect("Field", _overlay).Stretch(0, 0, 1, 1);
             for (int i = 0; i < Pool; i++)
             {
@@ -88,7 +73,6 @@ namespace VuonTra.Game.UI
                 _slots[i].gameObject.SetActive(false);
             }
 
-            // The basket: the tea-leaf station's own basket when the catalog has it.
             Sprite basketSprite = null;
             if (catalog.Stations != null)
                 foreach (StationData station in catalog.Stations)
@@ -120,9 +104,8 @@ namespace VuonTra.Game.UI
             quitButton.onClick.AddListener(() => { Sfx.Click(); Close(); _onQuit(); });
             UiKit.Rect("Text", quit).Stretch(0, 0, 1, 1).AddText(L10n.T("leaves.quit"), UiKit.TextBody, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // The result: stars, the score and what it paid.
             var result = UiKit.Rect("Result", _overlay).Stretch(0, 0, 1, 1);
-            result.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true; // taps on the field behind are swallowed
+            result.AddTapCatcher();
             _result = result.gameObject;
             _resultCard = UiKit.Rect("Card", result).Place(0.5f, 0.5f, 0, 0, 860, 720);
             _resultCard.AddShadow(26f, 16f, 0.45f);
@@ -154,7 +137,6 @@ namespace VuonTra.Game.UI
             trigger.triggers.Add(entry);
         }
 
-        /// <summary>A pointer position in screen pixels as a place across the field, 0 to 1.</summary>
         float PointerX(Vector2 screen, Canvas canvas)
         {
             if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(_overlay, screen, canvas != null ? canvas.worldCamera : null, out Vector2 local))
@@ -162,7 +144,6 @@ namespace VuonTra.Game.UI
             return Mathf.Clamp01((local.x + FieldHalf) / (2f * FieldHalf));
         }
 
-        /// <summary>Starts a game.</summary>
         public void Open(LeavesRun run)
         {
             Run = run;
@@ -191,7 +172,6 @@ namespace VuonTra.Game.UI
             Run = null;
         }
 
-        /// <summary>A tap: the basket slides to <paramref name="x"/> (0 left, 1 right); at once under reduced motion.</summary>
         public void MoveBasket(float x)
         {
             if (Run == null || _resultShown) return;
@@ -200,7 +180,6 @@ namespace VuonTra.Game.UI
             _tweens.Add(Motion.Time(0.14f), t => { if (token == _moveToken && _root != null) _basketX = Mathf.LerpUnclamped(from, to, t); }, Motion.Curve(Ease.OutCubic));
         }
 
-        /// <summary>A drag: the basket is wherever the finger is.</summary>
         public void SetBasket(float x)
         {
             if (Run == null || _resultShown) return;
@@ -208,7 +187,6 @@ namespace VuonTra.Game.UI
             _basketX = Mathf.Clamp01(x);
         }
 
-        /// <summary>The clock. Drops that reach the basket line are settled; when the thirty seconds are up the result comes up.</summary>
         public void Update(float dt)
         {
             if (!IsOpen || Run == null) return;
@@ -259,12 +237,10 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>Everything in the air and the basket, placed from the clock.</summary>
         void Place()
         {
             float x = -FieldHalf + _basketX * 2f * FieldHalf;
             _basket.anchoredPosition = new Vector2(x, BasketY);
-            // A caught pine cone: the basket wobbles and goes dim while it is stunned. Still under reduced motion.
             float wobble = _stunLeft > 0f && !Motion.Reduced ? Mathf.Sin(_stunLeft * 50f) * 10f * _stunLeft / (float)Leaves.StunSeconds : 0f;
             _basket.localRotation = Quaternion.Euler(0, 0, wobble);
             _basketImage.color = _stunLeft > 0f ? Palette.Mix(_basketTint, Palette.Ink, 0.4f) : _basketTint;
@@ -275,8 +251,8 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < schedule.Count; i++)
             {
                 Leaf leaf = schedule[i];
-                if (leaf.Drop > _time) break; // not yet, nor anything after it
-                if (leaf.Lands + Linger < _time) continue; // gone
+                if (leaf.Drop > _time) break;
+                if (leaf.Lands + Linger < _time) continue;
                 int slot = i % Pool;
                 used[slot] = true;
                 RectTransform rt = _slots[slot];
@@ -295,7 +271,6 @@ namespace VuonTra.Game.UI
                     bool caught = i < _caught.Length && _caught[i];
                     if (caught)
                     {
-                        // Into the basket: slides to its middle and shrinks away.
                         lx = Mathf.Lerp(lx, x, after);
                         y = Mathf.Lerp(LandY, BasketY + 60f, after);
                         scale = 1f - after;
@@ -329,7 +304,6 @@ namespace VuonTra.Game.UI
             _onFinished(Run);
         }
 
-        /// <summary>Fills the result card once the game has been paid.</summary>
         public void ShowPaid(LeavesResult result)
         {
             _resultTitle.text = L10n.T("leaves.result");

@@ -3,44 +3,28 @@ using System.Collections.Generic;
 
 namespace VuonTra.Core
 {
-    /// <summary>What a rabbit is good at. At a station of its trade it is worth more; anywhere else it still works.</summary>
     public enum RabbitTrade
     {
         None,
-        /// <summary>Tea and milk tea.</summary>
         Brewer,
-        /// <summary>Jam, the oven, the bakery.</summary>
         Baker,
-        /// <summary>Every ingredient station.</summary>
         Gatherer,
-        /// <summary>The star jar and the observatory.</summary>
         Stargazer
     }
 
-    /// <summary>One kind of rabbit to collect. Its tier and trade never change.</summary>
     public sealed class RabbitKind
     {
         public string Id;
         public int Tier;
         public RabbitTrade Trade;
-        /// <summary>Display names; the string tables are filled from these.</summary>
         public string NameVi, NameEn;
 
-        /// <summary>The picture already has a glow painted in, so the garden adds none of its own.</summary>
         public bool OwnGlow;
 
-        /// <summary>
-        /// Where this kind's head is, as a nudge from the usual spot in shares of the drawing's size (right and
-        /// up are positive). Hats and charms both follow it. Zero for the kinds drawn on the shared body.
-        /// </summary>
         public float HatX, HatY;
-        /// <summary>The picture already has a dark ink line, so it is used as drawn.</summary>
         public bool OwnOutline;
-        /// <summary>Something grows where a hat would go (antlers, horns, flame): a hat still counts but is not drawn.</summary>
         public bool NoHat;
-        /// <summary>The stretch of the year this kind can be met in (#8); None for the kinds of every day.</summary>
         public Season Season;
-        /// <summary>Comes only with a new moon (#1): never from clovers, the shop or a merge.</summary>
         public bool NewMoonOnly;
 
         public RabbitKind(string id, int tier, RabbitTrade trade, string nameVi, string nameEn, bool ownGlow = false,
@@ -52,10 +36,6 @@ namespace VuonTra.Core
         }
     }
 
-    /// <summary>
-    /// The kinds of rabbit. A rabbit's kind is decided when it is called or merged. Adding a kind is one
-    /// line here and one picture, Art/Final/kind_&lt;id&gt;.png: names, odds and the album follow from the table.
-    /// </summary>
     public static class RabbitKinds
     {
         static readonly RabbitKind[] Table =
@@ -73,7 +53,6 @@ namespace VuonTra.Core
             new RabbitKind("tho-hong-tra", 5, RabbitTrade.Brewer, "Thỏ Hồng Trà", "Ruby Tea Rabbit"),
             new RabbitKind("tho-trang", 5, RabbitTrade.Stargazer, "Thỏ Trăng", "Moon Rabbit"),
 
-            // Thirty more, recoloured from the twelve above. The first kind listed for a tier stays that tier's default.
             new RabbitKind("tho-dau-do", 0, RabbitTrade.Baker, "Thỏ Đậu Đỏ", "Red Bean Rabbit"),
             new RabbitKind("tho-ca-phe", 0, RabbitTrade.Brewer, "Thỏ Cà Phê", "Coffee Rabbit"),
             new RabbitKind("tho-tro", 0, RabbitTrade.Gatherer, "Thỏ Tro", "Ash Rabbit"),
@@ -105,7 +84,6 @@ namespace VuonTra.Core
             new RabbitKind("tho-bach-kim", 4, RabbitTrade.Brewer, "Thỏ Bạch Kim", "Platinum Rabbit", ownGlow: true),
             new RabbitKind("tho-nguyet-thuc", 5, RabbitTrade.Stargazer, "Thỏ Nguyệt Thực", "Eclipse Rabbit", ownGlow: true),
 
-            // Thirty with shapes of their own. Each carries where its head is, since no two are alike.
             new RabbitKind("tho-lun", 0, RabbitTrade.Brewer, "Thỏ Lùn", "Dwarf Rabbit", ownOutline: true, hatX: 0.048f, hatY: -0.041f),
             new RabbitKind("tho-con", 0, RabbitTrade.Baker, "Thỏ Con", "Baby Rabbit", ownOutline: true, hatX: 0.030f, hatY: -0.023f),
             new RabbitKind("tho-va", 0, RabbitTrade.Gatherer, "Thỏ Vá", "Patch Rabbit", ownOutline: true, hatX: 0.025f, hatY: -0.049f),
@@ -136,11 +114,9 @@ namespace VuonTra.Core
             new RabbitKind("tho-ngoc", 5, RabbitTrade.Brewer, "Thỏ Ngọc", "Jade Rabbit", ownOutline: true, hatX: 0.059f, hatY: -0.070f),
             new RabbitKind("tho-rong", 5, RabbitTrade.Baker, "Thỏ Rồng", "Dragon Rabbit", ownOutline: true, hatX: -0.027f, hatY: 0.038f, noHat: true),
             new RabbitKind("tho-chom-sao", 5, RabbitTrade.Stargazer, "Thỏ Chòm Sao", "Constellation Rabbit", ownOutline: true, hatX: 0.123f, hatY: -0.047f),
-            // The seasons' own kinds (#8): Gold tier, met only while their season runs, kept for good once met.
             new RabbitKind("tho-den-ong-sao", 4, RabbitTrade.Stargazer, "Thỏ Đèn Ông Sao", "Star Lantern Rabbit", season: Season.MidAutumn),
             new RabbitKind("tho-ao-dai", 4, RabbitTrade.Brewer, "Thỏ Áo Dài", "Áo Dài Rabbit", season: Season.Tet),
             new RabbitKind("tho-noel", 4, RabbitTrade.Baker, "Thỏ Noel", "Noel Rabbit", season: Season.Christmas),
-            // The moon rabbit (#1): purple, a stargazer, and only ever met by beginning a new moon.
             new RabbitKind(NewMoon.MoonKind, 3, RabbitTrade.Stargazer, "Thỏ Trăng Non", "New Moon Rabbit", newMoonOnly: true),
         };
 
@@ -154,7 +130,6 @@ namespace VuonTra.Core
             return null;
         }
 
-        /// <summary>Position in <see cref="All"/>, or -1.</summary>
         public static int IndexOf(string id)
         {
             for (int i = 0; i < Table.Length; i++)
@@ -162,7 +137,6 @@ namespace VuonTra.Core
             return -1;
         }
 
-        /// <summary>The tier's kinds of every day; with a <paramref name="season"/>, that season's kind as well.</summary>
         public static IReadOnlyList<RabbitKind> OfTier(int tier, Season season = Season.None)
         {
             var list = new List<RabbitKind>(2);
@@ -171,7 +145,6 @@ namespace VuonTra.Core
             return list;
         }
 
-        /// <summary>The kinds met only on an occasion, in table order: the seasons' (#8), then the new moon's (#1).</summary>
         public static IReadOnlyList<RabbitKind> Special()
         {
             var list = new List<RabbitKind>(4);
@@ -180,7 +153,6 @@ namespace VuonTra.Core
             return list;
         }
 
-        /// <summary>The kinds that belong to a season, in table order.</summary>
         public static IReadOnlyList<RabbitKind> Seasonal()
         {
             var list = new List<RabbitKind>(3);
@@ -189,7 +161,6 @@ namespace VuonTra.Core
             return list;
         }
 
-        /// <summary>The kind a rabbit of this tier is when nothing says otherwise (old saves, for one).</summary>
         public static string DefaultFor(int tier)
         {
             tier = Math.Max(0, Math.Min(Rabbits.TierCount - 1, tier));
@@ -198,7 +169,6 @@ namespace VuonTra.Core
             return Table[0].Id;
         }
 
-        /// <summary>Turns a number in [0, 1) into one of the tier's kinds, each equally likely.</summary>
         public static string Pick(int tier, double roll)
         {
             IReadOnlyList<RabbitKind> kinds = OfTier(Math.Max(0, Math.Min(Rabbits.TierCount - 1, tier)));

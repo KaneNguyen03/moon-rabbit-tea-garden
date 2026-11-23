@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>#56: every four minutes of open play a rabbit asks for its picture; answering pays two minutes of income, ten times a day at most.</summary>
     public class PhotoAsksTests
     {
         List<StationDef> defs;
@@ -16,7 +15,7 @@ namespace VuonTra.Core.Tests
         {
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
-            s.Levels = new[] { 5, 2, 0 }; // tea and leaf open, jam not yet
+            s.Levels = new[] { 5, 2, 0 };
             worker = Rabbits.Arrive(s, 0, "Bông", 0d);
             Rabbits.Assign(s, worker.Id, 0);
         }
@@ -52,7 +51,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(s.Coins.Equals(coins), "and nothing was paid or lost");
             Assert.AreEqual(0, s.PhotoAsksToday, "a missed invitation does not use up the day's ten");
 
-            // The clock starts again when the bubble goes: the next ask is a full four minutes away.
             Assert.AreEqual(PhotoAskEvent.None, Run(PhotoAsks.Interval - 5d));
             Assert.IsFalse(PhotoAsks.Waiting(s));
             Assert.AreEqual(PhotoAskEvent.Asked, Run(6d));
@@ -74,7 +72,7 @@ namespace VuonTra.Core.Tests
         public void A_Working_Or_Seated_Rabbit_Asks_Never_One_At_A_Closed_Station_Or_Without_A_Seat()
         {
             Rabbit closed = Rabbits.Arrive(s, 0, "Đóng", 0d);
-            closed.Station = 2; // the jam pot is not open yet
+            closed.Station = 2;
             Rabbit seatA = Rabbits.Arrive(s, 1, "Nghỉ A", 0d);
             Rabbit seatB = Rabbits.Arrive(s, 1, "Nghỉ B", 0d);
             Rabbit unseated = Rabbits.Arrive(s, 0, "Không chỗ", 0d);
@@ -145,13 +143,11 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(PhotoAsks.Ask(defs, s, Day, () => 0.5));
             Assert.IsFalse(PhotoAsks.Waiting(s));
 
-            // #78: the clock turned back to yesterday does not start the count over.
             Assert.AreEqual(PhotoAskEvent.None, Run(PhotoAsks.Interval * 2d, Day - 1));
             Assert.IsFalse(PhotoAsks.Ask(defs, s, Day - 1, () => 0.5));
             Assert.AreEqual(Day, s.PhotoAskDay);
             Assert.AreEqual(PhotoAsks.PerDay, s.PhotoAsksToday);
 
-            // Tomorrow asks again.
             Assert.AreEqual(PhotoAskEvent.Asked, Run(1d, Day + 1));
             Assert.AreEqual(0, s.PhotoAsksToday);
             Assert.AreEqual(Day + 1, s.PhotoAskDay);
@@ -197,7 +193,7 @@ namespace VuonTra.Core.Tests
         {
             var daily = new QuestDef { Id = "ngay-anh", Metric = QuestMetric.PhotoAsksAnswered, Target = 3, Daily = true, RewardClovers = 1 };
             var quests = new List<QuestDef> { daily };
-            s.PhotoAsksAnswered = 7; // yesterday's
+            s.PhotoAsksAnswered = 7;
             Quests.RollDaily(quests, defs, s, Day, Modifiers.None);
             Assert.AreEqual(0d, Quests.Progress(daily, defs, s));
             for (int i = 0; i < 3; i++)
@@ -227,7 +223,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1L, back.PhotoAsksAnswered);
             Assert.AreEqual(1L, back.DailyPhotoAsksBase);
 
-            // A save from before #56 starts the clock from nothing; numbers out of range are brought back in.
             GameState old = SaveCodec.Decode(defs, json.Replace("\"photoAsk\"", "\"somethingElse\"")).State;
             Assert.AreEqual(0L, old.PhotoAskRabbit);
             Assert.AreEqual(0d, old.PhotoAskClock);

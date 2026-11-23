@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The hex grid under the garden (#52): tiles, neighbours, what stands where, and how it is saved.</summary>
     public class GardenGridTests
     {
         List<StationDef> defs;
@@ -11,7 +10,6 @@ namespace VuonTra.Core.Tests
         [SetUp]
         public void SetUp() { defs = Fixture.Defs(); }
 
-        /// <summary>The side each segment opens to, in order (#91): the oven side, the pond side, both again, then up and down.</summary>
         static readonly GardenSide[] Order = { GardenSide.Right, GardenSide.Left, GardenSide.Right, GardenSide.Left, GardenSide.Up, GardenSide.Down };
 
         [Test]
@@ -43,7 +41,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(new Hex(0, 0), start.Tiles()[0].Hex, "the teapot's tile first");
             Assert.AreEqual(TileState.ForestBorder, start.Tile(0, -4).State, "above the top row is mist until the band up opens");
             Assert.AreEqual(TileState.ForestBorder, start.Tile(4, 0).State, "past the middle is mist until a segment opens");
-            // Each segment opens one band: three tiles a row, then six, on the sides; eight rows the whole width up and down.
             int[] perRowWanted = { 3, 3, 6, 6 };
             for (int n = 1; n <= 6; n++)
             {
@@ -92,7 +89,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, GardenGrid.UpOf(6));
             Assert.AreEqual(1, GardenGrid.DownOf(6));
             Assert.AreEqual(0, GardenGrid.UpOf(4));
-            // Fully open for sixteen stations: 25 doubled columns each side, eleven rows up and down.
             Assert.AreEqual(25, GardenGrid.Reach(6, GardenSide.Right));
             Assert.AreEqual(25, GardenGrid.Reach(6, GardenSide.Left));
             Assert.AreEqual(11, GardenGrid.Reach(6, GardenSide.Up));
@@ -105,7 +101,6 @@ namespace VuonTra.Core.Tests
                 g.Segments = n;
                 Assert.AreEqual(GardenGrid.TileCount(n), g.LawnTiles);
                 Assert.AreEqual(GardenGrid.TileCount(n), GardenGrid.Strip(n).Count);
-                // The lawn is a rectangle: every row from the top to the bottom runs unbroken from the left edge to the right.
                 int top = GardenGrid.Reach(n, GardenSide.Up), bottom = GardenGrid.Reach(n, GardenSide.Down);
                 int left = GardenGrid.Reach(n, GardenSide.Left), right = GardenGrid.Reach(n, GardenSide.Right);
                 for (int r = -top - 1; r <= bottom + 1; r++)
@@ -117,7 +112,6 @@ namespace VuonTra.Core.Tests
                     Assert.That(lo, Is.InRange(-left, -left + 1), "row " + r + " reaches the left edge");
                     Assert.That(hi, Is.InRange(right - 1, right), "row " + r + " reaches the right edge");
                 }
-                // And it is one piece: from the teapot's tile every tile of the lawn is reached over lawn tiles.
                 var reached = new HashSet<Hex> { new Hex(0, 0) };
                 var queue = new Queue<Hex>(reached);
                 while (queue.Count > 0) foreach (Hex o in g.LawnNeighbours(queue.Dequeue())) if (reached.Add(o)) queue.Enqueue(o);
@@ -139,7 +133,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(6, around.Length);
             foreach (Hex h in around) Assert.AreEqual(1, GardenGrid.Distance(h), h + " touches the teapot's tile");
             Assert.AreEqual(6, g.LawnNeighbours(new Hex(0, 0)).Count);
-            // A tile of the top row touches two above it in the wood; the last tile of a row touches the mist.
             Assert.AreEqual(4, g.LawnNeighbours(new Hex(1, -3)).Count, "the top row");
             Assert.AreEqual(3, g.LawnNeighbours(new Hex(4, -1)).Count, "the right end of an odd row");
             Assert.IsFalse(g.InLawn(4, 0));
@@ -203,7 +196,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, GardenGrid.SegmentOf(third), "a segment out of the mist has room again");
             Assert.IsTrue(g.NearestEmpty(new Hex(5, 0), out Hex near));
             Assert.AreEqual(new Hex(5, 0), near, "an empty tile asked for is its own nearest");
-            // Strip order is nearest the teapot first.
             IReadOnlyList<Hex> strip = GardenGrid.Strip(3);
             for (int i = 1; i < strip.Count; i++) Assert.LessOrEqual(GardenGrid.Distance(strip[i - 1]), GardenGrid.Distance(strip[i]));
         }
@@ -218,7 +210,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(3, GardenGrid.SegmentsForPlots(10));
             Assert.AreEqual(4, GardenGrid.SegmentsForPlots(12));
             Assert.AreEqual(6, GardenGrid.SegmentsForPlots(16));
-            // Everything the full garden holds has a tile of its own on the default table, on land open by the time it comes.
             var taken = new HashSet<Hex>();
             for (int i = 0; i < 16; i++)
             {
@@ -243,11 +234,9 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(0, GardenGrid.SegmentOf(h), id + " on the starting lawn");
             }
             Assert.GreaterOrEqual(GardenGrid.TileCount(6), taken.Count + GardenGrid.ReservedTiles.Count, "the final lawn has a tile for everything");
-            // No two stations side by side: a station's art is about two tiles wide.
             for (int i = 0; i < 16; i++)
                 for (int j = i + 1; j < 16; j++)
                     Assert.GreaterOrEqual(GardenGrid.Distance(GardenGrid.DefaultStationTile(i), GardenGrid.DefaultStationTile(j)), Expansion.StationSpacing, i + " and " + j);
-            // Past the sixteen of the table they carry on outward, two a segment, without meeting.
             var more = new HashSet<Hex>(taken);
             for (int i = 16; i < 24; i++)
             {
@@ -267,8 +256,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Ingredient_Stations_Stand_By_What_They_Feed_On_The_Map()
         {
-            // The catalog's boosts (ContentSeeder): leaf → teapot, milk tea; flower mortar → jam, star jar; beehive → oven, jam;
-            // grape → milk tea, bakery; spring → star jar, observatory; lotus → bakery or observatory; rice → candy kiln or milk tea.
             var feeds = new Dictionary<int, int[]> { { 1, new[] { 0, 6 } }, { 3, new[] { 2, 7 } }, { 5, new[] { 4, 2 } }, { 8, new[] { 6, 9 } }, { 10, new[] { 7, 11 } }, { 12, new[] { 9, 11 } }, { 14, new[] { 13, 6 } } };
             float Apart(int a, int b)
             {
@@ -286,13 +273,10 @@ namespace VuonTra.Core.Tests
                 }
                 Assert.Less(nearest, 520f, f.Key + " stands by one station it feeds");
             }
-            // The pond side is left, the oven side right.
             foreach (int left in new[] { 7, 10, 11, 15 }) Assert.Less(GardenGrid.Column(GardenGrid.DefaultStationTile(left)), 0, "station " + left + " on the pond side");
             foreach (int right in new[] { 4, 5, 9, 13 }) Assert.Greater(GardenGrid.Column(GardenGrid.DefaultStationTile(right)), 0, "station " + right + " on the oven side");
-            // #67's four open up and down (#91): the lotus, the candy kiln and the rice paddy on the band up, the boat on the band down.
             foreach (int up in new[] { 12, 13, 14 }) Assert.AreEqual(5, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(up)), "station " + up + " on the band up");
             Assert.AreEqual(6, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(15)), "the night tea boat on the band down");
-            // The first twelve keep the strip's tiles, but the mooncake bakery, two rows up beside the grape vine, under the lotus.
             var strip = new[] { new Hex(0, 0), new Hex(2, 0), new Hex(1, 2), new Hex(-2, 2), new Hex(6, 0), new Hex(4, 2), new Hex(5, -2), new Hex(-5, 2), new Hex(8, -2), new Hex(9, 0), new Hex(-8, 2), new Hex(-8, 0) };
             for (int i = 0; i < strip.Length; i++) if (i != 9) Assert.AreEqual(strip[i], GardenGrid.DefaultStationTile(i), "station " + i);
             Assert.AreEqual(new Hex(10, -2), GardenGrid.DefaultStationTile(9));
@@ -320,7 +304,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Land_Waves_Decorations_And_The_New_Moon_Keep_The_Grid_In_Step()
         {
-            // Land (#53): with six stations the first ring of the forest opens the fifth and sixth plots' stations and a third place to rest.
             var six = new List<StationDef>(defs);
             for (int i = 3; i < 6; i++) six.Add(new StationDef { Id = "s" + i, Name = "S" + i, Kind = StationKind.Brew, BaseCost = 1e4 * i, CostGrowth = 1.1, BaseIncome = 1, CycleSeconds = 1 });
             GameState land = GameState.NewGame(six);
@@ -333,7 +316,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenGrid.DefaultRestTile(2), land.Grid.TileOf("rest:2"), "and so has the new place to rest");
             Assert.AreEqual(1, land.Grid.Segments);
             GameState s = GameState.NewGame(defs);
-            // Decorations: placed, the spot's tile is taken; stored, it is free again.
             s.GoldenCarrots = 100;
             Assert.IsTrue(Decor.Buy(s, "den-da"));
             Assert.IsTrue(Decor.Place(s, 3, "den-da"));
@@ -344,7 +326,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Decor.Store(s, 3));
             Assert.IsNull(s.Grid.TileOf("decor:3"));
             Assert.IsTrue(Decor.Place(s, 5, "den-da"));
-            // The new moon: the garden is back to its first plots and seats; what the player placed stays.
             s.RestSpots = 5; s.Grid.Segments = 3; GardenGrid.Settle(defs, s);
             Assert.IsNotNull(s.Grid.TileOf("rest:4"));
             s.Season = 0; s.GardenXp = Garden.XpForLevel(NewMoon.LevelNeeded(0));
@@ -356,9 +337,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenGrid.DefaultDecorTile(5), s.Grid.TileOf("decor:5"));
         }
 
-        // ----- The new moon closes the land the player moved things onto (#85) -----
-
-        /// <summary>Empty, unreserved tiles of one segment's land, nearest the teapot first.</summary>
         static List<Hex> FarTiles(GardenGrid g, int segment, int count)
         {
             var far = new List<Hex>();
@@ -428,7 +406,6 @@ namespace VuonTra.Core.Tests
             var g0 = new GardenGrid();
             List<Hex> far = FarTiles(g0, 3, 3), farLeft = FarTiles(g0, 2, 1);
             string Tile(Hex h, string id) => "{\"q\":" + h.Q + ",\"r\":" + h.R + ",\"id\":\"" + id + "\"}";
-            // The middle alone open, but the teapot, the jam pot, a stump and a lantern saved on land two and three segments out.
             string json = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":30},{\"id\":\"leaf\",\"level\":5},{\"id\":\"jam\",\"level\":2}],"
                 + "\"plots\":3,\"restSpots\":2,"
                 + "\"decor\":{\"owned\":{\"den-da\":1},\"spots\":[\"den-da\",null,null,null,null,null,null,null],\"lantern\":0},"
@@ -469,7 +446,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void An_Old_Save_Without_A_Grid_Is_Given_One_With_Everything_It_Had()
         {
-            // A version 14 save: six plots (the first wave taken), three places to rest, two decorations standing, no "grid" block.
             string json = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":30},{\"id\":\"leaf\",\"level\":5},{\"id\":\"jam\",\"level\":0}],"
                 + "\"plots\":3,\"restSpots\":3,\"gardenXp\":500,"
                 + "\"decor\":{\"owned\":{\"den-da\":1,\"bon-hoa\":1},\"spots\":[null,\"den-da\",null,null,null,null,\"bon-hoa\",null],\"lantern\":0}}";
@@ -521,19 +497,15 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenGrid.PitchY * 2d, GardenGrid.LocalY(3, -2));
         }
 
-        // ----- Tiles kept clear for the props (#54 follow-up) -----
-
         [Test]
         public void The_Tiles_Of_The_Jar_The_Basket_And_The_Mortar_s_Plate_Are_Reserved_And_No_Home_Tile_Is()
         {
-            // Found while fixing #82: a decoration dropped next to the firefly jar stood on its "Đom đóm · còn N lượt" plate.
-            // On the strip the pond and the jar stand at the top left of the middle (the horizontal garden).
             var expected = new[]
             {
-                new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),   // the mortar's plate
-                new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),   // the leaf-catching basket and its plate
-                new Hex(-3, -1), new Hex(-2, -1), new Hex(-3, 0), new Hex(-2, 0), new Hex(-4, 0), // the firefly jar and its plate
-                new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-1, -1), new Hex(0, -1), // the moon pond and its "Câu cá" plate on the right bank (#58)
+                new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),
+                new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),
+                new Hex(-3, -1), new Hex(-2, -1), new Hex(-3, 0), new Hex(-2, 0), new Hex(-4, 0),
+                new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-1, -1), new Hex(0, -1),
             };
             CollectionAssert.AreEquivalent(expected, GardenGrid.ReservedTiles);
             var g = new GardenGrid(GardenGrid.MaxSegments);
@@ -543,7 +515,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(TileState.Reserved, g.Tile(h.Q, h.R).State, h + " reads as reserved on the lawn");
             }
             Assert.AreEqual(TileState.ForestBorder, new GardenGrid(0).Tile(-3, -2).State, "the pond's far bank reaches the first segment on the left, still in the mist");
-            // Nothing the garden stands by default is on one: every station (#67's four on the top rows too), seat and spot.
             var big = new List<StationDef>();
             for (int i = 0; i < 24; i++) big.Add(new StationDef { Id = "s" + i });
             foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId })
@@ -551,7 +522,6 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < big.Count; i++) Assert.IsFalse(GardenGrid.IsReserved(GardenGrid.DefaultStationTile(i)), "station " + i);
             for (int n = 0; n < RestSpots.Max + 2; n++) Assert.IsFalse(GardenGrid.IsReserved(GardenGrid.DefaultRestTile(n)), "rest " + n);
             for (int n = 0; n < Decor.Spots; n++) Assert.IsFalse(GardenGrid.IsReserved(GardenGrid.DefaultDecorTile(n)), "decor " + n);
-            // A whole garden settles with every reserved tile free and the props on their own tiles.
             GameState s = GameState.NewGame(big);
             s.Plots = big.Count;
             for (int n = 0; n < Decor.Spots; n++) s.DecorSpots[n] = Decor.Kinds[0].Id;
@@ -568,7 +538,7 @@ namespace VuonTra.Core.Tests
             GameState s = GameState.NewGame(defs);
             s.Levels[1] = 5; s.Levels[2] = 3;
             GardenGrid g = s.Grid;
-            g.Segments = 2; // the first segment on the left too, where the pond's plate reaches
+            g.Segments = 2;
             Hex jar = new Hex(-3, -1), plate = new Hex(1, -2);
             Hex leaf = g.TileOf("station:leaf").Value;
             Assert.IsFalse(g.Place("decor:0", jar.Q, jar.R), "a decoration on the jar's plate");
@@ -582,17 +552,14 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(-1, -1)), "nor on the pond's plate");
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(-2, -2)), "nor in the pond");
             Assert.AreEqual(leaf, g.TileOf("station:leaf").Value);
-            // Something that already stands on one (as a save from before may have it) swaps with nothing.
             Assert.IsTrue(g.Place("decor:1", -3, 0, true));
             Assert.IsFalse(g.Swap(leaf, new Hex(-3, 0)));
             Assert.IsFalse(g.Swap(new Hex(-3, 0), leaf));
             g.Remove("decor:1");
-            // The searches for a free tile pass them by.
             foreach (Hex h in g.EmptyTiles()) Assert.IsFalse(GardenGrid.IsReserved(h), h + " offered as empty");
             Assert.IsTrue(g.NearestEmpty(jar, out Hex near));
             Assert.IsFalse(GardenGrid.IsReserved(near));
             Assert.AreEqual(1, GardenGrid.Distance(near, jar), "a free neighbour of the jar's tile, not the tile");
-            // A lawn full but for its reserved tiles has no room: taking out and the expansion's search find nothing.
             Assert.IsTrue(Layout.Store(defs, s, "station:jam"));
             int k = 0;
             foreach (Hex h in GardenGrid.Strip(g.Segments))
@@ -608,15 +575,13 @@ namespace VuonTra.Core.Tests
         {
             GameState s = GameState.NewGame(defs);
             s.Levels[1] = 5; s.Levels[2] = 3;
-            s.Plots = 8; // two land waves: the first segment on the left, where the pond's plate reaches, is open
+            s.Plots = 8;
             GardenGrid.Settle(defs, s);
             s.GoldenCarrots = 100;
             Assert.IsTrue(Decor.Buy(s, Decor.Kinds[0].Id) && Decor.Place(s, 0, Decor.Kinds[0].Id));
-            // As a save from before #54's follow-up may have it: a decoration on the jar's plate, a station on the basket's, a seat on the mortar's.
             Assert.IsTrue(s.Grid.Place(GardenGrid.DecorId(0), -3, 0, true));
             Assert.IsTrue(s.Grid.Place("station:jam", 3, -1, true));
             Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(0), 1, -2, true));
-            // And from before the pond was kept clear (#58): a seat under the "Câu cá" plate, a piece in the pond.
             Assert.IsTrue(Decor.Buy(s, Decor.Kinds[1].Id) && Decor.Place(s, 1, Decor.Kinds[1].Id));
             Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(1), -1, -1, true));
             Assert.IsTrue(s.Grid.Place(GardenGrid.DecorId(1), -2, -2, true));
@@ -645,13 +610,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(SaveCodec.Encode(defs, back), SaveCodec.Encode(defs, SaveCodec.Decode(defs, SaveCodec.Encode(defs, back)).State), "settled once, it stays");
         }
 
-        // ----- Saves from the vertical garden (the horizontal garden, 23 Nov) -----
-
-        /// <summary>
-        /// A version 14 save written by the vertical garden on 23 Nov: eight plots, R 5 (two rings past the first three), the
-        /// jam pot moved by the player to (-1,1), the oven stored, four places to rest, two decorations, a view looking at the
-        /// top of the 1080 × 3770 column from near.
-        /// </summary>
         const string OldVerticalSave = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":40},{\"id\":\"leaf\",\"level\":12},{\"id\":\"jam\",\"level\":9},{\"id\":\"flower\",\"level\":4},"
             + "{\"id\":\"oven\",\"level\":3},{\"id\":\"hive\",\"level\":2},{\"id\":\"milk\",\"level\":1},{\"id\":\"star\",\"level\":0},{\"id\":\"grape\",\"level\":0},{\"id\":\"bakery\",\"level\":0}],"
             + "\"plots\":8,\"restSpots\":4,\"gardenXp\":5000,"
@@ -686,7 +644,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, g.Segments, "R 5 had two rings past the first three: two segments open");
             Assert.AreEqual(2, Expansion.Segments(s));
             Assert.AreEqual(3, Expansion.Next(ten, s).SegmentsAfter, "the next is the one R 6 was");
-            // Every station with a plot stands on its own default tile on the map, the stored oven stays stored.
             Assert.IsTrue(g.IsStored("station:oven"));
             Assert.IsNull(g.TileOf("station:oven"));
             Assert.AreEqual(3, s.Levels[4], "and keeps its level");
@@ -696,7 +653,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(GardenGrid.DefaultStationTile(i), g.TileOf(GardenGrid.StationId(ten[i])), ten[i].Id + " on its default tile, not its old column tile");
             }
             Assert.AreEqual(9, s.Levels[2]);
-            // The places to rest and the decorations standing, on their default tiles; the props on theirs.
             for (int k = 0; k < 4; k++) Assert.AreEqual(GardenGrid.DefaultRestTile(k), g.TileOf(GardenGrid.RestId(k)), "rest " + k);
             Assert.IsNull(g.TileOf(GardenGrid.RestId(4)));
             Assert.AreEqual(GardenGrid.DefaultDecorTile(1), g.TileOf(GardenGrid.DecorId(1)));
@@ -712,11 +668,9 @@ namespace VuonTra.Core.Tests
                 Assert.IsFalse(GardenGrid.IsReserved(o.Value), o.Key + " on a reserved tile");
                 Assert.IsTrue(g.InLawn(o.Value) || !GardenGrid.Movable(o.Key), o.Key + " on the open lawn");
             }
-            // The view looked at the column: the garden opens on the teapot at the usual zoom instead.
             Assert.AreEqual(0d, s.ViewZoom);
             Assert.AreEqual(0d, s.ViewX);
             Assert.AreEqual(0d, s.ViewY);
-            // Written again it is a map save, and it reads back the same, view and all.
             string again = SaveCodec.Encode(ten, s);
             StringAssert.Contains("\"version\":14", again, "the save stays version 14");
             StringAssert.Contains("\"grid\":{\"map\":2,", again);
@@ -728,18 +682,15 @@ namespace VuonTra.Core.Tests
         public void An_Old_Save_Whose_Default_Tile_Is_Taken_Goes_To_The_Nearest_Free_One_And_Its_Land_Follows_The_Plots()
         {
             List<StationDef> ten = TenStations();
-            // R 3 written with ten plots (a save that bought land before rings): the plots win, five segments' worth is four.
             string json = OldVerticalSave.Replace("\"radius\":5", "\"radius\":3").Replace("\"plots\":8", "\"plots\":10");
             GameState s = SaveCodec.Decode(ten, json).State;
             Assert.AreEqual(10, s.Plots);
             Assert.AreEqual(3, s.Grid.Segments, "ten plots are three land waves");
-            // A radius past what the map holds is capped, and a radius under three is none.
             Assert.AreEqual(GardenGrid.MaxSegments, SaveCodec.Decode(ten, OldVerticalSave.Replace("\"radius\":5", "\"radius\":40")).State.Grid.Segments);
             Assert.AreEqual(2, SaveCodec.Decode(ten, OldVerticalSave.Replace("\"radius\":5", "\"radius\":1")).State.Grid.Segments, "never fewer than the plots call for");
-            // A new save with a station on another's default tile: the other takes the nearest free tile.
             GameState strip = SaveCodec.Decode(ten, OldVerticalSave).State;
             Hex jamHome = GardenGrid.DefaultStationTile(2);
-            Assert.IsTrue(strip.Grid.Place("station:leaf", 0, 1)); // beside the teapot, as a save may hold it; the arranging mode would refuse (#88)
+            Assert.IsTrue(strip.Grid.Place("station:leaf", 0, 1));
             Assert.IsTrue(strip.Grid.Remove("station:jam"));
             Assert.IsTrue(strip.Grid.Place(GardenGrid.RestId(0), jamHome.Q, jamHome.R));
             GardenGrid.Settle(ten, strip);
@@ -747,9 +698,7 @@ namespace VuonTra.Core.Tests
             Assert.AreNotEqual(jamHome, jam);
             Assert.AreEqual(1, GardenGrid.Distance(jam, jamHome), "the nearest free tile that keeps the stations apart");
         }
-        // ----- The 2D map (#91): saves from the horizontal strip, the bands up and down, the rules on the new lawn -----
 
-        /// <summary>The catalog's sixteen stations by id, priced as the catalog is in order, so the segments and their prices are the game's.</summary>
         static List<StationDef> SixteenStations()
         {
             string[] ids = { "am-tra", "gio-la", "noi-mut", "coi-hoa", "lo-banh", "to-mat", "tra-sua", "binh-sao", "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao", "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" };
@@ -766,11 +715,6 @@ namespace VuonTra.Core.Tests
             return "[" + string.Join(",", parts) + "]";
         }
 
-        /// <summary>
-        /// A version 14 save written by the horizontal strip on main (40b60e8, 24 Nov): fourteen plots, five segments of the strip
-        /// open (the strip's fifth was the right end, where the lotus and the candy kiln stood), the candy kiln stored, the
-        /// observatory and a stump moved by the player, all six places to rest, decorations on spots 0 and 7, a view on the strip.
-        /// </summary>
         static string OldStripSave(List<StationDef> catalog) => "{\"version\":14,\"stations\":" + StationsJson(catalog, 14) + ","
             + "\"plots\":14,\"restSpots\":6,\"gardenXp\":300000,"
             + "\"view\":{\"x\":-1400,\"y\":-80,\"zoom\":0.83},"
@@ -811,7 +755,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(5, g.Segments, "the strip's five segments are the map's five");
             Assert.AreEqual(6, Expansion.Next(sixteen, s).SegmentsAfter, "the next is the strip's sixth, now the band down");
             Assert.AreEqual(GardenSide.Down, Expansion.Next(sixteen, s).Side);
-            // The stored candy kiln stays stored with its level; every other station of a plot is on its own default tile.
             Assert.IsTrue(g.IsStored("station:lo-keo"));
             Assert.IsNull(g.TileOf("station:lo-keo"));
             Assert.AreEqual(40 - 2 * 13, s.Levels[13], "and keeps its level");
@@ -823,7 +766,6 @@ namespace VuonTra.Core.Tests
             }
             Assert.AreEqual(5, GardenGrid.SegmentOf(g.TileOf("station:ho-sen").Value), "the lotus garden is on the band up now");
             Assert.IsNull(g.TileOf("station:ruong-nep"), "no plot, no tile");
-            // The six places to rest and the two decorations standing, on their default tiles; the props on theirs.
             for (int k = 0; k < 6; k++) Assert.AreEqual(GardenGrid.DefaultRestTile(k), g.TileOf(GardenGrid.RestId(k)), "rest " + k);
             Assert.AreEqual(GardenGrid.DefaultDecorTile(0), g.TileOf(GardenGrid.DecorId(0)));
             Assert.AreEqual(GardenGrid.DefaultDecorTile(7), g.TileOf(GardenGrid.DecorId(7)));
@@ -832,11 +774,9 @@ namespace VuonTra.Core.Tests
             foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId }) Assert.AreEqual(GardenGrid.DefaultTile(id, sixteen), g.TileOf(id), id);
             Assert.AreEqual(13 + 6 + 2 + 3, g.OccupantCount, "thirteen stations out, six seats, two decorations, three props");
             AssertSettledApart(g);
-            // The view looked at the strip: the garden opens on the teapot at the usual zoom instead.
             Assert.AreEqual(0d, s.ViewZoom);
             Assert.AreEqual(0d, s.ViewX);
             Assert.AreEqual(0d, s.ViewY);
-            // Written again it is a map save, version 14 still, and it reads back the same.
             string again = SaveCodec.Encode(sixteen, s);
             StringAssert.Contains("\"version\":14", again);
             StringAssert.Contains("\"grid\":{\"map\":5,", again);
@@ -869,7 +809,6 @@ namespace VuonTra.Core.Tests
         {
             List<StationDef> sixteen = SixteenStations();
             Hex bakery = GardenGrid.DefaultStationTile(9);
-            // A map save with a lantern on the bakery's own tile and the bakery with no tile yet (as after an old save or a new moon).
             string json = "{\"version\":14,\"stations\":" + StationsJson(sixteen, 10) + ",\"plots\":10,"
                 + "\"decor\":{\"owned\":{\"den-da\":1},\"spots\":[null,null,null,\"den-da\",null,null,null,null],\"lantern\":0},"
                 + "\"grid\":{\"map\":3,\"tiles\":[{\"q\":" + bakery.Q + ",\"r\":" + bakery.R + ",\"id\":\"decor:3\"}]}}";
@@ -879,7 +818,6 @@ namespace VuonTra.Core.Tests
             Hex at = g.TileOf("station:tiem-banh").Value;
             Assert.AreNotEqual(bakery, at);
             AssertSettledApart(g);
-            // No free tile nearer the bakery's own keeps two tiles from every station.
             foreach (Hex h in g.EmptyTiles())
             {
                 if (GardenGrid.Distance(h, bakery) >= GardenGrid.Distance(at, bakery)) continue;
@@ -927,7 +865,7 @@ namespace VuonTra.Core.Tests
         {
             List<StationDef> sixteen = SixteenStations();
             GameState s = GameState.NewGame(sixteen);
-            s.Plots = 12; // four segments: the bands up and down still shut
+            s.Plots = 12;
             for (int i = 0; i < 12; i++) s.Levels[i] = 1;
             GardenGrid.Settle(sixteen, s);
             GardenGrid g = s.Grid;

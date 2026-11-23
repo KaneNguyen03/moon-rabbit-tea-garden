@@ -6,13 +6,8 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The player's profile: the avatar rabbit (a touch picks the next), the garden's name, the player code
-    /// with a copy button, a field for gift codes (#68), a line of numbers, and where the save is backed up to.
-    /// </summary>
     public sealed class ProfileView
     {
-        /// <summary>Puts text on the system clipboard. Tests swap it for a capture.</summary>
         public static Action<string> Clipboard = text => GUIUtility.systemCopyBuffer = text;
 
         readonly GameObject _root;
@@ -21,7 +16,6 @@ namespace VuonTra.Game.UI
         readonly Tweens _tweens;
         readonly Image _avatar;
         readonly Text _name, _code, _stats, _backup, _copyLabel, _linkNote, _cloudStatus, _restoreLocalLabel, _deleteLabel;
-        /// <summary>How many times "delete my data" has been pressed in a row: two confirmations before it acts.</summary>
         int _deletePresses;
         float _deletePressedAt = -99f;
         readonly ChunkyButton _link, _push, _restore;
@@ -61,7 +55,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", _card).Place(0.5f, 1f, 0, -80, 600, 70)
                 .AddText(L10n.T("profile.title"), 52, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // The avatar: a big round portrait; a touch walks round the player's rabbits.
             var avatar = UiKit.Rect("Avatar", _card).Place(0.5f, 1f, 0, -270, 240, 240);
             Image frame = avatar.AddImage(catalog.Round, Palette.Lantern);
             frame.raycastTarget = true;
@@ -75,7 +68,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("AvatarHint", _card).Place(0.5f, 1f, 0, -416, 700, 40)
                 .AddText(L10n.T("profile.avatar.hint"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
 
-            // The garden's name, with the pencil beside it.
             _name = UiKit.Rect("Name", _card).Place(0.5f, 1f, -40, -490, 600, 70)
                 .AddText("", 44, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _name.resizeTextForBestFit = true;
@@ -93,7 +85,6 @@ namespace VuonTra.Game.UI
             _stats = UiKit.Rect("Stats", _card).Place(0.5f, 1f, 0, -560, 760, 44)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter);
 
-            // The player code on a plate, with Copy at its end.
             var codeRow = UiKit.Rect("CodeRow", _card).Place(0.5f, 1f, 0, -660, 740, 100);
             codeRow.AddImage(catalog.Panel, Palette.Track, true);
             UiKit.Rect("Label", codeRow).Stretch(0, 0.5f, 0.62f, 1, 32, 0, 0, 8)
@@ -113,14 +104,13 @@ namespace VuonTra.Game.UI
             _copyLabel = UiKit.Rect("Text", copyButton.FaceRect).Stretch(0, 0, 1, 1)
                 .AddText(L10n.T("profile.copy"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // Gift codes (#68): a field under the player code, the button that tries what was typed, and a line that says why not.
             _giftField = UiKit.Rect("GiftCode", _card).Place(0.5f, 1f, -120, -770, 500, UiKit.MinTouch);
             _giftHome = _giftField.anchoredPosition;
             Image giftPlate = _giftField.AddImage(catalog.Panel, Palette.Card, true);
             giftPlate.raycastTarget = true;
             Text giftText = UiKit.Rect("Text", _giftField).Stretch(0, 0, 1, 1, 28, 0, 28, 0)
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            giftText.supportRichText = false; // a typed "<b>" is just text
+            giftText.supportRichText = false;
             Text giftHint = UiKit.Rect("Hint", _giftField).Stretch(0, 0, 1, 1, 28, 0, 28, 0)
                 .AddText(L10n.T("gift.hint"), UiKit.TextBody, Palette.OffInk, TextAnchor.MiddleLeft);
             giftHint.resizeTextForBestFit = true;
@@ -151,7 +141,6 @@ namespace VuonTra.Game.UI
             _giftNote.resizeTextMinSize = 12;
             _giftNote.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
 
-            // Backup: where the save lives, and the link button that waits for a store sign-in.
             UiKit.Rect("BackupTitle", _card).Place(0.5f, 1f, 0, -890, 740, 44)
                 .AddText(L10n.T("backup.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _backup = UiKit.Rect("Backup", _card).Place(0.5f, 1f, 0, -936, 740, 44)
@@ -163,8 +152,6 @@ namespace VuonTra.Game.UI
             _linkNote = UiKit.Rect("LinkNote", _card).Place(0.5f, 1f, 0, -1110, 740, 60)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
 
-            // The cloud: when the save last went up, a button to send it now, one to take what is up there,
-            // and, once something has been replaced, the way back to the copy that was kept on the device.
             _cloudStatus = UiKit.Rect("CloudStatus", _card).Place(0.5f, 1f, 0, -1180, 740, 44)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
             var push = UiKit.Rect("CloudPush", _card).Place(0.5f, 1f, -170, -1260, 320, 100);
@@ -183,7 +170,6 @@ namespace VuonTra.Game.UI
             _restoreLocal = restoreLocal.gameObject;
             _restoreLocal.SetActive(false);
 
-            // Privacy (#42): the policy, where to write for help, and the way to delete everything, which asks twice.
             UiKit.Rect("PrivacyTitle", _card).Place(0.5f, 1f, 0, -1420, 740, 44)
                 .AddText(L10n.T("privacy.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var privacy = UiKit.Rect("Privacy", _card).Place(0.5f, 1f, 0, -1472, 740, UiKit.MinTouch);
@@ -235,17 +221,14 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>The name to show: the garden's own, or the stand-in while it has none.</summary>
         public static string NameOf(GameState s) => string.IsNullOrEmpty(s.Profile.GardenName) ? L10n.T("profile.unnamed") : s.Profile.GardenName;
 
-        /// <summary>A Unix time as the player reads it: hour and minute, day and month, local time.</summary>
         public static string Clock(long unixSeconds)
         {
             if (unixSeconds <= 0) return "—";
             return DateTimeOffset.FromUnixTimeSeconds(unixSeconds).ToLocalTime().ToString("HH:mm dd/MM", System.Globalization.CultureInfo.InvariantCulture);
         }
 
-        /// <summary>The provider's name as the player reads it.</summary>
         public static string ProviderName(AccountProvider provider)
         {
             switch (provider)
@@ -258,7 +241,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>What the backup row says for an account: linked and to whom, signing in, refused, or only on this device.</summary>
         public static string BackupLine(IAccountService account)
         {
             switch (account.State)
@@ -270,7 +252,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>What the cloud row says for a status.</summary>
         public static string CloudLine(CloudStatus cloud)
         {
             if (!cloud.Available) return L10n.T(cloud.SignedOut ? "cloud.status.signin" : "cloud.status.off");
@@ -283,7 +264,6 @@ namespace VuonTra.Game.UI
             return cloud.LastPushedAt > 0 ? L10n.T("cloud.status.at", Clock(cloud.LastPushedAt)) : L10n.T("cloud.status.never");
         }
 
-        /// <summary>Opens a web address; tests swap it for a capture.</summary>
         public static Action<string> OpenUrl = url => Application.OpenURL(url);
 
         public void Open(IReadOnlyList<StationDef> defs, GameState s, IAccountService account, CloudStatus cloud = default)
@@ -309,7 +289,6 @@ namespace VuonTra.Game.UI
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s, IAccountService account, CloudStatus cloud = default)
         {
             if (!IsOpen) return;
-            // A half-finished "delete" is forgotten after a few seconds, so a stray tap later does not count as the second.
             if (_deletePresses > 0 && Time.unscaledTime - _deletePressedAt > 6f)
             {
                 _deletePresses = 0;
@@ -341,20 +320,14 @@ namespace VuonTra.Game.UI
             _backup.text = BackupLine(account);
             _link.SetEnabled(account.CanLink && !linked);
             _link.FaceRect.GetComponentInChildren<Text>().color = ChunkyButton.InkFor(account.CanLink && !linked);
-            // What linking brings, until it has been brought; the honest "coming soon" above it while nothing can link.
             string reward = s.Profile.LinkRewarded ? "" : L10n.T("backup.reward", Profile.LinkRewardClovers);
             _linkNote.text = linked ? "" : (account.CanLink ? reward : L10n.T("backup.soon") + (reward.Length > 0 ? "\n" + reward : ""));
         }
 
-        // ----- gift codes (#68) -----
-
-        /// <summary>The field a gift code is typed into.</summary>
         public InputField GiftInput => _giftInput;
 
-        /// <summary>How many times a code was refused since the card was built: each one shook the field.</summary>
         public int Refusals { get; private set; }
 
-        /// <summary>Tries what was typed. A refused code shakes the field, sounds "no" and says why; a code that paid clears the field.</summary>
         public void Redeem()
         {
             string typed = _giftInput.text;
@@ -377,7 +350,6 @@ namespace VuonTra.Game.UI
             }, Ease.Linear, 0f, () => { if (_giftField != null) _giftField.anchoredPosition = home; });
         }
 
-        /// <summary>Whether the edit ended because Enter was pressed (not because focus moved away).</summary>
         static bool SubmitPressed()
         {
             var keyboard = UnityEngine.InputSystem.Keyboard.current;

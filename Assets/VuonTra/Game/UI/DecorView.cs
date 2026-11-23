@@ -5,16 +5,10 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The card for one decoration spot (#11): what stands there now, with a button to put it away, and a row for
-    /// each kind the shop sells with how many wait in storage and a button that stands one here (or swaps it for
-    /// what is there). Everything it shows is read off the state each refresh.
-    /// </summary>
     public sealed class DecorView
     {
         public BottomSheet Sheet { get; private set; }
         public bool IsOpen => Sheet.IsOpen;
-        /// <summary>The spot the card is open for, or -1.</summary>
         public int Spot { get; private set; } = -1;
         public const float Height = 900f;
 
@@ -37,7 +31,6 @@ namespace VuonTra.Game.UI
             sub.resizeTextMinSize = 12;
             sub.resizeTextMaxSize = UiKit.TextSmall;
 
-            // What stands here now, and the button that takes it back into storage.
             var here = UiKit.Rect("Here", card).Stretch(0, 1, 1, 1, 40, -290, 40, 180);
             here.AddImage(catalog.Panel, Palette.Card, true);
             _here = UiKit.Rect("Text", here).Stretch(0, 0, 1, 1, 24, 0, 320, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -51,7 +44,6 @@ namespace VuonTra.Game.UI
             _storeLabel.resizeTextMinSize = 13;
             _storeLabel.resizeTextMaxSize = UiKit.TextBody;
 
-            // One row per kind: its picture, its name, how many wait in storage, and the button that stands one here.
             for (int i = 0; i < Decor.Kinds.Length; i++)
             {
                 DecorKind kind = Decor.Kinds[i];

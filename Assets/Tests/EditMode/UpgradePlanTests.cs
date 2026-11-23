@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Quick upgrades: the "to milestone" mode, the spend share, upgrading everything, and rabbits to the cap.</summary>
     public class UpgradePlanTests
     {
         List<StationDef> defs;
@@ -71,11 +70,9 @@ namespace VuonTra.Core.Tests
             Assert.Greater(plan.Count, 0);
             Assert.LessOrEqual(UpgradePlan.Total(plan).ToDouble(), budget.ToDouble());
 
-            // Applied in one go.
             GameState applied = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
             Assert.IsTrue(UpgradePlan.Apply(defs, applied, plan));
 
-            // The same purchases, one level at a time, in the same order.
             GameState oneByOne = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
             oneByOne.BuyMode = Simulation.BuyOne;
             foreach (UpgradeStep step in plan)
@@ -92,7 +89,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Plan_Puts_The_Carrots_Where_They_Earn_Most()
         {
-            // Tea pays 0,67 a second per level for about 10 carrots; jam pays 16 a second per level for about 1500. Tea first.
             s.Coins = new BigNum(100);
             List<UpgradeStep> plan = UpgradePlan.Plan(defs, s, s.Coins);
             Assert.AreEqual(0, plan[0].Station);

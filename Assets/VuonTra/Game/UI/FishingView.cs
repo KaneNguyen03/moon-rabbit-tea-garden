@@ -4,29 +4,15 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The moon pond's card (#58b), sliding up when the pond is touched: the baits on hand and when the next one comes
-    /// back, the water with a float that bobs and then sinks, a Cast button, and the basket with every fish caught so far.
-    /// A touch on the water while the float sinks lands the fish, which flies into the basket. The rules live in
-    /// <see cref="FishingCast"/> and <see cref="Fishing"/>; this draws them and feeds the runner time and taps.
-    /// Reduced motion: the float does not bob and its sinking shows as a change of colour and size, on the same clock.
-    /// </summary>
     public sealed class FishingView
     {
         public const float Height = 1240f;
-        /// <summary>A caught fish rises over the water for this long, then flies to the basket in <see cref="FlySeconds"/>.</summary>
         public const float ShowSeconds = 0.5f, FlySeconds = 0.55f;
-        /// <summary>How far the float goes down while it sinks, in canvas units.</summary>
         const float SinkDepth = 46f;
-        /// <summary>The rings spread for this long after the float lands, goes under or gives up its fish: one starts every
-        /// <see cref="RingGap"/> and each lives <see cref="RingLife"/>.</summary>
         public const float RippleSeconds = 2f * RingGap + RingLife;
         const float RingGap = 0.18f, RingLife = 0.72f;
-        /// <summary>The drawn float and rings are shown at this share of their pictures' size; the drawn water at most at 1.5.</summary>
         const float FloatArtScale = 0.3f, RingArtScale = 0.45f, WaterArtMax = 1.5f;
-        /// <summary>Where the drawn float's dish of water sits under its middle, and the line's foot afloat and pulled under.</summary>
         const float DishY = -69f, LineUpY = 37f, LineDownY = 27f;
-        /// <summary>The colours a fish is drawn in while its picture is missing.</summary>
         static readonly Color[] FishTints =
         {
             new Color(0.78f, 0.82f, 0.88f), new Color(0.98f, 0.62f, 0.30f), new Color(0.97f, 0.66f, 0.72f),
@@ -57,21 +43,14 @@ namespace VuonTra.Game.UI
         int _shownBaits = -1, _shownCast = -1;
         long _shownNext = -1;
 
-        /// <summary>The sliding card this view lives on.</summary>
         public BottomSheet Sheet { get; private set; }
         public bool IsOpen => Sheet.IsOpen;
-        /// <summary>The line under the water: what the float is doing, or what the last cast came to.</summary>
         public string Status => _status.text;
-        /// <summary>The basket's icon on the card, where a caught fish lands.</summary>
         public RectTransform BasketIcon => _basket;
-        /// <summary>Fish on their way to the basket now.</summary>
         public int FishFlying { get; private set; }
-        /// <summary>The float's picture: its colour turns when it sinks (the one sign of it under reduced motion).</summary>
         public Color FloatColor => _cap.color;
         public Vector3 FloatScale => _floatArt.localScale;
-        /// <summary>The drawn float showing now (afloat or pulled under); null while the float is drawn in code.</summary>
         public Sprite FloatSprite => _picture != null ? _picture.sprite : null;
-        /// <summary>Rings on the water now.</summary>
         public int RipplesShowing
         {
             get
@@ -91,7 +70,6 @@ namespace VuonTra.Game.UI
             _fishIcons = new Image[Fishing.Kinds];
             _pending = new int[Fishing.Kinds];
 
-            // A cast still out when the card is closed waits in the water until it is opened again.
             Sheet = new BottomSheet(canvas, "Pond", catalog, tweens, Height, null);
             _card = Sheet.Card;
             var close = UiKit.Rect("Close", _card).Place(1f, 1f, -66, -66, UiKit.MinTouch, UiKit.MinTouch);
@@ -109,7 +87,6 @@ namespace VuonTra.Game.UI
             title.resizeTextMinSize = 28;
             title.resizeTextMaxSize = UiKit.Scaled(44);
 
-            // The baits: five dots, full while on hand, and the count; on the right, when the next one comes back.
             var dots = UiKit.Rect("Dots", _card).Place(0f, 1f, 50 + 5 * 34 / 2f, -164, 5 * 34, 34);
             for (int i = 0; i < _dots.Length; i++)
                 _dots[i] = UiKit.Rect("Bait " + i, dots).Place(0f, 0.5f, 17 + 34 * i, 0, 26, 26).AddImage(catalog.Round, Palette.Track);
@@ -124,7 +101,6 @@ namespace VuonTra.Game.UI
             _next.resizeTextMinSize = 14;
             _next.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
 
-            // The water: moonlit, the moon in it, and the float with its line. A touch anywhere on it strikes.
             _water = UiKit.Rect("Water", _card).Place(0.5f, 1f, 0, -450, 960, 500);
             Image waterImage = _water.AddImage(catalog.Panel, Palette.Mix(Palette.Night, new Color(0.25f, 0.45f, 0.62f), 0.55f), true);
             waterImage.raycastTarget = true;
@@ -141,7 +117,6 @@ namespace VuonTra.Game.UI
             moonCut.AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, new Color(0.25f, 0.45f, 0.62f), 0.55f), 0.9f));
             if (catalog.PondWater != null)
             {
-                // The drawn pond, with its own moon and lily pads, on a night-green bank; never past half again its size.
                 waterImage.color = Palette.Mix(Palette.Grass, Palette.Night, 0.5f);
                 Vector2 size = catalog.PondWater.rect.size;
                 float k = Mathf.Min(WaterArtMax, Mathf.Min(940f / size.x, 480f / size.y));
@@ -151,7 +126,6 @@ namespace VuonTra.Game.UI
                 moonCut.gameObject.SetActive(false);
             }
 
-            // The rings spread on the water under the float, and stay there when it is gone with a fish.
             _ripples = UiKit.Rect("Ripples", _water).Place(0.5f, 0.5f, -40, -40 + DishY + 14f, 240, 140);
             int ringCount = catalog.Ripples != null ? catalog.Ripples.Length : 0;
             _rings = new Image[ringCount];
@@ -168,7 +142,6 @@ namespace VuonTra.Game.UI
             _ring = UiKit.Rect("Ring", _float).Place(0.5f, 0.5f, 0, -38, 230, 96);
             _ringImage = _ring.AddImage(catalog.Glow, new Color(0.85f, 0.93f, 1f, 0.3f));
             _floatArt = UiKit.Rect("Art", _float).Stretch(0, 0, 1, 1);
-            // The line runs up from the float out of the top of the water, and goes down with it.
             _line = UiKit.Rect("Line", _floatArt).Place(0.5f, 0.5f, 0, 52 + 110, 3, 220);
             _line.AddImage(null, new Color(1f, 1f, 1f, 0.45f));
             var stick = UiKit.Rect("Stick", _floatArt).Place(0.5f, 0.5f, 0, 36, 8, 34);
@@ -177,7 +150,6 @@ namespace VuonTra.Game.UI
             _cap = UiKit.Rect("Cap", _floatArt).Place(0.5f, 0.5f, 0, 6, 42, 42).AddImage(catalog.Round, _capColor);
             if (catalog.FloatUp != null && catalog.FloatDown != null)
             {
-                // The drawn float stands on its own dish of water; afloat and pulled under share one scale and one water line.
                 _floatUp = catalog.FloatUp;
                 _floatDown = catalog.FloatDown;
                 var picture = UiKit.Rect("Picture", _floatArt);
@@ -207,7 +179,6 @@ namespace VuonTra.Game.UI
             _castLabel.resizeTextMinSize = 18;
             _castLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextTitle);
 
-            // The basket: its picture, then each fish with how many are in it; one not caught yet is a shadow.
             var basketRow = UiKit.Rect("Basket", _card).Place(0.5f, 1f, 0, -1058, 980, 210);
             basketRow.AddImage(catalog.Panel, Palette.Card, true);
             _basket = UiKit.Rect("Icon", basketRow).Place(0f, 0.5f, 96, 8, 150, 150);
@@ -221,7 +192,6 @@ namespace VuonTra.Game.UI
                     .AddText("×0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
 
-            // A caught fish, shown over the water and then sent to the basket.
             _catch = UiKit.Rect("Catch", _card).Place(0.5f, 1f, 0, -430, 260, 180);
             _catchImage = _catch.AddImage(catalog.Round, Color.white);
             _catchImage.preserveAspect = true;
@@ -230,7 +200,6 @@ namespace VuonTra.Game.UI
             Sheet.Root.SetActive(false);
         }
 
-        /// <summary>Puts the drawn float afloat or pulled under on the water line, its line running from the top of its stick.</summary>
         void ShowFloat(Sprite art)
         {
             if (_shownFloat == art) return;
@@ -242,16 +211,11 @@ namespace VuonTra.Game.UI
             _line.anchoredPosition = new Vector2(0f, (art == _floatDown ? LineDownY : LineUpY) + 110f);
         }
 
-        /// <summary>The rings start spreading from the float.</summary>
         void Ripple()
         {
             if (_rings.Length > 0) _rippleAge = 0f;
         }
 
-        /// <summary>
-        /// The rings, the smallest first and the next two after it, each growing a little and fading as it goes. Under reduced
-        /// motion one ring shows still for the same time.
-        /// </summary>
         void DrawRipples()
         {
             for (int i = 0; i < _rings.Length; i++)
@@ -280,7 +244,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>A fish's picture in a box, or a tinted circle while it has none.</summary>
         static Image FishImage(RectTransform rt, GameCatalog catalog, int fish)
         {
             Sprite art = catalog.FishSprite(fish);
@@ -306,7 +269,6 @@ namespace VuonTra.Game.UI
 
         public void Close() => Sheet.Close();
 
-        /// <summary>The Cast button: a bait goes on the hook and the float drops in.</summary>
         public void Cast()
         {
             if (!IsOpen || _runner.Cast != null) return;
@@ -324,7 +286,6 @@ namespace VuonTra.Game.UI
             Draw();
         }
 
-        /// <summary>A touch on the water: too early brings the float back up; while it sinks, the fish.</summary>
         public void TapWater()
         {
             FishingCast cast = _runner.Cast;
@@ -351,7 +312,6 @@ namespace VuonTra.Game.UI
             _pending[fish]++;
             FishFlying++;
 
-            // The fish comes up out of the water, holds there a moment and flies down into the basket.
             Sprite art = _catalog.FishSprite(fish);
             _catchImage.sprite = art != null ? art : _catalog.Round;
             _catchImage.color = art != null ? Color.white : FishTints[fish];
@@ -359,16 +319,14 @@ namespace VuonTra.Game.UI
             _catch.SetAsLastSibling();
             Vector2 from = new Vector2(0f, -430f);
             Vector3 basket = _card.InverseTransformPoint(_basket.TransformPoint(Vector3.zero));
-            // Card-local, measured from its top middle, where the fish is anchored.
             Vector2 to = new Vector2(basket.x - _card.rect.center.x, basket.y - _card.rect.yMax);
-            float size = 0.6f + 0.1f * fish; // the rarer, the bigger
+            float size = 0.6f + 0.1f * fish;
             _catch.anchoredPosition = from;
             _catch.localScale = Vector3.zero;
             _tweens.Add(Motion.Time(0.25f), t => { if (_catch != null) _catch.localScale = Vector3.one * size * t; }, Motion.Curve(Ease.OutBack));
             bool reeling = false;
             _tweens.Add(Motion.Time(FlySeconds), t =>
             {
-                // The reel runs from the moment the fish leaves the water; its thunk lands with it in the basket.
                 if (!reeling) { reeling = true; Sfx.Reel(); }
                 if (_catch == null) return;
                 Vector2 mid = (from + to) * 0.5f + new Vector2(0f, 140f);
@@ -387,7 +345,6 @@ namespace VuonTra.Game.UI
             });
         }
 
-        /// <summary>The clock: the cast's time runs only while its card is up, so the float never sinks unseen.</summary>
         public void Update(float dt)
         {
             if (!IsOpen) return;
@@ -415,7 +372,6 @@ namespace VuonTra.Game.UI
             Draw();
         }
 
-        /// <summary>Every number and the float, from the runner as it is now.</summary>
         void Draw()
         {
             FishingCast cast = _runner.Cast;
@@ -461,7 +417,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>The float: bobbing, then going under; still and changing colour and size under reduced motion.</summary>
         void DrawFloat(FishingCast cast)
         {
             bool show = cast != null;
@@ -472,7 +427,6 @@ namespace VuonTra.Game.UI
             float pop = !Motion.Reduced && _popAge < 0.3f ? Ease.Pop(_popAge / 0.3f) : 0f;
             if (_picture != null)
             {
-                // The drawn float: afloat it bobs, pulled under it swaps to its splash and dips; under reduced motion the swap alone.
                 ShowFloat(sinking ? _floatDown : _floatUp);
                 float drawnBob = Motion.Reduced || sinking ? 0f : 7f * Mathf.Sin(_clock * 3.4f) + 3f * Mathf.Sin(_clock * 7.1f + 1f);
                 _floatArt.anchoredPosition = Motion.Reduced ? Vector2.zero : new Vector2(0f, drawnBob - SinkDepth * 0.25f * k);
@@ -481,7 +435,6 @@ namespace VuonTra.Game.UI
             }
             if (Motion.Reduced)
             {
-                // No movement: the float turns gold and shrinks the moment it sinks, the ring lights up.
                 _floatArt.anchoredPosition = Vector2.zero;
                 _floatArt.localScale = Vector3.one * (sinking ? 0.7f : 1f);
                 _cap.color = sinking ? Palette.Lantern : _capColor;

@@ -6,7 +6,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>The overlay where the player chooses what a rabbit wears in one slot.</summary>
     public sealed class ItemPickerView
     {
         readonly GameObject _root;
@@ -22,7 +21,6 @@ namespace VuonTra.Game.UI
         string _signature;
 
         public bool IsOpen => Sheet.IsOpen;
-        /// <summary>The sliding card this view lives on.</summary>
         public BottomSheet Sheet { get; private set; }
 
         public ItemPickerView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<long, long> onEquip, Action<long> onUnequip)
@@ -47,7 +45,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Text", close).Stretch(0, 0, 1, 1).AddText("×", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var scrollRt = UiKit.Rect("Scroll", _card).Stretch(0, 0, 1, 1, 0, 28, 0, 130);
-            scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
+            scrollRt.AddTapCatcher();
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.scrollSensitivity = 40f;
@@ -68,7 +66,6 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>What an item does, in the player's words.</summary>
         public static string Describe(Item item)
         {
             int percent = Mathf.RoundToInt((float)(item.Amount * 100d));
@@ -104,7 +101,7 @@ namespace VuonTra.Game.UI
             if (!IsOpen) return;
             if (Rabbits.Find(s, _rabbitId) == null)
             {
-                Close(); // the rabbit was merged away
+                Close();
                 return;
             }
 
@@ -162,8 +159,8 @@ namespace VuonTra.Game.UI
             string where = wornHere ? L10n.T("picker.worn.here") : (wearer != null ? L10n.T("picker.worn.other", wearer.Name) : "");
             Text sub = UiKit.Rect("Sub", root).Stretch(0, 0.08f, 1, 0.5f, 164, 0, 290, 4)
                 .AddText(L10n.T("picker.name", L10n.Rarity(item.Tier), Describe(item)) + where, UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
-            sub.resizeTextForBestFit = true; // two lines at most, never past the row's foot
-            sub.verticalOverflow = VerticalWrapMode.Truncate; // best fit only measures height when overflow is not allowed
+            sub.resizeTextForBestFit = true;
+            sub.verticalOverflow = VerticalWrapMode.Truncate;
             sub.resizeTextMinSize = 16;
             sub.resizeTextMaxSize = UiKit.TextBody;
 
@@ -185,7 +182,6 @@ namespace VuonTra.Game.UI
             _rows.Add(root.gameObject);
         }
 
-        /// <summary>The first letter stands in for a picture until items have art.</summary>
         public static string Glyph(Item item)
         {
             string name = L10n.ItemName(item);

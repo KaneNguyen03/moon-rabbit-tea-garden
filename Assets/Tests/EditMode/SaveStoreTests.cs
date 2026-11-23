@@ -7,7 +7,6 @@ using VuonTra.Game;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Where the save lives when the scene names no folder (#70).</summary>
     public class SaveStoreTests
     {
         string dir;
@@ -18,7 +17,6 @@ namespace VuonTra.Core.Tests
         {
             dir = Path.Combine(Path.GetTempPath(), "vuontra-save-" + Guid.NewGuid().ToString("N"));
             before = SaveStore.DefaultDirectory;
-            // Never the real persistentDataPath: the editor shares it with the Mac build's save.
             SaveStore.DefaultDirectory = () => dir;
         }
 
@@ -66,7 +64,7 @@ namespace VuonTra.Core.Tests
             {
                 var first = go.AddComponent<GameRunner>();
                 first.Catalog = catalog;
-                first.SaveDirectory = ""; // what Garden.unity holds
+                first.SaveDirectory = "";
                 first.Init();
                 Assert.AreEqual(dir, first.SaveFolder);
                 first.State.Levels[0] = 9;

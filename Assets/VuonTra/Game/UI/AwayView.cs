@@ -5,11 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The welcome-back sheet (#69): what the garden did while the player was away, told in four lines (the carrots
-    /// and how long, the tray, the guests who came by, the rabbit who slept the most), with a plain Collect and a
-    /// Collect ×2 that is free once a day and costs golden carrots after that.
-    /// </summary>
     public sealed class AwayView
     {
         public const float Height = 1180f;
@@ -28,10 +23,8 @@ namespace VuonTra.Game.UI
         GameObject _portrait;
 
         public BottomSheet Sheet { get; }
-        /// <summary>The time away this sheet shows; its ×2 pays this, whatever came after it (#89).</summary>
         public AwayReport Report { get; private set; }
         public bool IsOpen => Sheet.IsOpen;
-        /// <summary>The words on the ×2 button right now: the tests read it.</summary>
         public string DoubleLabel => _doubleLabel.text;
         public bool DoubleEnabled => _double.Button.interactable;
 
@@ -51,7 +44,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", card).Stretch(0, 1, 1, 1, 40, -150, 40, 60)
                 .AddText(L10n.T("away.title"), 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // 1. The carrots, and over how long.
             var carrots = Row(card, "Carrots", -310, 220);
             UiKit.Rect("Icon", carrots).Place(0f, 0.5f, 90, 10, 110, 110).AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _amount = UiKit.Rect("Amount", carrots).Stretch(0, 0.42f, 1, 1, 170, 0, 30, 10)
@@ -65,8 +57,6 @@ namespace VuonTra.Game.UI
             _time.resizeTextMinSize = 16;
             _time.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
 
-            // 2. The tray, 3. the guests, 4. the sleepiest rabbit.
-            // The tray's line shows the teapot's product, the thing the tray fills with first.
             StationData teapot = catalog.Stations.Length > 0 ? catalog.Stations[0] : null;
             Sprite product = teapot == null ? null : (teapot.Product != null ? teapot.Product : teapot.Prop);
             _tray = Line(card, "Tray", -500, product, Color.white);
@@ -80,7 +70,6 @@ namespace VuonTra.Game.UI
             _rabbit.resizeTextMinSize = 16;
             _rabbit.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
 
-            // Collect (plain), and Collect ×2 (the one this sheet is for).
             var ok = UiKit.Rect("Ok", card).Place(0f, 0f, 220, 150, 320, UiKit.MinTouch + 20);
             UiKit.Secondary(ok, catalog.Panel, L10n.T("away.ok"), () =>
             {
@@ -139,7 +128,6 @@ namespace VuonTra.Game.UI
                 RectTransform tile = RabbitGridView.Portrait(_portraitHolder, _catalog, s, sleepy, 0, 0, 130);
                 _portrait = tile.gameObject;
                 _rabbit.text = L10n.T("away.rabbit", sleepy.Name);
-                // A yawn as the sheet comes up: a slow stretch between fixed sizes, skipped under reduced motion.
                 if (!Motion.Reduced)
                     _tweens.Add(Motion.Yawn, t =>
                     {
@@ -149,13 +137,10 @@ namespace VuonTra.Game.UI
                     });
             }
             RefreshDouble();
-            // The sheet comes up as the game opens, over the title (#79): drawn last, so the title's blinking
-            // "tap to start" sits under it and Collect takes the touch, not the title behind.
             Sheet.Root.transform.SetAsLastSibling();
             Sheet.Open();
         }
 
-        /// <summary>The ×2 button as things stand: free today, its price, what is missing, or done.</summary>
         public void RefreshDouble()
         {
             bool done = _doubled != null && _doubled();
@@ -173,15 +158,8 @@ namespace VuonTra.Game.UI
 
         public void Close() => Sheet.Close();
 
-        // ----- rewarded ad seam (#66) -----
-
-        /// <summary>The secondary "Xem 30 giây" for ×2 once the day's free doubling is spent; null until attached.</summary>
         public AdButton Ad { get; private set; }
 
-        /// <summary>
-        /// Adds the ad option above the ×2 button: a secondary button, shown only while <paramref name="offer"/> offers
-        /// something. The free and golden ×2 stay as they are.
-        /// </summary>
         public AdButton AttachAd(Func<AdOffer> offer, Func<bool> busy, Action onWatch)
         {
             var rt = UiKit.Rect("Ad", Sheet.Card).Place(1f, 0f, -300, 259, 520, UiKit.MinTouch);

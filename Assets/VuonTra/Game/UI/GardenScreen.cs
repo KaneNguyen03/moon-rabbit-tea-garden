@@ -23,9 +23,6 @@ namespace VuonTra.Game.UI
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
-        // The garden is a 2D map (#91, core part): as wide as every segment of the catalog's land (GardenGrid: 25 doubled
-        // columns each side of the teapot, 1950 units) plus 450 of wood at each end, and as tall as its rows (11 up and 11 down
-        // once the bands up and down are open, 2300 units each way) plus 400 of wood at each end.
         const float WorldW = 4800f, WorldH = 5400f;
         /// <summary>The feet of the nearest trees of the wood stand this far past the lawn's sides: clear of every station by 200 and more.</summary>
         const float RimLeft = -300f, RimRight = WorldW + 310f;
@@ -1154,7 +1151,7 @@ namespace VuonTra.Game.UI
             BuildAwayPopup(catalog);
             Guide = new TutorialView(_canvas, catalog, Feel, () => Runner.SkipTutorial());
             Shop = new ShopView(_canvas, catalog, Tweens, () => Runner.TodayNumber, () => SecondsToNextDay(System.DateTimeOffset.Now) / 3600d, OnDailyGift, OnSummonGolden, OnBuyVisitor,
-                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => GoldenPacks.Open(Runner.Store), OnBuyMoonJar);
+                Runner.ItemDefs, OnBuyHat, OnBuyDecor, OnLanternColor, () => { Runner.Analytics.LogGoldenPacksOpened(AnalyticsEvents.FromShop); GoldenPacks.Open(Runner.Store); }, OnBuyMoonJar);
             DecorCard = new DecorView(_canvas, catalog, Tweens, OnPlaceDecor, OnStoreDecor);
             BuildOrders(catalog);
             Shell = new ShellView(_canvas, catalog, Tweens, () => Runner.ResetGame(), () => Profile.Open(Runner.Defs, Runner.State, Runner.Account, Runner.CloudStatus),
@@ -6469,7 +6466,6 @@ namespace VuonTra.Game.UI
         const float ForestSignOut = 50f;
         /// <summary>New grass and the sign keep this far from the garden's top and bottom, where the wood closes over the lawn.</summary>
         const float RingGrassBand = 540f;
-        /// <summary>Half the height of the strip's world before the 2D map (#91), from which the grass band above is measured.</summary>
         const float StripHalfH = 1100f;
 
         /// <summary>Where the sign's foot stands in the garden: at the lawn's edge, beside the land the next segment opens.</summary>
@@ -6485,7 +6481,7 @@ namespace VuonTra.Game.UI
             var spots = new List<Vector2>();
             void Add(Vector2 at)
             {
-                if (Mathf.Abs(at.y - Heart.y) > StripHalfH - RingGrassBand) return; // #91: the strip's rows, measured from the heart as the world grew
+                if (Mathf.Abs(at.y - Heart.y) > StripHalfH - RingGrassBand) return;
                 foreach (Vector2 other in spots) if (Vector2.Distance(other, at) < 60f) return;
                 spots.Add(at);
             }
@@ -6600,7 +6596,7 @@ namespace VuonTra.Game.UI
         public static Vector2 SegmentSpan(int segment)
         {
             GardenSide side = GardenGrid.SideOf(segment);
-            if (side == GardenSide.Up || side == GardenSide.Down) // a band up or down runs the whole width open by then (#91)
+            if (side == GardenSide.Up || side == GardenSide.Down)
                 return new Vector2(LawnEdgeX(segment, GardenSide.Left), LawnEdgeX(segment, GardenSide.Right));
             float inner = (GardenGrid.Reach(segment - 1, side) + 1) * (float)GardenGrid.PitchX / 2f;
             float outer = (GardenGrid.Reach(segment, side) + 1) * (float)GardenGrid.PitchX / 2f;
@@ -6610,11 +6606,6 @@ namespace VuonTra.Game.UI
         /// <summary>The rows of the strip, top and bottom, with the art that stands on them: what the mist covers top to bottom.</summary>
         static readonly float MistLow = -760f, MistHigh = 860f;
 
-        /// <summary>
-        /// The garden y a segment's mist covers, bottom and top, from the heart: the middle's rows and their art for a band to
-        /// the side; for a band up or down, from the open lawn's edge to the band's far edge and the art there (#91 core; the
-        /// bands' look is #91b's).
-        /// </summary>
         static Vector2 MistRows(int segment)
         {
             GardenSide side = GardenGrid.SideOf(segment);
@@ -6633,7 +6624,7 @@ namespace VuonTra.Game.UI
         CanvasGroup BuildMist(GameCatalog catalog, int segment)
         {
             Vector2 span = SegmentSpan(segment), rows = MistRows(segment);
-            float MistLow = rows.x, MistHigh = rows.y; // #91: the rows of this segment's band
+            float MistLow = rows.x, MistHigh = rows.y;
             bool aside = GardenGrid.SideOf(segment) == GardenSide.Right || GardenGrid.SideOf(segment) == GardenSide.Left;
             var mist = UiKit.Rect("Segment Mist " + segment, _street).Stretch(0, 0, 1, 1);
             CanvasGroup group = mist.gameObject.AddComponent<CanvasGroup>();
@@ -6647,10 +6638,10 @@ namespace VuonTra.Game.UI
             // land still to open reads as such on the dark grass. The washes over it keep it soft.
             bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
             float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
-            if (aside) // #91: a band up or down has no side edge; its edge is #91b's to draw
+            if (aside)
                 UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (MistLow + MistHigh) / 2f, MistEdgeWidth, MistHigh - MistLow + 200f)
                     .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
-            int Across = aside ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9; // #91: a band up or down runs the whole width
+            int Across = aside ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9;
             for (int a = 0; a < Across; a++)
                 for (int d = 0; d < Down; d++)
                 {

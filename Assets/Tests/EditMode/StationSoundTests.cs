@@ -11,10 +11,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// Station sounds up close and the choice of tune (#63). Edit mode cannot hear anything, so these
-    /// read what the sources are set to: which clip, how loud, how fast, and how long two loops overlap.
-    /// </summary>
     public class StationSoundTests
     {
         const float Frame = 1f / 30f;
@@ -41,7 +37,7 @@ namespace VuonTra.Core.Tests
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             clockBefore = screen.ClockHours;
             screen.Build();
             Sfx.SetStation(0.7f);
@@ -59,7 +55,6 @@ namespace VuonTra.Core.Tests
             L10n.SetLocale("vi");
         }
 
-        /// <summary>Six stations open and built, the title gone.</summary>
         void OpenSix()
         {
             screen.Shell.SkipTitle();
@@ -74,7 +69,6 @@ namespace VuonTra.Core.Tests
             for (float t = 0f; t < seconds - 1e-4f; t += Frame) screen.Advance(Frame);
         }
 
-        /// <summary>The open station whose spot stands nearest the point the view centres on.</summary>
         int NearestOpen()
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
@@ -91,8 +85,6 @@ namespace VuonTra.Core.Tests
         }
 
         string Id(int i) => runner.Defs[i].Id;
-
-        // ----- the loops -----
 
         [Test]
         public void Every_Station_Has_A_Loop_Of_Four_To_Six_Seconds_Made_Only_Once()
@@ -123,8 +115,6 @@ namespace VuonTra.Core.Tests
             Assert.AreSame(made, Sfx.StationClip("am-tra"));
             Object.DestroyImmediate(recorded);
         }
-
-        // ----- up close -----
 
         [Test]
         public void Up_Close_The_Station_In_The_Middle_Plays_Its_Loop_And_The_Usual_View_Stops_It()
@@ -191,7 +181,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, screen.StationSound.Audible);
             Assert.AreEqual(0.7f, screen.StationSound.Volume, 1e-4f);
 
-            // Flicking from station to station faster than a fade: still never more than two, never longer than 0.5 s together.
             int[] path = { 0, 2, 5, 4, 1, 2, 0 };
             int most = 0;
             foreach (int i in path)
@@ -253,7 +242,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Station_Volume_Starts_At_One_Half_And_A_Saved_Level_Is_Kept()
         {
-            // 0.7 until 23 Nov, when QA measured the loops 7–12 dB over the music at the default sliders.
             PlayerPrefs.DeleteKey("vol.station");
             var host = new GameObject("Host");
             Sfx.Attach(host);
@@ -261,14 +249,12 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0.5f, Sfx.StationGain, 1e-4f, "a new player starts at the default");
             Object.DestroyImmediate(host);
 
-            PlayerPrefs.SetFloat("vol.station", 0.7f); // someone who kept the old default, or chose it
+            PlayerPrefs.SetFloat("vol.station", 0.7f);
             host = new GameObject("Host");
             Sfx.Attach(host);
             Assert.AreEqual(0.7f, Sfx.StationGain, 1e-4f, "a saved level is the player's own, not the default");
             Object.DestroyImmediate(host);
         }
-
-        // ----- the tunes -----
 
         [TestCase(Sfx.Tune.Auto, 0.0, Sfx.Tune.Moon)]
         [TestCase(Sfx.Tune.Auto, 4.99, Sfx.Tune.Moon)]
@@ -342,7 +328,6 @@ namespace VuonTra.Core.Tests
             Assert.Less(Top(station), Bottom(remind), "the station slider under the last row");
             Assert.Less(Top(tune), Bottom(station));
             Assert.Greater(Bottom(tune), Top(newMoon) + 4f, "and clear of the new-moon line");
-            // The canvas is laid out for a 1080 x 1920 screen: the card stands in the middle with room above and below.
             Assert.AreEqual(0.5f, card.anchorMin.y, 1e-4f);
             Assert.AreEqual(0f, card.anchoredPosition.y, 0.5f);
             Assert.LessOrEqual(card.rect.height, 1920f - 2f * 80f, "the card stays on the screen");

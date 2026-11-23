@@ -11,22 +11,14 @@ using L10n = VuonTra.Game.L10n;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// Android sign-in through Google Play Games and the save kept in Saved Games (#40), run against a fake
-    /// Play Games so the editor can check every rule. The real plugin is only ever called on a device.
-    /// </summary>
     public class PlayGamesTests
     {
-        /// <summary>Play Games as the game sees it: answers at once, remembers what was asked of it, can be offline or say no.</summary>
         sealed class FakePlayGames : IPlayGames
         {
-            /// <summary>Sign-in, opening and writing all fail while false.</summary>
             public bool Online = true;
-            /// <summary>Whether a sign-in attempt succeeds while online.</summary>
             public bool Accept = true;
             public bool SignedIn { get; set; }
             public string DisplayName { get; set; } = "Kha Nguyễn";
-            /// <summary>What the one snapshot holds: null for none yet, empty for a freshly created one.</summary>
             public byte[] Data;
             public bool ReadFails;
             public string Description;
@@ -101,8 +93,6 @@ namespace VuonTra.Core.Tests
             return a;
         }
 
-        // ----- the garden's default name -----
-
         [Test]
         public void A_Nameless_Garden_Takes_The_Play_Games_Name_Cleaned_And_A_Named_One_Keeps_Its_Own()
         {
@@ -115,8 +105,6 @@ namespace VuonTra.Core.Tests
             var named = new PlayerProfile { GardenName = "Vườn Mây" };
             Assert.AreEqual("Vườn Mây", PlayGamesAccount.NameFor(named, "Kha Nguyễn"), "a name the player chose is never replaced");
         }
-
-        // ----- sign-in -----
 
         [Test]
         public void Opening_The_Game_Signs_In_Quietly_And_Remembers_That_It_Worked()
@@ -177,8 +165,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(false, linked);
             Assert.AreEqual(BackupState.LocalOnly, a.State, "a failed link from a guest leaves a guest");
         }
-
-        // ----- the save in Saved Games -----
 
         SavedGamesCloudSave Cloud(Func<byte[]> cover = null) => new SavedGamesCloudSave(games, cover);
 
@@ -355,8 +341,6 @@ namespace VuonTra.Core.Tests
             finally { Directory.Delete(dir, true); }
         }
 
-        // ----- the size of a save -----
-
         [Test]
         public void A_Garden_With_Everything_Maxed_Is_Far_Below_The_Three_Megabyte_Limit()
         {
@@ -380,7 +364,6 @@ namespace VuonTra.Core.Tests
             s.TraySlots = Tray.MaxSlots;
             for (int i = 0; i < Tray.MaxSlots; i++) s.Tray.Add(new Product { Station = i % defs.Count, Count = Tray.StackLimit, Golden = true });
             Profile.Rename(s, "Vườn Trà Thỏ Trăng Rất Dài");
-            // Far more rabbits, each with the longest name and everything set, than any garden can hold.
             for (int i = 0; i < 300; i++)
             {
                 RabbitKind kind = RabbitKinds.All[i % RabbitKinds.All.Count];
@@ -420,8 +403,6 @@ namespace VuonTra.Core.Tests
             }
             finally { if (Directory.Exists(dir)) Directory.Delete(dir, true); }
         }
-
-        // ----- wiring into the runner -----
 
         [Test]
         public void Off_Android_Installing_Does_Nothing_And_The_Runner_Keeps_Its_Local_Only_Services()

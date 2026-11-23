@@ -10,7 +10,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The arranging mode (#54) on the real screen: the button, the rings, hold-drag-drop, swaps, storage.</summary>
     public class LayoutModeTests
     {
         GameObject root;
@@ -30,18 +29,18 @@ namespace VuonTra.Core.Tests
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
             GameState s = GameState.NewGame(catalog.BuildDefs());
-            s.Levels[1] = 12; s.Levels[2] = 9; s.Levels[3] = 4; // four open stations on the four starting plots
+            s.Levels[1] = 12; s.Levels[2] = 9; s.Levels[3] = 4;
             s.HintSeen = true;
             s.TutorialStep = Tutorial.Steps;
             runner.Init(s);
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             screen.Build();
             screen.Shell.StartGame();
             screen.Refresh();
-            Step(1.2f); // the opening glide
+            Step(1.2f);
         }
 
         [TearDown]
@@ -65,7 +64,6 @@ namespace VuonTra.Core.Tests
         Hex TileOf(string id) => S.Grid.TileOf(id).Value;
         RectTransform Actor(int station) => (RectTransform)root.transform.Find("Canvas/Garden/Content/Station " + runner.Defs[station].Id);
 
-        /// <summary>Two garden points that are the same to a hundredth of a unit (transforms keep floats, not exact sums).</summary>
         static void Near(Vector2 expected, Vector2 actual, string message)
         {
             Assert.Less(Vector2.Distance(expected, actual), 0.01f, message + ": expected " + expected.ToString("F3") + " but was " + actual.ToString("F3"));
@@ -78,7 +76,6 @@ namespace VuonTra.Core.Tests
             return t.GetComponent<Button>();
         }
 
-        /// <summary>An empty tile with a ring, near the teapot, and the view looking at it.</summary>
         Hex EmptyTileNear(Hex near)
         {
             Hex best = default;
@@ -92,7 +89,6 @@ namespace VuonTra.Core.Tests
             return best;
         }
 
-        /// <summary>The empty tile with a ring nearest <paramref name="near"/> where <paramref name="carried"/> keeps clear of every other station (#88).</summary>
         Hex ApartTileNear(Hex near, string carried)
         {
             Hex best = default;
@@ -106,10 +102,8 @@ namespace VuonTra.Core.Tests
             return best;
         }
 
-        /// <summary>The dashed oval that marks the tile a carried thing would land on.</summary>
         GameObject DropTarget => root.transform.Find("Canvas/Garden/Content/LayoutRings/Target").gameObject;
 
-        /// <summary>Holds on a tile for the lift time, drags to another tile's point and lets go.</summary>
         void HoldDragDrop(Hex from, Vector2 to)
         {
             screen.SimulateLayoutPress(screen.LayoutViewPoint(from));
@@ -212,7 +206,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(screen.LayoutLifted);
             Assert.AreEqual(-1, screen.Selected, "no card opens in the mode");
             Assert.AreEqual(tea, TileOf(Id(0)));
-            // A drag that starts before the hold is up looks around the garden instead.
             screen.SimulateLayoutPress(screen.LayoutViewPoint(tea));
             screen.SimulateLayoutDrag(screen.LayoutViewPoint(tea) + new Vector2(0, 120f));
             Step(0.5f);
@@ -236,7 +229,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Station_Dropped_Beside_Another_Springs_Back_And_No_Tile_Lights_Up_There()
         {
-            // #88: the leaf basket dropped on the tile right below the jam pot stood there, the two drawn over each other.
             Motion.SetReduced(true);
             screen.EnterLayoutMode();
             Hex from = TileOf(Id(1)), jam = TileOf(Id(2));
@@ -358,11 +350,10 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Decoration_Cannot_Be_Dropped_By_The_Firefly_Jar_And_No_Ring_Is_Drawn_On_A_Reserved_Tile()
         {
-            // #54 follow-up: the tile right of the jar had a ring, and a decoration dropped there stood on "Đom đóm · còn N lượt".
             Motion.SetReduced(true);
             S.Plots = 8;
-            GardenGrid.Settle(runner.Defs, S); // two land waves: the first segment on the left, where the pond's plate reaches, is open
-            S.GardenXp = Garden.XpForLevel(9); // the jar, the basket and the mortar are out
+            GardenGrid.Settle(runner.Defs, S);
+            S.GardenXp = Garden.XpForLevel(9);
             S.GoldenCarrots = 100;
             Assert.IsTrue(Decor.Buy(S, "den-da") && Decor.Place(S, 7, "den-da"), "a stone lantern on the spot by the tea shop");
             screen.RebuildUi();
@@ -382,21 +373,19 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(ring == null || !ring.gameObject.activeSelf, "no dashed ring on " + h);
             }
             var spot = (RectTransform)root.transform.Find("Canvas/Garden/Content/Spot 7");
-            foreach (Hex kept in new[] { jar, new Hex(-3, 0), new Hex(3, -1), new Hex(1, -2), new Hex(-1, -1), new Hex(-2, -2) }) // the jar, its plate, the basket, the mortar's plate, the pond's plate and the pond (#58)
+            foreach (Hex kept in new[] { jar, new Hex(-3, 0), new Hex(3, -1), new Hex(1, -2), new Hex(-1, -1), new Hex(-2, -2) })
             {
                 HoldDragDrop(lantern, screen.LayoutViewPoint(kept));
                 Assert.IsNull(screen.LayoutLifted);
                 Assert.AreEqual(lantern, TileOf(GardenGrid.DecorId(7)), "dropped on " + kept + ": back where it stood");
                 Near(GardenScreen.CellToWorld(lantern), spot.anchoredPosition, "and drawn there");
             }
-            // A free tile beside the jar still takes it: only the kept ones refuse.
             Hex beside = EmptyTileNear(jar);
             Assert.AreEqual(1, GardenGrid.Distance(beside, jar));
             HoldDragDrop(lantern, screen.LayoutViewPoint(beside));
             Assert.AreEqual(beside, TileOf(GardenGrid.DecorId(7)), "a free tile beside the jar still takes it");
         }
 
-        /// <summary>Null when the label's words fit one line of its box at the size it is drawn, else what went wrong.</summary>
         static string OneLine(Text text)
         {
             Vector2 size = text.rectTransform.rect.size;

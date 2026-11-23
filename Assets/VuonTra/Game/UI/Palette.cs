@@ -2,10 +2,6 @@ using UnityEngine;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The art bible's colours (docs/art-bible.md). Every colour on screen is one of these or a
-    /// mix of two of them, so a reskin is a change to this file.
-    /// </summary>
     public static class Palette
     {
         public static readonly Color Night = Hex("1B1E45");
@@ -17,20 +13,16 @@ namespace VuonTra.Game.UI
         public static readonly Color Lantern = Hex("FFC866");
         public static readonly Color Carrot = Hex("FF9B4A");
 
-        /// <summary>Rabbit tiers, common to rare: silver, green, blue, purple, gold, red.</summary>
         public static readonly Color[] Tiers =
         {
             Hex("C9CEDA"), Moss, Hex("6FA8F0"), Hex("B48BE8"), Lantern, Hex("F0605E")
         };
 
-        // Derived roles: always a mix of two bible colours.
         public static readonly Color Card = Mix(Paper, Color.white, 0.7f);
         public static readonly Color CardLip = Mix(Paper, Ink, 0.2f);
         public static readonly Color Track = Mix(Paper, Ink, 0.14f);
-        /// <summary>Secondary text. Never paler than this: 70% ink is 5.2:1 on a card (AA for small text); 64% was 4.4:1.</summary>
         public static readonly Color InkSoft = Mix(Ink, Paper, 0.30f);
         public static readonly Color CarrotLip = Mix(Carrot, Ink, 0.3f);
-        /// <summary>Words on the carrot colour (primary buttons, chosen pills): ink reads at 6.2:1 where cream read at 2.0:1 (#33).</summary>
         public static readonly Color OnCarrot = Ink;
         public static readonly Color Off = Mix(Paper, Ink, 0.2f);
         public static readonly Color OffLip = Mix(Paper, Ink, 0.36f);

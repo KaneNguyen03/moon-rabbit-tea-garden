@@ -5,11 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// Where the carrots come from: one row per brewing station with what it earns a second and the rabbit
-    /// and ingredient factors behind it, then the garden-wide multipliers (the seated rabbits' share among them) and the total. Opens from the purse.
-    /// Under the list, from garden level 3, the moon jars (#64): what one is worth now and the button that opens one.
-    /// </summary>
     public sealed class IncomeView
     {
         readonly GameObject _root;
@@ -20,10 +15,8 @@ namespace VuonTra.Game.UI
         readonly RectTransform _scroll, _jars;
         readonly ChunkyButton _openJar;
         readonly Text _jarLabel, _jarSub;
-        /// <summary>The moon jars' bar under the list, and the room it takes from the list while it shows.</summary>
         public const float JarBarHeight = 170f, ListBottom = 28f;
 
-        /// <summary>Where a jar's carrots start their flight to the purse.</summary>
         public RectTransform JarButton => _openJar.Root;
 
         public bool IsOpen => _root.activeSelf;
@@ -58,7 +51,7 @@ namespace VuonTra.Game.UI
 
             var scrollRt = UiKit.Rect("Scroll", _card).Stretch(0, 0, 1, 1, 0, ListBottom, 0, 130);
             _scroll = scrollRt;
-            scrollRt.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
+            scrollRt.AddTapCatcher();
             var scroll = scrollRt.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
             scroll.scrollSensitivity = 40f;
@@ -76,7 +69,6 @@ namespace VuonTra.Game.UI
             scroll.content = _content;
             scroll.viewport = scrollRt;
 
-            // The moon jars (#64): a jar, what one pays now and how many are on the shelf, and the button that opens one.
             _jars = UiKit.Rect("Jars", _card).Band(UiKit.CardPad, UiKit.CardPad, ListBottom, JarBarHeight - 16f);
             _jars.AddImage(catalog.Panel, Palette.Mix(Palette.Lantern, Palette.Paper, 0.6f), true);
             JarIcon(_jars, catalog, "Icon", 104f, 0f, 0.5f, 72f, 0f);
@@ -147,7 +139,6 @@ namespace VuonTra.Game.UI
             }
             if (shown == 0) AddNote("Empty", L10n.T("income.empty"), Palette.InkSoft);
 
-            // Garden-wide: the seated rabbits' share, charms, speed, the boost, and the total the purse shows.
             bool boosting = s.BoostSecondsLeft > 0d;
             int seated = RestSpots.SeatedCount(s);
             double rest = RestSpots.Multiplier(s);
@@ -160,7 +151,6 @@ namespace VuonTra.Game.UI
             RefreshJars(defs, s, m);
         }
 
-        /// <summary>The jars' bar: shown from garden level 3, the button live while there is a jar to open.</summary>
         void RefreshJars(IReadOnlyList<StationDef> defs, GameState s, Modifiers m)
         {
             bool shown = MoonJars.Shown(s);
@@ -174,17 +164,12 @@ namespace VuonTra.Game.UI
             _openJar.SetEnabled(any);
         }
 
-        /// <summary>
-        /// A moon jar drawn from the game's own shapes (#64): a glass body with a full moon glowing inside and a cork on top,
-        /// <paramref name="size"/> tall. Used on the purse, in this card, on the shop's shelf and on quest rewards.
-        /// </summary>
         public static RectTransform JarIcon(RectTransform parent, GameCatalog catalog, string name, float size, float anchorX, float anchorY, float x, float y)
         {
             var jar = UiKit.Rect(name, parent).Place(anchorX, anchorY, x, y, size * 0.8f, size);
             UiKit.Rect("Glow", jar).Place(0.5f, 0.42f, 0, 0, size * 1.1f, size * 1.1f).AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.55f));
             if (catalog.MoonJar != null)
             {
-                // The hand-drawn jar, glowing on its own; the code-drawn one below stays for a catalog without it.
                 Image art = UiKit.Rect("Art", jar).Stretch(0, 0, 1, 1).AddImage(catalog.MoonJar, Color.white);
                 art.preserveAspect = true;
                 foreach (Image image in jar.GetComponentsInChildren<Image>()) image.raycastTarget = false;
