@@ -6496,5 +6496,24 @@ namespace VuonTra.Core.Tests
             }
             Assert.Greater(screen.LawnSpots.Count, before, "every segment open offers more");
         }
+
+        // ----- The horizontal garden: the small things left after #16 -----
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(6)]
+        public void A_Guest_Walks_To_The_Counter_Only_Over_Open_Land(int segments)
+        {
+            HavePlots(Expansion.PlotsForSegments(runner.Defs, segments));
+            Assert.AreEqual(segments, Expansion.Segments(runner.State));
+            for (float t = 0f; t <= 1.001f; t += 0.02f)
+            {
+                Vector2 at = screen.GuestPathAt(t);
+                int segment = GardenGrid.SegmentOf(GardenScreen.WorldToCell(at));
+                Assert.That(segment, Is.InRange(0, segments), "with " + segments + " open, at " + t + " the guest at " + at + " is on open land, not in the mist of segment " + segment);
+            }
+            Assert.Greater(screen.GuestEntry.x - screen.GuestSpot.x, 200f, "it still walks a little way in from the right");
+        }
     }
 }

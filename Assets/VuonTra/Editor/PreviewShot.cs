@@ -692,6 +692,7 @@ namespace VuonTra.EditorTools
             RenderQaNits2(); // #79–#82, on a freshly opened scene so the title shows again
             RenderReservedProps(); // #54 follow-up
             RenderGuestByPond(); // #84
+            RenderNgangNits(); // #16 follow-up: the small things left after the horizontal garden
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1701,6 +1702,77 @@ namespace VuonTra.EditorTools
             Step(screen, 0.5f);
             Capture(screen, "84-khach-cho-ao-gan");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+        }
+
+        /// <summary>
+        /// The small things left after the horizontal garden (#16): the mist at a new garden's lawn ends, close and from far
+        /// away; the land plate of the first segment in the opening view; the pond's "Câu cá" plate and a rabbit's idle line
+        /// after the first segment opens; a guest walking in to the counter while the land beyond the lawn is still shut.
+        /// </summary>
+        static void RenderNgangNits()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            for (int i = 0; i < Plots.Starting; i++) s.Levels[i] = 6 - i;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            Rabbit bong = Rabbits.GiftFirst(s, "Bông");
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            screen.Shell.StartGame();
+            Step(screen, 1.4f);
+            Capture(screen, "nits-6-mo-dau"); // the opening view: the mist at both ends of the lawn
+            screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
+            Step(screen, 0.3f);
+            Capture(screen, "nits-6-xa");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+
+            // The first segment opens from the sign at the lawn's end; the view stays where the sign was.
+            MistSegment next = Expansion.Next(runner.Defs, s);
+            s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
+            s.Coins = Expansion.CostOfNext(runner.Defs, s) * new BigNum(1.2);
+            screen.Refresh();
+            Step(screen, 4f); // the new garden level's banner comes and goes first
+            screen.LookAt(screen.ForestSignSpot + new Vector2(0f, 120f));
+            Step(screen, 0.3f);
+            Press(screen, "Canvas/Garden/Content/Forest Sign/Board");
+            screen.Refresh();
+            Step(screen, GardenScreen.RimStep + GardenScreen.MistClear + 1.6f);
+            Capture(screen, "nits-5-sau-mo-rong");
+
+            // The plate of the next station's land, in the opening view of a garden with the first segment open.
+            s.Levels[4] = 3; s.Levels[5] = 2;
+            screen.Refresh();
+            screen.GlideHome();
+            Step(screen, 1.4f);
+            Capture(screen, "nits-2-mo-dau");
+
+            // Back to a garden with nothing opened yet: a guest walks in to the counter.
+            GameState fresh = GameState.NewGame(defs);
+            for (int i = 0; i < Plots.Starting; i++) fresh.Levels[i] = 6 - i;
+            fresh.HintSeen = true;
+            fresh.TutorialStep = Tutorial.Steps;
+            Rabbits.GiftFirst(fresh, "Bông");
+            fresh.FreshKinds.Clear();
+            fresh.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = Orders.WaitSeconds, RewardSeconds = Orders.RewardSeconds };
+            fresh.Order.Lines.Add(new OrderLine { Station = 0, Count = 2 });
+            runner.Init(fresh);
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(screen.GuestSpot + new Vector2(380f, -200f));
+            Step(screen, 0.5f); // a fifth of the way in
+            Capture(screen, "nits-1-khach");
+            Step(screen, 2.4f);
+            Capture(screen, "nits-1-khach-den");
         }
     }
 }

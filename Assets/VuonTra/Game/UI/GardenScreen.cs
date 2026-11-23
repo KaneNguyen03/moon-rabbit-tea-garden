@@ -500,9 +500,12 @@ namespace VuonTra.Game.UI
         /// <summary>The garden x the view may show, left and right: the open lawn and <see cref="ViewMargin"/> past each end, inside the world.</summary>
         public Vector2 OpenSpan()
         {
-            int open = Runner != null && Runner.State != null ? Expansion.Segments(Runner.State) : 0;
+            int open = OpenSegments;
             return new Vector2(Mathf.Max(0f, LawnEdgeX(open, GardenSide.Left) - ViewMargin), Mathf.Min(WorldW, LawnEdgeX(open, GardenSide.Right) + ViewMargin));
         }
+
+        /// <summary>How many segments of the strip are open beside the middle.</summary>
+        int OpenSegments => Runner != null && Runner.State != null ? Expansion.Segments(Runner.State) : 0;
 
         /// <summary>A finger is dragging the garden right now (the scroll's own drag): the view is not pulled back while it does.</summary>
         bool _dragging;
@@ -4934,9 +4937,12 @@ namespace VuonTra.Game.UI
         public Vector2 GuestSpot => PropSpot(GardenGrid.CounterId);
         /// <summary>
         /// Where a guest comes in from and goes back to: along the top of the lawn from the right, the side away from the pond
-        /// (the horizontal garden), as far from the counter as the column garden's left edge was.
+        /// (the horizontal garden), as far from the counter as the column garden's left edge was, but never past the open lawn's
+        /// end: a guest steps out of the mist there and walks only over land that is open (#16).
         /// </summary>
-        public Vector2 GuestEntry => new Vector2(GuestSpot.x + 855f, GuestSpot.y - 40f);
+        public Vector2 GuestEntry => new Vector2(Mathf.Min(GuestSpot.x + 855f, LawnEdgeX(OpenSegments, GardenSide.Right) - GuestEdgeGap), GuestSpot.y - 40f);
+        /// <summary>How far inside the open lawn's end a guest comes in.</summary>
+        const float GuestEdgeGap = 60f;
 
         /// <summary>Where a walking guest is at <paramref name="t"/> of the way from <see cref="GuestEntry"/> to the counter (0 to 1).</summary>
         public Vector2 GuestPathAt(float t) => Vector2.Lerp(GuestEntry, GuestSpot, t);
