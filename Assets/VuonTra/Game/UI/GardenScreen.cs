@@ -413,7 +413,7 @@ namespace VuonTra.Game.UI
         /// </summary>
         public Vector2 StationSpot(int i)
         {
-            string id = Runner != null && i >= 0 && i < Runner.Defs.Count ? GardenGrid.StationId(Runner.Defs[i]) : null;
+            string id = Runner != null && i >= 0 && i < Runner.Defs.Count ? Runner.Defs[i].GridId : null;
             return CellToWorld(Grid != null && Grid.TryTileOf(id, out Hex tile) ? tile : GardenGrid.DefaultStationTile(i));
         }
 
