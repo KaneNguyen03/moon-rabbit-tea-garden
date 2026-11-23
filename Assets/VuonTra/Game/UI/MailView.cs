@@ -6,11 +6,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The mailbox (#68), opened from the pause card: the gifts the game wrote itself (a make-up gift when a save could
-    /// not be read, a season's gift when its banner was missed), each with what it holds, the days it has left and a
-    /// button that claims it. Ten letters at most, thirty days each.
-    /// </summary>
     public sealed class MailView
     {
         sealed class Row
@@ -108,11 +103,9 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        /// <summary>A letter's heading: a make-up gift, or the season it is for.</summary>
         public static string TitleOf(Letter letter)
             => letter.Kind == LetterKind.MakeUp ? L10n.T("mail.makeup") : L10n.T("mail.season", L10n.Season(letter.Season));
 
-        /// <summary>What a gift holds, as "+10 cà rốt vàng · +3 cỏ bốn lá".</summary>
         public static string GiftOf(int golden, int clovers)
         {
             var parts = new List<string>(2);
@@ -121,7 +114,6 @@ namespace VuonTra.Game.UI
             return string.Join(" · ", parts);
         }
 
-        /// <summary>A letter's second line: what it holds and the days left to claim it.</summary>
         public static string SubOf(Letter letter, long today)
         {
             int left = Mailbox.DaysLeft(letter, today);
@@ -137,7 +129,6 @@ namespace VuonTra.Game.UI
             Refresh(letters, today);
         }
 
-        /// <summary>One row per letter, oldest first; the empty line when there are none.</summary>
         public void Refresh(IReadOnlyList<Letter> letters, long today)
         {
             int n = letters == null ? 0 : Math.Min(letters.Count, _rows.Count);
@@ -154,7 +145,6 @@ namespace VuonTra.Game.UI
             _empty.gameObject.SetActive(n == 0);
         }
 
-        /// <summary>The line under the title after a claim: what just came.</summary>
         public void ShowClaimed(string text) => _note.text = text;
 
         public void Close()

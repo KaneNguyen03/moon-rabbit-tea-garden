@@ -10,10 +10,6 @@ using VuonTra.Game.UI;
 
 namespace VuonTra.EditorTools
 {
-    /// <summary>
-    /// Creates the game's starting content from code so it can be rebuilt at any time:
-    /// placeholder art, the eight stations, the catalog, the Garden scene and player settings.
-    /// </summary>
     public static class ContentSeeder
     {
         public const string StationFolder = "Assets/VuonTra/Content/Stations";
@@ -26,13 +22,10 @@ namespace VuonTra.EditorTools
             public StationKind Kind;
             public double Cost, Growth, Income, Cycle;
             public string[] Boosts;
-            /// <summary>The garden level the station asks for besides its price (#67); 0 for none.</summary>
             public int NeedLevel;
-            /// <summary>Ingredient only: the share of the usual boost it gives (#83); 0 here means all of it.</summary>
             public double BoostScale;
         }
 
-        /// <summary>Which trade a station belongs to: every ingredient station is for gatherers, the rest go by what they make.</summary>
         static RabbitTrade TradeOf(Row row)
         {
             if (row.Kind == StationKind.Ingredient) return RabbitTrade.Gatherer;
@@ -45,7 +38,6 @@ namespace VuonTra.EditorTools
             }
         }
 
-        // Unlock order. Numbers are a first pass; they get tuned through playtests.
         static readonly Row[] Rows =
         {
             new Row { Id = "am-tra",   Name = "Ấm trà sương",       Kind = StationKind.Brew,       Cost = 10,     Growth = 1.09, Income = 1,      Cycle = 1.5, Accent = "6fb7b0" },
@@ -60,10 +52,6 @@ namespace VuonTra.EditorTools
             new Row { Id = "tiem-banh",Name = "Tiệm bánh trung thu",Kind = StationKind.Brew,       Cost = 9e10,   Growth = 1.15, Income = 7e7,    Cycle = 40,  Accent = "f0a93a" },
             new Row { Id = "suoi-hoa", Name = "Suối khoáng hoa",    Kind = StationKind.Ingredient, Cost = 1.3e12, Growth = 1.16, Accent = "6fa8f0", Boosts = new[] { "binh-sao", "dai-sao" } },
             new Row { Id = "dai-sao",  Name = "Đài ngắm sao",       Kind = StationKind.Brew,       Cost = 2e13,   Growth = 1.16, Income = 9e8,    Cycle = 50,  Accent = "ffc866" },
-            // Four stations after the star observatory (#67): each also asks for a garden level, so a casual player has a
-            // new one to open from day four to day ten. They stand on the rings of land #53 brings. The two ingredient
-            // stations give 7 % of the usual boost (#83): at full strength they made day seven's income over a hundredfold; at 7 %
-            // it stays within ten times what it was before them.
             new Row { Id = "ho-sen",   Name = "Vườn hoa sen",       Kind = StationKind.Ingredient, Cost = 3e14,   Growth = 1.16, Accent = "f2a7c3", Boosts = new[] { "tiem-banh", "dai-sao" }, NeedLevel = 16, BoostScale = 0.07 },
             new Row { Id = "lo-keo",   Name = "Lò kẹo mạch nha",    Kind = StationKind.Brew,       Cost = 4.5e15, Growth = 1.17, Income = 1.2e10, Cycle = 60,  Accent = "e3a857", NeedLevel = 18 },
             new Row { Id = "ruong-nep",Name = "Ruộng lúa nếp",      Kind = StationKind.Ingredient, Cost = 6.5e16, Growth = 1.17, Accent = "b9cf6a", Boosts = new[] { "lo-keo", "tra-sua" }, NeedLevel = 20, BoostScale = 0.07 },
@@ -73,9 +61,9 @@ namespace VuonTra.EditorTools
         [MenuItem("VuonTra/Seed Content")]
         public static void Seed()
         {
-            L10nSeeder.Seed(); // both languages, before anything reads text
+            L10nSeeder.Seed();
             PlaceholderArt.Generate();
-            FinalArt.Import(); // real art in Art/Final wins over a placeholder of the same name
+            FinalArt.Import();
             Directory.CreateDirectory(StationFolder);
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             AssetDatabase.Refresh();
@@ -103,8 +91,8 @@ namespace VuonTra.EditorTools
                 data.BoostScale = row.BoostScale > 0 ? row.BoostScale : 1d;
                 data.Accent = PlaceholderArt.Hex(row.Accent);
                 data.Prop = FinalArt.Load("prop_" + row.Id);
-                data.Product = FinalArt.Find("product_" + row.Id); // null until drawn: the tray shows the prop
-                data.Rabbit = FinalArt.Find("rabbit_" + row.Id); // null: the shared rabbit plus a tinted scarf
+                data.Product = FinalArt.Find("product_" + row.Id);
+                data.Rabbit = FinalArt.Find("rabbit_" + row.Id);
                 EditorUtility.SetDirty(data);
                 byId[row.Id] = data;
                 ordered.Add(data);
@@ -126,7 +114,6 @@ namespace VuonTra.EditorTools
             }
             catalog.Stations = ordered.ToArray();
             catalog.Rabbit = FinalArt.Load("rabbit");
-            // The placeholder scarf only lines up with the placeholder rabbit.
             catalog.Scarf = FinalArt.Find("rabbit") != null ? FinalArt.Find("scarf") : PlaceholderArt.Load("scarf");
             catalog.Panel = FinalArt.Load("panel");
             catalog.Round = FinalArt.Load("round");
@@ -137,7 +124,7 @@ namespace VuonTra.EditorTools
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
 
-            MetaSeeder.Seed(catalog); // upgrades and quests
+            MetaSeeder.Seed(catalog);
             BuildScene(catalog);
             ApplyPlayerSettings();
             AssetDatabase.SaveAssets();
@@ -170,7 +157,6 @@ namespace VuonTra.EditorTools
         static void ApplyPlayerSettings()
         {
             PlayerSettings.companyName = "VuonTraTho";
-            // The English name is the app's name on every store and window (#15); the Vietnamese title stays on the title screen.
             PlayerSettings.productName = BuildScript.ProductName;
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.defaultScreenWidth = 540;
@@ -178,16 +164,10 @@ namespace VuonTra.EditorTools
             PlayerSettings.fullScreenMode = FullScreenMode.Windowed;
             PlayerSettings.resizableWindow = true;
             PlayerSettings.runInBackground = true;
-            // Fixes where saves live on desktop; changing it later would orphan existing saves.
             PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Standalone, BuildScript.BundleId);
             ApplyMobileSettings();
         }
 
-        /// <summary>
-        /// What the phone builds need before anyone can build them (#41): the same bundle id on both stores, the
-        /// version and build number, portrait only, the app icon and the splash screen from the game's own art.
-        /// Nothing here needs the iOS or Android module to be installed; the builds themselves do.
-        /// </summary>
         static void ApplyMobileSettings()
         {
             var ios = UnityEditor.Build.NamedBuildTarget.iOS;
@@ -199,7 +179,6 @@ namespace VuonTra.EditorTools
             PlayerSettings.Android.bundleVersionCode = BuildScript.BuildNumber;
             PlayerSettings.macOS.buildNumber = BuildScript.BuildNumber.ToString();
 
-            // Portrait only: the garden is a tall scroll, and the HUD and tab bar are laid out for it (#23, #33).
             PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
             PlayerSettings.allowedAutorotateToPortrait = true;
             PlayerSettings.allowedAutorotateToPortraitUpsideDown = false;
@@ -212,15 +191,12 @@ namespace VuonTra.EditorTools
             PlayerSettings.SetScriptingBackend(android, ScriptingImplementation.IL2CPP);
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
 
-            // The icon: the moon rabbit on its hill under the moon. The default icon serves every platform
-            // that has no icon of its own; the phone stores take it from here and make their sizes.
             var icon = AssetDatabase.LoadAssetAtPath<Texture2D>(FinalArt.Folder + "/icon_app.png");
             if (icon != null)
             {
                 PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
                 foreach (UnityEditor.Build.NamedBuildTarget platform in new[] { ios, android })
                 {
-                    // Per-size icons exist only once the platform's module is installed; without it this is a no-op.
                     try
                     {
                         foreach (PlatformIconKind kind in PlayerSettings.GetSupportedIconKinds(platform))
@@ -234,10 +210,9 @@ namespace VuonTra.EditorTools
                 }
             }
 
-            // The splash: the night of the bible behind the same picture, two seconds, then the game.
             var splash = AssetDatabase.LoadAssetAtPath<Sprite>(FinalArt.Folder + "/icon_app.png");
             PlayerSettings.SplashScreen.show = true;
-            PlayerSettings.SplashScreen.showUnityLogo = true; // the licence decides; left on so a Personal licence builds
+            PlayerSettings.SplashScreen.showUnityLogo = true;
             PlayerSettings.SplashScreen.backgroundColor = VuonTra.Game.UI.Palette.Night;
             PlayerSettings.SplashScreen.drawMode = PlayerSettings.SplashScreen.DrawMode.AllSequential;
             PlayerSettings.SplashScreen.unityLogoStyle = PlayerSettings.SplashScreen.UnityLogoStyle.LightOnDark;

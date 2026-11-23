@@ -5,11 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The button at one of the three rewarded-ad places (#66). Always a secondary button, never the card's main
-    /// one, and shown only while the place offers something: "Xem 30 giây" when a video is ready, "Nhận ngay" with
-    /// the no-ads pass, hidden otherwise (every player build today, where no provider is ready).
-    /// </summary>
     public sealed class AdButton
     {
         public readonly RectTransform Root;
@@ -45,7 +40,6 @@ namespace VuonTra.Game.UI
             Refresh();
         }
 
-        /// <summary>Shows or hides the button and words it for what is offered now.</summary>
         public void Refresh()
         {
             AdOffer offer = _offer != null ? _offer() : AdOffer.None;

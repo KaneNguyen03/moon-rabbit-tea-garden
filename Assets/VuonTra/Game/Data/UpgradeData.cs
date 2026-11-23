@@ -3,7 +3,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game
 {
-    /// <summary>A garden-wide upgrade ("bùa") as an asset.</summary>
     [CreateAssetMenu(menuName = "VuonTra/Upgrade", fileName = "Upgrade")]
     public sealed class UpgradeData : ScriptableObject
     {

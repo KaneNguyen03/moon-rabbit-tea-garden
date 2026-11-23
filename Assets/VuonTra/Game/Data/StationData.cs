@@ -3,7 +3,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game
 {
-    /// <summary>One station as an asset: the rules the core needs plus how it looks.</summary>
     [CreateAssetMenu(menuName = "VuonTra/Station", fileName = "Station")]
     public sealed class StationData : ScriptableObject
     {

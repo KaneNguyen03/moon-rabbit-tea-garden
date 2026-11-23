@@ -5,11 +5,6 @@ using UnityEngine;
 
 namespace VuonTra.EditorTools
 {
-    /// <summary>
-    /// Backdrop layers for the side-scrolling street: sky, far hills, tree line and ground. The
-    /// last three tile horizontally so they can slide at different speeds (parallax). Stand-ins
-    /// like the rest of the placeholder art: a file of the same name in Art/Final replaces one.
-    /// </summary>
     public static class StreetArt
     {
         public const string Folder = "Assets/VuonTra/Art/Placeholder";
@@ -43,13 +38,11 @@ namespace VuonTra.EditorTools
             Write("bg_sky", 960, 540, (u, v) =>
             {
                 Color c = v < 0.5f ? Color.Lerp(skyLow, skyMid, v / 0.5f) : Color.Lerp(skyMid, skyTop, (v - 0.5f) / 0.5f);
-                // moon with a soft halo
                 float dx = (u - 0.74f) * (960f / 540f), dy = v - 0.78f;
                 float d = Mathf.Sqrt(dx * dx + dy * dy);
                 c = Color.Lerp(c, Hex("ffe9a8"), Mathf.Clamp01(1f - d / 0.42f) * 0.22f);
                 if (d < 0.062f) c = Color.Lerp(Hex("fff3c8"), Hex("ecd193"), Mathf.Clamp01((Mathf.Sin(dx * 90f) * Mathf.Sin(dy * 70f) - 0.55f) * 3f));
                 else if (d < 0.066f) c = Color.Lerp(Hex("fff3c8"), c, (d - 0.062f) / 0.004f);
-                // stars: one per cell, most cells empty
                 float cx = Mathf.Floor(u * 120f), cy = Mathf.Floor(v * 68f);
                 if (v > 0.3f && Hash(cx, cy) > 0.93f)
                 {
@@ -81,15 +74,12 @@ namespace VuonTra.EditorTools
             Color[] flowers = { Hex("ffc866"), Hex("f3a6d6"), Hex("bfe9ff") };
             Write("bg_ground", 1024, 512, (u, v) =>
             {
-                float t = 1f - v; // 0 at the horizon, 1 at the bottom
+                float t = 1f - v;
                 Color c = t < 0.3f ? Color.Lerp(grassTop, grassMid, t / 0.3f) : Color.Lerp(grassMid, grassLow, (t - 0.3f) / 0.7f);
                 if (t < 0.012f) c = Color.Lerp(Hex("a6e6b4"), c, t / 0.012f);
-                // soft bands of lighter grass, wider towards the viewer
                 c = Color.Lerp(c, Color.white, 0.035f * Mathf.Clamp01(Mathf.Sin(u * Mathf.PI * 6f + t * 14f) * Mathf.Sin(t * 22f)));
-                // a worn path the stations stand along
                 float path = Mathf.Abs(t - 0.52f - 0.03f * Mathf.Sin(u * Mathf.PI * 8f));
                 c = Color.Lerp(c, Hex("7fb39c"), Mathf.Clamp01(1f - path / 0.05f) * 0.22f);
-                // short grass tufts: darker flecks, denser near the viewer
                 float gx = Mathf.Floor(u * 96f), gy = Mathf.Floor(v * 40f);
                 if (Hash(gx + 11, gy + 5) > 0.78f)
                 {
@@ -97,7 +87,6 @@ namespace VuonTra.EditorTools
                     float blade = Mathf.Clamp01(1f - Mathf.Abs(tx) * 5f - Mathf.Abs(ty) * 1.6f);
                     c = Color.Lerp(c, Hex("5fb58a"), blade * 0.5f);
                 }
-                // glowing flowers, one per cell in most cells; cells tile across the texture
                 float cx = Mathf.Floor(u * 16f), cy = Mathf.Floor(v * 8f);
                 if (Hash(cx + 40, cy) > 0.35f)
                 {
@@ -110,13 +99,10 @@ namespace VuonTra.EditorTools
                 return c;
             });
 
-            // Grass seen from above, tiling in both directions, for the draggable world.
             Write("bg_grass", 512, 512, (u, v) =>
             {
-                // large soft patches; whole numbers of waves so the tile has no seam
                 float patch = 0.5f + 0.25f * Mathf.Sin(u * Mathf.PI * 2f + Mathf.Sin(v * Mathf.PI * 4f) * 1.3f)
                                    + 0.25f * Mathf.Sin(v * Mathf.PI * 4f + Mathf.Sin(u * Mathf.PI * 6f) * 0.9f);
-                // Big soft areas of lighter and darker grass do the work; the small detail stays quiet.
                 Color c = Color.Lerp(Hex("1f5249"), Hex("3f9070"), Mathf.SmoothStep(0f, 1f, patch));
                 float gx = Mathf.Floor(u * 64f), gy = Mathf.Floor(v * 64f);
                 if (Hash(gx + 11, gy + 5) > 0.74f)
@@ -125,7 +111,6 @@ namespace VuonTra.EditorTools
                     float blade = Mathf.Clamp01(1f - Mathf.Abs(tx) * 4.5f - Mathf.Abs(ty) * 1.5f);
                     c = Color.Lerp(c, Hash(gx, gy) > 0.5f ? Hex("56a882") : Hex("1c4a44"), blade * 0.4f);
                 }
-                // a rare small pale flower, nothing brighter
                 float cx = Mathf.Floor(u * 6f), cy = Mathf.Floor(v * 6f);
                 if (Hash(cx + 40, cy) > 0.7f)
                 {
@@ -135,19 +120,16 @@ namespace VuonTra.EditorTools
                 return c;
             });
 
-            // Moonlight coming down through the canopy: soft slanted shafts, tiling sideways.
             Write("bg_moonbeam", 512, 512, (u, v) =>
             {
-                // Three slanted shafts that die away at every edge, so the picture can sit on the grass by the pond.
                 float across = u + (v - 0.5f) * 0.3f;
                 float shafts = Mathf.Pow(Mathf.Max(0f, Mathf.Sin((across - 0.08f) * Mathf.PI * 3.6f)), 5f);
                 float Rise(float t, float over) => Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(t / over));
                 float sides = Rise(u, 0.22f) * Rise(1f - u, 0.22f);
-                float fade = Rise(v, 0.55f) * Rise(1f - v, 0.12f); // from above, gone before the ground
+                float fade = Rise(v, 0.55f) * Rise(1f - v, 0.12f);
                 return new Color(0.80f, 0.90f, 1f, shafts * sides * fade * 0.25f);
             });
 
-            // Darkened corners pull the eye to the lit middle of the street.
             Color edge = Hex("0b0f2a");
             Write("bg_vignette", 256, 144, (u, v) =>
             {
@@ -170,7 +152,6 @@ namespace VuonTra.EditorTools
             }
         }
 
-        /// <summary>A drawn backdrop layer in Art/Final wins over the generated one.</summary>
         public static Texture2D Load(string name)
         {
             var drawn = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/VuonTra/Art/Final/" + name + ".png");

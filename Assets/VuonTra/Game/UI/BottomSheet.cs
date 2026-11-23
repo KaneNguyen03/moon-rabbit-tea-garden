@@ -5,11 +5,6 @@ using UnityEngine.UI;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// A card that slides up from the bottom edge, the way the main tabs do: a grab handle at its top, a
-    /// pull down or a touch outside closes it, and the garden above it only darkens a little. Views that
-    /// used to be boxes in the middle of the screen put their content on <see cref="Card"/>.
-    /// </summary>
     public sealed class BottomSheet
     {
         public const float Fling = 1100f;
@@ -37,12 +32,10 @@ namespace VuonTra.Game.UI
             outside.transition = Selectable.Transition.None;
             outside.onClick.AddListener(Close);
 
-            // Bottom-anchored: its height is how far it stands up, its position is the slide in and out.
             Card = UiKit.Rect("Card", overlay).Stretch(0, 0, 1, 0, 20, 0, 20, 0);
             Card.pivot = new Vector2(0.5f, 0f);
             Card.sizeDelta = new Vector2(-40, height);
             Card.anchoredPosition = new Vector2(0, -height);
-            // Only the strip of garden right above the edge darkens a little more.
             var shade = UiKit.Rect("Shade", Card).Stretch(0, 1, 1, 1);
             shade.pivot = new Vector2(0.5f, 0f);
             shade.sizeDelta = new Vector2(0, 240);
@@ -53,9 +46,8 @@ namespace VuonTra.Game.UI
             face.pixelsPerUnitMultiplier = lipScale;
             face.raycastTarget = true;
 
-            // The grab handle: a short bar at the top, dragged with the finger.
             var handle = UiKit.Rect("Handle", Card).Place(0.5f, 1f, 0, -24, 300, 48);
-            handle.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
+            handle.AddTapCatcher();
             UiKit.Rect("Bar", handle).Place(0.5f, 0.5f, 0, 0, 96, 12).AddImage(catalog.Round, Palette.Track);
             var grab = handle.gameObject.AddComponent<EventTrigger>();
             Add(grab, EventTriggerType.BeginDrag, _ => _dragSpeed = 0f);
@@ -78,7 +70,6 @@ namespace VuonTra.Game.UI
             trigger.triggers.Add(entry);
         }
 
-        /// <summary>Slides the card up from the bottom edge with a light bounce. Opening again just re-slides.</summary>
         public void Open()
         {
             IsOpen = true;
@@ -86,7 +77,6 @@ namespace VuonTra.Game.UI
             Slide(0f, Motion.Time(Motion.Panel), Motion.Curve(Ease.OutBackLight), null);
         }
 
-        /// <summary>Slides the card out of sight; the view hears about it once it has gone.</summary>
         public void Close()
         {
             if (!IsOpen) return;
@@ -95,7 +85,6 @@ namespace VuonTra.Game.UI
             _onClosed?.Invoke();
         }
 
-        /// <summary>The handle moved by this much (canvas units, up is positive): the card follows, down only.</summary>
         public void Drag(float dy)
         {
             if (!IsOpen) return;
@@ -103,7 +92,6 @@ namespace VuonTra.Game.UI
             Card.anchoredPosition = new Vector2(0, Mathf.Clamp(Card.anchoredPosition.y + dy, -_height, 0f));
         }
 
-        /// <summary>The handle was let go: a flick down or a card pulled well down closes it, otherwise it springs back.</summary>
         public void Release(float speed = 0f)
         {
             if (!IsOpen) return;

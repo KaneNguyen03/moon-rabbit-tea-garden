@@ -4,14 +4,8 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.Platform
 {
-    /// <summary>
-    /// The player's Google Play Games account as the profile screen sees it (#40). The game signs in quietly when it
-    /// opens; the link button asks Play Games out loud. A sign-in that worked is remembered, so a morning without
-    /// network reads as "could not get back in" rather than "never linked", and the player plays as a guest either way.
-    /// </summary>
     public sealed class PlayGamesAccount : IAccountService
     {
-        /// <summary>The PlayerPrefs key that remembers a sign-in that worked.</summary>
         public const string RememberKey = "playgames.linked";
 
         readonly IPlayGames _games;
@@ -26,7 +20,6 @@ namespace VuonTra.Game.Platform
             _saveRemembered = saveRemembered;
         }
 
-        /// <summary>The account for a device: what it remembers lives in PlayerPrefs.</summary>
         public static PlayGamesAccount WithPlayerPrefs(IPlayGames games) => new PlayGamesAccount(games,
             () => PlayerPrefs.GetInt(RememberKey, 0) == 1,
             v => { PlayerPrefs.SetInt(RememberKey, v ? 1 : 0); PlayerPrefs.Save(); });
@@ -37,13 +30,10 @@ namespace VuonTra.Game.Platform
         public string LinkedName => _state == BackupState.Linked ? (_games.DisplayName ?? "") : "";
         public event Action Changed;
 
-        /// <summary>The quiet sign-in at open: nothing is asked of the player.</summary>
         public void SignInAtOpen() => Attempt(false, null);
 
-        /// <summary>The link button: Play Games may show its own screens.</summary>
         public void Link(Action<bool> onDone) => Attempt(true, onDone);
 
-        /// <summary>Play Games v2 has no sign-out; the game stops using the account and forgets that it was linked.</summary>
         public void Unlink()
         {
             _saveRemembered(false);
@@ -72,10 +62,6 @@ namespace VuonTra.Game.Platform
             Changed?.Invoke();
         }
 
-        /// <summary>
-        /// The garden's name once the player is signed in: the one the player chose if there is one, else the Play Games
-        /// name cleaned like any garden name, else empty (the garden stays unnamed).
-        /// </summary>
         public static string NameFor(PlayerProfile profile, string displayName)
         {
             if (!string.IsNullOrEmpty(profile.GardenName)) return profile.GardenName;

@@ -6,15 +6,10 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The short tray above the tab bar where the stations' special batches wait: a slot per stack, a
-    /// touch sells one, a swipe across sells everything, and a mark says when nothing more fits.
-    /// </summary>
     public sealed class TrayView
     {
         public RectTransform Root { get; private set; }
         public const float Height = 112f;
-        /// <summary>How far a finger travels across the tray for it to count as a sweep.</summary>
         public const float SweepDistance = 120f;
 
         readonly RectTransform[] _slots = new RectTransform[Tray.MaxSlots];
@@ -34,9 +29,8 @@ namespace VuonTra.Game.UI
             Root.AddShadow(18f, 10f, 0.3f);
             UiKit.Rect("Lip", Root).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             Image plate = UiKit.Rect("Plate", Root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            plate.raycastTarget = true; // a touch on the tray is not a touch on the garden behind it
+            plate.raycastTarget = true;
 
-            // A sweep across the tray sells everything: the sweep is measured from where the finger went down.
             var trigger = Root.gameObject.AddComponent<EventTrigger>();
             Add(trigger, EventTriggerType.BeginDrag, e => { _sweeping = true; _sweepStart = ((PointerEventData)e).position.x; });
             Add(trigger, EventTriggerType.EndDrag, e =>
@@ -53,7 +47,6 @@ namespace VuonTra.Game.UI
                 int slot = i;
                 var rt = UiKit.Rect("Slot " + i, Root).Place(0f, 0.5f, 72 + i * 118f, 4, 96, 96);
                 _slots[i] = rt;
-                // Each product sits on a little wooden dish once that is drawn; a plain disc until then.
                 Image back = rt.AddImage(catalog.TrayWood != null ? catalog.TrayWood : catalog.Round, catalog.TrayWood != null ? Color.white : Palette.Track);
                 back.preserveAspect = true;
                 back.raycastTarget = true;
@@ -61,7 +54,6 @@ namespace VuonTra.Game.UI
                 button.transition = Selectable.Transition.None;
                 button.targetGraphic = back;
                 button.onClick.AddListener(() => onSell(slot));
-                // A warm ring round a golden batch.
                 var gold = UiKit.Rect("Gold", rt).Stretch(0, 0, 1, 1, -6, -6, -6, -6);
                 gold.AddImage(catalog.Round, Palette.Lantern);
                 gold.SetAsFirstSibling();
@@ -74,7 +66,6 @@ namespace VuonTra.Game.UI
                 _counts[i] = count.gameObject;
             }
 
-            // The mark that says nothing more fits, on the tray's far end.
             var full = UiKit.Rect("Full", Root).Place(1f, 0.5f, -70, 4, 112, 44);
             full.AddImage(catalog.Panel, Palette.Tiers[5], true);
             UiKit.Rect("Text", full).Stretch(0, 0, 1, 1).AddText(L10n.T("tray.full"), 20, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -89,7 +80,6 @@ namespace VuonTra.Game.UI
             trigger.triggers.Add(entry);
         }
 
-        /// <summary>The picture of a station's product: its own when drawn, its prop until then.</summary>
         public Sprite ProductSprite(int station)
         {
             StationData data = station >= 0 && station < _catalog.Stations.Length ? _catalog.Stations[station] : null;
@@ -97,7 +87,6 @@ namespace VuonTra.Game.UI
             return data.Product != null ? data.Product : data.Prop;
         }
 
-        /// <summary>Where a slot sits, for things flying to or from it.</summary>
         public RectTransform Slot(int index) => _slots[Mathf.Clamp(index, 0, _slots.Length - 1)];
 
         public void Refresh(GameState s)
@@ -121,7 +110,6 @@ namespace VuonTra.Game.UI
             if (_full.activeSelf != full) _full.SetActive(full);
         }
 
-        /// <summary>A slot swells for a moment: something landed in it.</summary>
         public void Pop(Tweens tweens, int index)
         {
             RectTransform slot = Slot(index);

@@ -9,7 +9,6 @@ using Unity.Notifications;
 
 namespace VuonTra.Game.Platform
 {
-    /// <summary>One reminder ready for the device: when, and its words in the language the player has chosen.</summary>
     public struct Notice
     {
         public long AtUnixSeconds;
@@ -17,42 +16,27 @@ namespace VuonTra.Game.Platform
         public string Title, Body;
     }
 
-    /// <summary>What the device's notification centre is asked to do. Tests use a fake; the Mac and the editor only log.</summary>
     public interface INotifier
     {
-        /// <summary>Asks the player whether the game may post reminders; <paramref name="done"/> gets the answer.</summary>
         void RequestPermission(Action<bool> done);
         void Schedule(IReadOnlyList<Notice> notices);
         void CancelAll();
     }
 
-    /// <summary>
-    /// The "Nhắc tôi" switch on the pause card and the reminders behind it (#65). Off until the player turns it on;
-    /// turning it on is the only time permission is asked, never at the first launch. Each time the game goes to the
-    /// background the whole list is planned again (<see cref="Reminders.Plan"/>) and registered; when it comes back
-    /// every reminder is taken away.
-    /// </summary>
     public static class Notifications
     {
         const string Key = "remind.on";
 
         static bool? _on;
-        /// <summary>The switch, as saved in PlayerPrefs; off for a new player.</summary>
         public static bool On => _on ?? (_on = PlayerPrefs.GetInt(Key, 0) == 1).Value;
 
-        /// <summary>Where the reminders go: the phone's notification centre on iOS and Android, a log line anywhere else.</summary>
         public static INotifier Notifier = Device();
 
-        /// <summary>The latest reminders handed to the device, for tests and the log.</summary>
         public static IReadOnlyList<Notice> Last { get; private set; } = new List<Notice>();
 
         static GameObject _watchOwner;
         static Action _watch;
 
-        /// <summary>
-        /// Turns the switch. Turning it on asks for permission; a refusal turns it back off and tells the row on the
-        /// pause card (<see cref="Watch"/>), as the answer can come after the touch.
-        /// </summary>
         public static void SetOn(bool on)
         {
             Store(on);
@@ -65,7 +49,6 @@ namespace VuonTra.Game.Platform
             });
         }
 
-        /// <summary>The row that shows the switch: it is shown again when a late answer changes it. One row at a time; the newest wins.</summary>
         public static void Watch(GameObject owner, Action show)
         {
             _watchOwner = owner;
@@ -79,7 +62,6 @@ namespace VuonTra.Game.Platform
             PlayerPrefs.Save();
         }
 
-        /// <summary>The game goes to the background: the device is given the whole list again, or nothing when switched off.</summary>
         public static IReadOnlyList<Notice> GoingAway(GameState state, Modifiers mods, DateTimeOffset localNow)
         {
             var notices = new List<Notice>();
@@ -96,7 +78,6 @@ namespace VuonTra.Game.Platform
             return notices;
         }
 
-        /// <summary>The game is back in front: reminders it no longer needs are taken away, and any already shown cleared.</summary>
         public static void CameBack() => Notifier.CancelAll();
 
         static INotifier Device()
@@ -109,7 +90,6 @@ namespace VuonTra.Game.Platform
         }
     }
 
-    /// <summary>The Mac, WebGL and the editor: nothing is posted; one line in the log says what a phone would get.</summary>
     public sealed class LogNotifier : INotifier
     {
         public void RequestPermission(Action<bool> done) => done(true);
@@ -127,7 +107,6 @@ namespace VuonTra.Game.Platform
     }
 
 #if VUONTRA_NOTIFICATIONS && (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-    /// <summary>iOS and Android through Unity Mobile Notifications 2.x (the unified NotificationCenter).</summary>
     sealed class MobileNotifier : INotifier
     {
         const string ChannelId = "reminders";
@@ -179,7 +158,6 @@ namespace VuonTra.Game.Platform
             NotificationCenter.ClearBadge();
         }
 
-        /// <summary>Runs the wait for the permission answer, which is a coroutine in the package.</summary>
         sealed class Waiter : MonoBehaviour
         {
             static Waiter _instance;

@@ -1,6 +1,3 @@
-// The Google Play Games plugin for Unity behind IPlayGames. Compiled only for an Android device with the package
-// installed (VUONTRA_PLAY_GAMES comes from the package's presence, see VuonTra.Game.asmdef); the plugin's own classes
-// are empty in the editor and on every other platform, and this file is untested on a device as of #40.
 #if UNITY_ANDROID && !UNITY_EDITOR && VUONTRA_PLAY_GAMES
 using System;
 using GooglePlayGames;
@@ -11,14 +8,8 @@ namespace VuonTra.Game.Platform
 {
     public sealed class PlayGamesPlugin : IPlayGames
     {
-        /// <summary>
-        /// When two devices wrote the same snapshot, Play Games keeps the copy with the longer play time: that time is
-        /// the save's own PlaySeconds, so the garden that was played more wins, in the spirit of SaveSync's rule.
-        /// The next open then goes through CloudSync, where the player still sees both copies if they differ.
-        /// </summary>
         public const ConflictResolutionStrategy Strategy = ConflictResolutionStrategy.UseLongestPlaytime;
 
-        /// <summary>A snapshot opened by Pull and not yet written: Push writes into it rather than opening the file twice.</summary>
         ISavedGameMetadata _open;
 
         static PlayGamesPlatform Games => PlayGamesPlatform.Instance;
@@ -61,7 +52,7 @@ namespace VuonTra.Game.Platform
         public void Delete(object snapshot, Action<bool> onDone)
         {
             _open = null;
-            Games.SavedGame.Delete((ISavedGameMetadata)snapshot); // the plugin gives no answer back
+            Games.SavedGame.Delete((ISavedGameMetadata)snapshot);
             onDone(true);
         }
     }

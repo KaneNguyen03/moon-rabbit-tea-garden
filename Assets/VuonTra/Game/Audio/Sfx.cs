@@ -4,33 +4,24 @@ using UnityEngine;
 
 namespace VuonTra.Game
 {
-    /// <summary>
-    /// Every sound in the game, synthesized in code so nothing has to be downloaded. Volumes go
-    /// through three gains (music, effects, station sounds) that the settings sliders own.
-    /// </summary>
     public static class Sfx
     {
         const int Rate = 44100;
         const string MusicKey = "vol.music", SfxKey = "vol.sfx", StationKey = "vol.station", TuneKey = "music.tune";
         const float BedLevel = 0.35f;
-        /// <summary>The tunes' own level under the Music slider.</summary>
+        const float NoteG4 = 392f, NoteEFlat4 = 311.13f, NoteD4 = 293.66f;
+        const float SemitoneRatio = 1.059463f;
+        const int SemitonesUpPerTier = 2;
         public const float MelodyLevel = 0.5f;
         public const float DefaultMusicGain = 0.6f;
-        /// <summary>
-        /// The "Tiếng trạm" slider before the player moves it: 0.5 since 23 Nov (was 0.7), so with <see cref="LoopLevel"/>
-        /// a loop up close sits just under the music instead of 7–12 dB over it, as QA measured.
-        /// </summary>
         public const float DefaultStationGain = 0.5f;
 
         static bool _loaded;
         static float _musicGain = DefaultMusicGain, _sfxGain = 0.8f, _stationGain = DefaultStationGain;
         static Tune _tune = Tune.Auto;
 
-        // Read from the saved settings the first time anything asks, so the pause card's sliders, built
-        // before the sources are attached, already show what was saved.
         public static float MusicGain { get { Load(); return _musicGain; } }
         public static float SfxGain { get { Load(); return _sfxGain; } }
-        /// <summary>The "Tiếng trạm" slider: how loud a station's own loop is up close (#63), apart from the blips.</summary>
         public static float StationGain { get { Load(); return _stationGain; } }
 
         static void Load(bool again = false)
@@ -47,15 +38,12 @@ namespace VuonTra.Game
         static AudioClip _blip, _click, _sting, _tick, _ambient, _melody, _pet, _milestone, _reward, _sheetUp, _sheetDown, _deny;
         static readonly AudioClip[] _summon = new AudioClip[6];
 
-        /// <summary>The name of the last sound asked for, whether or not it could be heard (for tests).</summary>
         public static string Last { get; private set; } = "";
         static float _lastTick;
 
-        /// <summary>Adds the two audio sources to <paramref name="host"/> and starts the ambient bed.</summary>
         public static void Attach(GameObject host)
         {
             Load(true);
-            // Already attached here (the screen was rebuilt): keep the music playing without a gap.
             if (_oneShots != null && _oneShots.gameObject == host) return;
 
             _oneShots = host.AddComponent<AudioSource>();
@@ -95,10 +83,9 @@ namespace VuonTra.Game
             Load();
             _sfxGain = Mathf.Clamp01(gain);
             PlayerPrefs.SetFloat(SfxKey, _sfxGain);
-            if (_bed != null) _bed.volume = BedGain; // the rain's patter follows the Sound slider (#62)
+            if (_bed != null) _bed.volume = BedGain;
         }
 
-        /// <summary>The station sounds' own slider; <see cref="StationLoopPlayer"/> reads it every frame.</summary>
         public static void SetStation(float gain)
         {
             Load();
@@ -106,21 +93,14 @@ namespace VuonTra.Game
             PlayerPrefs.SetFloat(StationKey, _stationGain);
         }
 
-        // ----- the tunes (#63) -----
-
-        /// <summary>The player's choice of tune; Auto lets the clock pick between the moon and daybreak.</summary>
         public enum Tune { Auto, Moon, Dawn, Rain }
 
-        /// <summary>What the player chose on the pause card.</summary>
         public static Tune CurrentTune { get { Load(); return _tune; } }
-        /// <summary>What is playing now: never Auto.</summary>
         public static Tune PlayingTune { get; private set; } = Tune.Moon;
-        /// <summary>The clip on the music source (for tests).</summary>
         public static AudioClip MusicClip => _music != null ? _music.clip : null;
         static double _lastHour = -1d;
         static AudioClip _dawn, _rain;
 
-        /// <summary>Auto is "Rạng sáng" from dawn (5 h) until dusk (17 h), and "Đêm trăng" through the evening and night.</summary>
         public static Tune TuneAt(Tune choice, double hour)
         {
             if (choice != Tune.Auto) return choice;
@@ -136,7 +116,6 @@ namespace VuonTra.Game
             Retune();
         }
 
-        /// <summary>Called every frame with the garden's clock, so Auto changes tune at five and at seventeen.</summary>
         public static void UpdateTune(double hour)
         {
             _lastHour = hour;
@@ -153,7 +132,6 @@ namespace VuonTra.Game
             if (Application.isPlaying) _music.Play();
         }
 
-        /// <summary>A tune's clip, made once (Auto is the moon's); for tests that measure it.</summary>
         public static AudioClip TuneClipOf(Tune tune) => TuneClip(tune);
 
         static AudioClip TuneClip(Tune tune)
@@ -166,39 +144,26 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>A small confirmation: something was chosen or put in place.</summary>
         public static void Blip() => Play("blip", _blip ?? (_blip = MakeBlip()), 0.55f, 0.08f);
         public static void Click() => Play("click", _click ?? (_click = MakeClick()), 0.5f, 0.05f);
-        /// <summary>Something worth celebrating: a new station, a new rabbit.</summary>
         public static void Sting() => Play("sting", _sting ?? (_sting = MakeSting()), 0.6f, 0f);
 
-        /// <summary>A rabbit arrived: the rarer the tier, the more bells and the higher they climb.</summary>
         public static void Summon(int tier)
         {
             tier = Mathf.Clamp(tier, 0, _summon.Length - 1);
             Play("summon-" + tier, _summon[tier] ?? (_summon[tier] = MakeSummon(tier)), 0.6f, 0f);
         }
 
-        // ----- one sound for each kind of touch -----
-        /// <summary>A rabbit was patted: two quick soft chirps.</summary>
         public static void Pet() => Play("pet", _pet ?? (_pet = MakePet()), 0.5f, 0.1f);
-        /// <summary>A level was bought.</summary>
         public static void Upgrade() => Play("upgrade", _blip ?? (_blip = MakeBlip()), 0.55f, 0.08f);
-        /// <summary>A station crossed a milestone: four rising bells.</summary>
         public static void Milestone() => Play("milestone", _milestone ?? (_milestone = MakeMilestone()), 0.6f, 0f);
-        /// <summary>A station or a plot was opened.</summary>
         public static void Unlock() => Play("unlock", _sting ?? (_sting = MakeSting()), 0.6f, 0f);
-        /// <summary>A reward was collected: two bright coins.</summary>
         public static void Reward() => Play("reward", _reward ?? (_reward = MakeReward()), 0.55f, 0.03f);
-        /// <summary>A sheet slid up, or back down.</summary>
         public static void SheetUp() => Play("sheet-up", _sheetUp ?? (_sheetUp = MakeSwish(true)), 0.4f, 0.04f);
         public static void SheetDown() => Play("sheet-down", _sheetDown ?? (_sheetDown = MakeSwish(false)), 0.34f, 0.04f);
-        /// <summary>A picture was taken.</summary>
         public static void Shutter() => Play("shutter", _click ?? (_click = MakeClick()), 0.6f, 0f);
-        /// <summary>Not enough to buy this: two low soft notes going down.</summary>
         public static void Deny() => Play("deny", _deny ?? (_deny = MakeDeny()), 0.5f, 0f);
 
-        /// <summary>A station paid out. Quiet and rate-limited so a busy garden never chatters.</summary>
         public static void Tick()
         {
             if (Time.unscaledTime - _lastTick < 0.35f) return;
@@ -209,10 +174,8 @@ namespace VuonTra.Game
         static readonly List<string> _recent = new List<string>();
         static readonly Dictionary<string, float> _volumes = new Dictionary<string, float>();
 
-        /// <summary>The names of the last sounds asked for, oldest first, up to 64 (for tests).</summary>
         public static IReadOnlyList<string> Recent => _recent;
         public static void ClearRecent() => _recent.Clear();
-        /// <summary>How loud <paramref name="name"/> was last asked to play, the Sound slider included (for tests); 0 if never.</summary>
         public static float LastVolumeOf(string name) => _volumes.TryGetValue(name, out float v) ? v : 0f;
 
         static void Play(string name, AudioClip clip, float volume, float pitchSpread)
@@ -226,24 +189,15 @@ namespace VuonTra.Game
             _oneShots.PlayOneShot(clip, volume * SfxGain);
         }
 
-        // ----- the moon pond (#58) -----
-
         static readonly Dictionary<string, AudioClip> _fishing = new Dictionary<string, AudioClip>();
 
-        /// <summary>The line swishes out and the float lands with a small plop.</summary>
         public static void Cast() => Play("cast", FishingClip("cast"), 0.45f, 0.03f);
-        /// <summary>The float goes under: a short low bloop, the moment to strike.</summary>
         public static void Sink() => Play("sink", FishingClip("sink"), 0.5f, 0.03f);
-        /// <summary>A strike in the window: a quick soft splash.</summary>
         public static void Strike() => Play("strike", FishingClip("strike"), 0.45f, 0.04f);
-        /// <summary>The fish flies to the basket: a rising flutter of reel clicks and a soft thunk as it lands.</summary>
         public static void Reel() => Play("reel", FishingClip("reel"), 0.42f, 0f);
-        /// <summary>The float sank untouched and the bait is gone: a gentle "aw" of two notes going down.</summary>
         public static void BaitLost() => Play("bait-lost", FishingClip("bait-lost"), 0.42f, 0f);
-        /// <summary>Struck too early: the float bobs back up with a tiny rising blub.</summary>
         public static void FloatUp() => Play("float-up", FishingClip("float-up"), 0.3f, 0.05f);
 
-        /// <summary>One of the pond's sounds by name, made the first time it is asked for; null for an unknown name.</summary>
         public static AudioClip FishingClip(string name)
         {
             if (name == null) return null;
@@ -265,7 +219,6 @@ namespace VuonTra.Game
             return made;
         }
 
-        /// <summary>A whoosh of soft air that brightens then fades as the line flies, then the float's plop and a drop of spray.</summary>
         static float[] DrawCast(System.Random r)
         {
             var buf = new float[Samples(0.62f)];
@@ -284,17 +237,15 @@ namespace VuonTra.Game
             return buf;
         }
 
-        /// <summary>A round low tone that slides down as the float is pulled under, and one small bubble after it.</summary>
         static float[] DrawSink(System.Random r)
         {
             var buf = new float[Samples(0.42f)];
             Glide(buf, 0, 360f, 150f, 0.12f, 13f, 0.3f, 0.008f, SinkVoice);
             Bubble(buf, Samples(0.13f), 420f, 2.5f, 0.12f, 40f);
-            Bubble(buf, Samples(0.13f), 1260f, 2.5f, 0.1f, 55f); // its third partial, for a phone's speaker
+            Bubble(buf, Samples(0.13f), 1260f, 2.5f, 0.1f, 55f);
             return buf;
         }
 
-        /// <summary>A soft splash: a wash of filtered water noise, a body of low water and a few bright bubbles.</summary>
         static float[] DrawStrike(System.Random r)
         {
             var buf = new float[Samples(0.5f)];
@@ -305,10 +256,6 @@ namespace VuonTra.Game
             return buf;
         }
 
-        /// <summary>
-        /// Nine soft reel clicks climbing in pitch while the fish flies (0.55 s, the card's flight), then the basket's
-        /// low wicker thunk as it lands.
-        /// </summary>
         static float[] DrawReel(System.Random r)
         {
             var buf = new float[Samples(0.9f)];
@@ -325,7 +272,6 @@ namespace VuonTra.Game
             return buf;
         }
 
-        /// <summary>"Aw": two soft notes, the second lower and sagging a little, slow to start so nothing in it is sharp.</summary>
         static float[] DrawBaitLost()
         {
             var buf = new float[Samples(0.75f)];
@@ -341,23 +287,20 @@ namespace VuonTra.Game
                     buf[at + i] += Partials(phase, AwVoice) * env * gain;
                 }
             }
-            Note(0f, 392f, 392f, 0.3f);        // G
-            Note(0.2f, 311.13f, 293.66f, 0.3f); // E flat, sagging towards D
+            Note(0f, NoteG4, NoteG4, 0.3f);
+            Note(0.2f, NoteEFlat4, NoteD4, 0.3f);
             return buf;
         }
 
-        /// <summary>A tiny bubble that rises: the float bobbing back to the top.</summary>
         static float[] DrawFloatUp()
         {
             var buf = new float[Samples(0.18f)];
             Bubble(buf, 0, 380f, 3f, 0.4f, 32f);
-            // The same blub's third and fifth partials rise with it, so a phone that drops 380 Hz still hears the bob.
             Bubble(buf, 0, 1140f, 3f, 0.45f, 40f);
             Bubble(buf, 0, 1900f, 3f, 0.35f, 48f);
             return buf;
         }
 
-        /// <summary>A tone sliding from <paramref name="from"/> to <paramref name="to"/> Hz over <paramref name="glide"/> seconds, dying away.</summary>
         static void Glide(float[] buf, int at, float from, float to, float glide, float decay, float gain, float attack = 0.003f, float[] overtones = null)
         {
             overtones = overtones ?? PlainVoice;
@@ -371,15 +314,11 @@ namespace VuonTra.Game
             }
         }
 
-        // The pond's tones as overtone levels, from the second harmonic up. QA (22 Nov) found sink, reel, bait-lost and
-        // float-up with nearly all their energy under 400 Hz, which a phone speaker barely plays; since 23 Nov their
-        // upper partials carry the same low note at 0.8–2 kHz, soft enough that the note still feels low.
         static readonly float[] PlainVoice = { 0.15f };
         static readonly float[] SinkVoice = { 0.3f, 0.5f, 0.6f, 0.6f, 0.55f, 0.5f, 0.45f, 0.4f, 0.3f };
         static readonly float[] ThunkVoice = { 0.5f, 0.7f, 0.7f, 0.65f, 0.6f, 0.5f, 0.45f, 0.4f };
         static readonly float[] AwVoice = { 0.5f, 0.75f, 0.6f, 0.5f };
 
-        /// <summary>A tone's fundamental plus <paramref name="overtones"/>[k] of harmonic k + 2.</summary>
         static float Partials(float phase, float[] overtones)
         {
             float sum = Mathf.Sin(phase);
@@ -387,7 +326,6 @@ namespace VuonTra.Game
             return sum;
         }
 
-        /// <summary>A one-shot from a drawn buffer: 5 ms fades at both ends, kept under 0.7 (−3 dBFS) so added partials never clip.</summary>
         static AudioClip Shape(string name, float[] data)
         {
             float peak = 0f;
@@ -411,7 +349,6 @@ namespace VuonTra.Game
             for (int i = 0; i < n; i++)
             {
                 float t = i / (float)Rate;
-                // 5 ms fades at both ends: raw edges click.
                 float edge = Mathf.Min(1f, Mathf.Min(t / 0.005f, (seconds - t) / 0.005f));
                 data[i] = Mathf.Clamp(sample(t), -1f, 1f) * Mathf.Max(0f, edge);
             }
@@ -478,7 +415,6 @@ namespace VuonTra.Game
             });
         }
 
-        /// <summary>Soft air: filtered noise whose brightness rises (a sheet coming up) or falls (going down).</summary>
         static AudioClip MakeSwish(bool up)
         {
             var rng = new System.Random(up ? 11 : 13);
@@ -525,15 +461,11 @@ namespace VuonTra.Game
             });
         }
 
-        /// <summary>
-        /// Tier 0 is two soft bells; each tier adds a bell and starts a little higher, so tier 5 is a
-        /// seven-note climb with a shimmer on top.
-        /// </summary>
         static AudioClip MakeSummon(int tier)
         {
             int count = 2 + tier;
             float gap = tier >= 4 ? 0.085f : 0.11f;
-            float root = 523.25f * Mathf.Pow(1.059463f, tier * 2); // a whole tone up per tier
+            float root = 523.25f * Mathf.Pow(SemitoneRatio, tier * SemitonesUpPerTier);
             float[] ratios = { 1f, 1.25f, 1.5f, 2f, 2.5f, 3f, 4f };
             float length = 0.45f + count * gap;
             return Make("summon-" + tier, length, t =>
@@ -569,14 +501,9 @@ namespace VuonTra.Game
             });
         }
 
-        /// <summary>
-        /// "Đêm trăng": a slow music-box lullaby in C major pentatonic, a bell-like lead over soft low notes.
-        /// Sixteen bars of four beats at 76 bpm, written so the last bar leads back into the first.
-        /// </summary>
         static AudioClip Melody()
         {
             if (_melody != null) return _melody;
-            // Semitones above middle C; -99 is a rest. One entry per half beat.
             int[] lead =
             {
                  4, -99,  7, -99,  9,  7,  4, -99,    2, -99,  4, -99,  0, -99, -99, -99,
@@ -584,19 +511,13 @@ namespace VuonTra.Game
                 12, -99,  9, -99,  7,  9, 12, -99,   14, -99, 12, -99,  9, -99, -99, -99,
                  7, -99,  4, -99,  2,  4,  7, -99,    4, -99,  2, -99,  0, -99, -99, -99,
             };
-            // One low note per two beats.
             int[] bass = { -12, -5, -10, -5, -12, -5, -7, -5, -8, -3, -10, -5, -12, -5, -7, -12 };
             _melody = Compose("lullaby", 76f, 261.63f, lead, bass, new Voice(0.16f, 2.6f, 0.35f), new Voice(0.13f, 1.1f, 0.05f));
             return _melody;
         }
 
-        /// <summary>
-        /// "Rạng sáng": the same music box woken up, a little quicker (88 bpm) in G major pentatonic, the lead
-        /// climbing where the lullaby settles, over a walking I–IV–V–vi.
-        /// </summary>
         static AudioClip Daybreak()
         {
-            // Semitones above G; -99 is a rest. One entry per half beat.
             int[] lead =
             {
                  0, -99,  4,  7,  9, -99,  7, -99,   12, -99,  9,  7,  4, -99, -99, -99,
@@ -608,13 +529,8 @@ namespace VuonTra.Game
             return Compose("daybreak", 88f, 392f, lead, bass, new Voice(0.15f, 3.2f, 0.25f), new Voice(0.12f, 1.4f, 0.05f));
         }
 
-        /// <summary>
-        /// "Mưa": slow (64 bpm) and sparse in A minor pentatonic, long soft notes over Am–F–C–G, with a quiet
-        /// patter of rain under it, the same patter the garden's own rain plays (#62).
-        /// </summary>
         static AudioClip Rain()
         {
-            // Semitones above A; -99 is a rest.
             int[] lead =
             {
                  7, -99, -99,  5,  3, -99, -99, -99,    0, -99,  3, -99,  5, -99, -99, -99,
@@ -630,7 +546,6 @@ namespace VuonTra.Game
             });
         }
 
-        /// <summary>The patter of rain: soft filtered noise and the odd drop, folded so the loop has no seam.</summary>
         static float[] Patter(int n, System.Random rng)
         {
             return Seamless(n, (buf, r) =>
@@ -649,25 +564,17 @@ namespace VuonTra.Game
             }, rng);
         }
 
-        // ----- the rain in the garden (#62) -----
-
-        /// <summary>How loud the rain's patter sits under the Sound slider.</summary>
         const float RainBedLevel = 0.45f;
         static AudioClip _rainBed;
 
-        /// <summary>True while it rains in the garden: the patter plays in place of the ambient bed.</summary>
         public static bool Raining { get; private set; }
-        /// <summary>The bed's clip and volume now (for tests).</summary>
         public static AudioClip BedClip => _bed != null ? _bed.clip : null;
         public static float BedVolume => _bed != null ? _bed.volume : 0f;
-        /// <summary>The ambient bed's clip, and the rain's.</summary>
         public static AudioClip AmbientClip => Ambient();
         public static AudioClip RainClip => RainBed();
 
-        /// <summary>The ambient bed follows the Music slider; the rain that replaces it is a sound, so it follows the Sound slider.</summary>
         static float BedGain => Raining ? RainBedLevel * SfxGain : BedLevel * MusicGain;
 
-        /// <summary>Called every frame with whether it rains: the bed changes to the patter and back, the volume with it.</summary>
         public static void SetRain(bool raining)
         {
             if (raining == Raining) return;
@@ -678,7 +585,6 @@ namespace VuonTra.Game
             if (Application.isPlaying) _bed.Play();
         }
 
-        /// <summary>Six seconds of the patter on its own, levelled like the station loops.</summary>
         static AudioClip RainBed()
         {
             if (_rainBed != null) return _rainBed;
@@ -689,17 +595,12 @@ namespace VuonTra.Game
             return _rainBed;
         }
 
-        /// <summary>How one line of a tune sounds: how loud, how fast it dies away, how much bell is on top.</summary>
         readonly struct Voice
         {
             public readonly float Gain, Decay, Shimmer;
             public Voice(float gain, float decay, float shimmer) { Gain = gain; Decay = decay; Shimmer = shimmer; }
         }
 
-        /// <summary>
-        /// Writes a looping tune: one lead note per entry (half a beat each), one bass note per two beats,
-        /// semitones above <paramref name="root"/> (the lead an octave up). Tails wrap round, so there is no seam.
-        /// </summary>
         static AudioClip Compose(string name, float bpm, float root, int[] lead, int[] bass, Voice leadVoice, Voice bassVoice, Action<float[]> under = null)
         {
             float beat = 60f / bpm;
@@ -718,7 +619,7 @@ namespace VuonTra.Game
                     float env = Mathf.Min(1f, t / 0.006f) * Mathf.Exp(-t * voice.Decay);
                     float w = 2f * Mathf.PI * freq * t;
                     float v = Mathf.Sin(w) + voice.Shimmer * Mathf.Sin(3f * w) * Mathf.Exp(-t * 9f) + 0.18f * Mathf.Sin(2f * w);
-                    data[(from + i) % n] += v * env * voice.Gain; // tails wrap around so the loop has no seam
+                    data[(from + i) % n] += v * env * voice.Gain;
                 }
             }
 
@@ -734,44 +635,33 @@ namespace VuonTra.Game
             return clip;
         }
 
-        // ----- station loops up close (#63) -----
-
         static readonly Dictionary<string, AudioClip> _loops = new Dictionary<string, AudioClip>();
         static readonly Dictionary<string, AudioClip> _supplied = new Dictionary<string, AudioClip>();
 
-        /// <summary>
-        /// Which loop each station plays. Stations of a kind share one: both ovens crackle, both starry
-        /// stations tinkle, the leaf basket and the grape vine rustle.
-        /// </summary>
         public static string StationLoopOf(string stationId)
         {
             switch (stationId)
             {
-                case "am-tra": return "boil";       // teapot on the boil
-                case "gio-la": return "rustle";     // tea leaves turned in the basket
-                case "noi-mut": return "simmer";    // jam thickening in the pot
-                case "coi-hoa": return "thump";     // petals pounded in the mortar
-                case "lo-banh": return "crackle";   // chestnut oven
-                case "to-mat": return "drip";       // honey dripping, a bee or two
-                case "tra-sua": return "shake";     // ice shaken in the milk tea
-                case "binh-sao": return "tinkle";   // stars in the brewing jar
-                case "gian-nho": return "rustle";   // the vine's leaves
-                case "tiem-banh": return "crackle"; // the mooncake oven
-                case "suoi-hoa": return "stream";   // the flower spring
-                case "dai-sao": return "tinkle";    // the observatory's star chimes
-                case "ho-sen": return "stream";     // water round the lotus leaves (#67)
-                case "lo-keo": return "simmer";     // malt syrup bubbling down to candy
-                case "ruong-nep": return "rustle";  // rice stalks in the paddy
-                case "thuyen-tra": return "boil";   // a kettle on the night boat
+                case "am-tra": return "boil";
+                case "gio-la": return "rustle";
+                case "noi-mut": return "simmer";
+                case "coi-hoa": return "thump";
+                case "lo-banh": return "crackle";
+                case "to-mat": return "drip";
+                case "tra-sua": return "shake";
+                case "binh-sao": return "tinkle";
+                case "gian-nho": return "rustle";
+                case "tiem-banh": return "crackle";
+                case "suoi-hoa": return "stream";
+                case "dai-sao": return "tinkle";
+                case "ho-sen": return "stream";
+                case "lo-keo": return "simmer";
+                case "ruong-nep": return "rustle";
+                case "thuyen-tra": return "boil";
                 default: return null;
             }
         }
 
-        /// <summary>
-        /// A station's loop: a supplied recording if there is one (the hook for <c>Art/Final/sfx_&lt;id&gt;.ogg</c>,
-        /// which a seeder can hand over with <see cref="SupplyStationClip"/>), else the one made here, made once.
-        /// Null for an unknown station.
-        /// </summary>
         public static AudioClip StationClip(string stationId)
         {
             if (stationId == null) return null;
@@ -784,7 +674,6 @@ namespace VuonTra.Game
             return made;
         }
 
-        /// <summary>Puts a recorded loop in place of the made one for this station; null goes back to the made one.</summary>
         public static void SupplyStationClip(string stationId, AudioClip clip)
         {
             if (clip == null) _supplied.Remove(stationId);
@@ -794,7 +683,7 @@ namespace VuonTra.Game
         static AudioClip MakeStationLoop(string loop)
         {
             int seed = 0;
-            foreach (char c in loop) seed = seed * 31 + c; // the same loop every run
+            foreach (char c in loop) seed = seed * 31 + c;
             var rng = new System.Random(seed & 0x7fffffff);
             float[] data;
             switch (loop)
@@ -815,18 +704,10 @@ namespace VuonTra.Game
             return clip;
         }
 
-        /// <summary>
-        /// Every loop's RMS before the slider. 0.12 until 23 Nov; lowered with <see cref="DefaultStationGain"/> so a loop
-        /// up close no longer drowns the music.
-        /// </summary>
         const float LoopLevel = 0.035f;
 
         static int Samples(float seconds) => (int)(Rate * seconds);
 
-        /// <summary>
-        /// Draws a little more than <paramref name="n"/> samples and folds the extra over the start, so the
-        /// end runs on into the beginning: any noise or event can loop without a click.
-        /// </summary>
         static float[] Seamless(int n, Action<float[], System.Random> draw, System.Random rng)
         {
             int fold = Rate / 4;
@@ -842,7 +723,6 @@ namespace VuonTra.Game
             return data;
         }
 
-        /// <summary>Evens the loops out: each to about the same loudness, none past 0.9.</summary>
         static void Level(float[] data, float rms)
         {
             double sum = 0d;
@@ -854,10 +734,6 @@ namespace VuonTra.Game
             for (int i = 0; i < data.Length; i++) data[i] *= gain;
         }
 
-        /// <summary>
-        /// Takes the hiss off: a two-pole Butterworth low-pass at <paramref name="cutoff"/> Hz (12 dB an octave). Run over
-        /// the whole drawn buffer before <see cref="Seamless"/> folds it, so the loop point stays smooth.
-        /// </summary>
         static void LowPass(float[] buf, float cutoff)
         {
             double w = Math.Tan(Math.PI * cutoff / Rate), q = Math.Sqrt(2d);
@@ -873,7 +749,6 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>A short tone that dies away, added at <paramref name="at"/>.</summary>
         static void Ping(float[] buf, int at, float freq, float gain, float decay, float seconds)
         {
             int length = Mathf.Min(Samples(seconds), buf.Length - at);
@@ -884,7 +759,6 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>A bubble: a tone that rises as it bursts.</summary>
         static void Bubble(float[] buf, int at, float freq, float rise, float gain, float decay)
         {
             int length = Mathf.Min(Samples(6f / decay), buf.Length - at);
@@ -897,7 +771,6 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>A burst of noise through a soft filter: a tick, a crack, an ice cube, a leaf.</summary>
         static void Burst(float[] buf, int at, float seconds, float gain, float brightness, System.Random r)
         {
             int length = Mathf.Min(Samples(seconds), buf.Length - at);
@@ -910,7 +783,6 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>Noise between two one-pole filters: <paramref name="high"/> lets the top through, <paramref name="low"/> takes the rumble out.</summary>
         static void Noise(float[] buf, float gain, float high, float low, System.Random r, Func<float, float> swell = null)
         {
             float a = 0f, b = 0f;
@@ -923,11 +795,8 @@ namespace VuonTra.Game
             }
         }
 
-        // Where the bright loops roll off (23 Nov). QA found shake, rustle and crackle with half or more of their energy
-        // in the 5–9 kHz hiss and the stream not far behind; these keep the ice, the leaves and the snap, without the hiss.
         const float ShakeTop = 4000f, RustleTop = 3500f, CrackleTop = 4500f, StreamTop = 5000f;
 
-        /// <summary>Ấm trà: a low roll of water and quick small bubbles bursting at the top.</summary>
         static void DrawBoil(float[] buf, System.Random r)
         {
             Noise(buf, 0.5f, 0.05f, 0.004f, r, t => 0.8f + 0.2f * Mathf.Sin(t * 5.1f));
@@ -936,7 +805,6 @@ namespace VuonTra.Game
                 Bubble(buf, r.Next(buf.Length), 260f + (float)r.NextDouble() * 420f, 2.5f, 0.12f + (float)r.NextDouble() * 0.12f, 70f);
         }
 
-        /// <summary>Nồi mứt: slow thick bubbles, low and round, a few a second.</summary>
         static void DrawSimmer(float[] buf, System.Random r)
         {
             Noise(buf, 0.25f, 0.02f, 0.003f, r);
@@ -945,7 +813,6 @@ namespace VuonTra.Game
                 Bubble(buf, r.Next(buf.Length), 110f + (float)r.NextDouble() * 120f, 1.2f, 0.35f + (float)r.NextDouble() * 0.2f, 22f);
         }
 
-        /// <summary>Lò bánh: a soft roar under the snap of the fire, the odd louder pop.</summary>
         static void DrawCrackle(float[] buf, System.Random r)
         {
             Noise(buf, 0.35f, 0.03f, 0.002f, r, t => 0.7f + 0.3f * Mathf.Sin(t * 1.3f) * Mathf.Sin(t * 0.7f));
@@ -955,20 +822,17 @@ namespace VuonTra.Game
                 int at = r.Next(buf.Length);
                 bool pop = r.NextDouble() < 0.12;
                 Burst(buf, at, pop ? 0.02f : 0.004f + (float)r.NextDouble() * 0.006f, pop ? 0.9f : 0.3f + (float)r.NextDouble() * 0.4f, 0.6f, r);
-                // Cracks come in twos and threes.
                 if (r.NextDouble() < 0.4) Burst(buf, Mathf.Min(buf.Length - 1, at + Samples(0.02f + (float)r.NextDouble() * 0.05f)), 0.004f, 0.25f, 0.6f, r);
             }
             LowPass(buf, CrackleTop);
         }
 
-        /// <summary>Trà sữa: ice in a shaker, back and forth, twelve times in five seconds.</summary>
         static void DrawShake(float[] buf, System.Random r)
         {
             float period = 5f / 12f;
             for (int beat = 0; beat * period * Rate < buf.Length; beat++)
             {
                 int start = Samples(beat * period + (beat % 2 == 1 ? 0.02f : 0f));
-                // The cubes all hit the end of the shaker at once, then rattle down.
                 for (int k = 0; k < 9; k++)
                 {
                     int at = start + Samples((float)(r.NextDouble() * r.NextDouble()) * 0.12f);
@@ -976,12 +840,11 @@ namespace VuonTra.Game
                     Burst(buf, at, 0.012f, 0.35f + (float)r.NextDouble() * 0.3f, 0.75f, r);
                     Ping(buf, at, 2400f + (float)r.NextDouble() * 1800f, 0.05f, 120f, 0.04f);
                 }
-                Burst(buf, Mathf.Min(buf.Length - 1, start), 0.09f, 0.12f, 0.15f, r); // the swoosh of the drink
+                Burst(buf, Mathf.Min(buf.Length - 1, start), 0.09f, 0.12f, 0.15f, r);
             }
             LowPass(buf, ShakeTop);
         }
 
-        /// <summary>Bình ủ sao: small glass chimes, high and far apart, in a pentatonic so they never clash.</summary>
         static void DrawTinkle(float[] buf, System.Random r)
         {
             float[] notes = { 1046.5f, 1174.66f, 1318.51f, 1567.98f, 1760f, 2093f };
@@ -997,7 +860,6 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>Cối giã hoa: the pestle comes down six times in five seconds, a soft thud and a squash of petals.</summary>
         static void DrawThump(float[] buf, System.Random r)
         {
             float period = 5f / 6f;
@@ -1013,11 +875,10 @@ namespace VuonTra.Game
                     buf[at + i] += Mathf.Sin(phase) * Mathf.Min(1f, t / 0.003f) * Mathf.Exp(-t * 16f) * 0.8f;
                 }
                 Burst(buf, at, 0.03f, 0.5f, 0.3f, r);
-                Burst(buf, Mathf.Min(buf.Length - 1, at + Samples(0.05f)), 0.14f, 0.15f, 0.08f, r); // petals squashed
+                Burst(buf, Mathf.Min(buf.Length - 1, at + Samples(0.05f)), 0.14f, 0.15f, 0.08f, r);
             }
         }
 
-        /// <summary>Tổ mật: slow honey drops, each a plip that rises, and a bee humming somewhere near.</summary>
         static void DrawDrip(float[] buf, System.Random r)
         {
             for (int i = 0; i < buf.Length; i++)
@@ -1035,7 +896,6 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>Suối hoa: running water, a wash that rises and falls with many small bright bubbles in it.</summary>
         static void DrawStream(float[] buf, System.Random r)
         {
             Noise(buf, 0.6f, 0.3f, 0.06f, r, t => 0.75f + 0.15f * Mathf.Sin(t * 2.3f) + 0.1f * Mathf.Sin(t * 5.7f));
@@ -1045,7 +905,6 @@ namespace VuonTra.Game
             LowPass(buf, StreamTop);
         }
 
-        /// <summary>Giỏ lá, giàn nho: leaves stirred, in soft gusts with a few dry crisps.</summary>
         static void DrawRustle(float[] buf, System.Random r)
         {
             Noise(buf, 0.5f, 0.45f, 0.12f, r, t => Mathf.Pow(Mathf.Max(0f, Mathf.Sin(t * 1.9f) * 0.6f + Mathf.Sin(t * 0.8f + 1f) * 0.4f), 2f) + 0.1f);
@@ -1065,7 +924,6 @@ namespace VuonTra.Game
             {
                 brown = Mathf.Clamp(brown + ((float)rng.NextDouble() * 2f - 1f) * 0.02f, -1f, 1f);
                 brown *= 0.999f;
-                // whole numbers of cycles in the loop so the pad has no seam
                 float swell = 0.5f + 0.5f * Mathf.Sin(2f * Mathf.PI * t / seconds);
                 float pad = Mathf.Sin(2f * Mathf.PI * 110f * t) * 0.05f + Mathf.Sin(2f * Mathf.PI * 164.75f * t) * 0.035f;
                 return brown * 0.22f + pad * swell;
