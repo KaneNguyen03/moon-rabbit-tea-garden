@@ -295,6 +295,97 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenGrid.DefaultDecorTile(5), s.Grid.TileOf("decor:5"));
         }
 
+        // ----- The new moon closes the land the player moved things onto (#85) -----
+
+        /// <summary>Empty, unreserved tiles of one segment's land, nearest the teapot first.</summary>
+        static List<Hex> FarTiles(GardenGrid g, int segment, int count)
+        {
+            var far = new List<Hex>();
+            foreach (Hex h in GardenGrid.SegmentTiles(segment))
+                if (!GardenGrid.IsReserved(h) && g.OccupantAt(h.Q, h.R) == null && far.Count < count) far.Add(h);
+            return far;
+        }
+
+        static void AssertAllOnTheLawn(GardenGrid g)
+        {
+            foreach (KeyValuePair<string, Hex> o in g.Occupants)
+                Assert.IsTrue(g.InLawn(o.Value), o.Key + " stands at " + o.Value + ", under the mist of segment " + GardenGrid.SegmentOf(o.Value));
+            var tiles = new HashSet<Hex>();
+            foreach (KeyValuePair<string, Hex> o in g.Occupants) Assert.IsTrue(tiles.Add(o.Value), "nothing shares a tile: " + o.Key);
+        }
+
+        [Test]
+        public void After_A_New_Moon_The_Teapot_And_Decorations_Moved_Onto_Far_Land_Come_Back_To_The_Lawn()
+        {
+            GameState s = GameState.NewGame(defs);
+            s.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(s, "den-da")); Assert.IsTrue(Decor.Place(s, 0, "den-da"));
+            Assert.IsTrue(Decor.Buy(s, "bon-hoa")); Assert.IsTrue(Decor.Place(s, 4, "bon-hoa"));
+            s.Grid.Segments = 3;
+            List<Hex> far = FarTiles(s.Grid, 3, 3);
+            Assert.IsTrue(s.Grid.Move(new Hex(0, 0), far[0]), "the teapot is dragged onto the third segment's land");
+            Assert.IsTrue(s.Grid.Move(GardenGrid.DefaultDecorTile(0), far[1]));
+            Assert.IsTrue(s.Grid.Move(GardenGrid.DefaultDecorTile(4), far[2]));
+            Assert.IsTrue(s.Grid.Move(GardenGrid.DefaultStationTile(1), new Hex(0, 0)), "and the leaf basket onto the teapot's home");
+
+            s.Season = 0; s.GardenXp = Garden.XpForLevel(NewMoon.LevelNeeded(0));
+            Assert.IsTrue(NewMoon.Begin(defs, s, "Trăng", out _));
+
+            Assert.AreEqual(0, s.Grid.Segments);
+            AssertAllOnTheLawn(s.Grid);
+            Assert.AreEqual(new Hex(0, 0), s.Grid.TileOf("station:tea"), "the teapot is home");
+            Assert.AreEqual(GardenGrid.DefaultStationTile(1), s.Grid.TileOf("station:leaf"), "the leaf basket made way, to its own tile");
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(0), s.Grid.TileOf("decor:0"));
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(4), s.Grid.TileOf("decor:4"));
+
+            GameState back = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            AssertAllOnTheLawn(back.Grid);
+            Assert.AreEqual(new Hex(0, 0), back.Grid.TileOf("station:tea"), "and stays home after a save");
+        }
+
+        [Test]
+        public void After_A_New_Moon_The_Seats_Moved_Onto_Far_Land_Come_Back_To_The_Lawn()
+        {
+            GameState s = GameState.NewGame(defs);
+            s.Grid.Segments = 4;
+            List<Hex> right = FarTiles(s.Grid, 3, 1), left = FarTiles(s.Grid, 4, 1);
+            Assert.IsTrue(s.Grid.Move(GardenGrid.DefaultRestTile(0), right[0]), "a stump goes to the third segment, on the right");
+            Assert.IsTrue(s.Grid.Move(GardenGrid.DefaultRestTile(1), left[0]), "the other to the fourth, on the left");
+
+            s.Season = 0; s.GardenXp = Garden.XpForLevel(NewMoon.LevelNeeded(0));
+            Assert.IsTrue(NewMoon.Begin(defs, s, "Trăng", out _));
+
+            AssertAllOnTheLawn(s.Grid);
+            Assert.AreEqual(GardenGrid.DefaultRestTile(0), s.Grid.TileOf("rest:0"));
+            Assert.AreEqual(GardenGrid.DefaultRestTile(1), s.Grid.TileOf("rest:1"));
+            Assert.AreEqual(new Hex(0, 0), s.Grid.TileOf("station:tea"));
+        }
+
+        [Test]
+        public void An_Old_Save_With_Things_Beyond_Its_Open_Land_Stands_Them_On_The_Lawn_And_Keeps_The_Store()
+        {
+            var g0 = new GardenGrid();
+            List<Hex> far = FarTiles(g0, 3, 3), farLeft = FarTiles(g0, 2, 1);
+            string Tile(Hex h, string id) => "{\"q\":" + h.Q + ",\"r\":" + h.R + ",\"id\":\"" + id + "\"}";
+            // The middle alone open, but the teapot, the jam pot, a stump and a lantern saved on land two and three segments out.
+            string json = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":30},{\"id\":\"leaf\",\"level\":5},{\"id\":\"jam\",\"level\":2}],"
+                + "\"plots\":3,\"restSpots\":2,"
+                + "\"decor\":{\"owned\":{\"den-da\":1},\"spots\":[\"den-da\",null,null,null,null,null,null,null],\"lantern\":0},"
+                + "\"grid\":{\"segments\":0,\"tiles\":[" + Tile(far[0], "station:tea") + "," + Tile(far[1], "station:jam") + "," + Tile(far[2], "decor:0") + ","
+                + Tile(farLeft[0], "rest:0") + "],\"stored\":[\"station:leaf\"]}}";
+            LoadResult r = SaveCodec.Decode(defs, json);
+            Assert.AreEqual(LoadStatus.Ok, r.Status);
+            GardenGrid g = r.State.Grid;
+            Assert.AreEqual(0, g.Segments);
+            AssertAllOnTheLawn(g);
+            Assert.AreEqual(new Hex(0, 0), g.TileOf("station:tea"));
+            Assert.AreEqual(GardenGrid.DefaultStationTile(2), g.TileOf("station:jam"));
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(0), g.TileOf("decor:0"));
+            Assert.AreEqual(GardenGrid.DefaultRestTile(0), g.TileOf("rest:0"));
+            Assert.IsTrue(g.IsStored("station:leaf"), "what was put away stays put away");
+            Assert.IsNull(g.TileOf("station:leaf"));
+        }
+
         [Test]
         public void The_Grid_Survives_A_Save_Round_Trip()
         {
