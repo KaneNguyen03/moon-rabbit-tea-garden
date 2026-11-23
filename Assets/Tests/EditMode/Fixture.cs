@@ -2,7 +2,6 @@ using System.Collections.Generic;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Three small stations shared by the tests: a brew, an ingredient that feeds it, a second brew.</summary>
     static class Fixture
     {
         public static StationDef Tea() => new StationDef
@@ -25,10 +24,6 @@ namespace VuonTra.Core.Tests
 
         public static List<StationDef> Defs() => new List<StationDef> { Tea(), Leaf(), Jam() };
 
-        /// <summary>
-        /// A player code drawn from a simulation's seed (#83). A new garden's code comes from a GUID, and the shop's
-        /// visitor of the day is drawn from the code, so a simulated week that should come out the same twice sets it.
-        /// </summary>
         public static string CodeFor(int seed)
         {
             var rng = new System.Random(seed ^ 0x5eed);

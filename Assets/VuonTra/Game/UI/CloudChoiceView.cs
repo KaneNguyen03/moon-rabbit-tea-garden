@@ -5,10 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// Two copies of the garden side by side, the device's and the cloud's, with the few numbers that tell them
-    /// apart, the one the game puts forward marked, and a button under each. Nothing is replaced until one is pressed.
-    /// </summary>
     public sealed class CloudChoiceView
     {
         readonly GameObject _root;
@@ -28,7 +24,7 @@ namespace VuonTra.Game.UI
             _onChoose = onChoose;
             var overlay = UiKit.Rect("CloudChoice", canvas).Stretch(0, 0, 1, 1);
             _root = overlay.gameObject;
-            overlay.AddImage(null, Palette.Scrim).raycastTarget = true; // no way past but a choice
+            overlay.AddImage(null, Palette.Scrim).raycastTarget = true;
 
             _card = UiKit.Rect("Card", overlay).Place(0.5f, 0.5f, 0, 0, 900, 980);
             _card.AddShadow(26f, 16f, 0.45f);
@@ -101,7 +97,6 @@ namespace VuonTra.Game.UI
             seen.text = L10n.T("cloud.seen", ProfileView.Clock(s.LastSeenUnixSeconds));
         }
 
-        /// <summary>The suggested copy's button is the warm one; the other is plain.</summary>
         static void Tint(ChunkyButton button, bool suggested)
         {
             button.Face.color = suggested ? Palette.Carrot : Palette.Track;

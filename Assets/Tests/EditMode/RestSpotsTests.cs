@@ -84,8 +84,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, SaveCodec.Decode(defs, "{\"version\":7,\"stations\":[],\"restSpots\":-5}").State.RestSpots);
         }
 
-        // ----- resting rabbits lend a hand (#60) -----
-
         [Test]
         public void Nobody_Resting_Leaves_The_Garden_As_It_Is()
         {
@@ -112,7 +110,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(expected[tier], RestSpots.BonusOf(new Rabbit { Tier = tier }), 1e-12, "tier " + tier);
             Add(5);
             Assert.AreEqual(1.10, RestSpots.Multiplier(s), 1e-12);
-            // Above silver the share is the tier's work multiplier over fifty.
             for (int tier = 1; tier < Rabbits.TierCount; tier++)
                 Assert.AreEqual(Rabbits.Multipliers[tier] * RestSpots.RestBonus, RestSpots.BonusOf(new Rabbit { Tier = tier }), 1e-12);
         }
@@ -142,7 +139,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void An_Old_Save_With_Resting_Rabbits_Reads_And_Pays_Their_Share()
         {
-            // Version 7 came before the resting share: nothing new is saved, the share follows from who rests.
             const string old = "{\"version\":7,\"stations\":[{\"id\":\"tea\",\"level\":3}],\"restSpots\":3,"
                 + "\"rabbits\":[{\"id\":1,\"tier\":1},{\"id\":2,\"tier\":0,\"station\":\"tea\"}]}";
             LoadResult loaded = SaveCodec.Decode(defs, old);

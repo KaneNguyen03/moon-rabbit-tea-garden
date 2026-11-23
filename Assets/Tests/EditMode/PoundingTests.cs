@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The mooncake pounding game: its beat, its scoring, its plays per day and its pay.</summary>
     public class PoundingTests
     {
         List<StationDef> defs;

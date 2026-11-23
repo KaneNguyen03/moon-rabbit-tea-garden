@@ -13,16 +13,11 @@ namespace VuonTra.Game.UI
         Paused
     }
 
-    /// <summary>
-    /// The screens around play: the title over the live garden and the pause card with volume
-    /// sliders. An idle garden never ends, so there is no "ended" screen.
-    /// </summary>
     public sealed class ShellView
     {
         const float FadeSeconds = 0.3f;
 
         public ShellState State { get; private set; } = ShellState.Title;
-        /// <summary>Raised after every state change with the new state.</summary>
         public event Action<ShellState> Changed;
 
         readonly Tweens _tweens;
@@ -51,13 +46,11 @@ namespace VuonTra.Game.UI
             _newMoonLevel = newMoonLevel;
             _newMoonCapped = newMoonCapped;
 
-            // ----- Title: the live garden is the backdrop -----
             var title = UiKit.Rect("Title", canvas).Stretch(0, 0, 1, 1);
             _title = title.gameObject;
             _titleGroup = _title.AddComponent<CanvasGroup>();
             Image hit = title.AddImage(null, new Color(0, 0, 0, 0));
             hit.raycastTarget = true;
-            // A soft dusk over the open ground where the drawer will rise, so the name reads.
             UiKit.Rect("Dusk", title).Stretch(-0.3f, 0.72f, 1.3f, 1.06f).AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.4f), 0.85f));
             var start = _title.AddComponent<Button>();
             start.transition = Selectable.Transition.None;
@@ -73,7 +66,6 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("title.prompt"), UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             _prompt.AddShadow();
 
-            // ----- Pause and settings -----
             var pause = UiKit.Rect("Pause", canvas).Stretch(0, 0, 1, 1);
             _pause = pause.gameObject;
             _pauseGroup = _pause.AddComponent<CanvasGroup>();
@@ -85,7 +77,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 440, 80)
                 .AddText(L10n.T("pause.title"), 60, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            // The mailbox (#68): gifts the game wrote itself, in the card's top corner; a badge counts the letters waiting.
             var mail = UiKit.Rect("Mail", _pauseCard).Place(0f, 1f, 115, -100, 150, UiKit.MinTouch);
             Image mailPlate = mail.AddImage(catalog.Panel, Palette.Track, true);
             mailPlate.raycastTarget = true;
@@ -107,7 +98,6 @@ namespace VuonTra.Game.UI
             _mailBadge = mailBadge.gameObject;
             RefreshMail();
 
-            // Who is playing: the avatar rabbit, the garden's name and the player code; a touch opens the profile.
             var profile = UiKit.Rect("Profile", _pauseCard).Place(0.5f, 1f, 0, -210, 700, 110);
             Image profilePlate = profile.AddImage(catalog.Panel, Palette.Track, true);
             profilePlate.raycastTarget = true;
@@ -133,27 +123,20 @@ namespace VuonTra.Game.UI
                 Sfx.Click();
             });
 
-            // Language: two pills; the package does the switching and the screen rebuilds itself.
             UiKit.Rect("Language Label", _pauseCard).Place(0.5f, 1f, -200, -570, 300, 60)
                 .AddText(L10n.T("pause.language"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             UiKit.Rect("Language Track", _pauseCard).Place(0.5f, 1f, 130, -570, 440, 76).AddImage(catalog.Panel, Palette.Track, true);
             AddLanguageButton(catalog, "vi", 22);
             AddLanguageButton(catalog, "en", 238);
 
-            // For players who get dizzy: slides, glides and bounces are skipped.
             AddToggleRow(catalog, "Motion", L10n.T("pause.motion"), -680, () => Motion.Reduced, Motion.SetReduced);
-            // Short buzzes on a phone for upgrades, milestones and new rabbits.
             AddToggleRow(catalog, "Haptics", L10n.T("pause.haptics"), -780, () => Haptics.On, Haptics.SetOn);
-            // Every label a fifth bigger; the screen builds itself again, as for a language change.
             AddToggleRow(catalog, "Text", L10n.T("pause.text"), -880, () => UiKit.LargeText, UiKit.SetLargeText);
-            // Reminders on the phone (#65): off until the player turns them on, which is when permission is asked.
             Action showRemind = AddToggleRow(catalog, "Remind", L10n.T("pause.remind"), -980, () => Notifications.On, Notifications.SetOn);
             Notifications.Watch(_pauseCard.gameObject, showRemind);
-            // Station sounds up close (#63): a slider of their own, apart from the blips; and which tune plays.
             AddVolumeRow(catalog, "Station", L10n.T("pause.station"), -1080, Sfx.StationGain, Sfx.SetStation);
             AddTuneRow(catalog, -1180);
 
-            // The new moon (#1): a warm button with a badge once the garden is far enough; until then one line says the level it asks for.
             var newMoon = UiKit.Rect("NewMoon", _pauseCard).Place(0.5f, 0f, 0, 420, 700, 100);
             _newMoon = newMoon.gameObject;
             ChunkyButton newMoonButton = null;
@@ -201,7 +184,6 @@ namespace VuonTra.Game.UI
             _pause.SetActive(false);
         }
 
-        /// <summary>The mailbox's badge: how many letters wait, hidden when none do.</summary>
         public void RefreshMail()
         {
             int n = _mailCount != null ? _mailCount() : 0;
@@ -209,7 +191,6 @@ namespace VuonTra.Game.UI
             _mailBadgeText.text = n.ToString();
         }
 
-        /// <summary>The new-moon row as the garden stands: the button, or the line that says what it still needs.</summary>
         void ShowNewMoon()
         {
             bool ready = _newMoonReady != null && _newMoonReady();
@@ -220,7 +201,6 @@ namespace VuonTra.Game.UI
             _newMoonLocked.text = capped ? L10n.T("pause.newmoon.cap") : L10n.T("pause.newmoon.locked", _newMoonLevel != null ? _newMoonLevel() : NewMoon.FirstLevel);
         }
 
-        /// <summary>A setting that is either on or off: its name on the left, a pill that says which on the right.</summary>
         Action AddToggleRow(GameCatalog catalog, string id, string label, float y, Func<bool> get, Action<bool> set)
         {
             UiKit.Rect(id + " Label", _pauseCard).Place(0.5f, 1f, -120, y, 460, 60)
@@ -249,7 +229,6 @@ namespace VuonTra.Game.UI
             return show;
         }
 
-        /// <summary>Which tune plays: one pill that steps Tự động → Đêm trăng → Rạng sáng → Mưa and round again.</summary>
         void AddTuneRow(GameCatalog catalog, float y)
         {
             UiKit.Rect("Tune Label", _pauseCard).Place(0.5f, 1f, -200, y, 300, 60)
@@ -293,7 +272,6 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("lang." + code), UiKit.TextBody, current ? Palette.OnCarrot : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
-        /// <summary>Fills the profile row on the pause card.</summary>
         public void SetProfile(string name, string code, Sprite avatar)
         {
             _profileName.text = name;
@@ -301,7 +279,6 @@ namespace VuonTra.Game.UI
             if (avatar != null) _profileArt.sprite = avatar;
         }
 
-        /// <summary>Goes straight to play with no fade or sound (the screen was rebuilt mid-game).</summary>
         public void SkipTitle()
         {
             if (State != ShellState.Title) return;
@@ -357,7 +334,6 @@ namespace VuonTra.Game.UI
             });
         }
 
-        /// <summary>Wiping progress takes two presses within three seconds.</summary>
         void OnResetPressed()
         {
             if (Time.unscaledTime - _resetArmedAt <= 3f)
@@ -382,7 +358,6 @@ namespace VuonTra.Game.UI
         {
             if (State == ShellState.Title)
             {
-                // Motion is what marks the prompt as interactive.
                 Color c = _prompt.color;
                 c.a = 0.75f + 0.25f * Mathf.Sin(time * (2f * Mathf.PI / 1.6f));
                 _prompt.color = c;

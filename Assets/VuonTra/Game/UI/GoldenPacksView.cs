@@ -5,11 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The card where golden carrots are bought with money (#9): three packs with the store's own prices, a
-    /// line that says how the last purchase went, and the restore button the App Store asks for. While the
-    /// store is not ready the packs are greyed and the line says so.
-    /// </summary>
     public sealed class GoldenPacksView
     {
         sealed class PackRow { public GoldenPack Pack; public ChunkyButton Button; public Text Label, Price; }
@@ -181,9 +176,6 @@ namespace VuonTra.Game.UI
 
         public void Close() => _root.SetActive(false);
 
-        // ----- the no-ads pass (#66) -----
-
-        /// <summary>How much taller the card stands while the pass is on sale, and where the pass row and the status line then sit.</summary>
         public const float CardHeight = 1180f, PassExtra = 150f, PassY = -870f, StatusY = -900f;
         RectTransform _passRow;
         ChunkyButton _passButton;
@@ -192,14 +184,9 @@ namespace VuonTra.Game.UI
         Func<int> _passDays;
         Action<Action<PurchaseResult>> _onBuyPass;
 
-        /// <summary>The pass row is on the card now (only while ads are switched on).</summary>
         public bool PassShown => _passRow != null && _passRow.gameObject.activeSelf;
         public string PassLabel => _passLabel != null ? _passLabel.text : null;
 
-        /// <summary>
-        /// Adds the no-ads pass under the three packs, with the store's own price: shown only while
-        /// <paramref name="shown"/> says ads are switched on, since there is nothing to remove otherwise.
-        /// </summary>
         public void AttachPass(GameCatalog catalog, Func<bool> shown, Func<int> daysLeft, Action<Action<PurchaseResult>> onBuy)
         {
             _passShown = shown;
@@ -223,7 +210,6 @@ namespace VuonTra.Game.UI
             _passRow.gameObject.SetActive(false);
         }
 
-        /// <summary>The card grows to hold the pass row, and the status line moves under it, only while the pass is on sale.</summary>
         void LayoutPass()
         {
             bool on = _passRow != null && _passShown != null && _passShown();

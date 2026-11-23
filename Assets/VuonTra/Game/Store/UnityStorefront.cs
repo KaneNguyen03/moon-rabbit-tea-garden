@@ -8,15 +8,8 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.Store
 {
-    /// <summary>
-    /// The platform store through Unity IAP 4.x (#9): the three golden packs as consumables, bought with the
-    /// store's own dialog, restored on request, and each delivery checked by <see cref="IReceiptCheck"/> before
-    /// the game pays it out. Built only for iOS and Android; everywhere else the runner keeps its fake store.
-    /// Upgrading the package to Unity IAP 5 means rewriting this file against StoreController (see docs).
-    /// </summary>
     public sealed class UnityStorefront : IStorefront, IDetailedStoreListener
     {
-        /// <summary>Says whether a receipt is good. The default accepts everything; see <see cref="TangleReceiptCheck"/>.</summary>
         public interface IReceiptCheck { bool Accept(Product product); }
 
         public sealed class AcceptAllReceipts : IReceiptCheck { public bool Accept(Product product) => product != null && product.hasReceipt; }
@@ -35,7 +28,7 @@ namespace VuonTra.Game.Store
             _check = check ?? new AcceptAllReceipts();
             var builder = ConfigurationBuilder.Instance(StandardPurchasingModule.Instance());
             foreach (GoldenPack pack in Storefront.Packs) builder.AddProduct(pack.Id, ProductType.Consumable);
-            builder.AddProduct(Storefront.NoAdsPass, ProductType.Consumable); // thirty days, bought again to extend (#66)
+            builder.AddProduct(Storefront.NoAdsPass, ProductType.Consumable);
             UnityPurchasing.Initialize(this, builder);
         }
 
@@ -65,13 +58,10 @@ namespace VuonTra.Game.Store
 #endif
         }
 
-        // ----- IDetailedStoreListener -----
-
         public void OnInitialized(IStoreController controller, IExtensionProvider extensions)
         {
             _controller = controller;
             _extensions = extensions;
-            // Purchases that arrived before anyone listened are handed over now.
             foreach (Product p in _pending) Finish(p);
             _pending.Clear();
         }
@@ -88,15 +78,12 @@ namespace VuonTra.Game.Store
             Product p = args.purchasedProduct;
             if (!_check.Accept(p))
             {
-                // Not paid out, and not finished either: the store keeps the transaction and hands it over again
-                // at the next open, when the receipt is checked once more (a sandbox hiccup must not eat money).
                 Debug.LogWarning("Store: receipt refused for " + p.definition.id + "; left pending");
                 Tell(p.definition.id, PurchaseResult.Of(PurchaseOutcome.Failed, p.definition.id));
                 return PurchaseProcessingResult.Pending;
             }
             if (Delivered == null && !_waiting.ContainsKey(p.definition.id))
             {
-                // Nobody to pay it out yet: the store keeps it until the game is listening.
                 _pending.Add(p);
                 return PurchaseProcessingResult.Pending;
             }
@@ -111,7 +98,6 @@ namespace VuonTra.Game.Store
             if (_controller != null && _pending.Contains(p)) _controller.ConfirmPendingPurchase(p);
         }
 
-        /// <summary>Answers the call that asked for this pack, if one is waiting.</summary>
         bool Tell(string packId, PurchaseResult result)
         {
             if (!_waiting.TryGetValue(packId, out Action<PurchaseResult> done)) return false;
@@ -122,7 +108,6 @@ namespace VuonTra.Game.Store
 
         public void OnPurchaseFailed(Product product, PurchaseFailureDescription failure)
         {
-            // The store can report a failure for a product it does not know; there is then nobody waiting to tell.
             if (product == null || failure == null) { Debug.LogWarning("Store: purchase failed for an unknown product"); return; }
             PurchaseOutcome outcome = failure.reason == PurchaseFailureReason.UserCancelled ? PurchaseOutcome.Cancelled
                 : failure.reason == PurchaseFailureReason.PurchasingUnavailable || failure.reason == PurchaseFailureReason.ProductUnavailable ? PurchaseOutcome.Unavailable
@@ -135,11 +120,6 @@ namespace VuonTra.Game.Store
     }
 
 #if RECEIPT_VALIDATION
-    /// <summary>
-    /// Checks receipts against the stores' keys. Needs the tangle classes the Unity editor writes from
-    /// Services > In-App Purchasing > Receipt Validation Obfuscator once the owner has pasted the Google Play
-    /// public key; until then the define RECEIPT_VALIDATION stays off and every receipt is accepted.
-    /// </summary>
     public sealed class TangleReceiptCheck : UnityStorefront.IReceiptCheck
     {
         readonly UnityEngine.Purchasing.Security.CrossPlatformValidator _validator =

@@ -3395,6 +3395,46 @@ MonoBehaviour:
     m_Key: fish.points.one
     m_Metadata:
       m_Items: []
+  - m_Id: 749040500203520
+    m_Key: expand.sign.level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175040
+    m_Key: expand.sign.rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175041
+    m_Key: expand.sign.kinds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175042
+    m_Key: expand.sign.days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175043
+    m_Key: expand.sign.carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040521175044
+    m_Key: expand.days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952256
+    m_Key: expand.sign.rabbits.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952257
+    m_Key: expand.sign.kinds.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952258
+    m_Key: expand.sign.days.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 749040537952259
+    m_Key: expand.days.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

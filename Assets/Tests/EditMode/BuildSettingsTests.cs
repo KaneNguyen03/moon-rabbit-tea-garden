@@ -6,7 +6,6 @@ using VuonTra.EditorTools;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>What the seeder sets for the phone builds (#41): read back from the project, so a build on another machine starts from the same numbers.</summary>
     public class BuildSettingsTests
     {
         [Test]

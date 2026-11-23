@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The golden packs (#9): what is for sale, paying out once per transaction, and the store in memory.</summary>
     public class StorefrontTests
     {
         List<StationDef> defs;

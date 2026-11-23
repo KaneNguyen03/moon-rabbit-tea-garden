@@ -5,17 +5,12 @@ namespace VuonTra.Core
 {
     public enum UpgradeEffect
     {
-        /// <summary>Each level adds Amount seconds of work to one tap.</summary>
         TapSeconds,
-        /// <summary>Each level makes every station Amount (0.1 = 10%) faster.</summary>
         Speed,
-        /// <summary>Each level multiplies every station's income by Amount.</summary>
         IncomeMultiplier,
-        /// <summary>Each level adds Amount hours to how long an absence keeps paying.</summary>
         AwayHours
     }
 
-    /// <summary>A garden-wide upgrade ("bùa") bought with carrots.</summary>
     public sealed class UpgradeDef
     {
         public string Id;
@@ -28,14 +23,12 @@ namespace VuonTra.Core
         public int MaxLevel;
     }
 
-    /// <summary>What the owned upgrades add up to. Without upgrades it is the base game.</summary>
     public struct Modifiers
     {
         public double IncomeMultiplier;
         public double SpeedMultiplier;
         public double TapSeconds;
         public double AwayCapSeconds;
-        /// <summary>Extra on top of normal income for time away (1 = none).</summary>
         public double AwayIncomeMultiplier;
 
         public static readonly Modifiers None = new Modifiers
@@ -48,12 +41,9 @@ namespace VuonTra.Core
         public static Modifiers From(IReadOnlyList<UpgradeDef> upgrades, GameState s)
         {
             Modifiers m = None;
-            // Items worn by working rabbits count whether or not there are upgrades.
             m.SpeedMultiplier += Items.GardenBonus(s, ItemEffect.GardenSpeed);
             m.AwayIncomeMultiplier += Items.GardenBonus(s, ItemEffect.AwayIncome);
-            // Every new moon begun (#1) pays its lasting share on all income.
             if (s != null) m.IncomeMultiplier *= NewMoon.Bonus(s);
-            // Rabbits seated at the places to rest each add their share of all income (#60).
             if (s != null) m.IncomeMultiplier *= RestSpots.Multiplier(s);
             if (upgrades == null || s.UpgradeLevels == null) return m;
             for (int i = 0; i < upgrades.Count && i < s.UpgradeLevels.Length; i++)
@@ -82,10 +72,6 @@ namespace VuonTra.Core
 
         public static bool IsMaxed(UpgradeDef u, int level) => level >= u.MaxLevel;
 
-        /// <summary>
-        /// What the charm does at a level, as the number its effect is measured in: seconds per tap, the share
-        /// of extra speed, the income multiplier, or hours of away time. Level 0 is the base game (0, 0, 1, 0).
-        /// </summary>
         public static double EffectAt(UpgradeDef u, int level)
         {
             int n = Math.Max(0, level);
@@ -96,7 +82,6 @@ namespace VuonTra.Core
             }
         }
 
-        /// <summary>Buys one level. Leaves the state untouched when maxed or too expensive.</summary>
         public static bool TryBuy(IReadOnlyList<UpgradeDef> upgrades, GameState s, int index)
         {
             if (index < 0 || index >= upgrades.Count || index >= s.UpgradeLevels.Length) return false;

@@ -3,11 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// Moon jars (#64): an hour of the garden's income kept in a jar and opened from the purse. What one is worth,
-    /// the shelf of nine, the shop's three a day, the one free jar a day the daily quest, the firefly night and every
-    /// tenth garden level share, and the save.
-    /// </summary>
     public class MoonJarsTests
     {
         List<StationDef> defs;
@@ -18,7 +13,7 @@ namespace VuonTra.Core.Tests
         {
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
-            s.Levels = new[] { 30, 0, 0 }; // 30 × 4 (two milestones) per 1.5 s = 80 a second
+            s.Levels = new[] { 30, 0, 0 };
         }
 
         [Test]
@@ -27,7 +22,7 @@ namespace VuonTra.Core.Tests
             var m = Modifiers.None;
             m.IncomeMultiplier = 2d;
             m.SpeedMultiplier = 1.5d;
-            m.AwayIncomeMultiplier = 3d; // time away's own bonus has nothing to do with a jar
+            m.AwayIncomeMultiplier = 3d;
             Assert.AreEqual(80d * 3600d * 2d * 1.5d, MoonJars.Value(defs, s, m).ToDouble(), 1e-6);
 
             s.MoonJars = 2;
@@ -38,7 +33,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, s.MoonJars);
             Assert.AreEqual(earned.ToDouble(), s.TotalEarned.ToDouble(), 1e-9, "a jar is a gift: it does not count towards the day's carrot goal");
 
-            // The garden grew before the second jar was opened: the jar follows the income of the moment it is opened.
             s.Levels[0] = 60;
             BigNum later = MoonJars.Value(defs, s, m);
             Assert.Greater(later.ToDouble(), paid.ToDouble());
@@ -67,7 +61,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(MoonJars.Buy(s, 50), "three a day");
             Assert.AreEqual(3, s.MoonJars);
 
-            // The day the game goes by is the clamped day (#78): a clock turned back to yesterday buys nothing more.
             Assert.IsFalse(MoonJars.Buy(s, 49), "yesterday again: nothing");
             Assert.AreEqual(MoonJars.BuyCheck.SoldOut, MoonJars.CanBuy(s, 49));
 
@@ -120,7 +113,7 @@ namespace VuonTra.Core.Tests
             var harvest = new QuestDef { Id = "ngay-thu", Metric = QuestMetric.CarrotsEarned, Target = 0, Daily = true, RewardSeconds = 60, RewardCarrots = 60, RewardJars = 1 };
             var quests = new List<QuestDef> { harvest };
             Quests.RollDaily(quests, defs, s, 29, Modifiers.None);
-            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d; // clear of rounding in the subtraction
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
             Assert.AreEqual(0, Quests.JarsNow(harvest, s), "below garden level 15 the harvest pays its clover");
             Assert.IsTrue(Quests.TryClaim(harvest, defs, s, Modifiers.None, out _));
             Assert.AreEqual(0, s.MoonJars);
@@ -129,27 +122,25 @@ namespace VuonTra.Core.Tests
 
             s.GardenXp = Garden.XpForLevel(MoonJars.DailyLevel);
             Quests.RollDaily(quests, defs, s, 30, Modifiers.None);
-            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d; // clear of rounding in the subtraction
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
             Assert.AreEqual(1, Quests.JarsNow(harvest, s));
             Assert.AreEqual(0, Quests.CloversNow(harvest, s));
             Assert.IsTrue(Quests.TryClaim(harvest, defs, s, Modifiers.None, out _));
             Assert.AreEqual(1, s.MoonJars);
             Assert.AreEqual(0, s.Clovers);
 
-            // Tomorrow, after the firefly night already gave the day's free jar: the quest pays its old clover.
             Quests.RollDaily(quests, defs, s, 31, Modifiers.None);
             Assert.IsTrue(MoonJars.GiveFree(s, 31));
-            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d; // clear of rounding in the subtraction
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
             Assert.AreEqual(0, Quests.JarsNow(harvest, s), "the row shows the clover");
             Assert.AreEqual(1, Quests.CloversNow(harvest, s));
             Assert.IsTrue(Quests.TryClaim(harvest, defs, s, Modifiers.None, out _));
             Assert.AreEqual(2, s.MoonJars);
             Assert.AreEqual(1, s.Clovers);
 
-            // A full shelf: the clover again, and nothing is lost.
             Quests.RollDaily(quests, defs, s, 32, Modifiers.None);
             s.MoonJars = MoonJars.Cap;
-            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d; // clear of rounding in the subtraction
+            s.TotalEarned = s.DailyEarnedBase + s.DailyCarrotTarget * 2d;
             Assert.AreEqual(0, Quests.JarsNow(harvest, s));
             Assert.IsTrue(Quests.TryClaim(harvest, defs, s, Modifiers.None, out _));
             Assert.AreEqual(MoonJars.Cap, s.MoonJars);
@@ -176,7 +167,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, second.Golden);
             Assert.IsTrue(second.GoldenCapped, "one prize a day, as before");
 
-            // The next day the harvest quest came first: the night pays its golden carrot as it always did.
             Assert.IsTrue(MoonJars.GiveFree(s, 41));
             Assert.IsTrue(Fireflies.Start(s, 41));
             FirefliesResult third = Fireflies.Finish(defs, s, Modifiers.None, Fireflies.MaxScore);
@@ -198,7 +188,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, s.MoonJars, "level 10");
             Assert.AreEqual(60, s.MoonJarFreeDay);
 
-            // Level 20 on the same day: the day's free jar is given, so the level brings its clover and golden carrots only.
             Garden.AddXp(s, Garden.XpForLevel(20) - s.GardenXp);
             Assert.AreEqual(20, Garden.Level(s));
             Assert.AreEqual(1, s.MoonJars);
@@ -239,7 +228,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, fromOld.MoonJarsBoughtToday);
             Assert.AreEqual(-1, fromOld.MoonJarFreeDay);
 
-            // A save edited by hand cannot hold more than the shelf.
             string edited = SaveCodec.Encode(defs, s).Replace("\"held\":4", "\"held\":400");
             Assert.AreEqual(MoonJars.Cap, SaveCodec.Decode(defs, edited).State.MoonJars);
         }

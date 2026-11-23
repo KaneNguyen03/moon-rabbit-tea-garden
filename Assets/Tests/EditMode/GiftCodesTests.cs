@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Gift codes (#68): the public table, codes signed with a key the repository does not hold, and once per garden.</summary>
     public class GiftCodesTests
     {
         const string TestKey = "test-key-68";
@@ -93,8 +92,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GiftCodes.Result.Ok, GiftCodes.Redeem(s, "TRATHO-2026", last, items).Result, "the last day itself still counts");
         }
 
-        // ----- signed codes -----
-
         [Test]
         public void A_Signed_Code_Pays_What_Its_Kind_Says_Once()
         {
@@ -132,7 +129,6 @@ namespace VuonTra.Core.Tests
             char last = code[code.Length - 1];
             string forged = code.Substring(0, code.Length - 1) + (last == 'Z' ? 'Y' : 'Z');
             Assert.AreEqual(GiftCodes.Result.Invalid, GiftCodes.Redeem(s, forged, today, items).Result);
-            // The same gift with a later day needs a new signature: changing the type alone is refused.
             string later = code.Substring(0, 3) + (code[3] == 'Z' ? '2' : 'Z') + code.Substring(4);
             Assert.AreEqual(GiftCodes.Result.Invalid, GiftCodes.Redeem(s, later, today, items).Result);
             Assert.AreEqual(0, s.GoldenCarrots);
@@ -169,7 +165,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(GiftCodes.HasKey, "an empty key is no key");
         }
 
-        /// <summary>The same codes tools/make-code.sh printed with VTT_GIFT_KEY=test-key-68: the shell tool and the game agree.</summary>
         [TestCase("32F9-Z9Z5", 2027, 2, 28, 10, 0)]
         [TestCase("5222-QFRM", 2026, 1, 1, 5, 2)]
         public void Codes_From_The_Shell_Tool_Pass(string code, int y, int m, int d, int golden, int clovers)
@@ -190,8 +185,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(GiftCodes.KeyFromJson(null));
         }
 
-        // ----- the save -----
-
         [Test]
         public void Used_Codes_Are_Kept_In_The_Save()
         {
@@ -211,7 +204,6 @@ namespace VuonTra.Core.Tests
             old.GoldenCarrots = 9;
             old.MaxDaySeen = today - 3;
             string json = SaveCodec.Encode(defs, old);
-            // Cut the new blocks out, as a build from before #68 wrote it.
             json = System.Text.RegularExpressions.Regex.Replace(json, ",\"codesUsed\":\\[[^\\]]*\\]", "");
             json = System.Text.RegularExpressions.Regex.Replace(json, ",\"mail\":\\{.*\\}\\}$", "}");
             StringAssert.DoesNotContain("codesUsed", json);

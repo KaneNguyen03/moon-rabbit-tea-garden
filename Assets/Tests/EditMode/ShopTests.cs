@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Golden carrots and the shop: the daily gift's chain, the golden call, where golden carrots come from, and the save.</summary>
     public class ShopTests
     {
         List<StationDef> defs;
@@ -87,7 +86,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(s.GiftBigGolden);
             Assert.IsFalse(Shop.IsBigDay(s, 7));
 
-            // The second week's seventh day is five golden carrots, nothing more.
             for (long day = 107; day <= 112; day++) ClaimBig(day, items);
             Assert.AreEqual(13, s.GiftStreak);
             Shop.BigGift again = ClaimBig(113, items);
@@ -95,7 +93,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(again.Given);
             Assert.AreEqual(1, s.Clovers);
             Assert.AreEqual(1, s.Items.Count);
-            // Nor does stepping back to day seven bring it again.
             s.GiftStreak = 7;
             ClaimBig(115, items);
             Assert.AreEqual(6, s.GiftStreak);
@@ -177,7 +174,6 @@ namespace VuonTra.Core.Tests
         [TestCase(10)]
         public void A_Save_From_Before_The_Big_Gift_Past_Day_Seven_Gets_It_On_The_Next_Seventh_Day_Exactly_Once(int streak)
         {
-            // #90: a save from before #57 has no "giftBig"; its streak was past 7, so "only on day 7" never came while it played every day.
             List<ItemDef> items = HatDefs();
             string json = "{\"version\":14,\"stations\":[],\"golden\":0,\"giftDay\":200,\"giftStreak\":" + streak + "}";
             s = SaveCodec.Decode(defs, json).State;
@@ -197,12 +193,11 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, s.Clovers);
             given++;
 
-            // Never again: not on day 21, nor when missed days step back to day 7 or 14.
             for (; s.GiftStreak < 28; day++) if (ClaimBig(day, items).Given) given++;
-            day += 14; // two weeks missed: 28 steps back to 14
+            day += 14;
             Assert.AreEqual(14, Shop.StreakFor(s, day));
             if (ClaimBig(day, items).Given) given++;
-            day += 8; // seven days missed: 14 steps back to 7
+            day += 8;
             Assert.AreEqual(7, Shop.StreakFor(s, day));
             if (ClaimBig(day, items).Given) given++;
             Assert.AreEqual(1, given, "exactly once");
@@ -214,7 +209,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Save_From_Before_The_Big_Gift_Gains_Nothing_By_Skipping_Days()
         {
-            // #90: three days missed step day 10 back to day 7; the big gift comes then, and still only once.
             List<ItemDef> items = HatDefs();
             s = SaveCodec.Decode(defs, "{\"version\":14,\"stations\":[],\"giftDay\":200,\"giftStreak\":10}").State;
             Assert.AreEqual(7, Shop.StreakFor(s, 204));
@@ -301,7 +295,7 @@ namespace VuonTra.Core.Tests
             var plots = new QuestDef { Id = "dat-12", Metric = QuestMetric.PlotsOwned, Target = 3, RewardGolden = 5 };
             var cap = new QuestDef { Id = "tho-max", Metric = QuestMetric.RabbitsAtCap, Target = 1, RewardGolden = 5 };
             Assert.IsFalse(Quests.IsComplete(purple, defs, s));
-            Rabbits.See(s, "tho-oai-huong"); // a purple kind
+            Rabbits.See(s, "tho-oai-huong");
             Assert.IsTrue(Quests.IsComplete(purple, defs, s));
             Assert.IsTrue(Quests.TryClaim(purple, defs, s, Modifiers.None, out _));
             Assert.AreEqual(5, s.GoldenCarrots);
@@ -347,7 +341,6 @@ namespace VuonTra.Core.Tests
             Assert.Greater(tiers[3], tiers[4]);
             Assert.Greater(tiers[4], tiers[5]);
 
-            // Every blue kind but one is in the album: the one that is not should be picked about three times as often.
             IReadOnlyList<RabbitKind> blue = RabbitKinds.OfTier(2);
             foreach (RabbitKind kind in blue) Rabbits.See(s, kind.Id);
             string missing = blue[0].Id;
@@ -402,7 +395,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(r.GiftBigClaimed);
             Assert.IsTrue(r.GiftBigGolden);
         }
-        // ----- #44 round 3: hats for looks, and fur dye -----
 
         static List<ItemDef> HatDefs() => new List<ItemDef>
         {
@@ -441,7 +433,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(4, Shop.BuyItem(s, items, "hat-vuong-mien").Tier);
             Assert.AreEqual(40, s.GoldenCarrots);
 
-            // Worn, a hat for looks changes nothing about what the rabbit is worth.
             var r = new Rabbit { Id = 1, Tier = 0, Name = "A", Level = 1 };
             s.Rabbits.Add(r);
             double before = Rabbits.Multiplier(s, r);
@@ -491,7 +482,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Shop.Wash(s, 1), "nothing left to wash out");
             Assert.IsFalse(Shop.Wash(s, 9));
 
-            // The save keeps each rabbit's dye and a bought hat for looks; a save from before has white rabbits.
             Shop.DyeRabbit(s, 2, 7);
             s.GoldenCarrots = 60;
             Item crown = Shop.BuyItem(s, HatDefs(), "hat-vuong-mien");

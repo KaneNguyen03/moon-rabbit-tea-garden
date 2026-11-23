@@ -1,0 +1,27 @@
+name: checks
+on:
+  push:
+  pull_request:
+jobs:
+  conventions:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: The checker's own tests
+        run: python3 -I tools/test_conventions.py
+      - name: Rules hold and the baseline did not grow
+        run: |
+          base=${{ github.event.pull_request.base.sha || github.event.before }}
+          if git cat-file -e "$base:tools/conventions.baseline" 2>/dev/null; then python3 -I tools/conventions.py --since "$base"; fi
+          python3 -I tools/conventions.py
+  core-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Core rules and their tests without Unity
+        run: tools/ci/core-tests.sh

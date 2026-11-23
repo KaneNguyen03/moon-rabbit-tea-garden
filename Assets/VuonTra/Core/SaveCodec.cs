@@ -8,31 +8,22 @@ namespace VuonTra.Core
     public enum LoadStatus
     {
         Ok,
-        /// <summary>Nothing saved yet.</summary>
         Empty,
-        /// <summary>The text is not a save this game wrote.</summary>
         Corrupt,
-        /// <summary>Written by a newer build; must not be overwritten.</summary>
         NewerVersion
     }
 
     public struct LoadResult
     {
         public LoadStatus Status;
-        /// <summary>The loaded state, or a new game for every status except Ok.</summary>
         public GameState State;
     }
 
-    /// <summary>
-    /// GameState to and from JSON text. Stations are stored by id, so adding or reordering
-    /// stations in a later build keeps the player's progress.
-    /// </summary>
     public static class SaveCodec
     {
-        /// <summary>The rings the vertical garden's lawn started with: a saved "radius" past it counts its open land (the horizontal garden, then the 2D map).</summary>
         const int LegacyStartingRadius = 3;
+        public const long LegacyFirstDay = 0;
 
-        /// <summary>1 = stations only. 2 adds upgrades, quest counters, daily state and clovers. 3 adds rabbits. 4 adds plots, rabbit levels, items and energy. 5 adds rabbit kinds. 6 adds the album of kinds seen. 7 adds places to rest. 8 adds the garden's experience. 9 the quick-upgrade choices, 10 the product tray, 11 the player profile, 12 the last view. The hex grid under the garden (#52) is an additive block, no new version.</summary>
         public const int CurrentVersion = 14;
 
         public static string Encode(IReadOnlyList<StationDef> defs, GameState s, IReadOnlyList<UpgradeDef> upgrades = null)
@@ -112,7 +103,6 @@ namespace VuonTra.Core
                 sb.Append("{\"id\":").Append(r.Id.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"tier\":").Append(r.Tier.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"level\":").Append(r.Level.ToString(CultureInfo.InvariantCulture));
-                // The bond (#58) in points; "affection" keeps the old hearts (0 to 5) for a build from before the points.
                 sb.Append(",\"affection\":").Append(Math.Min(Rabbits.GiftHearts, Rabbits.HeartsOf(r)).ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"bond\":").Append(r.Affection.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"petDay\":").Append(r.PetDay.ToString(CultureInfo.InvariantCulture));
@@ -121,19 +111,16 @@ namespace VuonTra.Core
                 WriteString(sb, Rabbits.KindOf(r));
                 sb.Append(",\"name\":");
                 WriteString(sb, r.Name);
-                // Stations by id, like everywhere else in the save, so reordering them is safe.
                 sb.Append(",\"station\":");
                 WriteString(sb, r.Station >= 0 && r.Station < defs.Count ? defs[r.Station].Id : "");
                 sb.Append('}');
             }
             sb.Append("],\"plots\":").Append(s.Plots.ToString(CultureInfo.InvariantCulture));
-            // Version 10: the product tray.
             sb.Append(",\"traySlots\":").Append(s.TraySlots.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"goldenToday\":").Append(s.GoldenToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photoDay\":").Append(s.PhotoDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosTaken\":").Append(s.PhotosTaken.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"tutorial\":").Append(s.TutorialStep.ToString(CultureInfo.InvariantCulture));
-            // Version 13: golden carrots and the shop's daily gift.
             sb.Append(",\"golden\":").Append(s.GoldenCarrots.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftDay\":").Append(s.GiftDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"giftStreak\":").Append(s.GiftStreak.ToString(CultureInfo.InvariantCulture));
@@ -146,6 +133,7 @@ namespace VuonTra.Core
             sb.Append(",\"photosRest\":").Append(s.PhotosWithFullRest.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"photosSeason\":").Append(s.PhotosWithSeasonRabbit.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"maxDay\":").Append(s.MaxDaySeen.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"firstDay\":").Append(s.FirstDaySeen.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"seasonGreeted\":").Append(s.SeasonGreetedDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"awayDouble\":").Append(s.AwayDoubleDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"playSeconds\":").Append(Sane(s.PlaySeconds).ToString("R", CultureInfo.InvariantCulture));
@@ -158,20 +146,17 @@ namespace VuonTra.Core
                 WriteString(sb, s.PaidTransactions[i]);
             }
             sb.Append(']');
-            // Version 14: the mooncake game.
             sb.Append(",\"pounding\":{\"day\":").Append(s.PoundingDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"plays\":").Append(s.PoundingPlays.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"star\":").Append(s.PoundingStarToday ? "true" : "false");
             sb.Append(",\"three\":").Append(s.PoundingThreeToday ? "true" : "false");
             sb.Append(",\"games\":").Append(s.PoundingGames.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"best\":").Append(s.PoundingBestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
-            // Still version 14: the leaf-catching game, its own block. A reader without it defaults the block, so no bump.
             sb.Append(",\"leaves\":{\"day\":").Append(s.Leaves.Day.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"plays\":").Append(s.Leaves.Plays.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"star\":").Append(s.Leaves.StarToday ? "true" : "false");
             sb.Append(",\"games\":").Append(s.Leaves.Games.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"best\":").Append(s.Leaves.BestStars.ToString(CultureInfo.InvariantCulture)).Append('}');
-            // Still version 14: the firefly night, its own block with the day's capped gifts. Absent in older saves, so no bump.
             sb.Append(",\"fireflies\":{\"day\":").Append(s.Fireflies.Day.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"plays\":").Append(s.Fireflies.Plays.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"clovers\":").Append(s.Fireflies.CloversToday.ToString(CultureInfo.InvariantCulture));
@@ -217,7 +202,6 @@ namespace VuonTra.Core
                 sb.Append(",\"wornBy\":").Append(item.WornBy.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
-            // Version 11: the player profile.
             sb.Append("],\"profile\":{\"name\":");
             WriteString(sb, s.Profile.GardenName);
             sb.Append(",\"avatar\":").Append(s.Profile.AvatarRabbitId.ToString(CultureInfo.InvariantCulture));
@@ -225,12 +209,10 @@ namespace VuonTra.Core
             sb.Append(",\"code\":");
             WriteString(sb, s.Profile.Code);
             sb.Append("}");
-            // Version 12: where the player last looked.
             sb.Append(",\"view\":{\"x\":").Append(Sane(s.ViewX).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"y\":").Append(Sane(s.ViewY).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"zoom\":").Append(Sane(s.ViewZoom).ToString("R", CultureInfo.InvariantCulture));
             sb.Append('}');
-            // Guests' orders (#20), an additive block: the schedule, the counts, and the guest at the counter if any.
             sb.Append(",\"orders\":{\"clock\":").Append(Sane(s.OrderClock).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"today\":").Append(s.OrdersToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"day\":").Append(s.OrderDay.ToString(CultureInfo.InvariantCulture));
@@ -257,7 +239,6 @@ namespace VuonTra.Core
                 sb.Append("]}");
             }
             sb.Append('}');
-            // A rabbit asking for its picture (#56), an additive block: the clock, the bubble if any, today's count and the totals.
             sb.Append(",\"photoAsk\":{\"clock\":").Append(Sane(s.PhotoAskClock).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"left\":").Append(Sane(s.PhotoAskLeft).ToString("R", CultureInfo.InvariantCulture));
             sb.Append(",\"rabbit\":").Append(s.PhotoAskRabbit.ToString(CultureInfo.InvariantCulture));
@@ -266,7 +247,6 @@ namespace VuonTra.Core
             sb.Append(",\"answered\":").Append(s.PhotoAsksAnswered.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"dailyBase\":").Append(s.DailyPhotoAsksBase.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
-            // The album's milestones whose gifts were given (#61), an additive list.
             sb.Append(",\"albumMilestones\":[");
             first = true;
             foreach (int milestone in s.AlbumMilestonesClaimed)
@@ -276,7 +256,6 @@ namespace VuonTra.Core
                 sb.Append(milestone.ToString(CultureInfo.InvariantCulture));
             }
             sb.Append(']');
-            // Decorating the garden (#11), an additive block: what is owned by kind, what stands on each spot, the lantern colour.
             sb.Append(",\"decor\":{\"owned\":{");
             for (int i = 0; i < Decor.Kinds.Length; i++)
             {
@@ -292,13 +271,11 @@ namespace VuonTra.Core
             }
             sb.Append("],\"lantern\":").Append(s.LanternColor.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
-            // Moon jars (#64), an additive block: how many are held, the shop's day and count, the day of the last free jar.
             sb.Append(",\"moonJars\":{\"held\":").Append(s.MoonJars.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"buyDay\":").Append(s.MoonJarBuyDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"bought\":").Append(s.MoonJarsBoughtToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"freeDay\":").Append(s.MoonJarFreeDay.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
-            // Rewarded-ad seams (#66), an additive block: the day the claims count for, each place's claims that day, and the pass's end day.
             sb.Append(",\"ads\":{\"day\":").Append(s.AdsToday.Day.ToString(CultureInfo.InvariantCulture)).Append(",\"used\":{");
             {
                 bool firstAd = true;
@@ -312,14 +289,11 @@ namespace VuonTra.Core
                 }
             }
             sb.Append("},\"passUntil\":").Append(s.NoAdsUntilDay.ToString(CultureInfo.InvariantCulture)).Append('}');
-            // The hex grid (#52), an additive block: how many segments of the map are open, and the tile of everything standing
-            // on it. Empty tiles follow. "map" marks the 2D map's tiles (#91); a block with "segments" holds the horizontal strip's,
-            // and one with "radius" the vertical garden's, from before it.
             sb.Append(",\"grid\":{\"map\":").Append(s.Grid.Segments.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
             {
                 var ids = new List<string>();
                 foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) ids.Add(o.Key);
-                ids.Sort(string.CompareOrdinal); // the same grid always writes the same text
+                ids.Sort(string.CompareOrdinal);
                 for (int i = 0; i < ids.Count; i++)
                 {
                     Hex h = s.Grid.TileOf(ids[i]).Value;
@@ -332,7 +306,6 @@ namespace VuonTra.Core
             sb.Append(']');
             if (s.Grid.StoredCount > 0)
             {
-                // The stations put away (#54), an additive list written only when there are some.
                 var stored = new List<string>(s.Grid.Stored);
                 stored.Sort(string.CompareOrdinal);
                 sb.Append(",\"stored\":[");
@@ -344,7 +317,6 @@ namespace VuonTra.Core
                 sb.Append(']');
             }
             sb.Append('}');
-            // Gift codes and the mailbox (#68), additive: the codes used, then the letters and the day the box last looked.
             sb.Append(",\"codesUsed\":[");
             first = true;
             foreach (string code in s.CodesUsed)
@@ -364,20 +336,17 @@ namespace VuonTra.Core
                 sb.Append(",\"kind\":").Append(((int)letter.Kind).ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"season\":").Append(((int)letter.Season).ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"day\":").Append(letter.Day.ToString(CultureInfo.InvariantCulture));
-                // What it pays, for a reader of the file; the game pays by the kind.
                 sb.Append(",\"golden\":").Append(letter.Golden.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
             sb.Append("]}");
-            // The Frog Rabbit (#62), an additive block: the day counted, its showers' frogs, today's and all greetings, the one at the pond.
             sb.Append(",\"frog\":{\"day\":").Append(s.FrogDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"showers\":").Append(s.FrogShowers.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"met\":").Append(s.FrogsMet.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"left\":").Append(Sane(s.FrogLeft).ToString("R", CultureInfo.InvariantCulture));
             sb.Append('}');
-            // The moon pond (#58), an additive block: baits kept and the second the next is counted from, casts, the basket, fish caught and fed.
             sb.Append(",\"fishing\":{\"baits\":").Append(s.Baits.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"baitAt\":").Append(s.BaitAt.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"casts\":").Append(s.Casts.ToString(CultureInfo.InvariantCulture));
@@ -435,13 +404,12 @@ namespace VuonTra.Core
                     if (!(item is Dictionary<string, object> entry)) continue;
                     if (!(entry.TryGetValue("id", out object idObj) && idObj is string id)) continue;
                     int index = IndexOf(defs, id);
-                    if (index < 0) continue; // a station this build no longer has
+                    if (index < 0) continue;
 
                     TryNumber(entry, "level", out double level);
                     TryNumber(entry, "progress", out double progress);
                     s.Levels[index] = level > 0d ? (int)Math.Min(level, int.MaxValue) : 0;
                     s.Progress[index] = (progress >= 0d && progress < 1d) ? progress : 0d;
-                    // Version 10: work towards the next special batch. Never more than one batch's worth.
                     if (TryNumber(entry, "trayWork", out double trayWork)) s.TrayWork[index] = Math.Max(0d, Math.Min(Tray.ProductEvery, trayWork));
                 }
             }
@@ -454,14 +422,12 @@ namespace VuonTra.Core
                 else if (buyMode == Simulation.BuyTen) s.BuyMode = Simulation.BuyTen;
                 else if (buyMode == Simulation.BuyToMilestone) s.BuyMode = Simulation.BuyToMilestone;
             }
-            // Version 9: how much of the purse a quick upgrade may spend. Only the three choices the game offers.
             s.SpendShare = 1d;
             if (TryNumber(root, "spendShare", out double share) && (share == 0.5d || share == 0.25d)) s.SpendShare = share;
             TryNumber(root, "lastSeen", out double lastSeen);
             s.LastSeenUnixSeconds = ToLong(lastSeen);
             s.HintSeen = root.TryGetValue("hintSeen", out object hint) && hint is bool b && b;
 
-            // Everything below arrived in version 2; a version 1 save simply has none of it.
             if (upgrades != null && root.TryGetValue("upgrades", out object upgradesObj) && upgradesObj is List<object> savedUpgrades)
             {
                 foreach (object item in savedUpgrades)
@@ -491,7 +457,6 @@ namespace VuonTra.Core
                     if (item is string claimedId) s.Claimed.Add(claimedId);
             }
 
-            // Version 3: the rabbit collection.
             if (root.TryGetValue("rabbits", out object rabbitsObj) && rabbitsObj is List<object> rabbits)
             {
                 var taken = new HashSet<int>();
@@ -500,7 +465,7 @@ namespace VuonTra.Core
                 {
                     if (!(item is Dictionary<string, object> entry)) continue;
                     long rabbitId = ToLong(ReadNumber(entry, "id"));
-                    if (rabbitId <= 0 || !ids.Add(rabbitId)) continue; // no id, or a duplicate
+                    if (rabbitId <= 0 || !ids.Add(rabbitId)) continue;
                     var rabbit = new Rabbit
                     {
                         Id = rabbitId,
@@ -511,36 +476,28 @@ namespace VuonTra.Core
                     if (entry.TryGetValue("station", out object stationObj) && stationObj is string stationId && stationId.Length > 0)
                     {
                         int index = IndexOf(defs, stationId);
-                        // One rabbit per station, and only at stations that are open.
                         if (index >= 0 && s.Levels[index] > 0 && taken.Add(index)) rabbit.Station = index;
                     }
                     rabbit.Level = (int)Math.Max(1d, Math.Min(ReadNumber(entry, "level"), Rabbits.LevelCaps[rabbit.Tier]));
-                    // The bond (#19) in points (#58). A save from before the points kept 0 to 5 hearts, which become the
-                    // points those hearts start at; saves from before the bond, or odd values, start with none.
                     rabbit.Affection = TryNumber(entry, "bond", out double bond)
                         ? (int)Math.Max(0d, Math.Min(bond, Rabbits.AffectionMax))
                         : Rabbits.PointsFor((int)Math.Max(0d, Math.Min(ReadNumber(entry, "affection"), Rabbits.GiftHearts)));
                     rabbit.PetDay = TryNumber(entry, "petDay", out double petDay) && petDay >= 0d ? ToLong(petDay) : -1;
-                    // Fur dye (#44): saves from before it, and colours the palette lacks, mean its own coat.
                     rabbit.Dye = TryNumber(entry, "dye", out double dye) && dye >= 0d && dye < Shop.Dyes.Length ? (int)dye : -1;
-                    // Version 5: the kind. Older saves have none, and a kind must belong to the rabbit's tier.
                     rabbit.Kind = entry.TryGetValue("kind", out object kindObj) && kindObj is string kindId ? kindId : null;
                     rabbit.Kind = Rabbits.KindOf(rabbit);
                     s.Rabbits.Add(rabbit);
                     if (rabbitId > s.NextRabbitId) s.NextRabbitId = rabbitId;
                 }
             }
-            // Version 7: places to rest. Older saves start with the usual two.
             s.RestSpots = root.ContainsKey("restSpots")
                 ? (int)Math.Max(RestSpots.Starting, Math.Min(ReadNumber(root, "restSpots"), RestSpots.Max))
                 : RestSpots.Starting;
 
-            // Version 6: the album. Whatever the save says, every rabbit still here has certainly been seen.
             if (root.TryGetValue("seenKinds", out object seenObj) && seenObj is List<object> seen)
                 foreach (object item in seen)
-                    if (item is string seenId && RabbitKinds.Find(seenId) != null) s.SeenKinds.Add(seenId); // straight into the album: nothing here is new
+                    if (item is string seenId && RabbitKinds.Find(seenId) != null) s.SeenKinds.Add(seenId);
             foreach (Rabbit r in s.Rabbits) s.SeenKinds.Add(Rabbits.KindOf(r));
-            // The "new" marks: only kinds that are in the album can carry one.
             if (root.TryGetValue("freshKinds", out object freshObj) && freshObj is List<object> fresh)
                 foreach (object item in fresh)
                     if (item is string kind && s.SeenKinds.Contains(kind)) s.FreshKinds.Add(kind);
@@ -548,15 +505,11 @@ namespace VuonTra.Core
             long savedNext = ToLong(ReadNumber(root, "nextRabbitId"));
             if (savedNext > s.NextRabbitId) s.NextRabbitId = savedNext;
 
-            // Version 4. A save from before plots existed keeps every station it had already opened.
             int highestOpen = 0;
             for (int i = 0; i < s.Levels.Length; i++)
                 if (s.Levels[i] > 0) highestOpen = i + 1;
             int plots = TryNumber(root, "plots", out double savedPlots) ? (int)Math.Min(savedPlots, defs.Count) : 0;
             s.Plots = Math.Min(defs.Count, Math.Max(Math.Max(plots, highestOpen), Math.Min(defs.Count, Plots.Starting)));
-            // Land comes two plots a segment, and a save that bought plots one at a time counts a half-bought wave as its
-            // segment taken (#86): it gets the wave's other plot, so the station the open land is for can open on its own
-            // conditions instead of waiting for the next segment's.
             s.Plots = Math.Max(s.Plots, Expansion.PlotsForSegments(defs, Expansion.WavesTaken(s.Plots)));
 
             s.Energy = TryNumber(root, "energy", out double energy) ? Math.Max(0d, Math.Min(energy, Energy.Max)) : Energy.Max;
@@ -583,7 +536,6 @@ namespace VuonTra.Core
                         Amount = Math.Max(0d, Math.Min(ReadNumber(entry, "amount"), 1000d)),
                     };
                     long wornBy = ToLong(ReadNumber(entry, "wornBy"));
-                    // Worn only by a rabbit that exists, one item per slot.
                     if (wornBy > 0 && Rabbits.Find(s, wornBy) != null && slots.Add(wornBy + ":" + (int)item.Slot)) item.WornBy = wornBy;
                     s.Items.Add(item);
                     if (itemId > s.NextItemId) s.NextItemId = itemId;
@@ -592,30 +544,23 @@ namespace VuonTra.Core
             long savedNextItem = ToLong(ReadNumber(root, "nextItemId"));
             if (savedNextItem > s.NextItemId) s.NextItemId = savedNextItem;
 
-            // A garden that already holds the land of a wave also has that wave's place to rest, and keeps any it had beyond that.
             s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + Expansion.WavesTaken(s.Plots)));
 
-            // Version 8: the garden's experience. An older save is given what its progress would have earned,
-            // and no garden is ever below the level its land already needs.
             double xp = TryNumber(root, "gardenXp", out double savedXp) && savedXp >= 0d ? savedXp : Garden.BackfillXp(defs, s);
             s.GardenXp = Math.Max(xp, Garden.XpForLevel(Expansion.LevelForPlots(defs, s.Plots)));
 
-            // Version 10: the product tray. Only known stations, stacks within their limit, no more slots than the game has.
             s.TraySlots = TryNumber(root, "traySlots", out double traySlots)
                 ? (int)Math.Max(Tray.StartingSlots, Math.Min(traySlots, Tray.MaxSlots))
                 : Tray.StartingSlots;
             s.GoldenToday = TryNumber(root, "goldenToday", out double goldenToday) ? (int)Math.Max(0d, Math.Min(goldenToday, Tray.GoldenPerDay)) : 0;
             s.PhotoDay = TryNumber(root, "photoDay", out double photoDay) ? ToLong(photoDay) : -1;
             s.PhotosTaken = TryNumber(root, "photosTaken", out double photosTaken) ? Math.Max(0, ToLong(photosTaken)) : 0;
-            // The first minute's guidance. A save from before it that has played at all is not shown it.
             if (TryNumber(root, "tutorial", out double tutorial)) s.TutorialStep = (int)Math.Max(0, Math.Min(tutorial, Tutorial.Steps));
             else s.TutorialStep = s.HintSeen || (s.Levels.Length > 0 && s.Levels[0] > 1) || s.TotalTaps > 0 ? Tutorial.Steps : 0;
             s.TutorialCloverGiven = root.TryGetValue("tutorialClover", out object tutClover) && tutClover is bool tc && tc;
-            // Version 13: golden carrots. An older save has none, and its first daily gift is still to come.
             s.GoldenCarrots = TryNumber(root, "golden", out double goldenCarrots) ? (int)Math.Max(0d, Math.Min(goldenCarrots, int.MaxValue)) : 0;
             s.GiftDay = TryNumber(root, "giftDay", out double giftDay) ? ToLong(giftDay) : -1;
             s.GiftStreak = TryNumber(root, "giftStreak", out double giftStreak) ? (int)Math.Max(0d, Math.Min(giftStreak, 100000)) : 0;
-            // The first week's big gift (#57), added within version 14: a save without it has the big gift still to come.
             s.GiftBigDay = TryNumber(root, "giftBig", out double giftBig) ? Math.Max(-1L, ToLong(giftBig)) : -1;
             s.GiftBigGolden = root.TryGetValue("giftBigGolden", out object bigGolden) && bigGolden is bool bg && bg;
             s.VisitorBoughtDay = TryNumber(root, "visitorBought", out double visitorBought) ? ToLong(visitorBought) : -1;
@@ -624,6 +569,7 @@ namespace VuonTra.Core
             s.PhotosWithFullRest = TryNumber(root, "photosRest", out double photosRest) ? Math.Max(0, ToLong(photosRest)) : 0;
             s.PhotosWithSeasonRabbit = TryNumber(root, "photosSeason", out double photosSeason) ? Math.Max(0, ToLong(photosSeason)) : 0;
             s.MaxDaySeen = TryNumber(root, "maxDay", out double maxDay) ? ToLong(maxDay) : -1;
+            s.FirstDaySeen = TryNumber(root, "firstDay", out double firstDay) ? ToLong(firstDay) : LegacyFirstDay;
             s.SeasonGreetedDay = TryNumber(root, "seasonGreeted", out double greeted) ? ToLong(greeted) : -1;
             s.AwayDoubleDay = TryNumber(root, "awayDouble", out double awayDouble) ? ToLong(awayDouble) : -1;
             s.PlaySeconds = TryNumber(root, "playSeconds", out double played) ? Math.Max(0d, Sane(played)) : 0d;
@@ -635,7 +581,6 @@ namespace VuonTra.Core
                     if (item is string paidId && !s.PaidTransactions.Contains(paidId)) s.PaidTransactions.Add(paidId);
                 while (s.PaidTransactions.Count > Storefront.ReceiptMemory) s.PaidTransactions.RemoveAt(0);
             }
-            // Version 14: the mooncake game. An older save has all its plays and no games behind it.
             if (root.TryGetValue("pounding", out object poundObj) && poundObj is Dictionary<string, object> pound)
             {
                 s.PoundingDay = TryNumber(pound, "day", out double pDay) ? ToLong(pDay) : -1;
@@ -645,7 +590,6 @@ namespace VuonTra.Core
                 s.PoundingGames = Math.Max(0, ToLong(ReadNumber(pound, "games")));
                 s.PoundingBestStars = (int)Math.Max(0d, Math.Min(ReadNumber(pound, "best"), 3));
             }
-            // The leaf-catching game. A save from before it has all its plays and no games behind it.
             if (root.TryGetValue("leaves", out object leavesObj) && leavesObj is Dictionary<string, object> leaves)
             {
                 s.Leaves.Day = TryNumber(leaves, "day", out double lDay) ? ToLong(lDay) : -1;
@@ -654,7 +598,6 @@ namespace VuonTra.Core
                 s.Leaves.Games = Math.Max(0, ToLong(ReadNumber(leaves, "games")));
                 s.Leaves.BestStars = (int)Math.Max(0d, Math.Min(ReadNumber(leaves, "best"), 3));
             }
-            // The firefly night. A save from before it has all its plays, the day's gifts untouched and no games behind it.
             if (root.TryGetValue("fireflies", out object firefliesObj) && firefliesObj is Dictionary<string, object> fireflies)
             {
                 s.Fireflies.Day = TryNumber(fireflies, "day", out double fDay) ? ToLong(fDay) : -1;
@@ -678,8 +621,6 @@ namespace VuonTra.Core
                     s.Tray.Add(new Product { Station = station, Count = count, Golden = golden });
                 }
 
-            // Version 11: the profile. A save from before it, or with a code that is not one, gets a fresh code;
-            // the avatar must be a rabbit that is still here.
             if (root.TryGetValue("profile", out object profileObj) && profileObj is Dictionary<string, object> profile)
             {
                 s.Profile.GardenName = profile.TryGetValue("name", out object nameObj) && nameObj is string gardenName ? (Profile.CleanName(gardenName) ?? "") : "";
@@ -690,7 +631,6 @@ namespace VuonTra.Core
             }
             if (!Profile.IsCode(s.Profile.Code)) s.Profile.Code = Profile.NewCode();
 
-            // Version 12: the last view. A zoom outside what the game offers means "never recorded".
             if (root.TryGetValue("view", out object viewObj) && viewObj is Dictionary<string, object> view
                 && TryNumber(view, "zoom", out double zoom) && zoom >= 0.3d && zoom <= 2.5d)
             {
@@ -699,7 +639,6 @@ namespace VuonTra.Core
                 s.ViewY = ReadNumber(view, "y");
             }
 
-            // Decorating the garden (#11). A save from before it owns nothing, stands nothing, and hangs paper lanterns.
             if (root.TryGetValue("decor", out object decorObj) && decorObj is Dictionary<string, object> decor)
             {
                 if (decor.TryGetValue("owned", out object ownedObj) && ownedObj is Dictionary<string, object> owned)
@@ -708,7 +647,6 @@ namespace VuonTra.Core
                 if (decor.TryGetValue("spots", out object spotsObj) && spotsObj is List<object> spots)
                     for (int i = 0; i < Decor.Spots && i < spots.Count; i++)
                     {
-                        // Only a kind the shop sells, and never more standing than are owned: the extras go back to storage.
                         string kind = spots[i] as string;
                         if (kind == null || Decor.IndexOf(kind) < 0 || Decor.Available(s, kind) <= 0) continue;
                         s.DecorSpots[i] = kind;
@@ -716,7 +654,6 @@ namespace VuonTra.Core
                 double lantern = ReadNumber(decor, "lantern");
                 s.LanternColor = lantern >= 0d && lantern < Decor.LanternColors.Length ? (int)lantern : 0;
             }
-            // Guests' orders (#20). A save from before them: the first guest comes a minute after opening, nothing delivered.
             if (root.TryGetValue("orders", out object ordersObj) && ordersObj is Dictionary<string, object> orders)
             {
                 s.OrderClock = TryNumber(orders, "clock", out double clock) ? Math.Max(0d, Math.Min(Orders.Interval, clock)) : Orders.StartingClock;
@@ -744,19 +681,16 @@ namespace VuonTra.Core
                             if (station < 0 || count < 1) continue;
                             order.Lines.Add(new OrderLine { Station = station, Count = count });
                         }
-                    // A guest with nothing left to ask for, or whose patience is spent, is not kept.
                     if (order.Lines.Count > 0 && order.Left > 0d) s.Order = order;
                     if (order.Id > s.NextOrderId) s.NextOrderId = order.Id;
                 }
             }
 
-            // A rabbit asking for its picture (#56). A save from before it: the clock starts from nothing, nobody asks.
             if (root.TryGetValue("photoAsk", out object askObj) && askObj is Dictionary<string, object> ask)
             {
                 s.PhotoAskClock = TryNumber(ask, "clock", out double askClock) ? Math.Max(0d, Math.Min(PhotoAsks.Interval, askClock)) : 0d;
                 s.PhotoAskLeft = Math.Max(0d, Math.Min(PhotoAsks.StaySeconds, ReadNumber(ask, "left")));
                 s.PhotoAskRabbit = Math.Max(0L, ToLong(ReadNumber(ask, "rabbit")));
-                // A bubble whose time is spent, or whose rabbit is not in this garden, is not kept.
                 if (s.PhotoAskLeft <= 0d || Rabbits.Find(s, s.PhotoAskRabbit) == null) { s.PhotoAskRabbit = 0; s.PhotoAskLeft = 0d; }
                 s.PhotoAsksToday = (int)Math.Max(0d, Math.Min(ReadNumber(ask, "today"), PhotoAsks.PerDay));
                 s.PhotoAskDay = TryNumber(ask, "day", out double askDay) ? ToLong(askDay) : -1;
@@ -764,11 +698,9 @@ namespace VuonTra.Core
                 s.DailyPhotoAsksBase = Math.Max(0L, Math.Min(s.PhotoAsksAnswered, ToLong(ReadNumber(ask, "dailyBase"))));
             }
 
-            // The album's milestones (#61). A save from before them has given none; only the milestones the game has count.
             if (root.TryGetValue("albumMilestones", out object milestonesObj) && milestonesObj is List<object> milestones)
                 foreach (object item in milestones)
                     if (item is double m && Array.IndexOf(AlbumSets.Milestones, (int)m) >= 0 && m == Math.Floor(m)) s.AlbumMilestonesClaimed.Add((int)m);
-            // Moon jars (#64). A save from before them holds none, and today's jars are all still to come.
             if (root.TryGetValue("moonJars", out object jarsObj) && jarsObj is Dictionary<string, object> jars)
             {
                 s.MoonJars = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "held"), MoonJars.Cap));
@@ -776,8 +708,6 @@ namespace VuonTra.Core
                 s.MoonJarsBoughtToday = (int)Math.Max(0d, Math.Min(ReadNumber(jars, "bought"), MoonJars.BuyPerDay));
                 s.MoonJarFreeDay = TryNumber(jars, "freeDay", out double jarFreeDay) ? ToLong(jarFreeDay) : -1;
             }
-            // Gift codes and the mailbox (#68). A save from before them has used no code and holds no letter; its mailbox
-            // starts looking from the save's own last day, so a season missed since then still leaves its letter.
             if (root.TryGetValue("codesUsed", out object codesObj) && codesObj is List<object> codes)
                 foreach (object item in codes)
                     if (item is string code && code.Length > 0) s.CodesUsed.Add(code);
@@ -803,7 +733,6 @@ namespace VuonTra.Core
                     }
             }
 
-            // Rewarded-ad seams (#66). A save from before has every claim of the day and no pass; counts are kept to the caps.
             if (root.TryGetValue("ads", out object adsObj) && adsObj is Dictionary<string, object> ads)
             {
                 s.AdsToday.Day = TryNumber(ads, "day", out double adsDay) ? ToLong(adsDay) : -1;
@@ -816,8 +745,6 @@ namespace VuonTra.Core
                 s.NoAdsUntilDay = TryNumber(ads, "passUntil", out double passUntil) ? Math.Max(-1L, ToLong(passUntil)) : -1;
             }
 
-            // The hex grid (#52). A save from before stands on the default table: every plot's station, place to rest and
-            // decoration standing gets its tile, so nothing is lost. A tile claimed twice keeps its first claimant.
             s.Grid = new GardenGrid(GardenGrid.SegmentsForPlots(s.Plots));
             if (root.TryGetValue("grid", out object gridObj) && gridObj is Dictionary<string, object> grid)
             {
@@ -837,22 +764,15 @@ namespace VuonTra.Core
                 }
                 else if (LegacySegments(grid, out double legacy))
                 {
-                    // The horizontal strip's grid (before the 2D map, #91) or the vertical garden's (before the strip): the map
-                    // opens as many segments as the strip had, or as the column had rings past its first three, and their tiles
-                    // are not the map's, so everything stands on its own default tile, or on the free tile nearest it that keeps the
-                    // stations apart (Settle below). What was stored stays stored. The view it remembers looked at a smaller
-                    // garden, so the garden opens on the teapot at the usual zoom instead.
                     s.Grid.Segments = (int)Math.Max(0d, Math.Min(legacy, GardenGrid.MaxSegments));
                     s.ViewX = s.ViewY = s.ViewZoom = 0d;
                 }
-                // The stations put away (#54); Settle lets go of any that is not an open station with a plot.
                 if (grid.TryGetValue("stored", out object storedObj) && storedObj is List<object> stored)
                     foreach (object raw in stored)
                         if (raw is string id && GardenGrid.Known(id)) s.Grid.Restore(id);
             }
             GardenGrid.Settle(defs, s);
 
-            // The Frog Rabbit (#62). A save from before the rain has met none, and today's frogs are still to come.
             if (root.TryGetValue("frog", out object frogObj) && frogObj is Dictionary<string, object> frog)
             {
                 s.FrogDay = TryNumber(frog, "day", out double frogDay) ? ToLong(frogDay) : -1;
@@ -862,7 +782,6 @@ namespace VuonTra.Core
                 s.FrogLeft = Math.Max(0d, Math.Min(FrogRabbit.StaySeconds, ReadNumber(frog, "left")));
             }
 
-            // The moon pond (#58). A save from before it has never fished: all five baits on hand and an empty basket.
             if (root.TryGetValue("fishing", out object fishingObj) && fishingObj is Dictionary<string, object> fishing)
             {
                 s.Baits = (int)Math.Max(0d, Math.Min(ReadNumber(fishing, "baits"), Fishing.BaitCap));
@@ -886,7 +805,6 @@ namespace VuonTra.Core
             return -1;
         }
 
-        /// <summary>The top-level object of a JSON text, or null when it is not one. For the cloud envelope.</summary>
         public static Dictionary<string, object> ReadObject(string json)
         {
             if (string.IsNullOrWhiteSpace(json)) return null;
@@ -894,7 +812,6 @@ namespace VuonTra.Core
             catch (FormatException) { return null; }
         }
 
-        /// <summary>A string as JSON, quotes and all.</summary>
         public static string Quote(string value)
         {
             var sb = new StringBuilder((value ?? "").Length + 2);
@@ -902,7 +819,6 @@ namespace VuonTra.Core
             return sb.ToString();
         }
 
-        /// <summary>The segments open in a grid block from before the 2D map (#91): the strip's "segments", or the vertical garden's "radius" less its first three rings.</summary>
         static bool LegacySegments(Dictionary<string, object> grid, out double segments)
         {
             if (TryNumber(grid, "segments", out segments)) return true;
@@ -970,11 +886,6 @@ namespace VuonTra.Core
             sb.Append('"');
         }
 
-        /// <summary>
-        /// A small strict JSON reader. Core cannot use Unity's JsonUtility, and the save has to
-        /// tolerate unknown fields. Objects become Dictionary, arrays List, numbers double.
-        /// Anything malformed throws FormatException.
-        /// </summary>
         sealed class Reader
         {
             const int MaxDepth = 32;
@@ -1009,7 +920,7 @@ namespace VuonTra.Core
             Dictionary<string, object> ReadObject(int depth)
             {
                 var obj = new Dictionary<string, object>();
-                _pos++; // {
+                _pos++;
                 SkipSpace();
                 if (Peek() == '}') { _pos++; return obj; }
                 while (true)
@@ -1032,7 +943,7 @@ namespace VuonTra.Core
             List<object> ReadArray(int depth)
             {
                 var list = new List<object>();
-                _pos++; // [
+                _pos++;
                 SkipSpace();
                 if (Peek() == ']') { _pos++; return list; }
                 while (true)
@@ -1049,7 +960,7 @@ namespace VuonTra.Core
             string ReadString()
             {
                 var sb = new StringBuilder();
-                _pos++; // opening quote
+                _pos++;
                 while (true)
                 {
                     if (_pos >= _text.Length) throw new FormatException("Unterminated string");

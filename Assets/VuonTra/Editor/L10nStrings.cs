@@ -808,6 +808,12 @@ namespace VuonTra.EditorTools
             { "garden.segment", "Mở rộng vườn · đoạn {0}", "Widen the garden · section {0}" },
             { "moment.segment.title", "Sương tan, vườn rộng thêm!", "The mist clears: more garden!" },
             { "edge.home", "Về tiệm trà", "To the shop" },
+            { "expand.sign.level", "Cần cấp vườn {0}", "Needs garden level {0}" },
+            { "expand.sign.rabbits", "Còn {0} bé thỏ", "{0} more rabbits" },
+            { "expand.sign.kinds", "Còn {0} loài thỏ", "{0} more kinds to meet" },
+            { "expand.sign.days", "Còn {0} ngày", "{0} more days" },
+            { "expand.sign.carrots", "Còn {0} cà rốt", "{0} more carrots" },
+            { "expand.days", "chơi {0} ngày", "{0} days played" },
         };
 
         /// <summary>
@@ -841,6 +847,10 @@ namespace VuonTra.EditorTools
             { "leaves.score.one", "{0} point" },
             { "fireflies.score.one", "{0} point" },
             { "fish.points.one", "+{0} bond point" },
+            { "expand.sign.rabbits.one", "{0} more rabbit" },
+            { "expand.sign.kinds.one", "{0} more kind to meet" },
+            { "expand.sign.days.one", "{0} more day" },
+            { "expand.days.one", "{0} day played" },
         };
     }
 }

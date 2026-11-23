@@ -2,171 +2,120 @@ using System.Collections.Generic;
 
 namespace VuonTra.Core
 {
-    /// <summary>Everything the player has earned. Arrays are indexed like the station list.</summary>
     public sealed class GameState
     {
         public BigNum Coins;
         public int[] Levels;
-        /// <summary>Fraction of the current cycle done, 0 ≤ p &lt; 1 between ticks.</summary>
         public double[] Progress;
-        /// <summary>1, 10, 0 for "Tối đa", -1 for "Tới mốc" (see <see cref="Simulation.BuyOne"/> and friends).</summary>
         public int BuyMode = 1;
-        /// <summary>The share of the purse a quick upgrade may spend: 1, 0.5 or 0.25, so some is kept for opening stations.</summary>
         public double SpendShare = 1d;
         public long LastSeenUnixSeconds;
-        /// <summary>Seconds the game has been open and playing, over the garden's whole life.</summary>
         public double PlaySeconds;
         public bool HintSeen;
 
-        /// <summary>Levels of the garden-wide upgrades, indexed like the upgrade list.</summary>
         public int[] UpgradeLevels = new int[0];
-        /// <summary>Rare currency from quests; spent on new rabbits in a later milestone.</summary>
         public int Clovers;
-        /// <summary>The third currency: earned in play and at the shop, spent at the shop, never traded for carrots.</summary>
         public int GoldenCarrots;
-        /// <summary>The day the shop's daily gift was last paid, and how many days in a row by then.</summary>
         public long GiftDay = -1;
         public int GiftStreak;
-        /// <summary>The day the first week's big gift (#57) was paid, -1 while it is still to come; and whether golden carrots came in the hat's place.</summary>
         public long GiftBigDay = -1;
         public bool GiftBigGolden;
         public bool GiftBigClaimed => GiftBigDay >= 0;
-        /// <summary>The day the shop's visiting rabbit was bought, and the day it was last looked at.</summary>
         public long VisitorBoughtDay = -1, VisitorSeenDay = -1;
 
-        // Lifetime counters that quests read.
         public long TotalTaps;
         public long LevelsBought;
         public BigNum TotalEarned;
 
-        // Daily quests count from these snapshots, taken when the day began.
         public long DailyDay;
         public long DailyTapsBase;
         public long DailyLevelsBase;
         public BigNum DailyEarnedBase;
         public BigNum DailyCarrotTarget;
 
-        /// <summary>How many garden plots are owned; station i needs plot i.</summary>
         public int Plots;
-        /// <summary>"Trà lực", 0 to Energy.Max.</summary>
         public double Energy = VuonTra.Core.Energy.Max;
-        /// <summary>Seconds left of a running double-speed burst.</summary>
         public double BoostSecondsLeft;
         public List<Item> Items = new List<Item>();
         public long NextItemId;
 
-        /// <summary>The rabbits the player has collected.</summary>
         public List<Rabbit> Rabbits = new List<Rabbit>();
         public long NextRabbitId;
 
-        /// <summary>Ids of quests already paid out. Daily ids are removed when a new day starts.</summary>
         public HashSet<string> Claimed = new HashSet<string>();
-        /// <summary>Every kind of rabbit the player has ever had, including ones since merged away: the album.</summary>
         public HashSet<string> SeenKinds = new HashSet<string>();
-        /// <summary>Kinds that arrived and have not been looked at in the album yet: the "new" marks.</summary>
         public HashSet<string> FreshKinds = new HashSet<string>();
-        /// <summary>The album's milestones (#61, kinds met: 10, 20, 40, 72) whose gifts have been given, so each is given once.</summary>
         public HashSet<int> AlbumMilestonesClaimed = new HashSet<int>();
-        /// <summary>How many places resting rabbits have to sit in the garden.</summary>
         public int RestSpots = VuonTra.Core.RestSpots.Starting;
-        /// <summary>The garden's experience; its level follows from this.</summary>
         public double GardenXp;
 
-        /// <summary>What the stations have made and nobody has sold yet, one entry per slot.</summary>
         public List<Product> Tray = new List<Product>();
         public int TraySlots = VuonTra.Core.Tray.StartingSlots;
-        /// <summary>Seconds of work each station has put towards its next special batch; indexed like the stations.</summary>
         public double[] TrayWork = new double[0];
-        /// <summary>Golden batches made today; a new day starts the count over.</summary>
         public int GoldenToday;
 
-        /// <summary>The day a photo was last taken (its gift is once a day), and how many have been taken in all.</summary>
         public long PhotoDay = -1;
         public long PhotosTaken;
-        /// <summary>How far the first minute's guidance has come; <see cref="Tutorial.Steps"/> once done or skipped.</summary>
         public int TutorialStep;
-        /// <summary>The guidance gave its one clover for the first call.</summary>
         public bool TutorialCloverGiven;
-        /// <summary>Photos taken while a gold-or-rarer rabbit lived here, and while every place to rest was open: what two quests count.</summary>
         public long PhotosWithGoldRabbit, PhotosWithFullRest;
 
-        /// <summary>The mooncake game: today's plays, the day's once-only gifts, and the lifetime counts.</summary>
-        /// <summary>The latest day this save has seen (#8): the day the game goes by when the clock is turned back.</summary>
         public long MaxDaySeen = -1;
-        /// <summary>The day a season's greeting was last shown, so each season is greeted once a year.</summary>
+        public long FirstDaySeen = -1;
         public long SeasonGreetedDay = -1;
-        /// <summary>The day the free doubling of time away was used (#69); -1 never.</summary>
         public long AwayDoubleDay = -1;
-        /// <summary>Pictures taken while a rabbit of the running season lived in the garden.</summary>
         public long PhotosWithSeasonRabbit;
         public long PoundingDay = -1;
         public int PoundingPlays;
         public bool PoundingStarToday, PoundingThreeToday;
         public long PoundingGames;
         public int PoundingBestStars;
-        /// <summary>The leaf-catching game: its own plays today, its own daily clover and its own counts.</summary>
         public MiniGameRecord Leaves = new MiniGameRecord();
-        /// <summary>The firefly night: its own plays today, the day's capped clovers and golden carrot, and its own counts.</summary>
         public MiniGameRecord Fireflies = new MiniGameRecord();
-        /// <summary>Where the latest pictures were written, oldest first; at most <see cref="Photos.AlbumSize"/>.</summary>
         public List<string> Album = new List<string>();
 
-        /// <summary>Where the player last looked: the garden point under the middle of the screen and the zoom; zoom 0 means never recorded.</summary>
         public double ViewX, ViewY, ViewZoom;
 
-        /// <summary>The garden's name, its avatar rabbit and the player code.</summary>
         public PlayerProfile Profile = new PlayerProfile { Code = VuonTra.Core.Profile.NewCode() };
 
-        /// <summary>The guest at the counter, or null; seconds of open play towards the next one; today's count and the day it counts for; deliveries in all and at the day's start (#20).</summary>
         public Order Order;
         public double OrderClock = VuonTra.Core.Orders.StartingClock;
         public int OrdersToday;
         public long OrderDay = -1;
         public long OrdersDelivered, DailyOrdersBase, NextOrderId;
 
-        /// <summary>A rabbit asking for its picture (#56): who (0 for nobody), the seconds its bubble has left, seconds of open play towards the next ask, today's answered asks and the day they count for, answers in all and at the day's start.</summary>
         public long PhotoAskRabbit;
         public double PhotoAskLeft, PhotoAskClock;
         public int PhotoAsksToday;
         public long PhotoAskDay = -1;
         public long PhotoAsksAnswered, DailyPhotoAsksBase;
 
-        /// <summary>Decorating the garden (#11): how many of each kind are owned (indexed like <see cref="Decor.Kinds"/>), what stands on each of the eight spots (a kind id or null), and the colour hung on the paper lanterns (0 = paper).</summary>
         public int[] DecorOwned = new int[Decor.Kinds.Length];
         public string[] DecorSpots = new string[Decor.Spots];
         public int LanternColor;
 
-        /// <summary>How many new moons this garden has begun (#1); each one adds a lasting share to income. 0 for a garden on its first season.</summary>
         public int Season;
 
-        /// <summary>Golden packs bought for money (#9): how many in all, and the store's ids of the latest paid-out transactions, oldest first, so a purchase delivered again is not paid twice.</summary>
         public int PacksBought;
         public List<string> PaidTransactions = new List<string>();
 
-        /// <summary>Moon jars (#64): how many are on the shelf (at most <see cref="VuonTra.Core.MoonJars.Cap"/>); the day the shop last sold one and how many it sold that day; the day the one free jar a day was last given.</summary>
         public int MoonJars;
         public long MoonJarBuyDay = -1;
         public int MoonJarsBoughtToday;
         public long MoonJarFreeDay = -1;
-        /// <summary>The hex grid the garden stands on (#52): how wide the lawn is and which tile each station, place to rest, decoration and prop has.</summary>
         public GardenGrid Grid = new GardenGrid();
-        /// <summary>Rewarded-ad seams (#66): today's claims at each of the three places, and the first day the no-ads pass no longer covers (-1: never bought).</summary>
         public AdsRecord AdsToday = new AdsRecord();
         public long NoAdsUntilDay = -1;
 
-        /// <summary>Gift codes this garden has used (#68), as <see cref="GiftCodes.Normalize"/> writes them; each pays once.</summary>
         public HashSet<string> CodesUsed = new HashSet<string>();
-        /// <summary>The mailbox (#68): unclaimed letters, oldest first, and the last day it looked for missed seasons (-1: not yet).</summary>
         public List<Letter> Letters = new List<Letter>();
         public long MailDay = -1;
 
-        /// <summary>The Frog Rabbit (#62): the day its counts are for, the showers of that day whose frog has come (one bit each), frogs greeted that day and in all, and the seconds the one at the pond has left (0 when none is here).</summary>
         public long FrogDay = -1;
         public int FrogShowers, FrogsToday;
         public long FrogsMet;
         public double FrogLeft;
 
-        /// <summary>The moon pond (#58): baits kept when the clock last counted, the unix second it counts the next one from (-1: never fished, all five on hand), casts in all, the basket (one count per kind of fish), and fish caught and fed in all.</summary>
         public int Baits;
         public long BaitAt = -1;
         public long Casts;

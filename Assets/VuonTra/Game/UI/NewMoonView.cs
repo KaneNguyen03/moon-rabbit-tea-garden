@@ -6,16 +6,10 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The compare card before a new moon (#1): what the save keeps, what goes back to the start and what the
-    /// season brings, with the save's own numbers. Beginning takes two steps: hold the button a while to unlock
-    /// it, then press it once more. A finger that slides off unlocks nothing.
-    /// </summary>
     public sealed class NewMoonView
     {
         public const float HoldSeconds = 1.5f;
 
-        /// <summary>The only way in: a finger down, up, or gone. The button under it is for size and looks.</summary>
         sealed class Sensor : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IPointerExitHandler
         {
             public NewMoonView View;
@@ -35,7 +29,6 @@ namespace VuonTra.Game.UI
         int _seasonAfter;
 
         public bool IsOpen => _root.activeSelf;
-        /// <summary>The hold is done: the next press begins the season.</summary>
         public bool Armed => _armed;
         public float HoldProgress => Mathf.Clamp01(_held / HoldSeconds);
 
@@ -54,7 +47,6 @@ namespace VuonTra.Game.UI
             _card.AddShadow(26f, 16f, 0.45f);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
-            // The moon over the title: the thing the card is about.
             var moon = UiKit.Rect("Moon", _card).Place(0.5f, 1f, 0, -70, 150, 150);
             moon.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, 0.5f));
             UiKit.Rect("Disc", moon).Place(0.5f, 0.5f, 0, 0, 86, 86).AddImage(catalog.Round, Palette.Lantern);
@@ -69,7 +61,6 @@ namespace VuonTra.Game.UI
             _lose = Panel(catalog, "Lose", -720, L10n.T("newmoon.lose"), Palette.Mix(Palette.Blush, Palette.Paper, 0.6f));
             _gain = Panel(catalog, "Gain", -970, L10n.T("newmoon.gain"), Palette.Mix(Palette.Lantern, Palette.Paper, 0.6f));
 
-            // The button that needs a hold, then a press. Its face fills while the finger rests on it.
             var begin = UiKit.Rect("Begin", _card).Place(0.5f, 0f, 0, 190, 760, 124);
             _begin = UiKit.Chunky(begin, catalog.Panel, null);
             _begin.Lip.color = Palette.Mix(Palette.Track, Palette.Ink, 0.25f);
@@ -100,7 +91,6 @@ namespace VuonTra.Game.UI
         {
             var panel = UiKit.Rect(id, _card).Place(0.5f, 1f, 0, y, 800, 230);
             panel.AddImage(catalog.Panel, tint, true);
-            // Place puts the rect's middle at the point given, so the heading's middle sits half its width in from the left edge.
             UiKit.Rect("Heading", panel).Place(0f, 1f, 24 + 250, -41, 500, 50).AddText(heading, UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             Text body = UiKit.Rect("Body", panel).Stretch(0, 0, 1, 1, 24, 16, 24, 70).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.UpperLeft);
             body.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -139,7 +129,6 @@ namespace VuonTra.Game.UI
             _beginLabel.text = _armed ? L10n.T("newmoon.armed", _seasonAfter) : L10n.T("newmoon.hold");
         }
 
-        /// <summary>A finger lands on the button: an armed button begins the season on release; otherwise the hold starts.</summary>
         public void Hold()
         {
             if (!IsOpen) return;
@@ -148,7 +137,6 @@ namespace VuonTra.Game.UI
             _begin.Press(_tweens);
         }
 
-        /// <summary>The finger lifts: a finished hold arms the button; an armed button begins the season.</summary>
         public void Release()
         {
             if (!IsOpen || !_holding) return;
@@ -170,7 +158,6 @@ namespace VuonTra.Game.UI
             ShowButton();
         }
 
-        /// <summary>The finger slid off: whatever hold was building is dropped.</summary>
         public void Cancel()
         {
             if (!_holding) return;

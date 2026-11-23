@@ -99,7 +99,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void ShortString_Keeps_Going_Past_Two_Letters()
         {
-            // group 5 is "aa"; 676 two-letter names later comes "aaa".
             long exponent = (5L + 676L) * 3L;
             Assert.AreEqual("1,00aaa", BigNum.FromParts(1, exponent).ToShortString());
         }

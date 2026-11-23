@@ -2,7 +2,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>One rarity scale for rabbits and items, read by stars as well as by colour.</summary>
     public class RarityTests
     {
         [TestCase(0, 1)]

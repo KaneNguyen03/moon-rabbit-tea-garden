@@ -84,9 +84,9 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Tick_Uses_Speed_And_Income()
         {
-            s.UpgradeLevels = new[] { 0, 10, 1, 0 }; // twice as fast, double income
+            s.UpgradeLevels = new[] { 0, 10, 1, 0 };
             Simulation.Tick(defs, s, 1.5, null, Modifiers.From(ups, s));
-            Assert.AreEqual(4, s.Coins.ToDouble(), 1e-9); // two cycles × 1 × 2
+            Assert.AreEqual(4, s.Coins.ToDouble(), 1e-9);
             Assert.AreEqual(4, s.TotalEarned.ToDouble(), 1e-9);
         }
 

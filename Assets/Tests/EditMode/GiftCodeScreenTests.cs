@@ -9,14 +9,12 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The gift-code field in the profile and the mailbox on the pause card (#68), on the real screen.</summary>
     public class GiftCodeScreenTests
     {
         GameObject root;
         GameRunner runner;
         GardenScreen screen;
 
-        /// <summary>The day these tests play on, inside the playtest codes' dates, whatever the machine's calendar says (#87).</summary>
         public static readonly long PinnedDay = GiftCodes.Day(2026, 11, 23);
 
         [SetUp]
@@ -30,12 +28,12 @@ namespace VuonTra.Core.Tests
             cam.transform.SetParent(root.transform);
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
-            runner.DayClock = () => PinnedDay; // before Init, which already reads the day for the quests
-            runner.Init(GameState.NewGame(catalog.BuildDefs())); // preset: never touches the save file
+            runner.DayClock = () => PinnedDay;
+            runner.Init(GameState.NewGame(catalog.BuildDefs()));
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             screen.Build();
             screen.Refresh();
             GiftCodes.SetKey("screen-test-key");
@@ -123,7 +121,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.Profile.IsOpen);
             Assert.AreEqual("KHONG-PHAI-MA", screen.Profile.GiftInput.text, "what was typed stays, to be put right");
 
-            // An empty field is refused the same way, and a forged signed code too.
             screen.Profile.GiftInput.text = "";
             screen.Profile.Redeem();
             string good = GiftCodes.Make(GiftCodes.SignedKind.Golden10, runner.TodayNumber + 5);
@@ -132,7 +129,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(3, screen.Profile.Refusals);
             Assert.AreEqual(0, runner.State.GoldenCarrots);
 
-            // The field ends back where it was once the shake is done.
             var field = (RectTransform)root.transform.Find("Canvas/Profile/Card/GiftCode");
             for (int i = 0; i < 30; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(-120f, field.anchoredPosition.x, 0.01f);
@@ -248,7 +244,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(Mailbox.MakeUpGolden, broken.State.GoldenCarrots);
                 Object.DestroyImmediate(go);
 
-                // A garden that loads fine gets no such letter.
                 GameState fine = GameState.NewGame(runner.Defs, runner.UpgradeDefs.Count);
                 System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "save.json"), SaveCodec.Encode(runner.Defs, fine, runner.UpgradeDefs));
                 go = new GameObject("Fine");

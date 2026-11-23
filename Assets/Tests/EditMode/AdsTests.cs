@@ -3,10 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The rewarded-ad seams (#66): three places, each with its own daily cap by the clamped day, the fake and the
-    /// absent provider, and the no-ads pass that turns every watch into an instant claim with the same caps.
-    /// </summary>
     public class AdsTests
     {
         List<StationDef> defs;
@@ -19,10 +15,9 @@ namespace VuonTra.Core.Tests
             s = GameState.NewGame(defs);
         }
 
-        /// <summary>A garden far enough along for all three games, with every play of the day spent.</summary>
         void AllGamesPlayedOut(long day)
         {
-            s.GardenXp = 1e9; // every game unlocked
+            s.GardenXp = 1e9;
             while (Pounding.Start(s, day)) { }
             while (Leaves.Start(s, day)) { }
             while (Fireflies.Start(s, day)) { }
@@ -57,7 +52,6 @@ namespace VuonTra.Core.Tests
         {
             Assert.IsTrue(Ads.ClaimShopGolden(s, 10));
             Assert.IsTrue(Ads.ClaimShopGolden(s, 10));
-            // The game goes by the clamped day: a day before the stored one counts as the stored one.
             long back = Seasons.Clamp(s, 9);
             Assert.AreEqual(Ads.Left(s, 10, Ads.ShopGolden), Ads.Left(s, 9, Ads.ShopGolden), "an earlier day is no fresh day");
             Assert.IsFalse(Ads.ClaimShopGolden(s, 9));
@@ -133,7 +127,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(fake.Playing);
             CollectionAssert.AreEqual(new[] { Ads.ShopGolden }, fake.Shown);
 
-            fake.NextResult = false; // closed before the end
+            fake.NextResult = false;
             fake.Show(Ads.ShopGolden, ok => result = ok);
             fake.Finish();
             Assert.AreEqual(false, result);
@@ -223,7 +217,7 @@ namespace VuonTra.Core.Tests
             string json = SaveCodec.Encode(defs, s);
             int at = json.IndexOf(",\"ads\":", System.StringComparison.Ordinal);
             Assert.Greater(at, 0, "the save writes the ads block");
-            int end = json.IndexOf('}', json.IndexOf('}', at) + 1); // the block holds one nested object
+            int end = json.IndexOf('}', json.IndexOf('}', at) + 1);
             string old = json.Remove(at, end + 1 - at);
             StringAssert.DoesNotContain("\"ads\"", old);
             LoadResult back = SaveCodec.Decode(defs, old);

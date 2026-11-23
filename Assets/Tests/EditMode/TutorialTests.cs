@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The first minute's guidance: six steps read off the garden, a skip, one clover, and the save.</summary>
     public class TutorialTests
     {
         List<StationDef> defs;

@@ -6,26 +6,15 @@ using VuonTra.Core;
 
 namespace VuonTra.Game
 {
-    /// <summary>Reads and writes the save file. Never destroys a file it could not understand.</summary>
     public sealed class SaveStore
     {
         readonly string _dir;
         bool _readOnly;
 
-        /// <summary>
-        /// Where the save goes when no folder is named: the platform's own data folder. A field, so tests can point
-        /// it at a temporary folder instead of the real save of the editor (which shares the Mac build's folder).
-        /// </summary>
         public static Func<string> DefaultDirectory = () => Application.persistentDataPath;
 
-        /// <summary>The folder this store reads and writes.</summary>
         public string Folder => _dir;
 
-        /// <summary>
-        /// A store in <paramref name="directory"/>, or in the default folder when it is null, empty or blank. A scene
-        /// serialises an unset string field as "", never null, so a blank name must mean "not set" (#70): an empty
-        /// folder made every save fail and every load read the working directory instead.
-        /// </summary>
         public SaveStore(string directory = null)
         {
             _dir = string.IsNullOrWhiteSpace(directory) ? DefaultDirectory() : directory;
@@ -36,7 +25,6 @@ namespace VuonTra.Game
         string BadPath => Path.Combine(_dir, "save.bad.json");
         string BackupPath => Path.Combine(_dir, "save.backup.json");
 
-        /// <summary>The save text as it is on disk, or null.</summary>
         public string ReadRaw()
         {
             try { return File.Exists(MainPath) ? File.ReadAllText(MainPath) : null; }
@@ -45,7 +33,6 @@ namespace VuonTra.Game
 
         public bool HasBackup => File.Exists(BackupPath);
 
-        /// <summary>When the backup was written, in Unix seconds; -1 without one.</summary>
         public long BackupUnixSeconds => HasBackup ? new DateTimeOffset(File.GetLastWriteTimeUtc(BackupPath)).ToUnixTimeSeconds() : -1;
 
         public string ReadBackup()
@@ -54,14 +41,12 @@ namespace VuonTra.Game
             catch (Exception e) { Debug.LogWarning("Không đọc được bản sao lưu: " + e.Message); return null; }
         }
 
-        /// <summary>Keeps a copy of the save on disk as the backup, before anything replaces it. False when there is nothing to keep.</summary>
         public bool Backup()
         {
             string current = ReadRaw();
             return current != null && WriteBackup(current);
         }
 
-        /// <summary>Removes every file this store wrote: the save, its temp, the backup and any kept corrupt copy (#42). True when nothing is left.</summary>
         public bool DeleteAll()
         {
             bool ok = true;
@@ -88,7 +73,6 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>True when the file on disk came from a newer build, so saving is off.</summary>
         public bool ReadOnly => _readOnly;
 
         public LoadResult Load(IReadOnlyList<StationDef> defs, IReadOnlyList<UpgradeDef> upgrades = null)
@@ -101,7 +85,7 @@ namespace VuonTra.Game
             catch (Exception e)
             {
                 Debug.LogWarning("Không đọc được file lưu: " + e.Message);
-                _readOnly = true; // do not overwrite what we could not read
+                _readOnly = true;
                 return new LoadResult { Status = LoadStatus.Corrupt, State = GameState.NewGame(defs, upgrades == null ? 0 : upgrades.Count) };
             }
 

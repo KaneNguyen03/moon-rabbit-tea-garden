@@ -3,14 +3,9 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The moon pond and the bond in points (#58): five baits back one every 24 minutes and none for a clock turned
-    /// back, the half-second window of a cast, the six fish and their odds, feeding them to a rabbit, hearts from
-    /// points, what hearts multiply a rabbit's worth by, an old save's hearts as points, and the ten-heart gift.
-    /// </summary>
     public class FishingTests
     {
-        const long T0 = 1_800_000_000L; // a unix second in 2027
+        const long T0 = 1_800_000_000L;
         const long Bait = Fishing.BaitSeconds;
         List<StationDef> defs;
         GameState s;
@@ -35,8 +30,6 @@ namespace VuonTra.Core.Tests
             s.Rabbits.Add(r);
             return r;
         }
-
-        // ----- baits -----
 
         [Test]
         public void A_New_Garden_Has_Five_Baits_And_Each_Cast_Takes_One()
@@ -73,7 +66,7 @@ namespace VuonTra.Core.Tests
         public void A_Cast_Mid_Refill_Keeps_The_Minutes_Already_Waited()
         {
             for (int i = 0; i < Fishing.BaitCap; i++) Fishing.Cast(s, T0, Rolls(0.5));
-            long now = T0 + 2 * Bait + 600; // two back, ten minutes towards the third
+            long now = T0 + 2 * Bait + 600;
             Assert.AreEqual(2, Fishing.Baits(s, now));
             Fishing.Cast(s, now, Rolls(0.5));
             Assert.AreEqual(1, Fishing.Baits(s, now));
@@ -87,7 +80,6 @@ namespace VuonTra.Core.Tests
             Fishing.Cast(s, T0, Rolls(0.5));
             Assert.AreEqual(4, Fishing.Baits(s, T0 + Bait - 1));
             Assert.AreEqual(5, Fishing.Baits(s, T0 + Bait));
-            // Hours later, still five: the next cast starts its own wait, no time banked beyond the cap.
             long later = T0 + 10 * 3600;
             Fishing.Cast(s, later, Rolls(0.5));
             Assert.AreEqual(4, Fishing.Baits(s, later + Bait - 1));
@@ -104,7 +96,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Bait + 3600, Fishing.NextBaitIn(s, T0 - 3600), "the hour it took away is waited for too");
             Assert.AreEqual(1, Fishing.Baits(s, T0 + Bait), "and the real clock still counts");
 
-            // Back again after a bait came: none is added, and casting never moves the clock backwards.
             Fishing.Cast(s, T0 + Bait, Rolls(0.5));
             Assert.AreEqual(0, Fishing.Baits(s, T0 - 7200));
             Assert.GreaterOrEqual(s.BaitAt, T0 + Bait);
@@ -126,8 +117,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(Fishing.Cast(s, T0, Rolls(0.5)));
         }
 
-        // ----- one cast -----
-
         [Test]
         public void The_Float_Bobs_Two_To_Six_Seconds_Then_Sinks_For_Half_A_Second()
         {
@@ -137,7 +126,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2d, Fishing.BobFor(double.NaN), 1e-9);
             Assert.AreEqual(6d, Fishing.BobFor(7d), 1e-9);
 
-            FishingCast cast = Fishing.Cast(s, T0, Rolls(0.1, 0.5)); // the fish's roll, then a 4 s bob
+            FishingCast cast = Fishing.Cast(s, T0, Rolls(0.1, 0.5));
             Assert.AreEqual(4d, cast.BobSeconds, 1e-9);
             Assert.AreEqual(CastPhase.Bobbing, cast.Advance(3.99));
             Assert.AreEqual(CastPhase.Sinking, cast.Advance(0.02));
@@ -151,7 +140,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Tap_While_It_Sinks_Lands_The_Fish_Once()
         {
-            FishingCast cast = Fishing.Cast(s, T0, Rolls(0.99, 0d)); // the rarest fish, a 2 s bob
+            FishingCast cast = Fishing.Cast(s, T0, Rolls(0.99, 0d));
             Assert.AreEqual(5, cast.Fish);
             cast.Advance(2.25);
             Assert.AreEqual(CastPhase.Sinking, cast.Phase);
@@ -167,7 +156,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Tap_Too_Early_Brings_The_Float_Back_Up_With_The_Bait_Still_On()
         {
-            FishingCast cast = Fishing.Cast(s, T0, Rolls(0d, 1d, 0d)); // a 6 s bob, then 2 s after the early tap
+            FishingCast cast = Fishing.Cast(s, T0, Rolls(0d, 1d, 0d));
             Assert.AreEqual(4, Fishing.Baits(s, T0));
             cast.Advance(5d);
             Assert.AreEqual(CastTap.Early, cast.Tap());
@@ -181,8 +170,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(CastTap.Caught, cast.Tap());
             Assert.AreEqual(CastPhase.Bobbing, Fishing.Cast(s, T0, Rolls(0d)).Advance(double.NaN), "no time, no change");
         }
-
-        // ----- the six fish -----
 
         [Test]
         public void Six_Fish_Worth_1_3_5_8_12_30_Points_With_Odds_45_25_15_9_5_1()
@@ -209,7 +196,7 @@ namespace VuonTra.Core.Tests
             var counts = new int[Fishing.Kinds];
             for (int i = 0; i < 2000; i++)
             {
-                s.BaitAt = -1; // a full line every time
+                s.BaitAt = -1;
                 FishingCast cast = Fishing.Cast(s, T0, rng.NextDouble);
                 cast.Advance(cast.BobSeconds + 0.1);
                 Assert.AreEqual(CastTap.Caught, cast.Tap());
@@ -226,8 +213,6 @@ namespace VuonTra.Core.Tests
             Assert.Greater(counts[5], 0, "the rarest does come");
             Assert.AreEqual(2000, s.FishCaught);
         }
-
-        // ----- hearts from points -----
 
         [Test]
         public void Hearts_Follow_The_Points_With_Steps_At_10_30_80_180_380_880_1880_3880_8880_18880()
@@ -264,7 +249,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(plain * expected[h], Rabbits.Multiplier(s, r), 1e-9, h + " hearts");
                 Assert.AreEqual(expected[h], Rabbits.HeartMultiplier(r), 1e-9);
             }
-            // It reaches the station's income through the rabbit's multiplier.
             r.Affection = 0;
             BigNum before = Economy.IncomePerSecond(defs, s);
             r.Affection = Rabbits.PointsFor(10);
@@ -292,8 +276,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Rabbits.Pet(s, r, 4).GiftGiven, "once");
             Assert.AreEqual(Rabbits.AffectionGiftClovers, s.Clovers);
         }
-
-        // ----- feeding -----
 
         [Test]
         public void Feeding_A_Fish_Adds_Its_Points_And_Takes_It_From_The_Basket()
@@ -359,8 +341,6 @@ namespace VuonTra.Core.Tests
             best.Affection = Rabbits.AffectionMax;
             Assert.IsTrue(Quests.IsComplete(tenHearts, defs, s));
         }
-
-        // ----- the save -----
 
         [Test]
         public void The_Pond_And_The_Bond_Points_Round_Trip_In_The_Save()

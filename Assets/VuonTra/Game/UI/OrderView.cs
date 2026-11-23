@@ -5,11 +5,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The guest's order on a sliding sheet (#20): who is at the counter, each line with what the tray has
-    /// against what is asked (green once met), how long the guest still waits, what delivering pays, and the
-    /// "Giao" button, live only when every line is met. Everything it shows is read off the state each refresh.
-    /// </summary>
     public sealed class OrderView
     {
         public BottomSheet Sheet { get; private set; }
@@ -36,7 +31,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", card).Stretch(0, 1, 1, 1, 40, -120, 40, 40)
                 .AddText(L10n.T("order.title"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            // The guest: its portrait, who it is, and how long it still waits.
             var guest = UiKit.Rect("Guest", card).Stretch(0, 1, 1, 1, 40, -330, 40, 130);
             guest.AddImage(catalog.Panel, Palette.Card, true);
             _portraitHolder = UiKit.Rect("PortraitHolder", guest).Place(0f, 0.5f, 100, 0, 160, 160);
@@ -46,7 +40,6 @@ namespace VuonTra.Game.UI
             _guestName.resizeTextMaxSize = UiKit.TextBody;
             _left = UiKit.Rect("Left", guest).Stretch(0, 0, 1, 0.5f, 200, 24, 30, 0).AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
 
-            // The lines: a product, its name, and have / need.
             UiKit.Rect("Wants", card).Stretch(0, 1, 1, 1, 40, -400, 40, 350).AddText(L10n.T("order.wants"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
             for (int i = 0; i < LineRows; i++)
             {
@@ -62,7 +55,6 @@ namespace VuonTra.Game.UI
                 _lineNames[i].resizeTextMinSize = 14;
                 _lineNames[i].resizeTextMaxSize = UiKit.TextBody;
                 _lineHave[i] = UiKit.Rect("Have", row).Place(1f, 0.5f, -130, 0, 150, 60).AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
-                // A moss tick once the tray holds enough.
                 _lineMarks[i] = UiKit.Rect("Met", row).Place(1f, 0.5f, -36, 0, 40, 40).AddImage(catalog.Round, Palette.Moss);
                 UiKit.Rect("Text", _lineMarks[i].rectTransform).Stretch(0, 0, 1, 1).AddText("✓", 24, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
@@ -91,7 +83,6 @@ namespace VuonTra.Game.UI
 
         public void Close() => Sheet.Close();
 
-        /// <summary>"2:30" for seconds left, never below 0:00.</summary>
         public static string Clock(double seconds)
         {
             int whole = Mathf.Max(0, Mathf.CeilToInt((float)seconds));
@@ -104,7 +95,6 @@ namespace VuonTra.Game.UI
             Order o = s.Order;
             if (o == null)
             {
-                // The guest went while the card was up: it says so and nothing can be pressed.
                 _guestName.text = L10n.T("order.gone");
                 _left.text = "";
                 for (int i = 0; i < LineRows; i++) if (_lines[i].gameObject.activeSelf) _lines[i].gameObject.SetActive(false);
