@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The album pays (#61): sets by trade within a tier add to that trade's stations, and milestones pay once.</summary>
     public class AlbumSetsTests
     {
         List<StationDef> defs;
@@ -14,9 +13,9 @@ namespace VuonTra.Core.Tests
         public void SetUp()
         {
             defs = Fixture.Defs();
-            defs[0].Trade = RabbitTrade.Brewer;   // tea
-            defs[1].Trade = RabbitTrade.Gatherer; // leaf, feeds the tea
-            defs[2].Trade = RabbitTrade.Baker;    // jam
+            defs[0].Trade = RabbitTrade.Brewer;
+            defs[1].Trade = RabbitTrade.Gatherer;
+            defs[2].Trade = RabbitTrade.Baker;
             s = GameState.NewGame(defs);
             items = new List<ItemDef>
             {
@@ -27,7 +26,6 @@ namespace VuonTra.Core.Tests
 
         void SeeAll(AlbumSet set) { foreach (RabbitKind k in set.Kinds) Rabbits.See(s, k.Id); }
 
-        /// <summary>Meets the first <paramref name="n"/> every-day kinds in table order.</summary>
         void MeetEveryDay(int n)
         {
             foreach (RabbitKind k in RabbitKinds.All)
@@ -73,7 +71,6 @@ namespace VuonTra.Core.Tests
             for (int i = 1; i < set.Kinds.Count; i++) Rabbits.See(s, set.Kinds[i].Id);
             Assert.IsTrue(AlbumSets.IsComplete(s, set));
             CollectionAssert.AreEqual(new[] { set }, AlbumSets.Completed(s));
-            // A seasonal kind of the same tier and trade does not belong to it: meeting the Gold stargazers leaves room for the star lantern.
             AlbumSet gold = AlbumSets.Find(4, RabbitTrade.Stargazer);
             SeeAll(gold);
             Assert.IsFalse(s.SeenKinds.Contains("tho-den-ong-sao"));
@@ -121,7 +118,6 @@ namespace VuonTra.Core.Tests
             SeeAll(AlbumSets.Find(1, RabbitTrade.Baker));
             Assert.AreEqual(jam * 1.03d, Economy.IncomePerCycle(defs, s, 2).ToDouble(), jam * 1e-9);
 
-            // A gatherers' set strengthens what the leaf basket adds to the tea, as a rabbit at the basket would.
             double before = Economy.IncomePerCycle(defs, s, 0).ToDouble();
             SeeAll(AlbumSets.Find(1, RabbitTrade.Gatherer));
             double boost = Economy.IngredientBoost(4);
@@ -193,7 +189,6 @@ namespace VuonTra.Core.Tests
             CollectionAssert.AreEquivalent(new[] { 10, 20, 40 }, back.State.AlbumMilestonesClaimed);
             Assert.IsEmpty(AlbumSets.ClaimMilestones(back.State, items), "a save loaded again gives nothing twice");
 
-            // An older save has given nothing; numbers that are not milestones are dropped.
             string json = SaveCodec.Encode(defs, s).Replace("\"albumMilestones\":[", "\"albumMilestones\":[7,");
             CollectionAssert.DoesNotContain(SaveCodec.Decode(defs, json).State.AlbumMilestonesClaimed, 7);
             string old = SaveCodec.Encode(defs, GameState.NewGame(defs)).Replace(",\"albumMilestones\":[]", "");

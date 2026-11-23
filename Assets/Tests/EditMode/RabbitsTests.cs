@@ -91,7 +91,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, r.Tier);
             Assert.AreEqual("Bông", r.Name);
             Assert.AreEqual(-1, r.Station);
-            // One spent; any garden level the arrival brought would give one back.
             Assert.AreEqual(2 - Rabbits.SummonCost + (Garden.Level(s) - 1) * Garden.CloversPerLevel, s.Clovers);
             Assert.AreEqual(1, s.Rabbits.Count);
             Rabbit second = Rabbits.Summon(s, 0.1, "Mây");
@@ -126,7 +125,7 @@ namespace VuonTra.Core.Tests
             Rabbits.Merge(s, 0);
             Assert.IsTrue(s.Rabbits.Contains(working), "the working rabbit is left alone when three rest");
 
-            Add(0); Add(0); // now: working + 2 resting silvers
+            Add(0); Add(0);
             Rabbit merged = Rabbits.Merge(s, 0);
             Assert.AreEqual(0, merged.Station, "the new rabbit takes over the station");
             Assert.AreSame(merged, Rabbits.AtStation(s, 0));
@@ -156,7 +155,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Old_Saves_Keep_The_Same_Default_Kind_For_Each_Tier()
         {
-            // Adding kinds must never change what a rabbit saved without one turns into.
             CollectionAssert.AreEqual(
                 new[] { "tho-bong", "tho-cup", "tho-suong", "tho-oai-huong", "tho-mat-ong", "tho-hong-tra" },
                 new[] { RabbitKinds.DefaultFor(0), RabbitKinds.DefaultFor(1), RabbitKinds.DefaultFor(2), RabbitKinds.DefaultFor(3), RabbitKinds.DefaultFor(4), RabbitKinds.DefaultFor(5) });
@@ -171,7 +169,7 @@ namespace VuonTra.Core.Tests
             for (int k = 0; k < kinds.Count; k++)
             {
                 s.Clovers = 1;
-                Rabbit r = Rabbits.Summon(s, roll, "A", (k + 0.5) / kinds.Count); // the middle of the k-th share
+                Rabbit r = Rabbits.Summon(s, roll, "A", (k + 0.5) / kinds.Count);
                 Assert.AreEqual(tier, r.Tier);
                 Assert.AreEqual(kinds[k].Id, r.Kind);
             }
@@ -243,9 +241,9 @@ namespace VuonTra.Core.Tests
         List<StationDef> TradeDefs()
         {
             var d = Fixture.Defs();
-            d[0].Trade = RabbitTrade.Brewer;   // tea
-            d[1].Trade = RabbitTrade.Gatherer; // leaf, the ingredient station
-            d[2].Trade = RabbitTrade.Baker;    // jam
+            d[0].Trade = RabbitTrade.Brewer;
+            d[1].Trade = RabbitTrade.Gatherer;
+            d[2].Trade = RabbitTrade.Baker;
             return d;
         }
 
@@ -269,12 +267,12 @@ namespace VuonTra.Core.Tests
         public void A_Rabbit_In_Its_Trade_Is_Worth_Half_Again()
         {
             var d = TradeDefs();
-            Rabbit bong = AddKind("tho-bong", 0); // a brewer at the tea station
+            Rabbit bong = AddKind("tho-bong", 0);
             Assert.IsTrue(Rabbits.InTrade(d, bong));
             Assert.AreEqual(1.1 * 1.5, Rabbits.StationMultiplier(d, s, 0), 1e-12);
             Assert.AreEqual(5 * 1.2 * 1.1 * 1.5, Economy.IncomePerCycle(d, s, 0).ToDouble(), 1e-9);
 
-            Rabbits.Assign(s, bong.Id, 2); // the same rabbit at the jam pot: it works, without the bonus
+            Rabbits.Assign(s, bong.Id, 2);
             Assert.IsFalse(Rabbits.InTrade(d, bong));
             Assert.AreEqual(1.1, Rabbits.StationMultiplier(d, s, 2), 1e-12);
             Assert.AreEqual(1.1, Rabbits.WorkMultiplier(d, s, bong), 1e-12);
@@ -295,8 +293,8 @@ namespace VuonTra.Core.Tests
         public void A_Gatherer_Strengthens_What_Its_Ingredient_Station_Gives()
         {
             var d = TradeDefs();
-            double plain = Economy.IncomePerCycle(d, s, 0).ToDouble();          // 5 x (1 + 0.2)
-            AddKind("tho-cup", 1); // green gatherer at the leaf basket
+            double plain = Economy.IncomePerCycle(d, s, 0).ToDouble();
+            AddKind("tho-cup", 1);
             double boosted = Economy.IncomePerCycle(d, s, 0).ToDouble();
             Assert.AreEqual(5 * 1.2, plain, 1e-9);
             Assert.AreEqual(5 * (1 + 0.2 * 1.25 * 1.5), boosted, 1e-9);
@@ -308,7 +306,6 @@ namespace VuonTra.Core.Tests
             var d = TradeDefs();
             Rabbit matcha = AddKind("tho-matcha"), cup = AddKind("tho-cup"), me = AddKind("tho-me");
             Rabbits.AutoAssign(d, s);
-            // jam earns most: the silver baker (1.1 x 1.5 = 1.65) beats either green rabbit there (1.25)
             Assert.AreEqual(2, me.Station);
             Assert.AreEqual(0, matcha.Station, "the brewer takes the tea");
             Assert.AreEqual(1, cup.Station, "the gatherer takes the leaves");
@@ -360,15 +357,15 @@ namespace VuonTra.Core.Tests
         public void Working_Rabbit_Multiplies_A_Brew_Station()
         {
             s.Levels = new[] { 4, 0, 0 };
-            Add(3, 0); // purple ×2
+            Add(3, 0);
             Assert.AreEqual(8, Economy.IncomePerCycle(defs, s, 0).ToDouble(), 1e-9);
         }
 
         [Test]
         public void Rabbit_At_An_Ingredient_Station_Strengthens_Its_Bonus()
         {
-            s.Levels = new[] { 4, 5, 0 }; // leaf level 5: boost 1.5
-            Add(3, 1); // ×2 on the bonus part: 1 + 0.5 × 2 = 2
+            s.Levels = new[] { 4, 5, 0 };
+            Add(3, 1);
             Assert.AreEqual(4 * 2.0, Economy.IncomePerCycle(defs, s, 0).ToDouble(), 1e-9);
         }
 
@@ -382,7 +379,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void AutoAssign_Puts_The_Best_Rabbit_On_The_Biggest_Earner()
         {
-            // jam (80 per 5 s) out-earns tea (5 per 1.5 s); leaf is an ingredient station
             Rabbit silver = Add(0), gold = Add(4), blue = Add(2), extra = Add(0);
             Rabbits.AutoAssign(defs, s);
             Assert.AreEqual(2, gold.Station);
@@ -497,9 +493,9 @@ namespace VuonTra.Core.Tests
         {
             const string json = "{\"version\":3,\"stations\":[{\"id\":\"tea\",\"level\":3,\"progress\":0}],\"rabbits\":[" +
                 "{\"id\":1,\"tier\":99,\"name\":\"A\",\"station\":\"tea\"}," +
-                "{\"id\":2,\"tier\":1,\"name\":\"B\",\"station\":\"tea\"}," +     // second rabbit at the same station
-                "{\"id\":2,\"tier\":1,\"name\":\"dup\",\"station\":\"\"}," +       // duplicate id
-                "{\"id\":3,\"tier\":-4,\"name\":7,\"station\":\"jam\"}," +         // closed station, bad name
+                "{\"id\":2,\"tier\":1,\"name\":\"B\",\"station\":\"tea\"}," +
+                "{\"id\":2,\"tier\":1,\"name\":\"dup\",\"station\":\"\"}," +
+                "{\"id\":3,\"tier\":-4,\"name\":7,\"station\":\"jam\"}," +
                 "\"junk\"]}";
             GameState r = SaveCodec.Decode(defs, json).State;
             Assert.AreEqual(3, r.Rabbits.Count);
@@ -533,7 +529,6 @@ namespace VuonTra.Core.Tests
 
             Assert.IsTrue(Rabbits.Pet(s, r, 101).FirstToday, "a new day");
             Assert.AreEqual(2 * Rabbits.PetPoints, r.Affection);
-            // #78: a clock turned back is not another day, so it brings neither a heart nor tea power.
             double energy = s.Energy;
             Assert.IsFalse(Rabbits.Pet(s, r, 50).FirstToday, "a clock that went backwards is not another day");
             Assert.AreEqual(2 * Rabbits.PetPoints, r.Affection);
@@ -545,7 +540,7 @@ namespace VuonTra.Core.Tests
         public void Affection_Stops_At_Its_Cap_And_Nobody_Pets_A_Rabbit_That_Is_Not_There()
         {
             Rabbit r = Add(1);
-            r.Affection = Rabbits.AffectionMax - Rabbits.PetPoints - 3; // a stroke and a bit short of ten hearts (#58)
+            r.Affection = Rabbits.AffectionMax - Rabbits.PetPoints - 3;
             for (long day = 1; day <= 4; day++) Rabbits.Pet(s, r, day);
             Assert.AreEqual(Rabbits.AffectionMax, r.Affection);
             Assert.IsTrue(Rabbits.Pet(s, r, 99).FirstToday, "still a first stroke of the day, and still worth tea power");
@@ -579,7 +574,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Close_Friends_Say_A_Line_At_Three_Hearts_And_Give_A_Clover_At_Five_Once()
         {
-            // Stroking alone, ten points a day (#58): three hearts (80 points) on day 8, five (380) on day 38.
             Rabbit r = Add(2);
             s.Clovers = 0;
             long lineDay = Rabbits.PointsFor(Rabbits.LineHearts) / Rabbits.PetPoints, giftDay = Rabbits.PointsFor(Rabbits.GiftHearts) / Rabbits.PetPoints;

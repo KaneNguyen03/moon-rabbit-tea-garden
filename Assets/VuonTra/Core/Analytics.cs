@@ -3,22 +3,13 @@ using System.Collections.Generic;
 
 namespace VuonTra.Core
 {
-    /// <summary>
-    /// The seam to an analytics and crash-reporting service (#100), shaped like the rewarded-ad seam (#66). The game
-    /// says what happened; the provider decides where it goes. Nothing is wired in yet: every build runs on
-    /// <see cref="NoAnalytics"/>, which sends nothing anywhere.
-    /// </summary>
     public interface IAnalytics
     {
-        /// <summary>Something happened: a name from <see cref="AnalyticsEvents"/> and a few parameters.</summary>
         void Log(string name, params AnalyticsParam[] parameters);
-        /// <summary>A fact about the player that later events are grouped by (the moon they are on, say).</summary>
         void SetUserProperty(string name, string value);
-        /// <summary>An exception the game caught and lived through (a save that could not be written): reported, not thrown.</summary>
         void RecordException(Exception e);
     }
 
-    /// <summary>One parameter of an event: a name and a text, a whole number or a real number.</summary>
     public readonly struct AnalyticsParam
     {
         public enum Kind { Text, Number, Real }
@@ -37,7 +28,6 @@ namespace VuonTra.Core
         public override string ToString() => Name + "=" + (Type == Kind.Text ? Text : Type == Kind.Number ? Number.ToString() : Real.ToString("R"));
     }
 
-    /// <summary>No provider: every call does nothing, nothing leaves the device. What every build runs on today.</summary>
     public sealed class NoAnalytics : IAnalytics
     {
         public void Log(string name, params AnalyticsParam[] parameters) { }
@@ -45,7 +35,6 @@ namespace VuonTra.Core
         public void RecordException(Exception e) { }
     }
 
-    /// <summary>A provider in memory for the tests: keeps every event, user property and exception it is given.</summary>
     public sealed class MemoryAnalytics : IAnalytics
     {
         public sealed class Event
@@ -53,7 +42,6 @@ namespace VuonTra.Core
             public string Name;
             public AnalyticsParam[] Params;
 
-            /// <summary>The parameter of that name; throws when the event has none, so a test names what is missing.</summary>
             public AnalyticsParam this[string name]
             {
                 get
@@ -83,7 +71,6 @@ namespace VuonTra.Core
 
         public void RecordException(Exception e) { if (e != null) Exceptions.Add(e); }
 
-        /// <summary>How many events of this name were logged.</summary>
         public int Count(string name)
         {
             int n = 0;
@@ -91,10 +78,8 @@ namespace VuonTra.Core
             return n;
         }
 
-        /// <summary>The events of this name, oldest first.</summary>
         public List<Event> All(string name) => Events.FindAll(e => e.Name == name);
 
-        /// <summary>The latest event of this name, or null.</summary>
         public Event Last(string name) => Events.FindLast(e => e.Name == name);
 
         public void Clear()
@@ -105,14 +90,8 @@ namespace VuonTra.Core
         }
     }
 
-    /// <summary>
-    /// The events' and parameters' names (#100): stable snake_case, short enough for Firebase (40 characters), and none
-    /// of Firebase's reserved names (session_start, first_open, ad_reward, error ...), so a provider can pass them on as
-    /// they are. Changing one breaks every report built on it: add, do not rename.
-    /// </summary>
     public static class AnalyticsEvents
     {
-        // ----- events -----
         public const string GameOpen = "game_open";
         public const string SessionStart = "play_session_start";
         public const string SessionEnd = "play_session_end";
@@ -135,7 +114,6 @@ namespace VuonTra.Core
             SegmentOpened, RabbitCalled, NewMoon, GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd,
         };
 
-        // ----- parameters -----
         public const string NewGarden = "new_garden";
         public const string Seconds = "seconds";
         public const string Step = "step";
@@ -157,21 +135,17 @@ namespace VuonTra.Core
         public const string Game = "game";
         public const string Result = "result";
 
-        // ----- parameter values -----
         public const string ViaClover = "clover", ViaGolden = "golden";
         public const string FromShop = "shop";
         public const string AdWatched = "watched", AdClosed = "closed", AdPass = "pass";
 
-        // ----- user properties -----
         public const string UserMoon = "moon";
         public const string UserGardenLevel = "garden_level";
 
-        /// <summary>The tutorial's steps by name, in the order of <see cref="Tutorial"/>.</summary>
         public static readonly string[] StepNames = { "tap_rabbit", "raise_teapot", "open_second", "collect_quest", "call_rabbit", "place_rabbit" };
 
         public static string StepNameOf(int step) => step >= 0 && step < StepNames.Length ? StepNames[step] : "step_" + step;
 
-        /// <summary>Why a purchase did not pay, as a parameter value.</summary>
         public static string ReasonOf(PurchaseOutcome outcome)
         {
             switch (outcome)
@@ -185,7 +159,6 @@ namespace VuonTra.Core
         }
     }
 
-    /// <summary>The events with their parameters, one call each, so a hook in the game stays one line.</summary>
     public static class AnalyticsLog
     {
         public static void LogGameOpen(this IAnalytics a, bool newGarden) =>
@@ -219,10 +192,6 @@ namespace VuonTra.Core
         public static void LogGoldenPacksOpened(this IAnalytics a, string from) =>
             a.Log(AnalyticsEvents.GoldenPacksOpened, new AnalyticsParam(AnalyticsEvents.From, from));
 
-        /// <summary>
-        /// A purchase came to an end. Only the product and the price as the store words it go out (#100): never an
-        /// amount of our own. <paramref name="late"/>: the store handed it over by itself (one left unfinished before).
-        /// </summary>
         public static void LogPurchase(this IAnalytics a, PurchaseResult r, string price, bool late = false)
         {
             if (r.Outcome == PurchaseOutcome.Paid)
@@ -235,18 +204,11 @@ namespace VuonTra.Core
             a.Log(AnalyticsEvents.RewardedAd, new AnalyticsParam(AnalyticsEvents.Placement, placement), new AnalyticsParam(AnalyticsEvents.Game, game ?? ""), new AnalyticsParam(AnalyticsEvents.Result, result));
     }
 
-    /// <summary>
-    /// Watches the garden between two looks and logs what moved forward (#100): tutorial steps, garden levels, stations
-    /// opened and mist segments cleared. The runner looks after every change, so each of these is logged once, at the
-    /// change that made it, however it came about (a call, a quest, a level bought, "upgrade all"). Going back (a new
-    /// moon, a new game) logs nothing; going forward again logs again, with the moon it happened on.
-    /// </summary>
     public sealed class AnalyticsWatch
     {
         int _step, _level, _segments;
         bool[] _open = Array.Empty<bool>();
 
-        /// <summary>Takes the garden as it is now as the starting point, logging nothing (a save just loaded or restored).</summary>
         public void Reset(GameState s)
         {
             _step = s.TutorialStep;
@@ -256,7 +218,6 @@ namespace VuonTra.Core
             for (int i = 0; i < _open.Length; i++) _open[i] = s.Levels[i] > 0;
         }
 
-        /// <summary>Logs every step forward since the last look, then takes the garden as it is now.</summary>
         public void Note(IReadOnlyList<StationDef> defs, GameState s, IAnalytics a)
         {
             for (int step = Math.Max(0, _step); step < s.TutorialStep && step < Tutorial.Steps; step++) a.LogTutorialStep(step);
@@ -285,7 +246,6 @@ namespace VuonTra.Core
             _segments = segments;
         }
 
-        /// <summary>The player skips the guidance: logged as one skip at the step they were on, not as the steps left.</summary>
         public void SkipTutorial(GameState s, IAnalytics a)
         {
             if (!Tutorial.IsDone(s)) a.LogTutorialSkip(s.TutorialStep);

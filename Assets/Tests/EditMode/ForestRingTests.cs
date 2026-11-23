@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The garden widens segment by segment (#53, the horizontal garden): conditions and prices of the segments, the lawn's tiles, saves, and where new stations stand.</summary>
     public class ForestRingTests
     {
         List<StationDef> defs;
@@ -41,16 +40,14 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(21, Expansion.Segment(n).Tiles);
                 Assert.AreEqual(n % 2 == 1 ? GardenSide.Right : GardenSide.Left, Expansion.Segment(n).Side, "right, then left, in turn");
                 foreach (Hex h in GardenGrid.SegmentTiles(n)) Assert.AreNotEqual(TileState.ForestBorder, s.Grid.Tile(h.Q, h.R).State, "the new segment is lawn");
-                // The next segment out is still mist, but for the seats and props that came with the garden's frame (#52).
                 foreach (Hex h in GardenGrid.SegmentTiles(n + 1)) Assert.AreNotEqual(TileState.UnlockedEmpty, s.Grid.Tile(h.Q, h.R).State, "the mist stands one segment further out");
             }
         }
 
-        // Segment, the ring it replaces, level, rabbits, kinds, the first station its land is for.
         [TestCase(1, 4, 3, 0, 0, 4)]
         [TestCase(2, 5, 6, 6, 0, 6)]
         [TestCase(3, 6, 10, 10, 0, 8)]
-        [TestCase(4, 7, 16, 0, 8, 10)] // the old R 7 asks one level more than its land wave did, so the twelfth plot waits for day three on every seed (#83)
+        [TestCase(4, 7, 16, 0, 8, 10)]
         public void Each_Segment_Asks_What_The_Ring_It_Replaces_Asked(int segment, int ring, int level, int rabbits, int kinds, int firstStation)
         {
             MistSegment next = Expansion.Segment(segment);
@@ -69,7 +66,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Past_The_Table_Every_Segment_Asks_Five_Levels_More()
         {
-            // The fifth and sixth (R 8 and R 9) are in the table (#67b): the levels of the stations they make room for, 16 and 20.
             Assert.AreEqual(16, Expansion.Segment(5).NeedLevel);
             Assert.AreEqual(20, Expansion.Segment(6).NeedLevel);
             Assert.AreEqual(25, Expansion.Segment(7).NeedLevel);
@@ -109,7 +105,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(3, Expansion.Next(defs, back).SegmentsAfter);
         }
 
-        // Plots an old save held, and the segments that land comes to.
         [TestCase(4, 0)]
         [TestCase(5, 1)]
         [TestCase(6, 1)]
@@ -130,14 +125,13 @@ namespace VuonTra.Core.Tests
             if (segments < 4) Assert.AreEqual(segments + 1, next.SegmentsAfter); else Assert.IsNull(next);
         }
 
-        // An old save that bought plots one at a time (#86): the station its open land is for opens on its own conditions.
         [TestCase(5)]
         [TestCase(7)]
         [TestCase(9)]
         [TestCase(11)]
         public void An_Old_Save_With_An_Odd_Plot_Count_Opens_The_Next_Station_On_Its_Own_Conditions(int plots)
         {
-            int need = Expansion.LevelForPlots(defs, plots) + 1; // one level past what the save's land is given on load
+            int need = Expansion.LevelForPlots(defs, plots) + 1;
             defs[plots].NeedGardenLevel = need;
             var stations = new List<string>();
             for (int i = 0; i < 12; i++) stations.Add("{\"id\":\"s" + i + "\",\"level\":" + (i < plots ? 1 : 0) + "}");
@@ -158,7 +152,6 @@ namespace VuonTra.Core.Tests
             if (segments < Expansion.LastSegments(defs)) Assert.AreEqual(segments + 1, next.SegmentsAfter, "the next segment is for the station after it");
         }
 
-        // An old vertical garden's rings, and the segments they come to on the strip (R 3 is the middle alone).
         [TestCase(3, 4, 0)]
         [TestCase(4, 6, 1)]
         [TestCase(5, 8, 2)]
@@ -197,7 +190,7 @@ namespace VuonTra.Core.Tests
         public void A_New_Station_Whose_Tile_Is_Taken_Goes_To_The_Empty_Tile_Nearest_The_Teapot_Clear_Of_The_Others()
         {
             Grown();
-            Assert.IsTrue(Expansion.Expand(defs, s)); // the oven's land is open, so a seat can stand on its tile before it comes
+            Assert.IsTrue(Expansion.Expand(defs, s));
             Hex home = GardenGrid.DefaultStationTile(6);
             Assert.IsTrue(s.Grid.Place("rest:0", home.Q, home.R));
             Assert.IsTrue(Expansion.Expand(defs, s));
@@ -208,7 +201,6 @@ namespace VuonTra.Core.Tests
             foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants)
                 if (o.Key.StartsWith("station:") && o.Key != "station:s6")
                     Assert.GreaterOrEqual(GardenGrid.Distance(o.Value, at.Value), Expansion.StationSpacing, "clear of " + o.Key);
-            // No nearer empty tile would have kept clear of the stations.
             foreach (Hex h in s.Grid.EmptyTiles())
             {
                 if (GardenGrid.Distance(h) >= GardenGrid.Distance(at.Value)) break;

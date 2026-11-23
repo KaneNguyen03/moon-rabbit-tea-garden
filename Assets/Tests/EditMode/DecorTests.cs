@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Decorating the garden (#11): four things bought at the shop for golden carrots, eight fixed spots to stand them on, and one colour for every paper lantern.</summary>
     public class DecorTests
     {
         List<StationDef> defs;
@@ -147,7 +146,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, old.LanternColor);
             Assert.IsFalse(Decor.ShowEmptySpots(old));
 
-            // A save that was fiddled with: a kind the shop lacks is dropped, more placed than owned is put away, an unknown colour is paper.
             const string odd = "{\"version\":14,\"stations\":[],\"decor\":{\"owned\":{\"den-da\":1,\"mystery\":5,\"bon-hoa\":-2},\"spots\":[\"den-da\",\"den-da\",\"mystery\",null,\"bon-hoa\"],\"lantern\":9}}";
             GameState fixedUp = SaveCodec.Decode(defs, odd).State;
             Assert.AreEqual(1, Decor.Owned(fixedUp, "den-da"));

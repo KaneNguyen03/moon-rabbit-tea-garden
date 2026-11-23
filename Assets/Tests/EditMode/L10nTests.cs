@@ -121,7 +121,6 @@ namespace VuonTra.Core.Tests
             return found;
         }
 
-        /// <summary>English keeps its own decimal point and one name per thing (#94).</summary>
         [Test]
         public void English_Lines_Use_A_Decimal_Point_And_One_Name_Per_Thing()
         {
@@ -142,7 +141,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("1.5", VuonTra.Game.UI.UiKit.Times(1.5), "times signs read with a point");
         }
 
-        /// <summary>One way to write each thing in Vietnamese (#95): old-style tone marks, "%" against its number, "bé" for a rabbit.</summary>
         [Test]
         public void Vietnamese_Lines_Keep_One_Spelling()
         {

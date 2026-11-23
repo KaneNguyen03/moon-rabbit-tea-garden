@@ -4,7 +4,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The analytics seam in Core (#100): the providers, the names, and the watch that logs the garden going forward.</summary>
     public class AnalyticsTests
     {
         static GameState NewGarden() => GameState.NewGame(Fixture.Defs());

@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The leaf-catching game: its schedule, its basket, its scoring, its plays per day and its pay.</summary>
     public class LeavesTests
     {
         List<StationDef> defs;
@@ -20,7 +19,6 @@ namespace VuonTra.Core.Tests
 
         static Leaf At(double lands, double x, LeafKind kind) => new Leaf { Lands = lands, Drop = lands - 2d, X = x, Kind = kind };
 
-        /// <summary>Plays a seeded game through: every leaf caught until the score reaches <paramref name="wanted"/>, every cone dodged.</summary>
         static LeavesRun Play(long seed, int wanted = int.MaxValue)
         {
             var run = LeavesRun.FromSeed(seed);
@@ -234,7 +232,7 @@ namespace VuonTra.Core.Tests
             LeavesRun full = Play(5);
             Assert.IsTrue(Leaves.Start(s, 10));
             BigNum before = s.Coins;
-            s.PoundingStarToday = true; // the mooncake game's clover today has nothing to do with this one
+            s.PoundingStarToday = true;
             LeavesResult first = Leaves.Finish(defs, s, m, full);
             Assert.AreEqual(3, first.Stars);
             Assert.AreEqual(Leaves.MaxScore, first.Score);

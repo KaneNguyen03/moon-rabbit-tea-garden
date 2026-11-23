@@ -10,11 +10,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The four stations after the star observatory (#67a): what they are, the garden level each asks for, the ingredient
-    /// links, an old save of twelve stations, the new moon, their product, quests, sound and names, and how the
-    /// Stations tab and the garden show them while their land (#53, 67b) is still to come.
-    /// </summary>
     public class FourStationsTests
     {
         GameCatalog catalog;
@@ -38,7 +33,6 @@ namespace VuonTra.Core.Tests
 
         int IndexOf(string id) => defs.FindIndex(d => d.Id == id);
 
-        /// <summary>Every station up to the star observatory open, with the land and the purse to open the rest.</summary>
         GameState TwelveOpen(int gardenLevel, int plots = 16)
         {
             GameState s = GameState.NewGame(defs);
@@ -49,8 +43,6 @@ namespace VuonTra.Core.Tests
             GardenGrid.Settle(defs, s);
             return s;
         }
-
-        // ----- What the four stations are -----
 
         [Test]
         public void The_Four_New_Stations_Come_After_The_Star_Observatory_In_Order()
@@ -89,7 +81,7 @@ namespace VuonTra.Core.Tests
             CollectionAssert.AreEquivalent(new[] { "lo-keo", "tra-sua" }, defs[14].BoostsIds);
 
             GameState s = TwelveOpen(30);
-            s.Levels[13] = 1; // the candy kiln, so the rice paddy has something of its own to feed
+            s.Levels[13] = 1;
             var before = new BigNum[defs.Count];
             for (int i = 0; i < defs.Count; i++) before[i] = Economy.IncomePerCycle(defs, s, i);
             s.Levels[12] = 10;
@@ -103,11 +95,6 @@ namespace VuonTra.Core.Tests
             }
         }
 
-        /// <summary>
-        /// The two new ingredient stations give 7 % of the usual rise (#83), the old ones all of it: at full strength they
-        /// stacked onto the top brews and made day seven's income over a hundredfold (EconomySimulationTests holds the tenfold cap).
-        /// The Stations tab shows the boost they really give.
-        /// </summary>
         [Test]
         public void The_Two_New_Ingredient_Stations_Give_Seven_Percent_Of_The_Usual_Boost()
         {
@@ -125,14 +112,11 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("×" + UiKit.Times(1.14), StationRowView.MainNumber(defs, s, 12, 10, Modifiers.None));
         }
 
-        // ----- The garden level each asks for -----
-
         [Test]
         public void Each_New_Station_Asks_For_A_Higher_Garden_Level_And_The_Old_Ones_For_None()
         {
             for (int i = 0; i < 12; i++) Assert.AreEqual(0, defs[i].NeedGardenLevel, defs[i].Id);
             for (int i = 13; i < 16; i++) Assert.Greater(defs[i].NeedGardenLevel, defs[i - 1].NeedGardenLevel, defs[i].Id);
-            // The fourth segment (the old R 7) asks for 16 too since #83: the lotus garden still waits for its own land, the fifth.
             Assert.GreaterOrEqual(defs[12].NeedGardenLevel, Expansion.Segment(4).NeedLevel, "not before the segment that gives the twelfth station its land");
             Assert.LessOrEqual(defs[15].NeedGardenLevel, NewMoon.FirstLevel, "the last one comes before the first new moon can");
         }
@@ -152,7 +136,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Simulation.TryBuy(defs, s, 12));
             Assert.AreEqual(1, s.Levels[12]);
 
-            // The next one asks for more, and still for the one before.
             s.GardenXp = Garden.XpForLevel(defs[13].NeedGardenLevel - 1);
             Assert.IsFalse(Economy.CanUnlock(defs, s, 13));
             s.GardenXp = Garden.XpForLevel(defs[15].NeedGardenLevel);
@@ -168,9 +151,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(5, Expansion.Next(defs, s).SegmentsAfter, "their land is the next segment of the strip");
         }
 
-        // ----- Their land: the fifth and sixth segments, which were the eighth and ninth rings (#67b) -----
-
-        /// <summary>A garden with four segments open (the old R 7), every old station open, the rabbits and kinds asked for, and a full purse.</summary>
         GameState AtRingSeven(int gardenLevel)
         {
             GameState s = TwelveOpen(gardenLevel, 12);
@@ -231,8 +211,6 @@ namespace VuonTra.Core.Tests
             }
         }
 
-        // ----- An old save, and the new moon -----
-
         [Test]
         public void An_Old_Save_Of_Twelve_Stations_Gains_The_Four_At_Level_Zero_With_Nothing_Shifted()
         {
@@ -274,7 +252,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(11, s.Rabbits.Find(r => r.Id == worker.Id).Station, "the rabbit stays at the observatory");
             Assert.AreEqual(9, s.Tray[0].Station, "the tray keeps the bakery's batch");
 
-            // Written again, the four are there at level 0, and read back the same.
             GameState again = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
             CollectionAssert.AreEqual(s.Levels, again.Levels);
         }
@@ -294,8 +271,6 @@ namespace VuonTra.Core.Tests
             }
             Assert.IsFalse(Economy.CanUnlock(defs, s, 12), "and they ask for their garden level again");
         }
-
-        // ----- Product, quests, sound, names -----
 
         [Test]
         public void The_Two_Makers_Have_Their_Own_Product_And_Every_New_Station_Its_Prop()
@@ -352,8 +327,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Needs garden level 16", L10n.T("row.needlevel", 16));
         }
 
-        // ----- How the screen shows them -----
-
         sealed class LiveScreen : System.IDisposable
         {
             public readonly GameObject Root;
@@ -405,7 +378,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(L10n.T("row.needlevel", defs[12].NeedGardenLevel), screen.Text("Canvas/Sheet/Panel/Scroll/Content/Row ho-sen/Sub").text);
                 Assert.AreEqual(L10n.T("row.needlevel", defs[15].NeedGardenLevel), screen.Text("Canvas/Sheet/Panel/Scroll/Content/Row thuyen-tra/Sub").text);
 
-                // Grown enough, the lotus garden waits on its land, which #53 brings.
                 s.GardenXp = Garden.XpForLevel(defs[12].NeedGardenLevel);
                 screen.View.Refresh();
                 Assert.AreEqual(L10n.T("row.needplot"), screen.Text("Canvas/Sheet/Panel/Scroll/Content/Row ho-sen/Sub").text);

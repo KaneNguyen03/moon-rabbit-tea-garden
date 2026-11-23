@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Guests who come to the counter with a tea order: when they come, what they ask for, what delivering pays, and when they leave.</summary>
     public class OrdersTests
     {
         List<StationDef> defs;
@@ -15,10 +14,9 @@ namespace VuonTra.Core.Tests
         {
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
-            s.Levels = new[] { 5, 2, 1 }; // tea, leaf (ingredient), jam
+            s.Levels = new[] { 5, 2, 1 };
         }
 
-        /// <summary>A roll that hands out the given numbers in turn, then the last one for ever.</summary>
         static System.Func<double> Rolls(params double[] values)
         {
             int at = 0;
@@ -54,7 +52,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(s.Order, "gone, and nothing lost for it");
             Assert.AreEqual(0, s.OrdersDelivered);
 
-            // The clock did not run while the guest stood there: the next one is a full interval away.
             Assert.AreEqual(OrderEvent.None, Run(Orders.Interval - 5d));
             Assert.IsNull(s.Order);
             Assert.AreEqual(OrderEvent.Arrived, Run(6d));
@@ -85,7 +82,7 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(Orders.RewardSeconds, o.RewardSeconds);
             }
 
-            s.Levels = new[] { 5, 2, 0 }; // only the teapot is open
+            s.Levels = new[] { 5, 2, 0 };
             for (int k = 0; k < 10; k++)
             {
                 Order o = Orders.Make(defs, s, Rolls(0.9, 0.9, 0.9, 0.9, 0.9));
@@ -168,7 +165,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, s.OrdersDelivered);
             Assert.AreEqual(0d, s.OrderClock, "the next guest's clock starts over");
 
-            // One teapot product is left, and the golden jam was never touched.
             Assert.AreEqual(1, Orders.Have(s, 0));
             Assert.AreEqual(0, Orders.Have(s, 2));
             Product goldenJam = null;
@@ -218,7 +214,7 @@ namespace VuonTra.Core.Tests
             {
                 for (double t = 0; t < Orders.Interval + 1d; t += 1d)
                     if (Orders.Advance(defs, s, 1d, Day, Rolls(0.2)) == OrderEvent.Arrived) arrived++;
-                if (s.Order != null) Run(Orders.WaitSeconds + 1d); // let the guest go
+                if (s.Order != null) Run(Orders.WaitSeconds + 1d);
             }
             Assert.AreEqual(Orders.PerDay, arrived);
             Assert.AreEqual(Orders.PerDay, s.OrdersToday);
@@ -233,7 +229,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Clock_Turned_Back_Does_Not_Bring_The_Days_Guests_Back()
         {
-            // #78: an earlier day used to count the day's guests from nought again.
             s.OrderDay = Day;
             s.OrdersToday = Orders.PerDay;
             s.OrderClock = Orders.Interval;
@@ -296,7 +291,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, r.Order.Lines[0].Station); Assert.AreEqual(2, r.Order.Lines[0].Count);
             Assert.AreEqual(2, r.Order.Lines[1].Station); Assert.AreEqual(3, r.Order.Lines[1].Count);
 
-            // A save from before guests existed: the first comes a minute after opening, nothing delivered yet.
             GameState old = SaveCodec.Decode(defs, "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":3}]}").State;
             Assert.IsNull(old.Order);
             Assert.AreEqual(Orders.Interval - Orders.FirstAfter, old.OrderClock, 1e-9);
@@ -305,14 +299,12 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, old.OrdersDelivered);
             Assert.AreEqual(0, old.DailyOrdersBase);
 
-            // A saved order for a station this build no longer has, or with no lines left, is let go.
             string json = SaveCodec.Encode(defs, s).Replace("\"jam\"", "\"gone\"");
             GameState trimmed = SaveCodec.Decode(defs, json).State;
             Assert.IsNotNull(trimmed.Order);
             Assert.AreEqual(1, trimmed.Order.Lines.Count, "the unknown line is dropped");
             json = SaveCodec.Encode(defs, s).Replace("\"tea\"", "\"gone\"").Replace("\"jam\"", "\"gone\"");
             Assert.IsNull(SaveCodec.Decode(defs, json).State.Order, "no lines: no order");
-            // A nonsense guest, count or time is tamed.
             json = SaveCodec.Encode(defs, s).Replace("\"left\":77.25", "\"left\":1e9").Replace("\"count\":3", "\"count\":99").Replace(RabbitKinds.All[2].Id, "nobody");
             GameState tamed = SaveCodec.Decode(defs, json).State;
             Assert.IsNotNull(tamed.Order);

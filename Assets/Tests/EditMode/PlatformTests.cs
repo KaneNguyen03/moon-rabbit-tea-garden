@@ -10,15 +10,8 @@ using L10n = VuonTra.Game.L10n;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The iOS services behind the account and cloud seams (#39): Game Center sign-in and the iCloud key-value store.
-    /// The device APIs cannot run here, so what is tested is everything around them: the state machine with a fake
-    /// sign-in, the default-name rule, the wiring off iOS, the size of a full garden against iCloud's limit, and the
-    /// way a save that is too large is reported rather than sent.
-    /// </summary>
     public class PlatformTests
     {
-        /// <summary>A Game Center that answers when the test says so.</summary>
         sealed class FakeGameCenter
         {
             public Action<bool, string> Waiting;
@@ -125,7 +118,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(account.CanLink);
             Assert.GreaterOrEqual(changed, 2);
 
-            // The next open says linked before Game Center answers, and the answer only confirms it.
             var again = new GameCenterAccount(gc.Authenticate, prefs);
             again.Open();
             Assert.AreEqual(BackupState.Linked, again.State, "remembered");
@@ -138,7 +130,6 @@ namespace VuonTra.Core.Tests
             gc.Answer(true, "Kha N.");
             Assert.AreEqual("Kha N.", again.LinkedName, "the name follows Game Center");
 
-            // Game Center has no sign-out: unlinking only forgets here.
             again.Unlink();
             Assert.AreEqual(BackupState.LocalOnly, again.State);
             Assert.AreEqual("", again.LinkedName);
@@ -217,7 +208,6 @@ namespace VuonTra.Core.Tests
             sync.PushNow(save, SaveSummary.Of(local), x => r = x);
             Assert.AreEqual(SyncOutcome.Pushed, r.Outcome, "with room it goes up");
             Assert.IsNotNull(cloud.Text);
-            // The store itself refuses too, in case a cloud without a cap in the sync is handed something huge.
             cloud.MaxBytes = 10;
             bool? pushed = null;
             cloud.Push(cloud.Text, ok => pushed = ok);
@@ -237,7 +227,6 @@ namespace VuonTra.Core.Tests
             {
                 var store = new SaveStore(dir);
 
-                // A typical garden: a week in, a handful of rabbits, a few photos.
                 GameState typical = GameState.NewGame(defs, upgrades.Count);
                 typical.Plots = 6;
                 for (int i = 0; i < 6; i++) typical.Levels[i] = 40 - i * 5;
@@ -262,11 +251,9 @@ namespace VuonTra.Core.Tests
             finally { System.IO.Directory.Delete(dir, true); }
         }
 
-        /// <summary>A path like the one the photo button writes on an iPhone: the app's own folder and a stamped file name.</summary>
         static string PhotoPath(int i) =>
             "/var/mobile/Containers/Data/Application/0F2B6C8A-1D3E-4F5A-9B7C-8D9E0F1A2B3C/Documents/VuonTra/vuon-2026-11-22-23-59-" + (10 + i) + "-" + (100 + i) + ".png";
 
-        /// <summary>Everything at its most: all plots and stations at the cap, sixty rabbits dressed and named, the album full, every quest paid, an order waiting, every decoration out.</summary>
         static GameState Maximal(IReadOnlyList<StationDef> defs, List<UpgradeDef> upgrades)
         {
             var s = GameState.NewGame(defs, upgrades.Count);

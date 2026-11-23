@@ -57,7 +57,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Reward_Is_The_Larger_Of_Flat_And_Income_Based()
         {
-            s.Levels = new[] { 30, 0, 0 }; // 30 × 4 (two milestones) per 1.5 s = 80/s
+            s.Levels = new[] { 30, 0, 0 };
             Assert.AreEqual(8000, Quests.RewardOf(teaLevel, defs, s, Modifiers.None).ToDouble(), 1e-6);
             var doubled = Modifiers.None;
             doubled.IncomeMultiplier = 2;
@@ -111,7 +111,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Clock_Going_Backwards_Keeps_The_Days_Claims_And_Does_Not_Start_A_Day()
         {
-            // #78: a clock turned back used to wipe the day's claims, so a daily could be claimed again and again.
             s.TotalTaps = 50;
             Assert.IsTrue(Quests.TryClaim(dailyTaps, defs, s, Modifiers.None, out _));
             Assert.IsFalse(Quests.RollDaily(quests, defs, s, 90, Modifiers.None), "an earlier day starts nothing");
@@ -125,7 +124,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Daily_Carrot_Goal_Follows_Income_With_A_Floor()
         {
-            Assert.AreEqual(600 / 1.5, Quests.TargetOf(dailyCarrots, s), 1e-6); // 0.67/s × 600 s = 400
+            Assert.AreEqual(600 / 1.5, Quests.TargetOf(dailyCarrots, s), 1e-6);
             var tiny = GameState.NewGame(new List<StationDef>());
             Quests.RollDaily(quests, new List<StationDef>(), tiny, 1, Modifiers.None);
             Assert.AreEqual(100, Quests.TargetOf(dailyCarrots, tiny), 1e-9);
@@ -164,6 +163,5 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(expected, s.DailyCarrotTarget.ToDouble(), 1e-6, "the goal is this garden's income over ten minutes");
             Assert.AreEqual(500d, s.DailyEarnedBase.ToDouble(), 1e-9, "and counts from now");
         }
-
     }
 }

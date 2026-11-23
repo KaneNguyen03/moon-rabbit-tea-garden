@@ -4,7 +4,6 @@ using VuonTra.EditorTools;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>#59: now and then a rabbit says a line of its own; which lines it may say depends on its trade, the hour and the season.</summary>
     public class ChatterTests
     {
         static readonly RabbitTrade[] Trades = { RabbitTrade.Brewer, RabbitTrade.Baker, RabbitTrade.Gatherer, RabbitTrade.Stargazer };
@@ -116,7 +115,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Booster_Is_An_Open_Ingredient_Station_That_Feeds_This_One()
         {
-            List<StationDef> defs = Fixture.Defs(); // tea, leaf (boosts tea), jam
+            List<StationDef> defs = Fixture.Defs();
             GameState s = GameState.NewGame(defs);
             s.Levels = new[] { 5, 0, 3 };
             Assert.AreEqual(-1, Chatter.BoosterOf(defs, s, 0), "the leaf station is not open yet");
@@ -141,11 +140,9 @@ namespace VuonTra.Core.Tests
                 Assert.IsNotEmpty(table[key][0], key + " vi");
                 Assert.IsNotEmpty(table[key][1], key + " en");
             }
-            // 4 for each of the four trades, 4 for anyone, 2 for each part of the day, 3 seasons, the booster and the dressed-up.
             Assert.AreEqual(16 + 4 + 8 + 3 + 2, count);
             StringAssert.Contains("{0}", table[Chatter.BoostKey][0], "the booster's name goes in the line");
             StringAssert.Contains("{0}", table[Chatter.BoostKey][1]);
-            // Every key a working or resting rabbit can be handed is one of them.
             var known = new HashSet<string>(Chatter.AllKeys);
             foreach (RabbitTrade trade in Trades)
             foreach (DayPhase phase in Phases)

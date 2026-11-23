@@ -3,20 +3,14 @@ using System.Collections.Generic;
 
 namespace VuonTra.Core
 {
-    /// <summary>One set of the album (#61): the every-day kinds of one tier that share one trade.</summary>
     public sealed class AlbumSet
     {
         public int Tier;
         public RabbitTrade Trade;
         public IReadOnlyList<RabbitKind> Kinds;
-        /// <summary>"3-Brewer": the same for a set across runs, for comparing which sets are complete.</summary>
         public string Key => Tier + "-" + Trade;
     }
 
-    /// <summary>
-    /// The album's factor for each trade at one moment (#97), the very numbers of <see cref="AlbumSets.TradeFactor"/> and
-    /// <see cref="AlbumSets.StationFactor"/>. A struct, so holding it allocates nothing; it does not follow the album after.
-    /// </summary>
     public readonly struct AlbumFactors
     {
         readonly double _brewer, _baker, _gatherer, _stargazer;
@@ -29,7 +23,6 @@ namespace VuonTra.Core
             _stargazer = AlbumSets.TradeFactor(s, RabbitTrade.Stargazer);
         }
 
-        /// <summary>What a trade's stations earn by; 1 for <see cref="RabbitTrade.None"/>, which has no sets.</summary>
         public double Of(RabbitTrade trade)
         {
             switch (trade)
@@ -42,7 +35,6 @@ namespace VuonTra.Core
             }
         }
 
-        /// <summary>The factor on one station, by its trade, as <see cref="AlbumSets.StationFactor"/>.</summary>
         public double At(IReadOnlyList<StationDef> defs, int station)
         {
             if (defs == null || station < 0 || station >= defs.Count) return 1d;
@@ -50,22 +42,11 @@ namespace VuonTra.Core
         }
     }
 
-    /// <summary>
-    /// The album pays (#61). Each tier's every-day kinds of one trade make a set; meeting every kind of a set
-    /// (it only has to be in <see cref="GameState.SeenKinds"/>, so a rabbit merged away still counts) adds 3 % to
-    /// the income of that trade's stations for good. Seasonal kinds and the new moon's are left out, so a set never
-    /// waits on a season. Meeting 10, 20, 40 and 72 every-day kinds are milestones: the quests of
-    /// <see cref="QuestMetric.KindsMet"/> pay their golden carrots and clover, and <see cref="ClaimMilestones"/>
-    /// gives the two things a quest cannot: the Starry Hat at 40 and the gold "complete" frame at 72.
-    /// </summary>
     public static class AlbumSets
     {
-        /// <summary>What one complete set adds to its trade's stations.</summary>
         public const double BonusPerSet = 0.03;
-        /// <summary>How many every-day kinds make each milestone.</summary>
         public static readonly int[] Milestones = { 10, 20, 40, 72 };
         public const int HatMilestone = 40, FrameMilestone = 72;
-        /// <summary>The hat given at <see cref="HatMilestone"/>; a player who has one gets its price in golden carrots instead.</summary>
         public const string MilestoneHat = "hat-mu-sao";
 
         static readonly RabbitTrade[] Trades = { RabbitTrade.Brewer, RabbitTrade.Baker, RabbitTrade.Gatherer, RabbitTrade.Stargazer };
@@ -76,7 +57,7 @@ namespace VuonTra.Core
             var sets = new List<AlbumSet>();
             for (int tier = 0; tier < Rabbits.TierCount; tier++)
             {
-                IReadOnlyList<RabbitKind> everyDay = RabbitKinds.OfTier(tier); // no season: every-day kinds, no new moon
+                IReadOnlyList<RabbitKind> everyDay = RabbitKinds.OfTier(tier);
                 foreach (RabbitTrade trade in Trades)
                 {
                     var kinds = new List<RabbitKind>();
@@ -87,7 +68,6 @@ namespace VuonTra.Core
             return sets.ToArray();
         }
 
-        /// <summary>Every set, tier by tier, trades in the order Brewer, Baker, Gatherer, Stargazer.</summary>
         public static IReadOnlyList<AlbumSet> All => Table;
 
         public static List<AlbumSet> OfTier(int tier)
@@ -103,18 +83,16 @@ namespace VuonTra.Core
             return null;
         }
 
-        /// <summary>How many of the set's kinds the album holds.</summary>
         public static int Met(GameState s, AlbumSet set)
         {
             int n = 0;
             IReadOnlyList<RabbitKind> kinds = set.Kinds;
-            for (int i = 0; i < kinds.Count; i++) if (s.SeenKinds.Contains(kinds[i].Id)) n++; // by index: a foreach boxes the list's enumerator (#97)
+            for (int i = 0; i < kinds.Count; i++) if (s.SeenKinds.Contains(kinds[i].Id)) n++;
             return n;
         }
 
         public static bool IsComplete(GameState s, AlbumSet set) => Met(s, set) == set.Kinds.Count;
 
-        /// <summary>The complete sets of one trade.</summary>
         public static int CompleteCount(GameState s, RabbitTrade trade)
         {
             int n = 0;
@@ -130,26 +108,19 @@ namespace VuonTra.Core
             return list;
         }
 
-        /// <summary>What a trade's stations earn by: 1, plus 3 % for each complete set of that trade (six sets: +18 %).</summary>
         public static double TradeFactor(GameState s, RabbitTrade trade)
         {
             return trade == RabbitTrade.None ? 1d : 1d + BonusPerSet * CompleteCount(s, trade);
         }
 
-        /// <summary>The album's factor on one station, by the station's trade.</summary>
         public static double StationFactor(IReadOnlyList<StationDef> defs, GameState s, int station)
         {
             if (defs == null || station < 0 || station >= defs.Count) return 1d;
             return TradeFactor(s, defs[station].Trade);
         }
 
-        /// <summary>
-        /// <see cref="TradeFactor"/> of every trade, read from the album once (#97): <see cref="Economy"/> sums over pairs of
-        /// stations and asked the album again for each pair, which on a full garden was most of the garbage of a frame.
-        /// </summary>
         public static AlbumFactors Factors(GameState s) => new AlbumFactors(s);
 
-        /// <summary>How many every-day kinds the album holds: what the milestones count.</summary>
         public static int KindsMet(GameState s)
         {
             int n = 0;
@@ -162,7 +133,6 @@ namespace VuonTra.Core
             return n;
         }
 
-        /// <summary>The number of every-day kinds there are to meet (72).</summary>
         public static int EveryDayKinds
         {
             get
@@ -174,14 +144,8 @@ namespace VuonTra.Core
             }
         }
 
-        /// <summary>True once the album has reached its last milestone: the gold "complete" frame is the player's.</summary>
         public static bool HasFullFrame(GameState s) => s.AlbumMilestonesClaimed.Contains(FrameMilestone);
 
-        /// <summary>
-        /// Notes every milestone reached and not yet noted, and gives what it carries beyond the quest's reward:
-        /// the Starry Hat at 40 (its price in golden carrots when the player already has one), the gold frame at 72.
-        /// Each milestone is noted once, so nothing is given twice. Returns the milestones noted now, smallest first.
-        /// </summary>
         public static List<int> ClaimMilestones(GameState s, IReadOnlyList<ItemDef> items)
         {
             var now = new List<int>();

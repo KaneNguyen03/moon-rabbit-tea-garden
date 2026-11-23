@@ -9,7 +9,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The moon pond on the real screen (#58b): its card, a cast from bait to basket, feeding a rabbit, ten hearts.</summary>
     public class PondScreenTests
     {
         GameObject root;
@@ -31,7 +30,7 @@ namespace VuonTra.Core.Tests
             runner.Catalog = catalog;
             GameState s = GameState.NewGame(catalog.BuildDefs());
             s.Levels[1] = 12; s.Levels[2] = 9; s.Levels[3] = 4;
-            s.GardenXp = Garden.XpForLevel(5); // the firefly jar stands by the pond too
+            s.GardenXp = Garden.XpForLevel(5);
             s.HintSeen = true;
             s.TutorialStep = Tutorial.Steps;
             runner.Init(s);
@@ -39,12 +38,12 @@ namespace VuonTra.Core.Tests
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             screen.Build();
             Motion.SetReduced(true);
             screen.Shell.StartGame();
             screen.Refresh();
-            Step(1.2f); // the opening glide
+            Step(1.2f);
         }
 
         [TearDown]
@@ -88,7 +87,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.FishingCard.IsOpen, "the pond's card is up");
         }
 
-        /// <summary>Steps the screen until the float goes under; fails if it never does.</summary>
         FishingCast StepUntilSinking()
         {
             for (int k = 0; k < 400 && runner.Cast != null && runner.Cast.Phase != CastPhase.Sinking; k++) screen.Advance(1f / 30f);
@@ -120,7 +118,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Strike_While_The_Float_Sinks_Lands_The_Fish_Which_Flies_Into_The_Basket()
         {
-            Motion.SetReduced(false); // the fish's flight takes its time here
+            Motion.SetReduced(false);
             OpenPond();
             Find(Card + "/Cast").onClick.Invoke();
             FishingCast cast = runner.Cast;
@@ -215,7 +213,7 @@ namespace VuonTra.Core.Tests
             StepUntilSinking();
             Assert.AreSame(c.FloatDown, screen.FishingCard.FloatSprite, "pulled under");
             Assert.Greater(screen.FishingCard.RipplesShowing, 0, "rings as it goes under");
-            Step(0.2f); // still in the window, the rings half spread
+            Step(0.2f);
             Assert.AreEqual(CastPhase.Sinking, runner.Cast.Phase);
             Find(Card + "/Water").onClick.Invoke();
             Assert.IsNull(runner.Cast, "caught");
@@ -327,7 +325,6 @@ namespace VuonTra.Core.Tests
             Assert.AreSame(runner.Catalog.FloatDown, screen.FishingCard.FloatSprite, "the sink shows as the float pulled under");
             Assert.AreEqual(at, art.anchoredPosition, "without moving");
 
-            // The same timing rules with motion on: the float bobs.
             Find(Card + "/Water").onClick.Invoke();
             Motion.SetReduced(false);
             Step(0.2f);
@@ -377,7 +374,7 @@ namespace VuonTra.Core.Tests
         public void Feeding_From_The_Rabbit_Sheet_Raises_Its_Points_And_Hearts()
         {
             S.Fish[0] = 1;
-            S.Fish[2] = 2; // two pink koi, five points each: the best in the basket
+            S.Fish[2] = 2;
             Rabbit r = FeedingRabbit();
             r.Affection = 8;
             screen.Refresh();
@@ -416,7 +413,7 @@ namespace VuonTra.Core.Tests
             Rabbit r = FeedingRabbit();
             Rabbit other = Rabbits.Arrive(S, 0, "Mây", 0.3);
             r.Affection = Rabbits.AffectionMax - 10;
-            S.Fish[5] = 1; // a starry night fish: thirty points
+            S.Fish[5] = 1;
             int golden = S.GoldenCarrots;
             screen.Refresh();
             Assert.IsFalse(Rabbits.FullHearts(r));
@@ -450,7 +447,6 @@ namespace VuonTra.Core.Tests
             r.Affection = Rabbits.AffectionMax - Rabbits.PetPoints;
             r.PetDay = -1;
             screen.Refresh();
-            // The screen's own stroke: a finger dragged across the teapot's rabbit.
             const string rabbit = "Canvas/Garden/Content/Station am-tra/Rabbit";
             var trigger = root.transform.Find(rabbit).GetComponent<UnityEngine.EventSystems.EventTrigger>();
             var data = new UnityEngine.EventSystems.PointerEventData(null) { button = UnityEngine.EventSystems.PointerEventData.InputButton.Left };

@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The mailbox (#68): letters the game writes itself, ten at most, thirty days each, claimed once.</summary>
     public class MailboxTests
     {
         List<StationDef> defs;
@@ -65,7 +64,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Season_Missed_Altogether_Leaves_A_Letter_When_The_Player_Comes_Back()
         {
-            // Last seen in August, back in October: Mid-Autumn (all of September) went by unseen.
             s.MailDay = D(2026, 8, 20);
             int added = Mailbox.Check(s, D(2026, 10, 5));
             Assert.AreEqual(1, added);
@@ -118,7 +116,6 @@ namespace VuonTra.Core.Tests
         {
             s.MailDay = D(2022, 1, 1);
             int added = Mailbox.Check(s, D(2026, 11, 23));
-            // Within the year before: Tết, Mid-Autumn 2026 and Christmas 2025 (from 23 Nov 2025).
             Assert.AreEqual(3, added);
             var seasons = new HashSet<Season>();
             foreach (Letter l in s.Letters) seasons.Add(l.Season);
