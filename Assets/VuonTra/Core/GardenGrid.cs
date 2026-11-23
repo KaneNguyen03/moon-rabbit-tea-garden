@@ -417,13 +417,27 @@ namespace VuonTra.Core
             foreach (Hex h in Strip(Segments))
             {
                 if (_occupantAt.ContainsKey(h) || IsReserved(h)) continue;
-                bool apart = true;
-                foreach (KeyValuePair<string, Hex> o in _tileOf)
-                    if (o.Key.StartsWith("station:") && Distance(o.Value, h) < spacing) { apart = false; break; }
-                if (apart) { found = h; return true; }
+                if (ApartFromStations(h, spacing, null, null)) { found = h; return true; }
             }
             return NearestEmpty(out found);
         }
+
+        /// <summary>True when no station but <paramref name="self"/> and <paramref name="partner"/> stands closer than <paramref name="spacing"/> tiles to <paramref name="h"/>.</summary>
+        bool ApartFromStations(Hex h, int spacing, string self, string partner)
+        {
+            foreach (KeyValuePair<string, Hex> o in _tileOf)
+                if (o.Key != self && o.Key != partner && o.Key.StartsWith("station:") && Distance(o.Value, h) < spacing) return false;
+            return true;
+        }
+
+        /// <summary>
+        /// Whether <paramref name="id"/> may stand on <paramref name="to"/> as far as the other stations go (#88): a station keeps
+        /// <see cref="Expansion.StationSpacing"/> tiles from every other, as the stations the game stands itself do, since its art is
+        /// about two tiles wide; a place to rest or a decoration may stand anywhere. <paramref name="partner"/>, the thing a swap
+        /// trades places with, is left out: the two keep the distance they had.
+        /// </summary>
+        public bool KeepsStationsApart(string id, Hex to, string partner = null) =>
+            id == null || !id.StartsWith("station:") || ApartFromStations(to, Expansion.StationSpacing, id, partner);
 
         // ----- Arranging the garden (#54) -----
 
@@ -437,20 +451,22 @@ namespace VuonTra.Core
         /// <summary>What the player may pick up and stand elsewhere: stations, places to rest and decorations; the props stay.</summary>
         public static bool Movable(string id) => id != null && (id.StartsWith("station:") || id.StartsWith("rest:") || id.StartsWith("decor:"));
 
-        /// <summary>Moves what stands on one tile to an empty lawn tile. False when nothing movable stands there, or the other tile is taken, reserved or off the lawn.</summary>
+        /// <summary>Moves what stands on one tile to an empty lawn tile. False when nothing movable stands there, the other tile is taken, reserved or off the lawn, or a station would stand next to another (#88).</summary>
         public bool Move(Hex from, Hex to)
         {
             if (from == to || !InLawn(to) || IsReserved(to) || _occupantAt.ContainsKey(to)) return false;
             if (!_occupantAt.TryGetValue(from, out string id) || !Movable(id)) return false;
+            if (!KeepsStationsApart(id, to)) return false;
             return Seat(id, to);
         }
 
-        /// <summary>Exchanges what stands on two tiles. False unless both hold something movable.</summary>
+        /// <summary>Exchanges what stands on two tiles. False unless both hold something movable and neither station lands next to another (#88).</summary>
         public bool Swap(Hex a, Hex b)
         {
             if (a == b || IsReserved(a) || IsReserved(b)) return false;
             if (!_occupantAt.TryGetValue(a, out string first) || !_occupantAt.TryGetValue(b, out string second)) return false;
             if (!Movable(first) || !Movable(second)) return false;
+            if (!KeepsStationsApart(first, b, second) || !KeepsStationsApart(second, a, first)) return false;
             _occupantAt[a] = second; _occupantAt[b] = first;
             _tileOf[first] = b; _tileOf[second] = a;
             return true;

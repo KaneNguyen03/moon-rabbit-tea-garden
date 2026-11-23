@@ -92,6 +92,23 @@ namespace VuonTra.Core.Tests
             return best;
         }
 
+        /// <summary>The empty tile with a ring nearest <paramref name="near"/> where <paramref name="carried"/> keeps clear of every other station (#88).</summary>
+        Hex ApartTileNear(Hex near, string carried)
+        {
+            Hex best = default;
+            int bestD = int.MaxValue;
+            foreach (Hex h in screen.LayoutEmptyTiles())
+            {
+                int d = GardenGrid.Distance(h, near);
+                if (d < bestD && S.Grid.KeepsStationsApart(carried, h)) { bestD = d; best = h; }
+            }
+            Assert.Less(bestD, int.MaxValue, "the lawn has a tile two from every station");
+            return best;
+        }
+
+        /// <summary>The dashed oval that marks the tile a carried thing would land on.</summary>
+        GameObject DropTarget => root.transform.Find("Canvas/Garden/Content/LayoutRings/Target").gameObject;
+
         /// <summary>Holds on a tile for the lift time, drags to another tile's point and lets go.</summary>
         void HoldDragDrop(Hex from, Vector2 to)
         {
@@ -157,7 +174,7 @@ namespace VuonTra.Core.Tests
         {
             screen.EnterLayoutMode();
             Hex from = TileOf(Id(1));
-            Hex to = EmptyTileNear(from);
+            Hex to = ApartTileNear(from, Id(1));
             screen.LookAt(GardenScreen.CellToWorld(from));
             RectTransform actor = Actor(1);
             float rest = actor.localScale.x;
@@ -214,6 +231,41 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(a, TileOf(Id(0)));
             Near(GardenScreen.CellToWorld(a), Actor(0).anchoredPosition, "the other one went to the free tile");
             Near(GardenScreen.CellToWorld(b), Actor(1).anchoredPosition, "and the carried one stands where the other stood");
+        }
+
+        [Test]
+        public void A_Station_Dropped_Beside_Another_Springs_Back_And_No_Tile_Lights_Up_There()
+        {
+            // #88: the leaf basket dropped on the tile right below the jam pot stood there, the two drawn over each other.
+            Motion.SetReduced(true);
+            screen.EnterLayoutMode();
+            Hex from = TileOf(Id(1)), jam = TileOf(Id(2));
+            Hex beside = default;
+            bool found = false;
+            foreach (Hex h in screen.LayoutEmptyTiles())
+                if (GardenGrid.Distance(h, jam) == 1 && GardenGrid.Distance(h, from) > 1) { beside = h; found = true; break; }
+            Assert.IsTrue(found, "an empty tile with a ring next to the jam pot");
+            Hex apart = ApartTileNear(beside, Id(1));
+            screen.LookAt((GardenScreen.CellToWorld(from) + GardenScreen.CellToWorld(beside)) / 2f);
+            Step(0.1f);
+            Vector2 home = Actor(1).anchoredPosition;
+
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(from));
+            Step(GardenScreen.LayoutHoldSeconds + 0.05f);
+            Assert.AreEqual(Id(1), screen.LayoutLifted);
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(apart));
+            Assert.IsTrue(DropTarget.activeSelf, "a tile two from every station lights up");
+            Near(GardenScreen.CellToWorld(apart), ((RectTransform)DropTarget.transform).anchoredPosition, "under the finger");
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(beside));
+            Assert.IsFalse(DropTarget.activeSelf, "the tile next to the jam pot does not light up");
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(beside));
+            Assert.IsNull(screen.LayoutLifted);
+            Assert.AreEqual(from, TileOf(Id(1)), "it springs back to its own tile");
+            Assert.IsNull(S.Grid.OccupantAt(beside.Q, beside.R));
+            Near(home, Actor(1).anchoredPosition, "and is drawn there");
+            Assert.IsFalse(DropTarget.activeSelf);
+
+            Assert.AreEqual(LayoutDrop.Back, runner.DropInLayout(from, beside), "the garden's rules say the same");
         }
 
         [Test]
@@ -292,7 +344,7 @@ namespace VuonTra.Core.Tests
         public void Done_After_A_Change_Builds_The_Garden_Again_Around_The_New_Places()
         {
             screen.EnterLayoutMode();
-            Hex from = TileOf(Id(3)), to = EmptyTileNear(TileOf(Id(0)));
+            Hex from = TileOf(Id(3)), to = ApartTileNear(TileOf(Id(0)), Id(3));
             screen.LookAt(GardenScreen.CellToWorld(from));
             HoldDragDrop(from, screen.LayoutViewPoint(to));
             screen.ExitLayoutMode();

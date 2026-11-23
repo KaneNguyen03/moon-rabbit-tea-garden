@@ -24,17 +24,17 @@ namespace VuonTra.Core.Tests
         {
             GardenGrid g = s.Grid;
             Hex jam = Tile(s, "station:jam");
-            Assert.IsNull(g.OccupantAt(-1, 1), "the test's empty tile");
-            Assert.IsTrue(g.Move(jam, new Hex(-1, 1)));
-            Assert.AreEqual(new Hex(-1, 1), Tile(s, "station:jam"));
+            Assert.IsNull(g.OccupantAt(-1, 2), "the test's empty tile, two from the teapot (#88)");
+            Assert.IsTrue(g.Move(jam, new Hex(-1, 2)));
+            Assert.AreEqual(new Hex(-1, 2), Tile(s, "station:jam"));
             Assert.IsNull(g.OccupantAt(jam.Q, jam.R), "the old tile is free again");
 
-            Assert.IsFalse(g.Move(new Hex(-1, 1), Tile(s, "station:tea")), "a taken tile is a swap, not a move");
-            Assert.IsFalse(g.Move(new Hex(-1, 1), new Hex(9, 0)), "off the lawn");
+            Assert.IsFalse(g.Move(new Hex(-1, 2), Tile(s, "station:tea")), "a taken tile is a swap, not a move");
+            Assert.IsFalse(g.Move(new Hex(-1, 2), new Hex(9, 0)), "off the lawn");
             Assert.IsFalse(g.Move(new Hex(0, 2), new Hex(0, 1)), "nothing stands on the tile to move from");
             Assert.IsFalse(g.Move(Tile(s, GardenGrid.MortarId), new Hex(0, 1)), "the props that come with the garden stay where they are");
-            Assert.IsFalse(g.Move(new Hex(-1, 1), new Hex(-1, 1)), "the same tile is no move");
-            Assert.AreEqual(new Hex(-1, 1), Tile(s, "station:jam"));
+            Assert.IsFalse(g.Move(new Hex(-1, 2), new Hex(-1, 2)), "the same tile is no move");
+            Assert.AreEqual(new Hex(-1, 2), Tile(s, "station:jam"));
         }
 
         [Test]
@@ -60,14 +60,75 @@ namespace VuonTra.Core.Tests
         public void Drop_Moves_On_An_Empty_Tile_Swaps_On_A_Taken_One_And_Goes_Back_Otherwise()
         {
             Hex jam = Tile(s, "station:jam"), tea = Tile(s, "station:tea");
-            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, jam, new Hex(0, 1)));
-            Assert.AreEqual(LayoutDrop.Swapped, Layout.Drop(defs, s, new Hex(0, 1), tea));
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, jam, new Hex(-1, 2)));
+            Assert.AreEqual(LayoutDrop.Swapped, Layout.Drop(defs, s, new Hex(-1, 2), tea));
             Assert.AreEqual(tea, Tile(s, "station:jam"));
-            Assert.AreEqual(new Hex(0, 1), Tile(s, "station:tea"));
+            Assert.AreEqual(new Hex(-1, 2), Tile(s, "station:tea"));
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, tea, new Hex(20, 0)), "outside the lawn: back where it was");
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, tea, tea));
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, tea, Tile(s, GardenGrid.MortarId)));
             Assert.AreEqual(tea, Tile(s, "station:jam"));
+        }
+
+        // ----- Stations keep apart (#88) -----
+
+        [Test]
+        public void A_Station_Cannot_Be_Moved_Onto_A_Tile_Next_To_Another_Station()
+        {
+            // #88: a station dropped right beside another was drawn over it, its level plate on the other's rabbit.
+            GardenGrid g = s.Grid;
+            Hex jam = Tile(s, "station:jam"), tea = Tile(s, "station:tea"), leaf = Tile(s, "station:leaf");
+            foreach (Hex h in new[] { new Hex(-1, 1), new Hex(0, 1), new Hex(1, 1), new Hex(3, 0) })
+            {
+                Assert.IsTrue(g.InLawn(h) && !GardenGrid.IsReserved(h) && g.OccupantAt(h.Q, h.R) == null, h + " is an empty lawn tile");
+                Assert.IsTrue(GardenGrid.Distance(h, tea) == 1 || GardenGrid.Distance(h, leaf) == 1, h + " is next to the teapot or the leaf basket");
+                Assert.IsFalse(g.Move(jam, h), "the jam pot is not moved to " + h);
+                Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, jam, h), "dropped on " + h + ": back where it was");
+                Assert.AreEqual(jam, Tile(s, "station:jam"));
+            }
+            Assert.AreEqual(Expansion.StationSpacing, GardenGrid.Distance(new Hex(-1, 2), tea), "the spacing the game keeps for the stations it stands itself");
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, jam, new Hex(-1, 2)), "two tiles from every station is fine");
+            Assert.AreEqual(new Hex(-1, 2), Tile(s, "station:jam"));
+        }
+
+        [Test]
+        public void A_Swap_Checks_Where_Both_Stations_Land()
+        {
+            GardenGrid g = s.Grid;
+            Hex tea = Tile(s, "station:tea");
+            // A save from before #88 may already have the jam pot touching the leaf basket.
+            Assert.IsTrue(g.Place("station:jam", 2, 1));
+            Hex jam = new Hex(2, 1);
+            Assert.AreEqual(1, GardenGrid.Distance(jam, Tile(s, "station:leaf")));
+            Assert.IsFalse(g.Swap(tea, jam), "the teapot would land beside the leaf basket");
+            Assert.IsFalse(g.Swap(jam, tea), "whichever of the two is carried");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, tea, jam));
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, jam, tea));
+            Assert.AreEqual(tea, Tile(s, "station:tea"));
+            Assert.AreEqual(jam, Tile(s, "station:jam"));
+            // A place to rest beside a station is fine, and the station that takes its tile lands two from the others.
+            Hex seat = Tile(s, "rest:0");
+            Assert.AreEqual(LayoutDrop.Swapped, Layout.Drop(defs, s, jam, seat), "the jam pot goes to the stump, the stump beside the leaf basket");
+            Assert.AreEqual(seat, Tile(s, "station:jam"));
+            Assert.AreEqual(jam, Tile(s, "rest:0"));
+            // Two stations that each land two from the rest swap as before.
+            Assert.IsTrue(g.Swap(tea, Tile(s, "station:leaf")));
+        }
+
+        [Test]
+        public void A_Decoration_Or_A_Place_To_Rest_May_Stand_Next_To_A_Station()
+        {
+            GardenGrid g = s.Grid;
+            Hex tea = Tile(s, "station:tea");
+            Assert.IsTrue(g.Move(Tile(s, "rest:0"), new Hex(-1, 1)), "a stump beside the teapot");
+            Assert.AreEqual(1, GardenGrid.Distance(Tile(s, "rest:0"), tea));
+            s.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(s, "den-da") && Decor.Place(s, 2, "den-da"));
+            Hex lantern = Tile(s, GardenGrid.DecorId(2));
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, lantern, new Hex(0, 1)), "a lantern beside the teapot");
+            Assert.AreEqual(LayoutDrop.Swapped, Layout.Drop(defs, s, new Hex(0, 1), new Hex(-1, 1)), "and the two swap beside it");
+            Assert.AreEqual(new Hex(-1, 1), Tile(s, GardenGrid.DecorId(2)));
+            Assert.AreEqual(new Hex(0, 1), Tile(s, "rest:0"));
         }
 
         [Test]
@@ -193,13 +254,13 @@ namespace VuonTra.Core.Tests
         public void The_Store_Survives_A_Save_And_An_Old_Save_Stores_Nothing()
         {
             Assert.IsTrue(Layout.Store(defs, s, "station:jam"));
-            Assert.IsTrue(s.Grid.Move(Tile(s, "station:leaf"), new Hex(0, 1)));
+            Assert.IsTrue(s.Grid.Move(Tile(s, "station:leaf"), new Hex(-1, 2)));
             string json = SaveCodec.Encode(defs, s);
             StringAssert.Contains("\"stored\":[\"station:jam\"]", json);
             GameState back = SaveCodec.Decode(defs, json).State;
             Assert.IsTrue(back.Grid.IsStored("station:jam"));
             Assert.IsNull(back.Grid.TileOf("station:jam"));
-            Assert.AreEqual(new Hex(0, 1), back.Grid.TileOf("station:leaf"));
+            Assert.AreEqual(new Hex(-1, 2), back.Grid.TileOf("station:leaf"));
             Assert.AreEqual(3, back.Levels[2]);
             Assert.AreEqual(SaveCodec.Encode(defs, s), SaveCodec.Encode(defs, back), "the same garden writes the same text");
 
@@ -220,7 +281,7 @@ namespace VuonTra.Core.Tests
         {
             GameState other = GameState.NewGame(defs);
             other.Levels[1] = 5; other.Levels[2] = 3;
-            Assert.IsTrue(other.Grid.Move(other.Grid.TileOf("station:jam").Value, new Hex(0, 1)), "only moved");
+            Assert.IsTrue(other.Grid.Move(other.Grid.TileOf("station:jam").Value, new Hex(-1, 2)), "only moved");
             Assert.AreEqual(Economy.IncomePerSecond(defs, s).ToDouble(), Economy.IncomePerSecond(defs, other).ToDouble(), 1e-12, "where a station stands does not change what it earns");
         }
     }
