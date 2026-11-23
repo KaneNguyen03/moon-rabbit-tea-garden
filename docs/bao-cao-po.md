@@ -2015,6 +2015,18 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Luật thu nhập ngày 7 ≤ ×10 so từng hạt chỉ đạt đúng 15/17, do thu nhập của người mua từng cấp dao động nhiều giữa các hạt.
 - Người chơi chăm đạt cấp 15 trong buổi đầu nên khóa không đổi tuần của họ; #101 không đặt luật cho họ.
 
+## #8, #88 — Hai issue QA 24/11 trả lại (B tự sửa)
+
+**Test:** Core 715/715; `tools/verify.sh` đầy đủ trên main sau gộp: GREEN 1300/1301 (1 test mùa không kết luận từ trước), rules ok.
+**Commit:** `61ec439` (#8), `e37d46e` (#88), gộp main `fe4ce49`.
+
+**Đã làm:**
+- #8: gọi vàng trong mùa mà không ra loài mùa thì giờ ra được đủ 10 loài Vàng thường, trước chỉ 5 loài. Test mới đếm đủ 10 loài.
+- #88: trạm lấy ra khỏi kho trong Bố trí đứng ở ô trống gần tâm nhất mà cách mọi trạm ít nhất 2 ô, không còn đứng sát ấm trà. Test mới với vườn 4/8/12 trạm; hai test cũ đổi theo luật mới.
+
+### Chưa đạt / cần PO quyết
+- #88: vòng nét đứt trên ô sát trạm khi đang cầm; save cũ đã chồng không tự dời; hai trạm vốn sát nhau có được đổi chỗ không.
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
