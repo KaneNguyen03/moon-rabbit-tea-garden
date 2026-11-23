@@ -23,7 +23,7 @@ namespace VuonTra.Core.Tests
         System.Random rng;
         double clock; // seconds of the player's day
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
-        readonly double[] waveLevelAt = new double[Expansion.Rings.Length], waveRabbitsAt = new double[Expansion.Rings.Length], waveTakenAt = new double[Expansion.Rings.Length];
+        readonly double[] waveLevelAt = new double[Expansion.Table.Length], waveRabbitsAt = new double[Expansion.Table.Length], waveTakenAt = new double[Expansion.Table.Length];
         int summoned;
         /// <summary>How the simulated player plays: taps a second, seconds between purchases, seconds between looking at quests.</summary>
         int tapsPerSecond = 1, buyEvery = 3, buysAtOnce = 1, questEvery = 30;
@@ -229,8 +229,8 @@ namespace VuonTra.Core.Tests
             {
                 if (Expansion.Expand(defs, s))
                 {
-                    if (Expansion.RingsTaken(s) <= waveTakenAt.Length) waveTakenAt[Expansion.RingsTaken(s) - 1] = clock; // the forest stepped back a ring (#53)
-                    if (Expansion.Radius(s) == 7) ringSevenDay = today; // all twelve plots
+                    if (Expansion.Segments(s) <= waveTakenAt.Length) waveTakenAt[Expansion.Segments(s) - 1] = clock; // a segment of the strip came out of the mist
+                    if (Expansion.Segments(s) == 4) ringSevenDay = today; // all twelve plots: the fourth segment, the old R 7
                     mods = Modifiers.From(ups, s); // one more place to rest (#60)
                     continue;
                 }
@@ -279,9 +279,9 @@ namespace VuonTra.Core.Tests
             int level = Garden.Level(s);
             for (int l = 2; l <= level; l++)
                 if (!levelAt.ContainsKey(l)) levelAt[l] = clock;
-            for (int w = 0; w < Expansion.Rings.Length; w++)
+            for (int w = 0; w < Expansion.Table.Length; w++)
             {
-                ForestRing wave = Expansion.Rings[w];
+                MistSegment wave = Expansion.Table[w];
                 if (waveLevelAt[w] < 0 && level >= wave.NeedLevel) waveLevelAt[w] = clock;
                 if (waveRabbitsAt[w] < 0 && s.Rabbits.Count >= wave.NeedRabbits && s.SeenKinds.Count >= wave.NeedKinds) waveRabbitsAt[w] = clock;
             }
@@ -470,7 +470,7 @@ namespace VuonTra.Core.Tests
             report.AppendLine("Người chơi không nghỉ tay (3 chạm/giây, 4 lần mua mỗi giây, nhận nhiệm vụ ngay), hạt " + Seed);
             report.AppendLine(FrogLine());
             report.AppendLine(FishLine());
-            report.AppendLine("  sau 20 phút: xp " + (int)xp20 + " (cấp " + at20 + "); cuối ngày 1: xp " + (int)s.GardenXp + " (cấp " + Garden.Level(s) + "), " + s.Rabbits.Count + " thỏ, " + s.Plots + " ô đất (R " + Expansion.Radius(s) + ")");
+            report.AppendLine("  sau 20 phút: xp " + (int)xp20 + " (cấp " + at20 + "); cuối ngày 1: xp " + (int)s.GardenXp + " (cấp " + Garden.Level(s) + "), " + s.Rabbits.Count + " thỏ, " + s.Plots + " ô đất (" + Expansion.Segments(s) + " đoạn)");
             foreach (int level in new[] { 3, 5, 6, 10, 15 })
                 report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt"));
             report.AppendLine("Diễn biến:");
@@ -535,10 +535,10 @@ namespace VuonTra.Core.Tests
             report.AppendLine("Ngày 1: chơi 20 phút, rồi 4 lần ghé 5 phút cách nhau 2 giờ (tổng " + (int)(activeDayOne / 60) + " phút chơi)");
             foreach (int level in new[] { 2, 3, 5, 6, 10, 15, 16 })
                 report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt trong 7 ngày"));
-            report.AppendLine("Cuối ngày 1: cấp " + levelDayOne + "; cuối ngày 7: cấp " + Garden.Level(s) + ", " + s.Rabbits.Count + " thỏ, " + s.SeenKinds.Count + " loài đã gặp, " + s.Plots + " ô đất (R " + Expansion.Radius(s) + "), đã gọi " + summoned + " lần");
+            report.AppendLine("Cuối ngày 1: cấp " + levelDayOne + "; cuối ngày 7: cấp " + Garden.Level(s) + ", " + s.Rabbits.Count + " thỏ, " + s.SeenKinds.Count + " loài đã gặp, " + s.Plots + " ô đất (" + Expansion.Segments(s) + " đoạn), đã gọi " + summoned + " lần");
             report.AppendLine("Sổ thỏ: cuối ngày 1 đủ " + setsDayOne.Count + " bộ (" + string.Join(", ", setsDayOne.ConvertAll(x => x.Key)) + "), cuối ngày 7 đủ " + AlbumSets.Completed(s).Count + " bộ (" + string.Join(", ", AlbumSets.Completed(s).ConvertAll(x => x.Key)) + ")");
             for (int w = 0; w < waveLevelAt.Length; w++)
-                report.AppendLine("  vòng rừng R " + Expansion.Rings[w].RadiusAfter + ": đủ cấp lúc " + Clock(waveLevelAt[w]) + ", đủ thỏ lúc " + Clock(waveRabbitsAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
+                report.AppendLine("  đoạn " + Expansion.Table[w].SegmentsAfter + ": đủ cấp lúc " + Clock(waveLevelAt[w]) + ", đủ thỏ lúc " + Clock(waveRabbitsAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
             report.AppendLine(JarLine() + "; mở ngay khi ví cho mở (cấp vườn 3)");
             report.AppendLine(FrogLine());
             report.AppendLine(FishLine());
@@ -664,16 +664,16 @@ namespace VuonTra.Core.Tests
             Begin(Seed);
             CasualWeek(14);
             var report = new StringBuilder();
-            report.AppendLine("Bốn trạm mới (#67), người chơi thong thả như trên, chơi tới ngày 14, hạt " + Seed + "; đất cho trạm 13–16 là vòng rừng R 8 (cấp " + Expansion.Ring(8).NeedLevel + ") và R 9 (cấp " + Expansion.Ring(9).NeedLevel + "), giá một phần tư giá hai trạm.");
+            report.AppendLine("Bốn trạm mới (#67), người chơi thong thả như trên, chơi tới ngày 14, hạt " + Seed + "; đất cho trạm 13–16 là đoạn 5 (cấp " + Expansion.Segment(5).NeedLevel + ") và đoạn 6 (cấp " + Expansion.Segment(6).NeedLevel + "), giá một phần tư giá hai trạm.");
             for (int i = 12; i < defs.Count; i++) report.AppendLine(NewStationLine(i));
             for (int w = 0; w < waveLevelAt.Length; w++)
-                report.AppendLine("  vòng rừng R " + Expansion.Rings[w].RadiusAfter + " (cấp " + Expansion.Rings[w].NeedLevel + "): đủ cấp lúc " + Clock(waveLevelAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
+                report.AppendLine("  đoạn " + Expansion.Table[w].SegmentsAfter + " (cấp " + Expansion.Table[w].NeedLevel + "): đủ cấp lúc " + Clock(waveLevelAt[w]) + ", mở lúc " + Clock(waveTakenAt[w]));
             foreach (int level in new[] { 10, 15, 16, 18, 20, 22, 23 })
                 report.AppendLine("  cấp vườn " + level + ": " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt"));
             var days = new List<string>();
             foreach (KeyValuePair<long, int> d in levelOnDay) days.Add("ngày " + d.Key + ": " + d.Value);
             report.AppendLine("  cấp vườn cuối mỗi ngày: " + string.Join(", ", days));
-            report.AppendLine("Cuối ngày 14: cấp " + Garden.Level(s) + ", thu/giây " + Economy.IncomePerSecond(defs, s).ToShortString() + ", " + s.Plots + " ô đất, bãi cỏ R " + Expansion.Radius(s));
+            report.AppendLine("Cuối ngày 14: cấp " + Garden.Level(s) + ", thu/giây " + Economy.IncomePerSecond(defs, s).ToShortString() + ", " + s.Plots + " ô đất, " + Expansion.Segments(s) + " đoạn");
             report.AppendLine("Trên " + Seeds.Length + " hạt: trạm 13 mở ngày " + Median(runs, r => r.Station13Day < 0 ? 99 : r.Station13Day) + " (trung vị; " + Count(runs, r => r.Station13Day >= 3 && r.Station13Day <= 5) + " hạt trong ngày 3–5), trạm 16 ngày "
                 + Median(runs, r => r.Station16Day < 0 ? 99 : r.Station16Day) + " (" + Count(runs, r => r.Station16Day >= 8 && r.Station16Day <= 12) + " hạt trong ngày 8–12), cấp ngày 14 trung vị " + Median(runs, r => r.LevelEnd) + " (Mùa trăng mới ở cấp " + NewMoon.FirstLevel + ": " + Count(runs, r => r.LevelEnd >= NewMoon.FirstLevel) + " hạt tới).");
             System.IO.Directory.CreateDirectory("Logs");

@@ -735,7 +735,7 @@ namespace VuonTra.EditorTools
             screen.LookAt(side);
             Step(screen, 0.3f);
             Capture(screen, "51-mua-dot-1-truoc");
-            s.Plots = Expansion.PlotsForRadius(runner.Defs, Expansion.Rings[0].RadiusAfter);
+            s.Plots = Expansion.PlotsForSegments(runner.Defs, 1);
             screen.Refresh();
             Step(screen, GardenScreen.RimStep * 0.4f);
             Capture(screen, "51-mua-dot-1-giua");
@@ -743,9 +743,9 @@ namespace VuonTra.EditorTools
             Capture(screen, "51-mua-dot-1-sau");
 
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
-            for (int wave = 0; wave <= Expansion.Rings.Length; wave++)
+            for (int wave = 0; wave <= Expansion.Table.Length; wave++)
             {
-                int plots = wave == 0 ? Plots.Starting : Expansion.PlotsForRadius(runner.Defs, Expansion.Rings[wave - 1].RadiusAfter);
+                int plots = Expansion.PlotsForSegments(runner.Defs, wave);
                 for (int i = 0; i < s.Levels.Length; i++) s.Levels[i] = i < plots - 2 || i < Plots.Starting ? Mathf.Max(1, 6 - i) : 0;
                 s.Plots = plots;
                 screen.Refresh();
@@ -1316,7 +1316,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.6f);
             for (int ring = 0; ring < 2; ring++)
             {
-                ForestRing next = Expansion.Next(runner.Defs, s);
+                MistSegment next = Expansion.Next(runner.Defs, s);
                 s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
                 while (s.Rabbits.Count < next.NeedRabbits) Rabbits.Arrive(s, 0, "Thỏ " + (s.Rabbits.Count + 1), (s.Rabbits.Count * 0.37) % 1d);
                 s.Coins = Expansion.CostOfNext(runner.Defs, s) * new BigNum(1.2);
@@ -1327,7 +1327,7 @@ namespace VuonTra.EditorTools
                 Step(screen, 0.2f);
                 Capture(screen, "53-vong-" + (ring + 1) + "-xa-truoc");
                 screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-                screen.LookAt(screen.ForestSignSpot + new Vector2(screen.ForestSignSpot.x < 540f ? 380f : -380f, 120f));
+                screen.LookAt(screen.ForestSignSpot + new Vector2(screen.ForestSignSpot.x < GardenScreen.CellToWorld(new Hex(0, 0)).x ? 380f : -380f, 120f));
                 Step(screen, 0.3f);
                 Capture(screen, "53-vong-" + (ring + 1) + "-truoc");
                 if (ring == 0)

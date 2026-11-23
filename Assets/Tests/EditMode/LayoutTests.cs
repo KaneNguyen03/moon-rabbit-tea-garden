@@ -160,7 +160,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Layout.Store(defs, s, "station:jam"));
             GardenGrid g = s.Grid;
             int n = 0;
-            foreach (Hex h in GardenGrid.Spiral(g.Radius)) if (g.OccupantAt(h.Q, h.R) == null) g.Place("decor:" + (100 + n++), h.Q, h.R, true);
+            foreach (Hex h in GardenGrid.Strip(g.Segments)) if (g.OccupantAt(h.Q, h.R) == null) g.Place("decor:" + (100 + n++), h.Q, h.R, true);
             Assert.IsFalse(g.NearestEmpty(out _));
             Assert.IsFalse(Layout.TakeOut(defs, s, 2));
             Assert.IsTrue(g.IsStored("station:jam"));

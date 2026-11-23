@@ -23,11 +23,10 @@ namespace VuonTra.Game.UI
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
-        // The lawn is as wide as the portrait screen and only scrolls up and down. At the usual zoom the screen is
-        // wider than the lawn, so it sits in the middle with open grass and, further out, the wood past both sides (#50).
-        // Room below the last station, so it can scroll clear of the docked card; and 800 more at the top (#67b), where the
-        // land of the eighth and ninth rings meets the lawn and the four stations after the star observatory stand.
-        const float WorldW = 1080f, WorldH = 3770f;
+        // The garden is a horizontal strip (the horizontal garden, 23 Nov): seven rows of tiles, as wide as every segment of
+        // the catalog's land (GardenGrid: 25 doubled columns each side of the teapot, 1950 units) plus 450 of wood at each end,
+        // and about 1.2 times the height the view shows between the HUD and the tab bar at the usual zoom.
+        const float WorldW = 4800f, WorldH = 2200f;
         /// <summary>The feet of the nearest trees of the wood stand this far past the lawn's sides: clear of every station by 200 and more.</summary>
         const float RimLeft = -300f, RimRight = WorldW + 310f;
         /// <summary>No tree of the wood comes nearer than this to a station's sign, pad, rabbit or prop, or to the props that must be read (#50).</summary>
@@ -263,10 +262,10 @@ namespace VuonTra.Game.UI
         const float SheetLeast = 260f, SheetSink = 90f, SheetFling = 1100f, SheetFoot = 196f;
         /// <summary>How far the garden's bottom edge may rise while a sheet is open, so the lowest stations can come above it.</summary>
         const float SheetLift = SheetHalf - TabCover;
-        /// <summary>The moon pond at the top of the garden, where the camera starts from.</summary>
-        public static Vector2 PondSpot => Heart + new Vector2(330f, 900f);
+        /// <summary>The moon pond at the top left of the middle of the strip, where the camera starts from.</summary>
+        public static Vector2 PondSpot => Heart + new Vector2(-450f, 430f);
         /// <summary>Nothing that must be read stands further right than this: the canopy's crowns reach in from the edge.</summary>
-        public const float ReadableRight = 1000f;
+        public const float ReadableRight = WorldW - 80f;
         int _sheetRun, _glideRun;
         float _sheetDragSpeed;
 
@@ -384,8 +383,8 @@ namespace VuonTra.Game.UI
             UpdateRain(dt); // last: over the lanterns' flicker and the seats' poses of this frame (#62)
         }
 
-        /// <summary>The teapot stands here, in the middle of the garden; everything else is placed around it.</summary>
-        static readonly Vector2 Heart = new Vector2(540f, 1620f);
+        /// <summary>The teapot stands here, in the middle of the strip; everything else is placed around it.</summary>
+        static readonly Vector2 Heart = new Vector2(WorldW / 2f, WorldH / 2f);
 
         /// <summary>
         /// Where each station stands, as an offset from the teapot, in the order they open. Placed by hand:
@@ -439,18 +438,12 @@ namespace VuonTra.Game.UI
         /// </summary>
         public const float ZoomFar = ScreenH / FarSpan, ZoomDefault = 0.83f, ZoomNear = 1.5f;
         /// <summary>
-        /// How much of the garden's height the far view shows while the lawn is seven rings or fewer: from the resting corner
-        /// to the shop, as before the top band of #67b. <see cref="ZoomFar"/> is that far.
+        /// How much garden height the far view spans: more than the strip is tall, so the whole strip sits in the middle, clear
+        /// of the HUD and the tab bar, with as much of its width as the zoom allows. <see cref="ZoomFar"/> is that far.
         /// </summary>
         const float FarSpan = 2970f;
-        /// <summary>The ring from which the band above the shop is land (#67b): from there far shows the whole garden.</summary>
-        const int TopBandRing = 8;
-        /// <summary>
-        /// The far zoom for this garden: <see cref="ZoomFar"/> until a ring past R 7 is open, then far enough back for the whole
-        /// garden top to bottom between the HUD and the tab bar (it sits in the middle), so the row of the four newest stations
-        /// is in view with the rest and the stations at the foot stay clear of the tab bar (#67 follow-up).
-        /// </summary>
-        public float FarZoom => Runner != null && Runner.State != null && Expansion.Radius(Runner.State) >= TopBandRing ? (ScreenH - HudCover - TabCover) / WorldH : ZoomFar;
+        /// <summary>The far zoom for this garden: <see cref="ZoomFar"/>, which shows the strip's whole height between the HUD and the tab bar.</summary>
+        public float FarZoom => ZoomFar;
         float _zoom = ZoomDefault;
         Text _zoomMark, _levelText;
         Image _levelRing;
@@ -487,13 +480,17 @@ namespace VuonTra.Game.UI
         /// <summary>Where a point of the garden is on the screen (canvas units from the bottom left).</summary>
         Vector2 ToView(Vector2 world) => world * _zoom + _street.anchoredPosition;
 
-        /// <summary>Keeps the view inside the garden; when the garden is smaller than the screen it sits in the middle.</summary>
+        /// <summary>
+        /// Keeps the view inside the garden; when the garden is smaller than the screen it sits in the middle. The strip is
+        /// shorter than the screen at the usual zoom (the horizontal garden), so it sits in the middle top to bottom, and rises
+        /// no further than <paramref name="lift"/> while a sheet or the card stands over the foot of the screen.
+        /// </summary>
         static Vector2 ClampView(Vector2 pos, float zoom, float lift = 0f)
         {
-            float w = WorldW * zoom, h = WorldH * zoom;
+            float w = WorldW * zoom, h = WorldH * zoom, middle = (ScreenH - h) / 2f;
             return new Vector2(
                 w <= ScreenW ? (ScreenW - w) / 2f : Mathf.Clamp(pos.x, ScreenW - w, 0f),
-                h <= ScreenH ? (ScreenH - h) / 2f : Mathf.Clamp(pos.y, ScreenH - h, lift));
+                h <= ScreenH ? Mathf.Clamp(pos.y, middle, Mathf.Max(middle, lift)) : Mathf.Clamp(pos.y, ScreenH - h, lift));
         }
 
         /// <summary>Scales the garden so the point under <paramref name="pivotView"/> stays where it is.</summary>
@@ -2472,8 +2469,11 @@ namespace VuonTra.Game.UI
 
         // ----- #51: the forest rim and the land not bought yet -----
 
-        /// <summary>The forest rim at its nearest comes to this line at the lawn's sides: its pieces end where the grass ends.</summary>
-        const float RimHugLeft = 40f, RimHugRight = WorldW - 40f;
+        /// <summary>
+        /// The forest rim at its nearest comes to the open lawn's end on each side (the horizontal garden): its pieces end where
+        /// the grass ends, and step out with the lawn as segments open.
+        /// </summary>
+        static float RimHug(int side, int plots) => LawnEdgeX(GardenGrid.SegmentsForPlots(plots), side < 0 ? GardenSide.Left : GardenSide.Right);
         /// <summary>How long a piece of the rim takes to step back when new land opens: it fades out, and in again further off.</summary>
         public const float RimStep = 0.6f;
 
@@ -2554,9 +2554,12 @@ namespace VuonTra.Game.UI
         float RimX(RimPiece p, int plots)
         {
             float x = 0f;
-            for (int n = 0; n < 60; n++)
+            // The steps out are counted from the teapot, not from the lawn's end, so a piece never steps back in when the
+            // lawn widens; and they go on to the end of the world, past the plots of every segment still to open.
+            int first = Mathf.CeilToInt((Mathf.Abs(RimHug(p.Side, plots) - Heart.x)) / 20f);
+            for (int n = first; n < first + (int)(WorldW / 20f); n++)
             {
-                float edge = p.Side < 0 ? RimHugLeft - p.Depth - n * 20f : RimHugRight + p.Depth + n * 20f;
+                float edge = Heart.x + p.Side * (p.Depth + n * 20f);
                 x = edge + p.Side * p.Width / 2f;
                 if (RimClear(Rect.MinMaxRect(x - p.Width / 2f, p.Y, x + p.Width / 2f, p.Y + p.Height), plots)) return x;
             }
@@ -4021,7 +4024,7 @@ namespace VuonTra.Game.UI
         /// </summary>
         static string ExpansionNeeds(IReadOnlyList<StationDef> defs, GameState s)
         {
-            ForestRing wave = Expansion.Next(defs, s);
+            MistSegment wave = Expansion.Next(defs, s);
             if (wave == null) return "";
             string Mark(bool met, string text) => "<color=#" + (met ? "2E7D4F" : "B4532A") + ">" + text + "</color>";
             int level = Garden.Level(s);
@@ -4043,7 +4046,7 @@ namespace VuonTra.Game.UI
             if (_plotRow.GetSiblingIndex() != s.Plots + 1) _plotRow.SetSiblingIndex(s.Plots + 1); // after the upgrade-all row and the owned plots
             BigNum cost = Plots.CostOfNext(defs, s);
             bool can = Expansion.CanExpand(defs, s);
-            _plotTitle.text = L10n.T("forest.title", Expansion.RingsTaken(s) + 1); // #53
+            _plotTitle.text = L10n.T("forest.title", Expansion.Segments(s) + 1); // #53, a segment of the strip since the horizontal garden
             _plotSub.text = ExpansionNeeds(defs, s);
             _plotCost.text = cost.Short();
             _plotCost.color = ChunkyButton.InkFor(can);
@@ -4141,7 +4144,9 @@ namespace VuonTra.Game.UI
             if (_edgeDown.gameObject.activeSelf != (down > 0)) _edgeDown.gameObject.SetActive(down > 0);
             if (up > 0) _edgeUpText.text = "▲ " + up;
             if (down > 0) _edgeDownText.text = "▼ " + down;
-            bool far = shown && _actors.Count > 0 && Mathf.Abs(ViewPointOf(0).y - ScreenH / 2f) > ScreenH / 2f + 160f;
+            // The way home shows once the teapot is out of view above, below or, on the strip, to either side.
+            Vector2 pot = _actors.Count > 0 ? ViewPointOf(0) : default;
+            bool far = shown && _actors.Count > 0 && (Mathf.Abs(pot.y - ScreenH / 2f) > ScreenH / 2f + 160f || Mathf.Abs(pot.x - ScreenW / 2f) > ScreenW / 2f + 160f);
             if (_home.activeSelf != far) _home.SetActive(far);
         }
 
@@ -4826,8 +4831,8 @@ namespace VuonTra.Game.UI
         public OrderView OrderCard { get; private set; }
         /// <summary>Where a guest stands to order: in front of the tea shop, at the counter's open side; the counter's tile of the grid (#52).</summary>
         public Vector2 GuestSpot => PropSpot(GardenGrid.CounterId);
-        /// <summary>Where a guest comes in from and goes back to: off the garden's left edge, at the counter's height.</summary>
-        Vector2 GuestEntry => new Vector2(-90f, GuestSpot.y - 40f);
+        /// <summary>Where a guest comes in from and goes back to: from the left, as far from the counter as the column garden's left edge was, at the counter's height.</summary>
+        Vector2 GuestEntry => new Vector2(GuestSpot.x - 855f, GuestSpot.y - 40f);
         /// <summary>How long the walk to the counter takes.</summary>
         public const float GuestWalkSeconds = 2.4f;
         enum GuestPhase { Away, Arriving, Waiting, Bowing, Leaving }
@@ -5063,9 +5068,9 @@ namespace VuonTra.Game.UI
         /// </summary>
         static readonly Vector2[] Lawn =
         {
-            new Vector2(780f, 320f), new Vector2(220f, 760f), new Vector2(620f, 800f), new Vector2(410f, 870f),
-            new Vector2(540f, 1390f), new Vector2(340f, 1420f), new Vector2(740f, 1420f), new Vector2(380f, 1790f),
-            new Vector2(620f, 1990f), new Vector2(460f, 2060f),
+            Heart + new Vector2(-380f, -30f), Heart + new Vector2(-700f, -190f), Heart + new Vector2(670f, 30f), Heart + new Vector2(-950f, -20f),
+            Heart + new Vector2(1030f, -400f), Heart + new Vector2(-1370f, 400f), Heart + new Vector2(-60f, 310f), Heart + new Vector2(60f, -300f),
+            Heart + new Vector2(520f, -510f), Heart + new Vector2(-770f, 520f),
         };
         static readonly Vec2[] LawnCore = System.Array.ConvertAll(Lawn, v => new Vec2(v.x, v.y));
         public static IReadOnlyList<Vector2> LawnSpots => Lawn;
@@ -6170,9 +6175,9 @@ namespace VuonTra.Game.UI
         RectTransform _forestSign;
         ChunkyButton _forestSignButton;
         Text _forestSignText;
-        /// <summary>Tufts of new grass for every ring the garden can still open, the nearest ring first; hidden until their ring opens.</summary>
+        /// <summary>Tufts of new grass for every segment the garden can still open, the first first; hidden until their segment opens.</summary>
         readonly List<CanvasGroup> _ringGrass = new List<CanvasGroup>();
-        /// <summary>The lawn's rings as last drawn, and the plots the sign was last placed for.</summary>
+        /// <summary>The lawn's open segments as last drawn, and the plots the sign was last placed for.</summary>
         int _ringShown = -1, _signPlots = -1;
         const float ForestSignW = 230f, ForestSignH = 104f, ForestPostH = 80f;
         /// <summary>The sign's middle stands this far in from the garden's side, on the edge line where the wood begins, so all of its board is in view.</summary>
@@ -6180,15 +6185,15 @@ namespace VuonTra.Game.UI
         /// <summary>New grass and the sign keep this far from the garden's top and bottom, where the wood closes over the lawn.</summary>
         const float RingGrassBand = 540f;
 
-        /// <summary>Where the sign's foot stands in the garden: at the lawn's edge, beside the land the next ring opens.</summary>
+        /// <summary>Where the sign's foot stands in the garden: at the lawn's edge, beside the land the next segment opens.</summary>
         public Vector2 ForestSignSpot { get; private set; }
 
         /// <summary>
-        /// Where new grass comes up when a ring opens: on the ring's tiles that lie on the lawn clear of every station, seat and
-        /// prop, and at the lawn's edge where a piece of the rim stood before it stepped back for this ring. Only rows the view
+        /// Where new grass comes up when a segment opens: on the segment's tiles that lie clear of every station, seat and
+        /// prop, and at the lawn's edge where a piece of the rim stood before it stepped back for this segment. Only rows the view
         /// can bring clear of the tab bar and the HUD at every zoom; the wood closes over the rest.
         /// </summary>
-        List<Vector2> RingGrassSpots(int radius, int stations)
+        List<Vector2> RingGrassSpots(int segment, int stations)
         {
             var spots = new List<Vector2>();
             void Add(Vector2 at)
@@ -6197,12 +6202,12 @@ namespace VuonTra.Game.UI
                 foreach (Vector2 other in spots) if (Vector2.Distance(other, at) < 60f) return;
                 spots.Add(at);
             }
-            foreach (Hex h in GardenGrid.Ring(radius))
+            foreach (Hex h in GardenGrid.SegmentTiles(segment))
             {
                 Vector2 at = CellToWorld(h) + new Vector2(0f, -60f);
                 if (RingGrassClear(at, stations)) Add(at);
             }
-            int before = Expansion.PlotsForRadius(Runner.Defs, radius - 1), after = Expansion.PlotsForRadius(Runner.Defs, radius);
+            int before = Expansion.PlotsForSegments(Runner.Defs, segment - 1), after = Expansion.PlotsForSegments(Runner.Defs, segment);
             foreach (RimPiece piece in _rim)
             {
                 float from = RimX(piece, before);
@@ -6236,13 +6241,14 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>
-        /// Where the sign's foot stands for the land of station <paramref name="next"/>: at the lawn's edge on that land's side,
-        /// a little below it, moved up or down the edge until it covers no plate in the garden.
+        /// Where the sign's foot stands for the next segment, whose land holds station <paramref name="next"/>: at the open
+        /// lawn's edge on the side the segment opens, at the height of that station, moved up or down the edge until it covers
+        /// no plate in the garden.
         /// </summary>
-        Vector2 ForestSignSpotFor(int next)
+        Vector2 ForestSignSpotFor(int next, int segments)
         {
             Vector2 plot = StationSpot(next);
-            float x = plot.x < WorldW / 2f ? ForestSignOut : WorldW - ForestSignOut;
+            float x = LawnEdgeX(segments, GardenGrid.SideOf(segments + 1));
             var plates = new List<Rect>();
             foreach (RectTransform rt in _street.GetComponentsInChildren<RectTransform>(true))
                 if (rt.name == "Level" || rt.name == "Plate") plates.Add(StreetRect(rt));
@@ -6258,12 +6264,20 @@ namespace VuonTra.Game.UI
             return new Vector2(x, start);
         }
 
+        /// <summary>The x of the open lawn's edge on one side with this many segments open: half a tile past the last tile of its rows.</summary>
+        static float LawnEdgeX(int segments, GardenSide side)
+        {
+            int along = side == GardenSide.Left ? GardenGrid.LeftOf(segments) : GardenGrid.RightOf(segments);
+            float half = (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * along + 1) * (float)GardenGrid.PitchX / 2f;
+            return Heart.x + (side == GardenSide.Left ? -half : half);
+        }
+
         void BuildForestRing(GameCatalog catalog, int stations)
         {
             _ringGrass.Clear();
             _ringShown = _signPlots = -1;
-            for (int r = GardenGrid.StartingRadius + 1; r <= Expansion.LastRadius(Runner.Defs); r++)
-                _ringGrass.Add(BuildRingGrass(catalog, r, stations));
+            for (int n = 1; n <= Expansion.LastSegments(Runner.Defs); n++)
+                _ringGrass.Add(BuildRingGrass(catalog, n, stations));
 
             // On the canopy, over the trees of the rim it stands among, so they never hide it; last, so nothing there covers it.
             Transform parent = _canopy != null ? _canopy : (Transform)_street;
@@ -6281,21 +6295,21 @@ namespace VuonTra.Game.UI
             _forestSign.gameObject.SetActive(false);
         }
 
-        /// <summary>A few blades of fresh grass and now and then a flower on each of a ring's grass spots: hidden until the ring opens, and then they stay.</summary>
-        CanvasGroup BuildRingGrass(GameCatalog catalog, int radius, int stations)
+        /// <summary>A few blades of fresh grass and now and then a flower on each of a segment's grass spots: hidden until the segment opens, and then they stay.</summary>
+        CanvasGroup BuildRingGrass(GameCatalog catalog, int segment, int stations)
         {
-            var ring = UiKit.Rect("Ring Grass " + radius, _street).Stretch(0, 0, 1, 1);
+            var ring = UiKit.Rect("Segment Grass " + segment, _street).Stretch(0, 0, 1, 1);
             CanvasGroup group = ring.gameObject.AddComponent<CanvasGroup>();
             group.blocksRaycasts = false;
             Color[] blades = { Palette.Alpha(Palette.Moss, 0.8f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Paper, 0.3f), 0.75f), Palette.Alpha(Palette.Mix(Palette.Moss, Palette.Grass, 0.4f), 0.85f) };
             Color[] petals = { Palette.Blush, Palette.Lantern, Palette.Paper };
-            List<Vector2> spots = RingGrassSpots(radius, stations);
+            List<Vector2> spots = RingGrassSpots(segment, stations);
             for (int n = 0; n < spots.Count; n++)
             {
                 Vector2 at = spots[n];
                 var tuft = UiKit.Rect("Tuft " + n, ring).Place(0f, 0f, at.x, at.y, 80f, 50f);
                 tuft.pivot = new Vector2(0.5f, 0f);
-                float seed = at.x * 0.13f + at.y * 0.077f + radius;
+                float seed = at.x * 0.13f + at.y * 0.077f + segment;
                 for (int k = 0; k < 5; k++)
                 {
                     float x = (k - 2f) * 13f + (Hash(seed + k) - 0.5f) * 8f, size = 26f + Hash(seed + k + 3f) * 16f;
@@ -6312,20 +6326,20 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>
-        /// The grass of the rings the lawn holds, and the sign. When a ring opens its grass comes up tile by tile from the
-        /// centre outward while the rim steps back (<see cref="RefreshLand"/>); under reduced motion, and when the screen first
-        /// shows, it is simply there. The sign stands at the lawn's edge beside the next ring's land while the garden can widen.
+        /// The grass of the segments the lawn holds, and the sign. When a segment opens its grass comes up tile by tile from the
+        /// middle outward while the rim steps back (<see cref="RefreshLand"/>); under reduced motion, and when the screen first
+        /// shows, it is simply there. The sign stands at the lawn's edge beside the next segment's land while the garden can widen.
         /// </summary>
         void RefreshForestRing(IReadOnlyList<StationDef> defs, GameState s)
         {
             if (_forestSign == null) return;
-            int radius = Expansion.Radius(s);
+            int radius = Expansion.Segments(s);
             if (radius != _ringShown)
             {
                 bool growing = _ringShown >= 0 && radius > _ringShown && !Motion.Reduced;
                 for (int k = 0; k < _ringGrass.Count; k++)
                 {
-                    int r = GardenGrid.StartingRadius + 1 + k;
+                    int r = 1 + k;
                     CanvasGroup group = _ringGrass[k];
                     bool open = r <= radius;
                     if (group.gameObject.activeSelf != open) group.gameObject.SetActive(open);
@@ -6350,8 +6364,8 @@ namespace VuonTra.Game.UI
             bool can = Expansion.CanExpand(defs, s);
             if (can && s.Plots != _signPlots)
             {
-                // Beside the first plot the ring opens, on its side of the lawn, clear of every plate.
-                ForestSignSpot = ForestSignSpotFor(Mathf.Min(s.Plots, defs.Count - 1));
+                // At the lawn's edge on the side the next segment opens, clear of every plate.
+                ForestSignSpot = ForestSignSpotFor(Mathf.Min(s.Plots, defs.Count - 1), Expansion.Segments(s));
                 _forestSign.anchoredPosition = ForestSignSpot;
                 _signPlots = s.Plots;
             }
@@ -6364,7 +6378,7 @@ namespace VuonTra.Game.UI
             else sign.localScale = Vector3.one;
         }
 
-        /// <summary>The sign is pressed: the next ring opens, the forest steps back and the new grass comes up.</summary>
+        /// <summary>The sign is pressed: the next segment opens, the mist clears and the new grass comes up.</summary>
         void OnForestSign()
         {
             if (!Expansion.CanExpand(Runner.Defs, Runner.State)) return;
@@ -6774,7 +6788,7 @@ namespace VuonTra.Game.UI
             var tiles = new List<Hex>();
             GardenGrid g = Grid;
             if (g == null) return tiles;
-            foreach (Hex h in GardenGrid.Spiral(g.Radius))
+            foreach (Hex h in GardenGrid.Strip(g.Segments))
                 if (g.OccupantAt(h.Q, h.R) == null && InWorld(h) && !Reserved(h)) tiles.Add(h);
             return tiles;
         }

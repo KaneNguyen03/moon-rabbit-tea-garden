@@ -226,7 +226,7 @@ namespace VuonTra.Core.Tests
             Vector2 at = Actor(2).anchoredPosition;
             screen.SimulateLayoutPress(screen.LayoutViewPoint(from));
             Step(GardenScreen.LayoutHoldSeconds + 0.05f);
-            Vector2 outside = screen.LayoutViewPoint(new Hex(from.Q + GardenGrid.MaxRadius * 3, from.R));
+            Vector2 outside = screen.LayoutViewPoint(new Hex(from.Q, from.R + GardenGrid.HalfRows * 3));
             screen.SimulateLayoutDrag(outside);
             screen.SimulateLayoutRelease(outside);
             Assert.AreEqual(from, TileOf(Id(2)));
@@ -309,14 +309,14 @@ namespace VuonTra.Core.Tests
             // #54 follow-up: the tile right of the jar had a ring, and a decoration dropped there stood on "Đom đóm · còn N lượt".
             Motion.SetReduced(true);
             S.Plots = 8;
-            GardenGrid.Settle(runner.Defs, S); // two land waves: the lawn reaches the jar
+            GardenGrid.Settle(runner.Defs, S); // two land waves: the first segment on the left, where the pond's plate reaches, is open
             S.GardenXp = Garden.XpForLevel(9); // the jar, the basket and the mortar are out
             S.GoldenCarrots = 100;
             Assert.IsTrue(Decor.Buy(S, "den-da") && Decor.Place(S, 7, "den-da"), "a stone lantern on the spot by the tea shop");
             screen.RebuildUi();
             screen.Refresh();
             Hex jar = GardenScreen.WorldToCell(GardenScreen.FireflyJarSpot), lantern = TileOf(GardenGrid.DecorId(7));
-            Assert.AreEqual(new Hex(4, -3), jar, "the jar's tile, where the bug was found");
+            Assert.AreEqual(new Hex(-3, -1), jar, "the jar's tile on the strip");
             Assert.IsTrue(S.Grid.InLawn(jar) && S.Grid.OccupantAt(jar.Q, jar.R) == null, "on the lawn and empty");
             screen.EnterLayoutMode();
             screen.LookAt((GardenScreen.CellToWorld(lantern) + GardenScreen.CellToWorld(jar)) / 2f);
@@ -330,16 +330,16 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(ring == null || !ring.gameObject.activeSelf, "no dashed ring on " + h);
             }
             var spot = (RectTransform)root.transform.Find("Canvas/Garden/Content/Spot 7");
-            foreach (Hex kept in new[] { jar, new Hex(4, -4), new Hex(3, -1), new Hex(1, -2), new Hex(3, -4), new Hex(4, -5) }) // the jar, behind it, the basket, the mortar's plate, the pond's plate and the pond (#58)
+            foreach (Hex kept in new[] { jar, new Hex(-3, 0), new Hex(3, -1), new Hex(1, -2), new Hex(-4, -1), new Hex(-2, -2) }) // the jar, its plate, the basket, the mortar's plate, the pond's plate and the pond (#58)
             {
                 HoldDragDrop(lantern, screen.LayoutViewPoint(kept));
                 Assert.IsNull(screen.LayoutLifted);
                 Assert.AreEqual(lantern, TileOf(GardenGrid.DecorId(7)), "dropped on " + kept + ": back where it stood");
                 Near(GardenScreen.CellToWorld(lantern), spot.anchoredPosition, "and drawn there");
             }
-            // A free tile beside the jar still takes it: only the kept ones refuse.
+            // A free tile near the jar still takes it: only the kept ones refuse (every neighbour of the jar's is kept on the strip).
             Hex beside = EmptyTileNear(jar);
-            Assert.AreEqual(1, GardenGrid.Distance(beside, jar));
+            Assert.AreEqual(2, GardenGrid.Distance(beside, jar));
             HoldDragDrop(lantern, screen.LayoutViewPoint(beside));
             Assert.AreEqual(beside, TileOf(GardenGrid.DecorId(7)), "a free tile beside the jar still takes it");
         }

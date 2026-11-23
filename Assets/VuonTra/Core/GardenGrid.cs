@@ -18,7 +18,7 @@ namespace VuonTra.Core
 
     public enum TileState
     {
-        /// <summary>Beyond the lawn: forest, until a land wave opens the ring.</summary>
+        /// <summary>Beyond the lawn: forest or mist, until the segment it lies in is opened.</summary>
         ForestBorder,
         /// <summary>On the lawn with nothing standing on it.</summary>
         UnlockedEmpty,
@@ -26,6 +26,9 @@ namespace VuonTra.Core
         /// <summary>On the lawn, kept clear for a prop that stands off the grid or for its plate (#54 follow-up): nothing is placed here.</summary>
         Reserved
     }
+
+    /// <summary>Which way a segment of the strip opens from the middle (the horizontal garden).</summary>
+    public enum GardenSide { Middle = 0, Right = 1, Left = -1 }
 
     public struct TileData
     {
@@ -37,73 +40,114 @@ namespace VuonTra.Core
     }
 
     /// <summary>
-    /// The garden stands on a hexagonal grid (#52): the lawn is every tile within <see cref="Radius"/> rings of the centre,
-    /// where the teapot stands, and each thing in the garden has one tile of its own. The hexes are coordinates only:
-    /// the ground is drawn as one continuous lawn. The lawn starts three rings wide and each land wave adds a ring.
-    /// Stations are "station:<id>", places to rest "rest:<n>", decorations "decor:<n>" for decoration spot n, and
+    /// The garden stands on a hexagonal grid (#52) laid out as a horizontal strip (the horizontal garden, 23 Nov): seven rows of
+    /// pointy-top tiles, the teapot at the centre tile (0,0). The lawn starts as the middle of the strip and widens one
+    /// segment at a time, the mist clearing three tiles a row to the right, then to the left, and so on. Each thing in the
+    /// garden has one tile of its own; the hexes are coordinates only, the ground is drawn as one continuous lawn.
+    /// Stations are "station:&lt;id&gt;", places to rest "rest:&lt;n&gt;", decorations "decor:&lt;n&gt;" for decoration spot n, and
     /// the props that come with the garden are <see cref="MortarId"/>, <see cref="ShopId"/> and <see cref="CounterId"/>.
-    /// Where the player's grid is silent (a save from before, a thing not yet placed) the default table says where
-    /// each thing stands: today's layout, snapped to the nearest tile. Props and seats may stand beyond the lawn's
-    /// current rings; they came with the garden's frame, not with its land.
+    /// Where the player's grid is silent (a save from before, a thing not yet placed) the default table says where each
+    /// thing stands. Props and seats may stand on land not open yet; they came with the garden's frame, not with its land.
     /// </summary>
     public sealed class GardenGrid
     {
-        public const int StartingRadius = 3;
-        public const int MaxRadius = 12;
-        /// <summary>World units between neighbouring tiles in a row, and between rows: a pointy-top lattice stretched tall, for a portrait garden.</summary>
+        /// <summary>The strip is this many rows above and below the teapot's row: seven rows in all.</summary>
+        public const int HalfRows = 3;
+        /// <summary>
+        /// The middle of the strip, open from the start, in doubled columns (a tile's column is 2q + r, so the tiles of a row are
+        /// two apart and the rows interleave): |2q + r| ≤ 7, four tiles each side of the teapot on the odd rows, three on the even.
+        /// </summary>
+        public const int StartHalfWidth = 7;
+        /// <summary>Each segment widens one side of the lawn by this many doubled columns: three tiles a row, 21 tiles a segment.</summary>
+        public const int SegmentWidth = 6;
+        public const int TilesPerSegment = (2 * HalfRows + 1) * SegmentWidth / 2;
+        /// <summary>The most segments the strip has room for: as many as the rings of the vertical garden past its three (R 4 … R 12).</summary>
+        public const int MaxSegments = 9;
+        /// <summary>World units between neighbouring tiles in a row, and between rows: a pointy-top lattice stretched tall.</summary>
         public const double PitchX = 150d, PitchY = 200d;
         public const string MortarId = "mortar", ShopId = "shop", CounterId = "counter";
 
         static readonly Hex[] Directions = { new Hex(1, 0), new Hex(1, -1), new Hex(0, -1), new Hex(-1, 0), new Hex(-1, 1), new Hex(0, 1) };
 
-        /// <summary>Where station i stands by default, in the catalog's order: the teapot at the heart, the rest around it as today.</summary>
+        /// <summary>
+        /// Where station i stands by default, in the catalog's order. The teapot is the heart; the oven side (the bakeries, the
+        /// beehive, the grape vine, the lotus, the rice paddy) grows to the right, the pond and stream side (the star jar, the
+        /// flower spring, the observatory, the night tea boat) to the left. Each stands on the land of its own segment, but the
+        /// moon milk tea and the sticky rice paddy, which stand on land the segment before opened on the other side, next to
+        /// the leaf basket and the candy kiln that feed them. Every ingredient station stands within 520 units of what it feeds.
+        /// </summary>
         static readonly Hex[] StationTiles =
         {
             new Hex(0, 0),   //  0 teapot: the heart
             new Hex(2, 0),   //  1 leaf basket: beside the teapot on the right
-            new Hex(-3, 2),  //  2 jam pot: down on the left
-            new Hex(-1, 3),  //  3 flower mortar: below the teapot
-            new Hex(-1, -2), //  4 chestnut oven: up on the left
-            new Hex(-2, 0),  //  5 beehive: beside the teapot on the left
-            new Hex(3, -2),  //  6 moon milk tea: up on the right
-            new Hex(1, 2),   //  7 star jar: down on the right
-            new Hex(2, -3),  //  8 grape vine: above the teapot, below the shop
-            new Hex(0, -4),  //  9 mooncake bakery: top left
-            new Hex(0, 4),   // 10 flower spring: bottom right
-            new Hex(-3, 5),  // 11 star observatory: bottom left, within reach of the flower spring it feeds
-            // The four after the star observatory (#67b) stand in a row above the shop and the pond, on land the eighth and
-            // ninth rings make room for: the garden is a tall lawn one screen wide, so the far rings only reach it at the top.
-            new Hex(1, -6),  // 12 lotus garden: top left, just above the mooncake bakery it feeds
-            new Hex(3, -6),  // 13 malt candy kiln: top middle
-            new Hex(5, -6),  // 14 sticky rice paddy: top right, beside the candy kiln it feeds
-            new Hex(4, -8),  // 15 night tea boat: the top of the garden
+            new Hex(1, 2),   //  2 jam pot: below the leaf basket
+            new Hex(-2, 2),  //  3 flower mortar: below the teapot, between the jam pot and the star jar it feeds
+            new Hex(6, 0),   //  4 chestnut oven: segment 1, right
+            new Hex(4, 2),   //  5 beehive: segment 1, right, between the oven and the jam pot it feeds
+            new Hex(5, -2),  //  6 moon milk tea: segment 1's land, above the leaf basket that feeds it (segment 2)
+            new Hex(-5, 2),  //  7 star jar: segment 2, left
+            new Hex(8, -2),  //  8 grape vine: segment 3, right, beside the milk tea
+            new Hex(9, 0),   //  9 mooncake bakery: segment 3, right
+            new Hex(-8, 2),  // 10 flower spring: segment 4, left, beside the star jar
+            new Hex(-8, 0),  // 11 star observatory: segment 4, left, above the spring
+            new Hex(11, -2), // 12 lotus garden: segment 5, right, above the bakery it feeds
+            new Hex(10, 2),  // 13 malt candy kiln: segment 5, right
+            new Hex(12, 0),  // 14 sticky rice paddy: segment 5's land, beside the candy kiln it feeds (segment 6)
+            new Hex(-11, 0), // 15 night tea boat: segment 6, the far left
         };
         /// <summary>
-        /// The places to rest: the two stumps by the tea table at the bottom, the picnic rug on the grass between the jam pot and the teapot, the
-        /// stools, the hammock, the swing. The rug stood on the pond's bank at (3,-4) until the pond and its "Câu cá" plate were
-        /// kept clear (#58): it covered the plate.
+        /// The places to rest: the two stumps by the tea table left of the teapot, then one on the land each of the first four
+        /// segments opens: the picnic rug (right), the stools (left), the hammock (right), the swing (left).
         /// </summary>
-        static readonly Hex[] RestTiles = { new Hex(-1, 5), new Hex(-3, 6), new Hex(-2, 2), new Hex(0, 5), new Hex(-5, 6), new Hex(-1, 6) };
-        /// <summary>The eight decoration spots: two in the resting corner, then up the sides and the middle, one by the tea shop.</summary>
-        static readonly Hex[] DecorTiles = { new Hex(-3, 7), new Hex(-5, 7), new Hex(-3, 3), new Hex(1, 3), new Hex(-1, 2), new Hex(-3, 1), new Hex(-2, -1), new Hex(0, -3) };
-        static readonly Hex MortarTile = new Hex(1, -1), ShopTile = new Hex(2, -4), CounterTile = new Hex(3, -3);
+        static readonly Hex[] RestTiles = { new Hex(-3, 1), new Hex(-4, 1), new Hex(4, 1), new Hex(-5, 0), new Hex(7, 2), new Hex(-7, -2) };
+        /// <summary>The eight decoration spots, all on the starting lawn and 300 apart: four along the foot (the first two by the resting corner), one by the leaf basket, two up the right, one by the tea shop.</summary>
+        static readonly Hex[] DecorTiles = { new Hex(-5, 3), new Hex(-3, 3), new Hex(-1, 3), new Hex(3, 1), new Hex(1, 3), new Hex(5, -3), new Hex(3, -2), new Hex(2, -3) };
+        /// <summary>The mortar just above the teapot; the tea shop at the top of the middle, home, with the guests' counter beside it.</summary>
+        static readonly Hex MortarTile = new Hex(1, -1), ShopTile = new Hex(1, -3), CounterTile = new Hex(3, -3);
 
-        public int Radius;
+        /// <summary>How many segments of the strip are open beside the middle.</summary>
+        public int Segments;
         readonly Dictionary<string, Hex> _tileOf = new Dictionary<string, Hex>();
         readonly Dictionary<Hex, string> _occupantAt = new Dictionary<Hex, string>();
 
-        public GardenGrid() : this(StartingRadius) { }
-        public GardenGrid(int radius) { Radius = Math.Max(0, Math.Min(MaxRadius, radius)); }
+        public GardenGrid() : this(0) { }
+        public GardenGrid(int segments) { Segments = Math.Max(0, Math.Min(MaxSegments, segments)); }
 
         // ----- Geometry -----
 
-        /// <summary>How many tiles a lawn of this many rings holds: 1, 7, 19, 37, 61...</summary>
-        public static int TileCount(int radius) => radius < 0 ? 0 : 3 * radius * radius + 3 * radius + 1;
+        /// <summary>A tile's doubled column: 2q + r. The tiles of one row are two apart; x is 75 units a column.</summary>
+        public static int Column(Hex h) => 2 * h.Q + h.R;
+
+        /// <summary>Which side segment <paramref name="segment"/> (1 for the first) opens: the odd ones to the right, the even ones to the left.</summary>
+        public static GardenSide SideOf(int segment) => segment <= 0 ? GardenSide.Middle : segment % 2 == 1 ? GardenSide.Right : GardenSide.Left;
+
+        /// <summary>How many of the first <paramref name="segments"/> segments opened to the right, and to the left.</summary>
+        public static int RightOf(int segments) => Math.Max(0, segments + 1) / 2;
+        public static int LeftOf(int segments) => Math.Max(0, segments) / 2;
+
+        /// <summary>
+        /// The segment whose opening brings a tile onto the lawn: 0 for the middle, open from the start, 1, 2, … for the segments,
+        /// and -1 for a tile off the strip (above or below its rows, or past its last segment).
+        /// </summary>
+        public static int SegmentOf(Hex h)
+        {
+            if (Math.Abs(h.R) > HalfRows) return -1;
+            int c = Column(h);
+            if (Math.Abs(c) <= StartHalfWidth) return 0;
+            int along = (Math.Abs(c) - StartHalfWidth + SegmentWidth - 1) / SegmentWidth; // 1 for the first segment on that side
+            int segment = c > 0 ? 2 * along - 1 : 2 * along;
+            return segment <= MaxSegments ? segment : -1;
+        }
+
+        /// <summary>How many tiles a lawn with this many segments open holds: 53 in the middle, 21 more a segment.</summary>
+        public static int TileCount(int segments) => segments < 0 ? 0 : StartTiles + TilesPerSegment * Math.Min(segments, MaxSegments);
+        /// <summary>The tiles of the middle: four rows of eight and three of seven.</summary>
+        public const int StartTiles = 53;
         /// <summary>How many tiles the lawn holds now.</summary>
-        public int LawnTiles => TileCount(Radius);
+        public int LawnTiles => TileCount(Segments);
 
         public static int Distance(Hex a, Hex b) => Distance(new Hex(a.Q - b.Q, a.R - b.R));
-        /// <summary>Rings from the centre.</summary>
+        /// <summary>Hex steps from the teapot's tile.</summary>
         public static int Distance(Hex h) => Math.Max(Math.Abs(h.Q), Math.Max(Math.Abs(h.R), Math.Abs(h.Q + h.R)));
         public static int Distance(int q, int r) => Distance(new Hex(q, r));
 
@@ -122,7 +166,7 @@ namespace VuonTra.Core
             return on;
         }
 
-        /// <summary>The tiles exactly this many rings out, going round from the right.</summary>
+        /// <summary>The tiles exactly this many hex steps from the teapot's tile, going round from the lower left.</summary>
         public static List<Hex> Ring(int radius)
         {
             var ring = new List<Hex>();
@@ -137,18 +181,41 @@ namespace VuonTra.Core
             return ring;
         }
 
-        /// <summary>Every tile within this many rings, nearest the centre first.</summary>
-        public static List<Hex> Spiral(int radius)
+        static readonly List<Hex>[] StripCache = new List<Hex>[MaxSegments + 1];
+
+        /// <summary>Every tile of a lawn with this many segments open, nearest the teapot first (ring by ring).</summary>
+        public static IReadOnlyList<Hex> Strip(int segments)
         {
-            var all = new List<Hex>(TileCount(radius));
-            for (int ring = 0; ring <= radius; ring++) all.AddRange(Ring(ring));
-            return all;
+            int n = Math.Max(0, Math.Min(MaxSegments, segments));
+            List<Hex> cached = StripCache[n];
+            if (cached != null) return cached;
+            var all = new List<Hex>(TileCount(n));
+            for (int radius = 0; all.Count < TileCount(n); radius++)
+                foreach (Hex h in Ring(radius))
+                {
+                    int segment = SegmentOf(h);
+                    if (segment >= 0 && segment <= n) all.Add(h);
+                }
+            return StripCache[n] = all;
         }
 
-        public bool InLawn(Hex h) => Distance(h) <= Radius;
+        /// <summary>The tiles segment <paramref name="segment"/> opens, nearest the teapot first.</summary>
+        public static List<Hex> SegmentTiles(int segment)
+        {
+            var tiles = new List<Hex>(TilesPerSegment);
+            if (segment < 1 || segment > MaxSegments) return tiles;
+            foreach (Hex h in Strip(segment)) if (SegmentOf(h) == segment) tiles.Add(h);
+            return tiles;
+        }
+
+        public bool InLawn(Hex h)
+        {
+            int segment = SegmentOf(h);
+            return segment >= 0 && segment <= Segments;
+        }
         public bool InLawn(int q, int r) => InLawn(new Hex(q, r));
 
-        /// <summary>A tile's position in the garden, relative to the centre: columns PitchX apart, every row shifted half a tile, r growing downward.</summary>
+        /// <summary>A tile's position in the garden, relative to the teapot: columns PitchX apart, every row shifted half a tile, r growing downward.</summary>
         public static double LocalX(int q, int r) => PitchX * (q + r / 2d);
         public static double LocalY(int q, int r) => -PitchY * r;
 
@@ -163,11 +230,11 @@ namespace VuonTra.Core
             return t;
         }
 
-        /// <summary>Every tile of the lawn, nearest the centre first.</summary>
+        /// <summary>Every tile of the lawn, nearest the teapot first.</summary>
         public List<TileData> Tiles()
         {
             var tiles = new List<TileData>(LawnTiles);
-            foreach (Hex h in Spiral(Radius)) tiles.Add(Tile(h.Q, h.R));
+            foreach (Hex h in Strip(Segments)) tiles.Add(Tile(h.Q, h.R));
             return tiles;
         }
 
@@ -185,7 +252,7 @@ namespace VuonTra.Core
             return Seat(id, new Hex(q, r));
         }
 
-        /// <summary>Like <see cref="Place(string, int, int)"/>; with <paramref name="beyondLawn"/> the tile may lie past the lawn's rings, as a saved seat or prop may.</summary>
+        /// <summary>Like <see cref="Place(string, int, int)"/>; with <paramref name="beyondLawn"/> the tile may lie off the open lawn, as a saved seat or prop may.</summary>
         public bool Place(string id, int q, int r, bool beyondLawn) => beyondLawn ? Seat(id, new Hex(q, r)) : Place(id, q, r);
 
         /// <summary>Stands something on a tile, on the lawn or beyond it; something already standing elsewhere moves. False when the tile is taken by another.</summary>
@@ -209,15 +276,15 @@ namespace VuonTra.Core
 
         public void Clear() { _tileOf.Clear(); _occupantAt.Clear(); }
 
-        /// <summary>The empty lawn tile nearest the centre, in spiral order; never a reserved one. False when the lawn is full.</summary>
+        /// <summary>The empty lawn tile nearest the teapot, in <see cref="Strip"/> order; never a reserved one. False when the lawn is full.</summary>
         public bool NearestEmpty(out Hex found) => NearestEmpty(new Hex(0, 0), out found);
 
-        /// <summary>The empty lawn tile nearest a given tile; ties go to the one nearer the centre, then spiral order.</summary>
+        /// <summary>The empty lawn tile nearest a given tile; ties go to the one nearer the teapot, then <see cref="Strip"/> order.</summary>
         public bool NearestEmpty(Hex near, out Hex found)
         {
             found = default;
             int best = int.MaxValue;
-            foreach (Hex h in Spiral(Radius))
+            foreach (Hex h in Strip(Segments))
             {
                 if (_occupantAt.ContainsKey(h) || IsReserved(h)) continue;
                 int d = Distance(h, near);
@@ -235,15 +302,18 @@ namespace VuonTra.Core
         public static Hex DefaultStationTile(int index)
         {
             if (index >= 0 && index < StationTiles.Length) return StationTiles[index];
-            // More stations than the table knows: carry on downward in pairs, left and right of the middle.
-            int k = Math.Max(0, index - StationTiles.Length) / 2, r = 8 + 2 * k;
-            return new Hex((index % 2 == 0 ? -1 : 1) - 4 - k, r);
+            // More stations than the table knows: the two of each further segment stand in the middle of its land, one in the
+            // upper rows and one in the lower, on the side it opens.
+            int segment = Expansion.WavesTaken(Math.Max(index, StationTiles.Length) + 1);
+            int along = (segment + 1) / 2, column = 6 * along + 4, r = index % 2 == 0 ? -2 : 2;
+            if (SideOf(segment) == GardenSide.Left) column = -column;
+            return new Hex((column - r) / 2, r);
         }
 
-        public static Hex DefaultRestTile(int n) => n >= 0 && n < RestTiles.Length ? RestTiles[n] : new Hex(-4 - n, 8);
+        public static Hex DefaultRestTile(int n) => n >= 0 && n < RestTiles.Length ? RestTiles[n] : new Hex(-5 - n, 3);
         public static Hex DefaultDecorTile(int n) => n >= 0 && n < DecorTiles.Length ? DecorTiles[n] : DecorTiles[0];
 
-        /// <summary>Where an occupant stands by default, by its id; the centre for an id the table does not know.</summary>
+        /// <summary>Where an occupant stands by default, by its id; the teapot's tile for an id the table does not know.</summary>
         public static Hex DefaultTile(string id, IReadOnlyList<StationDef> defs)
         {
             if (id == MortarId) return MortarTile;
@@ -259,8 +329,8 @@ namespace VuonTra.Core
             return new Hex(0, 0);
         }
 
-        /// <summary>How wide the lawn is for a garden with this many plots: three rings to start, one more for every land wave taken.</summary>
-        public static int RadiusForPlots(int plots) => Math.Min(MaxRadius, StartingRadius + Expansion.WavesTaken(plots));
+        /// <summary>How many segments are open for a garden with this many plots: none to start, one for every land wave taken.</summary>
+        public static int SegmentsForPlots(int plots) => Math.Min(MaxSegments, Expansion.WavesTaken(plots));
 
         /// <summary>Whether an id is one the game stands on the grid.</summary>
         public static bool Known(string id) =>
@@ -274,7 +344,7 @@ namespace VuonTra.Core
         public static void Settle(IReadOnlyList<StationDef> defs, GameState s)
         {
             GardenGrid g = s.Grid ?? (s.Grid = new GardenGrid());
-            g.Radius = Math.Max(g.Radius, RadiusForPlots(s.Plots));
+            g.Segments = Math.Max(g.Segments, SegmentsForPlots(s.Plots));
             var wanted = new List<string>();
             g.KeepStored(defs, s); // #54: only open stations with a plot stay in storage
             for (int i = 0; i < defs.Count && i < s.Plots; i++) if (!g.IsStored(StationId(defs[i]))) wanted.Add(StationId(defs[i]));
@@ -307,23 +377,23 @@ namespace VuonTra.Core
             }
         }
 
-        // ----- Ring expansion of the forest (#53) -----
+        // ----- Widening the lawn (#53, the horizontal garden) -----
 
-        /// <summary>The tiles of the lawn with nothing standing on them, nearest the centre first.</summary>
+        /// <summary>The tiles of the lawn with nothing standing on them, nearest the teapot first.</summary>
         public List<Hex> EmptyTiles()
         {
             var empty = new List<Hex>();
-            foreach (Hex h in Spiral(Radius)) if (!_occupantAt.ContainsKey(h) && !IsReserved(h)) empty.Add(h);
+            foreach (Hex h in Strip(Segments)) if (!_occupantAt.ContainsKey(h) && !IsReserved(h)) empty.Add(h);
             return empty;
         }
 
         /// <summary>
-        /// The empty lawn tile nearest the centre that keeps at least <paramref name="spacing"/> tiles from every station, for a
+        /// The empty lawn tile nearest the teapot that keeps at least <paramref name="spacing"/> tiles from every station, for a
         /// station the player did not place themselves; the plain nearest empty tile when no tile keeps that far. False when the lawn is full.
         /// </summary>
         public bool NearestEmptyApart(int spacing, out Hex found)
         {
-            foreach (Hex h in Spiral(Radius))
+            foreach (Hex h in Strip(Segments))
             {
                 if (_occupantAt.ContainsKey(h) || IsReserved(h)) continue;
                 bool apart = true;
@@ -374,7 +444,7 @@ namespace VuonTra.Core
             return true;
         }
 
-        /// <summary>Brings a stored station back onto the empty lawn tile nearest the centre. False when it is not stored or the lawn is full.</summary>
+        /// <summary>Brings a stored station back onto the empty lawn tile nearest the teapot. False when it is not stored or the lawn is full.</summary>
         public bool TakeOut(string id)
         {
             if (!IsStored(id) || !NearestEmpty(out Hex tile)) return false;
@@ -404,23 +474,24 @@ namespace VuonTra.Core
 
         /// <summary>
         /// The lawn tiles kept clear for the props that stand off the grid or reach past their own tile, so nothing the player
-        /// arranges covers them: the firefly jar by the pond and its "Đom đóm · còn N lượt" plate, the leaf-catching basket past the
-        /// leaf station's home tile and the plate hung on its left, the mortar's plate above the mortar, and the moon pond with its
-        /// "Câu cá N/5" plate on the left bank (#58). They are the tiles whose cell the prop or its plate reaches more than 16 units
-        /// into, as the garden draws them (GardenScreen's JarSpot, BasketSpot, MortarSpot, PondSpot).
-        /// The mortar, the shop and the counter stand on tiles of their own and hold them; the shop and the counter have no plate.
-        /// The pond's plate reaches into the shop's own tile (2,-4) too, which the shop holds.
+        /// arranges covers them: the leaf-catching basket past the leaf station's home tile and the plate hung on its left, the
+        /// mortar's plate above the mortar, and, at the top left of the middle, the moon pond with its "Câu cá N/5" plate on the
+        /// left bank (#58) and the firefly jar below it with its "Đom đóm · còn N lượt" plate. They are the tiles whose cell the
+        /// prop or its plate reaches more than 16 units into, as the garden draws them (GardenScreen's JarSpot, BasketSpot,
+        /// MortarSpot, PondSpot). The mortar, the shop and the counter stand on tiles of their own and hold them; the shop and the
+        /// counter have no plate. The pond's plate and its far bank reach into the first segment on the left, (-4,-1) and (-3,-2), and
+        /// so does the tile below the jar's plate, (-4,0); that tile and (-2,0) are kept because what stands there would cover the plate.
         /// </summary>
         static readonly Hex[] ReservedTable =
         {
-            new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),                 // the mortar's plate
-            new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),                 // the leaf-catching basket and its plate
-            new Hex(4, -4), new Hex(4, -3), new Hex(5, -4), new Hex(5, -3), // the firefly jar and its plate
-            new Hex(3, -4), new Hex(4, -5), new Hex(5, -5), new Hex(6, -5), // the moon pond and its "Câu cá" plate (#58), with (4,-4) and (5,-4) above
+            new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),                                    // the mortar's plate
+            new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),                                    // the leaf-catching basket and its plate
+            new Hex(-3, -1), new Hex(-2, -1), new Hex(-3, 0), new Hex(-2, 0), new Hex(-4, 0),  // the firefly jar and its plate, which a decoration below it would cover
+            new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-4, -1), // the moon pond and its "Câu cá" plate (#58)
         };
         static readonly HashSet<Hex> ReservedSet = new HashSet<Hex>(ReservedTable);
 
-        /// <summary>Every tile kept clear for a prop or its plate, beyond the lawn's rings or on them.</summary>
+        /// <summary>Every tile kept clear for a prop or its plate, on the open lawn or not yet.</summary>
         public static IReadOnlyList<Hex> ReservedTiles => ReservedTable;
         /// <summary>True for a tile kept clear for a prop or its plate: nothing is placed, moved, swapped or settled there.</summary>
         public static bool IsReserved(Hex h) => ReservedSet.Contains(h);

@@ -95,134 +95,133 @@ namespace VuonTra.Core
     }
 
     /// <summary>
-    /// One ring of the forest stepping back (#53): the lawn widens from <see cref="RadiusAfter"/> - 1 rings to
-    /// <see cref="RadiusAfter"/>, opening that ring's 6 × <see cref="RadiusAfter"/> tiles, the land of the next two
-    /// stations and one more place to rest, for a garden that has grown enough.
+    /// One segment of the strip coming out of the mist (the horizontal garden, which replaced the forest's rings of #53): the
+    /// lawn widens by <see cref="GardenGrid.TilesPerSegment"/> tiles on one side, opening the land of the next two stations and
+    /// one more place to rest, for a garden that has grown enough. Segment n asks what the ring R (3 + n) of the vertical
+    /// garden asked, so the pace is the same.
     /// </summary>
-    public sealed class ForestRing
+    public sealed class MistSegment
     {
-        /// <summary>How many rings wide the lawn is once this ring is opened.</summary>
-        public int RadiusAfter;
+        /// <summary>How many segments are open once this one is: 1 for the first.</summary>
+        public int SegmentsAfter;
         public int NeedLevel, NeedRabbits, NeedKinds;
-        /// <summary>The tiles this ring opens: going from R to R + 1 opens 6R + 6.</summary>
-        public int Tiles => 6 * RadiusAfter;
+        /// <summary>Which side of the strip it opens: right for the odd ones, left for the even ones.</summary>
+        public GardenSide Side => GardenGrid.SideOf(SegmentsAfter);
+        /// <summary>The tiles it opens: three a row on its side.</summary>
+        public int Tiles => GardenGrid.TilesPerSegment;
     }
 
     /// <summary>
-    /// The garden widens ring by ring (#53): when it has grown enough the player presses "Mở rộng rừng", the forest
-    /// at the lawn's edge steps back and the lawn is one ring wider. Each ring asks for a garden level, for rabbits
-    /// (or kinds met), and for carrots: <see cref="Plots.CostShare"/> of the price of the stations its land makes room for.
-    /// The lawn starts <see cref="GardenGrid.StartingRadius"/> rings wide with <see cref="Plots.Starting"/> plots, and each
-    /// ring brings <see cref="PlotsPerRing"/> more, so the rings are the old land waves: R 3 → 4 is the first, around
-    /// minute four, R 6 → 7 the last of today's twelve stations, on day three. Past the table every ring asks
-    /// <see cref="LevelStepBeyond"/> levels more; rings open as far as the catalog has stations for (<see cref="LastRadius"/>).
+    /// The garden widens segment by segment: when it has grown enough the player presses "Mở rộng rừng", the mist at one end
+    /// of the strip clears and the lawn is three tiles a row wider there. Each segment asks for a garden level, for rabbits (or
+    /// kinds met), and for carrots: <see cref="Plots.CostShare"/> of the price of the stations its land makes room for. The lawn
+    /// starts as the middle of the strip with <see cref="Plots.Starting"/> plots, and each segment brings
+    /// <see cref="PlotsPerSegment"/> more, so the segments are the old land waves and the forest's rings (#53): the first
+    /// around minute four, the fourth the last of the first twelve stations, on day three. Past the table every segment asks
+    /// <see cref="LevelStepBeyond"/> levels more; segments open as far as the catalog has stations for (<see cref="LastSegments"/>).
     /// </summary>
     public static class Expansion
     {
-        public const int PlotsPerRing = 2;
+        public const int PlotsPerSegment = 2;
         public const int LevelStepBeyond = 5;
 
         /// <summary>
-        /// The rings the garden opens first, re-based on the hex grid's three starting rings (#52): the issue's
-        /// R 2 → 3 … 5 → 6 are R 3 → 4 … 6 → 7 here, with the levels and rabbits of the land waves they replace. The first asks
-        /// for no rabbits (the owner's note on #53); three come in the first minute anyway, so it still opens around minute four.
+        /// The segments the garden opens first, with the levels, rabbits and kinds of the rings R 4 … R 9 they replace (#53): the
+        /// first asks for no rabbits (the owner's note on #53); three come in the first minute anyway, so it still opens around
+        /// minute four.
         /// </summary>
-        public static readonly ForestRing[] Rings =
+        public static readonly MistSegment[] Table =
         {
-            new ForestRing { RadiusAfter = 4, NeedLevel = 3 },
-            new ForestRing { RadiusAfter = 5, NeedLevel = 6,  NeedRabbits = 6 },
-            new ForestRing { RadiusAfter = 6, NeedLevel = 10, NeedRabbits = 10 },
-            // R 7 asks for level 16, not the 15 of the old land wave (#83): at 15 a casual player had all twelve plots on
+            new MistSegment { SegmentsAfter = 1, NeedLevel = 3 },                    // was R 4
+            new MistSegment { SegmentsAfter = 2, NeedLevel = 6,  NeedRabbits = 6 },  // was R 5
+            new MistSegment { SegmentsAfter = 3, NeedLevel = 10, NeedRabbits = 10 }, // was R 6
+            // The fourth asks for level 16, not the 15 of the old land wave (#83): at 15 a casual player had all twelve plots on
             // day two on about half the seeds; at 16 on day three on every one.
-            new ForestRing { RadiusAfter = 7, NeedLevel = 16, NeedKinds = 8 },
-            // The rings for the four stations after the star observatory (#67b): each asks for the garden level of the first
-            // station it makes room for (16 for the lotus garden, 20 for the rice paddy), not the five more a ring of the rule
-            // below would ask (20 and 25), so a casual player opens the thirteenth station on day four or five and the sixteenth
-            // by day nine to twelve. Past these the rule takes over again: R 10 asks for 25, R 11 for 30.
-            new ForestRing { RadiusAfter = 8, NeedLevel = 16, NeedKinds = 8 },
-            new ForestRing { RadiusAfter = 9, NeedLevel = 20, NeedKinds = 8 },
+            new MistSegment { SegmentsAfter = 4, NeedLevel = 16, NeedKinds = 8 },    // was R 7
+            // The segments for the four stations after the star observatory (#67b): each asks for the garden level of the first
+            // station it makes room for (16 for the lotus garden, 20 for the rice paddy), not the five more of the rule below
+            // (20 and 25), so a casual player opens the thirteenth station on day four or five and the sixteenth by day nine to
+            // twelve. Past these the rule takes over again: the seventh asks for 25, the eighth for 30.
+            new MistSegment { SegmentsAfter = 5, NeedLevel = 16, NeedKinds = 8 },    // was R 8
+            new MistSegment { SegmentsAfter = 6, NeedLevel = 20, NeedKinds = 8 },    // was R 9
         };
 
-        /// <summary>The ring that widens the lawn to <paramref name="radiusAfter"/> rings; past the table, five levels more each time. Null for no such ring.</summary>
-        public static ForestRing Ring(int radiusAfter)
+        /// <summary>The segment that brings the open count to <paramref name="segmentsAfter"/>; past the table, five levels more each time. Null for no such segment.</summary>
+        public static MistSegment Segment(int segmentsAfter)
         {
-            if (radiusAfter <= GardenGrid.StartingRadius || radiusAfter > GardenGrid.MaxRadius) return null;
-            int i = radiusAfter - GardenGrid.StartingRadius - 1;
-            if (i < Rings.Length) return Rings[i];
-            ForestRing last = Rings[Rings.Length - 1];
-            return new ForestRing
+            if (segmentsAfter < 1 || segmentsAfter > GardenGrid.MaxSegments) return null;
+            if (segmentsAfter <= Table.Length) return Table[segmentsAfter - 1];
+            MistSegment last = Table[Table.Length - 1];
+            return new MistSegment
             {
-                RadiusAfter = radiusAfter,
-                NeedLevel = last.NeedLevel + LevelStepBeyond * (radiusAfter - last.RadiusAfter),
+                SegmentsAfter = segmentsAfter,
+                NeedLevel = last.NeedLevel + LevelStepBeyond * (segmentsAfter - last.SegmentsAfter),
                 NeedRabbits = last.NeedRabbits,
                 NeedKinds = last.NeedKinds,
             };
         }
 
-        /// <summary>How many rings wide the lawn is: the grid's own count, and never less than the plots held call for.</summary>
-        public static int Radius(GameState s)
+        /// <summary>How many segments are open: the grid's own count, and never fewer than the plots held call for.</summary>
+        public static int Segments(GameState s)
         {
-            int byPlots = GardenGrid.RadiusForPlots(s.Plots);
-            return s.Grid != null ? Math.Max(s.Grid.Radius, byPlots) : byPlots;
+            int byPlots = GardenGrid.SegmentsForPlots(s.Plots);
+            return s.Grid != null ? Math.Max(s.Grid.Segments, byPlots) : byPlots;
         }
 
-        /// <summary>How many rings the garden has opened since it was new.</summary>
-        public static int RingsTaken(GameState s) => Math.Max(0, Radius(s) - GardenGrid.StartingRadius);
+        /// <summary>How many plots a lawn with this many segments open holds: four to start, two more a segment, never more than there are stations.</summary>
+        public static int PlotsForSegments(IReadOnlyList<StationDef> defs, int segments) =>
+            Math.Min(defs.Count, Plots.Starting + PlotsPerSegment * Math.Max(0, segments));
 
-        /// <summary>How many plots a lawn this many rings wide holds: four to start, two more for every ring, never more than there are stations.</summary>
-        public static int PlotsForRadius(IReadOnlyList<StationDef> defs, int radius) =>
-            Math.Min(defs.Count, Plots.Starting + PlotsPerRing * Math.Max(0, radius - GardenGrid.StartingRadius));
+        /// <summary>The most segments open for now: the one that gives every station of the catalog its land.</summary>
+        public static int LastSegments(IReadOnlyList<StationDef> defs) => GardenGrid.SegmentsForPlots(defs.Count);
 
-        /// <summary>The widest the lawn goes for now: the ring that gives every station of the catalog its land.</summary>
-        public static int LastRadius(IReadOnlyList<StationDef> defs) => Math.Min(GardenGrid.MaxRadius, GardenGrid.RadiusForPlots(defs.Count));
-
-        /// <summary>The next ring this garden can open, or null when it has all its land.</summary>
-        public static ForestRing Next(IReadOnlyList<StationDef> defs, GameState s)
+        /// <summary>The next segment this garden can open, or null when it has all its land.</summary>
+        public static MistSegment Next(IReadOnlyList<StationDef> defs, GameState s)
         {
-            int radius = Radius(s);
-            return radius >= LastRadius(defs) ? null : Ring(radius + 1);
+            int open = Segments(s);
+            return open >= LastSegments(defs) ? null : Segment(open + 1);
         }
 
         /// <summary>
-        /// How many rings a garden with this many plots has already opened (an old save's land converts to rings this way:
-        /// 4 plots is R 3, 6 is R 4, 8 is R 5, 10 is R 6, 12 is R 7). Holding any plot beyond the ring before means the ring
-        /// was opened (old saves could buy plots one at a time).
+        /// How many land waves a garden with this many plots has taken, which is how many segments it has open (an old save's
+        /// land converts this way: 4 plots is none, 6 is one, 8 two, 10 three, 12 four). Holding any plot beyond the wave before
+        /// means the wave was taken (old saves could buy plots one at a time).
         /// </summary>
-        public static int WavesTaken(int plots) => plots <= Plots.Starting ? 0 : (plots - Plots.Starting + PlotsPerRing - 1) / PlotsPerRing;
+        public static int WavesTaken(int plots) => plots <= Plots.Starting ? 0 : (plots - Plots.Starting + PlotsPerSegment - 1) / PlotsPerSegment;
 
         /// <summary>The garden level a garden with this many plots must have had.</summary>
         public static int LevelForPlots(IReadOnlyList<StationDef> defs, int plots)
         {
-            ForestRing ring = Ring(GardenGrid.StartingRadius + WavesTaken(plots));
-            return ring == null ? 1 : ring.NeedLevel;
+            MistSegment segment = Segment(WavesTaken(plots));
+            return segment == null ? 1 : segment.NeedLevel;
         }
 
         /// <summary>
-        /// Carrots for the next ring: <see cref="Plots.CostShare"/> of what each station it makes room for costs, so the land
-        /// for the next two stations costs a quarter of their price, as a land wave did (the pace stays as it was, #53).
+        /// Carrots for the next segment: <see cref="Plots.CostShare"/> of what each station it makes room for costs, so the land
+        /// for the next two stations costs a quarter of their price, as a land wave and a ring did (the pace stays as it was).
         /// </summary>
         public static BigNum CostOfNext(IReadOnlyList<StationDef> defs, GameState s)
         {
             if (Next(defs, s) == null) return BigNum.Zero;
             BigNum cost = BigNum.Zero;
-            for (int i = s.Plots; i < PlotsForRadius(defs, Radius(s) + 1); i++) cost += new BigNum(defs[i].BaseCost * Plots.CostShare);
+            for (int i = s.Plots; i < PlotsForSegments(defs, Segments(s) + 1); i++) cost += new BigNum(defs[i].BaseCost * Plots.CostShare);
             return cost;
         }
 
-        public static bool HasLevel(ForestRing ring, GameState s) => Garden.Level(s) >= ring.NeedLevel;
-        public static bool HasRabbits(ForestRing ring, GameState s) => s.Rabbits.Count >= ring.NeedRabbits && s.SeenKinds.Count >= ring.NeedKinds;
+        public static bool HasLevel(MistSegment segment, GameState s) => Garden.Level(s) >= segment.NeedLevel;
+        public static bool HasRabbits(MistSegment segment, GameState s) => s.Rabbits.Count >= segment.NeedRabbits && s.SeenKinds.Count >= segment.NeedKinds;
         public static bool HasCarrots(IReadOnlyList<StationDef> defs, GameState s) => s.Coins >= CostOfNext(defs, s);
 
         public static bool CanExpand(IReadOnlyList<StationDef> defs, GameState s)
         {
-            ForestRing ring = Next(defs, s);
-            return ring != null && HasLevel(ring, s) && HasRabbits(ring, s) && HasCarrots(defs, s);
+            MistSegment segment = Next(defs, s);
+            return segment != null && HasLevel(segment, s) && HasRabbits(segment, s) && HasCarrots(defs, s);
         }
 
         /// <summary>
-        /// Opens the next ring: pays, widens the lawn by one ring, opens the land of the next stations and one more place to
-        /// rest. Each new station stands on its own tile from the garden's layout; if that tile is taken, on the empty tile
-        /// nearest the centre that keeps clear of the other stations (until the player can lay the garden out, #54).
+        /// Opens the next segment: pays, clears the mist from three more tiles a row on its side, opens the land of the next
+        /// stations and one more place to rest. Each new station stands on its own tile from the garden's layout; if that tile
+        /// is taken, on the empty tile nearest the teapot that keeps clear of the other stations.
         /// </summary>
         public static bool Expand(IReadOnlyList<StationDef> defs, GameState s)
         {
@@ -230,9 +229,9 @@ namespace VuonTra.Core
             s.Coins -= CostOfNext(defs, s);
             GardenGrid grid = s.Grid ?? (s.Grid = new GardenGrid());
             int before = s.Plots;
-            grid.Radius = Radius(s) + 1;
-            s.Plots = Math.Max(s.Plots, PlotsForRadius(defs, grid.Radius));
-            s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + RingsTaken(s)));
+            grid.Segments = Segments(s) + 1;
+            s.Plots = Math.Max(s.Plots, PlotsForSegments(defs, grid.Segments));
+            s.RestSpots = Math.Max(s.RestSpots, Math.Min(RestSpots.Max, RestSpots.Starting + Segments(s)));
             // The stations whose own tile is free stand first, so one that must look elsewhere keeps clear of them too.
             for (int i = before; i < s.Plots && i < defs.Count; i++)
             {

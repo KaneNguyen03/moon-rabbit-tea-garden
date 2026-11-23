@@ -74,7 +74,7 @@ namespace VuonTra.Core.Tests
         // When things happened (seconds on the clock; -1 = not yet).
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
         readonly Dictionary<int, double> plotsAt = new Dictionary<int, double>();
-        readonly double[] waveLevelAt = new double[Expansion.Rings.Length], waveRabbitsAt = new double[Expansion.Rings.Length], waveTakenAt = new double[Expansion.Rings.Length];
+        readonly double[] waveLevelAt = new double[Expansion.Table.Length], waveRabbitsAt = new double[Expansion.Table.Length], waveTakenAt = new double[Expansion.Table.Length];
         double purpleAt = -1, goldAt = -1;
         readonly List<string> snapshots = new List<string>();
         readonly StringBuilder trace = new StringBuilder();
@@ -285,7 +285,7 @@ namespace VuonTra.Core.Tests
         {
             if (Expansion.Expand(defs, s))
             {
-                if (Expansion.RingsTaken(s) <= waveTakenAt.Length) waveTakenAt[Expansion.RingsTaken(s) - 1] = clock; // the forest stepped back a ring (#53)
+                if (Expansion.Segments(s) <= waveTakenAt.Length) waveTakenAt[Expansion.Segments(s) - 1] = clock; // a segment of the strip came out of the mist
                 mods = Modifiers.From(ups, s); // one more place to rest (#60)
                 return;
             }
@@ -472,9 +472,9 @@ namespace VuonTra.Core.Tests
             for (int l = 2; l <= level; l++)
                 if (!levelAt.ContainsKey(l)) levelAt[l] = clock;
             if (!plotsAt.ContainsKey(s.Plots)) plotsAt[s.Plots] = clock;
-            for (int w = 0; w < Expansion.Rings.Length; w++)
+            for (int w = 0; w < Expansion.Table.Length; w++)
             {
-                ForestRing wave = Expansion.Rings[w];
+                MistSegment wave = Expansion.Table[w];
                 if (waveLevelAt[w] < 0 && level >= wave.NeedLevel) waveLevelAt[w] = clock;
                 if (waveRabbitsAt[w] < 0 && s.Rabbits.Count >= wave.NeedRabbits && s.SeenKinds.Count >= wave.NeedKinds) waveRabbitsAt[w] = clock;
             }
@@ -546,11 +546,11 @@ namespace VuonTra.Core.Tests
             foreach (int level in new[] { 3, 5, 10, 15 })
                 sb.AppendLine("| Cấp vườn " + level + " | " + (levelAt.ContainsKey(level) ? Clock(levelAt[level]) : "chưa đạt") + " |");
             foreach (int plots in new[] { 6, 8, 10, 12 })
-                sb.AppendLine("| " + plots + " ô đất (R " + GardenGrid.RadiusForPlots(plots) + ") | " + (plotsAt.ContainsKey(plots) ? Clock(plotsAt[plots]) : "chưa đạt") + " |");
+                sb.AppendLine("| " + plots + " ô đất (" + GardenGrid.SegmentsForPlots(plots) + " đoạn) | " + (plotsAt.ContainsKey(plots) ? Clock(plotsAt[plots]) : "chưa đạt") + " |");
             sb.AppendLine("| Thỏ Tím đầu tiên | " + Clock(purpleAt) + " |");
             sb.AppendLine("| Thỏ Vàng đầu tiên | " + Clock(goldAt) + " |");
             for (int w = 0; w < waveLevelAt.Length; w++)
-                sb.AppendLine("| Vòng rừng R " + Expansion.Rings[w].RadiusAfter + " | đủ cấp " + Clock(waveLevelAt[w]) + ", đủ thỏ " + Clock(waveRabbitsAt[w]) + ", mở " + Clock(waveTakenAt[w]) + " |");
+                sb.AppendLine("| Đoạn " + Expansion.Table[w].SegmentsAfter + " | đủ cấp " + Clock(waveLevelAt[w]) + ", đủ thỏ " + Clock(waveRabbitsAt[w]) + ", mở " + Clock(waveTakenAt[w]) + " |");
             return sb.ToString();
         }
 
