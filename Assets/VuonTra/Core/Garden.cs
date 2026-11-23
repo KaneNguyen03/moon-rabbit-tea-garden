@@ -15,7 +15,7 @@ namespace VuonTra.Core
         /// Going from level L to L + 1 takes XpBase + XpStep * L. Gentle at the start and steeper after: experience comes
         /// fastest in the first minutes, when everything is cheap, so a steep curve would hand out the first levels in
         /// seconds; with these numbers a casual player sees level 5 around minute 7, level 10 on the first evening and
-        /// level 15 (the last plots) on day three (EconomySimulationTests).
+        /// level 16 (the last of the first twelve plots) on day three (EconomySimulationTests, on the median of seventeen seeds).
         /// </summary>
         public const int XpBase = 100, XpStep = 14;
         public const int MaxLevel = 99;
@@ -132,7 +132,9 @@ namespace VuonTra.Core
             new ForestRing { RadiusAfter = 4, NeedLevel = 3 },
             new ForestRing { RadiusAfter = 5, NeedLevel = 6,  NeedRabbits = 6 },
             new ForestRing { RadiusAfter = 6, NeedLevel = 10, NeedRabbits = 10 },
-            new ForestRing { RadiusAfter = 7, NeedLevel = 15, NeedKinds = 8 },
+            // R 7 asks for level 16, not the 15 of the old land wave (#83): at 15 a casual player had all twelve plots on
+            // day two on about half the seeds; at 16 on day three on every one.
+            new ForestRing { RadiusAfter = 7, NeedLevel = 16, NeedKinds = 8 },
             // The rings for the four stations after the star observatory (#67b): each asks for the garden level of the first
             // station it makes room for (16 for the lotus garden, 20 for the rice paddy), not the five more a ring of the rule
             // below would ask (20 and 25), so a casual player opens the thirteenth station on day four or five and the sixteenth

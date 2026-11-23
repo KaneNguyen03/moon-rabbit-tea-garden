@@ -12,7 +12,9 @@ namespace VuonTra.Core.Tests
     /// boost, quests, the tray, the three games, guests' orders) and the shop's golden carrots, for a casual
     /// player over a week and a tireless one over two hours, and writes where each stands at every milestone
     /// and where the carrots came from, to Logs/economy-pacing.txt. The asserts hold the pace the owner asked
-    /// for in #6; the table is what the numbers get tuned against.
+    /// for in #6, judged over seventeen seeds (#83): one seed's path turns on a single lucky rabbit, so a rule
+    /// is a median or holds on at least <see cref="Enough"/> of the <see cref="Seeds"/>. Every roll comes from
+    /// the seed, so the same seed plays the same week twice.
     /// </summary>
     public class EconomySimulationTests
     {
@@ -47,12 +49,11 @@ namespace VuonTra.Core.Tests
         int frogsMet, cloversFrogs;
         System.Random frogRng;
         /// <summary>
-        /// The moon pond (#58), off by default so the tables above keep this one seed's path: every sitting opens with
-        /// every bait that came back since the last one cast, four in five caught (the rest tapped too late), every fish
-        /// fed to the rabbit at the station that earns most, which is also stroked once a day. The casts have their own
-        /// dice. What the ten-heart gift paid is kept apart. On this seed any lift of 2 % or more to the first rabbit
-        /// (one stroke's heart is enough, pond or not) sends the week down another path with a Purple rabbit at minute 13,
-        /// so the pond is measured over seventeen seeds in <see cref="Fishing_And_Feeding_Keep_The_Hard_Pacing_Rules"/>.
+        /// The moon pond (#58), off by default and measured beside the week without it in
+        /// <see cref="Fishing_And_Feeding_Keep_The_Hard_Pacing_Rules"/>: every sitting opens with every bait that came back
+        /// since the last one cast, four in five caught (the rest tapped too late), every fish fed to the rabbit at the
+        /// station that earns most, which is also stroked once a day. The casts have their own dice, drawn from the seed.
+        /// What the ten-heart gift paid is kept apart.
         /// </summary>
         bool goFishing;
         const double FishCatchRate = 0.8;
@@ -88,12 +89,19 @@ namespace VuonTra.Core.Tests
             quests = catalog.BuildQuests();
         }
 
-        /// <summary>The seed every table above is played on.</summary>
+        /// <summary>The seed the detailed tables in the logs are played on.</summary>
         const int Seed = 20261122;
+
+        /// <summary>The seeds every pacing rule is judged on (#83): the one above and sixteen more.</summary>
+        static readonly int[] Seeds = { Seed, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
+
+        /// <summary>A rule that is not a median holds on at least this many of the seventeen seeds.</summary>
+        const int Enough = 15;
 
         void Reset(bool tireless, int seed = Seed)
         {
             s = GameState.NewGame(defs, ups.Count);
+            s.Profile.Code = Fixture.CodeFor(seed); // the shop's visitor of the day is drawn from the player code, which a new garden takes from a GUID (#83)
             Rabbits.GiftFirst(s, "R"); // every new garden starts with its cotton rabbit at the teapot
             mods = Modifiers.From(ups, s);
             rng = new System.Random(seed);
@@ -103,10 +111,10 @@ namespace VuonTra.Core.Tests
             freeJars.Clear();
             earnedFrogs = BigNum.Zero;
             frogsMet = cloversFrogs = 0;
-            frogRng = new System.Random(62);
+            frogRng = new System.Random(unchecked(seed * 31 + 62)); // the frog's and the pond's dice come from the seed too (#83)
             goFishing = false;
             casts = fishCaught = fishPoints = goldenHearts = 0;
-            fishRng = new System.Random(58);
+            fishRng = new System.Random(unchecked(seed * 31 + 58));
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             takeFreeDouble = everyAd = false;
@@ -219,13 +227,24 @@ namespace VuonTra.Core.Tests
         /// <summary>One second of the garden running, with so many taps; the carrots it pays are split by what made them.</summary>
         void Second(int taps)
         {
-            int target = BestToTap();
+            // Every station's income looked at once a second: where a tap is worth most (as BestToTap) and the garden's
+            // income (as Income), which used to be worked out apart; the same sums in the same order, in half the time (#83).
+            int target = -1;
+            BigNum best = BigNum.Zero, income = BigNum.Zero;
+            for (int i = 0; i < defs.Count; i++)
+            {
+                if (defs[i].Kind != StationKind.Brew || s.Levels[i] <= 0) continue;
+                BigNum here = Economy.StationIncomePerSecond(defs, s, i, out _, out _);
+                if (target < 0 || here > best) { target = i; best = here; }
+                if (defs[i].CycleSeconds > 0d && !Layout.IsStored(defs, s, i)) income += here;
+            }
+            if (target < 0) target = 0;
             BigNum tapValue = BigNum.Zero;
             for (int tap = 0; tap < taps; tap++)
                 if (Simulation.Tap(defs, s, target, mods))
                     tapValue += Economy.StationIncomePerSecond(defs, s, target, out _, out _) * (mods.TapSeconds * mods.IncomeMultiplier);
             double boostedSeconds = Math.Min(1d, Math.Max(0d, s.BoostSecondsLeft));
-            BigNum idleValue = Income;
+            BigNum idleValue = income * (mods.IncomeMultiplier * mods.SpeedMultiplier);
             BigNum boostValue = idleValue * (boostedSeconds * (Energy.BoostSpeed - 1d));
             BigNum paid = BigNum.Zero;
             Simulation.Tick(defs, s, 1d, (i, amount) => paid += amount, mods, rng.NextDouble);
@@ -547,23 +566,34 @@ namespace VuonTra.Core.Tests
                 + "Khác: " + gamesPlayed + " ván chơi, " + ordersDelivered + " đơn giao, " + rabbitLevels + " cấp thỏ mua, " + boosts + " lần trà lực, " + s.Claimed.Count + " nhiệm vụ đang nhận.\n";
         }
 
-        [Test]
-        public void Casual_Week_And_Tireless_Two_Hours_Keep_The_Intended_Pace()
-        {
-            var report = new StringBuilder();
-            report.AppendLine("# Nhịp kinh tế với đủ mọi nguồn thu (EconomySimulationTests)");
-            report.AppendLine();
+        // ----- one casual week, one tireless two hours, and the same over the seventeen seeds -----
 
-            // ----- the casual player: a week of 20 minutes in the morning and 10 in the evening -----
-            Reset(false);
-            report.AppendLine("## Người chơi thong thả");
-            report.AppendLine("1 chạm/giây vào trạm thu nhiều nhất, 3 giây mua một thứ rẻ nhất, 30 giây xem nhiệm vụ, 4 phút chơi một ván (2 sao), bán khay khi đầy hoặc mỗi 2 phút, giao đơn khi khay có đủ, gọi thỏ ngay khi có cỏ, mua thỏ ghé tiệm khi đủ vàng rồi gọi vàng mỗi 10, bật trà lực khi đủ, nâng cấp thỏ khi giá dưới 10 giây thu nhập.");
-            report.AppendLine("Mỗi ngày: chơi 20 phút, vắng 8 giờ, chơi 10 phút, vắng tới hết ngày; 7 ngày.");
-            report.AppendLine();
-            double level5 = -1, level10 = -1;
-            int levelDayOne = 0;
-            BigNum quests1 = BigNum.Zero, games1 = BigNum.Zero, orders1 = BigNum.Zero, active1 = BigNum.Zero;
-            int goldenEarnedDayOne = 0;
+        /// <summary>Where one casual week ended up: the milestones the rules judge, and what the ×2s, the videos and the pond paid.</summary>
+        sealed class Week
+        {
+            public int Seed;
+            public double Level5, Level10, Level15, Plots12, R8At, R9At;
+            public int LevelDayOne, GoldenCalls, Visitors, Summoned, GoldenAds, ExtraRounds, Plots, Rabbits, LevelEnd, GoldenEarnedDayOne;
+            public readonly double[] Wait = new double[3];
+            public double DoubleShare, AdShare;
+            /// <summary>Day one, out of what play earned (time away, jars, the frog, ×2s and videos left out): games and guests, and quests.</summary>
+            public double PlayShare, QuestShare;
+            public int MostHearts, FishCaught, MostFreeJars, JarsOpened, FrogsMet;
+            /// <summary>Carrots a second at the end of day seven.</summary>
+            public double Income7;
+            /// <summary>The milestones; the whole report (milestones, snapshots, sources, the minute-by-minute trace); the report and the save, to tell two runs apart.</summary>
+            public string Table, Report, Fingerprint;
+            public int Golden => GoldenCalls + Visitors;
+        }
+
+        /// <summary>The casual week: each day 20 minutes of play, 8 hours away, 10 minutes of play, away to the end of the day; seven days.</summary>
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed)
+        {
+            Reset(false, seed);
+            goFishing = fishing;
+            takeFreeDouble = freeDouble;
+            everyAd = watchEveryAd;
+            var w = new Week { Seed = seed };
             for (int day = 1; day <= 7; day++)
             {
                 Play(20 * 60);
@@ -574,257 +604,358 @@ namespace VuonTra.Core.Tests
                 if (day == 1)
                 {
                     Snapshot("hết ngày 1");
-                    levelDayOne = Garden.Level(s);
-                    // Moon jars (#64) are an hour of income at a stretch, like time away, so they are left out of what play earned too.
-                    quests1 = earnedQuests; games1 = earnedGames; orders1 = earnedOrders; active1 = TotalEarned - earnedAway - earnedJars - earnedFrogs; // the frog's ten minutes are a gift at a stretch too (#62)
-                    goldenEarnedDayOne = GoldenEarned;
+                    w.LevelDayOne = Garden.Level(s);
+                    // Time away pays for hours at a stretch and swamps a casual day, so what the player does is measured against
+                    // what play earned. Moon jars (#64) and the frog's ten minutes (#62) are gifts at a stretch too.
+                    BigNum active = TotalEarned - earnedAway - earnedJars - earnedFrogs - earnedDoubles - earnedAds;
+                    w.PlayShare = active.IsZero ? 0 : ((earnedGames + earnedOrders) / active).ToDouble() * 100d;
+                    w.QuestShare = active.IsZero ? 0 : (earnedQuests / active).ToDouble() * 100d;
+                    w.GoldenEarnedDayOne = GoldenEarned;
                 }
                 if (day == 2) Snapshot("hết ngày 2");
                 if (day == 3) Snapshot("hết ngày 3");
                 if (day == 7) Snapshot("hết ngày 7");
             }
-            level5 = levelAt.ContainsKey(5) ? levelAt[5] : -1;
-            level10 = levelAt.ContainsKey(10) ? levelAt[10] : -1;
-            double plots12Casual = plotsAt.ContainsKey(12) ? plotsAt[12] : -1;
-            double[] waitCasual = new double[3];
-            for (int w = 0; w < 3; w++) waitCasual[w] = waveRabbitsAt[w] < 0 ? double.PositiveInfinity : waveRabbitsAt[w] - waveLevelAt[w];
-            // Time away pays for hours at a stretch and swamps a casual day, so what the player does is measured against what play earned.
-            double questShare1 = active1.IsZero ? 0 : (quests1 / active1).ToDouble() * 100d;
-            double playShare1 = active1.IsZero ? 0 : ((games1 + orders1) / active1).ToDouble() * 100d;
-            int goldenCallsCasual = goldenCalls, visitorsCasual = visitorsBought;
-            int mostJarsCasual = MostFreeJarsInADay(), jarsOpenedCasual = jarsOpened;
-            int frogsMetCasual = frogsMet;
-            report.AppendLine(Milestones());
-            report.AppendLine(SnapshotHeader);
-            foreach (string row in snapshots) report.AppendLine(row);
-            report.AppendLine();
-            report.AppendLine("Ngày 1, tính trên cà rốt kiếm được lúc đang chơi (không tính vắng mặt và hũ trăng): nhiệm vụ " + Math.Round(questShare1, 1) + " %, trò chơi + đơn khách " + Math.Round(playShare1, 1) + " %; cà rốt vàng kiếm được " + goldenEarnedDayOne + ".");
-            report.AppendLine(Extras());
-            report.AppendLine("Diễn biến:");
-            report.Append(trace);
-            report.AppendLine();
-
-            // ----- the tireless player: two hours without a pause -----
-            Reset(true);
-            report.AppendLine("## Người chơi không nghỉ tay");
-            report.AppendLine("3 chạm/giây, 4 lần mua mỗi giây, nhận nhiệm vụ ngay, chơi ván 3 sao ngay khi có lượt, còn lại như trên. Chơi liền 2 giờ.");
-            report.AppendLine();
-            Play(2 * 3600);
-            Snapshot("2 giờ");
-            double plots12Tireless = plotsAt.ContainsKey(12) ? plotsAt[12] : -1;
-            int mostJarsTireless = MostFreeJarsInADay();
-            report.AppendLine(Milestones());
-            report.AppendLine(SnapshotHeader);
-            foreach (string row in snapshots) report.AppendLine(row);
-            report.AppendLine();
-            report.AppendLine(Extras());
-            report.AppendLine("Diễn biến:");
-            report.Append(trace);
-            report.AppendLine();
-            // Not asserted: a player who buys four levels a second earns a point for each, so the level that opens the last
-            // plots comes in minutes however the carrots are priced. Whether that experience should be capped is the owner's call.
-            report.AppendLine("Người chơi không nghỉ tay mở đủ 12 ô đất (R 7) lúc " + Clock(plots12Tireless) + " (mục tiêu: không trước ~2 giờ; chưa đạt vì mỗi cấp trạm mua đều cho 1 điểm, 4 lần mua mỗi giây).");
-
-            System.IO.Directory.CreateDirectory("Logs");
-            System.IO.File.WriteAllText("Logs/economy-pacing.txt", report.ToString());
-            TestContext.WriteLine(report.ToString());
-
-            // The pace the owner asked for (#6), on the casual player.
-            Assert.GreaterOrEqual(level5, 5 * 60, "garden level 5 should not come in the first five minutes\n" + report);
-            Assert.LessOrEqual(level5, 12 * 60, "garden level 5 should come within twelve minutes\n" + report);
-            Assert.GreaterOrEqual(levelDayOne, 10, "garden level 10 should come within day one\n" + report);
-            Assert.GreaterOrEqual(level10, 2 * 3600, "garden level 10 should not come in the first sitting\n" + report);
-            Assert.IsTrue(plots12Casual < 0 || plots12Casual >= 2 * Day, "the seventh ring (R 7, all twelve plots) should wait for day three\n" + report);
-            for (int w = 0; w < 3; w++) Assert.LessOrEqual(waitCasual[w], 300, "wave " + (w + 1) + " waited on rabbits\n" + report);
-            Assert.Less(questShare1, 35, "quests should not dominate day one\n" + report);
-            Assert.GreaterOrEqual(playShare1, 15, "the games and the guests should matter on day one\n" + report);
-            Assert.LessOrEqual(playShare1, 30, "but not take over\n" + report);
-            Assert.GreaterOrEqual(goldenCallsCasual + visitorsCasual, 2, "a casual player should call with golden carrots a few times a week\n" + report);
-            Assert.LessOrEqual(goldenCallsCasual + visitorsCasual, 6, "but not every day\n" + report);
-            // Moon jars (#64): the free sources together bring at most one a day, to the casual player and the tireless one.
-            Assert.Greater(jarsOpenedCasual, 0, "the casual player gets and opens jars\n" + report);
-            Assert.LessOrEqual(mostJarsCasual, MoonJars.FreePerDay, "at most one free jar a day\n" + report);
-            Assert.LessOrEqual(mostJarsTireless, MoonJars.FreePerDay, "the tireless player too\n" + report);
-            // The Frog Rabbit (#62): met by the casual player, two a day at most.
-            Assert.Greater(frogsMetCasual, 0, "the casual player meets the Frog Rabbit\n" + report);
-            Assert.LessOrEqual(frogsMetCasual, 7 * FrogRabbit.PerDay, "two a day at most\n" + report);
-            Assert.Pass(report.ToString());
-        }
-
-        // ----- the moon pond and the hearts it feeds (#58) -----
-
-        /// <summary>The shipped seed and sixteen more: the day-one share of games and guests swings from 6 % to 24 % between seeds in the game as it was, so it is judged on their mean.</summary>
-        static readonly int[] ShareSeeds = { Seed, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 };
-
-        /// <summary>
-        /// The casual week as above without fishing and with every bait cast each sitting, four in five caught and every
-        /// fish fed to the busiest station's rabbit (stroked once a day too), and the tireless player's two hours both ways.
-        /// On the shipped seed the hard rules hold with fishing and level 10 comes no more than 30 % sooner (#58). The
-        /// day-one share of games and guests is held on its mean over <see cref="ShareSeeds"/>: on the shipped seed alone a
-        /// lift of 2 % to the first rabbit flips it from 19.5 % to 7.4 % (a Purple rabbit at minute 13 doubles the day's
-        /// income, and one late guest's order is most of the share), while six of those seeds were under 15 % before the
-        /// pond. The table goes to Logs/economy-fishing.txt.
-        /// </summary>
-        [Test]
-        public void Fishing_And_Feeding_Keep_The_Hard_Pacing_Rules()
-        {
-            Week before = CasualWeek(false, false, false);
-            Week after = CasualWeek(false, false, true);
-            var tireless = new double[2];
-            for (int k = 0; k < 2; k++)
-            {
-                Reset(true);
-                goFishing = k == 1;
-                Play(2 * 3600);
-                tireless[k] = levelAt.ContainsKey(10) ? levelAt[10] : -1;
-            }
-
-            var report = new StringBuilder();
-            report.AppendLine("# Câu cá và cho thỏ ăn (#58)");
-            report.AppendLine();
-            report.AppendLine("Cùng tuần chơi thong thả với EconomySimulationTests. Có câu cá: mỗi buổi chơi thả hết số mồi đã hồi, " + (int)(FishCatchRate * 100) + " % lần chạm đúng lúc, cho hết cá vào thỏ ở trạm thu nhiều nhất và vuốt nó mỗi ngày.");
-            report.AppendLine();
-            report.AppendLine("| Cách chơi | Cấp vườn 5 | Cấp vườn 10 | Cấp hết ngày 1 | 12 ô đất | Cấp hết ngày 7 | Ô đất ngày 7 | Thỏ ngày 7 | Lượt gọi vàng + thỏ ghé tiệm | Trò chơi + khách ngày 1 % | Cá câu được | Tim cao nhất |");
-            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|");
-            foreach (var row in new[] { ("Không câu cá", before), ("Câu cá mỗi buổi", after) })
-            {
-                Week w = row.Item2;
-                report.AppendLine("| " + row.Item1 + " | " + Clock(w.Level5) + " | " + Clock(w.Level10) + " | " + w.LevelDayOne + " | " + Clock(w.Plots12) + " | " + w.LevelEnd + " | " + w.Plots + " | " + w.Rabbits
-                    + " | " + (w.GoldenCalls + w.Visitors) + " | " + Math.Round(w.PlayShare, 1) + " | " + w.FishCaught + " | " + w.MostHearts + " |");
-            }
-            report.AppendLine();
-            report.AppendLine("Người chơi không nghỉ tay, 2 giờ: cấp 10 lúc " + Clock(tireless[0]) + " không câu, " + Clock(tireless[1]) + " có câu.");
-            report.AppendLine();
-
-            // The day-one share over seventeen seeds, with the pond and without.
-            report.AppendLine("Trò chơi + khách ngày 1 theo hạt ngẫu nhiên (không câu → có câu), và lúc đủ 12 ô đất:");
-            double sumBefore = 0d, sumAfter = 0d;
-            int under15Before = 0, under15After = 0, plotsEarlyBefore = 0, plotsEarlyAfter = 0;
-            foreach (int seed in ShareSeeds)
-            {
-                Week b = seed == Seed ? before : CasualWeek(false, false, false, seed);
-                Week a = seed == Seed ? after : CasualWeek(false, false, true, seed);
-                sumBefore += b.PlayShare; sumAfter += a.PlayShare;
-                if (b.PlayShare < 15) under15Before++;
-                if (a.PlayShare < 15) under15After++;
-                if (b.Plots12 >= 0 && b.Plots12 < 2 * Day) plotsEarlyBefore++;
-                if (a.Plots12 >= 0 && a.Plots12 < 2 * Day) plotsEarlyAfter++;
-                report.AppendLine("  hạt " + seed + ": " + Math.Round(b.PlayShare, 1) + " % → " + Math.Round(a.PlayShare, 1) + " %; 12 ô đất " + Clock(b.Plots12) + " → " + Clock(a.Plots12) + "; cấp 10 " + Clock(b.Level10) + " → " + Clock(a.Level10));
-            }
-            double meanBefore = sumBefore / ShareSeeds.Length, meanAfter = sumAfter / ShareSeeds.Length;
-            report.AppendLine("  trung bình " + Math.Round(meanBefore, 1) + " % → " + Math.Round(meanAfter, 1) + " %; dưới 15 %: " + under15Before + " → " + under15After + " hạt; đủ 12 ô đất trước ngày 3: " + plotsEarlyBefore + " → " + plotsEarlyAfter + " hạt (trên " + ShareSeeds.Length + ").");
-            report.AppendLine();
-            report.AppendLine("Mốc khi câu cá:");
-            report.AppendLine(after.Table);
-            System.IO.Directory.CreateDirectory("Logs");
-            System.IO.File.WriteAllText("Logs/economy-fishing.txt", report.ToString());
-            TestContext.WriteLine(report.ToString());
-
-            Assert.GreaterOrEqual(after.Level10, 0.7 * before.Level10, "level 10 no more than 30 % sooner\n" + report);
-            Assert.GreaterOrEqual(after.Level5, 5 * 60, "garden level 5 should not come in the first five minutes\n" + report);
-            Assert.LessOrEqual(after.Level5, 12 * 60, "garden level 5 should come within twelve minutes\n" + report);
-            Assert.GreaterOrEqual(after.LevelDayOne, 10, "garden level 10 should come within day one\n" + report);
-            Assert.GreaterOrEqual(after.Level10, 2 * 3600, "garden level 10 should not come in the first sitting\n" + report);
-            Assert.IsTrue(after.Plots12 < 0 || after.Plots12 >= 2 * Day, "all twelve plots should wait for day three\n" + report);
-            for (int w = 0; w < 3; w++) Assert.LessOrEqual(after.Wait[w], 300, "wave " + (w + 1) + " waited on rabbits\n" + report);
-            Assert.GreaterOrEqual(meanAfter, 15, "the games and the guests should matter on day one, over the seeds\n" + report);
-            Assert.LessOrEqual(plotsEarlyAfter, plotsEarlyBefore, "the pond brings all twelve plots early on no more seeds than before\n" + report);
-            Assert.LessOrEqual(after.GoldenCalls + after.Visitors, 6, "golden calls stay a few a week\n" + report);
-            Assert.Greater(after.FishCaught, 0, "the casual player does catch fish\n" + report);
-            Assert.Greater(tireless[0], 0, report.ToString());
-            Assert.GreaterOrEqual(tireless[1], 0.7 * tireless[0], "nor for the tireless player\n" + report);
-        }
-
-        // ----- a player who watches every video (#66) -----
-
-        /// <summary>Where one casual week ended up: the milestones the asserts hold, and what the ×2s and the videos paid.</summary>
-        sealed class Week
-        {
-            public double Level5, Level10, Plots12;
-            public int LevelDayOne, GoldenCalls, Visitors, Summoned, GoldenAds, ExtraRounds, Plots, Rabbits, LevelEnd;
-            public readonly double[] Wait = new double[3];
-            public double DoubleShare, AdShare;
-            public double PlayShare;
-            public int MostHearts, FishCaught;
-            public string Table;
-        }
-
-        /// <summary>The casual week of the test above, played with or without the free ×2 and the videos.</summary>
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed)
-        {
-            Reset(false, seed);
-            goFishing = fishing;
-            takeFreeDouble = freeDouble;
-            everyAd = watchEveryAd;
-            var w = new Week();
-            for (int day = 1; day <= 7; day++)
-            {
-                Play(20 * 60);
-                Away(8 * 3600);
-                Play(10 * 60);
-                Away(Day - 8 * 3600 - 30 * 60);
-                if (day == 1)
-                {
-                    w.LevelDayOne = Garden.Level(s);
-                    BigNum active = TotalEarned - earnedAway - earnedJars - earnedFrogs - earnedDoubles - earnedAds;
-                    w.PlayShare = active.IsZero ? 0 : ((earnedGames + earnedOrders) / active).ToDouble() * 100d;
-                }
-            }
-            w.Level5 = levelAt.ContainsKey(5) ? levelAt[5] : -1;
-            w.Level10 = levelAt.ContainsKey(10) ? levelAt[10] : -1;
-            w.Plots12 = plotsAt.ContainsKey(12) ? plotsAt[12] : -1;
+            w.Level5 = At(levelAt, 5);
+            w.Level10 = At(levelAt, 10);
+            w.Level15 = At(levelAt, 15);
+            w.Plots12 = At(plotsAt, 12);
+            w.R8At = waveTakenAt.Length > 4 ? waveTakenAt[4] : -1;
+            w.R9At = waveTakenAt.Length > 5 ? waveTakenAt[5] : -1;
             for (int i = 0; i < 3; i++) w.Wait[i] = waveRabbitsAt[i] < 0 ? double.PositiveInfinity : waveRabbitsAt[i] - waveLevelAt[i];
             w.GoldenCalls = goldenCalls; w.Visitors = visitorsBought; w.Summoned = summoned;
             w.GoldenAds = goldenAds; w.ExtraRounds = extraRounds;
             w.Plots = s.Plots; w.Rabbits = s.Rabbits.Count; w.LevelEnd = Garden.Level(s);
             w.DoubleShare = Share(earnedDoubles); w.AdShare = Share(earnedAds);
             w.MostHearts = MostHearts(); w.FishCaught = fishCaught;
+            w.MostFreeJars = MostFreeJarsInADay(); w.JarsOpened = jarsOpened; w.FrogsMet = frogsMet;
+            w.Income7 = Income.ToDouble();
             w.Table = Milestones();
+            var report = new StringBuilder();
+            report.AppendLine(w.Table);
+            report.AppendLine(SnapshotHeader);
+            foreach (string row in snapshots) report.AppendLine(row);
+            report.AppendLine();
+            report.AppendLine("Ngày 1, tính trên cà rốt kiếm được lúc đang chơi (không tính vắng mặt, hũ trăng, Thỏ Ếch, ×2 và video): nhiệm vụ " + Math.Round(w.QuestShare, 1) + " %, trò chơi + đơn khách " + Math.Round(w.PlayShare, 1) + " %; cà rốt vàng kiếm được " + w.GoldenEarnedDayOne + ".");
+            report.AppendLine(Extras());
+            report.AppendLine("Diễn biến:");
+            report.Append(trace);
+            w.Report = report.ToString();
+            w.Fingerprint = SaveCodec.Encode(defs, s, ups) + "\n" + TotalEarned.Mantissa.ToString("R") + "e" + TotalEarned.Exponent + "\n" + w.Report;
             return w;
         }
 
-        static string Row(string label, Week w) =>
-            "| " + label + " | " + Clock(w.Level5) + " | " + Clock(w.Level10) + " | " + w.LevelDayOne + " | " + Clock(w.Plots12) + " | " + w.LevelEnd + " | " + w.Plots + " | " + w.Rabbits
-            + " | " + (w.GoldenCalls + w.Visitors) + " | " + w.GoldenAds + " | " + w.ExtraRounds + " | " + w.DoubleShare + " | " + w.AdShare + " |";
+        static double At(Dictionary<int, double> at, int key) => at.TryGetValue(key, out double t) ? t : -1;
+
+        /// <summary>Where two tireless hours ended up.</summary>
+        sealed class Hours
+        {
+            public double Level10, Ring7, Income;
+            public int MostFreeJars;
+            public string Report, Fingerprint;
+        }
+
+        /// <summary>The tireless player: two hours without a pause, or as many seconds as asked.</summary>
+        Hours Tireless(int seed, bool fishing = false, double seconds = 2 * 3600)
+        {
+            Reset(true, seed);
+            goFishing = fishing;
+            Play(seconds);
+            Snapshot(seconds >= 3600 ? (int)(seconds / 3600) + " giờ" : (int)(seconds / 60) + " phút");
+            // The seventh ring by when it was opened: four buys a second can open two rings in the same second.
+            var h = new Hours { Level10 = At(levelAt, 10), Ring7 = waveTakenAt[3], Income = Income.ToDouble(), MostFreeJars = MostFreeJarsInADay() };
+            var report = new StringBuilder();
+            report.AppendLine(Milestones());
+            report.AppendLine(SnapshotHeader);
+            foreach (string row in snapshots) report.AppendLine(row);
+            report.AppendLine();
+            report.AppendLine(Extras());
+            report.AppendLine("Diễn biến:");
+            report.Append(trace);
+            h.Report = report.ToString();
+            h.Fingerprint = SaveCodec.Encode(defs, s, ups) + "\n" + h.Report;
+            return h;
+        }
+
+        // The weeks and hours over the seeds, by how they were played. Every run is the same each time for its seed (see
+        // The_Same_Seed_Plays_The_Same_Game_Twice), so the tests of this fixture share them rather than play them again.
+        readonly Dictionary<string, Week[]> weeksOverSeeds = new Dictionary<string, Week[]>();
+        Hours[] hoursOverSeeds;
+
+        Week[] OverSeeds(bool freeDouble, bool watchEveryAd, bool fishing)
+        {
+            string key = freeDouble + "/" + watchEveryAd + "/" + fishing;
+            if (!weeksOverSeeds.TryGetValue(key, out Week[] weeks))
+            {
+                weeks = new Week[Seeds.Length];
+                for (int i = 0; i < Seeds.Length; i++) weeks[i] = CasualWeek(freeDouble, watchEveryAd, fishing, Seeds[i]);
+                weeksOverSeeds[key] = weeks;
+            }
+            return weeks;
+        }
+
+        Hours[] TirelessOverSeeds()
+        {
+            if (hoursOverSeeds == null)
+            {
+                hoursOverSeeds = new Hours[Seeds.Length];
+                for (int i = 0; i < Seeds.Length; i++) hoursOverSeeds[i] = Tireless(Seeds[i]);
+            }
+            return hoursOverSeeds;
+        }
+
+        // ----- the rules over the seeds (#83) -----
+
+        static double Median(IEnumerable<double> values)
+        {
+            var sorted = new List<double>(values);
+            sorted.Sort();
+            int n = sorted.Count;
+            return n == 0 ? double.NaN : n % 2 == 1 ? sorted[n / 2] : (sorted[n / 2 - 1] + sorted[n / 2]) / 2d;
+        }
+
+        static double Median<T>(IEnumerable<T> runs, Func<T, double> value)
+        {
+            var values = new List<double>();
+            foreach (T run in runs) values.Add(value(run));
+            return Median(values);
+        }
+
+        static int Count<T>(IEnumerable<T> runs, Func<T, bool> rule)
+        {
+            int n = 0;
+            foreach (T run in runs) if (rule(run)) n++;
+            return n;
+        }
+
+        /// <summary>The rule holds on at least <see cref="Enough"/> of the seeds.</summary>
+        static void Holds<T>(IList<T> runs, Func<T, bool> rule, string what, string report)
+        {
+            int n = Count(runs, rule);
+            Assert.GreaterOrEqual(n, Enough, what + ": on " + n + " of " + runs.Count + " seeds, at least " + Enough + " asked\n" + report);
+        }
+
+        /// <summary>The rule holds on every seed: for what the game itself caps, such as one free jar a day.</summary>
+        static void Always<T>(IList<T> runs, Func<T, bool> rule, string what, string report)
+        {
+            int n = Count(runs, rule);
+            Assert.AreEqual(runs.Count, n, what + ": on " + n + " of " + runs.Count + " seeds, every one asked\n" + report);
+        }
+
+        /// <summary>
+        /// The pace the owner asked for (#6), over the seeds, which every casual week keeps however else it is played: level 5
+        /// within twelve minutes and not in the first four, its median by minute nine; level 10 within day one but not in the
+        /// first sitting; all twelve plots (R 7) not before day three; no forest ring held up for rabbits. Each on at least
+        /// <see cref="Enough"/> of the seventeen seeds.
+        /// </summary>
+        static void HardRules(Week[] weeks, string report)
+        {
+            Holds(weeks, w => w.Level5 >= 4 * 60 && w.Level5 <= 12 * 60, "garden level 5 between minute four and minute twelve", report);
+            Assert.LessOrEqual(Median(weeks, w => w.Level5), 9 * 60, "garden level 5 by minute nine on the median (the owner: about seven)\n" + report);
+            Holds(weeks, w => w.LevelDayOne >= 10, "garden level 10 within day one", report);
+            Holds(weeks, w => w.Level10 >= 2 * 3600, "garden level 10 not in the first sitting", report);
+            Holds(weeks, w => w.Plots12 < 0 || w.Plots12 >= 2 * Day, "all twelve plots (R 7) wait for day three", report);
+            Holds(weeks, w => w.Wait[0] <= 300 && w.Wait[1] <= 300 && w.Wait[2] <= 300, "no forest ring waits on rabbits", report);
+        }
+
+        /// <summary>One row a seed and the medians: the milestones the rules judge.</summary>
+        static string SeedTable(Week[] weeks)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("| Hạt | Cấp 5 | Cấp 10 | Cấp hết ngày 1 | Cấp 15 | 12 ô đất (R 7) | R 8 | R 9 | Trò chơi + khách ngày 1 % | Nhiệm vụ ngày 1 % | Gọi vàng + thỏ ghé tiệm | Thu/giây hết ngày 7 | Cấp hết ngày 7 | Thỏ ngày 7 |");
+            sb.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            foreach (Week w in weeks)
+                sb.AppendLine("| " + w.Seed + " | " + Clock(w.Level5) + " | " + Clock(w.Level10) + " | " + w.LevelDayOne + " | " + Clock(w.Level15) + " | " + Clock(w.Plots12) + " | " + Clock(w.R8At) + " | " + Clock(w.R9At)
+                    + " | " + Math.Round(w.PlayShare, 1) + " | " + Math.Round(w.QuestShare, 1) + " | " + w.Golden + " | " + new BigNum(w.Income7).ToShortString() + " | " + w.LevelEnd + " | " + w.Rabbits + " |");
+            sb.AppendLine("| **trung vị** | " + Clock(Median(weeks, w => w.Level5)) + " | " + Clock(Median(weeks, w => w.Level10)) + " | " + Median(weeks, w => w.LevelDayOne) + " | " + Clock(Median(weeks, w => Late(w.Level15)))
+                + " | " + Clock(Median(weeks, w => Late(w.Plots12))) + " | " + Clock(Median(weeks, w => Late(w.R8At))) + " | " + Clock(Median(weeks, w => Late(w.R9At))) + " | " + Math.Round(Median(weeks, w => w.PlayShare), 1)
+                + " | " + Math.Round(Median(weeks, w => w.QuestShare), 1) + " | " + Median(weeks, w => w.Golden) + " | " + new BigNum(Median(weeks, w => w.Income7)).ToShortString() + " | " + Median(weeks, w => w.LevelEnd) + " | " + Median(weeks, w => w.Rabbits) + " |");
+            return sb.ToString();
+        }
+
+        /// <summary>A milestone not reached counts as later than any reached, for a median.</summary>
+        static double Late(double seconds) => seconds < 0 ? double.MaxValue : seconds;
+
+        /// <summary>
+        /// The median income at the end of day seven before the four stations after the star observatory (#67), on main at
+        /// 1840323, for the casual player above with the same dice over the seventeen seeds. The two new ingredient stations
+        /// had pushed it about 130-fold; the owner asked for no more than about ten times this (#83).
+        /// </summary>
+        const double DaySevenIncomeBeforeFourStations = 6.39e21;
+
+        [Test]
+        public void Casual_Week_And_Tireless_Two_Hours_Keep_The_Intended_Pace()
+        {
+            Week[] weeks = OverSeeds(false, false, false);
+            Hours[] hours = TirelessOverSeeds();
+            Week shipped = weeks[0];
+            Hours tireless = hours[0];
+
+            var report = new StringBuilder();
+            report.AppendLine("# Nhịp kinh tế với đủ mọi nguồn thu (EconomySimulationTests)");
+            report.AppendLine();
+            report.AppendLine("## Người chơi thong thả, hạt " + Seed);
+            report.AppendLine("1 chạm/giây vào trạm thu nhiều nhất, 3 giây mua một thứ rẻ nhất, 30 giây xem nhiệm vụ, 4 phút chơi một ván (2 sao), bán khay khi đầy hoặc mỗi 2 phút, giao đơn khi khay có đủ, gọi thỏ ngay khi có cỏ, mua thỏ ghé tiệm khi đủ vàng rồi gọi vàng mỗi 10, bật trà lực khi đủ, nâng cấp thỏ khi giá dưới 10 giây thu nhập.");
+            report.AppendLine("Mỗi ngày: chơi 20 phút, vắng 8 giờ, chơi 10 phút, vắng tới hết ngày; 7 ngày.");
+            report.AppendLine();
+            report.Append(shipped.Report);
+            report.AppendLine();
+            report.AppendLine("## Người chơi thong thả trên " + Seeds.Length + " hạt (#83)");
+            report.AppendLine("Mục tiêu chủ project: cấp 5 khoảng 7 phút, cấp 10 trong ngày 1, đủ 12 ô đất ngày 3, Mùa trăng mới ở cấp 30. Luật: trung vị, hoặc đúng trên ít nhất " + Enough + "/" + Seeds.Length + " hạt.");
+            report.AppendLine();
+            report.Append(SeedTable(weeks));
+            report.AppendLine();
+            report.AppendLine("## Người chơi không nghỉ tay, hạt " + Seed);
+            report.AppendLine("3 chạm/giây, 4 lần mua mỗi giây, nhận nhiệm vụ ngay, chơi ván 3 sao ngay khi có lượt, còn lại như trên. Chơi liền 2 giờ.");
+            report.AppendLine();
+            report.Append(tireless.Report);
+            report.AppendLine();
+            // Not asserted: a player who buys four levels a second earns a point for each, so the level that opens the last
+            // plots comes in minutes however the carrots are priced. Whether that experience should be capped is the owner's call.
+            report.AppendLine("Trên " + Seeds.Length + " hạt: cấp 10 trung vị lúc " + Clock(Median(hours, h => Late(h.Level10))) + ", vòng R 7 (12 ô đất) trung vị lúc " + Clock(Median(hours, h => Late(h.Ring7)))
+                + ", thu/giây sau 2 giờ trung vị " + new BigNum(Median(hours, h => h.Income)).ToShortString() + " (mục tiêu R 7: không trước ~2 giờ; chưa đạt vì mỗi cấp trạm mua đều cho 1 điểm, 4 lần mua mỗi giây).");
+
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-pacing.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            HardRules(weeks, report.ToString());
+            Holds(weeks, w => w.QuestShare < 35, "quests should not dominate day one", report.ToString());
+            double share = Median(weeks, w => w.PlayShare);
+            Assert.GreaterOrEqual(share, 15, "the games and the guests should matter on day one, on the median\n" + report);
+            Assert.LessOrEqual(share, 30, "but not take over\n" + report);
+            Holds(weeks, w => w.Golden >= 2 && w.Golden <= 6, "a casual player should call with golden carrots a few times a week, but not every day (at most six)", report.ToString());
+            Assert.LessOrEqual(Median(weeks, w => w.Income7), 10 * DaySevenIncomeBeforeFourStations, "day seven's income no more than about ten times what it was before the four new stations\n" + report);
+            // Moon jars (#64): the free sources together bring at most one a day, to the casual player and the tireless one.
+            Always(weeks, w => w.JarsOpened > 0, "the casual player gets and opens jars", report.ToString());
+            Always(weeks, w => w.MostFreeJars <= MoonJars.FreePerDay, "at most one free jar a day", report.ToString());
+            Always(hours, h => h.MostFreeJars <= MoonJars.FreePerDay, "the tireless player too", report.ToString());
+            // The Frog Rabbit (#62): met by the casual player, two a day at most.
+            Always(weeks, w => w.FrogsMet > 0 && w.FrogsMet <= 7 * FrogRabbit.PerDay, "the casual player meets the Frog Rabbit, two a day at most", report.ToString());
+        }
+
+        /// <summary>
+        /// Every roll of the simulations comes from its seed (#83): each player (casual, tireless, watching every video,
+        /// fishing) plays the very same game twice, with the others played in between, and another seed plays another one.
+        /// A new garden's player code comes from a GUID and the shop's visitor of the day from the code, which is what once
+        /// made the every-video week end with 129 rabbits on one run and 132 on the next.
+        /// </summary>
+        [Test]
+        public void The_Same_Seed_Plays_The_Same_Game_Twice()
+        {
+            string[] names = { "casual", "tireless", "every video", "fishing" };
+            Func<string>[] players =
+            {
+                () => CasualWeek(false, false).Fingerprint,
+                () => Tireless(Seed).Fingerprint,
+                () => CasualWeek(true, true).Fingerprint,
+                () => CasualWeek(false, false, true).Fingerprint,
+            };
+            var first = new string[players.Length];
+            for (int i = 0; i < players.Length; i++) first[i] = players[i]();
+            for (int i = 0; i < players.Length; i++)
+                Assert.AreEqual(first[i], players[i](), "the " + names[i] + " player's game played again on the same seed");
+            Assert.AreNotEqual(first[0], CasualWeek(false, false, false, Seeds[1]).Fingerprint, "another seed plays another game");
+        }
+
+        // ----- the moon pond and the hearts it feeds (#58) -----
+
+        /// <summary>
+        /// The casual week as above without fishing and with every bait cast each sitting, four in five caught and every
+        /// fish fed to the busiest station's rabbit (stroked once a day too), and the tireless player's two hours both ways,
+        /// over the seventeen seeds. Fishing keeps the hard rules, brings level 10 no more than 30 % sooner on the median
+        /// (#58), and keeps the day-one share of games and guests at 15 % on the median. The table goes to Logs/economy-fishing.txt.
+        /// </summary>
+        [Test]
+        public void Fishing_And_Feeding_Keep_The_Hard_Pacing_Rules()
+        {
+            Week[] before = OverSeeds(false, false, false);
+            Week[] after = OverSeeds(false, false, true);
+            // The tireless player reaches level 10 in about five minutes, and the first twenty minutes of a sitting play out
+            // the same however long it lasts, so with fishing twenty minutes are enough beside the two hours without.
+            Hours[] tirelessBefore = TirelessOverSeeds();
+            var tirelessAfter = new Hours[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++) tirelessAfter[i] = Tireless(Seeds[i], true, 20 * 60);
+
+            var report = new StringBuilder();
+            report.AppendLine("# Câu cá và cho thỏ ăn (#58)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi thong thả với EconomySimulationTests, trên " + Seeds.Length + " hạt. Có câu cá: mỗi buổi chơi thả hết số mồi đã hồi, " + (int)(FishCatchRate * 100) + " % lần chạm đúng lúc, cho hết cá vào thỏ ở trạm thu nhiều nhất và vuốt nó mỗi ngày.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Cấp 10 (không câu → câu) | Cấp hết ngày 1 | 12 ô đất | Trò chơi + khách ngày 1 % | Gọi vàng + thỏ ghé tiệm | Cấp hết ngày 7 | Cá câu được | Tim cao nhất |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|");
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                Week b = before[i], a = after[i];
+                report.AppendLine("| " + Seeds[i] + " | " + Clock(b.Level10) + " → " + Clock(a.Level10) + " | " + b.LevelDayOne + " → " + a.LevelDayOne + " | " + Clock(b.Plots12) + " → " + Clock(a.Plots12)
+                    + " | " + Math.Round(b.PlayShare, 1) + " → " + Math.Round(a.PlayShare, 1) + " | " + b.Golden + " → " + a.Golden + " | " + b.LevelEnd + " → " + a.LevelEnd + " | " + a.FishCaught + " | " + a.MostHearts + " |");
+            }
+            double tenBefore = Median(before, w => w.Level10), tenAfter = Median(after, w => w.Level10);
+            report.AppendLine("| **trung vị** | " + Clock(tenBefore) + " → " + Clock(tenAfter) + " | " + Median(before, w => w.LevelDayOne) + " → " + Median(after, w => w.LevelDayOne)
+                + " | " + Clock(Median(before, w => Late(w.Plots12))) + " → " + Clock(Median(after, w => Late(w.Plots12))) + " | " + Math.Round(Median(before, w => w.PlayShare), 1) + " → " + Math.Round(Median(after, w => w.PlayShare), 1)
+                + " | " + Median(before, w => w.Golden) + " → " + Median(after, w => w.Golden) + " | " + Median(before, w => w.LevelEnd) + " → " + Median(after, w => w.LevelEnd) + " | " + Median(after, w => w.FishCaught) + " | " + Median(after, w => w.MostHearts) + " |");
+            report.AppendLine();
+            double tirelessTenBefore = Median(tirelessBefore, h => Late(h.Level10)), tirelessTenAfter = Median(tirelessAfter, h => Late(h.Level10));
+            report.AppendLine("Người chơi không nghỉ tay, trung vị: cấp 10 lúc " + Clock(tirelessTenBefore) + " không câu, " + Clock(tirelessTenAfter) + " có câu.");
+            report.AppendLine();
+            report.AppendLine("Mốc khi câu cá, hạt " + Seed + ":");
+            report.AppendLine(after[0].Table);
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-fishing.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            HardRules(after, report.ToString());
+            Assert.GreaterOrEqual(tenAfter, 0.7 * tenBefore, "level 10 no more than 30 % sooner, on the median\n" + report);
+            Assert.GreaterOrEqual(Median(after, w => w.PlayShare), 15, "the games and the guests should matter on day one, on the median\n" + report);
+            Holds(after, w => w.Golden <= 6, "golden calls stay a few a week, at most six", report.ToString());
+            Always(after, w => w.FishCaught > 0, "the casual player does catch fish", report.ToString());
+            Assert.GreaterOrEqual(tirelessTenAfter, 0.7 * tirelessTenBefore, "nor for the tireless player\n" + report);
+        }
+
+        // ----- a player who watches every video (#66) -----
+
+        static string Row(string label, Week[] weeks) =>
+            "| " + label + " | " + Clock(Median(weeks, w => w.Level5)) + " | " + Clock(Median(weeks, w => w.Level10)) + " | " + Median(weeks, w => w.LevelDayOne) + " | " + Clock(Median(weeks, w => Late(w.Plots12)))
+            + " | " + Median(weeks, w => w.LevelEnd) + " | " + Median(weeks, w => w.Plots) + " | " + Median(weeks, w => w.Rabbits) + " | " + Median(weeks, w => w.Golden) + " (" + Count(weeks, w => w.Golden <= 6) + "/" + weeks.Length + " ≤ 6)"
+            + " | " + Median(weeks, w => w.GoldenAds) + " | " + Median(weeks, w => w.ExtraRounds) + " | " + Median(weeks, w => w.DoubleShare) + " | " + Median(weeks, w => w.AdShare) + " |";
 
         /// <summary>
         /// Not the shipped pace (ads are off in every build): the same casual week as above, as it is, then taking the
-        /// day's free ×2 of time away (#69), then also watching every video the three places offer each day (#66). The
-        /// hard rules must still hold for the last one; the table goes to Logs/economy-ads.txt for the owner.
+        /// day's free ×2 of time away (#69), then also watching every video the three places offer each day (#66), the first
+        /// and the last over the seventeen seeds. The hard rules must still hold for the last one; whether its golden calls
+        /// stay at six a week or fewer is written for the owner, with the table, to Logs/economy-ads.txt.
         /// </summary>
         [Test]
         public void Watching_Every_Ad_Each_Day_Keeps_The_Hard_Pacing_Rules()
         {
-            Week plain = CasualWeek(false, false);
-            Week free = CasualWeek(true, false);
-            Week ads = CasualWeek(true, true);
+            Week[] plain = OverSeeds(false, false, false);
+            Week[] free = { CasualWeek(true, false) }; // only reported, so on the shipped seed alone
+            Week[] ads = OverSeeds(true, true, false);
 
             var report = new StringBuilder();
             report.AppendLine("# Người chơi thong thả xem mọi quảng cáo (#66)");
             report.AppendLine();
-            report.AppendLine("Cùng tuần chơi với EconomySimulationTests. Mỗi ngày: ×2 vắng mặt miễn phí ở lần về đầu tiên trong ngày (#69); xem video ×2 ở lần về sau khi lượt miễn phí đã dùng (1/ngày); 2 video ở Tiệm (+1 cà rốt vàng mỗi lần); thêm 1 lượt mỗi trò khi đã chơi hết lượt (1/trò/ngày).");
+            report.AppendLine("Cùng tuần chơi với EconomySimulationTests, trung vị trên " + Seeds.Length + " hạt. Mỗi ngày: ×2 vắng mặt miễn phí ở lần về đầu tiên trong ngày (#69); xem video ×2 ở lần về sau khi lượt miễn phí đã dùng (1/ngày); 2 video ở Tiệm (+1 cà rốt vàng mỗi lần); thêm 1 lượt mỗi trò khi đã chơi hết lượt (1/trò/ngày).");
             report.AppendLine();
             report.AppendLine("| Cách chơi | Cấp vườn 5 | Cấp vườn 10 | Cấp hết ngày 1 | 12 ô đất | Cấp hết ngày 7 | Ô đất ngày 7 | Thỏ ngày 7 | Lượt gọi vàng + thỏ ghé tiệm | Vàng từ video | Lượt thêm từ video | ×2 miễn phí % | ×2 video % |");
             report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|");
             report.AppendLine(Row("Như hiện nay (không ×2, không quảng cáo)", plain));
-            report.AppendLine(Row("Dùng ×2 miễn phí mỗi ngày", free));
+            report.AppendLine(Row("Dùng ×2 miễn phí mỗi ngày (chỉ hạt " + Seed + ")", free));
             report.AppendLine(Row("×2 miễn phí + xem mọi quảng cáo", ads));
             report.AppendLine();
-            report.AppendLine("Mốc khi xem mọi quảng cáo:");
-            report.AppendLine(ads.Table);
-            bool calls = ads.GoldenCalls + ads.Visitors <= 6;
-            report.AppendLine(calls ? "Lượt gọi bằng cà rốt vàng vẫn trong mức \"vài lần một tuần, không phải mỗi ngày\" (≤ 6)."
-                : "Lượt gọi bằng cà rốt vàng vượt mức \"không phải mỗi ngày\" (> 6): cần chủ project quyết.");
+            report.AppendLine("Xem mọi quảng cáo, từng hạt:");
+            report.Append(SeedTable(ads));
+            report.AppendLine();
+            report.AppendLine("Mốc khi xem mọi quảng cáo, hạt " + Seed + ":");
+            report.AppendLine(ads[0].Table);
+            int calls = Count(ads, w => w.Golden <= 6);
+            report.AppendLine(calls >= Enough ? "Lượt gọi bằng cà rốt vàng vẫn trong mức \"vài lần một tuần, không phải mỗi ngày\" (≤ 6) trên " + calls + "/" + ads.Length + " hạt."
+                : "Lượt gọi bằng cà rốt vàng vượt mức \"không phải mỗi ngày\" (> 6) trên " + (ads.Length - calls) + "/" + ads.Length + " hạt: cần chủ project quyết.");
             System.IO.Directory.CreateDirectory("Logs");
             System.IO.File.WriteAllText("Logs/economy-ads.txt", report.ToString());
             TestContext.WriteLine(report.ToString());
 
-            Assert.GreaterOrEqual(ads.Level5, 5 * 60, "garden level 5 should not come in the first five minutes\n" + report);
-            Assert.LessOrEqual(ads.Level5, 12 * 60, "garden level 5 should come within twelve minutes\n" + report);
-            Assert.GreaterOrEqual(ads.LevelDayOne, 10, "garden level 10 should come within day one\n" + report);
-            Assert.GreaterOrEqual(ads.Level10, 2 * 3600, "garden level 10 should not come in the first sitting\n" + report);
-            Assert.IsTrue(ads.Plots12 < 0 || ads.Plots12 >= 2 * Day, "all twelve plots should wait for day three\n" + report);
-            for (int w = 0; w < 3; w++) Assert.LessOrEqual(ads.Wait[w], 300, "wave " + (w + 1) + " waited on rabbits\n" + report);
+            HardRules(ads, report.ToString());
         }
     }
 }

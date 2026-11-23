@@ -22,6 +22,7 @@ MonoBehaviour:
   CycleSeconds: 75
   NeedGardenLevel: 23
   Boosts: []
+  BoostScale: 1
   Prop: {fileID: 21300000, guid: 8fd77286ea3144529889d42eecabcb32, type: 3}
   Product: {fileID: 21300000, guid: f29f5dc7397cd4512b62c86a55e6761a, type: 3}
   Rabbit: {fileID: 0}

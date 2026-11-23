@@ -169,7 +169,7 @@ namespace VuonTra.Core.Tests
             s.Plots = 10;
             GardenGrid.Settle(defs, s);
             s.Coins = BigNum.FromParts(1, 40);
-            s.GardenXp = Garden.XpForLevel(15);
+            s.GardenXp = Garden.XpForLevel(Expansion.Ring(7).NeedLevel);
             Assert.AreEqual(7, Expansion.Next(defs, s).RadiusAfter);
             Assert.IsFalse(Expansion.CanExpand(defs, s));
             foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < 8) s.SeenKinds.Add(kind.Id);
@@ -181,7 +181,7 @@ namespace VuonTra.Core.Tests
         [TestCase(6, 1, 3)]
         [TestCase(7, 2, 6)]
         [TestCase(10, 3, 10)]
-        [TestCase(12, 4, 15)]
+        [TestCase(12, 4, 16)] // R 7 asks for level 16 since #83
         public void Land_Already_Held_Says_Which_Waves_Were_Taken(int plots, int waves, int level)
         {
             Assert.AreEqual(waves, Expansion.WavesTaken(plots));

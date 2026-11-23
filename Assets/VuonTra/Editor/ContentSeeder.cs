@@ -28,6 +28,8 @@ namespace VuonTra.EditorTools
             public string[] Boosts;
             /// <summary>The garden level the station asks for besides its price (#67); 0 for none.</summary>
             public int NeedLevel;
+            /// <summary>Ingredient only: the share of the usual boost it gives (#83); 0 here means all of it.</summary>
+            public double BoostScale;
         }
 
         /// <summary>Which trade a station belongs to: every ingredient station is for gatherers, the rest go by what they make.</summary>
@@ -59,10 +61,12 @@ namespace VuonTra.EditorTools
             new Row { Id = "suoi-hoa", Name = "Suối khoáng hoa",    Kind = StationKind.Ingredient, Cost = 1.3e12, Growth = 1.16, Accent = "6fa8f0", Boosts = new[] { "binh-sao", "dai-sao" } },
             new Row { Id = "dai-sao",  Name = "Đài ngắm sao",       Kind = StationKind.Brew,       Cost = 2e13,   Growth = 1.16, Income = 9e8,    Cycle = 50,  Accent = "ffc866" },
             // Four stations after the star observatory (#67): each also asks for a garden level, so a casual player has a
-            // new one to open from day four to day ten. They stand on the rings of land #53 brings.
-            new Row { Id = "ho-sen",   Name = "Vườn hoa sen",       Kind = StationKind.Ingredient, Cost = 3e14,   Growth = 1.16, Accent = "f2a7c3", Boosts = new[] { "tiem-banh", "dai-sao" }, NeedLevel = 16 },
+            // new one to open from day four to day ten. They stand on the rings of land #53 brings. The two ingredient
+            // stations give 7 % of the usual boost (#83): at full strength they made day seven's income over a hundredfold; at 7 %
+            // it stays within ten times what it was before them.
+            new Row { Id = "ho-sen",   Name = "Vườn hoa sen",       Kind = StationKind.Ingredient, Cost = 3e14,   Growth = 1.16, Accent = "f2a7c3", Boosts = new[] { "tiem-banh", "dai-sao" }, NeedLevel = 16, BoostScale = 0.07 },
             new Row { Id = "lo-keo",   Name = "Lò kẹo mạch nha",    Kind = StationKind.Brew,       Cost = 4.5e15, Growth = 1.17, Income = 1.2e10, Cycle = 60,  Accent = "e3a857", NeedLevel = 18 },
-            new Row { Id = "ruong-nep",Name = "Ruộng lúa nếp",      Kind = StationKind.Ingredient, Cost = 6.5e16, Growth = 1.17, Accent = "b9cf6a", Boosts = new[] { "lo-keo", "tra-sua" }, NeedLevel = 20 },
+            new Row { Id = "ruong-nep",Name = "Ruộng lúa nếp",      Kind = StationKind.Ingredient, Cost = 6.5e16, Growth = 1.17, Accent = "b9cf6a", Boosts = new[] { "lo-keo", "tra-sua" }, NeedLevel = 20, BoostScale = 0.07 },
             new Row { Id = "thuyen-tra",Name = "Thuyền trà đêm",    Kind = StationKind.Brew,       Cost = 1e18,   Growth = 1.17, Income = 1.8e11, Cycle = 75,  Accent = "6f8fd6", NeedLevel = 23 },
         };
 
@@ -96,6 +100,7 @@ namespace VuonTra.EditorTools
                 data.BaseIncome = row.Income;
                 data.CycleSeconds = row.Cycle;
                 data.NeedGardenLevel = row.NeedLevel;
+                data.BoostScale = row.BoostScale > 0 ? row.BoostScale : 1d;
                 data.Accent = PlaceholderArt.Hex(row.Accent);
                 data.Prop = FinalArt.Load("prop_" + row.Id);
                 data.Product = FinalArt.Find("product_" + row.Id); // null until drawn: the tray shows the prop
