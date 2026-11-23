@@ -355,7 +355,7 @@ namespace VuonTra.Game.UI
                 s.ViewZoom = _zoom;
             }
             // A full bar breathes: the one hint that the boost is there to be taken.
-            _energyButton.FaceRect.localScale = Vector3.one * (_energyReady ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
+            _energyButton.FaceRect.localScale = Vector3.one * (_energyReady && !Motion.Reduced ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
 
             Tweens.Update(dt);
             SyncFronts(); // after the arranging mode's glides moved a station this frame
@@ -815,7 +815,7 @@ namespace VuonTra.Game.UI
             for (int k = 0; k < _seats.Count; k++)
             {
                 if (!_seats[k].gameObject.activeSelf) continue;
-                _seats[k].localRotation = Quaternion.Euler(0, 0, Mathf.Sin(_clock * 0.8f + k * 1.9f) * 3.2f);
+                _seats[k].localRotation = Motion.Reduced ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Sin(_clock * 0.8f + k * 1.9f) * 3.2f);
                 bool dozing = Mathf.Repeat(_clock / 11f + k * 0.29f, 1f) < 0.3f;
                 if (_seatNaps[k].activeSelf != dozing) _seatNaps[k].SetActive(dozing);
             }
@@ -982,9 +982,9 @@ namespace VuonTra.Game.UI
             if (_gold.gameObject.activeSelf)
             {
                 _goldAge += dt;
-                float k = _goldAge / GoldSeconds;
-                _gold.anchoredPosition = new Vector2(-80f + k * (ScreenW + 160f), ScreenH * 0.55f + Mathf.Sin(k * 9f) * 160f);
-                _gold.localScale = Vector3.one * (1f + 0.15f * Mathf.Sin(_clock * 6f));
+                float k = _goldAge / GoldSeconds, across = Motion.Reduced ? 0.5f : k;
+                _gold.anchoredPosition = new Vector2(-80f + across * (ScreenW + 160f), ScreenH * 0.55f + (Motion.Reduced ? 0f : Mathf.Sin(k * 9f) * 160f));
+                _gold.localScale = Vector3.one * (Motion.Reduced ? 1f : 1f + 0.15f * Mathf.Sin(_clock * 6f));
                 if (k >= 1f) _gold.gameObject.SetActive(false);
             }
             else
@@ -2309,9 +2309,9 @@ namespace VuonTra.Game.UI
                     float t = Mathf.SmoothStep(0f, 1f, Mathf.PingPong(_clock / 26f + flock * 0.37f, 1f));
                     home = Vector2.Lerp(home, next, t) + new Vector2(Mathf.Sin(_clock * 0.3f + flock) * 30f, Mathf.Cos(_clock * 0.23f + flock) * 20f);
                 }
-                float angle = _clock * (0.35f + Hash(seed) * 0.4f) + seed, reach = 30f + Hash(seed + 2f) * 50f;
+                float angle = (Motion.Reduced ? 0f : _clock * (0.35f + Hash(seed) * 0.4f)) + seed, reach = 30f + Hash(seed + 2f) * 50f;
                 _fireflies[i].anchoredPosition = home + new Vector2(Mathf.Cos(angle) * reach, Mathf.Sin(angle * 1.3f) * reach * 0.6f);
-                float pulse = 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
+                float pulse = Motion.Reduced ? 0.5f : 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
                 _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.2f + 0.6f * pulse);
                 _fireflies[i].localScale = Vector3.one * (0.7f + 0.5f * pulse);
             }

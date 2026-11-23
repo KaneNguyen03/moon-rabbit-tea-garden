@@ -87,7 +87,7 @@ namespace VuonTra.Game.UI
             Box(_dim[2], -w / 2f, min.y, min.x, max.y);
             Box(_dim[3], max.x, min.y, w / 2f, max.y);
 
-            float bob = Mathf.Abs(Mathf.Sin(_clock * 3.2f)) * 18f;
+            float bob = Motion.Reduced ? 0f : Mathf.Abs(Mathf.Sin(_clock * 3.2f)) * 18f;
             _handAt = new Vector2(max.x - Hole + 10f, min.y + Hole - 10f) + new Vector2(bob, -bob);
             _hand.anchoredPosition = _handAt;
         }
