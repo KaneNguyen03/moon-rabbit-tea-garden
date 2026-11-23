@@ -45,7 +45,7 @@ namespace VuonTra.Core.Tests
             L10n.SetLocale("vi");
         }
 
-        Transform Sign => root.transform.Find("Canvas/Garden/Canopy/Forest Sign");
+        Transform Sign => root.transform.Find("Canvas/Garden/Content/Forest Sign");
         Transform World => root.transform.Find("Canvas/Garden/Content");
 
         /// <summary>A garden that has everything the next ring asks for: the level, rabbits and kinds, and the carrots.</summary>
@@ -76,10 +76,10 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Sign.gameObject.activeSelf, "a new garden cannot widen yet");
             ReadyForTheNextRing();
             Assert.IsTrue(Sign.gameObject.activeSelf, "everything the first ring asks for is there");
-            Assert.AreEqual("Mở rộng rừng", Sign.Find("Board/Face/Text").GetComponent<Text>().text);
+            Assert.AreEqual("Mở rộng vườn", Sign.Find("Board/Face/Text").GetComponent<Text>().text);
             Vector2 at = screen.ForestSignSpot;
             float heart = screen.StationSpot(0).x, edge = (GardenGrid.StartHalfWidth + 1) * (float)GardenGrid.PitchX / 2f;
-            Assert.AreEqual(heart + edge, at.x, 1f, "at the open lawn's edge on the side the first segment opens, where the mist begins: " + at);
+            Assert.AreEqual(heart + edge - 125f, at.x, 1f, "just inside the open lawn's end on the side the first segment opens, where the mist begins: " + at);
             Assert.AreEqual(at, ((RectTransform)Sign).anchoredPosition);
             Assert.AreEqual(screen.StationSpot(runner.State.Plots).x < heart, at.x < heart, "on the side of the land it opens");
 
@@ -128,7 +128,7 @@ namespace VuonTra.Core.Tests
             Transform grass = World.Find("Segment Grass 1");
             Assert.IsTrue(grass.gameObject.activeSelf);
             foreach (Transform tuft in grass) Assert.AreEqual(1f, tuft.localScale.x, 1e-6f, tuft.name + " is there at once");
-            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             foreach (Transform child in canopy)
                 if (child.name.StartsWith("Rim ") && child.name != "Rim Shade" && child.gameObject.activeSelf)
                     Assert.AreEqual(1f, child.GetComponent<Image>().color.a, 1e-3f, child.name + " in full at once");
@@ -139,7 +139,7 @@ namespace VuonTra.Core.Tests
         {
             Motion.SetReduced(true);
             var street = (RectTransform)World;
-            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             for (int ring = 0; ring < Expansion.Table.Length; ring++)
             {
                 ReadyForTheNextRing();
@@ -209,7 +209,7 @@ namespace VuonTra.Core.Tests
             screen.RebuildUi();
             ReadyForTheNextRing();
             Text text = Sign.Find("Board/Face/Text").GetComponent<Text>();
-            Assert.AreEqual(L10n.T("forest.expand"), text.text);
+            Assert.AreEqual(L10n.T("garden.expand"), text.text);
             Vector2 size = text.rectTransform.rect.size;
             var gen = new TextGenerator();
             gen.Populate(text.text, text.GetGenerationSettings(size));
@@ -223,11 +223,11 @@ namespace VuonTra.Core.Tests
             screen.OpenSheet(0);
             screen.Refresh();
             Text title = root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Plot/Title").GetComponent<Text>();
-            Assert.AreEqual("Mở rộng rừng · vòng 1", title.text);
+            Assert.AreEqual("Mở rộng vườn · đoạn 1", title.text);
             ReadyForTheNextRing();
             Sign.Find("Board").GetComponent<Button>().onClick.Invoke();
             screen.Refresh();
-            Assert.AreEqual("Mở rộng rừng · vòng 2", title.text);
+            Assert.AreEqual("Mở rộng vườn · đoạn 2", title.text);
         }
     }
 }

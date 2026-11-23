@@ -557,10 +557,10 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(world.Find("Ring 11").gameObject.activeSelf);
         }
 
-        /// <summary>The pieces of the forest rim (#51), as they stand on the canopy in garden units, without the sway.</summary>
+        /// <summary>The pieces of the forest rim (#51), as they stand on the ground (the horizontal garden) in garden units, without the sway.</summary>
         List<KeyValuePair<string, Rect>> RimPieces()
         {
-            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             var rim = new List<KeyValuePair<string, Rect>>();
             for (int k = 0; k < canopy.childCount; k++)
             {
@@ -653,7 +653,7 @@ namespace VuonTra.Core.Tests
             runner.State.Plots = 6;
             screen.Refresh();
             screen.Advance(0.15f);
-            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             bool fading = false;
             for (int k = 0; k < canopy.childCount; k++)
             {
@@ -705,7 +705,7 @@ namespace VuonTra.Core.Tests
                 if (k < before.Count && Mathf.Abs(before[k].Value.x - now[k].Value.x) > 1f) changed = true;
             }
             Assert.IsTrue(changed, "the rim did step back");
-            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             foreach (Transform child in canopy)
                 if (child.name.StartsWith("Rim ") && child.name != "Rim Shade" && child.gameObject.activeSelf)
                     Assert.AreEqual(1f, child.GetComponent<Image>().color.a, 1e-3f, child.name + " in full at once");
@@ -2104,7 +2104,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(oven.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Front("lo-banh").Find("Pad").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Prop").gameObject.activeSelf);
-            Assert.AreEqual("Mở rộng rừng", Front("lo-banh").Find("Level/Text").GetComponent<Text>().text); // #53
+            Assert.AreEqual("Mở rộng vườn", Front("lo-banh").Find("Level/Text").GetComponent<Text>().text); // #53
 
             // One of your rabbits arrives: the rabbit shows and the pad goes.
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
@@ -3864,14 +3864,14 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Game_Opens_Where_The_Player_Last_Looked_And_Keeps_Noting_Where_That_Is()
         {
-            runner.State.ViewX = 540d;
+            runner.State.ViewX = 2600d; // a little right of the teapot, on the open lawn
             runner.State.ViewY = 800d;
             runner.State.ViewZoom = 1.5d;
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             screen.Shell.StartGame();
             for (int i = 0; i < 45; i++) screen.Advance(1f / 30f); // the opening glide is over
             Assert.AreEqual(1.5f, screen.ZoomScale, 1e-3f, "the zoom comes back too");
-            Assert.AreEqual(540f, (1080f / 2f - world.anchoredPosition.x) / world.localScale.x, 1f);
+            Assert.AreEqual(2600f, (1080f / 2f - world.anchoredPosition.x) / world.localScale.x, 1f);
             Assert.AreEqual(800f, (1920f / 2f - world.anchoredPosition.y) / world.localScale.y, 1f, "the spot under the middle of the screen is the one saved");
 
             screen.LookAt(new Vector2(2400f, 1300f)); // LookAt puts its point at 60% of the height, so the middle sits a little below it
@@ -4402,7 +4402,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(StepUntilAtSpot(0), "it reaches its spot");
             int spot = screen.StrollSpotOf(0);
             Assert.GreaterOrEqual(spot, 0);
-            Vector2 at = GardenScreen.LawnSpots[spot];
+            Vector2 at = screen.LawnSpots[spot];
             Assert.LessOrEqual(Vector2.Distance(at, seat.anchoredPosition), GardenScreen.StrollRadius, "an empty spot within reach of its seat");
             Assert.LessOrEqual(Vector2.Distance(at, walker.anchoredPosition), 16f, "standing on it, give or take a hop");
             Assert.IsTrue(screen.ActivityOf(0).HasValue, "doing something there");
@@ -4498,7 +4498,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(seat.gameObject.activeSelf);
             Assert.IsTrue(StepUntilAtSpot(0));
             Vector2 at = walker.anchoredPosition;
-            Assert.AreEqual(GardenScreen.LawnSpots[screen.StrollSpotOf(0)], at, "simply there");
+            Assert.AreEqual(screen.LawnSpots[screen.StrollSpotOf(0)], at, "simply there");
             Assert.IsFalse(seat.gameObject.activeSelf);
             float stayed = 0f;
             while (screen.AtSpot(0) && stayed < 10f)
@@ -4518,7 +4518,7 @@ namespace VuonTra.Core.Tests
             for (int i = 1; i <= RestSpots.Max; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 0, Kind = "tho-bong", Name = "T" + i });
             runner.State.NextRabbitId = RestSpots.Max;
             screen.Refresh();
-            int cap = Strolls.MaxAtOnce(GardenScreen.LawnSpots.Count);
+            int cap = Strolls.MaxAtOnce(screen.LawnSpots.Count);
             Assert.GreaterOrEqual(cap, 2, "room for a few at once");
             int most = 0;
             for (float t = 0f; t < 3f * GardenScreen.StrollPeriod; t += 0.5f)
@@ -4542,8 +4542,8 @@ namespace VuonTra.Core.Tests
         public void Every_Lawn_Spot_Keeps_Clear_Of_The_Stations_The_Props_And_The_Seats()
         {
             Transform world = root.transform.Find("Canvas/Garden/Content");
-            Assert.GreaterOrEqual(GardenScreen.LawnSpots.Count, 6);
-            foreach (Vector2 spot in GardenScreen.LawnSpots)
+            Assert.GreaterOrEqual(screen.LawnSpots.Count, 6);
+            foreach (Vector2 spot in screen.LawnSpots)
             {
                 for (int i = 0; i < runner.Defs.Count; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.StationSpot(i)), Strolls.Clearance, spot + " by station " + i);
                 for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(spot, screen.DecorSpotAt(i)), 150f, spot + " by decoration spot " + i);
@@ -4553,12 +4553,13 @@ namespace VuonTra.Core.Tests
                     Assert.GreaterOrEqual(Vector2.Distance(spot, ((RectTransform)world.Find("Seat " + k)).anchoredPosition), 150f, spot + " on seat " + k);
                 Assert.IsTrue(spot.x > 150f && spot.x < GardenScreen.ReadableRight - 80f, spot + " under the wood at the edge");
             }
-            // Every seat has somewhere to go, the picnic rug too since it left the pond's bank (#58).
+            // Every seat on open land has somewhere to go (the horizontal garden: the seats of segments still in the mist wait).
             for (int k = 0; k < RestSpots.Max; k++)
             {
+                if (!runner.State.Grid.InLawn(GardenGrid.DefaultRestTile(k))) continue;
                 Vector2 seat = ((RectTransform)world.Find("Seat " + k)).anchoredPosition;
                 bool any = false;
-                foreach (Vector2 spot in GardenScreen.LawnSpots) any |= Vector2.Distance(spot, seat) <= GardenScreen.StrollRadius;
+                foreach (Vector2 spot in screen.LawnSpots) any |= Vector2.Distance(spot, seat) <= GardenScreen.StrollRadius;
                 Assert.IsTrue(any, "seat " + k + " has a spot within reach");
             }
         }
@@ -6167,6 +6168,255 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenScreen.CellToWorld(empty), screen.StationSpot(1), "the screen reads the grid, not a table");
             Assert.AreEqual(TileState.UnlockedEmpty, s.Grid.Tile(home.Q, home.R).State, "its old tile is free");
             Assert.AreEqual(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(runner.Defs.Count)), screen.StationSpot(runner.Defs.Count), "a station beyond the catalog still has a place");
+        }
+    
+        // ----- The horizontal garden: camera, mist, pond, guests and strolls on the strip (part b) -----
+
+        RectTransform World => (RectTransform)root.transform.Find("Canvas/Garden/Content");
+        Vector2 OnView(Vector2 garden) => garden * World.localScale.x + World.anchoredPosition;
+        static Vector2 Teapot => GardenScreen.CellToWorld(new Hex(0, 0));
+
+        /// <summary>The garden x shown at the screen's left and right edges.</summary>
+        Vector2 ShownX() => new Vector2(-World.anchoredPosition.x / World.localScale.x, (1080f - World.anchoredPosition.x) / World.localScale.x);
+
+        [Test]
+        public void The_Strip_Drags_Sideways_With_Inertia_And_Springs_Back_Inside_The_Open_Lawn()
+        {
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            var scroll = World.parent.GetComponent<ScrollRect>();
+            Assert.IsTrue(scroll.horizontal, "dragged sideways");
+            Assert.IsTrue(scroll.inertia, "and it carries on a little when let go");
+            Assert.IsFalse(scroll.vertical, "at the usual zoom the strip is shorter than the screen: nothing to drag up and down");
+            foreach (float push in new[] { -2400f, 2400f })
+            {
+                screen.SimulateGardenDrag(new Vector2(push, 0f));
+                for (int i = 0; i < 60; i++) screen.Advance(1f / 30f);
+                Vector2 span = screen.OpenSpan(), shown = ShownX();
+                Assert.GreaterOrEqual(shown.x, span.x - 1f, "let go past the left end, it comes back inside the open lawn and its margin");
+                Assert.LessOrEqual(shown.y, span.y + 1f, "and past the right end too");
+            }
+            // The margin is mist and wood: no more than ViewMargin past the open lawn, and the new segments widen the span.
+            Vector2 before = screen.OpenSpan();
+            Assert.AreEqual(Teapot.x - 600f - GardenScreen.ViewMargin, before.x, 1f);
+            HavePlots(runner.Defs.Count);
+            Vector2 after = screen.OpenSpan();
+            Assert.Less(after.x, before.x - 1000f);
+            Assert.Greater(after.y, before.y + 1000f);
+            screen.SimulateGardenDrag(new Vector2(-1500f, 0f));
+            for (int i = 0; i < 60; i++) screen.Advance(1f / 30f);
+            Assert.Greater(ShownX().y, before.y + 400f, "with every segment open the view goes further right");
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
+            Assert.IsTrue(scroll.vertical, "close in, the strip is taller than the screen and scrolls up and down too");
+        }
+
+        [Test]
+        public void The_Home_Button_Glides_Back_To_The_Tea_Shop()
+        {
+            HavePlots(runner.Defs.Count);
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            screen.LookAt(Teapot + new Vector2(1700f, 0f));
+            screen.Advance(1f / 30f);
+            GameObject home = root.transform.Find("Canvas/Home").gameObject;
+            Assert.IsTrue(home.activeSelf, "far to the right the way home shows");
+            Find("Canvas/Home").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            Assert.AreNotEqual(540f, OnView(Teapot).x, "it glides, it does not jump");
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
+            Assert.That(OnView(Teapot).x, Is.InRange(200f, 880f), "the teapot is back in the middle");
+            Assert.That(OnView(screen.ShopSpot).x, Is.InRange(100f, 980f), "with the tea shop above it");
+            Assert.That(OnView(screen.ShopSpot).y, Is.LessThan(1920f - 160f), "under the HUD");
+            Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "at the zoom it had");
+            Assert.IsFalse(home.activeSelf, "home: the button goes");
+        }
+
+        [Test]
+        public void A_Row_Tap_And_A_Card_Swipe_Bring_A_Station_At_Either_End_Into_View()
+        {
+            HavePlots(runner.Defs.Count);
+            for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = 1;
+            screen.Shell.StartGame();
+            screen.Refresh();
+            screen.OpenSheet(0);
+            for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
+            foreach (int index in new[] { 15, 14, 0 }) // the far left, the far right, home
+            {
+                Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[index].Id).onClick.Invoke();
+                for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
+                Vector2 at = OnView(screen.StationSpot(index));
+                Assert.That(at.x, Is.InRange(200f, 880f), "station " + index + " glided to the middle of the screen sideways");
+                Assert.Greater(at.y, screen.SheetHeight + 60f, "and above the sheet");
+            }
+            screen.CloseSheet();
+            for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
+            screen.FocusStation(4);
+            var swipe = root.transform.Find("Canvas/Card/Face").GetComponent<CardSwipe>();
+            var left = new UnityEngine.EventSystems.PointerEventData(null) { pressPosition = new Vector2(600f, 300f), position = new Vector2(380f, 310f) };
+            for (int next = 5; next <= 9; next++)
+            {
+                swipe.OnEndDrag(left);
+                Assert.AreEqual(next, screen.Selected);
+                Vector2 at = OnView(screen.StationSpot(next));
+                Assert.That(at.x, Is.InRange(0f, 1080f), "the card's station " + next + " is on the screen, wherever on the strip it stands");
+            }
+        }
+
+        [Test]
+        public void Side_Pills_Count_The_Stations_Off_To_Either_Side_And_A_Touch_Flies_There()
+        {
+            Motion.SetReduced(true);
+            HavePlots(runner.Defs.Count);
+            for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = 1;
+            runner.State.Coins = new BigNum(1e300); // every station can be raised
+            screen.Shell.StartGame();
+            screen.Refresh();
+            screen.LookAt(Teapot);
+            screen.Advance(1f / 30f);
+            GameObject leftPill = root.transform.Find("Canvas/EdgeLeft").gameObject, rightPill = root.transform.Find("Canvas/EdgeRight").gameObject;
+            Assert.IsTrue(leftPill.activeSelf, "stations wait off to the left");
+            Assert.IsTrue(rightPill.activeSelf, "and to the right");
+            string leftText = leftPill.transform.Find("Text").GetComponent<Text>().text, rightText = rightPill.transform.Find("Text").GetComponent<Text>().text;
+            StringAssert.StartsWith("◀ ", leftText);
+            StringAssert.EndsWith(" ▶", rightText);
+            int offLeft = 0, offRight = 0;
+            for (int i = 0; i < runner.Defs.Count; i++)
+            {
+                float x = OnView(screen.StationSpot(i)).x - 540f;
+                if (x <= -540f - 120f) offLeft++;
+                if (x >= 540f + 120f) offRight++;
+            }
+            Assert.AreEqual(offLeft, int.Parse(leftText.Substring(2)), "the left pill counts the stations off to the left");
+            Assert.AreEqual(offRight, int.Parse(rightText.Substring(0, rightText.Length - 2)), "and the right one those off to the right");
+            Assert.IsFalse(root.transform.Find("Canvas/EdgeUp").gameObject.activeSelf, "nothing waits above the strip");
+            Find("Canvas/EdgeRight").onClick.Invoke();
+            screen.Advance(1f / 30f);
+            int now = rightPill.activeSelf ? int.Parse(rightPill.transform.Find("Text").GetComponent<Text>().text.Split(' ')[0]) : 0;
+            Assert.Less(now, offRight, "the touch flew to the nearest station on the right, now in view");
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_The_Far_Wood_Keeps_With_The_Ground()
+        {
+            Motion.SetReduced(true);
+            HavePlots(runner.Defs.Count);
+            var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+            screen.LookAt(new Vector2(800f, 1100f));
+            screen.Advance(0f);
+            Vector2 street0 = World.anchoredPosition, canopy0 = canopy.anchoredPosition;
+            screen.LookAt(new Vector2(4000f, 1100f));
+            screen.Advance(0f);
+            Assert.Greater(Mathf.Abs(World.anchoredPosition.x - street0.x), 500f, "the view really moved");
+            Assert.AreEqual(World.anchoredPosition.x - street0.x, canopy.anchoredPosition.x - canopy0.x, 0.5f, "no parallax: the wood moves with the ground");
+            Assert.IsNull(canopy.Find("Forest Sign"), "the sign stands on the ground, where it reads");
+            Assert.IsNull(canopy.Find("Rim Tree"), "and so does the rim at the lawn's end");
+        }
+
+        [Test]
+        public void Mist_Lies_On_Exactly_The_Segments_Still_To_Open()
+        {
+            Motion.SetReduced(true);
+            int last = Expansion.LastSegments(runner.Defs);
+            for (int plots = Plots.Starting; plots <= runner.Defs.Count; plots += 2)
+            {
+                HavePlots(plots);
+                int open = Expansion.Segments(runner.State);
+                for (int n = 1; n <= last; n++)
+                {
+                    CanvasGroup mist = screen.MistOf(n);
+                    Assert.IsNotNull(mist, "segment " + n + " has its mist");
+                    Assert.AreEqual(n > open, mist.gameObject.activeSelf, "segment " + n + " with " + open + " open: mist only while it is shut");
+                    if (!mist.gameObject.activeSelf) continue;
+                    Vector2 span = GardenScreen.SegmentSpan(n);
+                    var washes = new List<Rect>();
+                    foreach (RectTransform wash in mist.transform)
+                    {
+                        Vector2 c = wash.anchoredPosition;
+                        Assert.That(c.x, Is.InRange(span.x, span.y), "every wash of segment " + n + " is centred on its own land");
+                        washes.Add(new Rect(c - wash.sizeDelta * 0.4f, wash.sizeDelta * 0.8f)); // the thick middle of a soft wash
+                    }
+                    foreach (Hex h in GardenGrid.SegmentTiles(n))
+                    {
+                        Vector2 at = GardenScreen.CellToWorld(h);
+                        bool covered = false;
+                        foreach (Rect r in washes) covered |= r.Contains(at);
+                        Assert.IsTrue(covered, h + " of segment " + n + " lies under its mist");
+                    }
+                }
+            }
+            Assert.IsFalse(screen.MistOf(1).gameObject.activeSelf);
+        }
+
+        [Test]
+        public void Opening_A_Segment_Clears_Its_Mist_Over_A_Moment()
+        {
+            screen.Shell.StartGame();
+            HavePlots(Plots.Starting);
+            for (int i = 0; i < 5; i++) screen.Advance(0.1f);
+            CanvasGroup mist = screen.MistOf(1);
+            Assert.IsTrue(mist.gameObject.activeSelf);
+            HavePlots(Plots.Starting + 2);
+            for (float t = 0f; t < GardenScreen.RimStep / 3f + GardenScreen.MistClear * 0.5f; t += 0.05f) screen.Advance(0.05f);
+            Assert.IsTrue(mist.gameObject.activeSelf, "halfway it is still thinning");
+            Assert.That(mist.alpha, Is.InRange(0.05f, 0.95f));
+            for (int i = 0; i < 30; i++) screen.Advance(0.1f);
+            Assert.IsFalse(mist.gameObject.activeSelf, "then it is gone");
+            Assert.IsTrue(screen.MistOf(2).gameObject.activeSelf, "the next segment's mist stays");
+        }
+
+        [Test]
+        public void The_Pond_s_Plate_Reads_In_The_Opening_View_On_The_Bank_Towards_The_Teapot()
+        {
+            runner.State.GardenXp = Garden.XpForLevel(5);
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            screen.Refresh();
+            var plate = (RectTransform)World.Find("PondTap/Plate");
+            Assert.IsTrue(plate.gameObject.activeInHierarchy, "the plate is out");
+            var corners = new Vector3[4];
+            plate.GetWorldCorners(corners);
+            var view = (RectTransform)World.parent;
+            Vector2 a = (Vector2)view.InverseTransformPoint(corners[0]) - view.rect.min, b = (Vector2)view.InverseTransformPoint(corners[2]) - view.rect.min;
+            Assert.That(Mathf.Min(a.x, b.x), Is.GreaterThanOrEqualTo(0f), "inside the left edge of the opening view");
+            Assert.That(Mathf.Max(a.x, b.x), Is.LessThanOrEqualTo(1080f));
+            Assert.That(Mathf.Min(a.y, b.y), Is.GreaterThan(196f), "above the tab bar");
+            Assert.That(Mathf.Max(a.y, b.y), Is.LessThan(1920f - 160f), "under the HUD");
+            Vector2 centre = plate.anchoredPosition + ((RectTransform)plate.parent).anchoredPosition;
+            Assert.Greater(centre.x, GardenScreen.PondSpot.x, "on the right bank");
+            Assert.IsTrue(GardenGrid.IsReserved(GardenScreen.WorldToCell(centre)), "and its tile is kept clear");
+        }
+
+        [Test]
+        public void A_Guest_Walks_To_The_Counter_Along_The_Lawn_Away_From_The_Pond()
+        {
+            for (float t = 0f; t <= 1.001f; t += 0.02f)
+            {
+                Vector2 at = screen.GuestPathAt(t);
+                Assert.GreaterOrEqual(Vector2.Distance(at, GardenScreen.PondSpot), 330f, "at " + t + " the guest is clear of the pond");
+                Assert.That(at.y, Is.InRange(Teapot.y - 700f, Teapot.y + 700f), "on the strip's rows");
+            }
+            Assert.Greater(screen.GuestEntry.x, screen.GuestSpot.x, "in from the right, the side away from the pond");
+        }
+
+        [Test]
+        public void Strollers_Go_Only_To_Empty_Tiles_Of_Open_Land()
+        {
+            GameState s = runner.State;
+            int before = screen.LawnSpots.Count;
+            Assert.GreaterOrEqual(before, 3, "the middle of the strip has room to stroll");
+            foreach (int plots in new[] { Plots.Starting, runner.Defs.Count })
+            {
+                HavePlots(plots);
+                foreach (Vector2 spot in screen.LawnSpots)
+                {
+                    Hex h = GardenScreen.WorldToCell(spot);
+                    Assert.AreEqual(GardenScreen.CellToWorld(h), spot, "a spot is a tile's point");
+                    Assert.That(GardenGrid.SegmentOf(h), Is.InRange(0, Expansion.Segments(s)), spot + " is on open land");
+                    Assert.IsNull(s.Grid.OccupantAt(h.Q, h.R), spot + " is an empty tile");
+                    Assert.IsFalse(GardenGrid.IsReserved(h), spot + " is not kept for a prop");
+                }
+            }
+            Assert.Greater(screen.LawnSpots.Count, before, "every segment open offers more");
         }
     }
 }

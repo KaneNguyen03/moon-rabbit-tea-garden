@@ -20,6 +20,9 @@ namespace VuonTra.EditorTools
         public const string Folder = "Logs/preview";
         const int Width = 1080, Height = 1920;
 
+        /// <summary>A point of the strip (the horizontal garden), from the teapot: x to the right, y up.</summary>
+        static Vector2 At(float x, float y) => GardenScreen.CellToWorld(new Hex(0, 0)) + new Vector2(x, y);
+
         [MenuItem("VuonTra/Render Preview")]
         public static void Render()
         {
@@ -70,7 +73,7 @@ namespace VuonTra.EditorTools
             screen.LookAt(screen.StationSpot(0) + new Vector2(0, -120f));
             Step(screen, 0.3f);
             Capture(screen, "34-nen-tam");
-            screen.LookAt(new Vector2(540f, 2800f));
+            screen.LookAt(At(1500f, 0f)); // towards the right end of the strip: the far wood drifts slower than the ground
             Step(screen, 0.3f);
             Capture(screen, "34-nen-tren");
             // Station ranks (#49): the basket at rank 2 and the jam pot at rank 3 beside the rank-1 teapot.
@@ -131,13 +134,13 @@ namespace VuonTra.EditorTools
             Step(screen, 0.2f);
             Capture(screen, "z3-near");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-            screen.LookAt(new Vector2(540f, 1350f));
+            screen.LookAt(At(0f, 0f));
             Step(screen, 0.2f);
             Capture(screen, "z2-default");
-            screen.LookAt(new Vector2(540f, 2900f)); // the top of the garden
+            screen.LookAt(At(1600f, 0f)); // the right end of the strip
             Step(screen, 0.2f);
             Capture(screen, "2c-top");
-            screen.LookAt(new Vector2(540f, 300f)); // the far end
+            screen.LookAt(At(-1600f, 0f)); // the left end
             Step(screen, 0.2f);
             Capture(screen, "2d-bottom");
 
@@ -474,7 +477,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.3f);
             Capture(screen, "15-all-near");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-            screen.LookAt(new Vector2(540f, 2900f));
+            screen.LookAt(At(1600f, 0f));
             Step(screen, 0.3f);
             Capture(screen, "15-all-top");
             screen.FocusStation(9);
@@ -484,7 +487,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
             Capture(screen, "15-card-bottom");
             screen.SelectStation(-1);
-            screen.LookAt(new Vector2(540f, 300f));
+            screen.LookAt(At(-1600f, 0f));
             Step(screen, 0.3f);
             Capture(screen, "16-all-bottom");
             // With a full purse every station can be raised: the pill at the top counts the ones out of view,
@@ -495,11 +498,11 @@ namespace VuonTra.EditorTools
             Step(screen, 0.2f);
             Capture(screen, "31-edges");
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(new Vector2(540f, 300f));
+            screen.LookAt(At(1700f, -200f)); // close in at the right end: the teapot is far off, the way home shows
             Step(screen, 0.2f);
             Capture(screen, "31-home");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-            screen.LookAt(new Vector2(540f, 300f));
+            screen.LookAt(At(0f, 0f));
             state.Coins = purseWas;
             screen.Refresh();
             Step(screen, 0.2f);
@@ -507,10 +510,10 @@ namespace VuonTra.EditorTools
             state.RestSpots = RestSpots.Max;
             for (int i = 0; i < state.Rabbits.Count && i < 7; i++) state.Rabbits[i].Station = -1;
             screen.Refresh();
-            screen.LookAt(new Vector2(540f, 300f));
+            screen.LookAt(At(-500f, -150f)); // the stumps by the tea table and the stools
             Step(screen, 0.4f);
             Capture(screen, "17-rest-bottom");
-            screen.LookAt(new Vector2(540f, 2900f));
+            screen.LookAt(At(900f, -200f)); // the picnic rug and the hammock
             Step(screen, 0.3f);
             Capture(screen, "17-rest-top");
             // #55 Resting rabbits stroll to an empty spot of the lawn: tea by day, a firefly to chase by night.
@@ -519,14 +522,14 @@ namespace VuonTra.EditorTools
                 screen.Refresh();
                 Step(screen, screen.StageStroll(0, StrollActivity.Tea));
                 int spot = screen.StrollSpotOf(0);
-                if (spot >= 0) screen.LookAt(GardenScreen.LawnSpots[spot]);
+                if (spot >= 0) screen.LookAt(screen.LawnSpots[spot]);
                 Step(screen, 0.4f);
                 Capture(screen, "55-uong-tra");
                 screen.ClockHours = () => 22.0;
                 screen.Refresh();
                 Step(screen, screen.StageStroll(1, StrollActivity.Firefly));
                 spot = screen.StrollSpotOf(1);
-                if (spot >= 0) screen.LookAt(GardenScreen.LawnSpots[spot]);
+                if (spot >= 0) screen.LookAt(screen.LawnSpots[spot]);
                 Step(screen, 0.4f);
                 Capture(screen, "55-duoi-dom-dom");
             }
@@ -537,7 +540,7 @@ namespace VuonTra.EditorTools
                 if (mover != null && runner.AssignRabbit(mover.Id, 0))
                 {
                     screen.Refresh();
-                    screen.LookAt(new Vector2(540f, 1200f));
+                    screen.LookAt(At(-200f, -100f));
                     Step(screen, 0.7f);
                     Capture(screen, "28-tho-di-tram");
                     Step(screen, 3f);
@@ -626,7 +629,7 @@ namespace VuonTra.EditorTools
             Decor.Place(state, 2, "den-da"); Decor.Place(state, 3, "bon-hoa"); Decor.Place(state, 4, "ghe-nam"); Decor.Place(state, 5, "tham-picnic");
             Decor.SetLanternColor(state, 2);
             screen.Refresh();
-            screen.LookAt(new Vector2(540f, 1300f)); // the four pieces and, under the HUD, the "+" of the spot by the beehive
+            screen.LookAt(At(300f, 0f)); // the four pieces and the "+" of the empty spots
             Step(screen, 0.5f);
             Capture(screen, "11-trang-tri");
             screen.OpenShop();
@@ -1195,7 +1198,7 @@ namespace VuonTra.EditorTools
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
 
             // The eighth ring: the forest steps back and the top of the garden takes the lotus garden and the candy kiln.
-            Press(screen, "Canvas/Garden/Canopy/Forest Sign/Board");
+            Press(screen, "Canvas/Garden/Content/Forest Sign/Board");
             screen.Refresh();
             Step(screen, GardenScreen.RimStep + 1.2f);
             s.Levels[12] = 14; s.Levels[13] = 9;
@@ -1204,7 +1207,7 @@ namespace VuonTra.EditorTools
             s.Coins = Expansion.CostOfNext(defs, s) * new BigNum(1.2);
             screen.Refresh();
             Step(screen, 4f);
-            Press(screen, "Canvas/Garden/Canopy/Forest Sign/Board");
+            Press(screen, "Canvas/Garden/Content/Forest Sign/Board");
             screen.Refresh();
             Step(screen, GardenScreen.RimStep + 1.2f);
             s.Levels[14] = 6; s.Levels[15] = 3;
@@ -1216,7 +1219,7 @@ namespace VuonTra.EditorTools
             Step(screen, 0.5f);
             Capture(screen, "67-vong-moi");
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
-            screen.LookAt(screen.StationSpot(15)); // far, at the top: the band of the four over the shop and the pond
+            screen.LookAt(At(0f, 0f)); // far, every segment open: the whole height and as much of the width as fits
             Step(screen, 0.3f);
             Capture(screen, "67-xa-sau-vong-9");
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
@@ -1327,7 +1330,7 @@ namespace VuonTra.EditorTools
                 Step(screen, 0.2f);
                 Capture(screen, "53-vong-" + (ring + 1) + "-xa-truoc");
                 screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
-                screen.LookAt(screen.ForestSignSpot + new Vector2(screen.ForestSignSpot.x < GardenScreen.CellToWorld(new Hex(0, 0)).x ? 380f : -380f, 120f));
+                screen.LookAt(screen.ForestSignSpot + new Vector2(0f, 120f)); // the lawn's end: the open land one side, the mist the other
                 Step(screen, 0.3f);
                 Capture(screen, "53-vong-" + (ring + 1) + "-truoc");
                 if (ring == 0)
@@ -1345,11 +1348,11 @@ namespace VuonTra.EditorTools
                     screen.RebuildUi();
                     Step(screen, 0.6f);
                 }
-                Press(screen, "Canvas/Garden/Canopy/Forest Sign/Board");
+                Press(screen, "Canvas/Garden/Content/Forest Sign/Board");
                 screen.Refresh();
-                Step(screen, GardenScreen.RimStep * 0.5f);
+                Step(screen, GardenScreen.RimStep / 3f + GardenScreen.MistClear * 0.4f); // the mist halfway gone
                 Capture(screen, "53-vong-" + (ring + 1) + "-giua");
-                Step(screen, GardenScreen.RimStep + 1.2f);
+                Step(screen, GardenScreen.MistClear + 0.6f);
                 Capture(screen, "53-vong-" + (ring + 1) + "-sau");
                 screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
                 Step(screen, 0.2f);

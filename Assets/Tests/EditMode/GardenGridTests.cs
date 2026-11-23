@@ -380,7 +380,7 @@ namespace VuonTra.Core.Tests
                 new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),   // the mortar's plate
                 new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),   // the leaf-catching basket and its plate
                 new Hex(-3, -1), new Hex(-2, -1), new Hex(-3, 0), new Hex(-2, 0), new Hex(-4, 0), // the firefly jar and its plate
-                new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-4, -1), // the moon pond and its "Câu cá" plate (#58)
+                new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-1, -1), new Hex(0, -1), // the moon pond and its "Câu cá" plate on the right bank (#58)
             };
             CollectionAssert.AreEquivalent(expected, GardenGrid.ReservedTiles);
             var g = new GardenGrid(GardenGrid.MaxSegments);
@@ -389,7 +389,7 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(GardenGrid.IsReserved(h), h + " is kept clear");
                 Assert.AreEqual(TileState.Reserved, g.Tile(h.Q, h.R).State, h + " reads as reserved on the lawn");
             }
-            Assert.AreEqual(TileState.ForestBorder, new GardenGrid(0).Tile(-4, -1).State, "the pond's plate reaches the first segment on the left, still in the mist");
+            Assert.AreEqual(TileState.ForestBorder, new GardenGrid(0).Tile(-3, -2).State, "the pond's far bank reaches the first segment on the left, still in the mist");
             // Nothing the garden stands by default is on one: every station (#67's four on the top rows too), seat and spot.
             var big = new List<StationDef>();
             for (int i = 0; i < 24; i++) big.Add(new StationDef { Id = "s" + i });
@@ -420,13 +420,13 @@ namespace VuonTra.Core.Tests
             Hex leaf = g.TileOf("station:leaf").Value;
             Assert.IsFalse(g.Place("decor:0", jar.Q, jar.R), "a decoration on the jar's plate");
             Assert.IsFalse(g.Place("station:jam", plate.Q, plate.R), "a station on the mortar's plate");
-            Assert.IsFalse(g.Place("decor:0", -4, -1), "a decoration on the pond's \"Câu cá\" plate (#58)");
-            Assert.IsFalse(g.Place(GardenGrid.RestId(2), -4, -1), "nor a place to rest");
+            Assert.IsFalse(g.Place("decor:0", -1, -1), "a decoration on the pond's \"Câu cá\" plate (#58)");
+            Assert.IsFalse(g.Place(GardenGrid.RestId(2), -1, -1), "nor a place to rest");
             Assert.IsFalse(g.Place("decor:0", -2, -2), "nor on the pond itself");
             Assert.IsFalse(g.Move(leaf, jar), "moved onto the jar");
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, jar), "dropped in the arranging mode: back where it was");
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(3, -1)), "nor on the leaf basket");
-            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(-4, -1)), "nor on the pond's plate");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(-1, -1)), "nor on the pond's plate");
             Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, leaf, new Hex(-2, -2)), "nor in the pond");
             Assert.AreEqual(leaf, g.TileOf("station:leaf").Value);
             // Something that already stands on one (as a save from before may have it) swaps with nothing.
@@ -438,7 +438,7 @@ namespace VuonTra.Core.Tests
             foreach (Hex h in g.EmptyTiles()) Assert.IsFalse(GardenGrid.IsReserved(h), h + " offered as empty");
             Assert.IsTrue(g.NearestEmpty(jar, out Hex near));
             Assert.IsFalse(GardenGrid.IsReserved(near));
-            Assert.AreEqual(2, GardenGrid.Distance(near, jar), "a free tile two steps from the jar's (every neighbour is kept for the pond or the jar), not the tile");
+            Assert.AreEqual(1, GardenGrid.Distance(near, jar), "a free neighbour of the jar's tile, not the tile");
             // A lawn full but for its reserved tiles has no room: taking out and the expansion's search find nothing.
             Assert.IsTrue(Layout.Store(defs, s, "station:jam"));
             int k = 0;
@@ -465,7 +465,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(0), 1, -2, true));
             // And from before the pond was kept clear (#58): a seat under the "Câu cá" plate, a piece in the pond.
             Assert.IsTrue(Decor.Buy(s, Decor.Kinds[1].Id) && Decor.Place(s, 1, Decor.Kinds[1].Id));
-            Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(1), -4, -1, true));
+            Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(1), -1, -1, true));
             Assert.IsTrue(s.Grid.Place(GardenGrid.DecorId(1), -2, -2, true));
             string json = SaveCodec.Encode(defs, s);
             StringAssert.Contains("\"version\":14", json, "the save stays version 14");
@@ -473,7 +473,7 @@ namespace VuonTra.Core.Tests
             var was = new Dictionary<string, Hex>
             {
                 { GardenGrid.DecorId(0), new Hex(-3, 0) }, { "station:jam", new Hex(3, -1) }, { GardenGrid.RestId(0), new Hex(1, -2) },
-                { GardenGrid.RestId(1), new Hex(-4, -1) }, { GardenGrid.DecorId(1), new Hex(-2, -2) },
+                { GardenGrid.RestId(1), new Hex(-1, -1) }, { GardenGrid.DecorId(1), new Hex(-2, -2) },
             };
             foreach (KeyValuePair<string, Hex> moved in was)
             {

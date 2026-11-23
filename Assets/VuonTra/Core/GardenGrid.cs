@@ -476,18 +476,18 @@ namespace VuonTra.Core
         /// The lawn tiles kept clear for the props that stand off the grid or reach past their own tile, so nothing the player
         /// arranges covers them: the leaf-catching basket past the leaf station's home tile and the plate hung on its left, the
         /// mortar's plate above the mortar, and, at the top left of the middle, the moon pond with its "Câu cá N/5" plate on the
-        /// left bank (#58) and the firefly jar below it with its "Đom đóm · còn N lượt" plate. They are the tiles whose cell the
+        /// right bank, where the opening view reads it (#58) and the firefly jar below it with its "Đom đóm · còn N lượt" plate. They are the tiles whose cell the
         /// prop or its plate reaches more than 16 units into, as the garden draws them (GardenScreen's JarSpot, BasketSpot,
         /// MortarSpot, PondSpot). The mortar, the shop and the counter stand on tiles of their own and hold them; the shop and the
-        /// counter have no plate. The pond's plate and its far bank reach into the first segment on the left, (-4,-1) and (-3,-2), and
-        /// so does the tile below the jar's plate, (-4,0); that tile and (-2,0) are kept because what stands there would cover the plate.
+        /// counter have no plate. The pond's far bank reaches into the first segment on the left, (-3,-2), and so does the tile
+        /// below the jar's plate, (-4,0); that tile and (-2,0) are kept because what stands there would cover the plate.
         /// </summary>
         static readonly Hex[] ReservedTable =
         {
             new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),                                    // the mortar's plate
             new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),                                    // the leaf-catching basket and its plate
             new Hex(-3, -1), new Hex(-2, -1), new Hex(-3, 0), new Hex(-2, 0), new Hex(-4, 0),  // the firefly jar and its plate, which a decoration below it would cover
-            new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-4, -1), // the moon pond and its "Câu cá" plate (#58)
+            new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-1, -1), new Hex(0, -1), // the moon pond and its "Câu cá" plate on the right bank (#58), and the tile right of the plate, where a wide piece would cover it
         };
         static readonly HashSet<Hex> ReservedSet = new HashSet<Hex>(ReservedTable);
 

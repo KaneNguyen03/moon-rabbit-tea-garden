@@ -628,7 +628,7 @@ namespace VuonTra.Core.Tests
             var c = new Vector3[4];
             rt.GetWorldCorners(c);
             Vector3 a = space.InverseTransformPoint(c[0]), b = space.InverseTransformPoint(c[2]);
-            return Rect.MinMaxRect(a.x, a.y, b.x, b.y);
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y)); // a piece drawn flipped (a guest facing left) too
         }
 
         /// <summary>
@@ -898,19 +898,24 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(covered, "the guest pill " + p + " covers: " + string.Join(", ", covered));
         }
 
-        [TestCase(GardenScreen.ZoomLevel.Default)]
-        [TestCase(GardenScreen.ZoomLevel.Near)]
-        public void The_Top_Edge_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot(GardenScreen.ZoomLevel zoom)
+        [TestCase(GardenScreen.ZoomLevel.Default, "EdgeUp")]
+        [TestCase(GardenScreen.ZoomLevel.Near, "EdgeUp")]
+        [TestCase(GardenScreen.ZoomLevel.Default, "EdgeLeft")]
+        [TestCase(GardenScreen.ZoomLevel.Near, "EdgeLeft")]
+        [TestCase(GardenScreen.ZoomLevel.Default, "EdgeRight")]
+        [TestCase(GardenScreen.ZoomLevel.Near, "EdgeRight")]
+        public void The_Edge_Pills_Cover_No_Garden_Plate_As_The_View_Rests_On_The_Teapot(GardenScreen.ZoomLevel zoom, string edge)
         {
-            // #71's last point: the "▲ N" pill at the top edge sat on the mortar's "Giã bánh" plate.
+            // #71's last point: the "▲ N" pill at the top edge sat on the mortar's "Giã bánh" plate. On the strip (the horizontal
+            // garden) the side pills, "◀ N" and "N ▶", are held to the same.
             screen.Shell.StartGame();
             runner.State.GardenXp = Garden.XpForLevel(5); // the mortar, the basket and the jar are all out
             screen.Refresh();
             screen.SetZoom(zoom, false);
             screen.LookAt(screen.StationSpot(0));
             Layout();
-            var pill = (RectTransform)root.transform.Find("Canvas/EdgeUp");
-            pill.gameObject.SetActive(true); // as when a station waits above the view
+            var pill = (RectTransform)root.transform.Find("Canvas/" + edge);
+            pill.gameObject.SetActive(true); // as when a station waits beyond that edge
             Layout();
             var canvas = (RectTransform)root.transform.Find("Canvas");
             var view = (RectTransform)root.transform.Find("Canvas/Garden");
@@ -921,7 +926,7 @@ namespace VuonTra.Core.Tests
                 Rect r = OnPhone(plate, view, Vector2.zero);
                 if (r.Overlaps(p)) covered.Add(Path(plate) + " " + r);
             }
-            Assert.IsEmpty(covered, "the top edge pill " + p + " covers: " + string.Join(", ", covered));
+            Assert.IsEmpty(covered, edge + " " + p + " covers: " + string.Join(", ", covered));
         }
 
         [TestCase("vi", false, GardenScreen.ZoomLevel.Default)]

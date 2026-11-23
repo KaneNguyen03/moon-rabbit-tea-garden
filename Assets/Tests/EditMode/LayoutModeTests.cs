@@ -330,16 +330,16 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(ring == null || !ring.gameObject.activeSelf, "no dashed ring on " + h);
             }
             var spot = (RectTransform)root.transform.Find("Canvas/Garden/Content/Spot 7");
-            foreach (Hex kept in new[] { jar, new Hex(-3, 0), new Hex(3, -1), new Hex(1, -2), new Hex(-4, -1), new Hex(-2, -2) }) // the jar, its plate, the basket, the mortar's plate, the pond's plate and the pond (#58)
+            foreach (Hex kept in new[] { jar, new Hex(-3, 0), new Hex(3, -1), new Hex(1, -2), new Hex(-1, -1), new Hex(-2, -2) }) // the jar, its plate, the basket, the mortar's plate, the pond's plate and the pond (#58)
             {
                 HoldDragDrop(lantern, screen.LayoutViewPoint(kept));
                 Assert.IsNull(screen.LayoutLifted);
                 Assert.AreEqual(lantern, TileOf(GardenGrid.DecorId(7)), "dropped on " + kept + ": back where it stood");
                 Near(GardenScreen.CellToWorld(lantern), spot.anchoredPosition, "and drawn there");
             }
-            // A free tile near the jar still takes it: only the kept ones refuse (every neighbour of the jar's is kept on the strip).
+            // A free tile beside the jar still takes it: only the kept ones refuse.
             Hex beside = EmptyTileNear(jar);
-            Assert.AreEqual(2, GardenGrid.Distance(beside, jar));
+            Assert.AreEqual(1, GardenGrid.Distance(beside, jar));
             HoldDragDrop(lantern, screen.LayoutViewPoint(beside));
             Assert.AreEqual(beside, TileOf(GardenGrid.DecorId(7)), "a free tile beside the jar still takes it");
         }
