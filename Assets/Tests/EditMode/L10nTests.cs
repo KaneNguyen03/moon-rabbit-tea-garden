@@ -141,5 +141,27 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Moon 2", L10n.T("hud.season", 2));
             Assert.AreEqual("1.5", VuonTra.Game.UI.UiKit.Times(1.5), "times signs read with a point");
         }
+
+        /// <summary>One way to write each thing in Vietnamese (#95): old-style tone marks, "%" against its number, "bé" for a rabbit.</summary>
+        [Test]
+        public void Vietnamese_Lines_Keep_One_Spelling()
+        {
+            var banned = new (string pattern, string why)[]
+            {
+                (@"[óòỏõọÓÒỎÕỌ][aeAE](?![\wâăêôơư])", "tone on the o: write xoá, khoá, hoà"),
+                (@"(?<![qQ])[úùủũụÚÙỦŨỤ][yY](?!\w)", "tone on the u: write huỷ, thuỷ"),
+                (@"\S %", "no space before %: +5%"),
+                (@"(?i)con thỏ", "a rabbit is \"bé thỏ\""),
+                (@"(?i)(?<!\w)nó(?!\w)", "a rabbit is \"bé\", not \"nó\""),
+                (@"(?i)(?<!\w)bấm(?!\w)", "\"Chạm\" everywhere"),
+                (@"\+\{\d+\} cỏ(?! bốn lá)", "a reward of clovers says \"cỏ bốn lá\""),
+            };
+            var bad = new System.Collections.Generic.List<string>();
+            for (int i = 0; i < L10nStrings.All.GetLength(0); i++)
+                foreach (var (pattern, why) in banned)
+                    if (System.Text.RegularExpressions.Regex.IsMatch(L10nStrings.All[i, 1], pattern))
+                        bad.Add(L10nStrings.All[i, 0] + ": " + L10nStrings.All[i, 1] + " (" + why + ")");
+            Assert.IsEmpty(bad, string.Join("\n", bad));
+        }
     }
 }

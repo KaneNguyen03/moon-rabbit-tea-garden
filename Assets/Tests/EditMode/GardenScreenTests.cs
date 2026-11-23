@@ -3698,7 +3698,7 @@ namespace VuonTra.Core.Tests
 
             Find("Canvas/Hud/Purse").onClick.Invoke();
             string rows = "Canvas/Income/Card/Scroll/Content/";
-            Assert.AreEqual("Thỏ đang nghỉ (2) +5,5 %", T(rows + "Resting").text);
+            Assert.AreEqual("Thỏ đang nghỉ (2) +5,5%", T(rows + "Resting").text);
             Assert.AreEqual(L10n.T("income.charms", UiKit.Times(1d)), T(rows + "Charms").text, "the charms line keeps to the charms");
             BigNum total = Economy.IncomePerSecond(runner.Defs, runner.State) * (runner.Mods.IncomeMultiplier * runner.Mods.SpeedMultiplier);
             Assert.AreEqual(L10n.T("income.total", total.Short()), T(rows + "Total").text, "the total includes the share");
@@ -3718,9 +3718,9 @@ namespace VuonTra.Core.Tests
         {
             SeatTwoOfThree();
             screen.Detail.Open(runner.Defs, runner.State, 2);
-            Assert.AreEqual("Đang nghỉ · +3 % vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+            Assert.AreEqual("Đang nghỉ · +3% vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
             screen.Detail.Open(runner.Defs, runner.State, 3);
-            Assert.AreEqual("Đang nghỉ · +2,5 % vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
+            Assert.AreEqual("Đang nghỉ · +2,5% vườn", root.transform.Find("Canvas/RabbitSheet/Card/Body/Where").GetComponent<Text>().text);
             screen.Detail.Close();
 
             screen.OpenSheet(3);
@@ -3736,9 +3736,9 @@ namespace VuonTra.Core.Tests
                 Assert.Fail("no card for rabbit " + id);
                 return null;
             }
-            Assert.AreEqual("+3 % vườn", Cell(2).Find("Status/Share").GetComponent<Text>().text, "the nap badge of a seated rabbit says its share");
+            Assert.AreEqual("+3% vườn", Cell(2).Find("Status/Share").GetComponent<Text>().text, "the nap badge of a seated rabbit says its share");
             Assert.IsNull(Cell(1).Find("Status/Share"), "a working rabbit shows its station");
-            StringAssert.Contains("+5,5 %", content.Find("Rest/Text").GetComponent<Text>().text, "the places row adds them up");
+            StringAssert.Contains("+5,5%", content.Find("Rest/Text").GetComponent<Text>().text, "the places row adds them up");
 
             // A third resting rabbit with no place left: it adds nothing and its sheet says nothing of a share.
             runner.State.RestSpots = 2;
@@ -5911,7 +5911,7 @@ namespace VuonTra.Core.Tests
 
             Transform half = content.Find("Set " + partial.Key);
             Assert.AreEqual(L10n.T("album.set", L10n.Trade(RabbitTrade.Baker), 2, partial.Kinds.Count, "3"), half.Find("Line").GetComponent<Text>().text);
-            StringAssert.StartsWith("Bộ Bếp bánh 2/" + partial.Kinds.Count + " · +3 % khi đủ", half.Find("Line").GetComponent<Text>().text);
+            StringAssert.StartsWith("Bộ Bếp bánh 2/" + partial.Kinds.Count + " · +3% khi đủ", half.Find("Line").GetComponent<Text>().text);
             Assert.IsNull(half.Find("Outline"), "not complete: no gold");
             foreach (RabbitKind k in partial.Kinds) Assert.IsNotNull(half.Find("Kind " + k.Id), k.Id + " sits in its set");
 
@@ -5935,7 +5935,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Đủ bộ Pha chế bậc Tím!", title.text);
             Assert.AreEqual(AlbumBanner.SetTitle(set), title.text);
             Assert.IsTrue(screen.Feel.BannerVisible);
-            StringAssert.Contains("3 %", root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
+            StringAssert.Contains("3%", root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
             title.text = "";
             runner.AutoAssignRabbits();
             Assert.AreEqual("", title.text, "a set already complete says nothing again");
