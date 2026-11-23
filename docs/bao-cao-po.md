@@ -1712,6 +1712,34 @@ Sau khi sửa cả bốn xanh.
 - Xem mọi quảng cáo: gọi vàng 7 lần/tuần (trung vị).
 - Không nghỉ tay: vẫn ×71 sau 2 giờ, mở 12 ô lúc ~10 phút.
 
+## #63 / #58 (sửa tiếp) — Chỉnh tiếng trạm và tiếng câu cá theo số đo QA (agent sound-tune)
+
+
+- **Test:** `tools/verify.sh` GREEN, 1156/1157 (1 inconclusive là `SeasonTests` phụ thuộc ngày, không liên quan). Mới: `SoundLevelTests` (24 ca) và bộ đo `SoundMeter` (đỉnh, RMS, trọng tâm phổ, năng lượng > 4 kHz, như QA đo). Sửa: test mức mặc định của "Tiếng trạm" (0,5, giá trị đã lưu được giữ).
+- **Commit:** `d43a577`, merge `c160de7`. Main sau gộp: 1159/1160.
+
+**Đã làm:**
+- Tiếng trạm: lọc thấp shake 4,0 / rustle 3,5 / crackle 4,5 / stream 5,0 kHz; mức nền vòng lặp 0,12 → 0,035 RMS; mặc định thanh "Tiếng trạm" 0,7 → 0,5. Ở mức mặc định, tiếng trạm nhỏ hơn nhạc 1,4–2,2 dB (trước: to hơn 7–12 dB).
+- Câu cá: thêm bồi âm 0,8–2 kHz cho sink, reel, bait-lost, float-up; đỉnh giới hạn −3,1 dBFS; độ dài, thời điểm phát không đổi.
+
+| Tiếng | Trước: đỉnh / RMS / trọng tâm / > 4 kHz | Sau |
+|---|---|---|
+| shake | −4,0 / −28,5 / 8,6 kHz / 70 % | −10,1 / −35,1 / 2,5 kHz / 16 % |
+| rustle | −4,6 / −21,5 / 7,0 kHz / 60 % | −16,9 / −35,1 / 2,4 kHz / 11 % |
+| crackle | −4,0 / −30,3 / 5,8 kHz / 48 % | −11,4 / −35,1 / 1,6 kHz / 10 % |
+| stream | −9,4 / −21,5 / 4,9 kHz / 39 % | −22,3 / −35,1 / 2,2 kHz / 13 % |
+| sink | −13,1 / −26,3 / 0,27 kHz / 0 % | −11,1 / −30,7 / 1,06 kHz / 0 % |
+| reel | −13,4 / −31,6 / 0,22 kHz / 0 % | −12,6 / −32,8 / 0,96 kHz / 1 % |
+| bait-lost | −16,2 / −27,7 / 0,36 kHz / 0 % | −12,6 / −27,8 / 0,85 kHz / 0 % |
+| float-up | −20,0 / −33,0 / 0,42 kHz / 0 % | −15,9 / −31,9 / 0,94 kHz / 0 % |
+
+(Tiếng trạm đo ở mức thanh trượt mặc định 0,7 trước / 0,5 sau; câu cá đo ở mức phát × Âm thanh 0,8. Nhạc không đổi: −32,9 / −33,7 / −32,9 dBFS.)
+
+### Chưa đạt / cần PO quyết
+- Chưa ai nghe bằng tai: PO cần nghe trên điện thoại thật cả tiếng trạm (rustle còn ra lá, crackle còn ra lửa, shake còn ra đá) lẫn 4 tiếng câu cá.
+- Người chơi đã lưu mức "Tiếng trạm" vẫn giữ con số của mình, nhưng nghe nhỏ hơn khoảng 10,7 dB vì mức nền giảm. Nếu muốn giữ nguyên độ to cho họ thì phải tính lại theo giá trị đã lưu.
+- Sink nhỏ hơn khoảng 4 dB RMS trên loa tốt (tai nghe, laptop); PO quyết có cần nâng không. Hiện test giới hạn mức phát tiếng câu cá ở 0,5 × Âm thanh, và sink đã ở mức trần đó.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
