@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem.UI;
@@ -358,7 +359,6 @@ namespace VuonTra.Game.UI
                 s.ViewZoom = _zoom;
             }
             // A full bar breathes: the one hint that the boost is there to be taken.
-            _energyButton.FaceRect.localScale = Vector3.one * (_energyReady ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
 
             Tweens.Update(dt);
             SyncFronts(); // after the arranging mode's glides moved a station this frame
@@ -589,7 +589,7 @@ namespace VuonTra.Game.UI
             if (_scroll != null) _scroll.StopMovement();
             if (!animate) { ApplyZoom(to, pivot); return; }
             Vector2 world = (pivot - _street.anchoredPosition) / _zoom;
-            Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(world, pivot, Mathf.LerpUnclamped(from, to, t)); }, Ease.InOutCubic);
+            DOTween.To(() => from, z => PlaceView(world, pivot, z), to, Motion.Time(Motion.Travel)).SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
         }
 
         /// <summary>The zoom button: far, usual, near, and round again.</summary>
@@ -641,7 +641,8 @@ namespace VuonTra.Game.UI
             float from = _zoom;
             if (_scroll != null) _scroll.StopMovement();
             if (!animate) { PlaceView(world, to, ZoomNear); return; }
-            Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(world, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.InOutCubic);
+            DOTween.To(() => new Vector3(fromAt.x, fromAt.y, from), v => PlaceView(world, v, v.z), new Vector3(to.x, to.y, ZoomNear), Motion.Time(Motion.Travel))
+                .SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
         }
 
         /// <summary>The zoom after one frame of trackpad pinch, kept between Far (<paramref name="far"/>, by default <see cref="ZoomFar"/>) and Near.</summary>
@@ -1716,8 +1717,8 @@ namespace VuonTra.Game.UI
                 Vector2 target = ClampView(from + move, _zoom, floor);
                 if (_scroll != null) _scroll.StopMovement();
                 _glideRun++;
-                Tweens.Add(Motion.Time(Motion.Panel), t => { if (_street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, target, t); }, Ease.InOutCubic);
-                Tweens.Add(0.22f, t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.92f, 1f, t); }, Ease.OutBack);
+                DOTween.To(() => from, v => _street.anchoredPosition = v, target, Motion.Time(Motion.Panel)).SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
+                DOTween.To(() => 0.92f, k => _card.localScale = Vector3.one * k, 1f, 0.22f).SetEase(Motion.Eased(Ease.OutBack)).OnUiClock(_card);
             }
             RefreshCard(Runner.Defs, Runner.State, Runner.Mods);
         }
@@ -3590,8 +3591,8 @@ namespace VuonTra.Game.UI
 
             // The garden may have been lifted to show a low station: let it settle back inside its edges.
             Vector2 from = _street.anchoredPosition, home = ClampView(from, _zoom);
-            Tweens.Add(Motion.Time(Motion.Panel), t => { if (_street != null && !SheetOpen) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); },
-                Ease.InOutCubic, 0f, () => { if (_scroll != null && !SheetOpen) _scroll.enabled = true; });
+            DOTween.To(() => from, v => { if (!SheetOpen) _street.anchoredPosition = v; }, home, Motion.Time(Motion.Panel))
+                .SetEase(Motion.Eased(Ease.InOutCubic)).OnComplete(() => { if (_scroll != null && !SheetOpen) _scroll.enabled = true; }).OnUiClock(_street);
             Refresh(-1f);
         }
 
@@ -3607,12 +3608,8 @@ namespace VuonTra.Game.UI
                 if (!row.gameObject.activeSelf) continue;
                 if (!row.TryGetComponent(out CanvasGroup group)) group = row.gameObject.AddComponent<CanvasGroup>();
                 group.alpha = 0f;
-                Tweens.Add(Motion.Quick, t =>
-                {
-                    if (group == null) return;
-                    group.alpha = t;
-                    row.localScale = Vector3.one * Mathf.Lerp(0.95f, 1f, t);
-                }, Ease.OutCubic, shown * Motion.Stagger);
+                Motion.After(shown * Motion.Stagger, row, () => DOTween.To(() => 0f, k => { group.alpha = k; row.localScale = Vector3.one * (0.95f + 0.05f * k); }, 1f, Motion.Quick)
+                    .SetEase(Motion.Eased(Ease.OutCubic)).OnUiClock(row));
                 shown++;
             }
         }
@@ -3628,8 +3625,8 @@ namespace VuonTra.Game.UI
         {
             int run = ++_sheetRun;
             float fromY = _panel.anchoredPosition.y;
-            Tweens.Add(seconds, t => { if (run == _sheetRun && _panel != null) _panel.anchoredPosition = new Vector2(0, Mathf.LerpUnclamped(fromY, toY, t)); },
-                curve, 0f, () => { if (run == _sheetRun) done?.Invoke(); });
+            DOTween.To(() => fromY, y => { if (run == _sheetRun) _panel.anchoredPosition = new Vector2(0, y); }, toY, seconds)
+                .SetEase(Motion.Eased(curve)).OnComplete(() => { if (run == _sheetRun) done?.Invoke(); }).OnUiClock(_panel);
         }
 
         /// <summary>Stands the open sheet at one of its two heights, with the same light bounce as opening.</summary>
@@ -3637,13 +3634,12 @@ namespace VuonTra.Game.UI
         {
             int run = ++_sheetRun;
             float from = SheetHeight, fromY = _panel.anchoredPosition.y;
-            Tweens.Add(Motion.Time(Motion.Panel), t =>
-            {
-                if (run != _sheetRun || _panel == null) return;
-                SheetHeight = Mathf.LerpUnclamped(from, height, t);
-                _panel.sizeDelta = new Vector2(0, SheetHeight);
-                _panel.anchoredPosition = new Vector2(0, Mathf.LerpUnclamped(fromY, 0f, Mathf.Clamp01(t)));
-            }, Motion.Curve(Ease.OutBackLight), 0f, () => { if (run == _sheetRun) SetSheetHeight(height); });
+            System.Func<float, float> curve = Motion.Curve(Ease.OutBackLight);
+            float seconds = Motion.Time(Motion.Panel);
+            DOTween.To(() => from, h => { if (run == _sheetRun) { SheetHeight = h; _panel.sizeDelta = new Vector2(0, h); } }, height, seconds)
+                .SetEase(Motion.Eased(curve)).OnComplete(() => { if (run == _sheetRun) SetSheetHeight(height); }).OnUiClock(_panel);
+            DOTween.To(() => fromY, y => { if (run == _sheetRun) _panel.anchoredPosition = new Vector2(0, y); }, 0f, seconds)
+                .SetEase(Motion.Eased(t => Mathf.Clamp01(curve(t)))).OnUiClock(_panel);
         }
 
         /// <summary>The grab handle moved by this much (canvas units, up is positive).</summary>
@@ -3679,14 +3675,14 @@ namespace VuonTra.Game.UI
             var open = new Vector2(ScreenW / 2f, (SheetHalf + ScreenH - HudCover) / 2f);
             Vector2 spot = StationSpot(index), from = _street.anchoredPosition, to = ClampView(open - spot * zoom, zoom, SheetLift);
             _glideRun++;
-            Tweens.Add(Motion.Time(Motion.Travel), t =>
+            DOTween.To(() => new Vector3(from.x, from.y, fromZoom), v =>
             {
-                if (_street == null || !SheetOpen) return;
-                _zoom = Mathf.LerpUnclamped(fromZoom, zoom, t);
+                if (!SheetOpen) return;
+                _zoom = v.z;
                 _street.localScale = new Vector3(_zoom, _zoom, 1f);
-                _street.anchoredPosition = Vector2.LerpUnclamped(from, to, t);
+                _street.anchoredPosition = v;
                 if (Zoom != _shownZoom) ShowZoomDetail();
-            }, Ease.InOutCubic);
+            }, new Vector3(to.x, to.y, zoom), Motion.Time(Motion.Travel)).SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
             if (_actors[index].Root.gameObject.activeSelf) _actors[index].Bump();
         }
 
@@ -3743,16 +3739,13 @@ namespace VuonTra.Game.UI
                 Vector2 center = new Vector2(ScreenW / 2f, ScreenH / 2f);
                 Vector2 fromWorld = (center - _street.anchoredPosition) / _zoom, toWorld = new Vector2((float)opening.ViewX, (float)opening.ViewY);
                 float fromZoom = _zoom, toZoom = Mathf.Clamp((float)opening.ViewZoom, FarZoom, ZoomNear);
-                Tweens.Add(Motion.Time(Motion.Glide), t =>
-                {
-                    if (run != _glideRun || _street == null) return;
-                    SetViewRaw(Vector2.LerpUnclamped(fromWorld, toWorld, t), center, Mathf.LerpUnclamped(fromZoom, toZoom, t));
-                }, Ease.InOutCubic);
+                DOTween.To(() => new Vector3(fromWorld.x, fromWorld.y, fromZoom), v => { if (run == _glideRun) SetViewRaw(v, center, v.z); },
+                    new Vector3(toWorld.x, toWorld.y, toZoom), Motion.Time(Motion.Glide)).SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
             }
             else
             {
                 Vector2 from = _street.anchoredPosition, home = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - StationSpot(0) * _zoom, _zoom);
-                Tweens.Add(Motion.Time(Motion.Glide), t => { if (run == _glideRun && _street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, home, t); }, Ease.InOutCubic);
+                DOTween.To(() => from, v => { if (run == _glideRun) _street.anchoredPosition = v; }, home, Motion.Time(Motion.Glide)).SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
             }
             Refresh(-1f);
         }
@@ -3899,7 +3892,9 @@ namespace VuonTra.Game.UI
                 ? L10n.T("energy.boosting", Mathf.CeilToInt((float)s.BoostSecondsLeft))
                 : (can ? L10n.T("energy.ready") : L10n.T("energy.need", (int)Energy.BoostCost));
             _energyButton.Button.interactable = can;
-            _energyReady = can && !boosting;
+            bool ready = can && !boosting;
+            if (ready != _energyReady) Motion.Breathe(_energyButton.FaceRect, ready, 0.025f, Mathf.PI / 4f);
+            _energyReady = ready;
             // Cream like the purse, so it never outshines the garden; only the word lights up when it is ready.
             _energyButton.Lip.color = boosting ? Palette.Mix(Palette.Moss, Palette.Ink, 0.3f) : Palette.CardLip;
             _energyButton.Face.color = boosting ? Palette.Mix(Palette.Moss, Palette.Paper, 0.6f) : Palette.Paper;
@@ -4409,18 +4404,13 @@ namespace VuonTra.Game.UI
             Sfx.Deny();
             if (!carrots) return;
             Color alarm = Palette.Tiers[5];
-            Tweens.Add(0.45f, t =>
-            {
-                if (_coins == null) return;
-                float k = Mathf.Abs(Mathf.Sin(t * Mathf.PI * 2f)) * (1f - t);
-                _coins.color = Color.Lerp(Palette.Ink, alarm, k);
-                _purse.localScale = Vector3.one * (1f + 0.06f * k);
-            }, Ease.Linear, 0f, () =>
-            {
-                if (_coins == null) return;
-                _coins.color = Palette.Ink;
-                _purse.localScale = Vector3.one;
-            });
+            Sequence flare = DOTween.Sequence();
+            foreach (float peak in new[] { 0.75f, 0.25f })
+                flare.Append(_coins.DOColor(Palette.Mix(Palette.Ink, alarm, peak), 0.1125f).SetEase(DG.Tweening.Ease.OutSine))
+                    .Join(_purse.DOScale(1f + 0.06f * peak, 0.1125f).SetEase(DG.Tweening.Ease.OutSine))
+                    .Append(_coins.DOColor(Palette.Ink, 0.1125f).SetEase(DG.Tweening.Ease.InSine))
+                    .Join(_purse.DOScale(1f, 0.1125f).SetEase(DG.Tweening.Ease.InSine));
+            flare.SetTarget(_purse).OnUiClock(_purse);
         }
 
         void OnBuyPlot()
@@ -5165,7 +5155,7 @@ namespace VuonTra.Game.UI
             Vector2 from = _street.anchoredPosition, to = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - point * _zoom, _zoom);
             if (_scroll != null) _scroll.StopMovement();
             int run = ++_glideRun;
-            Tweens.Add(Motion.Time(Motion.Glide * 0.6f), t => { if (run == _glideRun && _street != null) _street.anchoredPosition = Vector2.LerpUnclamped(from, to, t); }, Ease.InOutCubic);
+            DOTween.To(() => from, v => { if (run == _glideRun) _street.anchoredPosition = v; }, to, Motion.Time(Motion.Glide * 0.6f)).SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
         }
 
         /// <summary>The order is served: the products leave the tray, the carrots fly to the purse and any clover to the rabbits tab, the guest bows and goes.</summary>
@@ -5636,7 +5626,8 @@ namespace VuonTra.Game.UI
             float from = _zoom;
             if (_scroll != null) _scroll.StopMovement();
             if (Motion.Reduced) { PlaceView(body, to, ZoomNear); return; }
-            Tweens.Add(Motion.Time(Motion.Travel), t => { if (_street != null) PlaceView(body, Vector2.LerpUnclamped(fromAt, to, t), Mathf.LerpUnclamped(from, ZoomNear, t)); }, Ease.InOutCubic);
+            DOTween.To(() => new Vector3(fromAt.x, fromAt.y, from), v => PlaceView(body, v, v.z), new Vector3(to.x, to.y, ZoomNear), Motion.Time(Motion.Travel))
+                .SetEase(Motion.Eased(Ease.InOutCubic)).OnUiClock(_street);
         }
 
         /// <summary>The picture was taken for the rabbit: the reward is paid now and the review card says so; the thanks follow once the garden is back.</summary>
@@ -7445,11 +7436,10 @@ namespace VuonTra.Game.UI
                 for (int k = 0; k < parts.Length; k++) if (parts[k] != null) parts[k].anchoredPosition = to + offsets[k];
                 return;
             }
-            Tweens.Add(0.2f, t =>
+            DOTween.To(() => from, at =>
             {
-                Vector2 at = Vector2.LerpUnclamped(from, to, t);
                 for (int k = 0; k < parts.Length; k++) if (parts[k] != null) parts[k].anchoredPosition = at + offsets[k];
-            }, Ease.OutCubic, 0f, () =>
+            }, to, 0.2f).SetEase(Motion.Eased(Ease.OutCubic)).OnUiClock(_street).OnComplete(() =>
             {
                 for (int k = 0; k < parts.Length; k++) if (parts[k] != null) parts[k].anchoredPosition = to + offsets[k]; // exactly on the tile
             });
