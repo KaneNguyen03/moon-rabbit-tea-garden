@@ -2050,6 +2050,29 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Kéo hết lên trên có thể thấy bảng trạm nửa dưới HUD; cây ở mép thế giới dưới thanh tab (chưa sửa).
 - Khi chưa mở đoạn nào: góc bãi cỏ vuông chỗ sương gặp nhau, sương bên chiếm nhiều màn hình (chưa sửa).
 
+## #28 — Giảm chuyển động: vườn đứng yên (agent-28)
+
+**Test:** verify đầy đủ GREEN, 1318/1319 (1 Inconclusive có sẵn), rules ok; 2 test mới trong `GardenScreenTests`.
+
+**Commit:** `ba5c4e3` (gộp main `a58d2c3`, verify đầy đủ trên main GREEN 1319/1320).
+
+**Đã làm:** thêm điều kiện `Motion.Reduced` cho thỏ ở trạm (thở, nghiêng, nhảy mỗi mẻ), đế trống, biển giá, mũi tên nâng cấp, thỏ ở chỗ nghỉ, đom đóm vườn, đom đóm vàng, hạt bung, cà rốt bay, rung nút, nút năng lượng, bàn tay hướng dẫn; không thêm công thức chuyển động.
+
+### Chưa đạt / cần PO quyết
+- Vị trí đứng yên của đom đóm vàng (giữa màn hình).
+- Ba chuyển động ngoài danh sách QA cũng được tắt.
+
+## #97 — Vườn đầy không còn tạo chuỗi tên trạm mỗi khung (agent-97)
+
+**Test:** verify đầy đủ GREEN, 1317/1318 (1 Inconclusive có sẵn), rules ok; test mới trong `AllocationTests` đỏ trên code cũ (16 lần cấp phát) và xanh sau khi sửa.
+
+**Commit:** `7655146` (gộp main `a58d2c3`, verify đầy đủ trên main GREEN 1319/1320).
+
+**Đã làm:** `StationSpot` dùng `GridId`; khoá 0 lần cấp phát cho `StationSpot` trên vườn 16 trạm có thỏ đi dạo; đo build Development Mac trước/sau bằng probe của QA (17,5 → 15,5–16 KB/khung, 37 → 4 lần cấp phát/khung, 11–12 GC/phút).
+
+### Chưa đạt / cần PO quyết
+- Còn ~16 KB rác/khung ở vườn đầy (định dạng chữ UI, số Graphic tăng sau #91): có mở việc riêng không.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
