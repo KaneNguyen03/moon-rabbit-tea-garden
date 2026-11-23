@@ -27,6 +27,14 @@ namespace VuonTra.Core
             return resting;
         }
 
+        /// <summary>How many rabbits <see cref="Seated"/> holds, counted without building the list (#97).</summary>
+        public static int SeatedCount(GameState s)
+        {
+            int resting = 0;
+            for (int i = 0; i < s.Rabbits.Count; i++) if (s.Rabbits[i].Station < 0) resting++;
+            return Math.Min(resting, Math.Max(0, Math.Min(Max, s.RestSpots)));
+        }
+
         /// <summary>The share of the whole garden's income one seated silver rabbit adds (#60).</summary>
         public const double RestBonus = 0.02;
 

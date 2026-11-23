@@ -98,7 +98,10 @@ namespace VuonTra.Core
         }
 
         /// <summary>Sương one finished cycle pays. Zero for Ingredient or locked stations.</summary>
-        public static BigNum IncomePerCycle(IReadOnlyList<StationDef> defs, GameState s, int index)
+        public static BigNum IncomePerCycle(IReadOnlyList<StationDef> defs, GameState s, int index) => IncomePerCycle(defs, s, index, AlbumSets.Factors(s));
+
+        /// <summary><see cref="IncomePerCycle(IReadOnlyList{StationDef}, GameState, int)"/> with the album read once by the caller (#97).</summary>
+        static BigNum IncomePerCycle(IReadOnlyList<StationDef> defs, GameState s, int index, in AlbumFactors album)
         {
             var d = defs[index];
             int level = s.Levels[index];
@@ -111,10 +114,10 @@ namespace VuonTra.Core
                 if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0 || Layout.IsStored(defs, s, i)) continue;
                 // A rabbit at an ingredient station strengthens the bonus it gives, not the base 1; so do the album's sets (#61).
                 if (other.Boosts(d.Id))
-                    income *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
+                    income *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * album.At(defs, i);
             }
             // The album's complete sets of the station's trade (#61): +3 % each.
-            return income * Rabbits.StationMultiplier(defs, s, index) * AlbumSets.StationFactor(defs, s, index);
+            return income * Rabbits.StationMultiplier(defs, s, index) * album.At(defs, index);
         }
 
         /// <summary>
@@ -128,23 +131,25 @@ namespace VuonTra.Core
             var d = defs[index];
             if (d.Kind != StationKind.Brew || s.Levels[index] <= 0 || d.CycleSeconds <= 0d || Layout.IsStored(defs, s, index)) return BigNum.Zero;
             rabbit = Rabbits.StationMultiplier(defs, s, index);
+            AlbumFactors album = AlbumSets.Factors(s);
             for (int i = 0; i < defs.Count; i++)
             {
                 var other = defs[i];
                 if (other.Kind == StationKind.Ingredient && s.Levels[i] > 0 && other.Boosts(d.Id) && !Layout.IsStored(defs, s, i))
-                    ingredients *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * AlbumSets.StationFactor(defs, s, i);
+                    ingredients *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * album.At(defs, i);
             }
-            return IncomePerCycle(defs, s, index) / d.CycleSeconds;
+            return IncomePerCycle(defs, s, index, album) / d.CycleSeconds;
         }
 
         public static BigNum IncomePerSecond(IReadOnlyList<StationDef> defs, GameState s)
         {
             BigNum total = BigNum.Zero;
+            AlbumFactors album = AlbumSets.Factors(s);
             for (int i = 0; i < defs.Count; i++)
             {
                 var d = defs[i];
                 if (d.Kind != StationKind.Brew || s.Levels[i] <= 0 || d.CycleSeconds <= 0d || Layout.IsStored(defs, s, i)) continue;
-                total += IncomePerCycle(defs, s, i) / d.CycleSeconds;
+                total += IncomePerCycle(defs, s, i, album) / d.CycleSeconds;
             }
             return total;
         }

@@ -149,7 +149,7 @@ namespace VuonTra.Game.UI
 
             // Garden-wide: the seated rabbits' share, charms, speed, the boost, and the total the purse shows.
             bool boosting = s.BoostSecondsLeft > 0d;
-            int seated = RestSpots.Seated(s).Count;
+            int seated = RestSpots.SeatedCount(s);
             double rest = RestSpots.Multiplier(s);
             if (seated > 0) AddNote("Resting", L10n.T("income.resting", seated, RabbitGridView.Percent(rest - 1d)), Palette.Ink);
             AddNote("Charms", L10n.T("income.charms", UiKit.Times(m.IncomeMultiplier / rest)), Palette.Ink);
