@@ -1993,6 +1993,28 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Thu nhập ngày 7 thấp hơn khoảng 10 lần.
 - Tuần đầu của người bấm Nâng tất cả (cấp 10 trong buổi đầu, 12 ô đất ngày 1–2, phần trò chơi + khách 1,1 %) vẫn trượt luật cũ: việc của #101.
 
+## #101 — Tuần đầu của người bấm Nâng tất cả (agent econ-101)
+
+**Test:** toàn bộ `tools/verify.sh` xanh, 1276/1277 (1 test mùa không kết luận từ trước), bước rules ok. Test mới: `UpgradePlanTests.Upgrade_All_Opens_At_Garden_Level_Fifteen_And_Buys_Nothing_Before`, `GardenScreenTests.Upgrade_All_Before_Its_Garden_Level_Says_When_It_Opens_And_Buys_Nothing`; thêm luật #101 vào hai test chậm Nâng tất cả của `GardenPacingTests` và `EconomySimulationTests` (17 hạt).
+**Commit:** a6af711 (đã gộp vào main, đã đẩy).
+
+**Đã làm:** nút "Nâng tất cả" mở ở cấp vườn 15 (`UpgradePlan.UnlockLevel`). Trước đó nút vẫn hiện; bấm vào bảng ghi "Nâng tất cả mở ở cấp vườn 15. Giờ cứ nâng từng trạm nhé!" và không mua gì. Không đổi save, không đổi bố cục. Người mua từng cấp chơi giống hệt từng byte. Người bấm Nâng tất cả: cấp 10 sau buổi đầu (17/17), 12 ô đất ngày 3–4 (17/17), trò chơi + khách ngày 1 là 17,5 %, thu nhập ngày 7 gấp ×4,3 người mua từng cấp.
+
+| Mốc (trung vị, 17 hạt) | 15 ph/ngày, Nâng tất cả | 30 ph/ngày, Nâng tất cả | Từng cấp (cả hai) |
+|---|---|---|---|
+| Cấp 10 | 2,3 giờ → 4,5 giờ | 0,4 giờ → 8,5 giờ | không đổi (4,5 / 8,5 giờ) |
+| 12 ô đất | ngày 1 → ngày 4 | ngày 2 → ngày 3 | không đổi (ngày 4 / 3) |
+| Trò chơi + khách ngày 1 | – | 1,1 % → 17,5 % | không đổi (17,5 %) |
+| Thu/giây hết ngày 7 | – | 2,4e22 → 2,2e22 | không đổi (5,1e21) |
+| Đoạn 5 / 6, trạm 13–16, trăng mới | không đổi | không đổi (trăng mới 2: ngày 21 → 20) | không đổi |
+| Nút mở | ngày 3 | ngày 2 | – |
+
+### Chưa đạt / cần PO quyết
+- Duyệt mốc cấp vườn 15 (cấp 16 cũng đạt; phương án khác: mở ở cấp 12 + tối đa 50–75 điểm vườn mỗi lần bấm).
+- Duyệt câu chữ khi nút chưa mở.
+- Luật thu nhập ngày 7 ≤ ×10 so từng hạt chỉ đạt đúng 15/17, do thu nhập của người mua từng cấp dao động nhiều giữa các hạt.
+- Người chơi chăm đạt cấp 15 trong buổi đầu nên khóa không đổi tuần của họ; #101 không đặt luật cho họ.
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
