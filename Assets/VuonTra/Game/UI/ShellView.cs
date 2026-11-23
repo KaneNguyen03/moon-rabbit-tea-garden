@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
@@ -65,6 +66,9 @@ namespace VuonTra.Game.UI
             _prompt = UiKit.Rect("Prompt", title).Place(0.5f, 0.17f, 0, 0, 900, 60)
                 .AddText(L10n.T("title.prompt"), UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             _prompt.AddShadow();
+            _prompt.color = Palette.Alpha(Palette.Paper, 0.5f);
+            _prompt.DOFade(1f, 0.8f).SetEase(DG.Tweening.Ease.InOutSine).SetLoops(-1, LoopType.Yoyo)
+                .OnUiClock(_prompt, LinkBehaviour.PauseOnDisablePlayOnEnable);
 
             var pause = UiKit.Rect("Pause", canvas).Stretch(0, 0, 1, 1);
             _pause = pause.gameObject;
@@ -317,9 +321,9 @@ namespace VuonTra.Game.UI
             _pause.SetActive(true);
             _pauseGroup.alpha = 0f;
             _pauseGroup.blocksRaycasts = true;
-            _pauseCard.localScale = Vector3.one * 0.8f;
-            _tweens.Add(FadeSeconds, t => _pauseGroup.alpha = t, Ease.OutCubic);
-            _tweens.Add(FadeSeconds, t => _pauseCard.localScale = Vector3.one * Mathf.LerpUnclamped(0.8f, 1f, t), Ease.OutBack);
+            _pauseGroup.DOKill();
+            _pauseGroup.DOFade(1f, FadeSeconds).SetEase(DG.Tweening.Ease.OutCubic).OnUiClock(_pauseGroup);
+            Motion.PopIn(_pauseCard, 0.8f, FadeSeconds);
         }
 
         public void Resume()
@@ -351,18 +355,13 @@ namespace VuonTra.Game.UI
         void SetState(ShellState next)
         {
             State = next;
+            if (next != ShellState.Title) _prompt.DOKill();
             Changed?.Invoke(next);
         }
 
         public void Update(float time)
         {
-            if (State == ShellState.Title)
-            {
-                Color c = _prompt.color;
-                c.a = 0.75f + 0.25f * Mathf.Sin(time * (2f * Mathf.PI / 1.6f));
-                _prompt.color = c;
-            }
-            else if (State == ShellState.Paused && _resetArmedAt > 0f && Time.unscaledTime - _resetArmedAt > 3f)
+            if (State == ShellState.Paused && _resetArmedAt > 0f && Time.unscaledTime - _resetArmedAt > 3f)
             {
                 _resetArmedAt = -99f;
                 _resetLabel.text = L10n.T("pause.reset");

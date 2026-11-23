@@ -326,21 +326,14 @@ namespace VuonTra.Game.UI
             if (Shine != null && Shine.activeSelf != on) Shine.SetActive(on);
         }
 
-        public void Shake(Tweens tweens)
+        public void Shake(Tweens _) => Shake();
+
+        public void Shake()
         {
             RectTransform face = FaceRect;
-            tweens.Add(0.28f, t =>
-            {
-                if (face == null) return;
-                float x = Mathf.Sin(t * Mathf.PI * 5f) * (1f - t) * 12f;
-                face.offsetMin = new Vector2(x, face.offsetMin.y);
-                face.offsetMax = new Vector2(x, face.offsetMax.y);
-            }, Ease.Linear, 0f, () =>
-            {
-                if (face == null) return;
-                face.offsetMin = new Vector2(0f, face.offsetMin.y);
-                face.offsetMax = new Vector2(0f, face.offsetMax.y);
-            });
+            face.offsetMin = new Vector2(0f, face.offsetMin.y);
+            face.offsetMax = new Vector2(0f, face.offsetMax.y);
+            Motion.ShakeX(face, face.anchoredPosition.x, 12f, 0.28f, 5);
         }
 
         public void Press(Tweens tweens)

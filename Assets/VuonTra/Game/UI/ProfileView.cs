@@ -276,8 +276,7 @@ namespace VuonTra.Game.UI
             _copiedAt = -99f;
             _copyLabel.text = L10n.T("profile.copy");
             _root.SetActive(true);
-            _card.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(0.25f), t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Motion.Curve(Ease.OutBack));
+            Motion.PopIn(_card);
             Refresh(defs, s, account, cloud);
         }
 
@@ -342,12 +341,8 @@ namespace VuonTra.Game.UI
             _giftNote.text = L10n.T(result == GiftCodes.Result.Expired ? "gift.expired" : result == GiftCodes.Result.Used ? "gift.used" : "gift.invalid");
             Sfx.Deny();
             Haptics.Light();
-            Vector2 home = _giftHome;
-            _tweens.Add(0.32f, t =>
-            {
-                if (_giftField == null) return;
-                _giftField.anchoredPosition = home + new Vector2(Mathf.Sin(t * Mathf.PI * 6f) * (1f - t) * 16f, 0f);
-            }, Ease.Linear, 0f, () => { if (_giftField != null) _giftField.anchoredPosition = home; });
+            _giftField.anchoredPosition = _giftHome;
+            Motion.ShakeX(_giftField, _giftHome.x, 16f, 0.32f, 6);
         }
 
         static bool SubmitPressed()
