@@ -69,6 +69,9 @@ namespace VuonTra.EditorTools
                 // Match the table by locale code: the order of tables is not guaranteed.
                 var table = collection.GetTable(id) as StringTable ?? collection.AddNewTable(id) as StringTable;
                 for (int r = 0; r < rows.GetLength(0); r++) table.AddEntry(rows[r, 0], rows[r, column + 1]);
+                // English lines for a count of one ("+1 golden carrot"); Vietnamese has no plural to fix.
+                if (codes[column] == "en")
+                    for (int r = 0; r < L10nStrings.EnglishOne.GetLength(0); r++) table.AddEntry(L10nStrings.EnglishOne[r, 0], L10nStrings.EnglishOne[r, 1]);
                 // Rabbit kinds name themselves, so a new kind needs no line here.
                 foreach (VuonTra.Core.RabbitKind kind in VuonTra.Core.RabbitKinds.All)
                     table.AddEntry("kind." + kind.Id, codes[column] == "en" ? kind.NameEn : kind.NameVi);
@@ -94,6 +97,8 @@ namespace VuonTra.EditorTools
                     {
                         checkedCount++;
                         StringTableEntry entry = table.GetEntry(key.Id);
+                        // A count-of-one line lives only in English, which has the plural it fixes.
+                        if (entry == null && key.Key.EndsWith(VuonTra.Game.L10n.OneSuffix, System.StringComparison.Ordinal) && table.LocaleIdentifier.Code != "en") continue;
                         if (entry == null || string.IsNullOrWhiteSpace(entry.Value))
                             gaps.Add(col.TableCollectionName + " / " + table.LocaleIdentifier.Code + " / " + key.Key);
                     }

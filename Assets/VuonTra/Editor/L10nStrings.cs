@@ -32,7 +32,7 @@ namespace VuonTra.EditorTools
             { "profile.code", "Mã người chơi", "Player code" },
             { "profile.copy", "Chép mã", "Copy" },
             { "profile.copied", "Đã chép", "Copied" },
-            { "profile.stats", "Cấp vườn {0} · {1} bé thỏ · {2} trạm", "Garden level {0} · {1} rabbits · {2} stations" },
+            { "profile.stats", "Cấp vườn {0} · {1} bé thỏ · {2} trạm", "Garden level {0} · Rabbits: {1} · Stations: {2}" },
             { "profile.avatar.hint", "Chạm hình để đổi thỏ đại diện", "Tap the picture to change your rabbit" },
             { "profile.close", "Đóng", "Close" },
             { "backup.title", "Sao lưu", "Backup" },
@@ -51,7 +51,7 @@ namespace VuonTra.EditorTools
             // ----- Google Play Games (#40) -----
             { "playgames.name", "Google Play Games", "Google Play Games" },
             { "playgames.saved", "Saved Games của Google Play", "Google Play Saved Games" },
-            { "playgames.description", "Cấp vườn {0} · {1} thỏ", "Garden level {0} · {1} rabbits" },
+            { "playgames.description", "Cấp vườn {0} · {1} thỏ", "Garden level {0} · Rabbits: {1}" },
             { "playgames.toolarge", "Bản lưu quá 3 MB nên Saved Games không nhận; vườn vẫn còn trên máy", "The save is over 3 MB, more than Saved Games takes; the garden stays on this device" },
             // ----- cloud save -----
             { "cloud.status.off", "Chưa có nơi lưu mây trên bản này", "No cloud to save to on this build" },
@@ -76,7 +76,7 @@ namespace VuonTra.EditorTools
             { "cloud.local", "Trên máy", "On this device" },
             { "cloud.remote", "Trên mây", "In the cloud" },
             { "cloud.level", "Cấp vườn {0}", "Garden level {0}" },
-            { "cloud.rabbits", "{0} bé thỏ · {1} loài", "{0} rabbits · {1} kinds" },
+            { "cloud.rabbits", "{0} bé thỏ · {1} loài", "Rabbits: {0} · Kinds: {1}" },
             { "cloud.played", "Đã chơi {0}", "Played {0}" },
             { "cloud.seen", "Lần cuối {0}", "Last played {0}" },
             { "cloud.suggested", "Gợi ý", "Suggested" },
@@ -249,7 +249,7 @@ namespace VuonTra.EditorTools
             { "expand.carrots", "{0} cà rốt", "{0} carrots" },
             { "expand.have", " (đang {0})", " (now {0})" },
             { "moment.garden.title", "Vườn lên cấp {0}!", "Garden level {0}!" },
-            { "moment.garden.sub", "Tặng {0} cỏ bốn lá", "+{0} clover" },
+            { "moment.garden.sub", "Tặng {0} cỏ bốn lá", "+{0} clovers" },
             { "garden.info.title", "Cấp vườn {0}", "Garden level {0}" },
             { "garden.info.sub", "Còn {0} điểm nữa lên cấp", "{0} more to the next level" },
             { "plot.sub", "Mở chỗ cho {0}", "Makes room for {0}" },
@@ -600,9 +600,9 @@ namespace VuonTra.EditorTools
             { "newmoon.title", "Mùa trăng mới", "A new moon" },
             { "newmoon.sub", "Vườn về bốn ô đất đầu tiên. Thỏ và đồ ở lại, thu nhập tăng mãi mãi.", "The garden goes back to its first four plots. Rabbits and items stay, and income grows for good." },
             { "newmoon.keep", "Giữ", "Kept" },
-            { "newmoon.keep.list", "{0} bé thỏ, {1} vật phẩm, {2} cà rốt vàng, {3} cỏ bốn lá\nAlbum, thành tựu, hồ sơ và cài đặt", "{0} rabbits, {1} items, {2} golden carrots, {3} clovers\nAlbum, achievements, profile and settings" },
+            { "newmoon.keep.list", "{0} bé thỏ, {1} vật phẩm, {2} cà rốt vàng, {3} cỏ bốn lá\nAlbum, thành tựu, hồ sơ và cài đặt", "Rabbits: {0}, items: {1}, golden carrots: {2}, clovers: {3}\nAlbum, achievements, profile and settings" },
             { "newmoon.lose", "Về đầu", "Back to the start" },
-            { "newmoon.lose.list", "{0} cà rốt · {1} cấp trạm ở {2} trạm\nÔ đất {3} → {4} · chỗ nghỉ {5} → {6} · cấp vườn {7} → 1", "{0} carrots · {1} station levels at {2} stations\nPlots {3} → {4} · rest spots {5} → {6} · garden level {7} → 1" },
+            { "newmoon.lose.list", "{0} cà rốt · {1} cấp trạm ở {2} trạm\nÔ đất {3} → {4} · chỗ nghỉ {5} → {6} · cấp vườn {7} → 1", "{0} carrots · station levels: {1} · stations: {2}\nPlots {3} → {4} · rest spots {5} → {6} · garden level {7} → 1" },
             { "newmoon.gain", "Được", "Gained" },
             { "newmoon.gain.list", "Thu nhập +{0}% → +{1}% mãi mãi\n+{2} cỏ bốn lá · +{3} cà rốt vàng", "Income +{0}% → +{1}% for good\n+{2} clovers · +{3} golden carrots" },
             { "newmoon.gain.rabbit", " · Thỏ Trăng Non", " · the New Moon Rabbit" },
@@ -615,7 +615,7 @@ namespace VuonTra.EditorTools
             { "newmoon.done.title", "Mùa {0} bắt đầu", "Season {0} begins" },
             { "newmoon.done.sub", "Thu nhập +{0}% mãi mãi · +{1} cỏ · +{2} cà rốt vàng", "Income +{0}% for good · +{1} clovers · +{2} golden carrots" },
             { "hud.season", "Mùa {0}", "Season {0}" },
-            { "profile.stats.season", "Cấp vườn {0} · {1} bé thỏ · {2} trạm · Mùa {3}, thu nhập +{4}%", "Garden level {0} · {1} rabbits · {2} stations · Season {3}, income +{4}%" },
+            { "profile.stats.season", "Cấp vườn {0} · {1} bé thỏ · {2} trạm · Mùa {3}, thu nhập +{4}%", "Garden level {0} · Rabbits: {1} · Stations: {2} · Season {3}, income +{4}%" },
             { "album.newmoon.only", "Chỉ đến cùng Mùa trăng mới", "Only with a new moon" },
             // Golden carrots for money (#9).
             { "shop.buymore", "Mua thêm", "Buy more" },
@@ -808,6 +808,39 @@ namespace VuonTra.EditorTools
             { "garden.segment", "Mở rộng vườn · đoạn {0}", "Widen the garden · part {0}" },
             { "moment.segment.title", "Sương tan, vườn rộng thêm!", "The mist clears: more garden!" },
             { "edge.home", "Về tiệm trà", "Back to the tea shop" },
+        };
+
+        /// <summary>
+        /// English lines for a count of one: L10n.T reads "key.one" instead of "key" when the language is
+        /// English and the first number it is given is 1. Only the English table gets these.
+        /// </summary>
+        public static readonly string[,] EnglishOne =
+        {
+            { "shop.gift.amount.one", "+{0} golden carrot" },
+            { "shop.have.one", "You have {0} golden carrot" },
+            { "mail.golden.one", "+{0} golden carrot" },
+            { "away.double.short.one", "{0} more golden carrot" },
+            { "shop.golden.need.one", "{0} more golden carrot" },
+            { "shop.visitor.need.one", "{0} more golden carrot" },
+            { "fireflies.clovers.one", "+{0} clover" },
+            { "mail.clovers.one", "+{0} clover" },
+            { "moment.garden.sub.one", "+{0} clover" },
+            { "rabbits.clovers.short.one", "Call a new rabbit · {0} clover" },
+            { "rabbits.count.one", "{0} rabbit · {1}/{2} kinds met" },
+            { "expand.rabbits.one", "{0} rabbit" },
+            { "expand.kinds.one", "{0} kind met" },
+            { "upgradeall.levels.one", "+{0} level" },
+            { "row.tonext.one", "{0} more level to ×2" },
+            { "away.tray.one", "Tray: {0} new item" },
+            { "away.guests.one", "{0} guest came by; nobody was at the counter" },
+            { "mail.days.one", "{0} day left" },
+            { "noads.active.one", "No ads · {0} day left" },
+            { "shop.gift.streak.one", "{0} day in a row · miss a day and it steps back one" },
+            { "leaves.caught.one", "{0} leaf caught" },
+            { "pound.score.one", "{0} point" },
+            { "leaves.score.one", "{0} point" },
+            { "fireflies.score.one", "{0} point" },
+            { "fish.points.one", "+{0} bond point" },
         };
     }
 }
