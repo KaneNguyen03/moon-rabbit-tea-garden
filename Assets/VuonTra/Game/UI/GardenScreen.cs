@@ -4171,16 +4171,29 @@ namespace VuonTra.Game.UI
             _edgeRight.sizeDelta = new Vector2(120f, 56f);
             _edgeRight.anchoredPosition = new Vector2(-70f, SideEdgeY);
 
-            var home = UiKit.Rect("Home", _canvas).Place(1f, 0f, -72, bottom + 4f, 92, 92);
+            // The way home: a paper pill at the bottom right, just over the tray, with the teapot and the words for where it goes (#16).
+            var home = UiKit.Rect("Home", _canvas).Place(1f, 0f, -(ReadMargin + HomeW / 2f), bottom + 32f, HomeW, HomeH);
             home.AddShadow(14f, 10f, 0.3f);
-            Image homeBack = home.AddImage(catalog.Round, Palette.Paper);
+            Image homeBack = home.AddImage(catalog.Panel, Palette.Paper, true);
             homeBack.raycastTarget = true;
             var homeButton = home.gameObject.AddComponent<Button>();
             homeButton.transition = Selectable.Transition.None;
             homeButton.targetGraphic = homeBack;
             homeButton.onClick.AddListener(GlideHome);
             Sprite teapot = catalog.Stations.Length > 0 ? catalog.Stations[0].Prop : null;
-            if (teapot != null) UiKit.Rect("Icon", home).Stretch(0, 0, 1, 1, 12, 12, 12, 12).AddImage(teapot, Color.white).preserveAspect = true;
+            if (teapot != null)
+            {
+                Image icon = UiKit.Rect("Icon", home).Place(0f, 0.5f, 48f, 0f, 68f, 68f).AddImage(teapot, Color.white);
+                icon.preserveAspect = true;
+                icon.raycastTarget = false;
+            }
+            Text homeText = UiKit.Rect("Text", home).Stretch(0, 0, 1, 1, 90, 8, 16, 8)
+                .AddText(L10n.T("edge.home"), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            homeText.raycastTarget = false;
+            homeText.horizontalOverflow = HorizontalWrapMode.Wrap;
+            homeText.resizeTextForBestFit = true; // "Back to the tea shop" takes two lines, and at large text a smaller size
+            homeText.resizeTextMinSize = 18;
+            homeText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
             _home = home.gameObject;
             _home.SetActive(false);
         }
@@ -4200,6 +4213,9 @@ namespace VuonTra.Game.UI
             pill.gameObject.SetActive(false);
             return pill;
         }
+
+        /// <summary>The home button's size: wide enough for its teapot and "Về tiệm trà" or "Back to the tea shop" on two lines.</summary>
+        const float HomeW = 270f, HomeH = 92f;
 
         /// <summary>Where the home button looks: the tea shop above the teapot, the middle of the strip.</summary>
         public Vector2 HomeSpot => Heart + new Vector2(0f, 120f);

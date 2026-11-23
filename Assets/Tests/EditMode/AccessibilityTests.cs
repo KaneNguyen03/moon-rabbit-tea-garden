@@ -1069,5 +1069,42 @@ namespace VuonTra.Core.Tests
             Text words = sign.Find("Board/Face/Text").GetComponent<Text>();
             Assert.IsNull(Wrapped(words, 16), "the sign's words fit its board");
         }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void The_Home_Button_Says_Where_It_Goes_Is_Big_Enough_And_Its_Words_Fit(string code, bool large)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            GameState s = runner.State;
+            s.Plots = runner.Defs.Count;
+            for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
+            GardenGrid.Settle(runner.Defs, s);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
+            screen.LookAt(screen.StationSpot(0) + new Vector2(1700f, 0f));
+            screen.Advance(1f / 30f);
+            Transform home = root.transform.Find("Canvas/Home");
+            Assert.IsTrue(home.gameObject.activeSelf, "far to the right the way home shows");
+            Layout();
+            Text words = home.Find("Text") != null ? home.Find("Text").GetComponent<Text>() : null;
+            Assert.IsNotNull(words, "the button says where it goes");
+            Assert.AreEqual(L10n.T("edge.home"), words.text);
+            Rect touch = TouchArea(home.GetComponent<Button>());
+            Assert.GreaterOrEqual(Mathf.Min(touch.width, touch.height) + 0.01f, UiKit.MinTouch, "big enough to press: " + touch);
+            Assert.IsNull(Wrapped(words, 18), "its words fit at a size that reads");
+            // It hangs from the screen's bottom right corner, the tray from the middle of the foot: measured from those corners.
+            var canvas = (RectTransform)root.transform.Find("Canvas");
+            Rect r = OnPhone((RectTransform)home, canvas, new Vector2(1f, 0f));
+            Assert.That(r.xMin, Is.GreaterThanOrEqualTo(24f), "inside the left edge: " + r);
+            Assert.That(r.xMax, Is.LessThanOrEqualTo(1080f - 24f), "and keeps 24 from the right: " + r);
+            Rect tray = OnPhone((RectTransform)root.transform.Find("Canvas/Tray"), canvas, Vector2.zero);
+            Assert.GreaterOrEqual(r.yMin, tray.yMax, "above the tray " + tray + ": " + r);
+            Rect pill = OnPhone((RectTransform)root.transform.Find("Canvas/EdgeRight"), canvas, new Vector2(1f, 0f));
+            Assert.LessOrEqual(r.yMax, pill.yMin, "and under the side pill " + pill + ": " + r);
+        }
     }
 }
