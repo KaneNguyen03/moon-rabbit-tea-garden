@@ -1,0 +1,5 @@
+comment	Assets/*.cs	^[[:space:]]*(//|/\*)|[;{})][[:space:]]*//
+procedural-animation	Assets/VuonTra/Game/*.cs	Mathf\.(Sin|Cos|PingPong|Lerp|LerpUnclamped|SmoothStep|SmoothDamp)|(Vector2|Vector3|Color|Quaternion)\.(Lerp|Slerp|LerpUnclamped)
+scene-search	Assets/VuonTra/Game/*.cs	GameObject\.Find|Find(Objects?OfType|FirstObjectByType|AnyObjectByType|ObjectsByType)
+per-frame-update	Assets/VuonTra/Game/*.cs	void[[:space:]]+(Update|LateUpdate|FixedUpdate)[[:space:]]*\(
+workaround	Assets/*.cs	yield return null|WaitForEndOfFrame|(^|[^.?A-Za-z])Invoke\(("|nameof)|InvokeRepeating|SendMessage\(|DelayedCall\([[:space:]]*0[^.0-9]|catch[[:space:]]*(\([^)]*\))?[[:space:]]*\{[[:space:]]*\}|#pragma warning disable|SuppressMessage
