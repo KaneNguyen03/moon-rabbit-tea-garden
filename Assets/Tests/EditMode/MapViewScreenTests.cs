@@ -370,7 +370,7 @@ namespace VuonTra.Core.Tests
             Glide();
             var label = (RectTransform)World.Find("Station " + runner.Defs[plots].Id + " Front/Level");
             Assert.IsTrue(label.gameObject.activeInHierarchy, "the next plot shows its label");
-            StringAssert.Contains(L10n.T("garden.expand"), label.GetComponentInChildren<Text>().text);
+            Assert.AreEqual(L10n.ExpandSign(runner.Defs, runner.State), label.GetComponentInChildren<Text>().text, "the label says what the next segment still needs (#99)");
             Vector2 spot = screen.StationSpot(plots);
             float toward = Mathf.Sign(spot.x - Teapot.x);
             foreach (Vector2 look in new[] { spot, new Vector2(spot.x + toward * 5000f, spot.y), new Vector2(spot.x + toward * 5000f, spot.y + 5000f), new Vector2(spot.x + toward * 5000f, spot.y - 5000f) })
