@@ -13,11 +13,17 @@ namespace VuonTra.Game
         const int Rate = 44100;
         const string MusicKey = "vol.music", SfxKey = "vol.sfx", StationKey = "vol.station", TuneKey = "music.tune";
         const float BedLevel = 0.35f;
-        const float MelodyLevel = 0.5f;
-        public const float DefaultStationGain = 0.7f;
+        /// <summary>The tunes' own level under the Music slider.</summary>
+        public const float MelodyLevel = 0.5f;
+        public const float DefaultMusicGain = 0.6f;
+        /// <summary>
+        /// The "Tiếng trạm" slider before the player moves it: 0.5 since 23 Nov (was 0.7), so with <see cref="LoopLevel"/>
+        /// a loop up close sits just under the music instead of 7–12 dB over it, as QA measured.
+        /// </summary>
+        public const float DefaultStationGain = 0.5f;
 
         static bool _loaded;
-        static float _musicGain = 0.6f, _sfxGain = 0.8f, _stationGain = DefaultStationGain;
+        static float _musicGain = DefaultMusicGain, _sfxGain = 0.8f, _stationGain = DefaultStationGain;
         static Tune _tune = Tune.Auto;
 
         // Read from the saved settings the first time anything asks, so the pause card's sliders, built
@@ -31,7 +37,7 @@ namespace VuonTra.Game
         {
             if (_loaded && !again) return;
             _loaded = true;
-            _musicGain = PlayerPrefs.GetFloat(MusicKey, 0.6f);
+            _musicGain = PlayerPrefs.GetFloat(MusicKey, DefaultMusicGain);
             _sfxGain = PlayerPrefs.GetFloat(SfxKey, 0.8f);
             _stationGain = PlayerPrefs.GetFloat(StationKey, DefaultStationGain);
             _tune = (Tune)Mathf.Clamp(PlayerPrefs.GetInt(TuneKey, 0), 0, 3);
@@ -146,6 +152,9 @@ namespace VuonTra.Game
             _music.clip = clip;
             if (Application.isPlaying) _music.Play();
         }
+
+        /// <summary>A tune's clip, made once (Auto is the moon's); for tests that measure it.</summary>
+        public static AudioClip TuneClipOf(Tune tune) => TuneClip(tune);
 
         static AudioClip TuneClip(Tune tune)
         {
@@ -279,8 +288,9 @@ namespace VuonTra.Game
         static float[] DrawSink(System.Random r)
         {
             var buf = new float[Samples(0.42f)];
-            Glide(buf, 0, 360f, 150f, 0.12f, 13f, 0.6f, 0.008f);
+            Glide(buf, 0, 360f, 150f, 0.12f, 13f, 0.3f, 0.008f, SinkVoice);
             Bubble(buf, Samples(0.13f), 420f, 2.5f, 0.12f, 40f);
+            Bubble(buf, Samples(0.13f), 1260f, 2.5f, 0.1f, 55f); // its third partial, for a phone's speaker
             return buf;
         }
 
@@ -306,12 +316,12 @@ namespace VuonTra.Game
             {
                 int at = Samples(k * 0.058f);
                 float pitch = Mathf.Lerp(700f, 1400f, k / 8f);
-                Ping(buf, at, pitch, 0.16f, 80f, 0.06f);
+                Ping(buf, at, pitch, 0.38f, 80f, 0.06f);
                 Burst(buf, at, 0.006f, 0.08f, 0.25f, r);
             }
             int land = Samples(0.55f);
-            Glide(buf, land, 150f, 85f, 0.08f, 17f, 0.6f, 0.004f);
-            Burst(buf, land, 0.05f, 0.22f, 0.12f, r);
+            Glide(buf, land, 150f, 85f, 0.08f, 17f, 0.2f, 0.004f, ThunkVoice);
+            Burst(buf, land, 0.05f, 0.3f, 0.5f, r);
             return buf;
         }
 
@@ -328,11 +338,11 @@ namespace VuonTra.Game
                     float t = i / (float)Rate;
                     phase += 2f * Mathf.PI * Mathf.Lerp(from, to, Mathf.Clamp01(t / 0.35f)) / Rate;
                     float env = Mathf.Min(1f, t / 0.025f) * Mathf.Exp(-t * 6f) * Mathf.Clamp01((0.55f - t) / 0.08f);
-                    buf[at + i] += (Mathf.Sin(phase) + 0.2f * Mathf.Sin(2f * phase)) * env * gain;
+                    buf[at + i] += Partials(phase, AwVoice) * env * gain;
                 }
             }
-            Note(0f, 392f, 392f, 0.4f);        // G
-            Note(0.2f, 311.13f, 293.66f, 0.4f); // E flat, sagging towards D
+            Note(0f, 392f, 392f, 0.3f);        // G
+            Note(0.2f, 311.13f, 293.66f, 0.3f); // E flat, sagging towards D
             return buf;
         }
 
@@ -340,29 +350,49 @@ namespace VuonTra.Game
         static float[] DrawFloatUp()
         {
             var buf = new float[Samples(0.18f)];
-            Bubble(buf, 0, 380f, 3f, 0.5f, 32f);
+            Bubble(buf, 0, 380f, 3f, 0.4f, 32f);
+            // The same blub's third and fifth partials rise with it, so a phone that drops 380 Hz still hears the bob.
+            Bubble(buf, 0, 1140f, 3f, 0.45f, 40f);
+            Bubble(buf, 0, 1900f, 3f, 0.35f, 48f);
             return buf;
         }
 
         /// <summary>A tone sliding from <paramref name="from"/> to <paramref name="to"/> Hz over <paramref name="glide"/> seconds, dying away.</summary>
-        static void Glide(float[] buf, int at, float from, float to, float glide, float decay, float gain, float attack = 0.003f)
+        static void Glide(float[] buf, int at, float from, float to, float glide, float decay, float gain, float attack = 0.003f, float[] overtones = null)
         {
+            overtones = overtones ?? PlainVoice;
             int length = Mathf.Min(Samples(6f / decay), buf.Length - at);
             float phase = 0f;
             for (int i = 0; i < length; i++)
             {
                 float t = i / (float)Rate;
                 phase += 2f * Mathf.PI * Mathf.Lerp(from, to, Mathf.Clamp01(t / glide)) / Rate;
-                buf[at + i] += (Mathf.Sin(phase) + 0.15f * Mathf.Sin(2f * phase)) * Mathf.Min(1f, t / attack) * Mathf.Exp(-t * decay) * gain;
+                buf[at + i] += Partials(phase, overtones) * Mathf.Min(1f, t / attack) * Mathf.Exp(-t * decay) * gain;
             }
         }
 
-        /// <summary>A one-shot from a drawn buffer: 5 ms fades at both ends, kept under 0.9.</summary>
+        // The pond's tones as overtone levels, from the second harmonic up. QA (22 Nov) found sink, reel, bait-lost and
+        // float-up with nearly all their energy under 400 Hz, which a phone speaker barely plays; since 23 Nov their
+        // upper partials carry the same low note at 0.8–2 kHz, soft enough that the note still feels low.
+        static readonly float[] PlainVoice = { 0.15f };
+        static readonly float[] SinkVoice = { 0.3f, 0.5f, 0.6f, 0.6f, 0.55f, 0.5f, 0.45f, 0.4f, 0.3f };
+        static readonly float[] ThunkVoice = { 0.5f, 0.7f, 0.7f, 0.65f, 0.6f, 0.5f, 0.45f, 0.4f };
+        static readonly float[] AwVoice = { 0.5f, 0.75f, 0.6f, 0.5f };
+
+        /// <summary>A tone's fundamental plus <paramref name="overtones"/>[k] of harmonic k + 2.</summary>
+        static float Partials(float phase, float[] overtones)
+        {
+            float sum = Mathf.Sin(phase);
+            for (int k = 0; k < overtones.Length; k++) sum += overtones[k] * Mathf.Sin((k + 2) * phase);
+            return sum;
+        }
+
+        /// <summary>A one-shot from a drawn buffer: 5 ms fades at both ends, kept under 0.7 (−3 dBFS) so added partials never clip.</summary>
         static AudioClip Shape(string name, float[] data)
         {
             float peak = 0f;
             foreach (float v in data) peak = Mathf.Max(peak, Mathf.Abs(v));
-            float gain = peak > 0.9f ? 0.9f / peak : 1f;
+            float gain = peak > 0.7f ? 0.7f / peak : 1f;
             int fade = Samples(0.005f);
             for (int i = 0; i < data.Length; i++)
             {
@@ -779,11 +809,17 @@ namespace VuonTra.Game
                 case "stream": data = Seamless(Samples(5f), DrawStream, rng); break;
                 default: data = Seamless(Samples(5f), DrawRustle, rng); break;
             }
-            Level(data, 0.12f);
+            Level(data, LoopLevel);
             AudioClip clip = AudioClip.Create("station-" + loop, data.Length, 1, Rate, false);
             clip.SetData(data, 0);
             return clip;
         }
+
+        /// <summary>
+        /// Every loop's RMS before the slider. 0.12 until 23 Nov; lowered with <see cref="DefaultStationGain"/> so a loop
+        /// up close no longer drowns the music.
+        /// </summary>
+        const float LoopLevel = 0.035f;
 
         static int Samples(float seconds) => (int)(Rate * seconds);
 
@@ -816,6 +852,25 @@ namespace VuonTra.Game
             if (now <= 1e-6f) return;
             float gain = Mathf.Min(rms / now, 0.9f / peak);
             for (int i = 0; i < data.Length; i++) data[i] *= gain;
+        }
+
+        /// <summary>
+        /// Takes the hiss off: a two-pole Butterworth low-pass at <paramref name="cutoff"/> Hz (12 dB an octave). Run over
+        /// the whole drawn buffer before <see cref="Seamless"/> folds it, so the loop point stays smooth.
+        /// </summary>
+        static void LowPass(float[] buf, float cutoff)
+        {
+            double w = Math.Tan(Math.PI * cutoff / Rate), q = Math.Sqrt(2d);
+            double norm = 1d / (1d + q * w + w * w);
+            double b0 = w * w * norm, b1 = 2d * b0, a1 = 2d * (w * w - 1d) * norm, a2 = (1d - q * w + w * w) * norm;
+            double x1 = 0d, x2 = 0d, y1 = 0d, y2 = 0d;
+            for (int i = 0; i < buf.Length; i++)
+            {
+                double x = buf[i];
+                double y = b0 * x + b1 * x1 + b0 * x2 - a1 * y1 - a2 * y2;
+                x2 = x1; x1 = x; y2 = y1; y1 = y;
+                buf[i] = (float)y;
+            }
         }
 
         /// <summary>A short tone that dies away, added at <paramref name="at"/>.</summary>
@@ -868,6 +923,10 @@ namespace VuonTra.Game
             }
         }
 
+        // Where the bright loops roll off (23 Nov). QA found shake, rustle and crackle with half or more of their energy
+        // in the 5–9 kHz hiss and the stream not far behind; these keep the ice, the leaves and the snap, without the hiss.
+        const float ShakeTop = 4000f, RustleTop = 3500f, CrackleTop = 4500f, StreamTop = 5000f;
+
         /// <summary>Ấm trà: a low roll of water and quick small bubbles bursting at the top.</summary>
         static void DrawBoil(float[] buf, System.Random r)
         {
@@ -899,6 +958,7 @@ namespace VuonTra.Game
                 // Cracks come in twos and threes.
                 if (r.NextDouble() < 0.4) Burst(buf, Mathf.Min(buf.Length - 1, at + Samples(0.02f + (float)r.NextDouble() * 0.05f)), 0.004f, 0.25f, 0.6f, r);
             }
+            LowPass(buf, CrackleTop);
         }
 
         /// <summary>Trà sữa: ice in a shaker, back and forth, twelve times in five seconds.</summary>
@@ -918,6 +978,7 @@ namespace VuonTra.Game
                 }
                 Burst(buf, Mathf.Min(buf.Length - 1, start), 0.09f, 0.12f, 0.15f, r); // the swoosh of the drink
             }
+            LowPass(buf, ShakeTop);
         }
 
         /// <summary>Bình ủ sao: small glass chimes, high and far apart, in a pentatonic so they never clash.</summary>
@@ -981,6 +1042,7 @@ namespace VuonTra.Game
             int bubbles = (int)(buf.Length / (float)Rate * 30f);
             for (int k = 0; k < bubbles; k++)
                 Bubble(buf, r.Next(buf.Length), 700f + (float)r.NextDouble() * 1100f, 1.5f, 0.05f + (float)r.NextDouble() * 0.06f, 110f);
+            LowPass(buf, StreamTop);
         }
 
         /// <summary>Giỏ lá, giàn nho: leaves stirred, in soft gusts with a few dry crisps.</summary>
@@ -990,6 +1052,7 @@ namespace VuonTra.Game
             int crisps = (int)(buf.Length / (float)Rate * 8f);
             for (int k = 0; k < crisps; k++)
                 Burst(buf, r.Next(buf.Length), 0.006f + (float)r.NextDouble() * 0.01f, 0.2f, 0.8f, r);
+            LowPass(buf, RustleTop);
         }
 
         static AudioClip Ambient()
