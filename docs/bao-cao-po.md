@@ -1814,6 +1814,31 @@ Bản đầy đủ: `docs/de-xuat-1.md`; đã đăng lên #1. Bốn điểm issu
 
 Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu hình ứng viên trong `docs/anh/po-8/`.
 
+## Vườn thành dải toàn cảnh cuộn ngang (#16, agent-ngang)
+
+
+- **Test:** 1182/1183 xanh trên main, `verify.sh --build` xanh (bản Mac chạy, Player.log sạch) (1 inconclusive như trên main); `tools/verify.sh` GREEN; 214 ảnh preview.
+- **Commit:** main fast-forward tới 6c3a3fb; 24cceaf (Core: lưới dải, đoạn mở rộng, save cũ), 07f09e4 (màn hình: camera, sương, parallax, ao, khách, thỏ dạo, ảnh), 6c3a3fb (seed lại bảng chữ).
+
+**Đã làm**
+- Lưới: dải 7 hàng; giữa 53 ô, mỗi đoạn thêm 21 ô, đoạn lẻ mở bên phải, đoạn chẵn bên trái. Bảng mặc định mới cho 16 trạm, 6 ghế, 8 chỗ trang trí, 3 đạo cụ.
+- Mở rộng: `MistSegment` thay `ForestRing`; 6 đoạn giữ cấp, thỏ, loài và giá của R4…R9.
+- Save v14: khối "radius" cũ mở thành số đoạn tương ứng, mọi thứ về ô mặc định, đồ cất vẫn cất, góc nhìn đặt lại.
+- Màn hình: kéo ngang có quán tính và nảy về trong đất đã mở + 360; nút về tiệm trà; bấm dòng tab Trạm lướt ngang; nút cạnh "◀ N" / "N ▶"; sương mềm cho từng đoạn chưa mở; viền rừng và biển trên mặt đất; parallax ngang (tắt khi Giảm chuyển động).
+- Bảng "Câu cá" sang bờ phải; khách tới từ bên phải; thỏ dạo ra ô trống của đất đã mở.
+
+
+- **Nhịp:** 17 hạt, trước = sau, giống hệt từng con số.
+
+- **Ảnh:** `docs/anh/po-vuon-ngang/` — `truoc-mo-dau`, `truoc-nhin-xa`, `truoc-nhin-xa-vong-9`, `truoc-sau-mo-rong`, `truoc-bam-dong-tram`; `sau-mo-dau`, `sau-nhin-xa`, `sau-nhin-xa-vong-9`, `sau-sau-mo-rong`, `sau-bam-dong-tram`, `sau-suong-tan-giua`.
+
+### Chưa đạt / cần PO quyết
+- Độ dày của sương (hiện nhạt trên nền cỏ tối).
+- Trà sữa và ruộng lúa đứng ngoài đoạn của mình để giữ luật trạm tiếp sức đứng gần.
+- Chữ "Mở rộng vườn · đoạn N" thay chữ "rừng · vòng".
+- Khách đi qua sương của đoạn 1 khi đoạn đó chưa mở; biển ở mép phải bị cắt một phần trong khung mở đầu; nút về tiệm trà chưa có chữ.
+- Thấy khi xem ảnh: câu nói của thỏ ("Nước vừa sôi…") có lúc che biển "Giã bánh"; bảng "Câu cá" sát mép trái trong khung sau khi mở rộng.
+
 ## Bàn giao (23/11 ~13:10, mốc trước vườn cuộn ngang)
 
 ### Trạng thái
