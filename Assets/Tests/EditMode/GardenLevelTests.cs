@@ -19,9 +19,9 @@ namespace VuonTra.Core.Tests
 
         [TestCase(0, 1)]
         [TestCase(113, 1)]
-        [TestCase(114, 2)]   // 100 + 14 x 1
+        [TestCase(114, 2)]
         [TestCase(241, 2)]
-        [TestCase(242, 3)]   // + 100 + 14 x 2
+        [TestCase(242, 3)]
         [TestCase(540, 5)]
         [TestCase(1530, 10)]
         [TestCase(2870, 15)]
@@ -52,7 +52,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, Garden.AddXp(s, 1));
             Assert.AreEqual(1, s.Clovers);
             Assert.AreEqual(2, Garden.Level(s));
-            Assert.AreEqual(2, Garden.AddXp(s, 300), "two levels in one go bring two clovers"); // 414: level 4 begins at 384
+            Assert.AreEqual(2, Garden.AddXp(s, 300), "two levels in one go bring two clovers");
             Assert.AreEqual(3, s.Clovers);
             Assert.AreEqual(0, Garden.AddXp(s, 0));
             Assert.AreEqual(0, Garden.AddXp(s, -50));
@@ -64,7 +64,7 @@ namespace VuonTra.Core.Tests
         public void Progress_Runs_From_Nought_To_One_Within_A_Level()
         {
             Assert.AreEqual(0, Garden.Progress(s), 1e-9);
-            s.GardenXp = 178; // level 2 runs from 114 to 242
+            s.GardenXp = 178;
             Assert.AreEqual(0.5, Garden.Progress(s), 1e-9);
         }
 
@@ -72,12 +72,12 @@ namespace VuonTra.Core.Tests
         public void Growing_A_Station_Earns_Experience()
         {
             s.Coins = new BigNum(1e9);
-            Assert.IsTrue(Simulation.TryBuy(defs, s, 0)); // level 1 → 2
+            Assert.IsTrue(Simulation.TryBuy(defs, s, 0));
             Assert.AreEqual(Garden.XpPerLevelBought, s.GardenXp, 1e-9);
             s.BuyMode = 10;
-            Assert.IsTrue(Simulation.TryBuy(defs, s, 0)); // 2 → 12, past the milestone at 10
+            Assert.IsTrue(Simulation.TryBuy(defs, s, 0));
             Assert.AreEqual(1 + 10 + Garden.XpMilestone, s.GardenXp, 1e-9);
-            Assert.IsTrue(Simulation.TryBuy(defs, s, 1)); // opening the second station
+            Assert.IsTrue(Simulation.TryBuy(defs, s, 1));
             Assert.AreEqual(1 + 10 + Garden.XpMilestone + Garden.XpStationOpened, s.GardenXp, 1e-9);
         }
 
@@ -88,7 +88,7 @@ namespace VuonTra.Core.Tests
             Rabbits.Summon(s, 0.1, "A");
             Assert.AreEqual(Garden.XpSummon + Garden.XpNewKind, s.GardenXp, 1e-9);
             double before = s.GardenXp;
-            Rabbits.Summon(s, 0.1, "B"); // the same kind again
+            Rabbits.Summon(s, 0.1, "B");
             Assert.AreEqual(before + Garden.XpSummon, s.GardenXp, 1e-9);
 
             var quest = new QuestDef { Id = "q", Metric = QuestMetric.StationsOpen, Target = 1, RewardCarrots = 5 };
@@ -96,8 +96,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Quests.TryClaim(quest, defs, s, Modifiers.None, out _));
             Assert.AreEqual(before + Garden.XpQuest, s.GardenXp, 1e-9);
         }
-
-        // ----- expansion -----
 
         void Rabbit(int n)
         {
@@ -181,14 +179,12 @@ namespace VuonTra.Core.Tests
         [TestCase(6, 1, 3)]
         [TestCase(7, 2, 6)]
         [TestCase(10, 3, 10)]
-        [TestCase(12, 4, 16)] // the fourth segment (the old R 7) asks for level 16 since #83
+        [TestCase(12, 4, 16)]
         public void Land_Already_Held_Says_Which_Waves_Were_Taken(int plots, int waves, int level)
         {
             Assert.AreEqual(waves, Expansion.WavesTaken(plots));
             Assert.AreEqual(level, Expansion.LevelForPlots(defs, plots));
         }
-
-        // ----- saves -----
 
         [Test]
         public void Experience_Round_Trips()
@@ -200,7 +196,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void An_Old_Save_Keeps_Its_Land_And_Is_Given_The_Level_That_Land_Needs()
         {
-            // Seven plots bought one at a time under the old rule, and almost nothing else done.
             const string v7 = "{\"version\":7,\"stations\":[{\"id\":\"s0\",\"level\":1,\"progress\":0}],\"plots\":7}";
             GameState r = SaveCodec.Decode(defs, v7).State;
             Assert.AreEqual(8, r.Plots, "no plot is ever taken back, and the half-bought second wave is whole (#86)");
@@ -212,7 +207,7 @@ namespace VuonTra.Core.Tests
         [TestCase(6, 2, 3)]
         [TestCase(7, 2, 4)]
         [TestCase(12, 2, 6)]
-        [TestCase(6, 5, 5)]   // more places than its land explains: it keeps them
+        [TestCase(6, 5, 5)]
         public void An_Old_Save_Has_At_Least_The_Places_To_Rest_Its_Land_Brings(int plots, int saved, int expected)
         {
             s.Plots = plots;
@@ -228,8 +223,6 @@ namespace VuonTra.Core.Tests
             s.Claimed.Add("a"); s.Claimed.Add("b");
             Rabbit(2);
             s.SeenKinds.Add("tho-bong");
-            // 40 levels + two more stations opened (20) + milestones 10 and 25 on the first, 10 on the second (45)
-            // + 2 rabbits (10) + 1 kind (20) + 2 quests (20)
             Assert.AreEqual(40 + 20 + 45 + 10 + 20 + 20, Garden.BackfillXp(defs, s), 1e-9);
         }
     }

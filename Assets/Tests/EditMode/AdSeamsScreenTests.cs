@@ -9,10 +9,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The three rewarded-ad places on the real screen (#66): shown with the editor's pretend videos, hidden without a
-    /// provider (every player build), never the main button, and the no-ads pass on the packs card.
-    /// </summary>
     public class AdSeamsScreenTests
     {
         GameObject root;
@@ -31,13 +27,13 @@ namespace VuonTra.Core.Tests
             cam.transform.SetParent(root.transform);
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
-            runner.Init(GameState.NewGame(catalog.BuildDefs())); // preset: never touches the save file
+            runner.Init(GameState.NewGame(catalog.BuildDefs()));
             fake = new FakeRewardedAds();
             runner.AdProvider = fake;
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             screen.Build();
             screen.Shell.StartGame();
             screen.Refresh();
@@ -108,7 +104,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.AwayCard.IsOpen);
             Assert.IsFalse(runner.DoubleAway(), "one doubling per time away");
 
-            // The next time away today: the video's one a day is spent; the golden ×2 is still there.
             ComeBackAfterTheFreeDoubleIsSpent();
             Assert.IsFalse(screen.AwayCard.Ad.Shown);
             Assert.IsTrue(screen.AwayCard.DoubleEnabled);
@@ -117,9 +112,8 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Minute_Away_While_The_Sheet_Is_Up_Leaves_Its_Video_Times_Two_On_The_Report_It_Shows()
         {
-            // #89: a short absence while the sheet is up used to replace the report the video ×2 paid.
             GameState s = runner.State;
-            s.MaxDaySeen = runner.TodayNumber + 1; // pins the day for the free ×2 and the video's one a day
+            s.MaxDaySeen = runner.TodayNumber + 1;
             AwayReport shown = ComeBackAfterTheFreeDoubleIsSpent();
             var minute = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
             runner.ShowAwayForTest(minute);
@@ -235,7 +229,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, runner.State.GoldenCarrots);
             Assert.IsFalse(screen.Shop.Ad.Shown, "the same two a day");
 
-            // Even where no provider is ready, the pass still pays at once.
             runner.AdProvider = new NoAds();
             ComeBackAfterTheFreeDoubleIsSpent();
             Assert.IsTrue(screen.AwayCard.Ad.Shown);

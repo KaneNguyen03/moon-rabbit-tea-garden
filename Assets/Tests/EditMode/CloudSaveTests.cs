@@ -4,7 +4,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The cloud save core, with a cloud that lives in memory and can be switched off.</summary>
     public class CloudSaveTests
     {
         IReadOnlyList<StationDef> defs;
@@ -80,7 +79,6 @@ namespace VuonTra.Core.Tests
         public void A_Copy_From_A_Newer_Build_Is_Recognised_And_Left_Alone()
         {
             string text = CloudSave.Wrap(Save(local), Sum(local), 777).Replace("\"version\":" + SaveCodec.CurrentVersion, "\"version\":" + (SaveCodec.CurrentVersion + 1));
-            // The check covered the old version, so re-sign it the way a newer build would.
             CloudSave.Open(text, out CloudEnvelope env);
             Assert.AreEqual(EnvelopeStatus.Corrupt, CloudSave.Open(text, out _), "a bumped version without its check is just corrupt");
             string signed = "{\"cloud\":1,\"version\":" + (SaveCodec.CurrentVersion + 1) + ",\"savedAt\":777,\"check\":\"" + CloudSave.Check(Save(local), SaveCodec.CurrentVersion + 1, 777) + "\",\"save\":" + SaveCodec.Quote(Save(local)) + "}";
@@ -146,15 +144,14 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(replaced, "nothing is replaced until the player says so");
             Assert.AreEqual(0, cloud.Pushes, "and nothing is sent up either");
 
-            // Asking again while the choice is open hands back the same question.
             Assert.AreSame(r, Run(SyncReason.Timer));
         }
 
         [Test]
         public void When_Each_Copy_Is_Ahead_In_Something_The_Player_Is_Asked_With_A_Suggestion_By_Level_Then_Rabbits_Then_Time()
         {
-            GameState other = Ahead(); // level 4, 2 rabbits, seen 4000
-            local.GardenXp = Garden.XpForLevel(6); // higher level, fewer rabbits, older
+            GameState other = Ahead();
+            local.GardenXp = Garden.XpForLevel(6);
             cloud.Text = CloudSave.Wrap(Save(other), Sum(other), 4000);
             SyncReport r = Run();
             Assert.AreEqual(SyncOutcome.NeedsChoice, r.Outcome);
@@ -293,6 +290,5 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(sync.InFlight);
             Assert.AreEqual(SyncOutcome.Same, Run(SyncReason.Manual).Outcome, "and the next one runs");
         }
-
     }
 }

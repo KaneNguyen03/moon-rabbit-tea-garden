@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The time away, told and doubled (#69).</summary>
     public class AwayTests
     {
         List<StationDef> defs;
@@ -55,7 +54,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Guests_Missed_Are_Never_More_Than_The_Days_Guests_Still_To_Come()
         {
-            // #80: today's eight guests have all been served; three hours away finds nobody missed.
             s.OrderDay = 50;
             s.OrdersToday = Orders.PerDay;
             Assert.AreEqual(0, Away.Claim(defs, s, 3 * 3600, null, 50).GuestsMissed, "the day's guests have all come");
@@ -65,20 +63,18 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, Away.Claim(defs, s, 9 * 3600, null, 50).GuestsMissed, "only the two still to come today");
             Assert.AreEqual(1, Away.Claim(defs, s, 9 * 3600 + 7 * 60, null, 50).GuestsMissed, "and only as many as the time away had room for");
 
-            // A new day began while away: its guests count, as many as the time had room for.
             Assert.AreEqual(Orders.PerDay, Away.Claim(defs, s, 12 * 3600, null, 51).GuestsMissed);
         }
 
         [Test]
         public void A_Garden_With_Nothing_To_Sell_Has_No_Guests_While_Away()
         {
-            // #80: guests only come for what an open brew station makes; the leaf basket alone sells nothing.
             s.Levels[0] = 0;
             s.Levels[1] = 5;
             AwayReport r = Away.Claim(defs, s, 3 * 3600, null, 50);
             Assert.AreEqual(3 * 3600d, r.Seconds, 1e-9, "the time away still counts");
             Assert.AreEqual(0, r.GuestsMissed);
-            s.Levels[2] = 1; // the jam pot opens
+            s.Levels[2] = 1;
             Assert.AreEqual(Orders.PerDay, Away.Claim(defs, s, 6 * 3600, null, 50).GuestsMissed);
         }
 

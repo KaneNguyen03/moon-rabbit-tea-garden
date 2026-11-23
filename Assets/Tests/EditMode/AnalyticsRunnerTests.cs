@@ -11,10 +11,6 @@ using Object = UnityEngine.Object;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// The runner's analytics hooks (#100): each event goes out once, at its moment, with its parameters; nothing goes
-    /// out without a provider; player builds have none while the switch is off; caught exceptions are forwarded.
-    /// </summary>
     public class AnalyticsRunnerTests
     {
         GameObject root;
@@ -43,7 +39,6 @@ namespace VuonTra.Core.Tests
             if (root != null) Object.DestroyImmediate(root);
         }
 
-        /// <summary>A new garden, with whatever <paramref name="shape"/> does to it first, opened by the runner.</summary>
         GameState Open(Action<GameState> shape = null)
         {
             GameState s = GameState.NewGame(catalog.BuildDefs());
@@ -70,7 +65,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("7", mem.UserProperties[AnalyticsEvents.UserGardenLevel]);
             Assert.AreEqual(0, mem.Count(AnalyticsEvents.GardenLevelUp), "the levels the save already had are not level-ups");
 
-            Engine("OnApplicationPause", false); // the engine says "not paused" once at launch too
+            Engine("OnApplicationPause", false);
             Assert.AreEqual(1, mem.Count(AnalyticsEvents.SessionStart), "still the one session");
 
             now += 125;
@@ -79,7 +74,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, mem.Count(AnalyticsEvents.SessionEnd), "one end per session");
             Assert.AreEqual(125L, mem.Last(AnalyticsEvents.SessionEnd)[AnalyticsEvents.Seconds].Number);
 
-            now += 3600; // an hour in the background is no play
+            now += 3600;
             Engine("OnApplicationPause", false);
             Assert.AreEqual(2, mem.Count(AnalyticsEvents.SessionStart));
             now += 40;
@@ -123,7 +118,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, mem.Count(AnalyticsEvents.GardenLevelUp), "the call's experience reached level 5");
             Assert.AreEqual(5L, mem.Last(AnalyticsEvents.GardenLevelUp)[AnalyticsEvents.Level].Number);
 
-            runner.State.Clovers = 0; // the level brought one
+            runner.State.Clovers = 0;
             Assert.IsNull(runner.SummonRabbit(), "no clovers left");
             Assert.AreEqual(1, mem.Count(AnalyticsEvents.RabbitCalled), "a call that brought nobody is not logged");
         }
@@ -193,7 +188,7 @@ namespace VuonTra.Core.Tests
             runner.BuyGolden(Storefront.Small, null);
             store.NextOutcome = PurchaseOutcome.Failed;
             runner.BuyGolden(Storefront.Small, null);
-            s.PaidTransactions.Add("fake-2"); // the fake's next transaction was paid out already
+            s.PaidTransactions.Add("fake-2");
             runner.BuyGolden(Storefront.Large, null);
             Assert.AreEqual(1, mem.Count(AnalyticsEvents.PurchaseSuccess));
             Assert.AreEqual(new[] { "cancelled", "failed", "duplicate" },
@@ -214,7 +209,6 @@ namespace VuonTra.Core.Tests
             runner.AdProvider = ads;
             mem.Clear();
 
-            // A callback each time: the claim is paid inside it (null would skip the claim, not the video).
             runner.WatchAd(Ads.ShopGolden, null, _ => { });
             ads.NextResult = false;
             runner.WatchAd(Ads.ShopGolden, null, _ => { });
@@ -292,7 +286,6 @@ namespace VuonTra.Core.Tests
         }
     }
 
-    /// <summary>The one hook on the screen (#100): opening the golden packs card from the shop.</summary>
     public class AnalyticsScreenTests
     {
         GameObject root;

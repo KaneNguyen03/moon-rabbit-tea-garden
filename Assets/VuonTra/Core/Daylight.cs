@@ -10,14 +10,9 @@ namespace VuonTra.Core
         Day
     }
 
-    /// <summary>
-    /// The time of day, from the device's clock, as a look for the garden. Night is the garden's own
-    /// look and never fully leaves: by day it only brightens so far. Nothing here changes what is earned.
-    /// </summary>
     public static class Daylight
     {
         public const double DuskStart = 17, NightStart = 19, DawnStart = 5, DayStart = 7;
-        /// <summary>How much night stays on the garden at midday: it brightens, but it is still a moon garden.</summary>
         public const double DayFloor = 0.35;
 
         static double Wrap(double hour) => ((hour % 24d) + 24d) % 24d;
@@ -31,7 +26,6 @@ namespace VuonTra.Core
             return DayPhase.Day;
         }
 
-        /// <summary>How much of the night is on the garden: 1 through the night, the floor by day, ramping through dusk and dawn.</summary>
         public static double NightAt(double hour)
         {
             hour = Wrap(hour);
@@ -44,7 +38,6 @@ namespace VuonTra.Core
             }
         }
 
-        /// <summary>How many of <paramref name="all"/> fireflies are out: all at night, half in the half-light, a few by day.</summary>
         public static int FirefliesAt(double hour, int all)
         {
             switch (PhaseAt(hour))

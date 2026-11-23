@@ -11,7 +11,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Easy to read and easy to press: text size, contrast, touch targets, safe areas, overflow (#33).</summary>
     public class AccessibilityTests
     {
         GameObject root;
@@ -35,7 +34,7 @@ namespace VuonTra.Core.Tests
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             screen.Build();
             screen.Refresh();
         }
@@ -58,8 +57,6 @@ namespace VuonTra.Core.Tests
             return sb.ToString();
         }
 
-        // ----- large text -----
-
         [Test]
         public void Large_Text_Makes_Every_Label_A_Fifth_Bigger_And_Is_Remembered()
         {
@@ -74,7 +71,7 @@ namespace VuonTra.Core.Tests
             pill.GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(UiKit.LargeText);
             Assert.AreEqual(1, PlayerPrefs.GetInt("text.large"), "kept for next time");
-            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.RebuildUi();
             heading = root.transform.Find("Canvas/Pause/Card/Heading").GetComponent<Text>();
             Assert.AreEqual(72, heading.fontSize);
             Assert.AreEqual(UiKit.Scaled(UiKit.TextBody), root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Name").GetComponent<Text>().fontSize);
@@ -85,13 +82,11 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(26, UiKit.Scaled(UiKit.TextBody));
         }
 
-        // ----- safe areas -----
-
         [Test]
         public void The_Hud_And_The_Tab_Bar_Keep_Out_Of_The_Notch_And_The_Home_Bar()
         {
             GardenScreen.SafeInsets = () => new Vector2(90f, 120f);
-            screen.Advance(0.1f); // the frame step is where the edges are measured
+            screen.Advance(0.1f);
             var hud = (RectTransform)root.transform.Find("Canvas/Hud");
             var tabBar = (RectTransform)root.transform.Find("Canvas/TabBar");
             Assert.AreEqual(-120f, hud.anchoredPosition.y, 0.01f, "the HUD hangs below the notch");
@@ -103,9 +98,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(16f, tabBar.anchoredPosition.y, 0.01f);
         }
 
-        // ----- touch targets -----
-
-        /// <summary>What a button answers to: its own plate plus any unseen pane under it, in its own units.</summary>
         static Rect TouchArea(Button button)
         {
             var rt = (RectTransform)button.transform;
@@ -127,14 +119,12 @@ namespace VuonTra.Core.Tests
             return any ? Rect.MinMaxRect(x0, y0, x1, y1) : rt.rect;
         }
 
-        /// <summary>Lays the open parts of the screen out, so stretched buttons and labels have their real size.</summary>
         void Layout()
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)root.transform.Find("Canvas"));
             Canvas.ForceUpdateCanvases();
         }
 
-        /// <summary>Opens each part of the screen in turn and measures what is on it.</summary>
         void EachState(System.Action<string> measure)
         {
             screen.Shell.StartGame();
@@ -154,7 +144,6 @@ namespace VuonTra.Core.Tests
             Layout();
             measure("shop");
             screen.Shop.Close();
-            // The moon pond's card (#58b); the Feed button on a rabbit's sheet is measured on its own below.
             screen.OpenFishing();
             screen.Refresh();
             Layout();
@@ -169,7 +158,6 @@ namespace VuonTra.Core.Tests
         public void Every_Button_Is_At_Least_The_Minimum_Touch_Size()
         {
             var small = new HashSet<string>();
-            // Buttons on parts that are open get measured laid out; the rest (pickers, the photo bar) as built.
             EachState(where =>
             {
                 foreach (Button button in root.GetComponentsInChildren<Button>(false)) Measure(button, small);
@@ -182,14 +170,11 @@ namespace VuonTra.Core.Tests
         static void Measure(Button button, HashSet<string> small)
         {
             Rect r = TouchArea(button);
-            if (r.width <= 0f || r.height <= 0f) return; // not laid out: nothing to measure
+            if (r.width <= 0f || r.height <= 0f) return;
             if (Mathf.Min(r.width, r.height) + 0.01f < UiKit.MinTouch)
                 small.Add(Path(button.transform) + " " + Mathf.RoundToInt(r.width) + "x" + Mathf.RoundToInt(r.height));
         }
 
-        // ----- overflow in both languages -----
-
-        /// <summary>Every label on screen right now whose words do not fit its box.</summary>
         void Spills(string where, List<string> spills)
         {
             foreach (Text text in root.GetComponentsInChildren<Text>(false))
@@ -225,10 +210,6 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(spills, spills.Count + " labels spill in " + code + (large ? " (large text)" : "") + ":\n" + string.Join("\n", spills));
         }
 
-        /// <summary>
-        /// Null when the label's words sit on one line inside its box at the size it is drawn (after best fit),
-        /// else what went wrong. A best-fit label is skipped by <see cref="Spills"/>, so this asks the generator itself.
-        /// </summary>
         static string OneLine(Text text)
         {
             Vector2 size = text.rectTransform.rect.size;
@@ -277,7 +258,6 @@ namespace VuonTra.Core.Tests
         [TestCase("en", true)]
         public void Every_Kind_And_Tier_Pill_Fits_On_One_Line_On_The_Rabbits_Sheet_And_The_Album_Page(string code, bool large)
         {
-            // #81: "Thỏ Đèn Lồng · bậc Vàng ★★★★★" wrapped in its pill and the stars fell out below it.
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
             screen.RebuildUi();
@@ -311,13 +291,12 @@ namespace VuonTra.Core.Tests
         [TestCase("en", true)]
         public void The_Pond_Card_The_Feed_Button_And_The_Heart_Badge_Read_On_One_Line_And_Are_Big_Enough(string code, bool large)
         {
-            // #58b: every line the pond's card and the Feed button can show, in both languages and large text.
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
             const long now = 1_800_000_000L;
             runner.FishingClock = () => now;
             runner.State.Baits = 0;
-            runner.State.BaitAt = now; // no bait: the countdown is out
+            runner.State.BaitAt = now;
             Rabbit r = Rabbits.Arrive(runner.State, 3, "Thỏ Tím Rất Dài Tên", 0.5);
             Rabbit full = Rabbits.Arrive(runner.State, 0, "Mây", 0.2);
             full.Affection = Rabbits.AffectionMax;
@@ -432,7 +411,7 @@ namespace VuonTra.Core.Tests
             foreach (Text text in root.transform.Find("Canvas/Shop").GetComponentsInChildren<Text>(true))
             {
                 Transform tile = text.transform.parent;
-                if (text.name != "Name" || !(tile.name.StartsWith("Decor ") || tile.name.StartsWith("Hat ") || tile.name == "Jar")) continue; // the moon jar (#64) too
+                if (text.name != "Name" || !(tile.name.StartsWith("Decor ") || tile.name.StartsWith("Hat ") || tile.name == "Jar")) continue;
                 tiles++;
                 string line = OneLine(text);
                 if (line != null) wrong.Add(line);
@@ -447,10 +426,6 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(wrong, string.Join("\n", wrong));
         }
 
-        /// <summary>
-        /// Null when the label's words, wrapped, fit its box at the size best fit draws them, and that size is no
-        /// smaller than <paramref name="least"/>; else what went wrong.
-        /// </summary>
         static string Wrapped(Text text, int least)
         {
             Vector2 size = text.rectTransform.rect.size;
@@ -484,7 +459,6 @@ namespace VuonTra.Core.Tests
             Text text = root.transform.Find("Canvas/Garden/Content/ChatLine/Text").GetComponent<Text>();
             var wrong = new List<string>();
             int lines = 0;
-            // The longest station name in either language stands in for the booster's.
             string longest = "";
             foreach (StationDef d in runner.Defs) if (L10n.Station(d.Id).Length > longest.Length) longest = L10n.Station(d.Id);
             foreach (string key in Chatter.AllKeys)
@@ -508,7 +482,6 @@ namespace VuonTra.Core.Tests
             UiKit.SetLargeText(large);
             screen.RebuildUi();
             screen.Shell.StartGame();
-            // Day seven waiting (the big tile with the hat and clover), the rest taken with ticks: every look at once.
             runner.State.GiftDay = runner.TodayNumber - 1;
             runner.State.GiftStreak = 6;
             screen.OpenShop();
@@ -544,7 +517,7 @@ namespace VuonTra.Core.Tests
         [TestCase("Canvas/Pound", "Beats")]
         public void The_Minigame_Score_And_Count_Keep_24_From_The_Screen_Edges_And_Below_The_Notch(string game, string count)
         {
-            GardenScreen.SafeInsets = () => new Vector2(90f, 120f); // a phone with a notch and a home bar
+            GardenScreen.SafeInsets = () => new Vector2(90f, 120f);
             screen.Advance(0.1f);
             Layout();
             var overlay = (RectTransform)root.transform.Find(game);
@@ -562,15 +535,12 @@ namespace VuonTra.Core.Tests
             if (quit != null) Assert.IsFalse(RectIn((RectTransform)quit, overlay).Overlaps(RectIn((RectTransform)overlay.Find(count), overlay)), "the count is clear of the quit button");
         }
 
-        // ----- contrast -----
-
         static double Luminance(Color c)
         {
             double f(double v) => v <= 0.03928 ? v / 12.92 : System.Math.Pow((v + 0.055) / 1.055, 2.4);
             return 0.2126 * f(c.r) + 0.7152 * f(c.g) + 0.0722 * f(c.b);
         }
 
-        /// <summary>WCAG contrast ratio: 4.5 for small text, 3 for large or bold text.</summary>
         static double Contrast(Color a, Color b)
         {
             double la = Luminance(a), lb = Luminance(b);
@@ -586,13 +556,10 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(Contrast(Palette.InkSoft, Palette.Paper), 4.5, "secondary text on paper");
             Assert.GreaterOrEqual(Contrast(Palette.InkSoft, Palette.Track), 3.0, "secondary bold text on a track");
             Assert.GreaterOrEqual(Contrast(Palette.Ink, Palette.Lantern), 4.5, "ink on the lantern colour");
-            // Primary buttons: the owner chose ink on carrot (6.2:1) over cream (2.0:1) in #33.
             Assert.AreEqual(Palette.Ink, Palette.OnCarrot);
             Assert.GreaterOrEqual(Contrast(Palette.OnCarrot, Palette.Carrot), 4.5, "words on a primary button");
             Assert.AreEqual(Palette.OnCarrot, ChunkyButton.InkFor(true), "every raised button writes in it");
         }
-
-        // ----- the HUD's chips keep apart -----
 
         static Rect WorldRect(RectTransform rt)
         {
@@ -622,20 +589,14 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(a.Overlaps(b), "season " + a + " against golden " + b);
         }
 
-        /// <summary>A rect's corners in another rect's own units.</summary>
         static Rect RectIn(RectTransform rt, RectTransform space)
         {
             var c = new Vector3[4];
             rt.GetWorldCorners(c);
             Vector3 a = space.InverseTransformPoint(c[0]), b = space.InverseTransformPoint(c[2]);
-            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y)); // a piece drawn flipped (a guest facing left) too
+            return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
         }
 
-        /// <summary>
-        /// Where a rect lands on the 1080x1920 phone the layout is drawn for, measured from the corner of
-        /// <paramref name="frame"/> it hangs from. The test canvas has the batch screen's shape, so the HUD (hung
-        /// from the top) and the garden (placed from the bottom) only line up again in phone units.
-        /// </summary>
         static Rect OnPhone(RectTransform rt, RectTransform frame, Vector2 corner)
         {
             Rect r = RectIn(rt, frame), f = frame.rect;
@@ -644,7 +605,6 @@ namespace VuonTra.Core.Tests
             return new Rect(r.position - from + to, r.size);
         }
 
-        /// <summary>The plates the garden hangs on its stations and its games, as they are on screen now.</summary>
         List<RectTransform> GardenPlates()
         {
             var plates = new List<RectTransform>();
@@ -658,24 +618,21 @@ namespace VuonTra.Core.Tests
             return plates;
         }
 
-        /// <summary>The child of <paramref name="street"/> that holds <paramref name="t"/>: what the garden draws in order.</summary>
         static Transform OnStreet(Transform t, Transform street)
         {
             while (t != null && t.parent != street) t = t.parent;
             return t;
         }
 
-        [Category("Slow")] // sweeps every decoration over every tile; full verify only
+        [Category("Slow")]
         [Test]
         public void No_Decoration_On_Any_Tile_By_A_Station_Covers_Its_Level_Plate_Or_Its_Pad()
         {
-            // #82: mushroom stools on the tile below a station drew over its plate ("Cấ…") and its "Xếp thỏ +" pad. Every
-            // kind is stood on every free tile next to a station, as the arranging mode (#54) may leave it.
             GameState s = runner.State;
             for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
             s.Plots = runner.Defs.Count;
             s.GardenXp = Garden.XpForLevel(9);
-            GardenGrid.Settle(runner.Defs, s); // every station takes its tile
+            GardenGrid.Settle(runner.Defs, s);
             screen.RebuildUi();
             screen.Shell.StartGame();
             screen.Refresh();
@@ -683,7 +640,7 @@ namespace VuonTra.Core.Tests
             var near = new List<Hex>();
             for (int i = 0; i < runner.Defs.Count; i++)
                 foreach (Hex h in GardenGrid.Neighbours(grid.TileOf(GardenGrid.StationId(runner.Defs[i])).Value))
-                    if (grid.OccupantAt(h.Q, h.R) == null && grid.InLawn(h.Q, h.R) && !GardenGrid.IsReserved(h) && !near.Contains(h)) near.Add(h); // a reserved tile takes nothing (#54 follow-up)
+                    if (grid.OccupantAt(h.Q, h.R) == null && grid.InLawn(h.Q, h.R) && !GardenGrid.IsReserved(h) && !near.Contains(h)) near.Add(h);
             Assert.Greater(near.Count, Decor.Spots, "free tiles by the stations");
 
             var covered = new List<string>();
@@ -701,7 +658,6 @@ namespace VuonTra.Core.Tests
                     screen.Refresh();
                     Layout();
                     Transform street = root.transform.Find("Canvas/Garden/Content");
-                    // Each station's level plate and its "Xếp thỏ +" pad (the jar's, basket's and mortar's plates are not stations').
                     var plates = new List<RectTransform>();
                     foreach (Transform child in street)
                     {
@@ -734,8 +690,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void After_Any_Station_Move_The_Arranging_Mode_Takes_No_Two_Station_Plates_Overlap()
         {
-            // #88: a station dropped on a tile next to another was drawn over it, one's "Cấp" plate on the other's. Every open
-            // station is tried on every empty tile within two of another station, the tiles where the art could meet.
             Motion.SetReduced(true);
             GameState s = runner.State;
             for (int i = 0; i < 4; i++) s.Levels[i] = 1 + i;
@@ -775,12 +729,8 @@ namespace VuonTra.Core.Tests
             Assert.Greater(refused, 0, "and the ones next to a station do not");
         }
 
-        // ----- Tiles kept clear for the props off the grid (#54 follow-up) -----
+        static readonly string[] OffGridProps = { "Jar", "Jar/Plate", "Basket", "Basket/Plate", "Mortar", "Mortar/Plate", "PondTap", "PondTap/Plate" };
 
-        /// <summary>The props off the grid and their plates, as the garden draws them.</summary>
-        static readonly string[] OffGridProps = { "Jar", "Jar/Plate", "Basket", "Basket/Plate", "Mortar", "Mortar/Plate", "PondTap", "PondTap/Plate" }; // the pond and its "Câu cá" plate (#58)
-
-        /// <summary>A rect of the garden in garden units: the ones CellToWorld and the spots use.</summary>
         static Rect GardenRect(RectTransform rt, RectTransform street)
         {
             Rect r = RectIn(rt, street);
@@ -791,11 +741,8 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Every_Tile_Under_The_Jar_The_Basket_Or_The_Mortar_Or_Their_Plates_Is_Reserved_And_No_Other()
         {
-            // The grid keeps a fixed list of tiles (GardenGrid.ReservedTiles); this holds it to what the garden draws. Every tile
-            // whose cell a prop or its plate reaches into, past a hair at the rim, is reserved (or is the prop's own tile), and
-            // every reserved tile has a prop or a plate in its cell.
             GameState s = runner.State;
-            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket and the jar are all out
+            s.GardenXp = Garden.XpForLevel(9);
             screen.Shell.StartGame();
             screen.Refresh();
             Layout();
@@ -804,7 +751,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenScreen.FireflyJarSpot.x, jar.center.x, 0.5f, "garden units: the jar stands on its spot");
             Assert.AreEqual(GardenScreen.FireflyJarSpot.y + 80f, jar.center.y, 0.5f);
 
-            const float Hair = 16f; // the soft rim of the art and the plates' rounded ends
+            const float Hair = 16f;
             var depth = new Dictionary<Hex, float>();
             var under = new Dictionary<Hex, string>();
             var basketBefore = new Rect();
@@ -828,7 +775,7 @@ namespace VuonTra.Core.Tests
                 Hex h = cell.Key;
                 if (cell.Value <= Hair || GardenGrid.IsReserved(h)) continue;
                 string holder = s.Grid.OccupantAt(h.Q, h.R);
-                if (holder == GardenGrid.MortarId || holder == GardenGrid.CounterId || holder == GardenGrid.ShopId) continue; // a prop's own tile
+                if (holder == GardenGrid.MortarId || holder == GardenGrid.CounterId || holder == GardenGrid.ShopId) continue;
                 missing.Add(h + " under " + under[h] + " by " + cell.Value);
             }
             Assert.IsEmpty(missing, "not reserved:\n" + string.Join("\n", missing));
@@ -836,11 +783,10 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(depth.ContainsKey(h), h + " is reserved, but no prop or plate reaches its cell");
             Assert.AreEqual(GardenGrid.MortarId, s.Grid.OccupantAt(1, -1), "the mortar holds its own tile");
 
-            // The basket stands by the leaf station's home tile, so its reserved tiles hold when the leaf station is moved.
             int leaf = -1;
             for (int i = 0; i < runner.Defs.Count; i++) if (runner.Defs[i].Id == "gio-la") leaf = i;
             Hex home = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[leaf])).Value;
-            Assert.IsTrue(s.Grid.NearestEmptyApart(Expansion.StationSpacing, out Hex elsewhere)); // two from every station (#88)
+            Assert.IsTrue(s.Grid.NearestEmptyApart(Expansion.StationSpacing, out Hex elsewhere));
             Assert.IsTrue(s.Grid.Move(home, elsewhere));
             screen.RebuildUi();
             screen.Refresh();
@@ -850,21 +796,19 @@ namespace VuonTra.Core.Tests
             Assert.Less(Vector2.Distance(basketBefore.center, basketAfter.center), 0.5f, "the basket stays under its tea tree: " + basketBefore + " then " + basketAfter);
         }
 
-        [Category("Slow")] // sweeps every decoration over every tile; full verify only
+        [Category("Slow")]
         [Test]
         public void No_Decoration_On_Any_Droppable_Tile_Or_Spot_Covers_The_Jar_The_Basket_Or_The_Mortar_s_Plate()
         {
-            // Found while fixing #82: a decoration on (4,-3), right of the firefly jar, stood on its "Đom đóm · còn N lượt" plate.
             GameState s = runner.State;
             for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
-            s.Plots = runner.Defs.Count; // the whole garden, the top rows of #67 too
+            s.Plots = runner.Defs.Count;
             s.GardenXp = Garden.XpForLevel(9);
             GardenGrid.Settle(runner.Defs, s);
             screen.RebuildUi();
             screen.Shell.StartGame();
             screen.Refresh();
             GardenGrid grid = s.Grid;
-            // Every tile the arranging mode offers near the props (nothing further can reach them), and the eight spots' own tiles.
             var tiles = new List<Hex>();
             foreach (Hex h in screen.LayoutEmptyTiles())
                 foreach (Hex kept in GardenGrid.ReservedTiles)
@@ -915,7 +859,6 @@ namespace VuonTra.Core.Tests
 
             List<string> onPlates = Covered(tiles, false);
             Assert.IsEmpty(onPlates, onPlates.Count + " covered:\n" + string.Join("\n", onPlates));
-            // The check sees what the bug was: stood on the reserved tiles anyway, as a save from before had it, they do cover.
             var reserved = new List<Hex>(GardenGrid.ReservedTiles);
             Assert.IsNotEmpty(Covered(reserved, true), "a decoration on (4,-3) covers the jar's plate");
         }
@@ -924,10 +867,10 @@ namespace VuonTra.Core.Tests
         public void The_Guest_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot()
         {
             screen.Shell.StartGame();
-            runner.State.GardenXp = Garden.XpForLevel(5); // the firefly jar and its plate are out
+            runner.State.GardenXp = Garden.XpForLevel(5);
             runner.PlaceOrder();
             screen.Refresh();
-            screen.LookAt(screen.StationSpot(0)); // where the teapot button takes the view
+            screen.LookAt(screen.StationSpot(0));
             Layout();
             var pill = (RectTransform)root.transform.Find("Canvas/Hud/Order");
             Assert.IsTrue(pill.gameObject.activeSelf, "a guest waits, so the pill is up");
@@ -952,16 +895,14 @@ namespace VuonTra.Core.Tests
         [TestCase(GardenScreen.ZoomLevel.Near, "EdgeRight")]
         public void The_Edge_Pills_Cover_No_Garden_Plate_As_The_View_Rests_On_The_Teapot(GardenScreen.ZoomLevel zoom, string edge)
         {
-            // #71's last point: the "▲ N" pill at the top edge sat on the mortar's "Giã bánh" plate. On the strip (the horizontal
-            // garden) the side pills, "◀ N" and "N ▶", are held to the same.
             screen.Shell.StartGame();
-            runner.State.GardenXp = Garden.XpForLevel(5); // the mortar, the basket and the jar are all out
+            runner.State.GardenXp = Garden.XpForLevel(5);
             screen.Refresh();
             screen.SetZoom(zoom, false);
             screen.LookAt(screen.StationSpot(0));
             Layout();
             var pill = (RectTransform)root.transform.Find("Canvas/" + edge);
-            pill.gameObject.SetActive(true); // as when a station waits beyond that edge
+            pill.gameObject.SetActive(true);
             Layout();
             var canvas = (RectTransform)root.transform.Find("Canvas");
             var view = (RectTransform)root.transform.Find("Canvas/Garden");
@@ -985,16 +926,14 @@ namespace VuonTra.Core.Tests
         [TestCase("en", true, GardenScreen.ZoomLevel.Near)]
         public void The_Guest_s_Order_Bubble_Covers_No_Plate_Nor_The_Shop_Nor_The_Guest(string code, bool large, GardenScreen.ZoomLevel zoom)
         {
-            // #84: the bubble over the guest at the counter sat on the moon pond's "Câu cá N/5" plate, the counter's tile being
-            // the pond's neighbour on the grid. Two lines make the widest bubble.
             Motion.SetReduced(true);
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
-            runner.State.GardenXp = Garden.XpForLevel(5); // the pond and its plate, the firefly jar and its plate are out
+            runner.State.GardenXp = Garden.XpForLevel(5);
             runner.State.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = 40, RewardSeconds = Orders.RewardSeconds };
             runner.State.Order.Lines.Add(new OrderLine { Station = 0, Count = 3 });
             runner.State.Order.Lines.Add(new OrderLine { Station = 2, Count = 3 });
-            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.RebuildUi();
             screen.Shell.StartGame();
             screen.Refresh();
             screen.SetZoom(zoom, false);
@@ -1032,7 +971,6 @@ namespace VuonTra.Core.Tests
         [TestCase("en", true)]
         public void The_Album_Set_Lines_And_The_Gold_Frame_Fit(string code, bool large)
         {
-            // #61: every set line, half met or complete, and the frame at the top, in both languages and large text.
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
             foreach (AlbumSet set in AlbumSets.All)
@@ -1055,8 +993,6 @@ namespace VuonTra.Core.Tests
             Assert.Greater(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content").GetComponentsInChildren<Text>(false).Length, 24);
         }
 
-        // ----- The horizontal garden: the small things left after #16 -----
-
         [TestCase("vi", false, 0)]
         [TestCase("en", false, 0)]
         [TestCase("vi", true, 0)]
@@ -1067,8 +1003,6 @@ namespace VuonTra.Core.Tests
         [TestCase("en", true, 1)]
         public void Every_Widen_The_Garden_Sign_In_The_Opening_View_Reads_Whole_24_Inside_The_Screen(string code, bool large, int segments)
         {
-            // The sign at the lawn's end and the plate of the next station's land both say "Mở rộng vườn"; the plate of the
-            // station on the first segment stood half off the right edge of the opening view.
             Motion.SetReduced(true);
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
@@ -1081,7 +1015,7 @@ namespace VuonTra.Core.Tests
             foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
             s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
             GardenGrid.Settle(runner.Defs, s);
-            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.RebuildUi();
             screen.Shell.StartGame();
             for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
@@ -1102,7 +1036,7 @@ namespace VuonTra.Core.Tests
                 if (front == null || !front.gameObject.activeInHierarchy) continue;
                 if (front.Find("Level/Text").GetComponent<Text>().text != expand) continue;
                 float x = OnPhone((RectTransform)street.Find("Station " + runner.Defs[i].Id), view, Vector2.zero).center.x;
-                if (x >= 0f && x <= 1080f) signs.Add((RectTransform)front.Find("Level")); // its land is in the opening view
+                if (x >= 0f && x <= 1080f) signs.Add((RectTransform)front.Find("Level"));
             }
             Assert.GreaterOrEqual(signs.Count, segments == 1 ? 2 : 1, "the land plate on the first segment counts too");
             var cut = new List<string>();
@@ -1142,7 +1076,6 @@ namespace VuonTra.Core.Tests
             Rect touch = TouchArea(home.GetComponent<Button>());
             Assert.GreaterOrEqual(Mathf.Min(touch.width, touch.height) + 0.01f, UiKit.MinTouch, "big enough to press: " + touch);
             Assert.IsNull(Wrapped(words, 18), "its words fit at a size that reads");
-            // It hangs from the screen's bottom right corner, the tray from the middle of the foot: measured from those corners.
             var canvas = (RectTransform)root.transform.Find("Canvas");
             Rect r = OnPhone((RectTransform)home, canvas, new Vector2(1f, 0f));
             Assert.That(r.xMin, Is.GreaterThanOrEqualTo(24f), "inside the left edge: " + r);
@@ -1159,18 +1092,17 @@ namespace VuonTra.Core.Tests
         [TestCase("en", true)]
         public void An_Idle_Line_At_Any_Station_Or_Seat_Of_A_Full_Garden_Covers_No_Plate(string code, bool large)
         {
-            // #59's bubble stood over the teapot's rabbit on the mortar's "Giã bánh" and the pond's "Câu cá" plates.
             Motion.SetReduced(true);
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
             GameState s = runner.State;
             s.Plots = runner.Defs.Count;
             for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
-            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket, the jar and the pond are out, with their plates
+            s.GardenXp = Garden.XpForLevel(9);
             s.RestSpots = RestSpots.Max;
             GardenGrid.Settle(runner.Defs, s);
             for (int i = 0; i < runner.Defs.Count; i++) Rabbits.Assign(s, Rabbits.Arrive(s, 0, "T" + i, 0.1 * (i % 10)).Id, i);
-            for (int k = 0; k < RestSpots.Max; k++) Rabbits.Arrive(s, 0, "N" + k, 0.1 * k); // resting, on the seats
+            for (int k = 0; k < RestSpots.Max; k++) Rabbits.Arrive(s, 0, "N" + k, 0.1 * k);
             PhotoAsks.Decline(s);
             screen.RebuildUi();
             screen.Shell.StartGame();
@@ -1189,7 +1121,7 @@ namespace VuonTra.Core.Tests
                 Rect b = GardenRect(line, street);
                 foreach (RectTransform plate in GardenPlates())
                 {
-                    if (plate.parent.name.StartsWith("Spot ")) continue; // a free decoration spot's faint "+"
+                    if (plate.parent.name.StartsWith("Spot ")) continue;
                     Rect p = GardenRect(plate, street);
                     if (p.Overlaps(b)) covered.Add(r.Name + (r.Station >= 0 ? " at " + runner.Defs[r.Station].Id : " resting") + ": the line " + b + " covers " + Path(plate) + " " + p);
                 }

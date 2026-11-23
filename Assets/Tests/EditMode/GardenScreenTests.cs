@@ -11,7 +11,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>Builds the real screen from the real catalog and presses its buttons.</summary>
     public class GardenScreenTests
     {
         GameObject root;
@@ -28,11 +27,11 @@ namespace VuonTra.Core.Tests
             cam.transform.SetParent(root.transform);
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
-            runner.Init(GameState.NewGame(catalog.BuildDefs())); // preset: never touches the save file
+            runner.Init(GameState.NewGame(catalog.BuildDefs()));
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             screen.Build();
             screen.Refresh();
         }
@@ -55,8 +54,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(t, "Missing UI object: " + path);
             return t.GetComponent<Button>();
         }
-
-        // ----- The new moon (#1) -----
 
         void GrowToLevel(int level)
         {
@@ -176,8 +173,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.Arrival.IsOpen);
         }
 
-        // ----- Golden carrots for money (#9) -----
-
         [Test]
         public void The_Shop_Sells_Golden_Packs_Through_The_Store_And_Pays_Out_Once()
         {
@@ -206,7 +201,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(before + 50, runner.State.GoldenCarrots, "a cancelled purchase pays nothing");
             Assert.AreEqual(L10n.T("packs.cancelled"), screen.GoldenPacks.Status);
 
-            // The store hands the same transaction over again after a restart: paid once.
             store.Deliver(Storefront.Large, "GPA.again");
             Assert.AreEqual(before + 550, runner.State.GoldenCarrots);
             store.Deliver(Storefront.Large, "GPA.again");
@@ -405,14 +399,14 @@ namespace VuonTra.Core.Tests
 
             Assert.AreEqual(1, runner.State.UpgradeLevels[2]);
             Assert.AreEqual(2, runner.Mods.IncomeMultiplier);
-            screen.Refresh(); // in play the runner's StateChanged event does this
+            screen.Refresh();
             StringAssert.StartsWith("2 cà rốt", root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Sub").GetComponent<Text>().text);
         }
 
         [Test]
         public void Quest_Badge_Appears_And_Claiming_Pays()
         {
-            GameObject badge = root.transform.Find("Canvas/TabBar/Badge").gameObject; // the one badge left: on the tab bar
+            GameObject badge = root.transform.Find("Canvas/TabBar/Badge").gameObject;
             Assert.IsFalse(badge.activeSelf);
             Button claim = Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Claim");
             Assert.IsFalse(claim.interactable);
@@ -471,7 +465,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(chip.gameObject.activeSelf);
             Assert.AreEqual(first.Name, chip.Find("Text").GetComponent<Text>().text);
 
-            // Three silvers merge into one green that keeps the station.
             first.Tier = 0;
             runner.State.Rabbits.Add(new Rabbit { Id = 50, Tier = 0, Name = "B" });
             runner.State.Rabbits.Add(new Rabbit { Id = 51, Tier = 0, Name = "C" });
@@ -499,7 +492,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(widen.interactable, "carrots alone are not enough");
             StringAssert.Contains("B4532A", plot.Find("Sub").GetComponent<Text>().text, "an unmet condition is marked");
 
-            // The garden reaches level 3 and has three rabbits: now it can widen.
             runner.State.GardenXp = Garden.XpForLevel(3);
             for (int i = 1; i <= 3; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 0, Name = "R" + i });
             runner.State.NextRabbitId = 3;
@@ -528,7 +520,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("4", hud.Find("Level/Text").GetComponent<Text>().text);
             Assert.AreEqual(0.5f, hud.Find("Level/Ring").GetComponent<Image>().fillAmount, 0.01f);
 
-            // #51: no mist and nothing growing on land the garden does not have yet, only a faint dashed ring.
             Transform world = root.transform.Find("Canvas/Garden/Content");
             Assert.IsNull(world.Find("Ring 3"), "the first four plots are the garden's own");
             for (int i = Plots.Starting; i < runner.Defs.Count; i++)
@@ -544,7 +535,7 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 5; i++) runner.State.Levels[i] = 1;
             runner.State.Plots = 6;
             screen.Refresh();
-            for (int i = 0; i < 20; i++) screen.Advance(0.1f); // the rim steps back and the grass comes up
+            for (int i = 0; i < 20; i++) screen.Advance(0.1f);
             foreach (int i in new[] { 4, 5 })
             {
                 Assert.IsFalse(world.Find("Ring " + i).gameObject.activeSelf, "plot " + i + " is the garden's now");
@@ -557,7 +548,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(world.Find("Ring 11").gameObject.activeSelf);
         }
 
-        /// <summary>The pieces of the forest rim (#51), as they stand on the ground (the horizontal garden) in garden units, without the sway.</summary>
         List<KeyValuePair<string, Rect>> RimPieces()
         {
             var canopy = (RectTransform)root.transform.Find("Canvas/Garden/Content");
@@ -572,7 +562,6 @@ namespace VuonTra.Core.Tests
             return rim;
         }
 
-        /// <summary>Opens the garden up to <paramref name="plots"/> plots, with a station on every one before the last wave.</summary>
         void HavePlots(int plots)
         {
             for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = i < plots - 2 || i < Plots.Starting ? 1 : 0;
@@ -623,7 +612,6 @@ namespace VuonTra.Core.Tests
                 foreach (KeyValuePair<string, Rect> piece in rim)
                     Assert.GreaterOrEqual(Clearance(at, piece.Value), 200f, path + " keeps 200 units from the rim; " + piece.Key + " at " + piece.Value);
             }
-            // The open lawn's ends on the strip (the horizontal garden): half a tile past the last tile of the rows on each side.
             float heart = GardenScreen.CellToWorld(new Hex(0, 0)).x, left = heart - (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * GardenGrid.LeftOf(GardenGrid.SegmentsForPlots(plots)) + 1) * 75f,
                 right = heart + (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * GardenGrid.RightOf(GardenGrid.SegmentsForPlots(plots)) + 1) * 75f;
             foreach (KeyValuePair<string, Rect> piece in rim)
@@ -674,7 +662,6 @@ namespace VuonTra.Core.Tests
                 if (Mathf.Abs(b.x - a.x) > 1f)
                 {
                     moved++;
-                    // Only the side the wave's plots are on opens.
                     bool newThere = false;
                     for (int i = 4; i < 6; i++) if ((screen.StationSpot(i).x < GardenScreen.CellToWorld(new Hex(0, 0)).x) == left) newThere = true;
                     Assert.IsTrue(newThere, before[k].Key + " at " + a + " moved, on the side with no new plot");
@@ -693,7 +680,7 @@ namespace VuonTra.Core.Tests
             HavePlots(4);
             List<KeyValuePair<string, Rect>> before = RimPieces();
             runner.State.Plots = 6;
-            screen.Refresh(); // no time passes: nothing may be on its way
+            screen.Refresh();
             List<KeyValuePair<string, Rect>> now = RimPieces();
             for (int i = 0; i < 20; i++) screen.Advance(0.1f);
             List<KeyValuePair<string, Rect>> settled = RimPieces();
@@ -789,7 +776,7 @@ namespace VuonTra.Core.Tests
             screen.OpenSheet(2);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
             Assert.IsNull(root.transform.Find("Canvas/Sheet/Outside"), "nothing covers the garden above the sheet");
-            Find("Canvas/Garden").onClick.Invoke(); // a touch on open ground
+            Find("Canvas/Garden").onClick.Invoke();
             Assert.IsFalse(screen.SheetOpen);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(root.transform.Find("Canvas/Sheet").gameObject.activeSelf);
@@ -840,7 +827,6 @@ namespace VuonTra.Core.Tests
             screen.OpenSheet(0);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
 
-            // Station 11 is the lowest in the garden: without lifting the view it would stay behind the sheet.
             foreach (int index in new[] { 11, 9, 0 })
             {
                 Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[index].Id).onClick.Invoke();
@@ -913,7 +899,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(before > 0, badge.gameObject.activeSelf);
 
             runner.State.Coins = new BigNum(1e9);
-            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke(); // finishes "open 2 stations"
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
             screen.Refresh();
             Assert.Greater(Quests.ClaimableCount(runner.QuestDefs, runner.Defs, runner.State), before);
             Assert.IsTrue(badge.gameObject.activeSelf);
@@ -945,7 +931,6 @@ namespace VuonTra.Core.Tests
             Vector2 midway = world.anchoredPosition;
             for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
             Assert.AreNotEqual(midway, world.anchoredPosition, "half a second in it is still travelling");
-            // On the strip the pond is up and to the left of the teapot, and the strip sits in the middle top to bottom.
             Assert.AreEqual(540f, Pot().x, 1f, "after about a second the teapot stands in the middle");
             Assert.That(Pot().y, Is.InRange(340f, 1920f - 160f), "clear of the HUD and the tab bar");
         }
@@ -1100,8 +1085,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(quiet, Haptics.Count, "switched off: nothing buzzes");
         }
 
-        // ----- device reminders (#65) -----
-
         sealed class FakeNotifier : INotifier
         {
             public bool Grant = true;
@@ -1112,7 +1095,6 @@ namespace VuonTra.Core.Tests
             public void CancelAll() { Cancelled++; Scheduled.Clear(); }
         }
 
-        /// <summary>What the engine calls when the app goes to the background or comes back (SendMessage does not run in edit mode).</summary>
         void AppPause(bool paused) =>
             typeof(GameRunner).GetMethod("OnApplicationPause", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)
                 .Invoke(runner, new object[] { paused });
@@ -1213,7 +1195,6 @@ namespace VuonTra.Core.Tests
             buy.onClick.Invoke();
             Assert.AreEqual(2, runner.State.Levels[0]);
 
-            // Tapping the empty ground closes it.
             Find("Canvas/Garden").onClick.Invoke();
             Assert.AreEqual(-1, screen.Selected);
             Assert.IsFalse(card.gameObject.activeSelf);
@@ -1229,7 +1210,6 @@ namespace VuonTra.Core.Tests
             runner.State.NextRabbitId = 3;
             screen.Refresh();
 
-            // The fifth station stands in the garden as empty land; the one after it is not there yet.
             Transform fifth = root.transform.Find("Canvas/Garden/Content/Station lo-banh");
             Assert.IsTrue(fifth.gameObject.activeSelf);
             Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station to-mat").gameObject.activeSelf);
@@ -1274,11 +1254,9 @@ namespace VuonTra.Core.Tests
 
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Assert.AreEqual(GardenScreen.ZoomLevel.Far, screen.Zoom);
-            // The whole strip fits top to bottom with room to spare, clear of the HUD and the tab bar.
             Assert.AreEqual(1920f, 2970f * world.localScale.y, 0.5f, "far spans 2970 garden units top to bottom");
             Assert.Less(world.sizeDelta.y * world.localScale.y, 1920f - 160f - 196f, "the strip's whole height between the HUD and the tab bar");
             Assert.IsFalse(plate.activeSelf, "no level plates from far away");
-            // Shorter than the screen: the strip sits in the middle top to bottom, not against an edge.
             Assert.AreEqual((1920f - world.sizeDelta.y * world.localScale.y) / 2f, world.anchoredPosition.y, 0.5f);
 
             screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
@@ -1289,8 +1267,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Far_Shows_The_Whole_Strip_Top_To_Bottom_Clear_Of_The_HUD_And_The_Tab_Bar()
         {
-            // The horizontal garden: the strip is seven rows tall, so far shows all of its height in the middle of the screen,
-            // with every segment open as before any, and every station's foot clear of the HUD and the tab bar.
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             screen.SetZoom(GardenScreen.ZoomLevel.Far, false);
             Assert.AreEqual(GardenScreen.ZoomFar, screen.ZoomScale, 1e-4f);
@@ -1327,9 +1303,6 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(world.anchoredPosition.y, 1920f - h - 0.5f);
         }
 
-        // ----- #50: the camera stands back and the big trees leave the lawn -----
-
-        /// <summary>A rectangle in garden units from a RectTransform under <paramref name="space"/>: anchored rects compared like the jar's.</summary>
         static Rect GardenRect(RectTransform rt, RectTransform space)
         {
             var corners = new Vector3[4];
@@ -1338,7 +1311,6 @@ namespace VuonTra.Core.Tests
             return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
         }
 
-        /// <summary>How far apart two rectangles stand: negative when they overlap.</summary>
         static float Clearance(Rect a, Rect b)
         {
             float dx = Mathf.Max(a.xMin - b.xMax, b.xMin - a.xMax), dy = Mathf.Max(a.yMin - b.yMax, b.yMin - a.yMax);
@@ -1354,7 +1326,6 @@ namespace VuonTra.Core.Tests
             Assert.Less(GardenScreen.ZoomFar, GardenScreen.ZoomDefault * 0.8f, "and far is a real step beyond the usual view");
             float visible = 1080f / GardenScreen.ZoomDefault;
             Assert.GreaterOrEqual(visible, 1300f, "at the usual zoom the screen spans 1300 garden units");
-            // Three stations side by side: the beehive, the teapot and the leaf basket are the widest trio.
             float left = screen.StationSpot(5).x - 220f * GardenScreen.StationSize(5), right = screen.StationSpot(1).x + 220f * GardenScreen.StationSize(1);
             Assert.Less(right - left, visible, "the widest row of three fits at once");
             float lowest = float.MaxValue, highest = float.MinValue;
@@ -1367,7 +1338,7 @@ namespace VuonTra.Core.Tests
 
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             screen.Shell.StartGame();
-            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f); // the opening glide is over
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(GardenScreen.ZoomDefault, screen.ZoomScale, 1e-4f, "a new player opens at the usual zoom");
             Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
             Assert.AreEqual(540f, screen.StationSpot(0).x * world.localScale.x + world.anchoredPosition.x, 0.5f, "the teapot in the middle of the screen");
@@ -1384,7 +1355,6 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < runner.Defs.Count; i++)
             {
                 Vector2 at = screen.StationSpot(i) * world.localScale.x + world.anchoredPosition;
-                // Clear of the HUD at the top and the tray and tab bar at the bottom.
                 if (at.x > 0f && at.x < 1080f && at.y > 340f && at.y < 1920f - 160f) shown++;
             }
             Assert.GreaterOrEqual(shown, 5, "five or more plots are in view after opening, the teapot among them");
@@ -1452,7 +1422,7 @@ namespace VuonTra.Core.Tests
         {
             runner.State.ViewX = 540d;
             runner.State.ViewY = 1500d;
-            runner.State.ViewZoom = 1d; // the usual zoom before #50, as every save from then remembers it
+            runner.State.ViewZoom = 1d;
             screen.Shell.StartGame();
             for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(1f, screen.ZoomScale, 1e-3f, "a remembered zoom is kept as it is");
@@ -1468,7 +1438,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenScreen.ZoomNear, GardenScreen.PinchZoom(GardenScreen.ZoomNear, 0.5f), 1e-5f, "no closer than Near");
             Assert.AreEqual(GardenScreen.ZoomFar, GardenScreen.PinchZoom(GardenScreen.ZoomFar, -0.5f), 1e-5f, "no further than Far");
             Assert.GreaterOrEqual(GardenScreen.PinchZoom(1f, -5f), GardenScreen.ZoomFar, "a wild negative sum never flips the garden");
-            // A whole pinch sums to about one; ten frames of it take the view from Far right up to Near.
             float zoom = GardenScreen.ZoomFar;
             for (int i = 0; i < 10; i++) zoom = GardenScreen.PinchZoom(zoom, 0.1f);
             Assert.AreEqual(GardenScreen.ZoomNear, zoom, 1e-5f);
@@ -1491,7 +1460,7 @@ namespace VuonTra.Core.Tests
         {
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             Vector2 at = new Vector2(540f, 960f);
-            Vector2 under = (at - world.anchoredPosition) / screen.ZoomScale; // the garden point under the fingers
+            Vector2 under = (at - world.anchoredPosition) / screen.ZoomScale;
             float before = screen.ZoomScale;
 
             screen.SimulatePinch(0.1f, at);
@@ -1550,7 +1519,7 @@ namespace VuonTra.Core.Tests
             {
                 screen.SelectStation(-1);
                 screen.SelectStation(i);
-                screen.Advance(1f); // let the slide finish
+                screen.Advance(1f);
                 float feet = (screen.StationSpot(i).y - 150f) * world.localScale.y + world.anchoredPosition.y;
                 Assert.GreaterOrEqual(feet, cardTop - 1f, "station " + i + " stands above the card");
             }
@@ -1581,7 +1550,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(3, content.Find("Row 0").childCount);
             Assert.AreEqual(3, content.Find("Row 1").childCount);
             Assert.AreEqual(1, content.Find("Row 2").childCount);
-            // Best tier first.
             StringAssert.StartsWith("Rabbit ", content.Find("Row 0").GetChild(0).name);
             long firstId = long.Parse(content.Find("Row 0").GetChild(0).name.Substring(7));
             Assert.AreEqual(2, Rabbits.Find(runner.State, firstId).Tier);
@@ -1598,7 +1566,6 @@ namespace VuonTra.Core.Tests
                 cells++;
                 bool seen = runner.State.SeenKinds.Contains(kind.Id);
                 if (seen) met++;
-                // An unmet everyday kind is a question; an unmet seasonal kind says when it can be met (#8); the moon rabbit says how (#1).
                 string unmet = kind.NewMoonOnly ? L10n.T("album.newmoon.only") : kind.Season != Season.None ? L10n.T("album.season.only", L10n.Season(kind.Season)) : "???";
                 Assert.AreEqual(seen ? L10n.T("kind." + kind.Id) : unmet, cell.Find("Name").GetComponent<Text>().text);
             }
@@ -1624,7 +1591,7 @@ namespace VuonTra.Core.Tests
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = antlers.Tier, Kind = antlers.Id, Name = "Gạc", Station = 0 });
             runner.State.NextRabbitId = 1;
             double bare = Rabbits.Multiplier(runner.State, runner.State.Rabbits[0]);
-            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 2); // straw hat: a station bonus
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 2);
             Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);
             runner.EquipItem(hat.Id, 1);
             runner.EquipItem(charm.Id, 1);
@@ -1652,7 +1619,6 @@ namespace VuonTra.Core.Tests
             runner.State.NextRabbitId = 3;
             screen.Refresh();
 
-            // Each of the first seats is either sat on or its rabbit is out walking: never both, never neither.
             int out0 = 0;
             for (int k = 0; k < 2; k++)
             {
@@ -1668,7 +1634,6 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.AreEqual("kind_tho-bong", world.Find("Seat 2/Art").GetComponent<Image>().sprite.name);
 
-            // Tapping a seated rabbit opens its own sheet.
             int sat = GardenScreen.Strolling(1, 0f) ? 2 : 1;
             Find("Canvas/Garden/Content/Seat " + sat).onClick.Invoke();
             Assert.IsTrue(screen.Detail.IsOpen);
@@ -1686,7 +1651,7 @@ namespace VuonTra.Core.Tests
             Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
             runner.EquipItem(hat.Id, 1);
             screen.Refresh();
-            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f);
             Assert.IsTrue(rabbit.gameObject.activeSelf);
             Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the collected rabbit itself");
             Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
@@ -1694,7 +1659,7 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 40; i++) screen.Advance(0.1f);
             Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the station's work frames do not take over");
 
-            runner.ToggleRabbitWork(1); // off to rest
+            runner.ToggleRabbitWork(1);
             screen.Refresh();
             Assert.IsFalse(rabbit.gameObject.activeSelf, "nobody stands there now: no rabbit is drawn");
             Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
@@ -1712,15 +1677,13 @@ namespace VuonTra.Core.Tests
             var ground = Find("Canvas/Garden");
             ground.onClick.Invoke();
             ground.onClick.Invoke();
-            screen.Advance(1f); // let the zoom settle
+            screen.Advance(1f);
             Assert.AreEqual(GardenScreen.ZoomLevel.Near, screen.Zoom);
             ground.onClick.Invoke();
             ground.onClick.Invoke();
             screen.Advance(1f);
             Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom, "and again comes back out");
         }
-
-        // ----- issue 35: fast taps must never leave anything bigger than it started -----
 
         [Test]
         public void Upgrading_A_Station_Fast_Leaves_It_The_Size_It_Was()
@@ -1735,7 +1698,7 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 30; i++)
             {
                 buy.onClick.Invoke();
-                screen.Advance(0.05f); // well inside the 0.2 s pop of the press before
+                screen.Advance(0.05f);
                 biggest = Mathf.Max(biggest, station.localScale.x);
             }
             for (int i = 0; i < 30; i++) screen.Advance(0.05f);
@@ -1826,8 +1789,6 @@ namespace VuonTra.Core.Tests
                     {
                         float apart = Vector2.Distance(screen.StationSpot(i), screen.StationSpot(j));
                         nearest = Mathf.Min(nearest, apart);
-                        // The first twelve stand by everything they supply. The lotus garden (#67) feeds the bakery at the top and
-                        // the observatory at the foot of the garden, so the four newest stand by at least one of theirs.
                         if (i < 12) Assert.Less(apart, 520f, runner.Defs[i].Id + " is near " + runner.Defs[j].Id);
                     }
                 Assert.Less(nearest, 520f, runner.Defs[i].Id + " is near one station it supplies");
@@ -1838,7 +1799,7 @@ namespace VuonTra.Core.Tests
         public void Ingredients_Travel_To_The_Stations_That_Use_Them()
         {
             screen.Shell.StartGame();
-            runner.State.Levels[1] = 3; // the leaf basket supplies the teapot
+            runner.State.Levels[1] = 3;
             var world = root.transform.Find("Canvas/Garden/Content");
             for (int i = 0; i < 60; i++) screen.Advance(1f / 30f);
             Assert.IsNotNull(world.Find("Courier"), "a courier sets off once both ends are open");
@@ -1913,7 +1874,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Tạm nghỉ", root.transform.Find("Canvas/Pause/Card/Heading").GetComponent<Text>().text);
 
             L10n.SetLocale("en");
-            screen.RebuildUi(); // in play the language-changed event calls this
+            screen.RebuildUi();
 
             Assert.AreEqual("Paused", root.transform.Find("Canvas/Pause/Card/Heading").GetComponent<Text>().text);
             Assert.AreEqual(ShellState.Paused, screen.Shell.State, "back on the card with the language buttons");
@@ -1992,7 +1953,7 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Transform bubble = root.transform.Find("Canvas/Garden/Content/Station am-tra/Doze");
             Assert.IsFalse(bubble.gameObject.activeSelf);
-            for (int i = 0; i < 30 * 20; i++) screen.Advance(1f / 30f); // the first nap comes within 20 seconds
+            for (int i = 0; i < 30 * 20; i++) screen.Advance(1f / 30f);
             Assert.IsTrue(bubble.gameObject.activeSelf, "the only open station is the one that dozes");
 
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
@@ -2040,8 +2001,8 @@ namespace VuonTra.Core.Tests
         {
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Name = "Bông", Station = 0 });
             runner.State.NextRabbitId = 1;
-            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);    // straw hat
-            Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);  // silver bell
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
+            Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);
             screen.Refresh();
             Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
             Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
@@ -2064,16 +2025,12 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
         }
 
-        // ----- #43: a rabbit is drawn only where one of the player's rabbits really stands -----
-
         Transform Station(string id) => root.transform.Find("Canvas/Garden/Content/Station " + id);
-        /// <summary>A station's level plate and its pad live on its front, drawn over everything that stands (#82).</summary>
         Transform Front(string id) => root.transform.Find("Canvas/Garden/Content/Station " + id + " Front");
 
         [Test]
         public void Nobody_Stands_At_A_Station_Until_One_Of_Your_Rabbits_Is_Put_There()
         {
-            // Open, nobody there: the prop works in full colour and an empty pad with a plus marks the rabbit's place.
             Transform teapot = Station("am-tra");
             Assert.IsFalse(teapot.Find("Rabbit").gameObject.activeSelf);
             Assert.IsTrue(Front("am-tra").Find("Pad").gameObject.activeSelf);
@@ -2081,7 +2038,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Color.white, teapot.Find("Prop").GetComponent<Image>().color);
             Assert.AreEqual("Cấp 1", Front("am-tra").Find("Level/Text").GetComponent<Text>().text);
 
-            // A plot you own with nothing built: bare ground with a sign, the prop as a shadow, no rabbit, no pad.
             Transform basket = Station("gio-la");
             Assert.IsFalse(basket.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Front("gio-la").Find("Pad").gameObject.activeSelf);
@@ -2096,7 +2052,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Xây · 120", sign.text);
             Assert.AreEqual(Palette.Carrot, Front("gio-la").Find("Level").GetComponent<Image>().color, "lit when it can be paid for");
 
-            // Land the garden has not grown into: only a sign on its dashed ring, nothing else.
             for (int i = 1; i < 4; i++) runner.State.Levels[i] = 1;
             screen.Refresh();
             Transform oven = Station("lo-banh");
@@ -2104,13 +2059,12 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(oven.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Front("lo-banh").Find("Pad").gameObject.activeSelf);
             Assert.IsFalse(oven.Find("Prop").gameObject.activeSelf);
-            Assert.AreEqual("Mở rộng vườn", Front("lo-banh").Find("Level/Text").GetComponent<Text>().text); // #53
+            Assert.AreEqual("Mở rộng vườn", Front("lo-banh").Find("Level/Text").GetComponent<Text>().text);
 
-            // One of your rabbits arrives: the rabbit shows and the pad goes.
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
             runner.State.NextRabbitId = 1;
             screen.Refresh();
-            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f);
             Assert.IsTrue(teapot.Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Front("am-tra").Find("Pad").gameObject.activeSelf);
         }
@@ -2125,8 +2079,8 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Pad_Lists_Your_Rabbits_With_Its_Own_Trade_First_And_Puts_One_To_Work()
         {
-            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 1, Kind = "tho-cup", Name = "Cụp" });    // gatherer
-            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-bong", Name = "Bông" });  // brewer: suits the teapot
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 1, Kind = "tho-cup", Name = "Cụp" });
+            runner.State.Rabbits.Add(new Rabbit { Id = 2, Tier = 0, Kind = "tho-bong", Name = "Bông" });
             runner.State.NextRabbitId = 2;
             screen.Refresh();
 
@@ -2147,7 +2101,7 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(picker.gameObject.activeSelf, "and is gone once it has slid away");
             screen.Refresh();
-            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f);
             Assert.IsTrue(Station("am-tra").Find("Rabbit").gameObject.activeSelf);
             Assert.IsFalse(Front("am-tra").Find("Pad").gameObject.activeSelf);
         }
@@ -2220,7 +2174,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(0, fresh.State.Rabbits[0].Station);
                 Object.DestroyImmediate(go);
 
-                // An older garden with no rabbits stays that way.
                 GameState old = GameState.NewGame(runner.Defs, runner.UpgradeDefs.Count);
                 old.Levels[1] = 3;
                 System.IO.File.WriteAllText(System.IO.Path.Combine(dir, "save.json"), SaveCodec.Encode(runner.Defs, old, runner.UpgradeDefs));
@@ -2238,8 +2191,6 @@ namespace VuonTra.Core.Tests
                 System.IO.Directory.Delete(dir, true);
             }
         }
-
-        // ----- #25: the station list leads with what each station earns and upgrades under a held finger -----
 
         [Test]
         public void A_Station_Row_Leads_With_Carrots_A_Second_And_Says_How_Far_To_The_Next_Doubling()
@@ -2307,23 +2258,21 @@ namespace VuonTra.Core.Tests
             dip.Hold();
             for (int i = 0; i < 3; i++) dip.Step(0.1f);
             Assert.AreEqual(1, runner.State.Levels[0], "a short press is not a hold yet");
-            for (int i = 0; i < 7; i++) dip.Step(0.1f); // one second held
+            for (int i = 0; i < 7; i++) dip.Step(0.1f);
             int afterOne = runner.State.Levels[0];
             Assert.Greater(afterOne, 1, "held long enough: it buys");
-            for (int i = 0; i < 10; i++) dip.Step(0.1f); // a second more
+            for (int i = 0; i < 10; i++) dip.Step(0.1f);
             int afterTwo = runner.State.Levels[0];
             Assert.Greater(afterTwo - afterOne, afterOne - 1, "and buys quicker the longer it is held");
 
             dip.Release();
-            dip.Click(); // the click that comes with lifting the finger
+            dip.Click();
             Assert.AreEqual(afterTwo, runner.State.Levels[0], "the release is not one more purchase");
             dip.Click();
             Assert.AreEqual(afterTwo + 1, runner.State.Levels[0], "a plain tap still buys one");
             for (int i = 0; i < 12; i++) dip.Step(1f / 30f);
             Assert.IsFalse(dip.Busy);
         }
-
-        // ----- #27: the quests tab puts what you can collect first -----
 
         [Test]
         public void Finished_Quests_Rise_To_The_Top_Under_One_Claim_All_Button()
@@ -2334,8 +2283,8 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, ready.GetSiblingIndex());
 
             runner.State.Coins = new BigNum(120);
-            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke(); // finishes "wake the second rabbit"
-            for (int i = 0; i < 50; i++) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke(); // and today's taps
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
+            for (int i = 0; i < 50; i++) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             screen.Refresh();
             Assert.IsTrue(ready.gameObject.activeSelf);
             Assert.AreEqual("Ready", content.GetChild(0).name);
@@ -2419,8 +2368,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(root.transform.Find("Canvas/Feel/Fly"));
             Assert.AreEqual(Vector3.one, purse.localScale, "the purse swelled and is back to its size");
         }
-
-        // ----- #36: quick upgrades -----
 
         [Test]
         public void The_Station_Card_Has_The_Same_Buy_Modes_As_The_Tab_And_They_Remember_Each_Other()
@@ -2538,8 +2485,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/LevelMax").interactable, "nothing left to buy");
         }
 
-        // ----- #37: the product tray -----
-
         [Test]
         public void The_Tray_Shows_What_The_Stations_Made_And_A_Touch_Sells_A_Stack()
         {
@@ -2622,7 +2567,7 @@ namespace VuonTra.Core.Tests
             screen.Shell.StartGame();
             Tray.Add(runner.State, 0, false);
             screen.Refresh();
-            Tray.Add(runner.State, 0, false); // what the tick would have added
+            Tray.Add(runner.State, 0, false);
             screen.OnProductMade(0);
             Assert.Greater(screen.Feel.Flying, 0);
             Assert.AreEqual("×2", root.transform.Find("Canvas/Tray/Slot 0/Count/Text").GetComponent<Text>().text);
@@ -2630,8 +2575,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, screen.Feel.Flying);
             Assert.AreEqual(Vector3.one, root.transform.Find("Canvas/Tray/Slot 0").localScale, "the slot popped and settled");
         }
-
-        // ----- #18: photo mode (the Mac part) -----
 
         [Test]
         public void Photo_Mode_Hides_The_Hud_Snaps_A_Picture_To_A_File_And_Gives_Todays_Gift_Once()
@@ -2723,7 +2666,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(VuonTra.Core.Profile.LinkRewardClovers, runner.State.Clovers);
         }
 
-        /// <summary>A provider that links at once, for the gift to be tested without a store.</summary>
         sealed class FakeLinkedAccount : IAccountService
         {
             public AccountProvider Provider => AccountProvider.Apple;
@@ -2809,7 +2751,6 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(root.transform.Find("Canvas/PhotoReview").gameObject.activeSelf, "the newest picture opens for a second look");
                 Assert.AreEqual(newest, screen.LastPhotoPath);
 
-                // A file that went missing leaves the album when it is opened again.
                 System.IO.File.Delete(runner.State.Album[0]);
                 Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
                 Find("Canvas/PhotoBar/Album").onClick.Invoke();
@@ -2848,8 +2789,6 @@ namespace VuonTra.Core.Tests
             }
         }
 
-        // ----- #30: the first minute's guidance -----
-
         [Test]
         public void The_Guidance_Points_At_One_Thing_At_A_Time_And_Follows_The_Player_Through_Six_Steps()
         {
@@ -2867,13 +2806,11 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(guide.Find("DimTop").GetComponent<Image>().raycastTarget, "but nothing is locked");
             Assert.IsFalse(root.transform.Find("Canvas/Hint").gameObject.activeSelf, "the old one-line hint stays away");
 
-            // 1: a tap on the teapot.
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             screen.Advance(1f / 30f);
             Assert.AreEqual(L10n.T("tut.1"), text.text);
             Assert.AreEqual("Buy", screen.Guide.Target.name, "the card opened with the tap: the hand moves to its button");
 
-            // 2: raise it to level 2.
             runner.State.Coins = new BigNum(1000);
             Find("Canvas/Card/Buy").onClick.Invoke();
             screen.Advance(1f / 30f);
@@ -2883,7 +2820,6 @@ namespace VuonTra.Core.Tests
             screen.Advance(1f / 30f);
             Assert.AreEqual("Row gio-la", screen.Guide.Target.parent.name, "open: the hand points at the second station's button");
 
-            // 3: open the second station.
             Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
             screen.Advance(1f / 30f);
             Assert.AreEqual(L10n.T("tut.3"), text.text);
@@ -2891,7 +2827,6 @@ namespace VuonTra.Core.Tests
             screen.Advance(1f / 30f);
             Assert.AreEqual("Quest mo-2", screen.Guide.Target.parent.name, "the finished quest's button");
 
-            // 4: collect it.
             Find("Canvas/Sheet/Panel/Quests/Content/Quest mo-2/Claim").onClick.Invoke();
             screen.Advance(1f / 30f);
             Assert.AreEqual(L10n.T("tut.4"), text.text);
@@ -2902,7 +2837,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Button", screen.Guide.Target.name);
             Assert.AreEqual("Summon", screen.Guide.Target.parent.name);
 
-            // 5: call a rabbit.
             Find("Canvas/Sheet/Panel/Rabbits/Content/Summon/Button").onClick.Invoke();
             screen.Arrival.Close();
             screen.Advance(1f / 30f);
@@ -2910,7 +2844,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("Pad", screen.Guide.Target.name, "the empty pad of the open station");
             Assert.AreEqual("Station gio-la Front", screen.Guide.Target.parent.name);
 
-            // 6: put it to work.
             long called = runner.State.Rabbits[runner.State.Rabbits.Count - 1].Id;
             runner.AssignRabbit(called, 1);
             screen.Advance(1f / 30f);
@@ -2953,8 +2886,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(guide.gameObject.activeSelf);
         }
 
-        // ----- #13: the summon moment -----
-
         [Test]
         public void Each_Tier_Arrives_To_Its_Own_Bells_And_The_New_Mark_Survives_A_Restart()
         {
@@ -2967,7 +2898,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.IsFreshKind(called.Kind));
             screen.Arrival.Close();
 
-            // Three silver rabbits merge into a green one: the green bells.
             for (int i = 0; i < 3; i++) runner.State.Rabbits.Add(new Rabbit { Id = 100 + i, Tier = 0, Kind = "tho-bong", Name = "S" + i });
             runner.State.NextRabbitId = 102;
             screen.Refresh();
@@ -2975,7 +2905,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("summon-1", Sfx.Last, "a merge arrives to the bells of the tier it made");
             screen.Arrival.Close();
 
-            // The game closes and opens again: the mark is still there, until the kind's page is opened.
             GameState again = SaveCodec.Decode(runner.Defs, SaveCodec.Encode(runner.Defs, runner.State), runner.UpgradeDefs).State;
             Assert.IsTrue(again.FreshKinds.Contains(called.Kind));
             runner.LookAtKind(called.Kind);
@@ -2983,8 +2912,6 @@ namespace VuonTra.Core.Tests
             GameState after = SaveCodec.Decode(runner.Defs, SaveCodec.Encode(runner.Defs, runner.State), runner.UpgradeDefs).State;
             Assert.IsFalse(after.FreshKinds.Contains(called.Kind));
         }
-
-        // ----- #21: the time of day, from the clock, as a look -----
 
         [Test]
         public void The_Garden_Is_Lit_For_The_Hour_And_Night_Is_Its_Own_Look()
@@ -3042,8 +2969,6 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 20; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(rim.gameObject.activeSelf, "gone within half a second of the burst ending");
         }
-
-        // ----- #44 round 1: golden carrots and the shop -----
 
         [Test]
         public void The_Shop_By_The_Pond_Gives_Todays_Gift_And_Calls_With_Gold()
@@ -3105,7 +3030,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(runner.Catalog.Clover, d7.Find("Clover").GetComponent<Image>().sprite);
             Assert.IsFalse(d4.Find("Hat").gameObject.activeSelf, "an ordinary day shows golden carrots only");
 
-            // Three days taken: solid with a tick; the fourth ringed; the rest faded but readable.
             long today = runner.TodayNumber;
             runner.State.GiftDay = today - 1;
             runner.State.GiftStreak = 3;
@@ -3125,14 +3049,12 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("+3", d5.Find("Amount").GetComponent<Text>().text);
             Assert.AreEqual(L10n.T("shop.gift.claim", 4), root.transform.Find("Canvas/Shop/Card/Today/Heading").GetComponent<Text>().text);
 
-            // Day five, a day missed: the gift waiting is day four's.
             runner.State.GiftDay = today - 2;
             runner.State.GiftStreak = 5;
             screen.Refresh();
             Assert.AreEqual(L10n.T("shop.gift.claim", 4), root.transform.Find("Canvas/Shop/Card/Today/Heading").GetComponent<Text>().text);
             Assert.IsTrue(d4.Find("Ring").gameObject.activeSelf);
 
-            // Day seven: five golden carrots, the conical hat into the wardrobe, and a clover.
             runner.State.GiftDay = today - 1;
             runner.State.GiftStreak = 6;
             screen.Refresh();
@@ -3228,8 +3150,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Find("Canvas/Shop/Card/Visitor/Buy").interactable, "gone home already");
             Assert.AreEqual(L10n.T("shop.visitor.bought"), visitor.Find("Buy/Face/Text").GetComponent<Text>().text);
         }
-
-        // ----- #44 round 3: hats for looks, and fur dye -----
 
         [Test]
         public void The_Shop_Sells_Six_Hats_For_Looks_And_A_Second_Tap_Buys_One()
@@ -3344,16 +3264,15 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(away.gameObject.activeSelf);
             StringAssert.Contains("10 phút", away.Find("Card/Carrots/Time").GetComponent<Text>().text);
             Find("Canvas/Away/Card/Ok").onClick.Invoke();
-            for (int i = 0; i < 20; i++) screen.Advance(0.05f); // the sheet slides away
+            for (int i = 0; i < 20; i++) screen.Advance(0.05f);
             Assert.IsFalse(away.gameObject.activeSelf);
         }
 
         [Test]
         public void Every_Daily_Thing_Goes_By_The_Day_That_Never_Goes_Back()
         {
-            // #78: the runner used the raw device day for the photo gift, the dailies, guests, visitors and strokes.
             long today = runner.TodayNumber;
-            runner.State.MaxDaySeen = today + 2; // the device was set two days ahead, then back
+            runner.State.MaxDaySeen = today + 2;
             Assert.AreEqual(today + 2, runner.TodayNumber, "the game keeps going by the latest day it saw");
             runner.State.PhotoDay = today + 2;
             Assert.IsFalse(runner.PhotoGiftWaiting, "today's photo gift was already taken on that day");
@@ -3368,7 +3287,7 @@ namespace VuonTra.Core.Tests
             GameState s = runner.State;
             long today = runner.TodayNumber;
             s.GiftStreak = 6;
-            s.GiftDay = today - 1; // six days in a row, the seventh is today
+            s.GiftDay = today - 1;
             screen.Refresh();
             screen.OpenShop();
             screen.Refresh();
@@ -3376,8 +3295,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.Feel.BannerVisible, "the big gift is a moment");
             StringAssert.Contains(L10n.T("item." + Shop.BigGiftHat), root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>().text);
         }
-
-        // ----- #69: the welcome-back sheet tells the time away -----
 
         [Test]
         public void The_Welcome_Back_Sheet_Tells_Four_Lines_And_Doubles_Once_Free_Then_For_Golden()
@@ -3388,7 +3305,7 @@ namespace VuonTra.Core.Tests
             var away = new AwayReport { Paid = new BigNum(5000), Seconds = 3 * 3600, Capped = true, TrayAdded = 7, TrayFull = true, GuestsMissed = 3, SleepiestId = s.Rabbits[0].Id };
             BigNum before = s.Coins;
             runner.ShowAwayForTest(away);
-            screen.ShowAway(away); // in play the runner's event does this (wired in Start)
+            screen.ShowAway(away);
             Transform card = root.transform.Find("Canvas/Away/Card");
             Assert.IsTrue(screen.AwayCard.IsOpen);
             Assert.AreEqual("+" + new BigNum(5000).Short(), card.Find("Carrots/Amount").GetComponent<Text>().text);
@@ -3402,7 +3319,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual((before + new BigNum(5000)).ToDouble(), s.Coins.ToDouble(), 1e-6, "paid once more");
             Assert.AreEqual(runner.TodayNumber, s.AwayDoubleDay);
 
-            // The next time away today: ×2 costs golden carrots, and says what is missing when short.
             s.GoldenCarrots = 2;
             runner.ShowAwayForTest(away);
             screen.ShowAway(away);
@@ -3419,7 +3335,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Welcome_Back_Sheet_Comes_Up_Over_The_Title_And_Its_Tap_To_Start_Line()
         {
-            // #79: the game opens on the title, and the sheet for the time away comes up at once.
             Assert.AreEqual(ShellState.Title, screen.Shell.State);
             var away = new AwayReport { Paid = new BigNum(5000), Seconds = 3 * 3600, Capped = true, GuestsMissed = 3 };
             runner.ShowAwayForTest(away);
@@ -3430,7 +3345,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(sheet.gameObject.activeSelf);
             Assert.Greater(sheet.GetSiblingIndex(), title.GetSiblingIndex(), "the sheet draws over the title, so \"tap to start\" is under it");
 
-            // Collect is pressed on the sheet, not on the title behind it; the title waits for its own tap.
             Find("Canvas/Away/Card/Ok").onClick.Invoke();
             Assert.IsFalse(screen.AwayCard.IsOpen);
             Assert.AreEqual(ShellState.Title, screen.Shell.State);
@@ -3447,14 +3361,13 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(root.transform.Find("Canvas/Away").gameObject.activeSelf);
         }
 
-        /// <summary>The sheet is up with a long time away, then the player looks at another app for a minute (#89).</summary>
         AwayReport SheetUpThenAMinuteAway()
         {
             screen.Shell.StartGame();
-            runner.State.MaxDaySeen = runner.TodayNumber + 1; // pins the day: midnight passing mid-test cannot give the free ×2 back
+            runner.State.MaxDaySeen = runner.TodayNumber + 1;
             var twoHours = new AwayReport { Paid = new BigNum(8000), Seconds = 2 * 3600 };
             runner.ShowAwayForTest(twoHours);
-            screen.ShowAway(twoHours); // in play the runner's event does this (wired in Start)
+            screen.ShowAway(twoHours);
             Assert.IsTrue(screen.AwayCard.IsOpen);
             var minute = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
             runner.ShowAwayForTest(minute);
@@ -3476,7 +3389,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(runner.TodayNumber, s.AwayDoubleDay, "the day's free ×2 is used, once");
             Assert.IsFalse(screen.AwayCard.IsOpen);
 
-            // A second ×2 is refused, even after another short absence.
             var again = new AwayReport { Paid = new BigNum(40), Seconds = 60 };
             runner.ShowAwayForTest(again);
             screen.ShowAway(again);
@@ -3490,7 +3402,7 @@ namespace VuonTra.Core.Tests
         {
             AwayReport shown = SheetUpThenAMinuteAway();
             GameState s = runner.State;
-            s.AwayDoubleDay = runner.TodayNumber; // today's free one is spent (the day is pinned by now)
+            s.AwayDoubleDay = runner.TodayNumber;
             s.GoldenCarrots = 9;
             screen.AwayCard.RefreshDouble();
             Assert.AreEqual(L10n.T("away.double.cost", Away.DoubleCost), screen.AwayCard.DoubleLabel);
@@ -3659,7 +3571,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("row.maxlevel"), root.transform.Find("Canvas/Card/Buy/Face/Top").GetComponent<Text>().text);
             Assert.IsFalse(carrot.gameObject.activeSelf, "at the cap nothing is paid, so no carrot either");
 
-            runner.State.Levels[0] = Economy.MaxLevel - 1; // a reset save, say: the price is back
+            runner.State.Levels[0] = Economy.MaxLevel - 1;
             screen.Refresh();
             Assert.IsTrue(carrot.gameObject.activeSelf, "and with it the carrot");
         }
@@ -3695,8 +3607,8 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Charm_Card_Says_Its_Effect_Now_And_After_One_More_Level_And_Counts_Levels_In_Dots()
         {
-            runner.State.UpgradeLevels[0] = 1; // warm hands
-            runner.State.UpgradeLevels[3] = 5; // long sleep, at its cap
+            runner.State.UpgradeLevels[0] = 1;
+            runner.State.UpgradeLevels[3] = 5;
             screen.OpenSheet(1);
             screen.Refresh();
             Text T(string path) { Transform t = root.transform.Find(path); Assert.IsNotNull(t, "Missing UI object: " + path); return t.GetComponent<Text>(); }
@@ -3750,7 +3662,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.Income.IsOpen);
         }
 
-        /// <summary>A silver rabbit at the teapot, a blue and a green resting and a gold one at the cauldron, with three places to rest.</summary>
         void SeatTwoOfThree()
         {
             runner.State.Levels[0] = 5;
@@ -3782,7 +3693,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("income.total", total.Short()), T(rows + "Total").text, "the total includes the share");
             Find("Canvas/Income/Card/Close").onClick.Invoke();
 
-            // Put back to work, the share is gone and so is the line.
             runner.State.Levels[3] = 1;
             Assert.IsTrue(runner.AssignRabbit(3, 2));
             Assert.IsTrue(runner.AssignRabbit(2, 3));
@@ -3818,7 +3728,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(Cell(1).Find("Status/Share"), "a working rabbit shows its station");
             StringAssert.Contains("+5,5%", content.Find("Rest/Text").GetComponent<Text>().text, "the places row adds them up");
 
-            // A third resting rabbit with no place left: it adds nothing and its sheet says nothing of a share.
             runner.State.RestSpots = 2;
             runner.AssignRabbit(4, -1);
             Assert.AreEqual(1d + 0.06 + 0.03, runner.Mods.IncomeMultiplier, 1e-9, "gold and blue sit; green has no place");
@@ -3878,19 +3787,17 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Edge_Pills_Count_What_Waits_Out_Of_View_And_A_Touch_Flies_There()
         {
-            Motion.SetReduced(true); // moves arrive at once, so the test reads positions right after a touch
+            Motion.SetReduced(true);
             for (int i = 0; i < runner.State.Levels.Length; i++) runner.State.Levels[i] = 1 + i;
             runner.State.Plots = runner.State.Levels.Length;
-            runner.State.Coins = new BigNum(1e300); // every station can be raised
+            runner.State.Coins = new BigNum(1e300);
             screen.Shell.StartGame();
             screen.Refresh();
             GameObject up = root.transform.Find("Canvas/EdgeUp").gameObject, down = root.transform.Find("Canvas/EdgeDown").gameObject, home = root.transform.Find("Canvas/Home").gameObject;
             int Count(GameObject pill) => pill.activeSelf ? int.Parse(pill.transform.Find("Text").GetComponent<Text>().text.Substring(2)) : 0;
 
-            // Close in, looking at the top of the garden: the lowest stations are out of view below. (At the usual
-            // zoom, since #50, the whole garden is all but in view, so nothing waits beyond an edge.)
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
-            screen.LookAt(GardenScreen.CellToWorld(new Hex(0, 0)) + new Vector2(0f, 600f)); // the top row of the strip
+            screen.LookAt(GardenScreen.CellToWorld(new Hex(0, 0)) + new Vector2(0f, 600f));
             screen.Advance(1f / 30f);
             Assert.IsTrue(down.activeSelf, "stations that can be raised wait below");
             StringAssert.StartsWith("▼ ", down.transform.Find("Text").GetComponent<Text>().text);
@@ -3902,7 +3809,6 @@ namespace VuonTra.Core.Tests
             screen.Advance(1f / 30f);
             Assert.Less(Count(down), waiting, "the touch flew to the nearest waiting station, which is now in view");
 
-            // Close in and look at the foot of the far right of the strip: the teapot has scrolled away, the way home shows.
             screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
             screen.LookAt(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(13)) + new Vector2(0f, -200f));
             screen.Advance(1f / 30f);
@@ -3912,7 +3818,7 @@ namespace VuonTra.Core.Tests
             screen.Advance(1f / 30f);
             Assert.IsFalse(home.activeSelf, "home again: the teapot is on screen");
 
-            runner.State.Coins = BigNum.Zero; // nothing to raise, nobody dozing: nothing to point at
+            runner.State.Coins = BigNum.Zero;
             screen.Refresh();
             screen.LookAt(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(13)) + new Vector2(0f, -200f));
             screen.Advance(1f / 30f);
@@ -3942,17 +3848,17 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Game_Opens_Where_The_Player_Last_Looked_And_Keeps_Noting_Where_That_Is()
         {
-            runner.State.ViewX = 2600d; // a little right of the teapot, on the open lawn
+            runner.State.ViewX = 2600d;
             runner.State.ViewY = 800d;
             runner.State.ViewZoom = 1.5d;
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             screen.Shell.StartGame();
-            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f); // the opening glide is over
+            for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(1.5f, screen.ZoomScale, 1e-3f, "the zoom comes back too");
             Assert.AreEqual(2600f, (1080f / 2f - world.anchoredPosition.x) / world.localScale.x, 1f);
             Assert.AreEqual(800f, (1920f / 2f - world.anchoredPosition.y) / world.localScale.y, 1f, "the spot under the middle of the screen is the one saved");
 
-            screen.LookAt(new Vector2(2400f, 1300f)); // LookAt puts its point at 60% of the height, so the middle sits a little below it
+            screen.LookAt(new Vector2(2400f, 1300f));
             screen.Advance(1f / 30f);
             Assert.AreEqual(1300d - 0.1d * 1920d / 1.5d, runner.State.ViewY, 1d, "looking elsewhere is noted at once, so the next save keeps it");
             Assert.AreEqual(2400d, runner.State.ViewX, 1d);
@@ -4010,7 +3916,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(pull, "every list can pull the sheet");
             pull.Scale = () => 1f;
 
-            // Scrolled down into the list, a drag is the list's own.
             list.verticalNormalizedPosition = 0.5f;
             pull.OnBeginDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -6f) });
             pull.OnDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -300f) });
@@ -4019,7 +3924,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenScreen.SheetHalf, screen.SheetHeight, 0.5f, "the sheet did not move");
             Assert.IsTrue(screen.SheetOpen);
 
-            // At the top of the list, the same drag takes the sheet down with it and closes it when let go low.
             list.verticalNormalizedPosition = 1f;
             pull.OnBeginDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -6f) });
             Assert.IsTrue(pull.Pulling);
@@ -4030,7 +3934,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(list.enabled, "and scrolls again afterwards");
             Assert.IsFalse(screen.SheetOpen, "let go well down, the sheet closes");
 
-            // An upward drag at the top is still the list's (nothing to pull up).
             screen.OpenSheet(0);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
             list.verticalNormalizedPosition = 1f;
@@ -4110,9 +4013,9 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(gain);
             StringAssert.Contains("13.912.345", gain.GetComponent<Text>().text);
             screen.PursePointer(false);
-            Find("Canvas/Hud/Purse").onClick.Invoke(); // letting go after a hold
+            Find("Canvas/Hud/Purse").onClick.Invoke();
             Assert.IsFalse(screen.Income.IsOpen, "a hold is not a tap");
-            Find("Canvas/Hud/Purse").onClick.Invoke(); // a plain tap
+            Find("Canvas/Hud/Purse").onClick.Invoke();
             Assert.IsTrue(screen.Income.IsOpen);
             screen.Income.Close();
 
@@ -4126,7 +4029,7 @@ namespace VuonTra.Core.Tests
             runner.State.NextRabbitId = 1;
             screen.Shell.StartGame();
             screen.Refresh();
-            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f);
             var rabbit = (RectTransform)root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
             float home = rabbit.anchoredPosition.y;
             int before = screen.Feel.ParticleCount;
@@ -4143,7 +4046,7 @@ namespace VuonTra.Core.Tests
         public void Carrots_Fly_From_The_Station_To_The_Purse_And_The_Purse_Swells_When_They_Land()
         {
             screen.Shell.StartGame();
-            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f); // the opening glide is over, the teapot is in view
+            for (int i = 0; i < 40; i++) screen.Advance(1f / 30f);
             var currency = (RectTransform)root.transform.Find("Canvas/Hud/Purse/Currency");
             screen.PlayPayout(0, new BigNum(5));
             Assert.Greater(screen.Feel.Flying, 0, "carrots are on their way");
@@ -4169,7 +4072,7 @@ namespace VuonTra.Core.Tests
             var glow = (RectTransform)root.transform.Find("Canvas/Garden/Content/Station am-tra/Glow");
             Assert.AreEqual(1f, glow.localScale.x, 1e-3f);
             int before = screen.Feel.ParticleCount;
-            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke(); // level 10: the first doubling
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Buy").onClick.Invoke();
             Assert.AreEqual(10, runner.State.Levels[0]);
             screen.Advance(0.05f);
             Assert.Greater(glow.localScale.x, 1.1f, "the light behind the station blooms");
@@ -4210,7 +4113,7 @@ namespace VuonTra.Core.Tests
             screen.Picker.Open(runner.State, 1, ItemSlot.Hat);
             Assert.IsTrue(screen.Picker.IsOpen);
             Assert.AreEqual(0f, ((RectTransform)root.transform.Find("Canvas/Picker/Card")).pivot.y);
-            Find("Canvas/Picker").onClick.Invoke(); // a touch outside
+            Find("Canvas/Picker").onClick.Invoke();
             Assert.IsFalse(screen.Picker.IsOpen);
 
             screen.Workers.Open(runner.Defs, runner.State, 0);
@@ -4238,14 +4141,12 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, Pounding.PlaysLeft(runner.State, runner.TodayNumber), "a play is spent on starting");
             Assert.AreEqual(0, screen.Pound.Run.Beat);
 
-            // Tap right on the first beat, anywhere on the screen.
             screen.Advance((float)Pounding.BeatTime(0) - (float)screen.Pound.Time);
             Find("Canvas/Pound").onClick.Invoke();
             Assert.AreEqual(1, screen.Pound.Run.Beat);
             Assert.AreEqual(3, screen.Pound.Run.Score, "a perfect pound");
             Assert.AreEqual(L10n.T("pound.perfect"), root.transform.Find("Canvas/Pound/Shake/Judge").GetComponent<Text>().text);
 
-            // Let the rest go by: misses, a shake, then the result and the pay.
             Motion.SetReduced(true);
             screen.Advance(0.5f);
             Assert.AreEqual(Vector2.zero, ((RectTransform)root.transform.Find("Canvas/Pound/Shake")).anchoredPosition, "no shake with reduced motion");
@@ -4285,7 +4186,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Leaves.SeedFor(runner.TodayNumber, 0), run.Seed, "the first game of the day");
             Assert.AreEqual(0.5f, screen.Basket.BasketX, 1e-6f, "the basket starts in the middle");
 
-            // A drag puts the basket where the finger is; a tap slides it there (at once under reduced motion).
             screen.Basket.SetBasket(0.9f);
             Assert.AreEqual(0.9f, screen.Basket.BasketX, 1e-6f);
             Motion.SetReduced(true);
@@ -4293,7 +4193,6 @@ namespace VuonTra.Core.Tests
             screen.Advance(0.05f);
             Assert.AreEqual(0.2f, screen.Basket.BasketX, 1e-6f);
 
-            // Play it through: the basket under every leaf, away from every cone, each at the moment it lands.
             BigNum before = runner.State.Coins;
             foreach (Leaf leaf in run.Schedule)
             {
@@ -4344,7 +4243,6 @@ namespace VuonTra.Core.Tests
             Transform field = root.transform.Find("Canvas/Fireflies/Field");
             Assert.IsFalse(field.Find("Fly 0").gameObject.activeSelf, "nothing is out before the lead");
 
-            // Play it through under reduced motion: every fly tapped where it is just after it appears.
             Motion.SetReduced(true);
             BigNum before = runner.State.Coins;
             foreach (Firefly fly in run.Schedule)
@@ -4375,7 +4273,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.Jar.IsOpen);
             Assert.AreEqual(L10n.T("jar.plays", 2), jar.transform.Find("Plate/Text").GetComponent<Text>().text);
 
-            // The second full night of the day: the caps hold the clovers and the golden carrot back, and the card says so.
             Find("Canvas/Garden/Content/Jar").onClick.Invoke();
             Assert.IsTrue(screen.Jar.IsOpen);
             run = screen.Jar.Run;
@@ -4421,7 +4318,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(world.Find("Traveler"), "arrived");
             Assert.IsTrue(station.Find("Rabbit").gameObject.activeSelf, "walking=" + screen.TravelersWalking + " pad=" + front.Find("Pad").gameObject.activeSelf + " at=" + Rabbits.Find(runner.State, 1).Station + " name=" + station.name);
 
-            // Under reduced motion the newcomer is simply there: the other rabbit takes over the teapot at once.
             Motion.SetReduced(true);
             Assert.IsTrue(runner.AssignRabbit(2, 0));
             screen.Refresh();
@@ -4450,9 +4346,6 @@ namespace VuonTra.Core.Tests
             Assert.Less(Vector2.Distance(later, seat.anchoredPosition), 2f * 300f, "at a walk, not a jump");
         }
 
-        // ----- Strolls to empty spots of the lawn (#55) -----
-
-        /// <summary>Steps the screen a quarter second at a time until the seat's rabbit is at its spot, or gives up after the window.</summary>
         bool StepUntilAtSpot(int seat, float most = GardenScreen.StrollPeriod)
         {
             for (float t = 0f; t < most; t += 0.25f)
@@ -4489,14 +4382,12 @@ namespace VuonTra.Core.Tests
             Assert.That(bubble.Find("Text").GetComponent<Text>().text, Is.EqualTo("♪").Or.EqualTo("♥").Or.EqualTo("zZ"));
             Assert.IsFalse(seat.gameObject.activeSelf, "its seat stands empty meanwhile");
 
-            // Out on the lawn it can still be stroked (#19).
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.BeginDrag);
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.Drag);
             Trigger("Canvas/Garden/Content/Walker 0/Art", UnityEngine.EventSystems.EventTriggerType.EndDrag);
             Assert.AreEqual(Rabbits.PetPoints, r.Affection, "a stroke on the lawn counts");
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6);
 
-            // It stays four to six seconds, then walks home: by the end of its window it sits again.
             float stayed = 0f;
             while (screen.AtSpot(0) && stayed < 10f) { screen.Advance(0.25f); stayed += 0.25f; }
             Assert.That(stayed, Is.GreaterThanOrEqualTo(Strolls.LingerLeast - 0.5f).And.LessThanOrEqualTo(Strolls.LingerMost + 0.5f), "stayed " + stayed);
@@ -4507,7 +4398,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(walker.gameObject.activeSelf, "home");
             Assert.IsTrue(seat.gameObject.activeSelf);
 
-            // A period on, the same again.
             screen.Advance(GardenScreen.StrollPeriod - screen.Clock % GardenScreen.StrollPeriod + 0.1f);
             Assert.IsTrue(GardenScreen.Strolling(0, screen.Clock));
             Assert.IsTrue(StepUntilAtSpot(0), "out again the next period");
@@ -4552,7 +4442,6 @@ namespace VuonTra.Core.Tests
             }
             Assert.AreEqual(3, seen.Count, "all three in two dozen strolls: " + string.Join(", ", seen));
 
-            // By day the fireflies are not out, so nobody chases them.
             screen.ClockHours = () => 13.0;
             for (int period = 0; period < 12; period++)
             {
@@ -4631,7 +4520,6 @@ namespace VuonTra.Core.Tests
                     Assert.GreaterOrEqual(Vector2.Distance(spot, ((RectTransform)world.Find("Seat " + k)).anchoredPosition), 150f, spot + " on seat " + k);
                 Assert.IsTrue(spot.x > 150f && spot.x < GardenScreen.ReadableRight - 80f, spot + " under the wood at the edge");
             }
-            // Every seat on open land has somewhere to go (the horizontal garden: the seats of segments still in the mist wait).
             for (int k = 0; k < RestSpots.Max; k++)
             {
                 if (!runner.State.Grid.InLawn(GardenGrid.DefaultRestTile(k))) continue;
@@ -4671,9 +4559,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0.6f, glow.GetComponent<Image>().color.a, 0.001f);
             Assert.AreEqual(0f, ripple.GetComponent<Image>().color.a);
         }
-        // ----- #19: touching and stroking rabbits -----
 
-        /// <summary>Fires every entry of one kind on an EventTrigger, as a finger would.</summary>
         void Trigger(string path, UnityEngine.EventSystems.EventTriggerType type)
         {
             Transform t = root.transform.Find(path);
@@ -4735,7 +4621,7 @@ namespace VuonTra.Core.Tests
             Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.Drag);
             Assert.AreEqual(10 + Rabbits.PetEnergy, runner.State.Energy, 1e-6, "one stroke, however far the finger goes");
             Assert.AreEqual(Rabbits.PetPoints, r.Affection);
-            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.PointerClick); // the finger lifting off the rabbit
+            Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.PointerClick);
             Trigger(rabbit, UnityEngine.EventSystems.EventTriggerType.EndDrag);
             Assert.AreEqual(0, runner.State.TotalTaps, "letting go after a stroke is not a tap on the station");
 
@@ -4816,8 +4702,6 @@ namespace VuonTra.Core.Tests
             return n;
         }
 
-        // ----- #20: guests and their tea orders -----
-
         [Test]
         public void A_Guest_Comes_To_The_Counter_A_Minute_Into_Play_With_A_Bubble_And_A_Pill_Then_Leaves()
         {
@@ -4837,7 +4721,7 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(order, "the first guest comes a minute in");
             Assert.IsTrue(guest.gameObject.activeSelf);
             Assert.AreEqual("blip", Sfx.Last);
-            screen.Advance(0.1f); // under reduced motion the walk is over in a frame
+            screen.Advance(0.1f);
             Assert.IsTrue(screen.GuestAtCounter);
             Transform bubble = guest.Find("Bubble");
             Assert.IsTrue(bubble.gameObject.activeSelf, "the order is up in a bubble");
@@ -4863,7 +4747,7 @@ namespace VuonTra.Core.Tests
         {
             Motion.SetReduced(true);
             screen.Shell.StartGame();
-            runner.State.Levels[2] = 1; // the jam pot too, so an order can have two lines
+            runner.State.Levels[2] = 1;
             Order order = runner.PlaceOrder();
             Assert.IsNotNull(order);
             screen.Refresh();
@@ -4883,12 +4767,10 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(order.Lines.Count > 1, root.transform.Find("Canvas/Order/Card/Line 1").gameObject.activeSelf);
             Assert.AreEqual(L10n.T("order.missing", TotalCount(order)), deliver.transform.Find("Face/Text").GetComponent<Text>().text);
 
-            // One short still does not do.
             Tray.Add(runner.State, order.Lines[0].Station, false);
             screen.Refresh();
             Assert.AreEqual(order.Lines[0].Count == 1, line0.Find("Met").gameObject.activeSelf);
             Assert.AreEqual(order.Lines.Count == 1 && order.Lines[0].Count == 1, deliver.interactable);
-            // Everything the guest asked for, and a golden batch that is not for it.
             foreach (OrderLine line in order.Lines)
                 while (Orders.Have(runner.State, line.Station) < line.Count) Tray.Add(runner.State, line.Station, false);
             Tray.Add(runner.State, 0, true);
@@ -4911,10 +4793,9 @@ namespace VuonTra.Core.Tests
             Assert.Greater(screen.Feel.Flying, 0, "carrots fly to the purse");
             Assert.IsTrue(screen.Feel.BannerVisible, "a happy guest");
             Assert.AreEqual("reward", Sfx.Last);
-            screen.Refresh(); // in play the runner's StateChanged does this
+            screen.Refresh();
             Assert.IsFalse(root.transform.Find("Canvas/Hud/Order").gameObject.activeSelf);
 
-            // The guest bows and goes home.
             for (int i = 0; i < 20; i++) screen.Advance(0.1f);
             Assert.IsFalse(screen.GuestShown);
             Assert.IsFalse(screen.GuestAtCounter);
@@ -4940,7 +4821,6 @@ namespace VuonTra.Core.Tests
             Assert.Less(beam.GetSiblingIndex(), station.GetSiblingIndex(), "the moonlight is on the ground, under the teapot");
             Assert.Less(world.Find("Flagstone").GetSiblingIndex(), station.GetSiblingIndex());
             Assert.Greater(pool.GetComponent<Image>().color.a, 0.2f);
-            // Every flower carpet keeps clear of every station.
             for (int k = 0; k < world.childCount; k++)
             {
                 Transform child = world.GetChild(k);
@@ -5014,7 +4894,6 @@ namespace VuonTra.Core.Tests
                 for (int i = 0; i < runner.Defs.Count; i++) nearest = Mathf.Min(nearest, Vector2.Distance(at, screen.StationSpot(i)));
                 Assert.That(nearest, Is.InRange(200f, 320f), "each planter belongs to a station, beside it rather than on it");
             }
-            // The mortar no longer sits on the leaf basket's plate: it stands above the teapot's name.
             Vector2 mortar = ((RectTransform)world.Find("Mortar")).anchoredPosition, basket = screen.StationSpot(1);
             Assert.Greater(Mathf.Abs(mortar.x - basket.x), 200f);
         }
@@ -5072,7 +4951,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(runner.Sync.Pending);
             Assert.AreEqual(SyncOutcome.TookRemote, runner.Sync.Last.Outcome);
 
-            // Keeping the device's copy instead sends it up.
             cloud.Text = CloudSave.Wrap(SaveCodec.Encode(runner.Defs, ahead, runner.UpgradeDefs), SaveSummary.Of(ahead), 9000);
             runner.State.Rabbits.Clear();
             runner.State.GardenXp = Garden.XpForLevel(7);
@@ -5126,7 +5004,7 @@ namespace VuonTra.Core.Tests
         {
             Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra"), front = Front("am-tra");
             Text plate = front.Find("Level/Text").GetComponent<Text>();
-            Motion.SetReduced(true); // the level number lands in one frame instead of running up
+            Motion.SetReduced(true);
             void Show() { screen.Refresh(); screen.Advance(0.1f); }
             runner.State.Levels[0] = 24;
             Show();
@@ -5159,7 +5037,6 @@ namespace VuonTra.Core.Tests
             StringAssert.EndsWith("✦✦✦", root.transform.Find("Canvas/Card/Level/Text").GetComponent<Text>().text, "the card carries the marks");
             StringAssert.EndsWith("✦✦✦", root.transform.Find("Canvas/Sheet/Panel/Scroll/Content/Row am-tra/Level/Text").GetComponent<Text>().text, "and so does the row");
 
-            // A closed station wears nothing, whatever its number.
             runner.State.Levels[1] = 0;
             screen.Refresh();
             Assert.IsFalse(root.transform.Find("Canvas/Garden/Content/Station gio-la/Bunting").gameObject.activeSelf);
@@ -5195,7 +5072,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("prop_chay", pestle.GetComponent<Image>().sprite.name);
             float rest = pestle.anchoredPosition.y;
 
-            // Fifteen pounds on the beat: the dough is being worked, and the pestle is down right after a pound.
             for (int b = 0; b < 15; b++)
             {
                 screen.Advance((float)(Pounding.BeatTime(b) - screen.Pound.Time));
@@ -5207,7 +5083,6 @@ namespace VuonTra.Core.Tests
             screen.Advance(0.4f);
             Assert.AreEqual(rest, pestle.anchoredPosition.y, 0.01f, "and back up to where it rests");
 
-            // A beat left to pass dents the cake for a moment.
             screen.Advance((float)(Pounding.BeatTime(15) + Pounding.GoodWindow + 0.05 - screen.Pound.Time));
             Assert.AreEqual("banh_meo", cake.sprite.name, "dented after a miss");
             screen.Advance(0.7f);
@@ -5226,7 +5101,7 @@ namespace VuonTra.Core.Tests
         {
             L10n.SetLocale(locale);
             UiKit.SetLargeText(large);
-            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.RebuildUi();
             screen.Shell.StartGame();
             runner.State.Energy = 28;
             runner.State.BoostSecondsLeft = 30;
@@ -5236,9 +5111,7 @@ namespace VuonTra.Core.Tests
             Text label = root.transform.Find("Canvas/Hud/Energy/Face/Label").GetComponent<Text>();
             Text action = root.transform.Find("Canvas/Hud/Energy/Face/Action").GetComponent<Text>();
             Assert.AreEqual(L10n.T("energy.boosting", 30), action.text);
-            // Two boxes that do not meet…
             Assert.LessOrEqual(label.rectTransform.anchorMax.x, action.rectTransform.anchorMin.x, "the name's box ends where the countdown's begins");
-            // …each wide enough for its words on one line at the smallest size the text may shrink to.
             foreach (Text text in new[] { label, action })
             {
                 int size = text.fontSize; bool fit = text.resizeTextForBestFit;
@@ -5259,7 +5132,7 @@ namespace VuonTra.Core.Tests
         {
             L10n.SetLocale(locale);
             UiKit.SetLargeText(large);
-            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.RebuildUi();
             screen.Shell.StartGame();
             runner.State.GardenXp = Garden.XpForLevel(5);
             screen.Refresh();
@@ -5267,7 +5140,6 @@ namespace VuonTra.Core.Tests
             var jar = (RectTransform)street.Find("Jar");
             Assert.IsTrue(jar.gameObject.activeSelf, "the jar is out from garden level five");
             var plate = (RectTransform)jar.Find("Plate");
-            // Where the plate's edges land on the garden, in garden units.
             float centre = jar.anchoredPosition.x + plate.anchoredPosition.x;
             float left = centre - plate.rect.width / 2f, right = centre + plate.rect.width / 2f;
             Assert.GreaterOrEqual(left, 24f, "inside the left edge");
@@ -5294,7 +5166,7 @@ namespace VuonTra.Core.Tests
             runner.State.NextRabbitId = 1;
             Motion.SetReduced(true);
             screen.Refresh();
-            for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
+            for (int k = 0; k < 8; k++) screen.Advance(0.5f);
             var tool = (RectTransform)station.Find("Rabbit/Tool");
             Assert.IsTrue(tool.gameObject.activeSelf, "a tool in the paw");
             Assert.AreEqual(runner.Catalog.TradeIcon(runner.Defs[0].Trade), tool.GetComponent<Image>().sprite, "the station's trade, not the rabbit's");
@@ -5324,7 +5196,7 @@ namespace VuonTra.Core.Tests
             for (int i = 1; i <= 5; i++) runner.State.Rabbits.Add(new Rabbit { Id = i, Tier = 5 - i, Kind = RabbitKinds.OfTier(5 - i)[0].Id, Name = "T" + i });
             runner.State.NextRabbitId = 5;
             Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 0);
-            runner.EquipItem(hat.Id, 1); // the rarest, who takes the first seat
+            runner.EquipItem(hat.Id, 1);
             screen.Refresh();
             Transform world = root.transform.Find("Canvas/Garden/Content");
             var stump = (RectTransform)world.Find("Seat 0/Art");
@@ -5383,8 +5255,6 @@ namespace VuonTra.Core.Tests
             ProfileView.OpenUrl = url => Application.OpenURL(url);
         }
 
-        // ----- #11: decorating the garden -----
-
         [Test]
         public void Decoration_Spots_Stay_Hidden_Until_Something_Is_Owned_And_Stand_Clear_Of_Everything_Else()
         {
@@ -5403,17 +5273,15 @@ namespace VuonTra.Core.Tests
                 for (int j = 0; j < i; j++) Assert.GreaterOrEqual(Vector2.Distance(at, screen.DecorSpotAt(j)), 200f, "spots " + i + " and " + j + " apart");
                 Assert.That(at.x, Is.InRange(90f, GardenScreen.ReadableRight - 40f), "spot " + i + " inside the garden, short of the trees at the edge");
             }
-            // No planter, mushrooms or stones has been dressed onto a spot: the ground there is kept for the player.
             for (int k = 0; k < world.childCount; k++)
             {
                 Transform child = world.GetChild(k);
                 if (child.name != "Planter" && child.name != "Mushrooms" && child.name != "Stones" && child.name != "Bush" && child.name != "Tree") continue;
                 var prop = (RectTransform)child;
-                Vector2 foot = prop.anchoredPosition - new Vector2(0f, prop.rect.height * prop.pivot.y); // where it stands, whatever it pivots on
+                Vector2 foot = prop.anchoredPosition - new Vector2(0f, prop.rect.height * prop.pivot.y);
                 for (int i = 0; i < Decor.Spots; i++) Assert.GreaterOrEqual(Vector2.Distance(foot, screen.DecorSpotAt(i)), 140f, child.name + " standing at " + foot + " is off spot " + i);
             }
 
-            // Bought at the shop: a tap asks, a second buys; then the empty spots show their "+".
             runner.State.GoldenCarrots = 15;
             screen.OpenShop();
             screen.Refresh();
@@ -5439,7 +5307,6 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(spot.Find("Plate").gameObject.activeSelf, "as a '+'");
                 Assert.IsFalse(spot.Find("Item").gameObject.activeSelf);
             }
-            // Eight in all: the tiles say there is no room.
             runner.State.GoldenCarrots = 1000;
             for (int n = 1; n < Decor.Spots; n++) Decor.Buy(runner.State, "bon-hoa");
             screen.OpenShop();
@@ -5480,7 +5347,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0f, ((RectTransform)spot.Find("Item")).pivot.y, "it stands on its feet");
             Assert.IsTrue(world.Find("Spot 3/Plate").gameObject.activeSelf, "the planter still waits in storage: the other spots keep their '+'");
 
-            // The spot that is filled opens too: the lantern can be swapped for the planter, or put away.
             Find("Canvas/Garden/Content/Spot 2").onClick.Invoke();
             Assert.IsTrue(screen.DecorCard.IsOpen);
             Assert.IsTrue(root.transform.Find("Canvas/Decor/Card/Store").gameObject.activeSelf);
@@ -5502,7 +5368,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(spot.Find("Plate").gameObject.activeSelf, "empty again, and there is something to place");
             Assert.AreEqual(100 - 15 - 20, runner.State.GoldenCarrots, "placing, swapping and storing cost nothing");
 
-            // Everything placed: no '+' anywhere, but the filled spots still open.
             Decor.Place(runner.State, 0, "den-da");
             Decor.Place(runner.State, 1, "bon-hoa");
             screen.Refresh();
@@ -5553,9 +5418,7 @@ namespace VuonTra.Core.Tests
         public void A_Season_Beginning_Is_A_Banner_And_The_Gate_Wears_The_Seasons_Dressing_Only_When_It_Has_One()
         {
             screen.Shell.StartGame();
-            // The banner: the runner greets a season once a year; today is whatever day it is, so force the greeting by
-            // pretending Tết started today and letting the runner raise its event.
-            long tet = runner.TodayNumber; // the real day; the greeting rule is tested in SeasonTests, here only the banner
+            long tet = runner.TodayNumber;
             runner.State.SeasonGreetedDay = -1;
             bool raised = false;
             runner.SeasonBegan += s => raised = true;
@@ -5564,7 +5427,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(greeted, raised);
             if (greeted) StringAssert.Contains(L10n.Season(Seasons.SeasonOf(tet)), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
 
-            // The gate's dressing: hangs when there is a picture, swings, holds still under reduced motion, and nothing out of season.
             Transform decor = root.transform.Find("Canvas/SummonMoment/Gate/GateDecor");
             Assert.IsNotNull(decor, "the hook on the arch");
             screen.Arrival.SetSeasonDecor(runner.Catalog.Round);
@@ -5595,9 +5457,6 @@ namespace VuonTra.Core.Tests
             Assert.Less(runner.State.DailyCarrotTarget.ToDouble(), 1e12, "but the carrot goal fits the small garden");
         }
 
-        // ----- #56: a rabbit asks for its picture -----
-
-        /// <summary>A rabbit at work at the teapot, which makes something, so two minutes of income are worth checking.</summary>
         Rabbit RabbitAtTheTeapot()
         {
             runner.State.Levels[0] = 12;
@@ -5646,12 +5505,12 @@ namespace VuonTra.Core.Tests
         {
             Motion.SetReduced(true);
             Rabbit bong = RabbitAtTheTeapot();
-            Rabbits.Arrive(runner.State, 1, "Mây", 0d); // resting in a seat: it could ask too, but the roll picks the worker
+            Rabbits.Arrive(runner.State, 1, "Mây", 0d);
             screen.Shell.StartGame();
             screen.Refresh();
             Assert.IsTrue(PhotoAsks.Ask(runner.Defs, runner.State, runner.TodayNumber, () => 0d));
             Assert.AreEqual(bong.Id, runner.State.PhotoAskRabbit);
-            runner.State.PhotoAskLeft = 2d; // almost gone: framing must not cost it
+            runner.State.PhotoAskLeft = 2d;
             screen.Advance(0.1f);
             Assert.IsTrue(screen.PhotoAskShown);
 
@@ -5667,7 +5526,6 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 5; i++) screen.Advance(1f);
             Assert.IsTrue(PhotoAsks.Waiting(runner.State), "the bubble's time stands still while framing");
 
-            // Mây was put on her seat straight into the state; her share of the income (#60) is in the modifiers from the next change on.
             BigNum expected = PhotoAsks.Reward(runner.Defs, runner.State, Modifiers.From(runner.UpgradeDefs, runner.State));
             Assert.Greater(expected.ToDouble(), 0d);
             BigNum before = runner.State.Coins;
@@ -5690,7 +5548,6 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(L10n.T("photo.ask.paid", "Bông", expected.Short()), ask.text);
                 StringAssert.Contains("+1", review.Find("Card/Gift").GetComponent<Text>().text);
 
-                // A second picture is only a picture.
                 Find("Canvas/PhotoReview/Card/Close").onClick.Invoke();
                 Find("Canvas/PhotoBar/Snap").onClick.Invoke();
                 Assert.IsFalse(review.Find("Card/Ask").gameObject.activeSelf);
@@ -5735,7 +5592,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, runner.State.PhotoAsksToday, "nor one of the day's ten");
             Assert.AreEqual(0, screen.Feel.Flying);
 
-            // The HUD's own camera, with nobody asking, is the plain photo mode it always was.
             Find("Canvas/Hud/Camera").onClick.Invoke();
             Assert.IsTrue(screen.PhotoMode);
             Assert.IsFalse(screen.PhotoAskFraming);
@@ -5766,18 +5622,14 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham"), "the taps daily stays beside it");
         }
 
-        // ----- #59: rabbits say a line now and then -----
-
         Transform ChatLine => root.transform.Find("Canvas/Garden/Content/ChatLine");
 
-        /// <summary>A rabbit that has nodded off says nothing: the teapot's rabbit is woken with a tap whenever it dozes.</summary>
         void KeepTeapotAwake()
         {
             Transform z = root.transform.Find("Canvas/Garden/Content/Station am-tra/Doze");
             if (z != null && z.gameObject.activeSelf) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
         }
 
-        /// <summary>Steps the screen at ten frames a second and counts the idle bubbles that came up: when each came, and how long it stayed.</summary>
         int BubblesOver(float seconds, List<float> stays = null, bool keepAwake = true, List<float> came = null)
         {
             int shown = 0;
@@ -5803,7 +5655,7 @@ namespace VuonTra.Core.Tests
         public void After_Seventy_Seconds_A_Working_Rabbit_Has_Said_Exactly_One_Line_Of_Its_Trade_Or_The_Hour()
         {
             screen.Shell.StartGame();
-            runner.State.OrderClock = 0d; // no guest in the first minutes
+            runner.State.OrderClock = 0d;
             screen.ClockHours = () => 13.0;
             Rabbit r = GiveWorker(1, 0);
             Assert.IsFalse(screen.ChatShown);
@@ -5820,7 +5672,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Chatter.Seconds, stays[0], 0.15f, "two and a half seconds");
             Assert.AreEqual(1, CountNamed(root.transform.Find("Canvas/Garden/Content"), "ChatLine"), "one bubble, used again and again");
 
-            // The ones after come forty to seventy seconds apart.
             BubblesOver(150f, null, true, came);
             Assert.GreaterOrEqual(came.Count, 3);
             for (int i = 1; i < came.Count; i++)
@@ -5893,7 +5744,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, BubblesOver(75f), "the line waits while the guest stands at the counter");
             Assert.IsTrue(screen.GuestShown);
 
-            runner.State.Order = null; // the guest goes
+            runner.State.Order = null;
             screen.Refresh();
             for (int i = 0; i < 100 && screen.GuestShown; i++) { KeepTeapotAwake(); screen.Advance(0.1f); }
             Assert.IsFalse(screen.GuestShown);
@@ -5901,7 +5752,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.ChatShown, "the waiting line comes as soon as the guest has gone");
             Assert.AreEqual(1, screen.ChatLines);
 
-            // A bond line outranks it: the idle line goes, and no other comes while the bond line is up.
             r.Affection = Rabbits.PointsFor(Rabbits.LineHearts) - Rabbits.PetPoints;
             r.PetDay = -1;
             Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
@@ -5945,7 +5795,7 @@ namespace VuonTra.Core.Tests
         {
             screen.Shell.StartGame();
             runner.State.OrderClock = 0d;
-            runner.State.Levels[1] = 3; // the leaf basket feeds the teapot
+            runner.State.Levels[1] = 3;
             Rabbit r = GiveWorker(1, 0);
             Assert.AreEqual(1, Chatter.BoosterOf(runner.Defs, runner.State, 0));
             var keys = new HashSet<string>();
@@ -5971,8 +5821,6 @@ namespace VuonTra.Core.Tests
             }
             Assert.IsTrue(showedOff, "a dyed rabbit shows its coat off");
         }
-
-        // ----- The album pays (#61) -----
 
         [Test]
         public void The_Album_Shows_Each_Set_With_Its_Progress_And_Outlines_A_Complete_One_In_Gold()
@@ -6005,7 +5853,7 @@ namespace VuonTra.Core.Tests
         {
             AlbumSet set = AlbumSets.Find(3, RabbitTrade.Brewer);
             for (int i = 0; i < set.Kinds.Count - 1; i++) Rabbits.See(runner.State, set.Kinds[i].Id);
-            runner.AutoAssignRabbits(); // any change the runner makes looks at the album
+            runner.AutoAssignRabbits();
             Text title = root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>();
             title.text = "";
             Rabbits.See(runner.State, set.Kinds[set.Kinds.Count - 1].Id);
@@ -6043,8 +5891,6 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(frame, "the gold frame tops the album");
             StringAssert.Contains("Đủ bộ", frame.Find("Text").GetComponent<Text>().text);
         }
-
-        // ----- Moon jars (#64) -----
 
         [Test]
         public void The_Purse_Card_Opens_A_Moon_Jar_From_Garden_Level_Three_And_The_Carrots_Fly_To_The_Purse()
@@ -6121,7 +5967,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("shop.jar.soldout"), price.text);
             Assert.IsFalse(Find(jar).interactable, "three a day");
 
-            // A new day with a full shelf: the shop will not sell a tenth.
             runner.State.MoonJarBuyDay = runner.TodayNumber - 1;
             runner.State.MoonJars = MoonJars.Cap;
             screen.Refresh();
@@ -6146,7 +5991,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(root.transform.Find(row + "/Clovers").gameObject.activeSelf);
             Assert.AreEqual("+1", root.transform.Find(row + "/Jars/Text").GetComponent<Text>().text);
 
-            s.MoonJarFreeDay = s.DailyDay; // the firefly night brought today's jar first
+            s.MoonJarFreeDay = s.DailyDay;
             screen.Refresh();
             Assert.IsFalse(root.transform.Find(row + "/Jars").gameObject.activeSelf);
             Assert.IsTrue(root.transform.Find(row + "/Clovers").gameObject.activeSelf, "the clover it replaced");
@@ -6155,8 +6000,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(clovers + 1, s.Clovers);
             Assert.AreEqual(0, s.MoonJars);
         }
-
-            // ----- #52: the hex grid under the garden -----
 
         [Test]
         public void Every_Station_Seat_Prop_And_Decoration_Spot_Stands_On_Its_Own_Tile_Of_The_Grid()
@@ -6247,14 +6090,11 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(TileState.UnlockedEmpty, s.Grid.Tile(home.Q, home.R).State, "its old tile is free");
             Assert.AreEqual(GardenScreen.CellToWorld(GardenGrid.DefaultStationTile(runner.Defs.Count)), screen.StationSpot(runner.Defs.Count), "a station beyond the catalog still has a place");
         }
-    
-        // ----- The horizontal garden: camera, mist, pond, guests and strolls on the strip (part b) -----
 
         RectTransform World => (RectTransform)root.transform.Find("Canvas/Garden/Content");
         Vector2 OnView(Vector2 garden) => garden * World.localScale.x + World.anchoredPosition;
         static Vector2 Teapot => GardenScreen.CellToWorld(new Hex(0, 0));
 
-        /// <summary>The garden x shown at the screen's left and right edges.</summary>
         Vector2 ShownX() => new Vector2(-World.anchoredPosition.x / World.localScale.x, (1080f - World.anchoredPosition.x) / World.localScale.x);
 
         [Test]
@@ -6274,7 +6114,6 @@ namespace VuonTra.Core.Tests
                 Assert.GreaterOrEqual(shown.x, span.x - 1f, "let go past the left end, it comes back inside the open lawn and its margin");
                 Assert.LessOrEqual(shown.y, span.y + 1f, "and past the right end too");
             }
-            // The margin is mist and wood: no more than ViewMargin past the open lawn, and the new segments widen the span.
             Vector2 before = screen.OpenSpan();
             Assert.AreEqual(Teapot.x - 600f - GardenScreen.ViewMargin, before.x, 1f);
             HavePlots(runner.Defs.Count);
@@ -6318,7 +6157,7 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             screen.OpenSheet(0);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
-            foreach (int index in new[] { 15, 14, 0 }) // the far left, the far right, home
+            foreach (int index in new[] { 15, 14, 0 })
             {
                 Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[index].Id).onClick.Invoke();
                 for (int i = 0; i < 12; i++) screen.Advance(1f / 30f);
@@ -6346,7 +6185,7 @@ namespace VuonTra.Core.Tests
             Motion.SetReduced(true);
             HavePlots(runner.Defs.Count);
             for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = 1;
-            runner.State.Coins = new BigNum(1e300); // every station can be raised
+            runner.State.Coins = new BigNum(1e300);
             screen.Shell.StartGame();
             screen.Refresh();
             screen.LookAt(Teapot);
@@ -6411,7 +6250,7 @@ namespace VuonTra.Core.Tests
                     {
                         Vector2 c = wash.anchoredPosition;
                         Assert.That(c.x, Is.InRange(span.x, span.y), "every wash of segment " + n + " is centred on its own land");
-                        washes.Add(new Rect(c - wash.sizeDelta * 0.4f, wash.sizeDelta * 0.8f)); // the thick middle of a soft wash
+                        washes.Add(new Rect(c - wash.sizeDelta * 0.4f, wash.sizeDelta * 0.8f));
                     }
                     foreach (Hex h in GardenGrid.SegmentTiles(n))
                     {
@@ -6497,8 +6336,6 @@ namespace VuonTra.Core.Tests
             Assert.Greater(screen.LawnSpots.Count, before, "every segment open offers more");
         }
 
-        // ----- The horizontal garden: the small things left after #16 -----
-
         [TestCase(0)]
         [TestCase(1)]
         [TestCase(2)]
@@ -6516,7 +6353,6 @@ namespace VuonTra.Core.Tests
             Assert.Greater(screen.GuestEntry.x - screen.GuestSpot.x, 200f, "it still walks a little way in from the right");
         }
 
-        /// <summary>Where the pond's "Câu cá" plate is on the phone's screen, in canvas units from the bottom left.</summary>
         Rect PondPlateOnScreen()
         {
             var plate = (RectTransform)World.Find("PondTap/Plate");
@@ -6544,12 +6380,11 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < 45; i++) screen.Advance(1f / 30f);
             screen.Refresh();
             AssertPondPlateReads("the opening view");
-            screen.LookAt(GardenScreen.PondSpot + new Vector2(-120f, -300f)); // the pond's own frame
+            screen.LookAt(GardenScreen.PondSpot + new Vector2(-120f, -300f));
             AssertPondPlateReads("looking at the pond");
             screen.LookAt(Teapot);
             AssertPondPlateReads("looking at the teapot");
 
-            // Ready for the first segment; the view goes to the sign at the lawn's end, as far right as the lawn lets it.
             MistSegment next = Expansion.Next(runner.Defs, s);
             s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
             s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
@@ -6563,7 +6398,6 @@ namespace VuonTra.Core.Tests
             AssertPondPlateReads("after the first segment opens");
         }
 
-        /// <summary>Readable copies of the art the mist is painted with, so a test can read its alpha.</summary>
         readonly Dictionary<Texture, Texture2D> _readable = new Dictionary<Texture, Texture2D>();
 
         float AlphaOf(Sprite sprite, Vector2 uv)
@@ -6571,7 +6405,7 @@ namespace VuonTra.Core.Tests
             if (sprite == null) return 1f;
             if (!_readable.TryGetValue(sprite.texture, out Texture2D copy))
             {
-                if (sprite.texture.isReadable) copy = sprite.texture; // painted by the game itself
+                if (sprite.texture.isReadable) copy = sprite.texture;
                 else
                 {
                     copy = new Texture2D(2, 2);
@@ -6584,7 +6418,6 @@ namespace VuonTra.Core.Tests
             return copy.GetPixelBilinear((r.x + uv.x * r.width) / w, (r.y + uv.y * r.height) / h).a;
         }
 
-        /// <summary>How much the mist hides at a garden point: every veil and wash over it, laid one over another as they are drawn.</summary>
         float MistCoverAt(Vector2 at)
         {
             float clear = 1f;
@@ -6607,7 +6440,6 @@ namespace VuonTra.Core.Tests
             return 1f - clear;
         }
 
-        /// <summary>The least the mist hides just inside a shut segment, where it meets the open lawn.</summary>
         public const float MistEdgeLeast = 0.6f;
 
         [Test]
@@ -6620,7 +6452,6 @@ namespace VuonTra.Core.Tests
             for (int open = 0; open < last; open++)
             {
                 HavePlots(Expansion.PlotsForSegments(runner.Defs, open));
-                // The first shut segment on each side, at the edge it shares with the open lawn.
                 for (int n = open + 1; n <= Mathf.Min(last, open + 2); n++)
                 {
                     Vector2 span = GardenScreen.SegmentSpan(n);
@@ -6644,14 +6475,13 @@ namespace VuonTra.Core.Tests
         {
             Motion.SetReduced(true);
             GameState s = runner.State;
-            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket, the jar and the pond are out
+            s.GardenXp = Garden.XpForLevel(9);
             int last = Expansion.LastSegments(runner.Defs);
             var under = new List<string>();
             int measured = 0;
             for (int open = 0; open < last; open++)
             {
                 HavePlots(Expansion.PlotsForSegments(runner.Defs, open));
-                // Ready for the next segment, so the sign stands at the lawn's edge.
                 MistSegment next = Expansion.Next(runner.Defs, s);
                 s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
                 while (s.Rabbits.Count < next.NeedRabbits) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" + s.NextRabbitId });
@@ -6676,11 +6506,11 @@ namespace VuonTra.Core.Tests
                     Rect r = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
                     int segment = GardenGrid.SegmentOf(GardenScreen.WorldToCell(r.center));
                     bool sign = plate.parent.name == "Forest Sign";
-                    if (!sign && (segment < 0 || segment > open)) continue; // a plate out on the land still to open
+                    if (!sign && (segment < 0 || segment > open)) continue;
                     measured++;
                     Transform top = plate;
                     while (top.parent != World) top = top.parent;
-                    if (top.GetSiblingIndex() > mistTop) continue; // drawn over the mist
+                    if (top.GetSiblingIndex() > mistTop) continue;
                     float most = 0f;
                     for (float x = r.xMin; x <= r.xMax; x += 10f)
                         for (float y = r.yMin; y <= r.yMax; y += 10f) most = Mathf.Max(most, MistCoverAt(new Vector2(x, y)));

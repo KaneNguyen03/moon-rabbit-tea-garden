@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The player's profile (garden name, avatar rabbit, player code) and the account seam behind it.</summary>
     public class ProfileTests
     {
         List<StationDef> defs;
@@ -29,7 +28,7 @@ namespace VuonTra.Core.Tests
         [TestCase("THO-7K3M9Q", true)]
         [TestCase("tho-7k3m9q", false)]
         [TestCase("THO-7K3M9", false)]
-        [TestCase("THO-0O1IAB", false)] // 0, O, 1 and I are left out so a code read aloud is never ambiguous
+        [TestCase("THO-0O1IAB", false)]
         [TestCase("", false)]
         [TestCase(null, false)]
         public void A_Code_Is_THO_And_Six_Unambiguous_Characters(string code, bool valid)
@@ -105,7 +104,7 @@ namespace VuonTra.Core.Tests
             Assert.AreSame(a, Profile.Avatar(s), "nothing chosen: the first rabbit");
             s.Profile.AvatarRabbitId = 2;
             Assert.AreSame(b, Profile.Avatar(s));
-            s.Rabbits.Remove(b); // merged away
+            s.Rabbits.Remove(b);
             Assert.AreSame(a, Profile.Avatar(s), "a chosen rabbit that is gone falls back to the first");
         }
 

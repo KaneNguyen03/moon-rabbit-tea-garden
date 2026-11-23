@@ -3,11 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>
-    /// Rain and the Frog Rabbit (#62): two eight-minute showers a day at hours drawn from the day, never overlapping, the
-    /// same for the same day and hour; the Frog Rabbit only in the rain, one a shower and two a day at most, ten minutes of
-    /// income and a clover one time in four when greeted, nothing more for a clock set back; its achievement; the save.
-    /// </summary>
     public class WeatherTests
     {
         List<StationDef> defs;
@@ -18,15 +13,13 @@ namespace VuonTra.Core.Tests
         {
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
-            s.Levels = new[] { 30, 0, 0 }; // 80 carrots a second
+            s.Levels = new[] { 30, 0, 0 };
             s.TutorialStep = Tutorial.Steps;
             s.GardenXp = Garden.XpForLevel(FrogRabbit.FromLevel);
         }
 
-        /// <summary>A moment in the middle of the given shower of the day, in hours.</summary>
         static double InShower(long day, int shower) => Weather.ShowerStarts(day)[shower] + Weather.ShowerMinutes / 2d / 60d;
 
-        /// <summary>An hour of the day with no rain: just before the first shower.</summary>
         static double Dry(long day) => Weather.ShowerStarts(day)[0] - 0.5d;
 
         [Test]
@@ -39,7 +32,6 @@ namespace VuonTra.Core.Tests
                 for (double hour = 0; hour < 24d; hour += 0.37d)
                     Assert.AreEqual(Weather.IsRaining(day, hour), Weather.IsRaining(day, hour), "day " + day + " hour " + hour);
             }
-            // Different days are different days: the showers move about.
             var firsts = new HashSet<double>();
             for (long day = 20000; day < 20030; day++) firsts.Add(Weather.ShowerStarts(day)[0]);
             Assert.Greater(firsts.Count, 20, "the hours change from day to day");
@@ -59,7 +51,6 @@ namespace VuonTra.Core.Tests
                 Assert.LessOrEqual(starts[1] + Weather.ShowerMinutes / 60d, Weather.LastHour, "over before the last hour");
                 Assert.GreaterOrEqual((starts[1] - starts[0]) * 60d, Weather.ShowerMinutes + Weather.GapMinutes - 1e-9, "never overlapping, and well apart");
 
-                // Minute by minute, the day has sixteen minutes of rain, in two showers.
                 int rainy = 0, showers = 0;
                 bool was = false;
                 for (int minute = 0; minute < 24 * 60; minute++)
@@ -119,7 +110,7 @@ namespace VuonTra.Core.Tests
             var m = Modifiers.None;
             m.IncomeMultiplier = 2d;
             m.SpeedMultiplier = 1.5d;
-            m.AwayIncomeMultiplier = 3d; // not time away
+            m.AwayIncomeMultiplier = 3d;
             Assert.AreEqual(80d * 600d * 3d, FrogRabbit.Reward(defs, s, m).ToDouble(), 1e-6);
             BigNum earned = s.TotalEarned;
             Assert.IsTrue(FrogRabbit.Greet(defs, s, m, day, InShower(day, 0), 0.9d, out BigNum paid, out int clovers));
@@ -133,7 +124,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, s.FrogsMet);
             Assert.IsFalse(FrogRabbit.Greet(defs, s, m, day, InShower(day, 0), 0d, out _, out _), "once");
 
-            // The second shower's frog, with a lucky roll: a clover too.
             Assert.AreEqual(FrogEvent.Arrived, FrogRabbit.Advance(s, 1d, day, InShower(day, 1)));
             Assert.IsTrue(FrogRabbit.Greet(defs, s, m, day, InShower(day, 1), FrogRabbit.CloverChance - 0.01d, out _, out clovers));
             Assert.AreEqual(1, clovers);
@@ -154,7 +144,6 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(FrogRabbit.Greet(defs, s, Modifiers.None, day, start + 3d / 60d, 0d, out _, out _), "gone: nothing to greet");
             Assert.AreEqual(FrogEvent.None, FrogRabbit.Advance(s, 1d, day, start + 4d / 60d), "one frog a shower, greeted or not");
 
-            // The second shower's frog arrives near its end and leaves with the rain.
             double second = Weather.ShowerStarts(day)[1];
             Assert.AreEqual(FrogEvent.Arrived, FrogRabbit.Advance(s, 1d, day, second + 7.5d / 60d));
             Assert.AreEqual(FrogEvent.Left, FrogRabbit.Advance(s, 1d, day, second + 8.1d / 60d), "the rain is over");
@@ -177,13 +166,11 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, FrogRabbit.PerDay);
             BigNum coins = s.Coins;
 
-            // The clock is set back an hour into the first shower of the same day: no third frog.
             for (int k = 0; k < 2; k++)
             {
                 Assert.AreEqual(FrogEvent.None, FrogRabbit.Advance(s, 1d, day, InShower(day, k)));
                 Assert.IsFalse(FrogRabbit.Here(s));
             }
-            // Back to yesterday (a day number below the one stored): nothing either.
             Assert.AreEqual(FrogEvent.None, FrogRabbit.Advance(s, 1d, day - 1, InShower(day - 1, 0)));
             Assert.IsFalse(FrogRabbit.Here(s));
             Assert.IsFalse(FrogRabbit.Greet(defs, s, Modifiers.None, day - 1, InShower(day - 1, 0), 0d, out _, out _));
@@ -191,14 +178,12 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, s.FrogsToday);
             Assert.AreEqual(coins.ToDouble(), s.Coins.ToDouble(), 1e-9);
 
-            // A frog that came yesterday and was still here when the clock went back hops home.
             SetUp();
             FrogRabbit.Advance(s, 1d, day, InShower(day, 0));
             Assert.IsTrue(FrogRabbit.Here(s));
             Assert.AreEqual(FrogEvent.Left, FrogRabbit.Advance(s, 1d, day - 1, InShower(day - 1, 0)));
             Assert.IsFalse(FrogRabbit.Greet(defs, s, Modifiers.None, day - 1, InShower(day - 1, 0), 0d, out _, out _));
 
-            // A new day: two more.
             Assert.AreEqual(FrogEvent.Arrived, FrogRabbit.Advance(s, 1d, day + 1, InShower(day + 1, 0)));
             Assert.AreEqual(0, s.FrogsToday);
             Assert.IsTrue(FrogRabbit.Greet(defs, s, Modifiers.None, day + 1, InShower(day + 1, 0), 0.5d, out _, out _));
@@ -217,7 +202,6 @@ namespace VuonTra.Core.Tests
             }
             s.GardenXp = Garden.XpForLevel(FrogRabbit.FromLevel);
             Assert.AreEqual(FrogEvent.Arrived, FrogRabbit.Advance(s, 1d, day, InShower(day, 0)), "the shower's frog was not used up by the wait");
-            // Nor during the first minute's guidance.
             s = GameState.NewGame(defs);
             s.GardenXp = Garden.XpForLevel(FrogRabbit.FromLevel);
             Assert.AreEqual(FrogEvent.None, FrogRabbit.Advance(s, 1d, day, InShower(day, 0)));
@@ -257,7 +241,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(7, r.FrogsMet);
             Assert.AreEqual(42.5d, r.FrogLeft, 1e-9);
 
-            // A save from before the rain: none met, today's frogs still to come.
             string old = SaveCodec.Encode(defs, GameState.NewGame(defs));
             int at = old.IndexOf(",\"frog\":", System.StringComparison.Ordinal);
             Assert.Greater(at, 0);
@@ -270,7 +253,6 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, fromOld.State.FrogsMet);
             Assert.AreEqual(0d, fromOld.State.FrogLeft, 1e-9);
 
-            // An edited save cannot hold a frog for an hour, or more frogs today than a day brings.
             string edited = SaveCodec.Encode(defs, s).Replace("\"left\":42.5", "\"left\":4000").Replace("\"today\":1,\"met\"", "\"today\":9,\"met\"");
             GameState e = SaveCodec.Decode(defs, edited).State;
             Assert.AreEqual(FrogRabbit.StaySeconds, e.FrogLeft, 1e-9);

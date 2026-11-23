@@ -3,19 +3,15 @@ using System.Collections.Generic;
 
 namespace VuonTra.Core
 {
-    /// <summary>The price and income formulas. Pure functions, no state.</summary>
     public static class Economy
     {
         public static readonly int[] Milestones = { 10, 25, 50, 100, 150, 200, 300, 400, 500 };
-        /// <summary>A station goes no higher than its last milestone.</summary>
         public const int MaxLevel = 500;
 
-        /// <summary>How many levels a station can still gain; never negative.</summary>
         public static int LevelsLeft(int level) => Math.Max(0, MaxLevel - level);
 
         const int MaxBuyCount = 1_000_000;
 
-        /// <summary>Doubles at every milestone level reached.</summary>
         public static double MilestoneMultiplier(int level)
         {
             double m = 1d;
@@ -24,10 +20,8 @@ namespace VuonTra.Core
             return m;
         }
 
-        /// <summary>The levels at which a station visibly changes rank: bunting, stone lanterns, then a golden halo (#49).</summary>
         public static readonly int[] Ranks = { 25, 100, 300 };
 
-        /// <summary>How many of the three visible ranks a station of this level has reached, 0 to 3.</summary>
         public static int Rank(int level)
         {
             int rank = 0;
@@ -36,7 +30,6 @@ namespace VuonTra.Core
             return rank;
         }
 
-        /// <summary>The next milestone above this level, or 0 when none is left.</summary>
         public static int NextMilestone(int level)
         {
             for (int i = 0; i < Milestones.Length; i++)
@@ -44,7 +37,6 @@ namespace VuonTra.Core
             return 0;
         }
 
-        /// <summary>The milestone at or below this level, or 0.</summary>
         public static int PreviousMilestone(int level)
         {
             int prev = 0;
@@ -53,10 +45,6 @@ namespace VuonTra.Core
             return prev;
         }
 
-        /// <summary>
-        /// Price of the next <paramref name="count"/> levels from <paramref name="level"/>.
-        /// Unlocking (level 0, count 1) costs exactly BaseCost.
-        /// </summary>
         public static BigNum CostOfNext(StationDef d, int level, int count)
         {
             if (count <= 0) return BigNum.Zero;
@@ -67,7 +55,6 @@ namespace VuonTra.Core
             return first * series;
         }
 
-        /// <summary>The most levels these coins can buy from this level.</summary>
         public static int MaxAffordable(StationDef d, int level, BigNum coins)
         {
             int left = LevelsLeft(level);
@@ -79,51 +66,40 @@ namespace VuonTra.Core
             double estimate = Math.Floor(ratio.Log10() / Math.Log10(d.CostGrowth));
             int n = estimate >= MaxBuyCount ? MaxBuyCount : Math.Max(1, (int)estimate);
 
-            // The closed form can be off by one from rounding; settle it against the real price.
             while (n > 1 && CostOfNext(d, level, n) > coins) n--;
             while (n < MaxBuyCount && CostOfNext(d, level, n + 1) <= coins) n++;
             return Math.Min(n, left);
         }
 
-        /// <summary>Price multiplier an Ingredient station gives the Brew stations it supplies.</summary>
         public static double IngredientBoost(int level)
         {
             return level <= 0 ? 1d : 1d + 0.10d * level * MilestoneMultiplier(level);
         }
 
-        /// <summary>The multiplier this Ingredient station gives at this level: the rise of <see cref="IngredientBoost(int)"/>, scaled by its <see cref="StationDef.BoostScale"/> (#83).</summary>
         public static double IngredientBoost(StationDef d, int level)
         {
             return 1d + (IngredientBoost(level) - 1d) * d.BoostScale;
         }
 
-        /// <summary>Sương one finished cycle pays. Zero for Ingredient or locked stations.</summary>
         public static BigNum IncomePerCycle(IReadOnlyList<StationDef> defs, GameState s, int index) => IncomePerCycle(defs, s, index, AlbumSets.Factors(s));
 
-        /// <summary><see cref="IncomePerCycle(IReadOnlyList{StationDef}, GameState, int)"/> with the album read once by the caller (#97).</summary>
         static BigNum IncomePerCycle(IReadOnlyList<StationDef> defs, GameState s, int index, in AlbumFactors album)
         {
             var d = defs[index];
             int level = s.Levels[index];
-            if (d.Kind != StationKind.Brew || level <= 0 || Layout.IsStored(defs, s, index)) return BigNum.Zero; // a stored station earns nothing (#54)
+            if (d.Kind != StationKind.Brew || level <= 0 || Layout.IsStored(defs, s, index)) return BigNum.Zero;
 
             var income = new BigNum(d.BaseIncome * level * MilestoneMultiplier(level));
             for (int i = 0; i < defs.Count; i++)
             {
                 var other = defs[i];
                 if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0 || Layout.IsStored(defs, s, i)) continue;
-                // A rabbit at an ingredient station strengthens the bonus it gives, not the base 1; so do the album's sets (#61).
                 if (other.Boosts(d.Id))
                     income *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * album.At(defs, i);
             }
-            // The album's complete sets of the station's trade (#61): +3 % each.
             return income * Rabbits.StationMultiplier(defs, s, index) * album.At(defs, index);
         }
 
-        /// <summary>
-        /// One station's share of the income, a second, with the two factors that shaped it: the rabbit at
-        /// work there and the ingredient stations that feed it. Zero, and both factors 1, where nothing is earned.
-        /// </summary>
         public static BigNum StationIncomePerSecond(IReadOnlyList<StationDef> defs, GameState s, int index, out double rabbit, out double ingredients)
         {
             rabbit = 1d;
@@ -154,16 +130,14 @@ namespace VuonTra.Core
             return total;
         }
 
-        /// <summary>A station can be opened once the one before it is open, on a plot of its own, in a garden grown to the level it asks for (#67).</summary>
         public static bool CanUnlock(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
             if (index < 0 || index >= s.Levels.Length || index >= defs.Count) return false;
-            if (index >= s.Plots) return false; // no plot for it yet
+            if (index >= s.Plots) return false;
             if (!HasGardenLevel(defs, s, index)) return false;
             return index == 0 || s.Levels[index - 1] > 0;
         }
 
-        /// <summary>Whether the garden is grown enough for this station (#67): true for a station that asks for no level.</summary>
         public static bool HasGardenLevel(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
             return index < 0 || index >= defs.Count || Garden.Level(s) >= defs[index].NeedGardenLevel;

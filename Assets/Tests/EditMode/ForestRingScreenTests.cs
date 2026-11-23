@@ -10,7 +10,6 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The forest steps back ring by ring on the garden screen (#53): the sign at the lawn's edge, the new grass, the rim and the view.</summary>
     public class ForestRingScreenTests
     {
         GameObject root;
@@ -27,11 +26,11 @@ namespace VuonTra.Core.Tests
             cam.transform.SetParent(root.transform);
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
-            runner.Init(GameState.NewGame(catalog.BuildDefs())); // preset: never touches the save file
+            runner.Init(GameState.NewGame(catalog.BuildDefs()));
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
-            screen.Raining = () => false; // the real clock may fall in a shower (#62): these tests are about a dry garden
+            screen.Raining = () => false;
             screen.Build();
             screen.Refresh();
         }
@@ -48,7 +47,6 @@ namespace VuonTra.Core.Tests
         Transform Sign => root.transform.Find("Canvas/Garden/Content/Forest Sign");
         Transform World => root.transform.Find("Canvas/Garden/Content");
 
-        /// <summary>A garden that has everything the next ring asks for: the level, rabbits and kinds, and the carrots.</summary>
         void ReadyForTheNextRing()
         {
             GameState s = runner.State;
@@ -91,7 +89,6 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(World.Find("Segment Grass 1").gameObject.activeSelf, "new grass on the segment just opened");
             Assert.IsFalse(World.Find("Segment Grass 2").gameObject.activeSelf, "and none yet on the segment after");
 
-            // The second ring: the sign comes back once the garden has grown enough, and opens it the same way.
             ReadyForTheNextRing();
             Assert.IsTrue(Sign.gameObject.activeSelf);
             Sign.Find("Board").GetComponent<Button>().onClick.Invoke();
@@ -124,7 +121,7 @@ namespace VuonTra.Core.Tests
             ReadyForTheNextRing();
             Assert.AreEqual(Vector3.one, Sign.localScale, "the sign is simply there");
             Sign.Find("Board").GetComponent<Button>().onClick.Invoke();
-            screen.Refresh(); // no time passes
+            screen.Refresh();
             Transform grass = World.Find("Segment Grass 1");
             Assert.IsTrue(grass.gameObject.activeSelf);
             foreach (Transform tuft in grass) Assert.AreEqual(1f, tuft.localScale.x, 1e-6f, tuft.name + " is there at once");

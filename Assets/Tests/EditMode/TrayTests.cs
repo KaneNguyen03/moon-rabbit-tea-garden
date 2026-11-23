@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
-    /// <summary>The product tray: batches, stacking, selling, filling while away, golden ones, and the pace it adds.</summary>
     public class TrayTests
     {
         List<StationDef> defs;
@@ -15,7 +14,7 @@ namespace VuonTra.Core.Tests
         {
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
-            s.Levels = new[] { 5, 2, 1 }; // tea, leaf (ingredient), jam
+            s.Levels = new[] { 5, 2, 1 };
             made.Clear();
         }
 
@@ -48,7 +47,7 @@ namespace VuonTra.Core.Tests
             s = GameState.NewGame(defs);
             s.Levels = new[] { 5, 0, 0 };
             s.Energy = Energy.Max;
-            Energy.TryBoost(s); // thirty seconds at double speed: sixty seconds of work in thirty
+            Energy.TryBoost(s);
             Run(Energy.BoostSeconds + (Tray.ProductEvery - Energy.BoostSeconds * Energy.BoostSpeed) + 1d);
             Assert.AreEqual(1, s.Tray.Count, "boosted seconds count double towards a batch");
         }
@@ -170,7 +169,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Player_Who_Collects_Everything_Earns_About_A_Fifth_More()
         {
-            // Ten minutes at the fixture garden, selling the tray every minute and a half.
             BigNum sold = BigNum.Zero, paidOut = BigNum.Zero;
             double clock = 0;
             while (clock < 600d)

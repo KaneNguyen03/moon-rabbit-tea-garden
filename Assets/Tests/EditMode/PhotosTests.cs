@@ -22,7 +22,6 @@ namespace VuonTra.Core.Tests
         [Test]
         public void A_Clock_Turned_Back_Never_Pays_The_Photo_Gift_Again()
         {
-            // #78: switching the device between two days used to pay a golden carrot every time.
             GameState s = GameState.NewGame(Fixture.Defs());
             Assert.IsTrue(Photos.Take(s, 101));
             Assert.IsFalse(Photos.GiftWaiting(s, 100), "an earlier day has no gift waiting");
