@@ -1541,6 +1541,10 @@ namespace VuonTra.Game.UI
             // The mist over the segments still to open lies over everything on their land (the horizontal garden); the sign stands
             // in front of it, at the lawn's end.
             foreach (CanvasGroup mist in _mist) mist.transform.SetAsLastSibling();
+            // What must be read stays over the mist's thick edge (#16): the firefly jar, whose plate reaches to the lawn's left
+            // end, and every station's front (its level plate) and the sign.
+            if (_jarProp != null) _jarProp.SetAsLastSibling();
+            foreach (StationActorView actor in _actors) actor.Front.SetAsLastSibling();
             if (_forestSign != null) _forestSign.SetAsLastSibling();
 
             BuildFireflies(catalog);
@@ -6619,6 +6623,12 @@ namespace VuonTra.Game.UI
             // A broad veil first, so the land reads as hidden; the washes over it make the cloud bank's soft shapes.
             UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (MistLow + MistHigh) / 2f, span.y - span.x + 320f, MistHigh - MistLow + 300f)
                 .AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.18f), 0.75f)).raycastTarget = false;
+            // The bank at the edge it shares with the open lawn (#16): thick, with a wandering edge like a wash that dried, so the
+            // land still to open reads as such on the dark grass. The washes over it keep it soft.
+            bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
+            float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
+            UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (MistLow + MistHigh) / 2f, MistEdgeWidth, MistHigh - MistLow + 200f)
+                .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
             const int Across = 3, Down = 9;
             for (int a = 0; a < Across; a++)
                 for (int d = 0; d < Down; d++)
@@ -6631,6 +6641,44 @@ namespace VuonTra.Game.UI
                 }
             mist.gameObject.SetActive(true);
             return group;
+        }
+
+        /// <summary>The mist's bank at a shut segment's edge: how wide it is, and how far it reaches over the open lawn at most.</summary>
+        const float MistEdgeWidth = 330f, MistEdgeOut = 40f;
+        static Sprite _mistEdgeRight, _mistEdgeLeft;
+
+        /// <summary>
+        /// The bank's picture, painted once: white, clear on the lawn's side, rising to full over a short wandering edge, then
+        /// fading into the segment's own washes, with a little grain, and fading out at the top and the bottom.
+        /// </summary>
+        static Sprite MistEdgeSprite(bool right)
+        {
+            Sprite cached = right ? _mistEdgeRight : _mistEdgeLeft;
+            if (cached != null) return cached;
+            const int W = 64, H = 256;
+            var tex = new Texture2D(W, H, TextureFormat.RGBA32, false) { name = "Mist Edge", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            var pixels = new Color32[W * H];
+            for (int y = 0; y < H; y++)
+            {
+                float v = (y + 0.5f) / H;
+                float wander = 0.5f + 0.25f * Mathf.Sin(v * 17.3f) + 0.15f * Mathf.Sin(v * 41.9f + 1.3f) + 0.1f * Mathf.Sin(v * 97.1f + 0.7f);
+                float edge = 0.08f * wander; // where the bank begins, from the lawn's side: never past the first tenth
+                float ends = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(v / 0.1f)) * Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((1f - v) / 0.1f));
+                for (int x = 0; x < W; x++)
+                {
+                    float u = (x + 0.5f) / W, from = right ? u : 1f - u;
+                    float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((from - edge) / 0.12f));
+                    float fade = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((from - 0.55f) / 0.45f));
+                    float grain = 0.92f + 0.08f * Mathf.Sin(u * 31f + v * 53f) * Mathf.Sin(v * 23f - u * 11f);
+                    pixels[y * W + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(255f * rise * fade * ends * grain));
+                }
+            }
+            tex.SetPixels32(pixels);
+            tex.Apply(false, false);
+            Sprite sprite = Sprite.Create(tex, new Rect(0, 0, W, H), new Vector2(0.5f, 0.5f), 100f);
+            sprite.name = "Mist Edge";
+            if (right) _mistEdgeRight = sprite; else _mistEdgeLeft = sprite;
+            return sprite;
         }
 
         /// <summary>The mist of segment <paramref name="segment"/> (1 for the first), for the tests and previews.</summary>

@@ -6562,5 +6562,149 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, Expansion.Segments(s), "the first segment came out of the mist");
             AssertPondPlateReads("after the first segment opens");
         }
+
+        /// <summary>Readable copies of the art the mist is painted with, so a test can read its alpha.</summary>
+        readonly Dictionary<Texture, Texture2D> _readable = new Dictionary<Texture, Texture2D>();
+
+        float AlphaOf(Sprite sprite, Vector2 uv)
+        {
+            if (sprite == null) return 1f;
+            if (!_readable.TryGetValue(sprite.texture, out Texture2D copy))
+            {
+                if (sprite.texture.isReadable) copy = sprite.texture; // painted by the game itself
+                else
+                {
+                    copy = new Texture2D(2, 2);
+                    copy.LoadImage(System.IO.File.ReadAllBytes(AssetDatabase.GetAssetPath(sprite.texture)));
+                }
+                _readable[sprite.texture] = copy;
+            }
+            Rect r = sprite.textureRect;
+            float w = sprite.texture.width, h = sprite.texture.height;
+            return copy.GetPixelBilinear((r.x + uv.x * r.width) / w, (r.y + uv.y * r.height) / h).a;
+        }
+
+        /// <summary>How much the mist hides at a garden point: every veil and wash over it, laid one over another as they are drawn.</summary>
+        float MistCoverAt(Vector2 at)
+        {
+            float clear = 1f;
+            for (int n = 1; n <= Expansion.LastSegments(runner.Defs); n++)
+            {
+                CanvasGroup mist = screen.MistOf(n);
+                if (mist == null || !mist.gameObject.activeInHierarchy) continue;
+                foreach (Image wash in mist.GetComponentsInChildren<Image>(false))
+                {
+                    RectTransform rt = wash.rectTransform;
+                    var c = new Vector3[4];
+                    rt.GetWorldCorners(c);
+                    Vector2 a = World.InverseTransformPoint(c[0]), b = World.InverseTransformPoint(c[2]);
+                    Rect r = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+                    if (!r.Contains(at)) continue;
+                    Vector2 uv = new Vector2((at.x - r.xMin) / r.width, (at.y - r.yMin) / r.height);
+                    clear *= 1f - mist.alpha * wash.color.a * AlphaOf(wash.sprite, uv);
+                }
+            }
+            return 1f - clear;
+        }
+
+        /// <summary>The least the mist hides just inside a shut segment, where it meets the open lawn.</summary>
+        public const float MistEdgeLeast = 0.6f;
+
+        [Test]
+        public void The_Mist_Reads_Thick_Where_A_Shut_Segment_Meets_The_Open_Lawn()
+        {
+            Motion.SetReduced(true);
+            int last = Expansion.LastSegments(runner.Defs);
+            var thin = new List<string>();
+            float least = 1f;
+            for (int open = 0; open < last; open++)
+            {
+                HavePlots(Expansion.PlotsForSegments(runner.Defs, open));
+                // The first shut segment on each side, at the edge it shares with the open lawn.
+                for (int n = open + 1; n <= Mathf.Min(last, open + 2); n++)
+                {
+                    Vector2 span = GardenScreen.SegmentSpan(n);
+                    bool right = GardenGrid.SideOf(n) == GardenSide.Right;
+                    float edge = right ? span.x : span.y, inward = right ? 1f : -1f;
+                    foreach (float depth in new[] { 20f, 60f })
+                        for (float y = Teapot.y - 600f; y <= Teapot.y + 600f; y += 25f)
+                        {
+                            var at = new Vector2(edge + inward * depth, y);
+                            float cover = MistCoverAt(at);
+                            least = Mathf.Min(least, cover);
+                            if (cover < MistEdgeLeast) thin.Add("segment " + n + " (" + open + " open) at " + at + ": " + cover.ToString("0.00"));
+                        }
+                }
+            }
+            Assert.IsEmpty(thin, "the least is " + least.ToString("0.00") + "; thin at " + thin.Count + " points:\n" + string.Join("\n", thin.GetRange(0, Mathf.Min(20, thin.Count))));
+        }
+
+        [Test]
+        public void No_Plate_Or_Sign_Of_The_Open_Lawn_Lies_Under_The_Mist()
+        {
+            Motion.SetReduced(true);
+            GameState s = runner.State;
+            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket, the jar and the pond are out
+            int last = Expansion.LastSegments(runner.Defs);
+            var under = new List<string>();
+            int measured = 0;
+            for (int open = 0; open < last; open++)
+            {
+                HavePlots(Expansion.PlotsForSegments(runner.Defs, open));
+                // Ready for the next segment, so the sign stands at the lawn's edge.
+                MistSegment next = Expansion.Next(runner.Defs, s);
+                s.GardenXp = System.Math.Max(s.GardenXp, Garden.XpForLevel(next.NeedLevel));
+                while (s.Rabbits.Count < next.NeedRabbits) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" + s.NextRabbitId });
+                foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
+                s.Coins = Expansion.CostOfNext(runner.Defs, s) + new BigNum(1);
+                screen.Refresh();
+                var readable = new List<RectTransform>();
+                foreach (Transform child in World)
+                {
+                    if (!child.gameObject.activeInHierarchy) continue;
+                    Transform plate = child.name.StartsWith("Station ") ? child.Find("Level") : (child.name == "Forest Sign" ? child.Find("Board") : (child.name.StartsWith("Spot ") ? null : child.Find("Plate")));
+                    if (plate != null && plate.gameObject.activeInHierarchy) readable.Add((RectTransform)plate);
+                }
+                Assert.IsTrue(World.Find("Forest Sign").gameObject.activeSelf, "the sign is up with " + open + " open");
+                int mistTop = -1;
+                for (int n = open + 1; n <= last; n++) mistTop = Mathf.Max(mistTop, screen.MistOf(n).transform.GetSiblingIndex());
+                foreach (RectTransform plate in readable)
+                {
+                    var c = new Vector3[4];
+                    plate.GetWorldCorners(c);
+                    Vector2 a = World.InverseTransformPoint(c[0]), b = World.InverseTransformPoint(c[2]);
+                    Rect r = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+                    int segment = GardenGrid.SegmentOf(GardenScreen.WorldToCell(r.center));
+                    bool sign = plate.parent.name == "Forest Sign";
+                    if (!sign && (segment < 0 || segment > open)) continue; // a plate out on the land still to open
+                    measured++;
+                    Transform top = plate;
+                    while (top.parent != World) top = top.parent;
+                    if (top.GetSiblingIndex() > mistTop) continue; // drawn over the mist
+                    float most = 0f;
+                    for (float x = r.xMin; x <= r.xMax; x += 10f)
+                        for (float y = r.yMin; y <= r.yMax; y += 10f) most = Mathf.Max(most, MistCoverAt(new Vector2(x, y)));
+                    if (most > 0.05f) under.Add(top.name + "/" + plate.name + " at " + r + " with " + open + " open: mist " + most.ToString("0.00"));
+                }
+            }
+            Assert.Greater(measured, 20, "the plates of the open lawn were measured");
+            Assert.IsEmpty(under, under.Count + " under the mist:\n" + string.Join("\n", under));
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_Opening_A_Segment_Clears_Its_Mist_Edge_And_All_At_Once()
+        {
+            Motion.SetReduced(true);
+            screen.Shell.StartGame();
+            HavePlots(Plots.Starting);
+            CanvasGroup mist = screen.MistOf(1);
+            Assert.IsTrue(mist.gameObject.activeSelf);
+            Vector2 edge = new Vector2(GardenScreen.SegmentSpan(1).x + 20f, Teapot.y);
+            Assert.Greater(MistCoverAt(edge), MistEdgeLeast);
+            HavePlots(Plots.Starting + 2);
+            Assert.IsFalse(mist.gameObject.activeSelf, "no time passes: the mist is simply gone");
+            Assert.AreEqual(0f, MistCoverAt(edge), 1e-4f, "its thick edge with it");
+            Assert.IsTrue(screen.MistOf(2).gameObject.activeSelf, "the next segment's mist stays");
+        }
     }
 }
