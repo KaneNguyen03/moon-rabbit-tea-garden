@@ -50,17 +50,26 @@ namespace VuonTra.Core
             return Math.Max(0d, Math.Min(1d, into / XpToNext(level)));
         }
 
-        /// <summary>Adds experience; each level gained brings its clover, every fifth golden carrots, every tenth a moon jar. Returns how many levels were gained.</summary>
+        /// <summary>
+        /// Adds experience, times the new moon's bonus (#98): a garden on its second season earns a quarter more of it, as it
+        /// earns a quarter more carrots, so each season climbs to the next new moon in about the same week and a half rather
+        /// than slower than the first. Each level gained brings its clover, every fifth golden carrots (only the first time the
+        /// garden gets there, <see cref="NewMoon.LevelPassed"/>), every tenth a moon jar.
+        /// Returns how many levels were gained.
+        /// </summary>
         public static int AddXp(GameState s, double amount)
         {
             if (!(amount > 0d)) return 0;
+            amount *= NewMoon.Bonus(s);
             int before = Level(s);
             s.GardenXp += amount;
             int gained = Level(s) - before;
             if (gained > 0)
             {
                 s.Clovers += gained * CloversPerLevel;
-                s.GoldenCarrots += Shop.GoldenForLevels(before, Level(s)); // every fifth level brings golden carrots
+                // Every fifth level brings golden carrots, once (#98): a later season pays only for the levels past the one its last
+                // new moon asked for, which the garden has surely reached before. Climbing back up still pays a clover a level.
+                s.GoldenCarrots += Shop.GoldenForLevels(Math.Max(before, NewMoon.LevelPassed(s)), Level(s));
                 // Every tenth level brings the day's free moon jar (#64), when it has not come today and the shelf has room.
                 if (MoonJars.TenthLevels(before, Level(s)) > 0) MoonJars.GiveFree(s, s.DailyDay);
             }

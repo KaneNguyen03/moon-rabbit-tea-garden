@@ -26,6 +26,8 @@ namespace VuonTra.Core.Tests
         double clock; // seconds of the player's day
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
         readonly double[] waveLevelAt = new double[Expansion.Table.Length], waveRabbitsAt = new double[Expansion.Table.Length], waveTakenAt = new double[Expansion.Table.Length];
+        /// <summary>The day each segment came out of the mist, or -1.</summary>
+        readonly long[] waveTakenOn = new long[Expansion.Table.Length];
         int summoned;
         /// <summary>How the simulated player plays: taps a second, seconds between purchases, seconds between looking at quests.</summary>
         int tapsPerSecond = 1, buyEvery = 3, buysAtOnce = 1, questEvery = 30;
@@ -57,6 +59,12 @@ namespace VuonTra.Core.Tests
         const double FishCatchRate = 0.8;
         int casts, fishCaught, fishPoints;
         System.Random fishRng;
+        /// <summary>
+        /// "Nâng tất cả" (#36, #99): the player also presses the station sheet's upgrade-everything button as each sitting opens
+        /// and before it ends, which buys what the game's button buys (<see cref="UpgradePlan.Plan"/> on <see cref="Simulation.Budget"/>).
+        /// Off by default: the rules above were set on a player who buys one level at a time.
+        /// </summary>
+        bool upgradeAll;
 
         /// <summary>The seed the detailed reports in the logs are played on.</summary>
         const int Seed = 20261122;
@@ -86,7 +94,7 @@ namespace VuonTra.Core.Tests
             tapsPerSecond = 1; buyEvery = 3; buysAtOnce = 1; questEvery = 30; // NUnit keeps one instance: a tireless test before must not set the pace of the next
             levelAt.Clear();
             summoned = 0;
-            for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
+            for (int i = 0; i < waveLevelAt.Length; i++) { waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1; waveTakenOn[i] = -1; }
             trace.Clear();
             openJars = true;
             today = 1;
@@ -103,6 +111,7 @@ namespace VuonTra.Core.Tests
             goFishing = true;
             casts = fishCaught = fishPoints = 0;
             fishRng = new System.Random(unchecked(seed * 31 + 58));
+            upgradeAll = false;
             levelDayOne = 0;
             setsDayOne = null;
             ringSevenDay = -1;
@@ -231,7 +240,7 @@ namespace VuonTra.Core.Tests
             {
                 if (Expansion.Expand(defs, s))
                 {
-                    if (Expansion.Segments(s) <= waveTakenAt.Length) waveTakenAt[Expansion.Segments(s) - 1] = clock; // a segment of the strip came out of the mist
+                    if (Expansion.Segments(s) <= waveTakenAt.Length) { waveTakenAt[Expansion.Segments(s) - 1] = clock; waveTakenOn[Expansion.Segments(s) - 1] = today; } // a segment of the strip came out of the mist
                     if (Expansion.Segments(s) == 4) ringSevenDay = today; // all twelve plots: the fourth segment, the old R 7
                     mods = Modifiers.From(ups, s); // one more place to rest (#60)
                     continue;
@@ -291,10 +300,19 @@ namespace VuonTra.Core.Tests
 
         readonly StringBuilder trace = new StringBuilder();
 
+        /// <summary>Presses "Nâng tất cả" when <see cref="upgradeAll"/>: the plan the button shows, for the purse the button spends.</summary>
+        void UpgradeAll()
+        {
+            if (!upgradeAll) return;
+            List<UpgradeStep> plan = UpgradePlan.Plan(defs, s, Simulation.Budget(s));
+            if (plan.Count > 0 && UpgradePlan.Apply(defs, s, plan)) Note();
+        }
+
         void Play(double seconds)
         {
             MeetFrog();
             GoFishing();
+            UpgradeAll();
             for (int i = 0; i < seconds; i++)
             {
                 ActiveSecond();
@@ -307,6 +325,7 @@ namespace VuonTra.Core.Tests
                         + "  trạm mở " + open + "  tổng cấp trạm " + levels + "  xp " + (int)s.GardenXp + "  thỏ " + s.Rabbits.Count + "  nhiệm vụ đã nhận " + s.Claimed.Count + "  cỏ đã dùng " + summoned);
                 }
             }
+            UpgradeAll();
         }
 
         void Away(double seconds)
@@ -373,7 +392,8 @@ namespace VuonTra.Core.Tests
             public int Seed;
             public double Level5, Level10, Level15;
             public int LevelDayOne, SetsDayOne, LevelEnd, Plots, JarsOpened, MostFreeJars, FrogsMet, FishCaught, Summoned;
-            public long RingSevenDay, Station13Day = -1, Station16Day = -1;
+            public long RingSevenDay, Station13Day = -1, Station16Day = -1, Segment5Day = -1, Segment6Day = -1;
+            public readonly long[] StationDay = { -1, -1, -1, -1 };
             public bool NewStationsInOrder = true;
             public readonly double[] Wait = new double[3];
             public double Coins, Xp;
@@ -391,6 +411,8 @@ namespace VuonTra.Core.Tests
             };
             for (int w = 0; w < 3; w++) r.Wait[w] = waveRabbitsAt[w] < 0 ? double.PositiveInfinity : waveRabbitsAt[w] - waveLevelAt[w];
             if (newStationOpenedOn.TryGetValue(12, out long on13)) r.Station13Day = on13;
+            for (int k = 0; k < 4; k++) if (newStationOpenedOn.TryGetValue(12 + k, out long on)) r.StationDay[k] = on;
+            if (waveTakenOn.Length > 5) { r.Segment5Day = waveTakenOn[4]; r.Segment6Day = waveTakenOn[5]; }
             if (newStationOpenedOn.TryGetValue(15, out long on16)) r.Station16Day = on16;
             for (int i = 13; i < defs.Count; i++)
                 if (!newStationOpenedOn.ContainsKey(i) || !newStationOpenedOn.ContainsKey(i - 1) || newStationOpenedOn[i] < newStationOpenedOn[i - 1]) r.NewStationsInOrder = false;
@@ -688,6 +710,69 @@ namespace VuonTra.Core.Tests
             Holds(runs, r => r.Station16Day >= 8 && r.Station16Day <= 12, "station 16 opens on day eight to twelve", text);
             Always(runs, r => r.NewStationsInOrder, "all four open, in order", text);
             Holds(runs, r => r.LevelEnd < NewMoon.FirstLevel, "the casual player does not reach the new moon in fourteen days (#1)", text);
+        }
+
+        /// <summary>A median and the lowest and highest over the seeds, a value of -1 (not reached) shown as "–".</summary>
+        static string Spread(Run[] runs, System.Func<Run, double> value, System.Func<double, string> show)
+        {
+            var values = new List<double>();
+            foreach (Run r in runs) values.Add(value(r) < 0 ? double.MaxValue : value(r));
+            values.Sort();
+            System.Func<double, string> one = v => v == double.MaxValue ? "–" : show(v);
+            return one(Median(values)) + " [" + one(values[0]) + "–" + one(values[values.Count - 1]) + "]";
+        }
+
+        /// <summary>The two buyers side by side: the milestones, and on how many seeds the four stations fall in the days of #67.</summary>
+        string UpgradeAllTable(Run[] single, Run[] all)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Nâng tất cả (#99): người chơi thong thả như trên, chơi tới ngày 14 trên " + Seeds.Length + " hạt; trung vị [thấp nhất–cao nhất]. Ngưỡng: đoạn 4 cấp " + Expansion.Segment(4).NeedLevel
+                + ", đoạn 5 cấp " + Expansion.Segment(5).NeedLevel + ", đoạn 6 cấp " + Expansion.Segment(6).NeedLevel + ", trạm 13–16 cấp " + defs[12].NeedGardenLevel + "/" + defs[13].NeedGardenLevel + "/" + defs[14].NeedGardenLevel + "/" + defs[15].NeedGardenLevel + ".");
+            sb.AppendLine();
+            sb.AppendLine("| Mốc | Mua từng cấp | Bấm Nâng tất cả đầu và cuối mỗi buổi |");
+            sb.AppendLine("|---|---|---|");
+            System.Action<string, System.Func<Run, double>, System.Func<double, string>> row = (label, value, show) =>
+                sb.AppendLine("| " + label + " | " + Spread(single, value, show) + " | " + Spread(all, value, show) + " |");
+            System.Func<double, string> day = v => "ngày " + v;
+            row("Cấp 5", r => r.Level5, v => Clock(v));
+            row("Cấp 10", r => r.Level10, v => Clock(v));
+            row("Cấp hết ngày 1", r => r.LevelDayOne, v => v.ToString());
+            row("12 ô đất (đoạn 4)", r => r.RingSevenDay, day);
+            row("Đoạn 5", r => r.Segment5Day, day);
+            row("Đoạn 6", r => r.Segment6Day, day);
+            for (int k = 0; k < 4; k++) { int kk = k; row("Trạm " + (13 + k) + " (" + defs[12 + k].Name + ")", r => r.StationDay[kk], day); }
+            row("Cấp ngày 14", r => r.LevelEnd, v => v.ToString());
+            sb.AppendLine("| Trạm 13 trong ngày 3–5 | " + Count(single, r => r.Station13Day >= 3 && r.Station13Day <= 5) + "/" + single.Length + " | " + Count(all, r => r.Station13Day >= 3 && r.Station13Day <= 5) + "/" + all.Length + " |");
+            sb.AppendLine("| Trạm 16 trong ngày 8–12 | " + Count(single, r => r.Station16Day >= 8 && r.Station16Day <= 12) + "/" + single.Length + " | " + Count(all, r => r.Station16Day >= 8 && r.Station16Day <= 12) + "/" + all.Length + " |");
+            sb.AppendLine("| 12 ô đất không trước ngày 3 | " + Count(single, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3) + "/" + single.Length + " | " + Count(all, r => r.RingSevenDay < 0 || r.RingSevenDay >= 3) + "/" + all.Length + " |");
+            return sb.ToString();
+        }
+
+        /// <summary>
+        /// "Nâng tất cả" (#36, #99): the casual player above, played to day fourteen on every seed twice: buying a level at a time,
+        /// as the rules above were set, and also pressing the upgrade-everything button as each sitting opens and before it ends.
+        /// The button spends the hours of income the first player leaves in the purse, so the garden is near level 22 at the end
+        /// of day one, and every gate below that (the twelve plots, the four new stations and their segments) falls on day one or
+        /// two. No garden level puts the thirteenth station on day three to five for both players (the first is at level 15 to 18
+        /// on those days, the second past 22), so those days are written to Logs/garden-pacing-upgrade-all.txt for the owner and
+        /// not asserted. What both players keep is: level 5 in about ten minutes, level 10 on day one, all sixteen stations by
+        /// day fourteen in order, one free jar a day, and no new moon in two weeks.
+        /// </summary>
+        [Test, Category("Slow")]
+        public void A_Casual_Player_Who_Presses_Upgrade_All_Keeps_The_First_Hour_And_Opens_All_Four_Stations_In_Order()
+        {
+            Run[] single = OverSeeds(seed => CasualWeek(14));
+            Run[] all = OverSeeds(seed => { upgradeAll = true; CasualWeek(14); });
+            string text = UpgradeAllTable(single, all);
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/garden-pacing-upgrade-all.txt", text);
+            TestContext.WriteLine(text);
+
+            Holds(all, r => r.Level5 >= 5 * 60 && r.Level5 <= 12 * 60, "level 5 still between minute five and minute twelve", text);
+            Holds(all, r => r.LevelDayOne >= 10, "level 10 within the first day", text);
+            Always(all, r => r.Plots == defs.Count && r.NewStationsInOrder, "every station has its land by day fourteen, the four new ones opened in order", text);
+            Always(all, r => r.MostFreeJars <= MoonJars.FreePerDay, "at most one free jar a day", text);
+            Holds(all, r => r.LevelEnd < NewMoon.FirstLevel, "no new moon in fourteen days", text);
         }
 
         #endregion

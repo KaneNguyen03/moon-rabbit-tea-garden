@@ -70,6 +70,12 @@ namespace VuonTra.Core.Tests
         /// places offer. What those paid, kept apart.
         /// </summary>
         bool takeFreeDouble, everyAd;
+        /// <summary>
+        /// "Nâng tất cả" (#36, #99): the player also presses the station sheet's upgrade-everything button as each sitting opens
+        /// and before it ends, which buys what the game's button buys (<see cref="UpgradePlan.Plan"/> on <see cref="Simulation.Budget"/>).
+        /// Off by default: the pace above was set on a player who buys one level at a time.
+        /// </summary>
+        bool upgradeAll;
         BigNum earnedDoubles, earnedAds;
         int goldenAds, extraRounds;
 
@@ -119,7 +125,7 @@ namespace VuonTra.Core.Tests
             fishRng = new System.Random(unchecked(seed * 31 + 58));
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
-            takeFreeDouble = everyAd = false;
+            takeFreeDouble = everyAd = upgradeAll = false;
             earnedDoubles = earnedAds = BigNum.Zero;
             goldenAds = extraRounds = 0;
             levelAt.Clear();
@@ -492,8 +498,18 @@ namespace VuonTra.Core.Tests
         void Play(double seconds)
         {
             OpenSession();
+            UpgradeAll();
             for (int i = 0; i < seconds; i++) ActiveSecond();
+            UpgradeAll();
             SellTray(false);
+        }
+
+        /// <summary>Presses "Nâng tất cả" when <see cref="upgradeAll"/>: the plan the button shows, for the purse the button spends.</summary>
+        void UpgradeAll()
+        {
+            if (!upgradeAll) return;
+            List<UpgradeStep> plan = UpgradePlan.Plan(defs, s, Simulation.Budget(s));
+            if (plan.Count > 0 && UpgradePlan.Apply(defs, s, plan)) Note();
         }
 
         void Away(double seconds)
@@ -589,10 +605,11 @@ namespace VuonTra.Core.Tests
         }
 
         /// <summary>The casual week: each day 20 minutes of play, 8 hours away, 10 minutes of play, away to the end of the day; seven days.</summary>
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false)
         {
             Reset(false, seed);
             goFishing = fishing;
+            upgradeAll = pressUpgradeAll;
             takeFreeDouble = freeDouble;
             everyAd = watchEveryAd;
             var w = new Week { Seed = seed };
@@ -958,6 +975,183 @@ namespace VuonTra.Core.Tests
             TestContext.WriteLine(report.ToString());
 
             HardRules(ads, report.ToString());
+        }
+        // ----- a player who presses "Nâng tất cả" (#36, #99) -----
+
+        Week[] upgradeAllOverSeeds;
+
+        Week[] UpgradeAllOverSeeds()
+        {
+            if (upgradeAllOverSeeds == null)
+            {
+                upgradeAllOverSeeds = new Week[Seeds.Length];
+                for (int i = 0; i < Seeds.Length; i++) upgradeAllOverSeeds[i] = CasualWeek(false, false, false, Seeds[i], true);
+            }
+            return upgradeAllOverSeeds;
+        }
+
+        /// <summary>
+        /// The casual week above, also pressing the station sheet's "Nâng tất cả" as each sitting opens and before it ends, over
+        /// the seventeen seeds, beside the same week bought a level at a time. The button spends the hours of income the other
+        /// player leaves in the purse, so level 10 comes at the end of the first sitting, all twelve plots on day two, and play's
+        /// share of day one shrinks to a few percent. Those rules were set on the one-level buyer and are written beside it to
+        /// Logs/economy-upgrade-all.txt for the owner (#99), not asserted; the first minutes, level 10 on day one, segments that
+        /// never wait on rabbits, quests under a third of day one, a few golden calls a week, the jars and the frogs hold for both.
+        /// </summary>
+        [Test, Category("Slow")]
+        public void A_Casual_Week_With_Upgrade_All_Keeps_The_First_Minutes_And_Level_Ten_On_Day_One()
+        {
+            Week[] single = OverSeeds(false, false, false);
+            Week[] all = UpgradeAllOverSeeds();
+
+            var report = new StringBuilder();
+            report.AppendLine("# Người chơi thong thả bấm Nâng tất cả (#99)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi với EconomySimulationTests; người thứ hai bấm \"Nâng tất cả\" (UpgradePlan, cả ví) lúc mở mỗi buổi và trước khi rời. Trung vị trên " + Seeds.Length + " hạt.");
+            report.AppendLine();
+            report.AppendLine("| Luật (#6, #83) | Mua từng cấp | Bấm Nâng tất cả |");
+            report.AppendLine("|---|---|---|");
+            System.Action<string, Func<Week, bool>> rule = (label, holds) =>
+                report.AppendLine("| " + label + " | " + Count(single, holds) + "/" + single.Length + " | " + Count(all, holds) + "/" + all.Length + " |");
+            rule("Cấp 5 trong phút 4–12", w => w.Level5 >= 4 * 60 && w.Level5 <= 12 * 60);
+            rule("Cấp 10 trong ngày 1", w => w.LevelDayOne >= 10);
+            rule("Cấp 10 không trong buổi đầu (≥ 2 giờ)", w => w.Level10 >= 2 * 3600);
+            rule("12 ô đất không trước ngày 3", w => w.Plots12 < 0 || w.Plots12 >= 2 * Day);
+            rule("Ba đoạn đầu không chờ thỏ", w => w.Wait[0] <= 300 && w.Wait[1] <= 300 && w.Wait[2] <= 300);
+            rule("Nhiệm vụ < 35 % ngày 1", w => w.QuestShare < 35);
+            rule("Gọi vàng + thỏ ghé tiệm 2–6 trong tuần", w => w.Golden >= 2 && w.Golden <= 6);
+            report.AppendLine("| Trò chơi + khách ngày 1 (trung vị, luật 15–30 %) | " + Math.Round(Median(single, w => w.PlayShare), 1) + " % | " + Math.Round(Median(all, w => w.PlayShare), 1) + " % |");
+            report.AppendLine("| Thu/giây hết ngày 7 (trung vị, luật ≤ " + new BigNum(10 * DaySevenIncomeBeforeFourStations).ToShortString() + ") | " + new BigNum(Median(single, w => w.Income7)).ToShortString() + " | " + new BigNum(Median(all, w => w.Income7)).ToShortString() + " |");
+            report.AppendLine();
+            report.AppendLine("Bấm Nâng tất cả, từng hạt:");
+            report.Append(SeedTable(all));
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-upgrade-all.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Holds(all, w => w.Level5 >= 4 * 60 && w.Level5 <= 12 * 60, "garden level 5 between minute four and minute twelve", text);
+            Assert.LessOrEqual(Median(all, w => w.Level5), 9 * 60, "garden level 5 by minute nine on the median\n" + text);
+            Holds(all, w => w.LevelDayOne >= 10, "garden level 10 within day one", text);
+            Holds(all, w => w.Wait[0] <= 300 && w.Wait[1] <= 300 && w.Wait[2] <= 300, "no segment waits on rabbits", text);
+            Holds(all, w => w.QuestShare < 35, "quests should not dominate day one", text);
+            Holds(all, w => w.Golden >= 2 && w.Golden <= 6, "golden calls a few times a week, at most six", text);
+            Always(all, w => w.JarsOpened > 0 && w.MostFreeJars <= MoonJars.FreePerDay, "jars come, at most one free a day", text);
+            Always(all, w => w.FrogsMet > 0 && w.FrogsMet <= 7 * FrogRabbit.PerDay, "the Frog Rabbit, two a day at most", text);
+        }
+        // ----- the seasons after the first new moon (#98) -----
+
+        /// <summary>Where five weeks of the casual player ended up: the day of each new moon, golden calls each week, and the longest wait for anything new.</summary>
+        sealed class Seasons
+        {
+            public int Seed;
+            public readonly List<long> MoonDays = new List<long>();
+            public readonly List<int> GoldenByWeek = new List<int>();
+            /// <summary>The most days in a row, from day eight on, that ended with no garden level gained and nothing opened (a station, a segment, a season).</summary>
+            public int LongestStill;
+            public long MoonDay(int n) => MoonDays.Count >= n ? MoonDays[n - 1] : 99;
+        }
+
+        static List<string> WeeklyMedians(Seasons[] runs, int weeks)
+        {
+            var medians = new List<string>();
+            for (int w = 0; w < weeks; w++) { int week = w; medians.Add(Median(runs, r => r.GoldenByWeek[week]).ToString()); }
+            return medians;
+        }
+
+        /// <summary>The new moon as the pause card offers it: begun the moment the garden is far enough, as the game's runner begins it.</summary>
+        bool TakeNewMoon(Seasons run)
+        {
+            if (!NewMoon.Begin(defs, s, "M", out _)) return false;
+            Quests.RerollCarrotTarget(defs, s, Modifiers.From(ups, s));
+            mods = Modifiers.From(ups, s);
+            run.MoonDays.Add(Today);
+            return true;
+        }
+
+        /// <summary>A sitting that takes the new moon as it opens, every minute and as it ends.</summary>
+        void PlayTakingNewMoons(double seconds, Seasons run)
+        {
+            OpenSession();
+            TakeNewMoon(run);
+            UpgradeAll();
+            for (int i = 0; i < seconds; i++)
+            {
+                ActiveSecond();
+                if ((int)sessionClock % 60 == 0) TakeNewMoon(run);
+            }
+            UpgradeAll();
+            TakeNewMoon(run);
+            SellTray(false);
+        }
+
+        /// <summary>The casual week above, played on for <paramref name="days"/> days and taking every new moon offered.</summary>
+        Seasons CasualSeasons(int seed, int days)
+        {
+            Reset(false, seed);
+            var run = new Seasons { Seed = seed };
+            int callsBefore = 0, levelBefore = 0, openBefore = 0, segmentsBefore = 0, seasonBefore = 0, still = 0;
+            for (int day = 1; day <= days; day++)
+            {
+                PlayTakingNewMoons(20 * 60, run);
+                Away(8 * 3600);
+                PlayTakingNewMoons(10 * 60, run);
+                Away(Day - 8 * 3600 - 30 * 60);
+                if (day % 7 == 0)
+                {
+                    run.GoldenByWeek.Add(goldenCalls + visitorsBought - callsBefore);
+                    callsBefore = goldenCalls + visitorsBought;
+                }
+                int open = 0;
+                for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0) open++;
+                int level = Garden.Level(s), segments = Expansion.Segments(s);
+                bool news = s.Season > seasonBefore || level > levelBefore || open > openBefore || segments > segmentsBefore;
+                if (day >= 8) { still = news ? 0 : still + 1; run.LongestStill = Math.Max(run.LongestStill, still); }
+                levelBefore = level; openBefore = open; segmentsBefore = segments; seasonBefore = s.Season;
+            }
+            return run;
+        }
+
+        /// <summary>
+        /// The seasons after the first (#98): the casual player of the week above, played on to day 35 over the seventeen seeds,
+        /// taking each new moon the moment it is offered. A later season earns garden experience with the same bonus as carrots
+        /// and the next new moon asks for three levels more, not five, so the second comes before day 25 and the third before
+        /// day 35, no three days in a row pass without a garden level or something opening, and the golden calls stay at six a
+        /// week or fewer. The days go to Logs/economy-seasons.txt.
+        /// </summary>
+        [Test, Category("Slow"), Timeout(1800000)] // five weeks on seventeen seeds
+        public void A_Casual_Player_Reaches_The_Second_New_Moon_Before_Day_25_And_The_Third_Before_Day_35()
+        {
+            const int days = 35;
+            var runs = new Seasons[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++) runs[i] = CasualSeasons(Seeds[i], days);
+
+            var report = new StringBuilder();
+            report.AppendLine("# Các mùa sau mùa trăng mới đầu tiên (#98)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả như trên, chơi tới ngày " + days + ", bắt đầu Mùa trăng mới ngay khi được. Mùa trăng mới cần cấp " + NewMoon.LevelNeeded(0) + ", rồi mỗi mùa thêm " + NewMoon.LevelStep
+                + " cấp; điểm vườn mùa n nhân " + NewMoon.BonusPerSeason + "·n như thu nhập.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Trăng mới 1 | 2 | 3 | Gọi vàng + thỏ ghé tiệm mỗi tuần | Chuỗi ngày dài nhất không lên cấp, không mở gì |");
+            report.AppendLine("|---|---|---|---|---|---|");
+            foreach (Seasons r in runs)
+                report.AppendLine("| " + r.Seed + " | " + r.MoonDay(1) + " | " + r.MoonDay(2) + " | " + r.MoonDay(3) + " | " + string.Join(" / ", r.GoldenByWeek) + " | " + r.LongestStill + " |");
+            report.AppendLine("| **trung vị** | " + Median(runs, r => r.MoonDay(1)) + " | " + Median(runs, r => r.MoonDay(2)) + " | " + Median(runs, r => r.MoonDay(3)) + " | "
+                + string.Join(" / ", WeeklyMedians(runs, days / 7)) + " | " + Median(runs, r => r.LongestStill) + " |");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-seasons.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Holds(runs, r => r.MoonDay(1) >= 7, "the first new moon not before day seven", text);
+            Holds(runs, r => r.MoonDay(2) < 25, "the second new moon before day 25", text);
+            Holds(runs, r => r.MoonDay(3) < 35, "the third new moon before day 35", text);
+            Holds(runs, r => r.LongestStill <= 3, "never more than three days without a garden level or something opening", text);
+            for (int w = 0; w < days / 7; w++)
+            {
+                int week = w;
+                Holds(runs, r => r.GoldenByWeek[week] <= 6, "golden calls at most six in week " + (week + 1), text);
+            }
         }
     }
 }
