@@ -27,7 +27,7 @@ namespace VuonTra.Game.UI
         readonly GameRunner _runner;
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
-        readonly RectTransform _card, _water, _float, _bob, _floatArt, _ring, _catch, _basket, _line, _ripples;
+        readonly RectTransform _card, _water, _float, _bob, _floatArt, _ring, _catch, _catchArc, _basket, _line, _ripples;
         readonly Image _cap, _body, _ringImage, _catchImage;
         readonly Text _baits, _next, _status, _castLabel;
         readonly Image[] _dots = new Image[Fishing.BaitCap];
@@ -209,7 +209,8 @@ namespace VuonTra.Game.UI
             }
 
             _catch = UiKit.Rect("Catch", _card).Place(0.5f, 1f, 0, -430, 260, 180);
-            _catchImage = _catch.AddImage(catalog.Round, Color.white);
+            _catchArc = UiKit.Rect("Arc", _catch).Stretch(0, 0, 1, 1);
+            _catchImage = _catchArc.AddImage(catalog.Round, Color.white);
             _catchImage.preserveAspect = true;
             _catch.gameObject.SetActive(false);
 
@@ -367,15 +368,16 @@ namespace VuonTra.Game.UI
             Vector2 to = new Vector2(basket.x - _card.rect.center.x, basket.y - _card.rect.yMax);
             float size = 0.6f + 0.1f * fish;
             _catch.anchoredPosition = from;
-            _catch.localScale = Vector3.zero;
-            _catch.DOScale(size, Motion.Time(0.25f)).SetEase(Motion.Curve(TweenEase.OutBack)).OnUiClock(_catch);
+            _catchArc.localScale = Vector3.zero;
+            _catchArc.DOScale(size, Motion.Time(0.25f)).SetEase(Motion.Curve(TweenEase.OutBack)).OnUiClock(_catchArc);
             float fly = Motion.Time(FlySeconds);
             Motion.After(Motion.Time(ShowSeconds), _catch, () =>
             {
                 Sfx.Reel();
                 DOTween.Sequence()
-                    .Join(_catch.DOJumpAnchorPos(to, CatchArc / 2f, 1, fly))
-                    .Join(_catch.DOScale(0.35f, fly).SetEase(TweenEase.Linear))
+                    .Join(_catch.DOAnchorPos(to, fly).SetEase(TweenEase.Linear))
+                    .Join(_catchArc.DOAnchorPosY(CatchArc / 2f, fly / 2f).SetEase(TweenEase.OutQuad).SetLoops(2, LoopType.Yoyo))
+                    .Join(_catchArc.DOScale(0.35f, fly).SetEase(TweenEase.Linear))
                     .SetEase(TweenEase.InOutCubic)
                     .OnComplete(() =>
                     {

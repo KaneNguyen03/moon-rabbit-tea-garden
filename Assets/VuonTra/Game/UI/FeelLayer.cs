@@ -95,9 +95,9 @@ namespace VuonTra.Game.UI
                 Flying++;
                 float seconds = Motion.Time(FlyTime);
                 Motion.After(Motion.Time(i * 0.05f), rt, () => DOTween.Sequence()
-                    .Join(rt.DOJumpAnchorPos(to, bow.y / 2f, 1, seconds))
-                    .Join(bit.DOAnchorPosX(bow.x / 2f, seconds / 2f).SetEase(TweenEase.OutQuad).SetLoops(2, LoopType.Yoyo))
-                    .Join(rt.DOScale(FlyPop, seconds / 2f).SetEase(TweenEase.OutSine).SetLoops(2, LoopType.Yoyo))
+                    .Join(rt.DOAnchorPos(to, seconds).SetEase(TweenEase.Linear))
+                    .Join(bit.DOAnchorPos(bow / 2f, seconds / 2f).SetEase(TweenEase.OutQuad).SetLoops(2, LoopType.Yoyo))
+                    .Join(bit.DOScale(FlyPop, seconds / 2f).SetEase(TweenEase.OutSine).SetLoops(2, LoopType.Yoyo))
                     .SetEase(TweenEase.InOutCubic)
                     .OnComplete(() =>
                     {

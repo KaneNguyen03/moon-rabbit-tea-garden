@@ -77,8 +77,11 @@ namespace VuonTra.Game.UI
         public static T OnUiClock<T>(this T tween, Component owner, LinkBehaviour link = LinkBehaviour.KillOnDestroy) where T : Tween =>
             tween.SetUpdate(UpdateType.Manual).SetLink(owner.gameObject, link);
 
-        public static Tween After(float seconds, Component owner, TweenCallback then) =>
-            DOVirtual.DelayedCall(seconds, then).OnUiClock(owner);
+        public static void After(float seconds, Component owner, TweenCallback then)
+        {
+            if (seconds > 0f) DOVirtual.DelayedCall(seconds, then).OnUiClock(owner);
+            else then();
+        }
 
         public static Tween PopIn(Transform card, float from = 0.85f, float seconds = Panel)
         {
