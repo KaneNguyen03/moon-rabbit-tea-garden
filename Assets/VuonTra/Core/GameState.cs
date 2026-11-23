@@ -111,6 +111,11 @@ namespace VuonTra.Core
         public List<Letter> Letters = new List<Letter>();
         public long MailDay = -1;
 
+        public long BoxDay = -1;
+        public long WeekIndex = -1;
+        public int WeekPoints;
+        public int WeekChestsClaimed;
+
         public long FrogDay = -1;
         public int FrogShowers, FrogsToday;
         public long FrogsMet;

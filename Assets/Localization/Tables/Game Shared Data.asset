@@ -3439,6 +3439,118 @@ MonoBehaviour:
     m_Key: upgradeall.locked
     m_Metadata:
       m_Items: []
+  - m_Id: 815233563090944
+    m_Key: quests.box.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868160
+    m_Key: quests.box.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868161
+    m_Key: quests.box.ready
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868162
+    m_Key: quests.box.opened
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868163
+    m_Key: quests.box.locked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868164
+    m_Key: quests.box.open.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868165
+    m_Key: quests.box.open.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868166
+    m_Key: quests.week.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868167
+    m_Key: quests.week.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868168
+    m_Key: quests.chest.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868169
+    m_Key: quests.chest.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868170
+    m_Key: quests.chest.need
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868171
+    m_Key: quests.chest.claimed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868172
+    m_Key: quests.prize.ok
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868173
+    m_Key: quests.prize.income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868174
+    m_Key: quests.prize.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868175
+    m_Key: quests.prize.jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868176
+    m_Key: quests.prize.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868177
+    m_Key: mail.chest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868178
+    m_Key: mail.jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233579868179
+    m_Key: mail.rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233588256768
+    m_Key: quests.box.locked.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233588256769
+    m_Key: quests.week.sub.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233588256770
+    m_Key: quests.chest.need.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233588256771
+    m_Key: quests.prize.clovers.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233588256772
+    m_Key: quests.prize.jars.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233588256773
+    m_Key: quests.prize.golden.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 815233588256774
+    m_Key: mail.jars.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
