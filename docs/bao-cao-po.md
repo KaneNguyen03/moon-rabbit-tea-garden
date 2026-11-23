@@ -1968,6 +1968,31 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Có cần nút tắt analytics hoặc hộp đồng ý cho người chơi EU không (hiện chưa có; Data safety sẽ khai Required).
 - Nối "Xoá dữ liệu của tôi" với việc xoá ID analytics và chuyển lỗi ghi save sang báo lỗi: chưa làm.
 
+## #99 — Đoạn đất 5/6 chờ thêm số ngày chơi và giá (hướng B, agent econ-99b)
+
+
+- **Test:** toàn bộ `tools/verify.sh` xanh, 1274/1275 (1 test mùa không kết luận từ trước). Thêm 8 test trong `FourStationsTests` (cổng ngày/giá/cấp, đồng hồ lùi, save cũ giữ đất, lưu ngày đầu, chữ trên biển tiếng Việt và tiếng Anh). Thêm luật nhịp trong `GardenPacingTests` (trạm 13 ngày 4–6, trạm 16 ngày 7–11; người bấm Nâng tất cả mở trạm 13 không trước ngày 4) và `EconomySimulationTests` (đoạn 5 không trước ngày 4 cho cả hai cách mua).
+- **Commit:** 51f1ef1 và 2009f63 (gộp main, bỏ comment theo luật conventions); main fast-forward tới 2009f63. Main sau gộp: 1274/1275, bước rules ok.
+
+**Đã làm:**
+- Đoạn 5 cần cấp 16 + đã chơi 4 ngày, đoạn 6 cần cấp 20 + đã chơi 7 ngày. Giá đất hai đoạn ×2,5.
+- Ngày đầu lưu ở trường mới `firstDay`, save vẫn phiên bản 14. Số ngày tính trên ngày đã kẹp nên chỉnh đồng hồ lùi không thêm ngày. Save cũ không phải chờ ngày.
+- Biển "Mở rộng vườn" ghi điều kiện còn thiếu (cấp, thỏ, loài, ngày, cà rốt). `GardenScreen` đổi 3 dòng: dòng chọn chữ trên biển, dòng "chỉ thiếu cà rốt" trên thẻ, và một dòng thêm "chơi N ngày" vào danh sách điều kiện trên thẻ.
+
+| Mốc (trung vị 17 hạt) | 15 ph, từng cấp | 15 ph, Nâng tất cả | 30 ph, từng cấp | 30 ph, Nâng tất cả |
+|---|---|---|---|---|
+| Đoạn 5 / 6 | 4 → 5 / 6 → 8 | 1 → 5 / 1 → 8 | 3 → 5 / 4 → 8 | 2 → 5 / 2 → 8 |
+| Trạm 13 / 16 | 5 / 9 (không đổi) | 1 → 5 / 1 → 8 | 4 → 5 / 5 → 8 | 2 → 5 / 2 → 8 |
+| Cấp 5, cấp 10, 12 ô đất | không đổi | không đổi | không đổi | không đổi |
+| Trăng mới 1/2/3 | – | – | 10/21/31 | 9/19/28 → 10/21/29 |
+| Thu/giây ngày 7 | – | – | 5,6e22 → 5,1e21 | 1,6e24 → 2,4e22 |
+
+### Chưa đạt / cần PO quyết
+- Duyệt các số: 4 và 7 ngày, giá ×2,5 (×1 đến ×3 cho cùng ngày mở trạm).
+- Save cũ không phải chờ ngày, kể cả người mới cài hôm trước bản cập nhật.
+- Thu nhập ngày 7 thấp hơn khoảng 10 lần.
+- Tuần đầu của người bấm Nâng tất cả (cấp 10 trong buổi đầu, 12 ô đất ngày 1–2, phần trò chơi + khách 1,1 %) vẫn trượt luật cũ: việc của #101.
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
