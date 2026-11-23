@@ -173,6 +173,70 @@ namespace VuonTra.Core.Tests
             foreach (Shop.GiftTile t in week) Assert.IsFalse(t.Big, "no second big gift");
         }
 
+        [TestCase(9)]
+        [TestCase(10)]
+        public void A_Save_From_Before_The_Big_Gift_Past_Day_Seven_Gets_It_On_The_Next_Seventh_Day_Exactly_Once(int streak)
+        {
+            // #90: a save from before #57 has no "giftBig"; its streak was past 7, so "only on day 7" never came while it played every day.
+            List<ItemDef> items = HatDefs();
+            string json = "{\"version\":14,\"stations\":[],\"golden\":0,\"giftDay\":200,\"giftStreak\":" + streak + "}";
+            s = SaveCodec.Decode(defs, json).State;
+            Assert.AreEqual(streak, s.GiftStreak);
+            Assert.IsFalse(s.GiftBigClaimed, "this week's big gift is still to come");
+            Shop.GiftTile[] week = Shop.Week(s, 201);
+            Assert.AreEqual(14, week[6].Day);
+            Assert.IsTrue(week[6].Big, "the calendar shows the hat on day 14");
+
+            int given = 0;
+            long day = 201;
+            for (; s.GiftStreak < 13; day++) Assert.IsFalse(ClaimBig(day, items).Given, "streak day " + (s.GiftStreak));
+            Shop.BigGift big = ClaimBig(day++, items);
+            Assert.AreEqual(14, s.GiftStreak);
+            Assert.IsTrue(big.Given, "the next seventh day of the calendar");
+            Assert.IsNotNull(big.Hat);
+            Assert.AreEqual(1, s.Clovers);
+            given++;
+
+            // Never again: not on day 21, nor when missed days step back to day 7 or 14.
+            for (; s.GiftStreak < 28; day++) if (ClaimBig(day, items).Given) given++;
+            day += 14; // two weeks missed: 28 steps back to 14
+            Assert.AreEqual(14, Shop.StreakFor(s, day));
+            if (ClaimBig(day, items).Given) given++;
+            day += 8; // seven days missed: 14 steps back to 7
+            Assert.AreEqual(7, Shop.StreakFor(s, day));
+            if (ClaimBig(day, items).Given) given++;
+            Assert.AreEqual(1, given, "exactly once");
+            Assert.AreEqual(1, s.Clovers);
+            Assert.AreEqual(1, s.Items.Count);
+            Assert.AreEqual(201 + (14 - streak) - 1, s.GiftBigDay);
+        }
+
+        [Test]
+        public void A_Save_From_Before_The_Big_Gift_Gains_Nothing_By_Skipping_Days()
+        {
+            // #90: three days missed step day 10 back to day 7; the big gift comes then, and still only once.
+            List<ItemDef> items = HatDefs();
+            s = SaveCodec.Decode(defs, "{\"version\":14,\"stations\":[],\"giftDay\":200,\"giftStreak\":10}").State;
+            Assert.AreEqual(7, Shop.StreakFor(s, 204));
+            Assert.IsTrue(ClaimBig(204, items).Given);
+            for (long day = 205; day <= 225; day++) Assert.IsFalse(ClaimBig(day, items).Given, "day " + day);
+            Assert.AreEqual(28, s.GiftStreak);
+            Assert.AreEqual(1, s.Clovers);
+        }
+
+        [Test]
+        public void A_New_Garden_Still_Meets_The_Big_Gift_On_Day_Seven_And_Saves_It()
+        {
+            List<ItemDef> items = HatDefs();
+            for (long day = 100; day <= 105; day++) Assert.IsFalse(ClaimBig(day, items).Given);
+            Assert.IsTrue(ClaimBig(106, items).Given);
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(106, r.GiftBigDay, "the new save keeps the day it came");
+            s = r;
+            for (long day = 107; day <= 127; day++) Assert.IsFalse(ClaimBig(day, items).Given, "day " + day);
+            Assert.AreEqual(28, s.GiftStreak);
+        }
+
         Shop.BigGift ClaimBig(long day, List<ItemDef> items)
         {
             Shop.ClaimDailyGift(s, day, "A", items, out _, out Shop.BigGift big);
