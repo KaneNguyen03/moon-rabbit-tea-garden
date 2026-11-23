@@ -10,7 +10,6 @@ namespace VuonTra.Game.UI
         readonly GameObject _root;
         readonly RectTransform _card, _content;
         readonly GameCatalog _catalog;
-        readonly Tweens _tweens;
         readonly List<GameObject> _rows = new List<GameObject>();
         readonly RectTransform _scroll, _jars;
         readonly ChunkyButton _openJar;
@@ -24,7 +23,6 @@ namespace VuonTra.Game.UI
         public IncomeView(RectTransform canvas, GameCatalog catalog, Tweens tweens, System.Action onOpenJar = null)
         {
             _catalog = catalog;
-            _tweens = tweens;
 
             var overlay = UiKit.Rect("Income", canvas).Stretch(0, 0, 1, 1);
             _root = overlay.gameObject;
@@ -90,8 +88,7 @@ namespace VuonTra.Game.UI
         public void Open(IReadOnlyList<StationDef> defs, GameState s, Modifiers m)
         {
             _root.SetActive(true);
-            _card.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(0.25f), t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Motion.Curve(Ease.OutBack));
+            Motion.PopIn(_card);
             Refresh(defs, s, m);
         }
 

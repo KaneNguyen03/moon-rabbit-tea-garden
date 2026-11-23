@@ -90,8 +90,7 @@ namespace VuonTra.Game.UI
             _input.characterLimit = maxLength;
             _input.text = current ?? "";
             _root.SetActive(true);
-            _card.localScale = Vector3.one * 0.85f;
-            _tweens.Add(0.25f, t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Ease.OutBack);
+            Motion.PopIn(_card);
             if (Application.isPlaying) _input.ActivateInputField();
         }
 

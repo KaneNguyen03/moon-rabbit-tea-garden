@@ -124,8 +124,7 @@ namespace VuonTra.Game.UI
         {
             _note.text = "";
             _root.SetActive(true);
-            _card.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(0.25f), t => { if (_card != null) _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Motion.Curve(Ease.OutBack));
+            Motion.PopIn(_card);
             Refresh(letters, today);
         }
 

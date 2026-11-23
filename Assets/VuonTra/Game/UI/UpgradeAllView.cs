@@ -13,7 +13,6 @@ namespace VuonTra.Game.UI
         readonly GameObject _root;
         readonly RectTransform _card, _content;
         readonly GameCatalog _catalog;
-        readonly Tweens _tweens;
         readonly Action _onConfirm;
         readonly Action<double> _onShare;
         readonly Text _total;
@@ -29,7 +28,6 @@ namespace VuonTra.Game.UI
         public UpgradeAllView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action<double> onShare, Action onConfirm)
         {
             _catalog = catalog;
-            _tweens = tweens;
             _onShare = onShare;
             _onConfirm = onConfirm;
 
@@ -111,8 +109,7 @@ namespace VuonTra.Game.UI
         {
             _signature = null;
             _root.SetActive(true);
-            _card.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(Motion.Panel), t => _card.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t), Ease.OutBack);
+            Motion.PopIn(_card);
             Refresh(defs, s);
         }
 

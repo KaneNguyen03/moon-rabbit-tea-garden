@@ -251,8 +251,7 @@ namespace VuonTra.Game.UI
             if (result.CloversCapped || result.GoldenCapped) extra.Add(L10n.T("fireflies.capped"));
             _resultExtra.text = string.Join("\n", extra);
             _result.SetActive(true);
-            _resultCard.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(0.25f), t => { if (_resultCard != null) _resultCard.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Motion.Curve(Ease.OutBack));
+            Motion.PopIn(_resultCard);
         }
     }
 }
