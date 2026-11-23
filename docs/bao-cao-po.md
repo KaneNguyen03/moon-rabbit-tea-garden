@@ -2050,38 +2050,107 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Kéo hết lên trên có thể thấy bảng trạm nửa dưới HUD; cây ở mép thế giới dưới thanh tab (chưa sửa).
 - Khi chưa mở đoạn nào: góc bãi cỏ vuông chỗ sương gặp nhau, sương bên chiếm nhiều màn hình (chưa sửa).
 
-## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
+## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
-- main = origin/main tại commit này (ngay sau `a62eb2d`). `tools/verify.sh --build` xanh trên `6c3a3fb` (vườn ngang): seed, 214 ảnh preview, biên dịch, 1182/1183 EditMode (1 test mùa vụ không kết luận, có chủ ý), bản Mac `Build/Mac/VuonTraTho.app` chạy 8 giây, Player.log sạch. Mốc trước đó (`5c08ee7`, 1159/1160) là bản dọc cuối cùng.
-- Cây làm việc sạch trừ phần Unity tự sinh (`Assets/AddressableAssetsData/*`, `LocalizationSettings.asset`, `Garden.unity`) và các thư mục bị bỏ qua (`.agent/`, `.agents/`, `.github/`, `skills-lock.json`). `docs/de-xuat-vuon-ngang.md` đã commit cùng vườn ngang.
-- Không còn worktree agent nào (chỉ `qa-test` của session QA). Không có agent nào đang chạy.
-- Save vẫn v14; mọi khối thêm từ 22–23/11 (lưới, kho Bố trí, hũ trăng, mưa và Thỏ Ếch, quảng cáo, mã quà và hộp thư, câu cá và tim, nhắc tôi) đều là khối bổ sung, save cũ mở được (có test).
-- Mã quà: khoá thật `Assets/Resources/keys.json` đã có trên máy này và nằm trong bản Mac; mã ký tạo bằng `tools/make-code.sh` được nhận, mã sửa một ký tự hoặc kiểm bằng khoá khác bị từ chối (#68). Giữ một bản sao khoá ở nơi an toàn.
+- main = origin/main tại commit này (ngay sau `342f4a5`).
+- `tools/verify.sh --build` trên main sau gộp #91 (91a + 91b + 91c): bản Mac `Build/Mac/VuonTraTho.app` dựng xong, chạy, Player.log sạch. Lần chạy đó có 4 ca test nhãn ô đất đỏ vì test của 91c chưa biết chữ biển của #99; đã chỉnh test, chạy lại đầy đủ GREEN 1316/1317 (1 test mùa không kết luận, có từ trước), 246 khung preview, rules ok.
+- Mốc trước: `6c3a3fb` (vườn ngang), 1182/1183, bản Mac sạch.
+- Save vẫn v14. Các trường thêm từ 23/11 (`firstDay` của #99) đều là bổ sung, save cũ mở được (có test).
+- Luật bằng code (24/11): bước `rules` của verify (`tools/conventions.py`) chặn comment mới, toán hoạt ảnh trong C#, tìm đối tượng trong scene, `Update()` mỗi khung mới và các mẹo né lỗi. `tools/conventions.baseline` chỉ được giảm.
+- Cây làm việc: `CLAUDE.md`, `.gitignore` (cấu hình pstack của chủ project) và phần Unity tự sinh đang sửa dở, không commit.
+- Worktree còn lại:
+  - `../VuonTraNam-102` … `-106`: agent vòng 2 (#102 tuần đầu, #103 hộp quà ngày và rương tuần, #104 thẻ giới thiệu, #105 gói người mới và gói mốc, #106 vé trăng), mỗi issue một nhánh `agent-NN`.
+  - `../VuonTraNam-28`, `-97`: một agent sửa hai issue QA trả lại (#28 Giảm chuyển động, #97 rác bộ nhớ mỗi khung).
+  - `../VuonTraNam-91b`: nhánh `agent-91b` đã gộp vào main; worktree của session UI, để nguyên.
+  - `../VuonTraNam-mu`: nhánh `art-rabbits`, giữ chờ chủ project duyệt hoạt ảnh.
+  - `../VuonTraNam-tween` và `-tween-gs`: chuyển sang DOTween, session của chủ project.
+  - `.claude/worktrees/qa-test`: session QA.
+- Session B gộp theo lượt; cron 12 phút nhận issue `PO-trả-lại` và `cats-and-soup` mới (`/tmp/b-watch-taken.txt`). Chờ chỗ agent: #107–#114.
 
-### Đã gộp từ tối 22/11 tới trưa 23/11 (mỗi issue có comment đối chiếu, nhãn chờ-PO-duyệt, mục riêng ở trên)
-- Vườn: #52 lưới lục giác, #53 mở rộng rừng theo vòng, #54 chế độ Bố trí (+ ô giữ chỗ cho lọ đom đóm, giỏ lá, cối, ao), #67 bốn trạm mới trên vòng R8/R9 (+ zoom xa thấy cả vườn), #84 bong bóng khách không che bảng Câu cá.
-- Hoạt động: #58 câu cá và tim 10 (lõi, tấm ao, nút Cho ăn, tiếng, hình phao/nước), #62 mưa và Thỏ Ếch, #64 hũ trăng (+ hình vẽ tay), #68 mã quà và hộp thư, #66 seam quảng cáo (chỉ bản giả, bản build không có nút).
-- Âm thanh: #63 tiếng trạm khi zoom gần, thanh Tiếng trạm, chọn nhạc; chỉnh theo số đo QA (lọc chói, mặc định 0,5, câu cá nghe được trên loa điện thoại).
-- Kinh tế: #83 nhịp đo trên 17 seed, mô phỏng lặp lại được, R7 cần cấp 16, tiếp sức của Vườn hoa sen và Ruộng lúa nếp còn 7 %.
-- Lỗi QA: #79, #80, #81, #82; ảnh preview không còn lẫn chữ Anh/Việt (`52d73ff`).
-- Vườn thành dải toàn cảnh cuộn ngang (#16, `24cceaf` + `07f09e4` + `6c3a3fb`): dải 7 hàng, tiệm trà ở giữa; 6 đoạn sương mở phải/trái giữ cấp và giá của R4–R9 (nhịp 17 seed giống hệt); kéo ngang có quán tính, nút về tiệm trà, nút cạnh ◀/▶, parallax rừng xa; save dọc cũ mở đúng chỗ. Đã ghi chú lên #50–#54, #67.
+### Đã gộp từ tối 23/11 tới sáng 24/11 (mỗi issue có comment đối chiếu, nhãn chờ-PO-duyệt, mục riêng ở trên)
+- Vườn ngang, việc nhỏ (#16):
+  - Khách chỉ đi trên đất đã mở.
+  - Biển đọc trọn trong khung mở đầu.
+  - Nút "Về tiệm trà" có chữ.
+  - Thỏ nói không che bảng.
+  - Bảng "Câu cá" dời khỏi mép.
+  - Sương dày ở mép đoạn chưa mở.
+- Lỗi từ lần rà code:
+  - #85: đồ trên đất bị đóng sau trăng mới về bãi cỏ.
+  - #86: save mua từng ô được làm tròn đủ đoạn.
+  - #87: test mã quà chạy trên ngày ghim.
+  - #88: Bố trí không cho đặt trạm sát trạm.
+  - #89: ×2 ở màn đi vắng trả đúng số đang hiện.
+  - #90: save cũ nhận quà ngày 7.
+- #97: bớt rác bộ nhớ mỗi khung hình.
+- Chữ (#92–#96): nhiệm vụ nói đúng thứ game đếm, tiếng Anh số ít, mỗi thứ một tên, chính tả vi thống nhất, nhãn en ngắn hơn.
+- Kinh tế:
+  - #98: trăng mới đi tiếp nhanh như mùa đầu.
+  - #99 hướng B: đoạn 5/6 chờ 4/7 ngày chơi, giá ×2,5, biển ghi điều kiện còn thiếu.
+  - #101: "Nâng tất cả" mở ở cấp vườn 15.
+- #91: vườn thành bản đồ 2D kéo dọc và ngang (91a lõi, 91b màn hình, 91c parallax dọc, test camera hai trục, viền mực biển, nhãn ô đất, viên ▼).
+- QA 24/11 trả lại, đã sửa: #8 (gọi vàng ra đủ 10 loài Vàng), #88 (lấy trạm khỏi kho giữ khoảng cách 2 ô).
+- #100: seam analytics và báo lỗi. Không gửi gì trong mọi bản build hiện nay.
+- Công cụ:
+  - `tools/verify.sh --fast` bỏ test chậm và ảnh preview; bản đầy đủ vẫn là mốc.
+  - Luật bằng code và bộ đếm baseline: tổng 5962 → 1537, nhánh DOTween đang hạ tiếp.
 
-### Cần chủ project quyết hoặc thử tay
-- Duyệt các hằng số: #83 (R7 cấp 16; hệ số tiếp sức 0,07), #67 (cấp mở trạm 16/18/20/23; R8/R9 cấp 16/20; hai nhiệm vụ chỉ thưởng cỏ), #64 và #62 (hũ trăng từ nhiệm vụ/đom đóm và Thỏ Ếch chỉ từ cấp vườn 15), #58 (tim thứ 10 ở 18.880 điểm), #53 (giá vòng ¼ giá hai trạm), #52 (lưới bắt đầu bán kính 3), #68 (hạn mã công khai, quà thư), #66 (có quảng cáo hay không, ba chỗ, giá vé).
-- Bố cục: thảm picnic dời về (-2,2) giữa nồi mứt và ấm trà; giỏ hứng lá đứng yên khi dời trạm Giỏ lá; ấm trà không cất kho được; bong bóng khách nằm trên lọ đom đóm.
-- Nghe trên điện thoại thật: tiếng trạm sau khi lọc, mức Tiếng trạm 0,5, sáu tiếng câu cá, ba bài nhạc.
-- Còn mở ngoài chờ duyệt: #4 (thử tay bản Mac), #16 (hàng đợi).
+### Issue
+- 57 issue mở, 54 mang nhãn chờ-PO-duyệt: 48 đang được ba session QA nghiệm thu, 6 còn lại có thêm nhãn cần-chủ-project.
+- 6 issue cần chủ project tự làm hoặc quyết, vì cần tài khoản, tiền hoặc máy thật:
+  - #5: trackpad Mac không zoom.
+  - #9: mua cà rốt vàng bằng tiền thật.
+  - #39: Game Center và iCloud.
+  - #40: Google Play Games và Saved Games.
+  - #41: bản build iOS/Android.
+  - #42: quyền riêng tư.
+  - Bộ hồ sơ phát hành nằm trong `docs/phat-hanh`.
+- #91 đã gộp và chuyển sang chờ-PO-duyệt; QA 24/11 đang nghiệm thu các issue chờ duyệt, issue không đạt được gắn lại PO-trả-lại.
+- Còn mở ngoài chờ duyệt: #4 (thử tay bản Mac), #16 (hàng đợi MVP).
+
+### Con số chờ chủ project quyết (gom một chỗ)
+| Issue | Số hiện tại | Phương án khác |
+|---|---|---|
+| #91 | Lề nhìn quá bãi cỏ 360 ngang, 600 dọc; viên ▼ né sang bên khi tiệm trà ở ngay sau | |
+| #101 | "Nâng tất cả" mở ở cấp vườn 15 | Cấp 16; hoặc mở ở cấp 12 và mỗi lần bấm tối đa 50–75 điểm vườn |
+| #99 | Đoạn 5 cần 4 ngày chơi, đoạn 6 cần 7 ngày; giá đất hai đoạn ×2,5 | Giá ×1 đến ×3 cho cùng ngày mở trạm. Save cũ không phải chờ ngày |
+| #98 | `NewMoon.LevelStep` 3, nên mùa 2–7 cần cấp 33…48; điểm vườn × hệ số mùa; vàng mỗi 5 cấp trả một lần | Giữ 5 như cũ |
+| #83 | Đoạn R7 cần cấp 16; hệ số tiếp sức 0,07 | |
+| #67 | Trạm mở ở cấp 16/18/20/23; R8/R9 ở cấp 16/20; hai nhiệm vụ chỉ thưởng cỏ | |
+| #64, #62 | Hũ trăng từ nhiệm vụ và đom đóm; Thỏ Ếch chỉ từ cấp vườn 15 | |
+| #58 | Tim thứ 10 ở 18.880 điểm | |
+| #53 | Giá đất mỗi đoạn = ¼ giá hai trạm | |
+| #68 | Hạn mã công khai 31/3/2027, quà trong thư | |
+| #66 | Có quảng cáo hay không, ba chỗ đặt, giá vé Bỏ quảng cáo | |
+| #100 | Firebase (đã có adapter) hay GameAnalytics; có nút tắt hoặc hộp đồng ý EU không | |
+
+Lựa chọn không phải con số:
+- #86: tặng 1 ô cho save cũ mua từng ô, hay bán nốt ô còn thiếu.
+- #90: save cũ nhận quà ở ngày thứ 7 kế tiếp (đang làm), hay coi như đã nhận, hay tặng qua thư.
+- #88:
+  - Lấy trạm từ kho có phải giữ khoảng cách không (đang chưa).
+  - Hai trạm vốn sát nhau có được đổi chỗ không.
+- #92–#96:
+  - Tiếng Anh dùng "Ambience" hay "Station sounds" (chữ này xuống dòng khi chữ to).
+  - Tiếng Việt dùng "Trăng {n}" hay giữ "Mùa {n}".
+- #101: câu "Nâng tất cả mở ở cấp vườn 15. Giờ cứ nâng từng trạm nhé!"
 
 ### Việc tiếp theo
-- Vườn ngang, chờ chủ project quyết: độ dày của sương; trà sữa và ruộng lúa đứng ngoài đoạn của mình (luật trạm tiếp sức đứng gần); chữ "Mở rộng vườn · đoạn N".
-- Vườn ngang, việc nhỏ còn lại: khách đi qua sương đoạn 1 khi đoạn đó chưa mở; biển mép phải bị cắt trong khung mở đầu; nút về tiệm trà chưa có chữ (`edge.home`); câu nói của thỏ có lúc che biển "Giã bánh".
-- Thử tay bản Mac mới (kéo ngang, mở đoạn, Bố trí trên dải, câu cá, mã quà).
+- Theo `docs/phat-hanh/LO-TRINH-KIEM-TIEN.md`: việc kiếm tiền đi trước. #91 và các tính năng lớn chờ số liệu.
+- Gộp lần lượt #102–#106, #28, #97 khi agent xong; rồi nhận #107–#114.
+- #91 còn: viên ◀ ▶ có lúc đè bảng "Cấp"; kéo hết lên có bảng trạm nửa dưới HUD; góc sương vuông khi chưa mở đoạn nào.
+- Gộp `art-rabbits` khi chủ project duyệt hoạt ảnh.
+- Việc nhỏ đã biết, chưa làm:
+  - `GameRunner.WatchAd` với callback null không trả thưởng.
+  - Bong bóng thỏ nói có thể tràn mép khung nhìn.
+  - Chữ số UI tạo chuỗi mới mỗi lần làm mới (~10 KB/khung).
+  - Đo lại fps/GC trong bản build sau #97.
+  - #96: xoá 33 key không dùng.
 
 ### Lưu ý kỹ thuật mới
-- Tối đa 5 agent song song (16 GB RAM); mỗi agent một worktree `../VuonTraNam-NN` với bản sao Library; hai nhánh cùng đụng một chỗ thì gộp theo thứ tự cố định.
-- Sau mỗi lần gộp: bảng chuỗi lấy bản nào cũng được rồi seed lại; khối nối cuối file (L10nStrings, PreviewShot, cuối GardenScreen, test) giữ cả hai và thêm `}`/`#endregion` bị mất ở chỗ nối.
-- `GardenScreen.StationSpot/RestSpot/DecorSpotAt/MortarSpot/ShopSpot/GuestSpot` là thành viên instance (đọc lưới), không còn static.
-- Vườn ngang: `GardenGrid.Segments` thay `Radius`, `Expansion.Segment(n)`/`Segments(s)` thay `Ring`/`Radius`; thế giới 4800 × 2200; `PreviewShot` nhắm camera qua `At(x, y)`.
-- Test màn hình mới đặt `screen.Raining = () => false;` trong SetUp, nếu không đồng hồ thật rơi vào cơn mưa làm test chập chờn.
-- Mô phỏng kinh tế thuần C#: dựng nhanh ngoài Unity bằng .NET SDK trong bản Unity; test nhịp giờ chạy 17 seed (~5 phút trong Unity).
+- Mọi brief cho agent phải ghi các luật conventions: không comment, không toán hoạt ảnh, không tìm trong scene, không `Update()` mới, không mẹo né lỗi, không nâng baseline.
+- Nhánh cắt từ nền cũ phải gộp main mới nhất trước khi gộp vào main (bài học #91: 91b cắt trước #99 nên thiếu chỉnh sửa test của #99). Nhánh cắt trước `92abd4a` phải gộp main, giữ bản không comment, rồi chạy verify đầy đủ.
+- Tối đa 3 lượt Unity batch trên cả máy, còn 2 khi swap trên ~4 GB (`sysctl -n vm.swapusage`). Lượt của session khác cũng tính.
+- Test chậm mang `[Category("Slow")]` và `[Timeout(600000)]`. Nếu test chỉ hỏng vì quá thời gian khi máy bận thì coi là tải máy, không phải lỗi.
+- Mô phỏng kinh tế chạy ngoài Unity bằng .NET SDK, 17 hạt, kết quả lặp lại được; harness để trong `/tmp`, không commit.
