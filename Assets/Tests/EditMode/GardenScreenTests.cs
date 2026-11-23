@@ -1585,7 +1585,7 @@ namespace VuonTra.Core.Tests
             StringAssert.StartsWith("Rabbit ", content.Find("Row 0").GetChild(0).name);
             long firstId = long.Parse(content.Find("Row 0").GetChild(0).name.Substring(7));
             Assert.AreEqual(2, Rabbits.Find(runner.State, firstId).Tier);
-            StringAssert.Contains("3/" + RabbitKinds.All.Count, content.Find("Count/Text").GetComponent<Text>().text);
+            StringAssert.Contains("3/" + AlbumSets.EveryDayKinds, content.Find("Count/Text").GetComponent<Text>().text, "out of the everyday kinds the album milestones count (#92)");
 
             Find("Canvas/Sheet/Panel/Rabbits/Content/SubTabs/Album").onClick.Invoke();
             screen.Refresh();
