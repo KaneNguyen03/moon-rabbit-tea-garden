@@ -665,6 +665,7 @@ namespace VuonTra.Core.Tests
             return t;
         }
 
+        [Category("Slow")] // sweeps every decoration over every tile; full verify only
         [Test]
         public void No_Decoration_On_Any_Tile_By_A_Station_Covers_Its_Level_Plate_Or_Its_Pad()
         {
@@ -805,6 +806,7 @@ namespace VuonTra.Core.Tests
             Assert.Less(Vector2.Distance(basketBefore.center, basketAfter.center), 0.5f, "the basket stays under its tea tree: " + basketBefore + " then " + basketAfter);
         }
 
+        [Category("Slow")] // sweeps every decoration over every tile; full verify only
         [Test]
         public void No_Decoration_On_Any_Droppable_Tile_Or_Spot_Covers_The_Jar_The_Basket_Or_The_Mortar_s_Plate()
         {

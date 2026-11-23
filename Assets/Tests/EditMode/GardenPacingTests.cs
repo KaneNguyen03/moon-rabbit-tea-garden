@@ -13,6 +13,7 @@ namespace VuonTra.Core.Tests
     /// Every rule is judged over seventeen seeds (#83), as a median or on at least <see cref="Enough"/> of the
     /// <see cref="Seeds"/>, and every roll comes from the seed, so the same seed plays the same game twice.
     /// </summary>
+    [Category("Slow")] // multi-seed pacing sims: run by the full verify, skipped by tools/verify.sh --fast
     [Timeout(600000)] // 17 seeds per rule (#83): minutes on a busy machine, past the 180 s default
     public class GardenPacingTests
     {

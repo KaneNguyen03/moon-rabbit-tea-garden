@@ -2,11 +2,23 @@
 # One command checks the whole project. Exit code is non-zero when any step fails.
 #   tools/verify.sh           seed, previews, EditMode tests
 #   tools/verify.sh --build   also builds the Mac player, opens it for a few seconds and reads Player.log
+#   tools/verify.sh --fast    seed + compile + EditMode tests without the [Category("Slow")] ones (multi-seed pacing
+#                             sims, exhaustive sweeps) and without preview shots; for agents iterating on a branch.
+#                             Add --preview to take the preview shots too. The full verify (no flag) runs everything
+#                             and is what main needs after each round of merges.
 # Close the Unity Editor first: batch mode cannot open a project that an editor holds.
 set -u
 cd "$(dirname "$0")/.."
 UNITY="${UNITY:-/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity}"
-BUILD=0; [ "${1:-}" = "--build" ] && BUILD=1
+BUILD=0; FAST=0; PREVIEW=1
+for arg in "$@"; do
+  case "$arg" in
+    --build) BUILD=1 ;;
+    --fast) FAST=1; PREVIEW=0 ;;
+    --preview) PREVIEW=1 ;;
+    *) echo "verify: unknown option $arg (use --build, --fast, --preview)" >&2; exit 64 ;;
+  esac
+done
 mkdir -p Logs
 declare -a NAMES RESULTS
 fail=0
@@ -35,15 +47,19 @@ echo "== 1/4 seed content and string tables"
 run_unity "seed" Logs/seed.log -executeMethod VuonTra.EditorTools.ContentSeeder.Seed -quit && note "seed" "ok"
 
 echo "== 2/4 preview shots"
+if [ $PREVIEW -eq 0 ]; then note "preview" "skipped (--fast)"
+else
 rm -rf Logs/preview
 if run_unity "preview" Logs/preview.log -executeMethod VuonTra.EditorTools.PreviewShot.Render -quit; then
   n=$(ls Logs/preview/*.png 2>/dev/null | wc -l | tr -d ' ')
   if [ "$n" -ge 50 ]; then note "preview" "ok ($n frames)"; else note "preview" "FAIL ($n frames, expected 50 or more)"; fi
 fi
+fi
 
 echo "== 3/4 compile + EditMode tests"
 rm -f TestResults.xml
-"$UNITY" -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode -testResults "$PWD/TestResults.xml" -logFile "$PWD/Logs/test.log" >/dev/null 2>&1
+CATEGORY=(); [ $FAST -eq 1 ] && CATEGORY=(-testCategory "!Slow")
+"$UNITY" -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode ${CATEGORY[@]+"${CATEGORY[@]}"} -testResults "$PWD/TestResults.xml" -logFile "$PWD/Logs/test.log" >/dev/null 2>&1
 cs=$(grep -E "error CS[0-9]+" Logs/test.log | head -5)
 if [ -n "$cs" ]; then printf '%s\n' "$cs" >&2; note "compile" "FAIL"; note "tests" "skipped"
 else
@@ -51,7 +67,7 @@ else
   if [ -f TestResults.xml ]; then
     sum=$(grep -o 'total="[0-9]*" passed="[0-9]*" failed="[0-9]*"' TestResults.xml | head -1)
     total=$(sed -E 's/.*total="([0-9]+)".*/\1/' <<<"$sum"); passed=$(sed -E 's/.*passed="([0-9]+)".*/\1/' <<<"$sum"); failed=$(sed -E 's/.*failed="([0-9]+)".*/\1/' <<<"$sum")
-    if [ "${failed:-1}" = "0" ] && [ "${total:-0}" -gt 0 ]; then note "tests" "ok ($passed/$total)"
+    if [ "${failed:-1}" = "0" ] && [ "${total:-0}" -gt 0 ]; then note "tests" "ok ($passed/$total$([ $FAST -eq 1 ] && echo ", Slow skipped"))"
     else
       grep -o 'name="[^"]*" fullname="[^"]*" methodname[^>]*result="Failed"' TestResults.xml | sed -E 's/.*fullname="([^"]*)".*/  failed: \1/' | head -20 >&2
       note "tests" "FAIL ($passed/$total passed, $failed failed)"
