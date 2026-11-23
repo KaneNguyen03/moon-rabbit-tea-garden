@@ -1839,6 +1839,21 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Khách đi qua sương của đoạn 1 khi đoạn đó chưa mở; biển ở mép phải bị cắt một phần trong khung mở đầu; nút về tiệm trà chưa có chữ.
 - Thấy khi xem ảnh: câu nói của thỏ ("Nước vừa sôi…") có lúc che biển "Giã bánh"; bảng "Câu cá" sát mép trái trong khung sau khi mở rộng.
 
+## #85–#87 — Ba lỗi từ lần rà code (agent review-fix)
+
+
+- **Test:** `tools/verify.sh` GREEN, 1189/1190 (1 ca inconclusive có từ trước: SeasonTests), thêm 7 ca test mới.
+- **Commit:** `133edae`, `038d540`, `adcdb87`, merge `78764e1`; thêm `8cb6f99` (test nhịp dài được 10 phút, tránh quá thời gian khi máy bận). Main sau gộp: 1189/1190.
+
+- #85: sau Mùa trăng mới, ấm trà, ghế và đồ trang trí đã kéo sang đất bị đóng tự về bãi cỏ giữa, ấm trà về ô nhà; trạm cất trong kho vẫn ở trong kho.
+- #86: save cũ có số ô đất lẻ được làm tròn lên cho đủ đoạn đã mở (tặng nhiều nhất 1 ô), nên trạm kế mở được theo điều kiện của chính nó; nhịp game không đổi.
+- #87: test màn mã quà chạy trên ngày ghim qua đồng hồ ngày mới của runner, nên không còn hỏng sau 31/3/2027; mã và hạn dùng không đổi.
+
+### Chưa đạt / cần PO quyết
+- #86: PO xác nhận chấp nhận tặng 1 ô cho save cũ mua từng ô; nếu không, cần sửa nút mở rộng để bán nốt ô thiếu.
+- #85: khi ô mặc định của một trạm đã bị chiếm, trạm có thể đứng sát trạm khác; chờ luật khoảng cách của #88 (agent khác làm).
+- #88: agent này đã làm dở rồi dừng theo lệnh điều phối; không commit gì, bản dở nằm ở `/tmp/rfsim/issue88-unfinished.patch`.
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
