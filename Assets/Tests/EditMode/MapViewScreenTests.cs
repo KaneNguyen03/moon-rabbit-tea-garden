@@ -239,5 +239,189 @@ namespace VuonTra.Core.Tests
                 Assert.Greater(grass.childCount, 10, "tufts across band " + segment);
             }
         }
+            RectTransform Canopy => (RectTransform)root.transform.Find("Canvas/Garden/Canopy");
+        Vector2 OnView(Vector2 garden) => garden * World.localScale.x + World.anchoredPosition;
+
+        void OpenEveryStation()
+        {
+            HavePlots(runner.Defs.Count);
+            for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = 1;
+            screen.Refresh();
+        }
+
+        void Glide(int frames = 60)
+        {
+            for (int i = 0; i < frames; i++) screen.Advance(1f / 30f);
+        }
+
+        [Test]
+        public void The_Far_Wood_Follows_The_Ground_Up_And_Down_At_Nine_Tenths_Of_Its_Pace()
+        {
+            HavePlots(runner.Defs.Count);
+            screen.LookAt(Teapot + new Vector2(0f, 1800f));
+            screen.Advance(0f);
+            Vector2 street0 = World.anchoredPosition, canopy0 = Canopy.anchoredPosition;
+            screen.LookAt(Teapot - new Vector2(0f, 1800f));
+            screen.Advance(0f);
+            float groundMoved = World.anchoredPosition.y - street0.y, canopyMoved = Canopy.anchoredPosition.y - canopy0.y;
+            Assert.Greater(Mathf.Abs(groundMoved), 1500f, "the view really went from the band up to the band down");
+            Assert.AreEqual(groundMoved * GardenScreen.CanopyDrift, canopyMoved, 1f, "the far wood up and down at nine tenths of the pace too");
+            screen.LookAt(GardenScreen.CellToWorld(new Hex(0, 0)));
+            screen.Advance(0f);
+            Assert.AreEqual(World.anchoredPosition.y, Canopy.anchoredPosition.y, 0.5f, "resting on the teapot the far wood stands where it was drawn");
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_The_Far_Wood_Keeps_With_The_Ground_Up_And_Down()
+        {
+            Motion.SetReduced(true);
+            HavePlots(runner.Defs.Count);
+            screen.LookAt(Teapot + new Vector2(0f, 1800f));
+            screen.Advance(0f);
+            Vector2 street0 = World.anchoredPosition, canopy0 = Canopy.anchoredPosition;
+            screen.LookAt(Teapot - new Vector2(0f, 1800f));
+            screen.Advance(0f);
+            Assert.Greater(Mathf.Abs(World.anchoredPosition.y - street0.y), 1500f, "the view really moved");
+            Assert.AreEqual(World.anchoredPosition.y - street0.y, Canopy.anchoredPosition.y - canopy0.y, 0.5f, "no parallax: the wood moves with the ground");
+        }
+
+        [TestCase(0f, 3000f)]
+        [TestCase(0f, -3000f)]
+        [TestCase(-2500f, 0f)]
+        [TestCase(2500f, 0f)]
+        [TestCase(-2500f, 3000f)]
+        public void The_Way_Home_Brings_The_Tea_Shop_Back_From_Up_Down_Left_Or_Right(float dx, float dy)
+        {
+            OpenEveryStation();
+            screen.Shell.StartGame();
+            Glide();
+            screen.LookAt(Teapot + new Vector2(dx, dy));
+            screen.Advance(1f / 30f);
+            GameObject home = root.transform.Find("Canvas/Home").gameObject;
+            Assert.IsTrue(home.activeSelf, "the teapot is out of view: the way home shows");
+            home.GetComponent<Button>().onClick.Invoke();
+            Glide();
+            foreach (Vector2 spot in new[] { Teapot, screen.ShopSpot, screen.HomeSpot })
+            {
+                Vector2 at = OnView(spot);
+                Assert.That(at.x, Is.InRange(GardenScreen.ReadMargin + 100f, 1080f - GardenScreen.ReadMargin - 100f), spot + " is back in view sideways");
+                Assert.That(at.y, Is.InRange(300f, 1920f - 160f - 100f), spot + " is back in view up and down, under the HUD and over the tab bar");
+            }
+            Assert.IsFalse(home.activeSelf, "home: the button goes");
+        }
+
+        [TestCase(13, -3000f)]
+        [TestCase(12, -3000f)]
+        [TestCase(15, 3000f)]
+        public void A_Station_Row_Slides_The_View_Up_Or_Down_To_A_Station_On_A_Band(int index, float startDy)
+        {
+            OpenEveryStation();
+            screen.Shell.StartGame();
+            Glide();
+            GardenSide side = GardenGrid.SideOf(index == 15 ? 6 : 5);
+            Assert.AreEqual(side == GardenSide.Up, screen.StationSpot(index).y > GardenScreen.LawnEdgeY(4, GardenSide.Up), "station " + index + " stands on the band " + side);
+            Assert.AreEqual(side == GardenSide.Down, screen.StationSpot(index).y < GardenScreen.LawnEdgeY(4, GardenSide.Down));
+            screen.LookAt(Teapot + new Vector2(0f, startDy));
+            screen.OpenSheet(0);
+            Glide(10);
+            Assert.That(OnView(screen.StationSpot(index)).y, Is.Not.InRange(screen.SheetHeight, 1920f), "it starts out of view");
+            Find("Canvas/Sheet/Panel/Scroll/Content/Row " + runner.Defs[index].Id).onClick.Invoke();
+            Glide(30);
+            Vector2 at = OnView(screen.StationSpot(index));
+            Assert.That(at.x, Is.InRange(GardenScreen.ReadMargin + 120f, 1080f - GardenScreen.ReadMargin - 120f), "station " + index + " slid into view sideways");
+            Assert.Greater(at.y, screen.SheetHeight + 60f, "above the sheet");
+            Assert.Less(at.y + 150f * World.localScale.y, 1920f - 160f, "and its top under the HUD");
+        }
+
+        Button Find(string path) => root.transform.Find(path).GetComponent<Button>();
+
+        [Test]
+        public void The_Widen_Sign_Has_An_Ink_Outline_Like_The_Drawn_Props()
+        {
+            foreach (string part in new[] { "Board", "Post" })
+            {
+                Transform piece = Sign.Find(part), ink = Sign.Find(part + " Ink");
+                Assert.IsNotNull(ink, "an ink line round the " + part);
+                var line = ink.GetComponent<Image>();
+                Assert.AreEqual(Palette.Ink.r, line.color.r, 0.01f);
+                Assert.AreEqual(Palette.Ink.g, line.color.g, 0.01f);
+                Assert.AreEqual(Palette.Ink.b, line.color.b, 0.01f);
+                Assert.Greater(line.color.a, 0.6f, "dark enough to read as a line");
+                Assert.IsFalse(line.raycastTarget, "a press still reaches the board");
+                Assert.Less(ink.GetSiblingIndex(), piece.GetSiblingIndex(), "drawn behind the " + part);
+                Rect a = GardenRect((RectTransform)piece, (RectTransform)Sign), b = GardenRect((RectTransform)ink, (RectTransform)Sign);
+                foreach (float rim in new[] { a.xMin - b.xMin, b.xMax - a.xMax, a.yMin - b.yMin, b.yMax - a.yMax })
+                    Assert.That(rim, Is.InRange(2f, 6f), "a thin line all round the " + part + ": " + a + " in " + b);
+            }
+        }
+
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(4)]
+        public void The_Next_Plots_Widen_Label_Is_Never_Cut_By_The_Screen_Edge(int segments)
+        {
+            Motion.SetReduced(true);
+            int plots = Expansion.PlotsForSegments(runner.Defs, segments);
+            for (int i = 0; i < runner.Defs.Count; i++) runner.State.Levels[i] = i < plots ? 1 : 0;
+            runner.State.Plots = plots;
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Glide();
+            var label = (RectTransform)World.Find("Station " + runner.Defs[plots].Id + " Front/Level");
+            Assert.IsTrue(label.gameObject.activeInHierarchy, "the next plot shows its label");
+            StringAssert.Contains(L10n.T("garden.expand"), label.GetComponentInChildren<Text>().text);
+            Vector2 spot = screen.StationSpot(plots);
+            float toward = Mathf.Sign(spot.x - Teapot.x);
+            foreach (Vector2 look in new[] { spot, new Vector2(spot.x + toward * 5000f, spot.y), new Vector2(spot.x + toward * 5000f, spot.y + 5000f), new Vector2(spot.x + toward * 5000f, spot.y - 5000f) })
+            {
+                screen.LookAt(look);
+                Glide(5);
+                Rect view = ViewRect(GardenRect(label, World));
+                Assert.GreaterOrEqual(view.xMin, 0f, "looking at " + look + " as far as the view goes, the label of plot " + plots + " is whole on the left: " + view);
+                Assert.LessOrEqual(view.xMax, 1080f, "looking at " + look + " and on the right: " + view);
+            }
+        }
+
+        Rect ViewRect(Rect garden)
+        {
+            Vector2 a = OnView(garden.min), b = OnView(garden.max);
+            return Rect.MinMaxRect(a.x, a.y, b.x, b.y);
+        }
+
+        static Rect PinnedRect(RectTransform rt) => new Rect(new Vector2(rt.anchorMin.x * 1080f, rt.anchorMin.y * 1920f) + rt.anchoredPosition - rt.sizeDelta / 2f, rt.sizeDelta);
+
+        [Test]
+        public void The_Down_Pill_Steps_Aside_So_It_Never_Covers_The_Tea_Shop()
+        {
+            Motion.SetReduced(true);
+            OpenEveryStation();
+            runner.State.Coins = new BigNum(1e300);
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Glide();
+            var pill = (RectTransform)root.transform.Find("Canvas/EdgeDown");
+            var shop = (RectTransform)World.Find("Shop");
+            float pillY = pill.anchoredPosition.y;
+            float shopMiddle = screen.ShopSpot.y + shop.sizeDelta.y / 2f;
+            screen.LookAt(new Vector2(screen.ShopSpot.x, shopMiddle + (1920f * 0.6f - pillY) / World.localScale.y));
+            screen.Advance(1f / 30f);
+            screen.Advance(1f / 30f);
+            Assert.IsTrue(pill.gameObject.activeSelf, "stations wait below");
+            Rect shopOn = ViewRect(GardenRect(shop, World)), pillOn = PinnedRect(pill);
+            var middlePill = new Rect(540f - pillOn.width / 2f, pillOn.y, pillOn.width, pillOn.height);
+            Assert.IsTrue(middlePill.Overlaps(shopOn), "the shop stands where the pill would stand: " + shopOn + " " + middlePill);
+            Assert.IsFalse(pillOn.Overlaps(shopOn), "the pill steps aside off the shop: " + pillOn + " " + shopOn);
+            Assert.AreEqual(pillY, pill.anchoredPosition.y, 0.5f, "at the same height");
+            Assert.GreaterOrEqual(pillOn.xMin, GardenScreen.ReadMargin, "inside the screen");
+            Assert.LessOrEqual(pillOn.xMax, 1080f - GardenScreen.ReadMargin);
+            var home = (RectTransform)root.transform.Find("Canvas/Home");
+            if (home.gameObject.activeSelf) Assert.IsFalse(pillOn.Overlaps(PinnedRect(home)), "and clear of the way home");
+
+            screen.LookAt(Teapot);
+            screen.Advance(1f / 30f);
+            Assert.IsFalse(ViewRect(GardenRect(shop, World)).Overlaps(middlePill), "the shop is away from the pill's place");
+            Assert.AreEqual(0f, pill.anchoredPosition.x, 0.5f, "the pill is back in the middle");
+        }
     }
 }
