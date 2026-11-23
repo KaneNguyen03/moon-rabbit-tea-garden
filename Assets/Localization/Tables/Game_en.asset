@@ -129,7 +129,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236314
-    m_Localized: Empty land
+    m_Localized: Empty plot
     m_Metadata:
       m_Items: []
   - m_Id: 372236315
@@ -405,7 +405,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236383
-    m_Localized: charm
+    m_Localized: trinket
     m_Metadata:
       m_Items: []
   - m_Id: 372236384
@@ -565,7 +565,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236423
-    m_Localized: Wake the second rabbit
+    m_Localized: Open a second station
     m_Metadata:
       m_Items: []
   - m_Id: 372236424
@@ -873,7 +873,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 40055035912193
-    m_Localized: Album
+    m_Localized: Rabbit book
     m_Metadata:
       m_Items: []
   - m_Id: 40055035912194
@@ -889,9 +889,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 40055035912197
-    m_Localized: 'In its own trade it is worth {0} times more.
-
-      Stations of its trade: {1}'
+    m_Localized: "In its own trade it earns \xD7{0}.\nIts stations: {1}"
     m_Metadata:
       m_Items: []
   - m_Id: 40055035912198
@@ -1067,7 +1065,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 46031948472320
-    m_Localized: "Places to rest: {0}/{1} taken \xB7 widen the garden for more"
+    m_Localized: "Rest spots: {0}/{1} taken \xB7 widen the garden for more"
     m_Metadata:
       m_Items: []
   - m_Id: 46031956860928
@@ -1115,7 +1113,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 52232245469189
-    m_Localized: +{0} clover
+    m_Localized: +{0} clovers
     m_Metadata:
       m_Items: []
   - m_Id: 52232245469190
@@ -1123,7 +1121,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 52232245469191
-    m_Localized: '{0} more to the next level'
+    m_Localized: '{0} more points to the next level'
     m_Metadata:
       m_Items: []
   - m_Id: 54971167924224
@@ -1175,7 +1173,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 68780293087237
-    m_Localized: Put here
+    m_Localized: Place here
     m_Metadata:
       m_Items: []
   - m_Id: 68780293087238
@@ -1195,7 +1193,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 71371206942721
-    m_Localized: Feeds
+    m_Localized: Boosts
     m_Metadata:
       m_Items: []
   - m_Id: 73313580736512
@@ -1215,7 +1213,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 75920059654144
-    m_Localized: Upgrade everything
+    m_Localized: Upgrade all
     m_Metadata:
       m_Items: []
   - m_Id: 75920059654145
@@ -1243,7 +1241,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 75920059654151
-    m_Localized: Not enough carrots to raise any station.
+    m_Localized: Not enough carrots to upgrade any station.
     m_Metadata:
       m_Items: []
   - m_Id: 75920059654152
@@ -1323,7 +1321,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 84286731444230
-    m_Localized: "Garden level {0} \xB7 {1} rabbits \xB7 {2} stations"
+    m_Localized: "Garden level {0} \xB7 Rabbits: {1} \xB7 Stations: {2}"
     m_Metadata:
       m_Items: []
   - m_Id: 84286731444231
@@ -1471,7 +1469,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 180083640754184
-    m_Localized: Take a photo with all 6 resting places
+    m_Localized: Take a photo with all 6 rest spots filled
     m_Metadata:
       m_Items: []
   - m_Id: 181326123622400
@@ -1491,7 +1489,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 182816871538690
-    m_Localized: Open the teapot's card and raise it to level 2 when you can
+    m_Localized: Open the teapot's card and upgrade it to level 2 once you have the carrots
     m_Metadata:
       m_Items: []
   - m_Id: 182816871538691
@@ -1499,7 +1497,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 182816871538692
-    m_Localized: Collect your first quest in the Quests tab
+    m_Localized: Claim your first quest reward in the Quests tab
     m_Metadata:
       m_Items: []
   - m_Id: 182816871538693
@@ -1507,7 +1505,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 182816871538694
-    m_Localized: "Put it to work: touch an empty pad. Its own trade pays \xD71,5"
+    m_Localized: "Put it to work: tap an empty pad. Its own trade pays \xD71.5"
     m_Metadata:
       m_Items: []
   - m_Id: 182816871538695
@@ -1611,7 +1609,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 195730810593280
-    m_Localized: Pound thirty mooncakes
+    m_Localized: Pound 30 mooncakes
     m_Metadata:
       m_Items: []
   - m_Id: 195730810593281
@@ -1695,7 +1693,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 197531127504897
-    m_Localized: A kind you have not met!
+    m_Localized: A new kind!
     m_Metadata:
       m_Items: []
   - m_Id: 197531127504898
@@ -1747,7 +1745,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 208507608489989
-    m_Localized: "Closest of friends \xB7 +{0} clover"
+    m_Localized: "Good friends now \xB7 +{0} clover"
     m_Metadata:
       m_Items: []
   - m_Id: 211753009930240
@@ -1815,7 +1813,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 211753022513167
-    m_Localized: Catch leaves thirty times
+    m_Localized: Play Catch the Tea Leaves 30 times
     m_Metadata:
       m_Items: []
   - m_Id: 212921664659456
@@ -1831,7 +1829,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436674
-    m_Localized: No connection; it will save when one is back
+    m_Localized: Offline; it will save once you're back online
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436675
@@ -1859,7 +1857,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436681
-    m_Localized: Took the cloud copy; the old one is kept as the device backup
+    m_Localized: Cloud copy restored; your old garden is kept as a device backup
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436682
@@ -1871,7 +1869,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436684
-    m_Localized: Brought the device backup back
+    m_Localized: Device backup restored
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436685
@@ -1899,7 +1897,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436691
-    m_Localized: "{0} rabbits \xB7 {1} kinds"
+    m_Localized: "Rabbits: {0} \xB7 Kinds: {1}"
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436692
@@ -1915,11 +1913,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436695
-    m_Localized: Keep this device's
+    m_Localized: Keep this device's copy
     m_Metadata:
       m_Items: []
   - m_Id: 212921681436696
-    m_Localized: Take the cloud's
+    m_Localized: Use the cloud copy
     m_Metadata:
       m_Items: []
   - m_Id: 216545128079360
@@ -1991,7 +1989,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 216545157439504
-    m_Localized: Catch fireflies thirty nights
+    m_Localized: Catch fireflies on 30 nights
     m_Metadata:
       m_Items: []
   - m_Id: 218048119169024
@@ -2011,7 +2009,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 218048131751939
-    m_Localized: Waiting {0} more
+    m_Localized: Leaves in {0}
     m_Metadata:
       m_Items: []
   - m_Id: 218048131751940
@@ -2043,7 +2041,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 218048131751947
-    m_Localized: The guest has left
+    m_Localized: Guest left
     m_Metadata:
       m_Items: []
   - m_Id: 218048131751948
@@ -2091,11 +2089,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 224994280857600
-    m_Localized: Things for rabbits
+    m_Localized: Rabbit wear
     m_Metadata:
       m_Items: []
   - m_Id: 224994280857601
-    m_Localized: "Hats just for looks, worn between the ears \xB7 one of each \xB7 dye is on each rabbit's sheet"
+    m_Localized: "Hats are just for looks \xB7 one of each \xB7 dye fur from a rabbit's card"
     m_Metadata:
       m_Items: []
   - m_Id: 224994280857602
@@ -2115,7 +2113,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 224994280857606
-    m_Localized: "Fur dye \xB7 {0} golden carrots \xB7 Still need more"
+    m_Localized: "Fur dye \xB7 {0} golden carrots \xB7 not enough yet"
     m_Metadata:
       m_Items: []
   - m_Id: 224994280857607
@@ -2175,7 +2173,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 249588261838851
-    m_Localized: 'Tap again: the garden, the backup and the cloud copy will go'
+    m_Localized: Tap again to delete the garden, its backup and the cloud copy
     m_Metadata:
       m_Items: []
   - m_Id: 249588261838852
@@ -2207,7 +2205,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320832
-    m_Localized: Put the Star Lantern Rabbit to its trade
+    m_Localized: Put the Star Lantern Rabbit to work in its trade
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320833
@@ -2219,7 +2217,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320835
-    m_Localized: "Put the \xC1o D\xE0i Rabbit to its trade"
+    m_Localized: "Put the \xC1o D\xE0i Rabbit to work in its trade"
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320836
@@ -2231,7 +2229,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320838
-    m_Localized: Put the Noel Rabbit to its trade
+    m_Localized: Put the Noel Rabbit to work in its trade
     m_Metadata:
       m_Items: []
   - m_Id: 252465747320839
@@ -2275,7 +2273,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 256349328891906
-    m_Localized: Lantern colour
+    m_Localized: Lantern color
     m_Metadata:
       m_Items: []
   - m_Id: 256349328891907
@@ -2359,7 +2357,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 257877167038464
-    m_Localized: '{0} visits the shop, answers golden calls and comes with the last day''s gift'
+    m_Localized: '{0} visits the shop, can come from golden calls, and arrives as the season''s last-day gift'
     m_Metadata:
       m_Items: []
   - m_Id: 265567842852864
@@ -2423,17 +2421,17 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827270
-    m_Localized: '{0} rabbits, {1} items, {2} golden carrots, {3} clovers
+    m_Localized: 'Rabbits: {0}, items: {1}, golden carrots: {2}, clovers: {3}
 
-      Album, achievements, profile and settings'
+      Rabbit book, photos, achievements, profile and settings'
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827271
-    m_Localized: Back to the start
+    m_Localized: Reset
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827272
-    m_Localized: "{0} carrots \xB7 {1} station levels at {2} stations\nPlots {3} \u2192 {4} \xB7 rest spots {5} \u2192 {6} \xB7 garden level {7} \u2192 1"
+    m_Localized: "{0} carrots \xB7 station levels: {1} \xB7 stations: {2}\nPlots {3} \u2192 {4} \xB7 rest spots {5} \u2192 {6} \xB7 garden level {7} \u2192 1"
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827273
@@ -2453,7 +2451,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827277
-    m_Localized: Press again to begin season {0}
+    m_Localized: Tap again to begin Moon {0}
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827278
@@ -2461,7 +2459,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827279
-    m_Localized: Season {0}
+    m_Localized: Moon {0}
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827280
@@ -2473,7 +2471,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827282
-    m_Localized: Season {0} begins
+    m_Localized: Moon {0} begins
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827283
@@ -2481,11 +2479,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827284
-    m_Localized: Season {0}
+    m_Localized: Moon {0}
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827285
-    m_Localized: "Garden level {0} \xB7 {1} rabbits \xB7 {2} stations \xB7 Season {3}, income +{4}%"
+    m_Localized: "Garden level {0} \xB7 Rabbits: {1} \xB7 Stations: {2} \xB7 Moon {3}, income +{4}%"
     m_Metadata:
       m_Items: []
   - m_Id: 270018418827286
@@ -2505,11 +2503,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 272084809801729
-    m_Localized: "Garden level {0} \xB7 {1} rabbits"
+    m_Localized: "Garden level {0} \xB7 Rabbits: {1}"
     m_Metadata:
       m_Items: []
   - m_Id: 272084809801730
-    m_Localized: The save is over 3 MB, more than Saved Games takes; the garden stays on this device
+    m_Localized: The save is over 3 MB, too big for Saved Games; your garden stays on this device
     m_Metadata:
       m_Items: []
   - m_Id: 273544201101312
@@ -2545,7 +2543,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 273544217878535
-    m_Localized: Cancelled, nothing charged
+    m_Localized: Canceled, nothing charged
     m_Metadata:
       m_Items: []
   - m_Id: 273544217878536
@@ -2661,7 +2659,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 366259232301057
-    m_Localized: "Places to rest: {0}/{1} taken \xB7 garden income +{2}%"
+    m_Localized: "Rest spots: {0}/{1} taken \xB7 garden income +{2}%"
     m_Metadata:
       m_Items: []
   - m_Id: 366259232301058
@@ -2673,7 +2671,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 370712551350272
-    m_Localized: The water just boiled, the tea is nearly ready!
+    m_Localized: The water's boiling. Tea's nearly ready!
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738880
@@ -2689,11 +2687,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738883
-    m_Localized: The cakes are almost done, wait a moment!
+    m_Localized: The cakes are almost done. Just a moment!
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738884
-    m_Localized: Kneading tires my paws, but it is fun.
+    m_Localized: Kneading tires my paws, but it's fun!
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738885
@@ -2709,7 +2707,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738888
-    m_Localized: The basket is full, off to the kitchen!
+    m_Localized: The basket's full. Off to the kitchen!
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738889
@@ -2717,7 +2715,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738890
-    m_Localized: There is still dew on the leaves.
+    m_Localized: There's still dew on the leaves.
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738891
@@ -2725,7 +2723,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738892
-    m_Localized: That makes a hundred stars counted.
+    m_Localized: That's a hundred stars counted!
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738893
@@ -2765,7 +2763,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738902
-    m_Localized: It is late, have some warm tea.
+    m_Localized: It's late. Have some warm tea.
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738903
@@ -2773,19 +2771,19 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738904
-    m_Localized: The sun is nearly up, time to rise!
+    m_Localized: The sun's nearly up. Time to rise!
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738905
-    m_Localized: Lovely sun, time to dry the leaves!
+    m_Localized: Lovely sun! Time to dry the leaves.
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738906
-    m_Localized: It is midday, is anyone hungry?
+    m_Localized: It's midday. Anyone hungry?
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738907
-    m_Localized: It is Mid-Autumn, shall we parade the lanterns?
+    m_Localized: It's Mid-Autumn! Shall we parade the lanterns?
     m_Metadata:
       m_Items: []
   - m_Id: 370712559738908
@@ -2825,7 +2823,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 375703399817220
-    m_Localized: 'The album''s gift: a Starry Hat'
+    m_Localized: 'The rabbit book''s gift: a Starry Hat'
     m_Metadata:
       m_Items: []
   - m_Id: 375703399817221
@@ -2833,7 +2831,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 375703399817222
-    m_Localized: The album earns its gold Complete frame
+    m_Localized: The rabbit book earns its gold Complete frame
     m_Metadata:
       m_Items: []
   - m_Id: 375703399817223
@@ -2925,7 +2923,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 386172349046784
-    m_Localized: Stations
+    m_Localized: Ambience
     m_Metadata:
       m_Items: []
   - m_Id: 386172357435392
@@ -2957,7 +2955,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 396779370569729
-    m_Localized: That code isn't right. Check it and try again
+    m_Localized: That code isn't right. Check it and try again.
     m_Metadata:
       m_Items: []
   - m_Id: 396779370569730
@@ -2991,7 +2989,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 396779370569737
-    m_Localized: A gift for the {0} you missed
+    m_Localized: Your missed {0} gift
     m_Metadata:
       m_Items: []
   - m_Id: 396779370569738
@@ -3151,7 +3149,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 412723358720001
-    m_Localized: Little silverfish
+    m_Localized: Silverfish
     m_Metadata:
       m_Items: []
   - m_Id: 412723358720002
@@ -3171,7 +3169,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 412723358720006
-    m_Localized: Starry night fish
+    m_Localized: Night star fish
     m_Metadata:
       m_Items: []
   - m_Id: 412723358720007
@@ -3215,7 +3213,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 416720807256067
-    m_Localized: All 12 rabbits awake
+    m_Localized: Have 12 stations running
     m_Metadata:
       m_Items: []
   - m_Id: 416720807256068
@@ -3295,7 +3293,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 672429956390912
-    m_Localized: "Widen the garden \xB7 part {0}"
+    m_Localized: "Widen the garden \xB7 section {0}"
     m_Metadata:
       m_Items: []
   - m_Id: 672429956390913
@@ -3303,7 +3301,107 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 672429956390914
-    m_Localized: Back to the tea shop
+    m_Localized: To the shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874230280192
+    m_Localized: +{0} golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834624
+    m_Localized: You have {0} golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834625
+    m_Localized: +{0} golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834626
+    m_Localized: '{0} more golden carrot'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834627
+    m_Localized: '{0} more golden carrot'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834628
+    m_Localized: '{0} more golden carrot'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834629
+    m_Localized: +{0} clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834630
+    m_Localized: +{0} clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834631
+    m_Localized: +{0} clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834632
+    m_Localized: "Call a new rabbit \xB7 {0} clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834633
+    m_Localized: "{0} rabbit \xB7 {1}/{2} kinds met"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834634
+    m_Localized: '{0} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834635
+    m_Localized: '{0} kind met'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834636
+    m_Localized: +{0} level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834637
+    m_Localized: "{0} more level to \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834638
+    m_Localized: 'Tray: {0} new item'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834639
+    m_Localized: '{0} guest came by; nobody was at the counter'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834640
+    m_Localized: '{0} day left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834641
+    m_Localized: "No ads \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834642
+    m_Localized: "{0} day in a row \xB7 miss a day and it steps back one"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834643
+    m_Localized: '{0} leaf caught'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834644
+    m_Localized: '{0} point'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834645
+    m_Localized: '{0} point'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834646
+    m_Localized: '{0} point'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834647
+    m_Localized: +{0} bond point
     m_Metadata:
       m_Items: []
   references:

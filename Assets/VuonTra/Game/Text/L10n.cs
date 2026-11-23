@@ -1,6 +1,7 @@
 using System;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
+using UnityEngine.Localization.Tables;
 using VuonTra.Core;
 
 namespace VuonTra.Game
@@ -35,11 +36,17 @@ namespace VuonTra.Game
             }
         }
 
-        /// <summary>The text for a key, with {0}-style arguments filled in.</summary>
+        /// <summary>
+        /// The text for a key, with {0}-style arguments filled in. In English a count of one reads
+        /// "key.one" when the table has it ("+1 golden carrot"); Vietnamese has no plural and never asks.
+        /// </summary>
         public static string T(string key, params object[] args)
         {
             Hook();
-            string text = LocalizationSettings.StringDatabase.GetLocalizedString(Table, key);
+            string text = null;
+            if (args != null && args.Length > 0 && Code.StartsWith("en", StringComparison.Ordinal) && FirstCountIsOne(args))
+                text = Entry(key + OneSuffix);
+            if (text == null) text = LocalizationSettings.StringDatabase.GetLocalizedString(Table, key);
             if (text == null)
             {
                 // The table was not in memory yet: load it now and ask again.
@@ -48,6 +55,38 @@ namespace VuonTra.Game
             }
             if (text == null) return key; // a missing key shows as its name rather than crashing
             return args == null || args.Length == 0 ? text : string.Format(text, args);
+        }
+
+        /// <summary>The ending of the English line used when the count is one.</summary>
+        public const string OneSuffix = ".one";
+
+        /// <summary>True when the first numeric argument is exactly 1; text arguments (names, "1,5K") are passed over.</summary>
+        public static bool FirstCountIsOne(object[] args)
+        {
+            foreach (object arg in args)
+            {
+                switch (arg)
+                {
+                    case int v: return v == 1;
+                    case long v: return v == 1;
+                    case short v: return v == 1;
+                    case byte v: return v == 1;
+                    case uint v: return v == 1;
+                    case ulong v: return v == 1;
+                    case float v: return v == 1f;
+                    case double v: return v == 1d;
+                    case decimal v: return v == 1m;
+                }
+            }
+            return false;
+        }
+
+        /// <summary>The selected language's line for a key, or null when the table has none (no "missing" message).</summary>
+        static string Entry(string key)
+        {
+            StringTable table = LocalizationSettings.StringDatabase.GetTable(Table);
+            StringTableEntry entry = table != null ? table.GetEntry(key) : null;
+            return entry != null && !string.IsNullOrEmpty(entry.Value) ? entry.Value : null;
         }
 
         /// <summary>Switches language through the package, which then notifies everything bound to it.</summary>

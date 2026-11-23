@@ -3295,6 +3295,106 @@ MonoBehaviour:
     m_Key: edge.home
     m_Metadata:
       m_Items: []
+  - m_Id: 727874230280192
+    m_Key: shop.gift.amount.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834624
+    m_Key: shop.have.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834625
+    m_Key: mail.golden.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834626
+    m_Key: away.double.short.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834627
+    m_Key: shop.golden.need.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834628
+    m_Key: shop.visitor.need.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834629
+    m_Key: fireflies.clovers.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834630
+    m_Key: mail.clovers.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834631
+    m_Key: moment.garden.sub.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834632
+    m_Key: rabbits.clovers.short.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834633
+    m_Key: rabbits.count.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834634
+    m_Key: expand.rabbits.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834635
+    m_Key: expand.kinds.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834636
+    m_Key: upgradeall.levels.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834637
+    m_Key: row.tonext.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834638
+    m_Key: away.tray.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834639
+    m_Key: away.guests.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834640
+    m_Key: mail.days.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834641
+    m_Key: noads.active.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834642
+    m_Key: shop.gift.streak.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834643
+    m_Key: leaves.caught.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834644
+    m_Key: pound.score.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834645
+    m_Key: leaves.score.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834646
+    m_Key: fireflies.score.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 727874263834647
+    m_Key: fish.points.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

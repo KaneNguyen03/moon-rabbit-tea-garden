@@ -126,7 +126,7 @@ namespace VuonTra.Game.UI
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s)
         {
             bool can = s.Clovers >= Rabbits.SummonCost;
-            _count.text = L10n.T("rabbits.count", s.Rabbits.Count, s.SeenKinds.Count, RabbitKinds.All.Count);
+            _count.text = L10n.T("rabbits.count", s.Rabbits.Count, AlbumSets.KindsMet(s), AlbumSets.EveryDayKinds);
             _clovers.text = L10n.T("rabbits.clovers.short", s.Clovers);
             _summonLabel.text = can ? L10n.T("rabbits.summon.button", Rabbits.SummonCost) : L10n.T("need.clover", Rabbits.SummonCost - s.Clovers);
             _summonLabel.color = ChunkyButton.InkFor(can);

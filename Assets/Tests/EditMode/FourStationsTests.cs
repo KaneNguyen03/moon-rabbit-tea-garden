@@ -341,7 +341,7 @@ namespace VuonTra.Core.Tests
             var vi = new[] { "Vườn hoa sen", "Lò kẹo mạch nha", "Ruộng lúa nếp", "Thuyền trà đêm" };
             L10n.SetLocale("vi");
             for (int k = 0; k < 4; k++) Assert.AreEqual(vi[k], L10n.Station(NewIds[k]));
-            Assert.AreEqual("Cả 12 bé thỏ đều thức", L10n.T("quest.mo-12"));
+            Assert.AreEqual("Có 12 trạm đang hoạt động", L10n.T("quest.mo-12"));
             L10n.SetLocale("en");
             foreach (string id in NewIds)
             {

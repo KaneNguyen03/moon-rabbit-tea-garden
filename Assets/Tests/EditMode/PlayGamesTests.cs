@@ -237,7 +237,7 @@ namespace VuonTra.Core.Tests
             var sum = new SaveSummary { GardenLevel = 7, Rabbits = 12 };
             Assert.AreEqual("Cấp vườn 7 · 12 thỏ", SavedGamesCloudSave.Describe(sum));
             L10n.SetLocale("en");
-            Assert.AreEqual("Garden level 7 · 12 rabbits", SavedGamesCloudSave.Describe(sum));
+            Assert.AreEqual("Garden level 7 · Rabbits: 12", SavedGamesCloudSave.Describe(sum));
             L10n.SetLocale("vi");
         }
 
