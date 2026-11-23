@@ -35,6 +35,26 @@ namespace VuonTra.Core
         /// <summary>The garden level a station asks for before it can be opened, besides its price and its plot (#67); 0 asks for none.</summary>
         public int NeedGardenLevel;
 
+        string _gridId, _gridIdOf;
+
+        /// <summary>
+        /// The id the garden's grid knows this station by, <see cref="GardenGrid.StationId"/>, made once and kept (#97): the
+        /// income sums ask whether each station is stored for every pair of stations, and joining the string each time was
+        /// a good part of a full garden's garbage. Made again if <see cref="Id"/> is ever changed.
+        /// </summary>
+        public string GridId
+        {
+            get
+            {
+                if (_gridId == null || !ReferenceEquals(_gridIdOf, Id))
+                {
+                    _gridId = GardenGrid.StationId(this);
+                    _gridIdOf = Id;
+                }
+                return _gridId;
+            }
+        }
+
         public bool Boosts(string brewId)
         {
             if (BoostsIds == null) return false;

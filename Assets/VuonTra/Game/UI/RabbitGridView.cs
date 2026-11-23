@@ -230,7 +230,7 @@ namespace VuonTra.Game.UI
             var root = UiKit.Rect("Rest", _content);
             root.AddImage(_catalog.Panel, Palette.Track, true);
             root.gameObject.AddComponent<LayoutElement>().preferredHeight = 60;
-            int seated = RestSpots.Seated(s).Count;
+            int seated = RestSpots.SeatedCount(s);
             string line = seated > 0
                 ? L10n.T("rest.row.share", seated, s.RestSpots, Percent(RestSpots.Bonus(s)))
                 : L10n.T("rest.row", seated, s.RestSpots);

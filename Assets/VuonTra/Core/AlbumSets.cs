@@ -14,6 +14,43 @@ namespace VuonTra.Core
     }
 
     /// <summary>
+    /// The album's factor for each trade at one moment (#97), the very numbers of <see cref="AlbumSets.TradeFactor"/> and
+    /// <see cref="AlbumSets.StationFactor"/>. A struct, so holding it allocates nothing; it does not follow the album after.
+    /// </summary>
+    public readonly struct AlbumFactors
+    {
+        readonly double _brewer, _baker, _gatherer, _stargazer;
+
+        public AlbumFactors(GameState s)
+        {
+            _brewer = AlbumSets.TradeFactor(s, RabbitTrade.Brewer);
+            _baker = AlbumSets.TradeFactor(s, RabbitTrade.Baker);
+            _gatherer = AlbumSets.TradeFactor(s, RabbitTrade.Gatherer);
+            _stargazer = AlbumSets.TradeFactor(s, RabbitTrade.Stargazer);
+        }
+
+        /// <summary>What a trade's stations earn by; 1 for <see cref="RabbitTrade.None"/>, which has no sets.</summary>
+        public double Of(RabbitTrade trade)
+        {
+            switch (trade)
+            {
+                case RabbitTrade.Brewer: return _brewer;
+                case RabbitTrade.Baker: return _baker;
+                case RabbitTrade.Gatherer: return _gatherer;
+                case RabbitTrade.Stargazer: return _stargazer;
+                default: return 1d;
+            }
+        }
+
+        /// <summary>The factor on one station, by its trade, as <see cref="AlbumSets.StationFactor"/>.</summary>
+        public double At(IReadOnlyList<StationDef> defs, int station)
+        {
+            if (defs == null || station < 0 || station >= defs.Count) return 1d;
+            return Of(defs[station].Trade);
+        }
+    }
+
+    /// <summary>
     /// The album pays (#61). Each tier's every-day kinds of one trade make a set; meeting every kind of a set
     /// (it only has to be in <see cref="GameState.SeenKinds"/>, so a rabbit merged away still counts) adds 3 % to
     /// the income of that trade's stations for good. Seasonal kinds and the new moon's are left out, so a set never
@@ -70,7 +107,8 @@ namespace VuonTra.Core
         public static int Met(GameState s, AlbumSet set)
         {
             int n = 0;
-            foreach (RabbitKind k in set.Kinds) if (s.SeenKinds.Contains(k.Id)) n++;
+            IReadOnlyList<RabbitKind> kinds = set.Kinds;
+            for (int i = 0; i < kinds.Count; i++) if (s.SeenKinds.Contains(kinds[i].Id)) n++; // by index: a foreach boxes the list's enumerator (#97)
             return n;
         }
 
@@ -105,12 +143,22 @@ namespace VuonTra.Core
             return TradeFactor(s, defs[station].Trade);
         }
 
+        /// <summary>
+        /// <see cref="TradeFactor"/> of every trade, read from the album once (#97): <see cref="Economy"/> sums over pairs of
+        /// stations and asked the album again for each pair, which on a full garden was most of the garbage of a frame.
+        /// </summary>
+        public static AlbumFactors Factors(GameState s) => new AlbumFactors(s);
+
         /// <summary>How many every-day kinds the album holds: what the milestones count.</summary>
         public static int KindsMet(GameState s)
         {
             int n = 0;
-            foreach (RabbitKind k in RabbitKinds.All)
+            IReadOnlyList<RabbitKind> all = RabbitKinds.All;
+            for (int i = 0; i < all.Count; i++)
+            {
+                RabbitKind k = all[i];
                 if (k.Season == Season.None && !k.NewMoonOnly && s.SeenKinds.Contains(k.Id)) n++;
+            }
             return n;
         }
 
@@ -120,7 +168,8 @@ namespace VuonTra.Core
             get
             {
                 int n = 0;
-                foreach (RabbitKind k in RabbitKinds.All) if (k.Season == Season.None && !k.NewMoonOnly) n++;
+                IReadOnlyList<RabbitKind> all = RabbitKinds.All;
+                for (int i = 0; i < all.Count; i++) if (all[i].Season == Season.None && !all[i].NewMoonOnly) n++;
                 return n;
             }
         }

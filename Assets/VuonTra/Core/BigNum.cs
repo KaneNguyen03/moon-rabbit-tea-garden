@@ -174,10 +174,20 @@ namespace VuonTra.Core
             return sb.ToString();
         }
 
+        /// <summary>The two-letter suffixes ("aa" … "zz") once made: a full garden prints a dozen big numbers a frame (#97).</summary>
+        static readonly string[] TwoLetterSuffixes = new string[26 * 26];
+
         static string Suffix(long group)
         {
             if (group < SmallSuffixes.Length) return SmallSuffixes[group];
             long index = group - SmallSuffixes.Length; // 0 → "aa"
+            if (index < TwoLetterSuffixes.Length)
+                return TwoLetterSuffixes[index] ?? (TwoLetterSuffixes[index] = Letters(index));
+            return Letters(index);
+        }
+
+        static string Letters(long index)
+        {
             // Two letters cover 676 groups; longer names keep going after that.
             int letters = 2;
             long span = 26L * 26L;

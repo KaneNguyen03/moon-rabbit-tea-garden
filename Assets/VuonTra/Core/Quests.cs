@@ -165,7 +165,7 @@ namespace VuonTra.Core
                 case QuestMetric.PhotoAsksAnswered:
                     return q.Daily ? Math.Max(0, s.PhotoAsksAnswered - s.DailyPhotoAsksBase) : s.PhotoAsksAnswered;
                 case QuestMetric.RabbitsResting:
-                    return RestSpots.Seated(s).Count;
+                    return RestSpots.SeatedCount(s);
                 case QuestMetric.KindsMet:
                     return AlbumSets.KindsMet(s);
                 case QuestMetric.FrogsMet:

@@ -58,7 +58,8 @@ namespace VuonTra.Core
         public static RabbitKind KindOf(Season season)
         {
             if (season == Season.None) return null;
-            foreach (RabbitKind k in RabbitKinds.All) if (k.Season == season) return k;
+            System.Collections.Generic.IReadOnlyList<RabbitKind> all = RabbitKinds.All;
+            for (int i = 0; i < all.Count; i++) if (all[i].Season == season) return all[i]; // by index: a foreach boxes the enumerator (#97)
             return null;
         }
 

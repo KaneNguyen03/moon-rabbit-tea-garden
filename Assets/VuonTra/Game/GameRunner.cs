@@ -173,7 +173,7 @@ namespace VuonTra.Game
             }
             else
             {
-                Simulation.Tick(Defs, State, dt, Payout, Mods, _rng.NextDouble, ProductMade);
+                Simulation.Tick(Defs, State, dt, Payout, Mods, Roll, ProductMade);
             }
 
             if (!Paused) State.PlaySeconds += dt;
@@ -255,6 +255,9 @@ namespace VuonTra.Game
         }
 
         readonly System.Random _rng = new System.Random();
+        Func<double> _roll;
+        /// <summary><see cref="_rng"/>'s NextDouble as a delegate, made once: passing the method itself made a new one every frame (#97).</summary>
+        Func<double> Roll => _roll ??= _rng.NextDouble;
 
         /// <summary>The item the most recent quest claim gave, if any.</summary>
         public Item LastQuestItem { get; private set; }
@@ -283,7 +286,7 @@ namespace VuonTra.Game
         /// <summary>Counts seconds of open play towards the next guest and the waiting guest's patience. The save keeps up with comings and goings.</summary>
         public OrderEvent AdvanceOrders(double dt)
         {
-            OrderEvent e = Orders.Advance(Defs, State, dt, TodayNumber, _rng.NextDouble);
+            OrderEvent e = Orders.Advance(Defs, State, dt, TodayNumber, Roll);
             if (e != OrderEvent.None) Save();
             return e;
         }
@@ -291,7 +294,7 @@ namespace VuonTra.Game
         /// <summary>Brings a guest to the counter now (previews, tests); null when one is waiting already or the day's guests have all been.</summary>
         public Order PlaceOrder()
         {
-            Order order = Orders.Place(Defs, State, TodayNumber, _rng.NextDouble);
+            Order order = Orders.Place(Defs, State, TodayNumber, Roll);
             if (order != null) Changed();
             return order;
         }
@@ -426,7 +429,7 @@ namespace VuonTra.Game
         /// <summary>Counts seconds of open play towards the next ask and the bubble's stay. The save keeps up when a bubble comes or goes.</summary>
         public PhotoAskEvent AdvancePhotoAsks(double dt)
         {
-            PhotoAskEvent e = PhotoAsks.Advance(Defs, State, dt, TodayNumber, _rng.NextDouble);
+            PhotoAskEvent e = PhotoAsks.Advance(Defs, State, dt, TodayNumber, Roll);
             if (e != PhotoAskEvent.None) Save();
             return e;
         }
@@ -434,7 +437,7 @@ namespace VuonTra.Game
         /// <summary>A rabbit asks now (previews, tests): false when one asks already, the day's asks are answered, or nobody can.</summary>
         public bool AskForPhoto()
         {
-            bool ok = PhotoAsks.Ask(Defs, State, TodayNumber, _rng.NextDouble);
+            bool ok = PhotoAsks.Ask(Defs, State, TodayNumber, Roll);
             if (ok) Save();
             return ok;
         }
@@ -1117,7 +1120,7 @@ namespace VuonTra.Game
         public FishingCast StartCast()
         {
             if (Cast != null && !Cast.Over) return null;
-            Cast = Fishing.Cast(State, FishingClock(), _rng.NextDouble);
+            Cast = Fishing.Cast(State, FishingClock(), Roll);
             if (Cast != null) Changed();
             return Cast;
         }

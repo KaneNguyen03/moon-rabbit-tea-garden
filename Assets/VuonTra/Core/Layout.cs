@@ -21,11 +21,11 @@ namespace VuonTra.Core
     /// </summary>
     public static class Layout
     {
-        /// <summary>True when station <paramref name="index"/> is in storage. Cheap when nothing is.</summary>
+        /// <summary>True when station <paramref name="index"/> is in storage. Cheap when nothing is, and allocates nothing either way (#97).</summary>
         public static bool IsStored(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
             GardenGrid g = s.Grid;
-            return g != null && g.StoredCount > 0 && defs != null && index >= 0 && index < defs.Count && g.IsStored(GardenGrid.StationId(defs[index]));
+            return g != null && g.StoredCount > 0 && defs != null && index >= 0 && index < defs.Count && g.IsStored(defs[index].GridId);
         }
 
         /// <summary>A drop from one tile on another: a move onto an empty lawn tile, a swap with something movable, otherwise back (a tile kept for a prop included).</summary>
