@@ -195,13 +195,23 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Taking_Out_Stands_The_Station_On_The_Empty_Tile_Nearest_The_Centre()
+        public void Taking_Out_Stands_The_Station_On_The_Empty_Tile_Nearest_The_Centre_Clear_Of_Every_Station()
         {
             Assert.IsTrue(Layout.Store(defs, s, "station:jam"));
             Assert.IsTrue(s.Grid.Move(Tile(s, "station:tea"), new Hex(0, 1)), "the heart is free");
             Assert.IsTrue(Layout.TakeOut(defs, s, 2));
             Assert.IsFalse(s.Grid.IsStored("station:jam"));
-            Assert.AreEqual(new Hex(0, 0), Tile(s, "station:jam"), "nearest the centre");
+            Hex jam = Tile(s, "station:jam");
+            Assert.AreNotEqual(new Hex(0, 0), jam, "not the free heart, one tile from the teapot (#88)");
+            foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants)
+                if (o.Key != "station:jam" && o.Key.StartsWith("station:")) Assert.GreaterOrEqual(GardenGrid.Distance(o.Value, jam), Expansion.StationSpacing, "clear of " + o.Key);
+            foreach (Hex h in s.Grid.EmptyTiles())
+            {
+                bool clear = true;
+                foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants)
+                    if (o.Key.StartsWith("station:") && GardenGrid.Distance(o.Value, h) < Expansion.StationSpacing) clear = false;
+                if (clear) Assert.GreaterOrEqual(GardenGrid.Distance(h), GardenGrid.Distance(jam), "nearest the centre of the tiles clear of every station");
+            }
             Assert.IsFalse(Layout.IsStored(defs, s, 2));
             Assert.AreEqual(3, s.Levels[2]);
             Assert.IsFalse(Layout.TakeOut(defs, s, 2), "it is out already");

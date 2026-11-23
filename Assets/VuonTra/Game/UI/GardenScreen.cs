@@ -520,7 +520,25 @@ namespace VuonTra.Game.UI
         public Vector2 OpenSpan()
         {
             int open = OpenSegments;
-            return new Vector2(Mathf.Max(0f, LawnEdgeX(open, GardenSide.Left) - ViewMargin), Mathf.Min(WorldW, LawnEdgeX(open, GardenSide.Right) + ViewMargin));
+            float left = LawnEdgeX(open, GardenSide.Left) - ViewMargin, right = LawnEdgeX(open, GardenSide.Right) + ViewMargin;
+            if (NextLandLabel(out Rect label))
+            {
+                left = Mathf.Min(left, label.xMin - ReadMargin);
+                right = Mathf.Max(right, label.xMax + ReadMargin);
+            }
+            return new Vector2(Mathf.Max(0f, left), Mathf.Min(WorldW, right));
+        }
+
+        bool NextLandLabel(out Rect label)
+        {
+            label = default;
+            int next = Runner != null && Runner.State != null ? Runner.State.Plots : -1;
+            if (_street == null || next < 0 || next >= _actors.Count || next >= _shownStations) return false;
+            var corners = new Vector3[4];
+            _actors[next].Plate.GetWorldCorners(corners);
+            Vector2 a = _street.InverseTransformPoint(corners[0]), b = _street.InverseTransformPoint(corners[2]);
+            label = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+            return true;
         }
 
         /// <summary>How many segments of the strip are open beside the middle.</summary>
@@ -809,13 +827,11 @@ namespace VuonTra.Game.UI
             KeepInsideOpenLawn(dt);
             if (_canopy != null)
             {
-                // The far wood on the canopy follows the ground sideways at nine tenths of its pace, measured from the view that
-                // rests on the teapot; up and down it keeps with the ground. Under reduced motion it keeps with the ground both ways.
                 _canopy.localScale = _street.localScale;
                 Vector2 rest = ClampView(new Vector2(ScreenW / 2f, ScreenH * 0.6f) - Heart * _zoom, _zoom);
                 float drift = Motion.Reduced ? 1f : CanopyDrift;
                 Vector2 ground = _street.anchoredPosition;
-                _canopy.anchoredPosition = new Vector2(rest.x + (ground.x - rest.x) * drift, ground.y);
+                _canopy.anchoredPosition = rest + (ground - rest) * drift;
             }
             if (Shell.State == ShellState.Playing)
             {
@@ -4407,11 +4423,28 @@ namespace VuonTra.Game.UI
             if (_edgeDown.gameObject.activeSelf != (down > 0)) _edgeDown.gameObject.SetActive(down > 0);
             if (up > 0) _edgeUpText.text = "▲ " + up;
             if (down > 0) _edgeDownText.text = "▼ " + down;
+            _edgeDown.anchoredPosition = new Vector2(DownPillShift(), _edgeDown.anchoredPosition.y);
             // The way home shows once the teapot is out of view above, below or, on the strip, to either side.
             Vector2 pot = _actors.Count > 0 ? ViewPointOf(0) : default;
             bool far = shown && _actors.Count > 0 && (Mathf.Abs(pot.y - ScreenH / 2f) > ScreenH / 2f + 160f || Mathf.Abs(pot.x - ScreenW / 2f) > ScreenW / 2f + 160f);
             if (_home.activeSelf != far) _home.SetActive(far);
         }
+
+        float DownPillShift()
+        {
+            if (_shopProp == null || !_shopProp.gameObject.activeInHierarchy) return 0f;
+            Vector2 size = _edgeDown.sizeDelta, shopSize = _shopProp.sizeDelta * _zoom;
+            var shop = new Rect(ToView(_shopProp.anchoredPosition) - shopSize / 2f, shopSize);
+            var middle = new Rect(new Vector2(ScreenW / 2f, _edgeDown.anchoredPosition.y) - size / 2f, size);
+            if (!middle.Overlaps(shop)) return 0f;
+            float low = ReadMargin + size.x / 2f, high = (_home.activeSelf ? ScreenW - ReadMargin - HomeW - PillGap : ScreenW - ReadMargin) - size.x / 2f;
+            float left = shop.xMin - PillGap - size.x / 2f, right = shop.xMax + PillGap + size.x / 2f;
+            bool leftFits = left >= low, rightFits = right <= high;
+            if (leftFits && (!rightFits || ScreenW / 2f - left <= right - ScreenW / 2f)) return left - ScreenW / 2f;
+            return rightFits ? right - ScreenW / 2f : 0f;
+        }
+
+        const float PillGap = 24f;
 
         /// <summary>A station's spot in screen space (0..ScreenW, 0..ScreenH), from the street's position and the zoom.</summary>
         Vector2 ViewPointOf(int station) => _street.anchoredPosition + StationSpot(station) * _zoom;
@@ -6646,6 +6679,7 @@ namespace VuonTra.Game.UI
         const float ForestSignW = 230f, ForestSignH = 104f, ForestPostH = 80f;
         /// <summary>The sign's middle stands this far in from the garden's side, on the edge line where the wood begins, so all of its board is in view.</summary>
         const float ForestSignOut = 50f;
+        const float SignInk = 4f;
         /// <summary>New grass and the sign keep this far from the garden's top and bottom, where the wood closes over the lawn.</summary>
         const float RingGrassBand = 540f;
         const float StripHalfH = 1100f;
@@ -6782,8 +6816,12 @@ namespace VuonTra.Game.UI
             _forestSign.pivot = new Vector2(0.5f, 0f);
             UiKit.Rect("Shadow", _forestSign).Place(0.5f, 0f, 4f, 6f, 120f, 34f)
                 .AddImage(catalog.Glow, Palette.Alpha(Palette.Night, 0.35f)).raycastTarget = false;
+            UiKit.Rect("Post Ink", _forestSign).Place(0.5f, 0f, 0f, ForestPostH / 2f + 4f, 22f + 2f * SignInk, ForestPostH + 8f + 2f * SignInk)
+                .AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.85f), true).raycastTarget = false;
             UiKit.Rect("Post", _forestSign).Place(0.5f, 0f, 0f, ForestPostH / 2f + 4f, 22f, ForestPostH + 8f)
                 .AddImage(catalog.Panel, Palette.Mix(Palette.Carrot, Palette.Ink, 0.55f), true).raycastTarget = false;
+            UiKit.Rect("Board Ink", _forestSign).Place(0.5f, 1f, 0f, -ForestSignH / 2f, ForestSignW + 2f * SignInk, ForestSignH + 2f * SignInk)
+                .AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.85f), true).raycastTarget = false;
             var board = UiKit.Rect("Board", _forestSign).Place(0.5f, 1f, 0f, -ForestSignH / 2f, ForestSignW, ForestSignH);
             _forestSignButton = UiKit.Chunky(board, catalog.Panel, OnForestSign);
             _forestSignText = UiKit.Rect("Text", _forestSignButton.FaceRect).Stretch(0, 0, 1, 1, 14, 6, 14, 6)

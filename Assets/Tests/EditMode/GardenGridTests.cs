@@ -699,6 +699,27 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, GardenGrid.Distance(jam, jamHome), "the nearest free tile that keeps the stations apart");
         }
 
+        [TestCase(4)]
+        [TestCase(8)]
+        [TestCase(12)]
+        public void A_Station_Taken_Out_Of_Storage_Stands_At_Least_Two_Tiles_From_Every_Other_Station(int open)
+        {
+            List<StationDef> sixteen = SixteenStations();
+            GameState s = GameState.NewGame(sixteen);
+            s.Plots = open;
+            for (int i = 0; i < open; i++) s.Levels[i] = 1;
+            GardenGrid.Settle(sixteen, s);
+            AssertSettledApart(s.Grid);
+            for (int i = 1; i < open; i++)
+            {
+                string id = GardenGrid.StationId(sixteen[i]);
+                Assert.IsTrue(Layout.Store(sixteen, s, id), id + " goes into storage");
+                Assert.IsTrue(Layout.TakeOut(sixteen, s, i), id + " comes back out");
+                Assert.IsFalse(s.Grid.IsStored(id));
+                AssertSettledApart(s.Grid);
+            }
+        }
+
         static List<StationDef> SixteenStations()
         {
             string[] ids = { "am-tra", "gio-la", "noi-mut", "coi-hoa", "lo-banh", "to-mat", "tra-sua", "binh-sao", "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao", "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" };
@@ -728,6 +749,13 @@ namespace VuonTra.Core.Tests
             + "{\"q\":0,\"r\":3,\"id\":\"decor:0\"},{\"q\":2,\"r\":-3,\"id\":\"decor:7\"},"
             + "{\"q\":1,\"r\":-1,\"id\":\"mortar\"},{\"q\":1,\"r\":-3,\"id\":\"shop\"},{\"q\":3,\"r\":-3,\"id\":\"counter\"}],"
             + "\"stored\":[\"station:lo-keo\"]}}";
+
+        static bool ApartFromEveryStation(GardenGrid g, Hex h, string self)
+        {
+            foreach (KeyValuePair<string, Hex> o in g.Occupants)
+                if (o.Key != self && o.Key.StartsWith("station:") && GardenGrid.Distance(o.Value, h) < Expansion.StationSpacing) return false;
+            return true;
+        }
 
         static void AssertSettledApart(GardenGrid g)
         {
@@ -898,7 +926,8 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Layout.TakeOut(sixteen, s, 13));
             Hex back = g.TileOf("station:lo-keo").Value;
             Assert.IsTrue(g.InLawn(back) && !GardenGrid.IsReserved(back), "it comes out on an empty lawn tile");
-            foreach (Hex h in g.EmptyTiles()) Assert.GreaterOrEqual(GardenGrid.Distance(h), GardenGrid.Distance(back), "nearest the teapot");
+            AssertSettledApart(g);
+            foreach (Hex h in g.EmptyTiles()) if (ApartFromEveryStation(g, h, "station:lo-keo")) Assert.GreaterOrEqual(GardenGrid.Distance(h), GardenGrid.Distance(back), "nearest the teapot of the tiles clear of every station");
             var settled = new Dictionary<string, Hex>();
             foreach (KeyValuePair<string, Hex> o in g.Occupants) settled[o.Key] = o.Value;
             GardenGrid.Settle(sixteen, s);
