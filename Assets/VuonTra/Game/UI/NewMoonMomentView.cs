@@ -1,6 +1,8 @@
 using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
+using TweenEase = DG.Tweening.Ease;
 
 namespace VuonTra.Game.UI
 {
@@ -41,6 +43,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Disc", _moon).Place(0.5f, 0.5f, 0, 0, 170, 170).AddImage(catalog.Round, Palette.Lantern);
             _shade = UiKit.Rect("Shade", _moon).Place(0.5f, 0.5f, 0, 0, 160, 160);
             _shade.AddImage(catalog.Round, Palette.Mix(Palette.Night, Color.black, 0.5f));
+            _shade.anchoredPosition = new Vector2(48f, 18f);
             UiKit.Rect("Hills", overlay).Stretch(-0.1f, 0f, 1.1f, 0.36f).AddImage(catalog.Panel, Palette.Mix(Palette.Night, Palette.Ink, 0.35f), true);
 
             var words = UiKit.Rect("Words", overlay).Place(0.5f, 0.5f, 0, -60, 900, 300);
@@ -60,28 +63,38 @@ namespace VuonTra.Game.UI
             _title.text = L10n.T("newmoon.moment.title", season);
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();
-            Place();
+            Play();
         }
 
-        void Place()
+        void Play()
         {
-            float t = Motion.Reduced ? Length : _t;
-            float y, shade;
-            if (t < SetEnd) { y = Mathf.Lerp(High, Low, Ease.InCubic(t / SetEnd)); shade = 0f; }
-            else if (t < RiseStart) { y = Low; shade = 1f; }
-            else { y = Mathf.Lerp(Low, High * 0.8f, Ease.OutCubic(Mathf.Clamp01((t - RiseStart) / (Length - RiseStart)))); shade = 1f; }
-            _moon.anchoredPosition = new Vector2(0f, y);
-            _shade.gameObject.SetActive(shade > 0f);
-            _shade.anchoredPosition = new Vector2(48f, 18f);
-            _words.alpha = Mathf.Clamp01((t - SetEnd * 0.8f) / 0.6f);
-            _veil.alpha = Motion.Reduced ? 1f : Mathf.Clamp01(_t / 0.3f);
+            Transform stage = _root.transform;
+            stage.DOKill();
+            if (Motion.Reduced)
+            {
+                _moon.anchoredPosition = new Vector2(0f, High * 0.8f);
+                _shade.gameObject.SetActive(true);
+                _words.alpha = 1f;
+                _veil.alpha = 1f;
+                return;
+            }
+            _moon.anchoredPosition = new Vector2(0f, High);
+            _shade.gameObject.SetActive(false);
+            _words.alpha = 0f;
+            _veil.alpha = 0f;
+            DOTween.Sequence()
+                .Insert(0f, _veil.DOFade(1f, 0.3f).SetEase(TweenEase.Linear))
+                .Insert(0f, _moon.DOAnchorPosY(Low, SetEnd).SetEase(TweenEase.InCubic))
+                .InsertCallback(SetEnd, () => _shade.gameObject.SetActive(true))
+                .Insert(SetEnd * 0.8f, _words.DOFade(1f, 0.6f).SetEase(TweenEase.Linear))
+                .Insert(RiseStart, _moon.DOAnchorPosY(High * 0.8f, Length - RiseStart).SetEase(TweenEase.OutCubic))
+                .SetTarget(stage).OnUiClock(stage);
         }
 
         public void Update(float dt)
         {
             if (!IsOpen) return;
             _t += dt;
-            Place();
             float stay = Motion.Reduced ? 0.6f : Length + Linger;
             if (_t >= stay) Finish();
         }
@@ -92,6 +105,7 @@ namespace VuonTra.Game.UI
         {
             if (_done) return;
             _done = true;
+            _root.transform.DOKill();
             _root.SetActive(false);
             Action done = _onDone;
             _onDone = null;
