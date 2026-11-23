@@ -1888,6 +1888,51 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Bảng "Còn thiếu …" có thể bị cắt ở mép khi đứng ở biển sau khi mở rộng (ngoài khung mở đầu).
 - Chủ game đã quyết (23/11): sương dày hơn một chút (việc 6); trà sữa và ruộng lúa giữ chỗ, luật 520 không nới; đồng ý chữ "Mở rộng vườn · đoạn N".
 
+## #97 — Bớt rác bộ nhớ mỗi khung hình (agent perf-97)
+
+
+- **Test:** verify GREEN, 1187/1188 (0 hỏng, 1 inconclusive có sẵn: `SeasonTests.Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit`). Test mới `AllocationTests` (5 test): vườn đầy 16 trạm, 160 thỏ, album đủ, có và không cất trạm; `IncomePerSecond`, 16 `StationIncomePerSecond`, 600 tick, tiến độ mọi nhiệm vụ đều 0 lần cấp phát (recorder GC.Alloc của Unity, `GC.GetAllocatedBytesForCurrentThread` ghi 0 B); hệ số album đọc một lần bằng đúng `StationFactor` ở mọi mức album.
+- **Commit:** 949ffa6, merge d09ef30. Main sau đợt gộp: 1237/1238.
+
+**Làm gì:** `Economy` đọc album một lần mỗi lần tính thay vì mỗi cặp trạm, `AlbumSets.Met` duyệt theo chỉ số (hết box enumerator); `Layout.IsStored` dùng id giữ sẵn `StationDef.GridId` thay vì nối `"station:" + Id`; `GameRunner` giữ một delegate `Roll`; `RestSpots.SeatedCount` cho nhiệm vụ và bảng thu nhập; `Seasons.KindOf`/`KindsMet` duyệt theo chỉ số; `BigNum` giữ sẵn hậu tố aa…zz. Không đổi con số nào, save vẫn bản 14, không đụng `GardenScreen.cs`, `Garden.cs`, `GardenGrid.cs`.
+
+**Số đo (Core, .NET, vườn 16 trạm):** `IncomePerSecond` 5 520 / 9 592 B mỗi lần (không cất / cất 1 trạm) → 0; `Tick` 8,8 / 527 B → 0; `AlbumSets.Met` ~33,7 KB/khung (~2 MB/giây ở 60 fps) → 0; `Quests.Progress` 4 584 B → 0. Kinh tế 17 hạt × 6 người chơi giống hệt từng byte trước và sau sửa; sim chạy nhanh gấp ~2.
+
+### Chưa đạt / cần PO quyết
+- Phần `GardenGrid.StationId` gọi từ `GardenScreen.StationSpot` mỗi khung còn nguyên, làm sau #91 (đổi sang `Runner.Defs[i].GridId`, một dòng).
+- Chữ số trên UI vẫn tạo chuỗi mới mỗi lần làm mới (~10 KB/khung theo QA); muốn về gần 0 phải chỉ làm mới chữ khi số đổi, việc của UI.
+- Chưa đo lại fps/GC trong bản build: cần QA chạy lại bước đo của #97 sau khi gộp perf-97 (và sau #91).
+
+## #92–#96 — Soát chữ vi/en (agent text-fix)
+
+- Test: 1188/1189 qua, 0 hỏng, 1 inconclusive (SeasonTests tự bỏ qua theo ngày thật) · verify GREEN · có 5 test mới trong L10nTests
+- Commit: fa3c14e (#92) · 05e40c7 (#93) · 3d29f6d (#94) · 54712bb (#95) · a3daf0a (#96) · a399818 (bảng chữ + ảnh), nhánh text-fix, merge 8007364; main sau đợt gộp 1237/1238
+- #92: 5 key + RabbitGridView. Nhiệm vụ đếm trạm thì nói trạm, quà 5 tim là "Đã thân nhau", sổ thỏ hiện x/72 khớp mốc, thanh tiếng trạm tiếng Anh là "Ambience"
+- #93: L10n.T đọc `key.one` khi tiếng Anh và số đầu tiên là 1 (25 key). 7 dòng nhiều số viết kiểu "Rabbits: 1 · Stations: 1". Tiếng Việt không đổi
+- #94: 14 key. trinket / Rabbit book / Rest spots / Trăng–Moon {n} / Chạm–Tap / ×1.5
+- #95: 15 key vi. xoá, khoá, "+5%", "bé thỏ", "cỏ bốn lá". Có test quét chặn kiểu viết cũ
+- #96: 48 key en theo bảng đề xuất. Nhãn nút ngắn hơn, chính tả Anh–Mỹ, thỏ nói dạng rút gọn
+Ảnh: docs/anh/text-fix/ — 7 cặp *-truoc / *-sau (nhiệm vụ, tab thỏ, thẻ thỏ, tạm nghỉ, hồ sơ, thu nhập, so sánh trăng mới)
+
+### Chưa đạt / cần PO quyết
+- "Station sounds" bị xuống dòng trên thẻ Tạm nghỉ khi bật chữ to, nên tạm dùng "Ambience". PO chọn chữ khác nếu muốn.
+- Vòng trăng mới đổi "Mùa {n}" → "Trăng {n}" cả ở vi, theo đề xuất #94. Nếu PO muốn giữ "Mùa" ở vi thì chỉ cần sửa lại 5 key.
+- Chưa có ảnh xem trước cho Tiệm tiếng Anh ("+1 golden carrot") và cho khoảnh khắc quà 5 tim, nên hai chỗ này chưa có ảnh trước/sau. Đã có test bao phần chữ.
+- Việc nhỏ của #96 chưa làm: xoá 33 key không dùng, tên thỏ tiếng Anh.
+
+## #88 — Bố trí không cho đặt trạm sát trạm khác (agent layout-88)
+- **Test:** 1187/1188 xanh (`tools/verify.sh` RESULT GREEN; 1 test mùa `Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit` báo inconclusive vì phụ thuộc đồng hồ thật, cũng có ở lần chạy trước khi sửa). Thêm 5 test mới; trước khi sửa 4 test trong số đó đỏ.
+- **Commit:** `ba24e79` trên nhánh `layout-88`, merge `40b60e8`. Main sau đợt gộp: 1237/1238.
+- **Đã làm:** dời trạm (`GardenGrid.Move`) và đổi chỗ (`Swap`) giờ giữ khoảng cách hai ô giữa các trạm, cùng luật với trạm game tự đặt (`Expansion.StationSpacing`), gom vào một hàm `KeepsStationsApart`. Đổi chỗ kiểm cả hai chỗ mới; ghế nghỉ và đồ trang trí được miễn. `Layout.Drop` trả `Back`. Ô sáng khi kéo trong chế độ Bố trí dùng cùng luật: ô sát trạm không sáng, thả ra thì trạm bật về. Thêm khung xem trước `88-keo-sat-tram` và `88-tha-sat-tram`.
+- **Ảnh:** `docs/anh/po-54/88-truoc.png`, `docs/anh/po-54/88-sau.png`
+
+### Chưa đạt / cần PO quyết
+- Lấy trạm ra khỏi kho vẫn có thể đặt sát trạm khác (`TakeOut` dùng `NearestEmpty`). Sửa một dòng, đã có sẵn trong bản vá dở của review-fix (`/tmp/rfsim/issue88-unfinished.patch`). Cần PO cho làm tiếp.
+- Hai trạm vốn đã sát nhau (save cũ) vẫn đổi chỗ cho nhau được. Bản vá review-fix thì chặn luôn trường hợp này. PO chọn một trong hai.
+- Vòng nét đứt vẫn hiện trên ô sát trạm khi đang cầm trạm; chỉ ô sáng dưới ngón tay là đã lọc. Có nên ẩn vòng theo thứ đang cầm không?
+- Save cũ có trạm chồng nhau không tự dời ra.
+- Ảnh xem trước `54-sau-hoan-doi` giờ cho thấy Giỏ lá bật về thay vì đứng sát ấm trà.
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
