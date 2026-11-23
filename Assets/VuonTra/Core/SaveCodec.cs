@@ -336,11 +336,17 @@ namespace VuonTra.Core
                 sb.Append(",\"kind\":").Append(((int)letter.Kind).ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"season\":").Append(((int)letter.Season).ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"day\":").Append(letter.Day.ToString(CultureInfo.InvariantCulture));
+                if (letter.Kind == LetterKind.WeekChest) sb.Append(",\"chest\":").Append(letter.Chest.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"golden\":").Append(letter.Golden.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
             sb.Append("]}");
+            sb.Append(",\"week\":{\"index\":").Append(s.WeekIndex.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"points\":").Append(s.WeekPoints.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"chests\":").Append(s.WeekChestsClaimed.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"boxDay\":").Append(s.BoxDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
             sb.Append(",\"frog\":{\"day\":").Append(s.FrogDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"showers\":").Append(s.FrogShowers.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
@@ -737,16 +743,27 @@ namespace VuonTra.Core
                         if (!(raw is Dictionary<string, object> entry) || s.Letters.Count >= Mailbox.MaxLetters) continue;
                         if (!(entry.TryGetValue("id", out object letterIdObj) && letterIdObj is string letterId && letterId.Length > 0)) continue;
                         if (s.Letters.Exists(l => l.Id == letterId)) continue;
-                        double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season");
-                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season) continue;
+                        double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season"), letterChest = ReadNumber(entry, "chest");
+                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season && letterKind != (int)LetterKind.WeekChest) continue;
+                        bool chestLetter = letterKind == (int)LetterKind.WeekChest;
+                        if (chestLetter && (letterChest < 0d || letterChest >= QuestChests.Chests.Length || letterChest != Math.Floor(letterChest))) continue;
                         s.Letters.Add(new Letter
                         {
                             Id = letterId,
                             Kind = (LetterKind)(int)letterKind,
                             Season = letterSeason >= 0d && letterSeason <= (double)Season.Christmas && letterSeason == Math.Floor(letterSeason) ? (Season)(int)letterSeason : Season.None,
                             Day = ToLong(ReadNumber(entry, "day")),
+                            Chest = chestLetter ? (int)letterChest : 0,
                         });
                     }
+            }
+
+            if (root.TryGetValue("week", out object weekObj) && weekObj is Dictionary<string, object> week)
+            {
+                s.WeekIndex = TryNumber(week, "index", out double weekIndex) ? Math.Max(-1L, ToLong(weekIndex)) : -1;
+                s.WeekPoints = (int)Math.Max(0d, Math.Min(ReadNumber(week, "points"), QuestChests.MaxPoints));
+                s.WeekChestsClaimed = (int)Math.Max(0d, Math.Min(ReadNumber(week, "chests"), int.MaxValue)) & ((1 << QuestChests.Chests.Length) - 1);
+                s.BoxDay = TryNumber(week, "boxDay", out double boxDay) ? Math.Max(-1L, ToLong(boxDay)) : -1;
             }
 
             if (root.TryGetValue("ads", out object adsObj) && adsObj is Dictionary<string, object> ads)

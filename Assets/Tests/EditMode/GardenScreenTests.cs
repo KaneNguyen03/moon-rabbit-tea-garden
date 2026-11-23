@@ -2280,16 +2280,18 @@ namespace VuonTra.Core.Tests
             Transform content = root.transform.Find("Canvas/Sheet/Panel/Quests/Content");
             Transform ready = content.Find("Ready");
             Assert.IsFalse(ready.gameObject.activeSelf, "nothing to collect yet");
-            Assert.AreEqual(0, ready.GetSiblingIndex());
+            Assert.AreEqual("QuestBoxRow", content.GetChild(0).name, "the day's box and the week's chests stand first (#103)");
+            Assert.AreEqual("QuestWeekRow", content.GetChild(1).name);
+            Assert.AreEqual(2, ready.GetSiblingIndex());
 
             runner.State.Coins = new BigNum(120);
             Find("Canvas/Sheet/Panel/Scroll/Content/Row gio-la/Buy").onClick.Invoke();
             for (int i = 0; i < 50; i++) Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
             screen.Refresh();
             Assert.IsTrue(ready.gameObject.activeSelf);
-            Assert.AreEqual("Ready", content.GetChild(0).name);
-            Assert.AreEqual("Quest ngay-cham", content.GetChild(1).name, "today's finished quest");
-            Assert.AreEqual("Quest mo-2", content.GetChild(2).name, "and the finished achievement, both above the headings");
+            Assert.AreEqual("Ready", content.GetChild(2).name);
+            Assert.AreEqual("Quest ngay-cham", content.GetChild(3).name, "today's finished quest");
+            Assert.AreEqual("Quest mo-2", content.GetChild(4).name, "and the finished achievement, both above the headings");
             Color lit = content.Find("Quest mo-2/Card").GetComponent<Image>().color;
             Color plain = content.Find("Quest ngay-nang/Card").GetComponent<Image>().color;
             Assert.AreNotEqual(plain, lit, "a finished quest has a brighter card");

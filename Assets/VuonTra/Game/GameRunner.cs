@@ -227,6 +227,22 @@ namespace VuonTra.Game
             return true;
         }
 
+        public BoxPrize[] OpenQuestBox()
+        {
+            BoxPrize[] prizes = QuestChests.OpenBox(QuestDefs, Defs, State, Mods);
+            if (prizes != null) Changed();
+            return prizes;
+        }
+
+        public bool ClaimWeekChest(int chest, out Rabbit rabbit)
+        {
+            bool ok = QuestChests.ClaimChest(State, chest, TodayNumber, PickName(), _rng.NextDouble(), out rabbit);
+            if (!ok) return false;
+            if (rabbit != null) Rabbits.AutoAssign(Defs, State);
+            Changed();
+            return true;
+        }
+
         readonly System.Random _rng = new System.Random();
         Func<double> _roll;
         Func<double> Roll => _roll ??= _rng.NextDouble;
@@ -1099,10 +1115,14 @@ namespace VuonTra.Game
 
         public IReadOnlyList<Letter> Letters => Mailbox.Open(State, TodayNumber);
 
-        public Letter ClaimLetter(string id)
+        public Letter ClaimLetter(string id) => ClaimLetter(id, out _);
+
+        public Letter ClaimLetter(string id, out Rabbit rabbit)
         {
-            Letter letter = Mailbox.Claim(State, id, TodayNumber);
-            if (letter != null) Changed();
+            Letter letter = Mailbox.Claim(State, id, TodayNumber, PickName(), _rng.NextDouble(), out rabbit);
+            if (letter == null) return null;
+            if (rabbit != null) Rabbits.AutoAssign(Defs, State);
+            Changed();
             return letter;
         }
 

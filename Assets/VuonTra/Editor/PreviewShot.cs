@@ -635,6 +635,7 @@ namespace VuonTra.EditorTools
             RenderLayout(runner, screen);
             RenderPond(runner, screen);
             RenderOffers(runner, screen);
+            RenderQuestChests(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -1274,6 +1275,78 @@ namespace VuonTra.EditorTools
             screen.ClockHours = () => 22.0;
             Directory.CreateDirectory(Folder);
             RenderMapEdges(runner, screen);
+        }
+
+        [MenuItem("VuonTra/Render Quest Chests")]
+        public static void RenderQuestChestsOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderQuestChests(runner, screen);
+        }
+
+        static void RenderQuestChests(GameRunner runner, GardenScreen screen)
+        {
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+                int[] levels = { 40, 22, 14, 8 };
+                for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+                s.Plots = 8;
+                s.GardenXp = Garden.XpForLevel(12);
+                s.HintSeen = true;
+                s.TutorialStep = Tutorial.Steps;
+                s.Coins = new BigNum(2.4e6);
+                s.Profile.Code = "VT-103PREV";
+                Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+                Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.4).Id, 1);
+                s.FreshKinds.Clear();
+                runner.Init(s);
+                long today = runner.TodayNumber;
+                var dailies = new System.Collections.Generic.List<QuestDef>();
+                foreach (QuestDef q in runner.QuestDefs) if (q.Daily) dailies.Add(q);
+                for (int i = 0; i < 3; i++) s.Claimed.Add(dailies[i].Id);
+                s.WeekIndex = QuestChests.WeekOf(today);
+                s.WeekPoints = 130;
+                s.WeekChestsClaimed = 0;
+                L10n.SetLocale(locale);
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                screen.SelectStation(-1);
+                screen.OpenSheet(2);
+                screen.Refresh();
+                Step(screen, 6f);
+                Capture(screen, "103-" + locale + "-hom-nay-3-5");
+
+                foreach (QuestDef q in dailies) s.Claimed.Add(q.Id);
+                s.WeekPoints = 150;
+                screen.Refresh();
+                Step(screen, 1.75f);
+                Capture(screen, "103-" + locale + "-hop-rung");
+                Press(screen, "Canvas/Sheet/Panel/Quests/Content/QuestBoxRow/Box");
+                Step(screen, 0.75f);
+                Capture(screen, "103-" + locale + "-hop-lat");
+                Step(screen, 1.4f);
+                Capture(screen, "103-" + locale + "-hop-mo");
+                screen.Prizes.Close();
+                screen.Refresh();
+                Step(screen, 0.4f);
+                Capture(screen, "103-" + locale + "-tuan-ruong-san");
+                Press(screen, "Canvas/Sheet/Panel/Quests/Content/QuestWeekRow/Track/Chest 0");
+                Step(screen, 2.2f);
+                Capture(screen, "103-" + locale + "-ruong-mo");
+                screen.Prizes.Close();
+                screen.CloseSheet();
+            }
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
         }
 
         static void RenderMapEdges(GameRunner runner, GardenScreen screen)
