@@ -1,15 +1,19 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using VuonTra.Core;
+using TweenEase = DG.Tweening.Ease;
 
 namespace VuonTra.Game.UI
 {
     public sealed class LeavesView
     {
         const int Pool = 12;
+        const int StunHalfSwings = 8;
+
         const float FieldHalf = 450f, SpawnY = 170f, LandY = -540f, BasketY = -660f;
         const float Linger = 0.4f;
 
@@ -26,7 +30,7 @@ namespace VuonTra.Game.UI
         readonly bool[] _caught = new bool[Leaves.Drops];
         readonly bool[] _used = new bool[Pool];
         float _judgeAge = 9f, _stunLeft, _resultDelay, _basketX = 0.5f;
-        int _moveToken;
+        Tween _basketMove;
         double _time;
         bool _resultShown;
 
@@ -152,12 +156,13 @@ namespace VuonTra.Game.UI
             _stunLeft = 0f;
             _resultDelay = 0f;
             _resultShown = false;
-            _moveToken++;
+            _basketMove?.Kill();
             _basketX = 0.5f;
             for (int i = 0; i < _caught.Length; i++) _caught[i] = false;
             for (int i = 0; i < Pool; i++) _slots[i].gameObject.SetActive(false);
             _result.SetActive(false);
             _stunPill.SetActive(false);
+            _basket.DOKill();
             _basket.localRotation = Quaternion.identity;
             _basketImage.color = _basketTint;
             _root.SetActive(true);
@@ -175,15 +180,15 @@ namespace VuonTra.Game.UI
         public void MoveBasket(float x)
         {
             if (Run == null || _resultShown) return;
-            int token = ++_moveToken;
-            float from = _basketX, to = Mathf.Clamp01(x);
-            _tweens.Add(Motion.Time(0.14f), t => { if (token == _moveToken && _root != null) _basketX = Mathf.LerpUnclamped(from, to, t); }, Motion.Curve(Ease.OutCubic));
+            _basketMove?.Kill();
+            _basketMove = DOTween.To(() => _basketX, v => _basketX = v, Mathf.Clamp01(x), Motion.Time(0.14f))
+                .SetEase(Motion.Curve(TweenEase.OutCubic)).OnUiClock(_overlay);
         }
 
         public void SetBasket(float x)
         {
             if (Run == null || _resultShown) return;
-            _moveToken++;
+            _basketMove?.Kill();
             _basketX = Mathf.Clamp01(x);
         }
 
@@ -231,6 +236,7 @@ namespace VuonTra.Game.UI
                     _judge.text = L10n.T("leaves.cone");
                     _judge.color = Palette.Blush;
                     _stunLeft = (float)Leaves.StunSeconds;
+                    if (!Motion.Reduced) Motion.ShakeAngle(_basket, 10f, _stunLeft, StunHalfSwings);
                     Sfx.Deny();
                     Haptics.Medium();
                     break;
@@ -241,8 +247,6 @@ namespace VuonTra.Game.UI
         {
             float x = -FieldHalf + _basketX * 2f * FieldHalf;
             _basket.anchoredPosition = new Vector2(x, BasketY);
-            float wobble = _stunLeft > 0f && !Motion.Reduced ? Mathf.Sin(_stunLeft * 50f) * 10f * _stunLeft / (float)Leaves.StunSeconds : 0f;
-            _basket.localRotation = Quaternion.Euler(0, 0, wobble);
             _basketImage.color = _stunLeft > 0f ? Palette.Mix(_basketTint, Palette.Ink, 0.4f) : _basketTint;
 
             IReadOnlyList<Leaf> schedule = Run.Schedule;
@@ -312,8 +316,7 @@ namespace VuonTra.Game.UI
             _resultCarrots.text = L10n.T("leaves.reward", result.Carrots.Short());
             _resultExtra.text = result.Clovers > 0 ? L10n.T("leaves.clover") : "";
             _result.SetActive(true);
-            _resultCard.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(0.25f), t => { if (_resultCard != null) _resultCard.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Motion.Curve(Ease.OutBack));
+            Motion.PopIn(_resultCard);
         }
     }
 }

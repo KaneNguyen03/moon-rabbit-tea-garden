@@ -1,4 +1,5 @@
 using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
@@ -8,6 +9,8 @@ namespace VuonTra.Game.UI
     public sealed class PoundingView
     {
         readonly GameObject _root, _result, _chewy, _helper;
+        const int MissHalfSwings = 5;
+
         readonly RectTransform _mortar, _ring, _cake, _shake, _resultCard, _pestle;
         readonly Image _cakeImage, _helperArt, _resultCake;
         readonly GameCatalog _catalog;
@@ -17,7 +20,7 @@ namespace VuonTra.Game.UI
         readonly Tweens _tweens;
         readonly Action _onQuit;
         readonly Action<PoundingRun> _onFinished;
-        float _judgeAge = 9f, _pestleDown, _shakeLeft, _resultDelay;
+        float _judgeAge = 9f, _pestleDown, _resultDelay;
         double _time;
         bool _resultShown;
 
@@ -130,7 +133,7 @@ namespace VuonTra.Game.UI
             _time = 0d;
             _judgeAge = 9f;
             _pestleDown = 0f;
-            _shakeLeft = 0f;
+            _shake.DOKill();
             _resultDelay = 0f;
             _resultShown = false;
             _result.SetActive(false);
@@ -175,7 +178,6 @@ namespace VuonTra.Game.UI
             if (missed > 0) Show(Hit.Miss);
             _judgeAge += dt;
             _pestleDown = Mathf.Max(0f, _pestleDown - dt * 6f);
-            _shakeLeft = Mathf.Max(0f, _shakeLeft - dt);
             _dentedFor = Mathf.Max(0f, _dentedFor - dt);
 
             float ring = 1f;
@@ -189,7 +191,6 @@ namespace VuonTra.Game.UI
             float pound = _pestleDown > 0f ? Ease.Pop(1f - _pestleDown) : 0f;
             _mortar.localScale = new Vector3(1f + 0.05f * pound, 1f - 0.08f * pound, 1f);
             _pestle.anchoredPosition = new Vector2(44f, PestleRest - PestleDrop * pound);
-            _shake.anchoredPosition = _shakeLeft > 0f && !Motion.Reduced ? new Vector2(Mathf.Sin(_shakeLeft * 60f) * 14f * _shakeLeft / 0.25f, 0) : Vector2.zero;
             Color judge = _judge.color;
             judge.a = Mathf.Clamp01(1f - (_judgeAge - 0.5f) * 3f);
             _judge.color = judge;
@@ -209,7 +210,7 @@ namespace VuonTra.Game.UI
             _judge.color = hit == Hit.Perfect ? Palette.Lantern : (hit == Hit.Good ? Palette.Paper : Palette.Blush);
             if (hit == Hit.Miss)
             {
-                _shakeLeft = 0.25f;
+                if (!Motion.Reduced) Motion.ShakeX(_shake, 0f, 14f, 0.25f, MissHalfSwings);
                 _dentedFor = 0.6f;
                 if (_catalog.Dough == null) _cakeImage.color = Palette.Mix(Palette.Lantern, Palette.Ink, 0.35f);
             }
@@ -254,8 +255,7 @@ namespace VuonTra.Game.UI
             if (result.Golden > 0) extra += L10n.T("pound.golden");
             _resultExtra.text = extra.TrimEnd();
             _result.SetActive(true);
-            _resultCard.localScale = Vector3.one * 0.85f;
-            _tweens.Add(Motion.Time(0.25f), t => { if (_resultCard != null) _resultCard.localScale = Vector3.one * Mathf.LerpUnclamped(0.85f, 1f, t); }, Motion.Curve(Ease.OutBack));
+            Motion.PopIn(_resultCard);
         }
     }
 }
