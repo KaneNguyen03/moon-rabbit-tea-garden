@@ -3282,6 +3282,22 @@ MonoBehaviour:
     m_Localized: "\u0110\xE3 \u0111\u1EE7 10 tim"
     m_Metadata:
       m_Items: []
+  - m_Id: 672429948002304
+    m_Localized: "M\u1EDF r\u1ED9ng v\u01B0\u1EDDn"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 672429956390912
+    m_Localized: "M\u1EDF r\u1ED9ng v\u01B0\u1EDDn \xB7 \u0111o\u1EA1n {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 672429956390913
+    m_Localized: "S\u01B0\u01A1ng tan, v\u01B0\u1EDDn r\u1ED9ng th\xEAm!"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 672429956390914
+    m_Localized: "V\u1EC1 ti\u1EC7m tr\xE0"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
