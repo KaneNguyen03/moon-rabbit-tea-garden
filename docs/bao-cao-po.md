@@ -2027,6 +2027,29 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 ### Chưa đạt / cần PO quyết
 - #88: vòng nét đứt trên ô sát trạm khi đang cầm; save cũ đã chồng không tự dời; hai trạm vốn sát nhau có được đổi chỗ không.
 
+## #91 — Bản đồ 2D kéo dọc và ngang (agent 91a/91b/91c)
+
+**Test:** `tools/verify.sh` đầy đủ trên agent-91c: rules ok, seed ok, preview ok (246 khung), tests 1302/1303 (1 inconclusive, 0 fail), RESULT GREEN. Trên main sau gộp (`f7fdde4`): verify đầy đủ GREEN 1316/1317, bản Mac dựng và chạy sạch. Test mới của 91c trong `MapViewScreenTests`: parallax dọc, Giảm chuyển động, về tiệm trà từ bốn phía và chéo, bấm dòng trạm tới dải lên/xuống, viền mực của biển, nhãn ô đất không bị cắt, viên ▼ né tiệm trà.
+
+**Commit:** 91a `27b49c0`, `41c4b07`; 91b `0fdec07`; 91c `390aab2`, `306a4b2`; gộp main `ea6020f`, `6a04dc5`, `6b7267e`; chỉnh test theo #99 `a80ce82`, `f7fdde4`.
+
+**Đã làm:**
+- Vườn là bản đồ 2D 4 800 × 5 400, game vẫn khung dọc. Đất mở phải, trái, phải, trái, lên, xuống; mỗi đoạn giữ đúng cấp, số thỏ, số loài, giá nên nhịp 17 seed giống hệt (91a).
+- Save dải ngang và lưới dọc mở đúng chỗ, không mất gì (91a).
+- Kéo dọc và ngang ở zoom thường, có quán tính; biên bốn phía theo đất đã mở, đàn hồi hai trục (91b).
+- Dải lên/xuống còn đóng có bờ sương dày; mở rồi thì mọc hàng cây ở mép; biển đoạn 5/6 đứng giữa mép trên/dưới (91b).
+- Rừng xa trôi chậm hơn đất cả khi kéo dọc, tắt khi Giảm chuyển động (91c).
+- "Về tiệm trà" và bấm dòng trạm đưa camera đúng chỗ theo cả hai chiều (91c).
+- Biển "Mở rộng vườn" có viền mực; nhãn "Mở rộng vườn" của ô đất kế tiếp không còn bị mép màn hình cắt; viên ▼ không còn che tiệm trà (91c).
+- `docs/de-xuat-vuon-ngang.md` tả bản đồ như hiện có; ảnh `docs/anh/po-vuon-2d/91b-*` (trước), `91c-*` (sau).
+
+### Chưa đạt / cần PO quyết
+- Duyệt cảm giác kéo và lề biên (360 ngang, 600 dọc).
+- Viên ▼ né sang bên khi tiệm trà ở ngay sau, có ổn không.
+- Viên ◀ ▶ ở mép bên có lúc đè bảng "Cấp" của một trạm (chưa sửa).
+- Kéo hết lên trên có thể thấy bảng trạm nửa dưới HUD; cây ở mép thế giới dưới thanh tab (chưa sửa).
+- Khi chưa mở đoạn nào: góc bãi cỏ vuông chỗ sương gặp nhau, sương bên chiếm nhiều màn hình (chưa sửa).
+
 ## Bàn giao (23/11 tối, sau vườn cuộn ngang; mục 13:10 cùng chỗ đã thay)
 
 ### Trạng thái
