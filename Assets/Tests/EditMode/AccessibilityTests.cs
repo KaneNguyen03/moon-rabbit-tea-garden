@@ -1106,5 +1106,50 @@ namespace VuonTra.Core.Tests
             Rect pill = OnPhone((RectTransform)root.transform.Find("Canvas/EdgeRight"), canvas, new Vector2(1f, 0f));
             Assert.LessOrEqual(r.yMax, pill.yMin, "and under the side pill " + pill + ": " + r);
         }
+
+        [TestCase("vi", false)]
+        [TestCase("en", false)]
+        [TestCase("vi", true)]
+        [TestCase("en", true)]
+        public void An_Idle_Line_At_Any_Station_Or_Seat_Of_A_Full_Garden_Covers_No_Plate(string code, bool large)
+        {
+            // #59's bubble stood over the teapot's rabbit on the mortar's "Giã bánh" and the pond's "Câu cá" plates.
+            Motion.SetReduced(true);
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            GameState s = runner.State;
+            s.Plots = runner.Defs.Count;
+            for (int i = 0; i < runner.Defs.Count; i++) s.Levels[i] = 1;
+            s.GardenXp = Garden.XpForLevel(9); // the mortar, the basket, the jar and the pond are out, with their plates
+            s.RestSpots = RestSpots.Max;
+            GardenGrid.Settle(runner.Defs, s);
+            for (int i = 0; i < runner.Defs.Count; i++) Rabbits.Assign(s, Rabbits.Arrive(s, 0, "T" + i, 0.1 * (i % 10)).Id, i);
+            for (int k = 0; k < RestSpots.Max; k++) Rabbits.Arrive(s, 0, "N" + k, 0.1 * k); // resting, on the seats
+            PhotoAsks.Decline(s);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            screen.Refresh();
+            Layout();
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var covered = new List<string>();
+            int spoke = 0;
+            foreach (Rabbit r in new List<Rabbit>(s.Rabbits))
+            {
+                if (!screen.ChatterBy(r.Id)) continue;
+                spoke++;
+                Layout();
+                var line = (RectTransform)street.Find("ChatLine");
+                Assert.IsTrue(line.gameObject.activeSelf);
+                Rect b = GardenRect(line, street);
+                foreach (RectTransform plate in GardenPlates())
+                {
+                    if (plate.parent.name.StartsWith("Spot ")) continue; // a free decoration spot's faint "+"
+                    Rect p = GardenRect(plate, street);
+                    if (p.Overlaps(b)) covered.Add(r.Name + (r.Station >= 0 ? " at " + runner.Defs[r.Station].Id : " resting") + ": the line " + b + " covers " + Path(plate) + " " + p);
+                }
+            }
+            Assert.GreaterOrEqual(spoke, (runner.Defs.Count + RestSpots.Max) * 2 / 3, "most rabbits still find room for a line");
+            Assert.IsEmpty(covered, covered.Count + " covered:\n" + string.Join("\n", covered));
+        }
     }
 }

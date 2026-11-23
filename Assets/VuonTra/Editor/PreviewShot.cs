@@ -1747,6 +1747,10 @@ namespace VuonTra.EditorTools
             screen.Refresh();
             Step(screen, GardenScreen.RimStep + GardenScreen.MistClear + 1.6f);
             Capture(screen, "nits-5-sau-mo-rong");
+            screen.ChatterBy(bong.Id); // the teapot's rabbit says a line by the mortar and the pond's plate
+            Step(screen, 0.5f);
+            Capture(screen, "nits-4-noi");
+            Step(screen, 3f);
 
             // The plate of the next station's land, in the opening view of a garden with the first segment open.
             s.Levels[4] = 3; s.Levels[5] = 2;

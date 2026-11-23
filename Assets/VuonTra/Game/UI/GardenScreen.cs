@@ -5711,11 +5711,11 @@ namespace VuonTra.Game.UI
             if (ChatShown)
             {
                 _chatLeft -= dt;
-                if (_chatLeft <= 0f || ChatBlocked || PhotoMode || !AskSpot(_chatRabbitId, out Vector2 head, out _))
+                if (_chatLeft <= 0f || ChatBlocked || PhotoMode || !AskSpot(_chatRabbitId, out Vector2 head, out _) || !PlaceChat(head, out Vector2 at))
                     _chatLine.gameObject.SetActive(false);
                 else
                 {
-                    _chatLine.anchoredPosition = head;
+                    _chatLine.anchoredPosition = at;
                     float age = Chatter.Seconds - _chatLeft, grow = age / Motion.Panel, shrink = _chatLeft / Motion.PanelOut;
                     float scale = Motion.Reduced ? 1f : grow < 1f ? Ease.OutBack(grow) : shrink < 1f ? Ease.OutCubic(shrink) : 1f;
                     _chatLine.localScale = Vector3.one * scale;
@@ -5758,8 +5758,36 @@ namespace VuonTra.Game.UI
             }
             if (who.Count == 0) return false;
             int pick = Mathf.Min(who.Count - 1, Mathf.FloorToInt(Hash(_clock + 5f) * who.Count));
-            Rabbit speaker = who[pick];
-            int station = where[pick];
+            return SayIdleLine(who[pick], where[pick]);
+        }
+
+        /// <summary>
+        /// Rabbit <paramref name="id"/> says a line now, wherever it is: at work, or resting on its seat or out for a stroll.
+        /// False when it cannot (asleep, not out, asking for a photo, no room clear of the plates), or a bond line or a guest is up.
+        /// </summary>
+        public bool ChatterBy(long id)
+        {
+            if (ChatBlocked || PhotoMode || Runner == null || Runner.State == null) return false;
+            GameState s = Runner.State;
+            Rabbit asking = PhotoAsks.Asking(s);
+            if (asking != null && asking.Id == id) return false;
+            for (int i = 0; i < _actors.Count; i++)
+            {
+                Rabbit r = Rabbits.AtStation(s, i);
+                if (r == null || r.Id != id) continue;
+                if (s.Levels[i] <= 0 || _actors[i].Dozing || !_actors[i].Root.gameObject.activeSelf) return false;
+                return SayIdleLine(r, i);
+            }
+            for (int k = 0; k < _seats.Count && k < _seatIds.Length; k++)
+                if (_seatIds[k] == id) return SayIdleLine(Rabbits.Find(s, id), -1);
+            return false;
+        }
+
+        /// <summary>The line itself: picked for the speaker's trade, the time of day and the season, in a bubble near its head.</summary>
+        bool SayIdleLine(Rabbit speaker, int station)
+        {
+            if (speaker == null) return false;
+            GameState s = Runner.State;
             bool resting = station < 0;
             int booster = resting ? -1 : Chatter.BoosterOf(Runner.Defs, s, station);
             bool dressed = speaker.Dye >= 0 || VuonTra.Core.Items.Worn(s, speaker.Id, ItemSlot.Hat) != null;
@@ -5768,10 +5796,13 @@ namespace VuonTra.Game.UI
             string key = Chatter.Pick(keys, Hash(_clock + 7f));
             if (key == null || !AskSpot(speaker.Id, out Vector2 head, out _)) return false;
             if (_chatLine == null) BuildChatLine();
+            KeepChatOff();
+            _chatShift = Vector2.zero;
+            if (!PlaceChat(head, out Vector2 at)) return false; // no room clear of the plates: the line waits for another time
             _chatText.text = key == Chatter.BoostKey ? L10n.T(key, L10n.Station(Runner.Defs[booster].Id)) : L10n.T(key);
             _chatRabbitId = speaker.Id;
             _chatLeft = Chatter.Seconds;
-            _chatLine.anchoredPosition = head;
+            _chatLine.anchoredPosition = at;
             _chatLine.SetAsLastSibling();
             _chatLine.localScale = Motion.Reduced ? Vector3.one : Vector3.zero; // reduced motion: it simply appears
             _chatLine.gameObject.SetActive(true);
@@ -5780,10 +5811,68 @@ namespace VuonTra.Game.UI
             return true;
         }
 
+        /// <summary>Where the line stands from the rabbit's head: straight over it, unless that covers a plate (#16).</summary>
+        Vector2 _chatShift;
+        /// <summary>The line's paper, as <see cref="BuildChatLine"/> makes it; it stands on its foot.</summary>
+        static readonly Vector2 ChatSize = new Vector2(560f, 84f);
+        /// <summary>The places a line tries from the rabbit's head: over it, a little higher, then to either side, then higher still.</summary>
+        static readonly Vector2[] ChatShifts =
+        {
+            new Vector2(0f, 0f), new Vector2(0f, 60f), new Vector2(-150f, 0f), new Vector2(150f, 0f), new Vector2(0f, 120f),
+            new Vector2(-150f, 60f), new Vector2(150f, 60f), new Vector2(-240f, 0f), new Vector2(240f, 0f),
+            new Vector2(-240f, 90f), new Vector2(240f, 90f), new Vector2(0f, 180f),
+        };
+        /// <summary>The plates a line keeps off, gathered when it starts.</summary>
+        readonly List<RectTransform> _chatKeepOff = new List<RectTransform>();
+
+        /// <summary>
+        /// The plates of the garden a line must not cover (#16): every station's level plate, the mortar's "Giã bánh", the
+        /// basket's, the jar's and the pond's "Câu cá" plates, and the sign at the lawn's end.
+        /// </summary>
+        void KeepChatOff()
+        {
+            _chatKeepOff.Clear();
+            foreach (Transform child in _street)
+            {
+                if (child.name.StartsWith("Spot ")) continue; // a decoration spot's faint "+" is no plate to read
+                Transform plate = child.name.StartsWith("Station ") ? child.Find("Level") : child.name == "Forest Sign" ? child.Find("Board") : child.Find("Plate");
+                if (plate != null) _chatKeepOff.Add((RectTransform)plate);
+            }
+        }
+
+        /// <summary>
+        /// Where the line stands, near the rabbit's head and over none of the plates: where it stood if that is still clear, else
+        /// the first clear place of <see cref="ChatShifts"/>, inside the readable part of the garden. False when there is no room.
+        /// </summary>
+        bool PlaceChat(Vector2 head, out Vector2 at)
+        {
+            var plates = new List<Rect>(_chatKeepOff.Count);
+            foreach (RectTransform plate in _chatKeepOff)
+                if (plate != null && plate.gameObject.activeInHierarchy) plates.Add(StreetRect(plate));
+            at = head + _chatShift;
+            if (ChatClear(at, plates)) return true;
+            foreach (Vector2 shift in ChatShifts)
+            {
+                at = head + shift;
+                if (!ChatClear(at, plates)) continue;
+                _chatShift = shift;
+                return true;
+            }
+            return false;
+        }
+
+        static bool ChatClear(Vector2 foot, List<Rect> plates)
+        {
+            var line = new Rect(foot.x - ChatSize.x / 2f, foot.y, ChatSize.x, ChatSize.y);
+            if (line.xMin < WorldW - ReadableRight || line.xMax > ReadableRight) return false;
+            foreach (Rect plate in plates) if (plate.Overlaps(line)) return false;
+            return true;
+        }
+
         /// <summary>A paper bubble like the bond line's, standing on the garden; it never takes a touch.</summary>
         void BuildChatLine()
         {
-            _chatLine = UiKit.Rect("ChatLine", _street).Place(0f, 0f, 0, 0, 560, 84);
+            _chatLine = UiKit.Rect("ChatLine", _street).Place(0f, 0f, 0, 0, ChatSize.x, ChatSize.y);
             _chatLine.pivot = new Vector2(0.5f, 0f);
             _chatLine.AddShadow(10f, 6f, 0.25f);
             _chatLine.AddImage(Runner.Catalog.Panel, Palette.Paper, true).raycastTarget = false;
