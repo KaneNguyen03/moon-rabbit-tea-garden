@@ -4862,8 +4862,10 @@ namespace VuonTra.Game.UI
             guestButton.transition = Selectable.Transition.None;
             guestButton.targetGraphic = _guestImage;
             guestButton.onClick.AddListener(OpenOrder);
-            // The speech bubble above its head: the products it wants, each with its count.
-            _bubble = UiKit.Rect("Bubble", _guest).Place(0.5f, 1f, 34, 64, 120, 100);
+            // The speech bubble above its head: the products it wants, each with its count. It grows to the right from its tail,
+            // which stays over the guest, so the moon pond's "Câu cá" plate on the bank to its upper left stays in view (#84).
+            _bubble = UiKit.Rect("Bubble", _guest).Place(0.5f, 1f, 4, 64, 120, 100);
+            _bubble.pivot = new Vector2(0f, 0.5f);
             _bubble.AddShadow(10f, 6f, 0.25f);
             _bubble.AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = false;
             UiKit.Rect("Tail", _bubble).Place(0f, 0f, 28, -6, 26, 26).AddImage(catalog.Round, Palette.Paper).raycastTarget = false;
@@ -7039,8 +7041,9 @@ namespace VuonTra.Game.UI
             button.transition = Selectable.Transition.None;
             button.targetGraphic = hit;
             button.onClick.AddListener(OpenFishing);
-            // The plate stands on the bank left of the water: clear of the jar's plate below and of the Frog Rabbit's place.
-            var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, -185f, -155f, 210f, 44f);
+            // The plate stands on the bank left of the water: clear of the jar's plate below, of the Frog Rabbit's place, and of
+            // the order bubble of a guest at the counter, which grows to the right from over the guest's head (#84).
+            var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, -220f, -155f, 180f, 44f);
             plate.AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
             _pondPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _pondPlate.resizeTextForBestFit = true;

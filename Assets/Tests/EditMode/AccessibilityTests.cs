@@ -924,6 +924,57 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(covered, "the top edge pill " + p + " covers: " + string.Join(", ", covered));
         }
 
+        [TestCase("vi", false, GardenScreen.ZoomLevel.Default)]
+        [TestCase("en", false, GardenScreen.ZoomLevel.Default)]
+        [TestCase("vi", true, GardenScreen.ZoomLevel.Default)]
+        [TestCase("en", true, GardenScreen.ZoomLevel.Default)]
+        [TestCase("vi", false, GardenScreen.ZoomLevel.Near)]
+        [TestCase("en", false, GardenScreen.ZoomLevel.Near)]
+        [TestCase("vi", true, GardenScreen.ZoomLevel.Near)]
+        [TestCase("en", true, GardenScreen.ZoomLevel.Near)]
+        public void The_Guest_s_Order_Bubble_Covers_No_Plate_Nor_The_Shop_Nor_The_Guest(string code, bool large, GardenScreen.ZoomLevel zoom)
+        {
+            // #84: the bubble over the guest at the counter sat on the moon pond's "Câu cá N/5" plate, the counter's tile being
+            // the pond's neighbour on the grid. Two lines make the widest bubble.
+            Motion.SetReduced(true);
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            runner.State.GardenXp = Garden.XpForLevel(5); // the pond and its plate, the firefly jar and its plate are out
+            runner.State.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = 40, RewardSeconds = Orders.RewardSeconds };
+            runner.State.Order.Lines.Add(new OrderLine { Station = 0, Count = 3 });
+            runner.State.Order.Lines.Add(new OrderLine { Station = 2, Count = 3 });
+            screen.RebuildUi(); // in play the text-changed event calls this
+            screen.Shell.StartGame();
+            screen.Refresh();
+            screen.SetZoom(zoom, false);
+            screen.LookAt(screen.GuestSpot);
+            Layout();
+            Assert.IsTrue(screen.GuestAtCounter, "the guest has waited a while, so it stands at the counter");
+            var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            var view = (RectTransform)root.transform.Find("Canvas/Garden");
+            var bubble = (RectTransform)street.Find("Guest/Bubble");
+            Assert.IsTrue(bubble.gameObject.activeInHierarchy, "the order is up in its bubble");
+            Assert.IsTrue(street.Find("PondTap/Plate").gameObject.activeInHierarchy, "the pond's plate is out");
+            Assert.IsTrue(street.Find("Jar/Plate").gameObject.activeInHierarchy, "the jar's plate is out");
+            var shop = (RectTransform)street.Find("Shop");
+            Assert.IsNotNull(shop, "the tea shop stands by the counter");
+
+            Rect b = OnPhone(bubble, view, Vector2.zero);
+            var kept = new List<RectTransform>(GardenPlates()) { shop, (RectTransform)street.Find("Guest/Art") };
+            var covered = new List<string>();
+            foreach (RectTransform other in kept)
+            {
+                Rect r = OnPhone(other, view, Vector2.zero);
+                if (r.Overlaps(b)) covered.Add(Path(other) + " " + r);
+            }
+            Assert.IsEmpty(covered, "the bubble " + b + " covers: " + string.Join(", ", covered));
+            Rect g = GardenRect(bubble, street);
+            Assert.LessOrEqual(g.xMax, GardenScreen.ReadableRight, "the bubble " + g + " stays short of the trees at the edge");
+            Assert.GreaterOrEqual(g.xMin, 24f, "and inside the left edge");
+            Rect guest = GardenRect((RectTransform)street.Find("Guest/Art"), street), tail = GardenRect((RectTransform)bubble.Find("Tail"), street);
+            Assert.That(tail.center.x, Is.InRange(guest.xMin, guest.xMax), "the bubble's tail " + tail + " still points at the guest " + guest);
+        }
+
         [TestCase("vi", false)]
         [TestCase("en", false)]
         [TestCase("vi", true)]

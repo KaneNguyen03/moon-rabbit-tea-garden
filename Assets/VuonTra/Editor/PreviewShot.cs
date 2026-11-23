@@ -688,6 +688,7 @@ namespace VuonTra.EditorTools
             RenderPond(runner, screen); // #58b
             RenderQaNits2(); // #79–#82, on a freshly opened scene so the title shows again
             RenderReservedProps(); // #54 follow-up
+            RenderGuestByPond(); // #84
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             // The scene now holds preview objects; replace it so nothing gets saved by accident.
@@ -1653,6 +1654,50 @@ namespace VuonTra.EditorTools
             Step(screen, 0.5f);
             Capture(screen, "54r-sau-xong");
             PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+        }
+
+        /// <summary>
+        /// #84: a guest waiting at the counter with a two-line order, beside the moon pond and its "Câu cá N/5" plate, at the
+        /// default zoom and then near. Before the fix the order bubble sat on the plate; now both read.
+        /// </summary>
+        static void RenderGuestByPond()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4, 6, 5 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = levels.Length;
+            GardenGrid.Settle(defs, s);
+            s.GardenXp = Garden.XpForLevel(5); // the pond, the jar and the mortar are out
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e6);
+            s.Baits = 3;
+            s.FreshKinds.Clear();
+            s.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = 150, RewardSeconds = Orders.RewardSeconds };
+            s.Order.Lines.Add(new OrderLine { Station = 0, Count = 2 });
+            s.Order.Lines.Add(new OrderLine { Station = 1, Count = 3 });
+            runner.Init(s);
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            screen.Shell.StartGame();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            screen.LookAt(screen.GuestSpot + new Vector2(0f, 120f));
+            Step(screen, 1.4f);
+            Capture(screen, "84-khach-cho-ao");
+            screen.SetZoom(GardenScreen.ZoomLevel.Near, false);
+            screen.LookAt(screen.GuestSpot + new Vector2(0f, 120f));
+            Step(screen, 0.5f);
+            Capture(screen, "84-khach-cho-ao-gan");
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
         }
     }
 }
