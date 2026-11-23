@@ -83,7 +83,7 @@ namespace VuonTra.Core
         public int NeedDays;
         public double CostTimes = 1d;
         public GardenSide Side => GardenGrid.SideOf(SegmentsAfter);
-        public int Tiles => GardenGrid.TilesPerSegment;
+        public int Tiles => GardenGrid.SegmentTileCount(SegmentsAfter);
     }
 
     public static class Expansion

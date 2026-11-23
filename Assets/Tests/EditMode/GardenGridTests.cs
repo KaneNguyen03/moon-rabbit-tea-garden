@@ -10,12 +10,18 @@ namespace VuonTra.Core.Tests
         [SetUp]
         public void SetUp() { defs = Fixture.Defs(); }
 
+        static readonly GardenSide[] Order = { GardenSide.Right, GardenSide.Left, GardenSide.Right, GardenSide.Left, GardenSide.Up, GardenSide.Down };
+
         [Test]
-        public void The_Strip_Starts_With_Fifty_Three_Tiles_In_Seven_Rows_And_Each_Segment_Adds_Twenty_One()
+        public void The_Map_Starts_With_Fifty_Three_Tiles_In_Seven_Rows_And_Each_Segment_Adds_Its_Band()
         {
             Assert.AreEqual(53, GardenGrid.TileCount(0));
             Assert.AreEqual(74, GardenGrid.TileCount(1));
-            Assert.AreEqual(53 + 6 * 21, GardenGrid.TileCount(6));
+            Assert.AreEqual(95, GardenGrid.TileCount(2));
+            Assert.AreEqual(137, GardenGrid.TileCount(3));
+            Assert.AreEqual(179, GardenGrid.TileCount(4));
+            Assert.AreEqual(383, GardenGrid.TileCount(5));
+            Assert.AreEqual(587, GardenGrid.TileCount(6), "the catalog's sixteen stations open six segments");
             var start = new GardenGrid();
             Assert.AreEqual(0, start.Segments);
             Assert.AreEqual(53, start.LawnTiles);
@@ -33,42 +39,78 @@ namespace VuonTra.Core.Tests
             CollectionAssert.AreEquivalent(new[] { -3, -2, -1, 0, 1, 2, 3 }, rows.Keys, "seven rows, the teapot's in the middle");
             for (int r = -3; r <= 3; r++) Assert.AreEqual(r % 2 == 0 ? 7 : 8, rows[r], "row " + r);
             Assert.AreEqual(new Hex(0, 0), start.Tiles()[0].Hex, "the teapot's tile first");
-            Assert.AreEqual(TileState.ForestBorder, start.Tile(0, -4).State, "above the top row is wood");
+            Assert.AreEqual(TileState.ForestBorder, start.Tile(0, -4).State, "above the top row is mist until the band up opens");
             Assert.AreEqual(TileState.ForestBorder, start.Tile(4, 0).State, "past the middle is mist until a segment opens");
-            for (int n = 1; n <= GardenGrid.MaxSegments; n++)
+            int[] perRowWanted = { 3, 3, 6, 6 };
+            for (int n = 1; n <= 6; n++)
             {
                 List<Hex> segment = GardenGrid.SegmentTiles(n);
-                Assert.AreEqual(GardenGrid.TilesPerSegment, segment.Count, "segment " + n);
+                Assert.AreEqual(GardenGrid.TileCount(n) - GardenGrid.TileCount(n - 1), segment.Count, "segment " + n);
+                Assert.AreEqual(segment.Count, GardenGrid.SegmentTileCount(n));
                 var perRow = new Dictionary<int, int>();
                 foreach (Hex h in segment)
                 {
                     Assert.AreEqual(n, GardenGrid.SegmentOf(h));
-                    Assert.AreEqual(GardenGrid.SideOf(n) == GardenSide.Right, GardenGrid.Column(h) > 0, h + " on the side segment " + n + " opens");
+                    int c = GardenGrid.Column(h);
+                    switch (Order[n - 1])
+                    {
+                        case GardenSide.Right: Assert.Greater(c, GardenGrid.Reach(n - 1, GardenSide.Right), h + " right of the lawn before segment " + n); break;
+                        case GardenSide.Left: Assert.Less(c, -GardenGrid.Reach(n - 1, GardenSide.Left), h + " left of the lawn before segment " + n); break;
+                        case GardenSide.Up: Assert.Less(h.R, -GardenGrid.Reach(n - 1, GardenSide.Up), h + " above the lawn before segment " + n); break;
+                        case GardenSide.Down: Assert.Greater(h.R, GardenGrid.Reach(n - 1, GardenSide.Down), h + " below the lawn before segment " + n); break;
+                    }
                     perRow[h.R] = perRow.TryGetValue(h.R, out int k) ? k + 1 : 1;
                 }
-                foreach (KeyValuePair<int, int> row in perRow) Assert.AreEqual(3, row.Value, "three tiles a row, row " + row.Key + " of segment " + n);
-                Assert.AreEqual(7, perRow.Count);
+                if (n <= 4)
+                {
+                    Assert.AreEqual(7, perRow.Count, "a band at the side runs the seven rows of the middle");
+                    foreach (KeyValuePair<int, int> row in perRow) Assert.AreEqual(perRowWanted[n - 1], row.Value, "row " + row.Key + " of segment " + n);
+                }
+                else
+                {
+                    Assert.AreEqual(8, perRow.Count, "a band up or down is eight rows");
+                    foreach (KeyValuePair<int, int> row in perRow) Assert.AreEqual(row.Key % 2 == 0 ? 25 : 26, row.Value, "row " + row.Key + " of segment " + n + " runs the whole width");
+                }
             }
+            Assert.AreEqual(21, GardenGrid.SegmentTileCount(1));
+            Assert.AreEqual(42, GardenGrid.SegmentTileCount(3));
+            Assert.AreEqual(204, GardenGrid.SegmentTileCount(5));
+            Assert.AreEqual(0, GardenGrid.SegmentTileCount(0));
+            Assert.AreEqual(0, GardenGrid.SegmentTileCount(GardenGrid.MaxSegments + 1));
         }
 
         [Test]
-        public void Segments_Open_Right_Then_Left_Each_Next_To_The_Last_On_Its_Side()
+        public void Segments_Open_Right_Left_Right_Left_Up_Down_And_The_Lawn_Is_Always_One_Rectangle()
         {
-            Assert.AreEqual(GardenSide.Right, GardenGrid.SideOf(1));
-            Assert.AreEqual(GardenSide.Left, GardenGrid.SideOf(2));
-            Assert.AreEqual(GardenSide.Right, GardenGrid.SideOf(5));
-            Assert.AreEqual(GardenSide.Left, GardenGrid.SideOf(6));
+            for (int n = 1; n <= 6; n++) Assert.AreEqual(Order[n - 1], GardenGrid.SideOf(n), "segment " + n);
+            Assert.AreEqual(GardenSide.Middle, GardenGrid.SideOf(0));
+            Assert.AreEqual(2, GardenGrid.RightOf(6), "two to the right in the first six");
+            Assert.AreEqual(2, GardenGrid.LeftOf(6), "and two to the left");
+            Assert.AreEqual(1, GardenGrid.UpOf(6));
+            Assert.AreEqual(1, GardenGrid.DownOf(6));
+            Assert.AreEqual(0, GardenGrid.UpOf(4));
+            Assert.AreEqual(25, GardenGrid.Reach(6, GardenSide.Right));
+            Assert.AreEqual(25, GardenGrid.Reach(6, GardenSide.Left));
+            Assert.AreEqual(11, GardenGrid.Reach(6, GardenSide.Up));
+            Assert.AreEqual(11, GardenGrid.Reach(6, GardenSide.Down));
+            Assert.AreEqual(GardenGrid.StartHalfWidth, GardenGrid.Reach(0, GardenSide.Right));
+            Assert.AreEqual(GardenGrid.HalfRows, GardenGrid.Reach(4, GardenSide.Up), "the first four keep to the middle's seven rows");
             var g = new GardenGrid();
             for (int n = 1; n <= 6; n++)
             {
                 g.Segments = n;
                 Assert.AreEqual(GardenGrid.TileCount(n), g.LawnTiles);
                 Assert.AreEqual(GardenGrid.TileCount(n), GardenGrid.Strip(n).Count);
-                for (int r = -3; r <= 3; r++)
+                int top = GardenGrid.Reach(n, GardenSide.Up), bottom = GardenGrid.Reach(n, GardenSide.Down);
+                int left = GardenGrid.Reach(n, GardenSide.Left), right = GardenGrid.Reach(n, GardenSide.Right);
+                for (int r = -top - 1; r <= bottom + 1; r++)
                 {
                     int lo = int.MaxValue, hi = int.MinValue, count = 0;
-                    foreach (Hex h in GardenGrid.Strip(n)) if (h.R == r) { lo = System.Math.Min(lo, h.Q); hi = System.Math.Max(hi, h.Q); count++; }
-                    Assert.AreEqual(hi - lo + 1, count, "row " + r + " with " + n + " segments open has no gap");
+                    foreach (Hex h in GardenGrid.Strip(n)) if (h.R == r) { lo = System.Math.Min(lo, GardenGrid.Column(h)); hi = System.Math.Max(hi, GardenGrid.Column(h)); count++; }
+                    if (r < -top || r > bottom) { Assert.AreEqual(0, count, "row " + r + " is off the lawn with " + n + " open"); continue; }
+                    Assert.AreEqual((hi - lo) / 2 + 1, count, "row " + r + " with " + n + " segments open has no gap");
+                    Assert.That(lo, Is.InRange(-left, -left + 1), "row " + r + " reaches the left edge");
+                    Assert.That(hi, Is.InRange(right - 1, right), "row " + r + " reaches the right edge");
                 }
                 var reached = new HashSet<Hex> { new Hex(0, 0) };
                 var queue = new Queue<Hex>(reached);
@@ -76,7 +118,10 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(g.LawnTiles, reached.Count, n + " segments open: one lawn");
                 foreach (Hex h in GardenGrid.SegmentTiles(n + 1)) Assert.IsFalse(g.InLawn(h), h + " is still in the mist");
             }
-            Assert.AreEqual(-1, GardenGrid.SegmentOf(new Hex(0, 4)), "off the strip's rows");
+            Assert.AreEqual(5, GardenGrid.SegmentOf(new Hex(0, -4)), "the row above the middle is the band up");
+            Assert.AreEqual(6, GardenGrid.SegmentOf(new Hex(0, 4)), "the row below it the band down");
+            Assert.AreEqual(5, GardenGrid.SegmentOf(new Hex(12, -4)), "the band up runs over the sides opened before it");
+            Assert.AreEqual(-1, GardenGrid.SegmentOf(new Hex(0, 40)), "off the map");
             Assert.AreEqual(-1, GardenGrid.SegmentOf(new Hex(40, 0)), "past the last segment");
         }
 
@@ -122,7 +167,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(g.Place("rest:0", 1, 0));
             Assert.IsTrue(g.Place("rest:0", 1, -1), "an occupant placed again moves");
             Assert.AreEqual(TileState.UnlockedEmpty, g.Tile(1, 0).State, "and its old tile is free");
-            Assert.IsFalse(g.Place("rest:1", 0, 4), "nothing is placed off the strip");
+            Assert.IsFalse(g.Place("rest:1", 0, 4), "nothing is placed on the band below while it is shut");
             Assert.IsFalse(g.Place("rest:1", -7, 0), "nor in the mist of a segment not open");
             Assert.AreEqual(2, g.OccupantCount);
             Assert.IsTrue(g.Remove("rest:0"));
@@ -156,7 +201,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Each_Land_Wave_Opens_One_Segment_And_The_Default_Table_Fits_The_Strip()
+        public void Each_Land_Wave_Opens_One_Segment_And_The_Default_Table_Fits_The_Map()
         {
             Assert.AreEqual(0, GardenGrid.SegmentsForPlots(0));
             Assert.AreEqual(0, GardenGrid.SegmentsForPlots(4));
@@ -172,7 +217,8 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(taken.Add(h), "station " + i);
                 int segment = GardenGrid.SegmentOf(h);
                 Assert.That(segment, Is.InRange(0, GardenGrid.SegmentsForPlots(i + 1)), "station " + i + " stands on land open once its wave is taken");
-                Assert.That(h.R, Is.InRange(-2, 2), "station " + i + " stands off the strip's top and bottom rows");
+                int wave = GardenGrid.SegmentsForPlots(i + 1);
+                Assert.That(h.R, Is.InRange(1 - GardenGrid.Reach(wave, GardenSide.Up), GardenGrid.Reach(wave, GardenSide.Down) - 1), "station " + i + " stands off the lawn's top and bottom rows");
             }
             for (int n = 0; n < RestSpots.Max; n++)
             {
@@ -198,12 +244,17 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(more.Add(h), "station " + i);
                 Assert.IsFalse(GardenGrid.IsReserved(h));
             }
-            Assert.Greater(GardenGrid.Column(GardenGrid.DefaultStationTile(16)), GardenGrid.Column(GardenGrid.DefaultStationTile(14)), "the seventh segment opens right, past the fifth");
-            Assert.Less(GardenGrid.Column(GardenGrid.DefaultStationTile(18)), GardenGrid.Column(GardenGrid.DefaultStationTile(15)), "the eighth left, past the sixth");
+            for (int i = 16; i < 18; i++) Assert.AreEqual(7, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(i)), "station " + i + " on the seventh segment's land");
+            for (int i = 18; i < 20; i++) Assert.AreEqual(8, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(i)), "station " + i + " on the eighth's");
+            for (int i = 20; i < 22; i++) Assert.AreEqual(9, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(i)), "station " + i + " on the ninth's");
+            Assert.Greater(GardenGrid.Column(GardenGrid.DefaultStationTile(16)), GardenGrid.Reach(6, GardenSide.Right), "the seventh segment opens right, past the third");
+            Assert.Less(GardenGrid.Column(GardenGrid.DefaultStationTile(18)), -GardenGrid.Reach(6, GardenSide.Left), "the eighth left, past the fourth");
+            Assert.Less(GardenGrid.DefaultStationTile(20).R, -GardenGrid.Reach(6, GardenSide.Up), "the ninth up, past the fifth");
+            for (int i = 22; i < 24; i++) Assert.AreEqual(-1, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(i)), "station " + i + " past the map, for Settle to stand on the lawn");
         }
 
         [Test]
-        public void Ingredient_Stations_Stand_By_What_They_Feed_On_The_Strip()
+        public void Ingredient_Stations_Stand_By_What_They_Feed_On_The_Map()
         {
             var feeds = new Dictionary<int, int[]> { { 1, new[] { 0, 6 } }, { 3, new[] { 2, 7 } }, { 5, new[] { 4, 2 } }, { 8, new[] { 6, 9 } }, { 10, new[] { 7, 11 } }, { 12, new[] { 9, 11 } }, { 14, new[] { 13, 6 } } };
             float Apart(int a, int b)
@@ -224,6 +275,11 @@ namespace VuonTra.Core.Tests
             }
             foreach (int left in new[] { 7, 10, 11, 15 }) Assert.Less(GardenGrid.Column(GardenGrid.DefaultStationTile(left)), 0, "station " + left + " on the pond side");
             foreach (int right in new[] { 4, 5, 9, 13 }) Assert.Greater(GardenGrid.Column(GardenGrid.DefaultStationTile(right)), 0, "station " + right + " on the oven side");
+            foreach (int up in new[] { 12, 13, 14 }) Assert.AreEqual(5, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(up)), "station " + up + " on the band up");
+            Assert.AreEqual(6, GardenGrid.SegmentOf(GardenGrid.DefaultStationTile(15)), "the night tea boat on the band down");
+            var strip = new[] { new Hex(0, 0), new Hex(2, 0), new Hex(1, 2), new Hex(-2, 2), new Hex(6, 0), new Hex(4, 2), new Hex(5, -2), new Hex(-5, 2), new Hex(8, -2), new Hex(9, 0), new Hex(-8, 2), new Hex(-8, 0) };
+            for (int i = 0; i < strip.Length; i++) if (i != 9) Assert.AreEqual(strip[i], GardenGrid.DefaultStationTile(i), "station " + i);
+            Assert.AreEqual(new Hex(10, -2), GardenGrid.DefaultStationTile(9));
         }
 
         [Test]
@@ -353,7 +409,7 @@ namespace VuonTra.Core.Tests
             string json = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":30},{\"id\":\"leaf\",\"level\":5},{\"id\":\"jam\",\"level\":2}],"
                 + "\"plots\":3,\"restSpots\":2,"
                 + "\"decor\":{\"owned\":{\"den-da\":1},\"spots\":[\"den-da\",null,null,null,null,null,null,null],\"lantern\":0},"
-                + "\"grid\":{\"segments\":0,\"tiles\":[" + Tile(far[0], "station:tea") + "," + Tile(far[1], "station:jam") + "," + Tile(far[2], "decor:0") + ","
+                + "\"grid\":{\"map\":0,\"tiles\":[" + Tile(far[0], "station:tea") + "," + Tile(far[1], "station:jam") + "," + Tile(far[2], "decor:0") + ","
                 + Tile(farLeft[0], "rest:0") + "],\"stored\":[\"station:leaf\"]}}";
             LoadResult r = SaveCodec.Decode(defs, json);
             Assert.AreEqual(LoadStatus.Ok, r.Status);
@@ -377,7 +433,8 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(s.Grid.Place("station:jam", 1, 1), "the jam pot moved to another tile");
             s.Grid.Segments = 2;
             string json = SaveCodec.Encode(defs, s);
-            StringAssert.Contains("\"grid\":{\"segments\":2,", json);
+            StringAssert.Contains("\"grid\":{\"map\":2,", json);
+            StringAssert.DoesNotContain("\"segments\"", json);
             GameState back = SaveCodec.Decode(defs, json).State;
             Assert.AreEqual(2, back.Grid.Segments);
             Assert.AreEqual(s.Grid.OccupantCount, back.Grid.OccupantCount);
@@ -418,7 +475,7 @@ namespace VuonTra.Core.Tests
         public void A_Saved_Tile_That_Is_Taken_Twice_Or_Unknown_Is_Dropped_And_The_Thing_Still_Gets_A_Tile()
         {
             string json = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":1},{\"id\":\"leaf\",\"level\":0},{\"id\":\"jam\",\"level\":0}],\"plots\":2,"
-                + "\"grid\":{\"segments\":99,\"tiles\":[{\"q\":0,\"r\":0,\"id\":\"station:tea\"},{\"q\":0,\"r\":0,\"id\":\"station:leaf\"},{\"q\":1,\"r\":1,\"id\":\"ghost\"},{\"q\":2,\"r\":2,\"id\":\"station:jam\"}]}}";
+                + "\"grid\":{\"map\":99,\"tiles\":[{\"q\":0,\"r\":0,\"id\":\"station:tea\"},{\"q\":0,\"r\":0,\"id\":\"station:leaf\"},{\"q\":1,\"r\":1,\"id\":\"ghost\"},{\"q\":2,\"r\":2,\"id\":\"station:jam\"}]}}";
             GameState s = SaveCodec.Decode(defs, json).State;
             Assert.AreEqual(new Hex(0, 0), s.Grid.TileOf("station:tea"));
             Assert.IsNotNull(s.Grid.TileOf("station:leaf"), "the second claim on the centre is dropped, and the leaf basket is seated elsewhere");
@@ -576,7 +633,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void An_Old_Vertical_Garden_Save_Loads_Onto_The_Strip_With_Nothing_Lost()
+        public void An_Old_Vertical_Garden_Save_Loads_Onto_The_Map_With_Nothing_Lost()
         {
             List<StationDef> ten = TenStations();
             LoadResult r = SaveCodec.Decode(ten, OldVerticalSave);
@@ -609,14 +666,14 @@ namespace VuonTra.Core.Tests
             {
                 Assert.IsTrue(tiles.Add(o.Value), o.Key + " has a tile of its own");
                 Assert.IsFalse(GardenGrid.IsReserved(o.Value), o.Key + " on a reserved tile");
-                Assert.AreNotEqual(-1, GardenGrid.SegmentOf(o.Value), o.Key + " on the strip");
+                Assert.IsTrue(g.InLawn(o.Value) || !GardenGrid.Movable(o.Key), o.Key + " on the open lawn");
             }
             Assert.AreEqual(0d, s.ViewZoom);
             Assert.AreEqual(0d, s.ViewX);
             Assert.AreEqual(0d, s.ViewY);
             string again = SaveCodec.Encode(ten, s);
             StringAssert.Contains("\"version\":14", again, "the save stays version 14");
-            StringAssert.Contains("\"grid\":{\"segments\":2,", again);
+            StringAssert.Contains("\"grid\":{\"map\":2,", again);
             StringAssert.DoesNotContain("\"radius\"", again);
             Assert.AreEqual(again, SaveCodec.Encode(ten, SaveCodec.Decode(ten, again).State), "migrated once, it stays");
         }
@@ -639,7 +696,243 @@ namespace VuonTra.Core.Tests
             GardenGrid.Settle(ten, strip);
             Hex jam = strip.Grid.TileOf("station:jam").Value;
             Assert.AreNotEqual(jamHome, jam);
-            Assert.AreEqual(1, GardenGrid.Distance(jam, jamHome), "the nearest free tile");
+            Assert.AreEqual(1, GardenGrid.Distance(jam, jamHome), "the nearest free tile that keeps the stations apart");
+        }
+
+        static List<StationDef> SixteenStations()
+        {
+            string[] ids = { "am-tra", "gio-la", "noi-mut", "coi-hoa", "lo-banh", "to-mat", "tra-sua", "binh-sao", "gian-nho", "tiem-banh", "suoi-hoa", "dai-sao", "ho-sen", "lo-keo", "ruong-nep", "thuyen-tra" };
+            var sixteen = new List<StationDef>();
+            for (int i = 0; i < ids.Length; i++)
+                sixteen.Add(new StationDef { Id = ids[i], Name = ids[i], Kind = StationKind.Brew, BaseCost = 10 * System.Math.Pow(12, i), CostGrowth = 1.1, BaseIncome = 1, CycleSeconds = 1 });
+            return sixteen;
+        }
+
+        static string StationsJson(List<StationDef> catalog, int open)
+        {
+            var parts = new List<string>();
+            for (int i = 0; i < catalog.Count; i++) parts.Add("{\"id\":\"" + catalog[i].Id + "\",\"level\":" + (i < open ? 40 - 2 * i : 0) + "}");
+            return "[" + string.Join(",", parts) + "]";
+        }
+
+        static string OldStripSave(List<StationDef> catalog) => "{\"version\":14,\"stations\":" + StationsJson(catalog, 14) + ","
+            + "\"plots\":14,\"restSpots\":6,\"gardenXp\":300000,"
+            + "\"view\":{\"x\":-1400,\"y\":-80,\"zoom\":0.83},"
+            + "\"decor\":{\"owned\":{\"den-da\":1,\"bon-hoa\":1},\"spots\":[\"den-da\",null,null,null,null,null,null,\"bon-hoa\"],\"lantern\":0},"
+            + "\"grid\":{\"segments\":5,\"tiles\":["
+            + "{\"q\":0,\"r\":0,\"id\":\"station:am-tra\"},{\"q\":2,\"r\":0,\"id\":\"station:gio-la\"},{\"q\":1,\"r\":2,\"id\":\"station:noi-mut\"},{\"q\":-2,\"r\":2,\"id\":\"station:coi-hoa\"},"
+            + "{\"q\":6,\"r\":0,\"id\":\"station:lo-banh\"},{\"q\":4,\"r\":2,\"id\":\"station:to-mat\"},{\"q\":5,\"r\":-2,\"id\":\"station:tra-sua\"},{\"q\":-5,\"r\":2,\"id\":\"station:binh-sao\"},"
+            + "{\"q\":8,\"r\":-2,\"id\":\"station:gian-nho\"},{\"q\":9,\"r\":0,\"id\":\"station:tiem-banh\"},{\"q\":-8,\"r\":2,\"id\":\"station:suoi-hoa\"},{\"q\":-9,\"r\":1,\"id\":\"station:dai-sao\"},"
+            + "{\"q\":11,\"r\":-2,\"id\":\"station:ho-sen\"},"
+            + "{\"q\":-3,\"r\":1,\"id\":\"rest:0\"},{\"q\":2,\"r\":3,\"id\":\"rest:1\"},{\"q\":4,\"r\":1,\"id\":\"rest:2\"},{\"q\":-5,\"r\":0,\"id\":\"rest:3\"},{\"q\":7,\"r\":2,\"id\":\"rest:4\"},{\"q\":-7,\"r\":-2,\"id\":\"rest:5\"},"
+            + "{\"q\":0,\"r\":3,\"id\":\"decor:0\"},{\"q\":2,\"r\":-3,\"id\":\"decor:7\"},"
+            + "{\"q\":1,\"r\":-1,\"id\":\"mortar\"},{\"q\":1,\"r\":-3,\"id\":\"shop\"},{\"q\":3,\"r\":-3,\"id\":\"counter\"}],"
+            + "\"stored\":[\"station:lo-keo\"]}}";
+
+        static void AssertSettledApart(GardenGrid g)
+        {
+            var tiles = new HashSet<Hex>();
+            foreach (KeyValuePair<string, Hex> o in g.Occupants)
+            {
+                Assert.IsTrue(tiles.Add(o.Value), o.Key + " has a tile of its own");
+                Assert.IsFalse(GardenGrid.IsReserved(o.Value) && GardenGrid.Movable(o.Key), o.Key + " on a reserved tile");
+                Assert.IsTrue(g.InLawn(o.Value), o.Key + " on the open lawn");
+                if (!o.Key.StartsWith("station:")) continue;
+                foreach (KeyValuePair<string, Hex> p in g.Occupants)
+                    if (p.Key != o.Key && p.Key.StartsWith("station:")) Assert.GreaterOrEqual(GardenGrid.Distance(o.Value, p.Value), Expansion.StationSpacing, o.Key + " and " + p.Key);
+            }
+        }
+
+        [Test]
+        public void An_Old_Strip_Save_Loads_Onto_The_Map_With_Nothing_Lost()
+        {
+            List<StationDef> sixteen = SixteenStations();
+            LoadResult r = SaveCodec.Decode(sixteen, OldStripSave(sixteen));
+            Assert.AreEqual(LoadStatus.Ok, r.Status);
+            GameState s = r.State;
+            GardenGrid g = s.Grid;
+            Assert.AreEqual(14, s.Plots, "no plot is taken back");
+            Assert.AreEqual(5, g.Segments, "the strip's five segments are the map's five");
+            Assert.AreEqual(6, Expansion.Next(sixteen, s).SegmentsAfter, "the next is the strip's sixth, now the band down");
+            Assert.AreEqual(GardenSide.Down, Expansion.Next(sixteen, s).Side);
+            Assert.IsTrue(g.IsStored("station:lo-keo"));
+            Assert.IsNull(g.TileOf("station:lo-keo"));
+            Assert.AreEqual(40 - 2 * 13, s.Levels[13], "and keeps its level");
+            for (int i = 0; i < 14; i++)
+            {
+                Assert.AreEqual(40 - 2 * i, s.Levels[i], sixteen[i].Id + " keeps its level");
+                if (i == 13) continue;
+                Assert.AreEqual(GardenGrid.DefaultStationTile(i), g.TileOf(GardenGrid.StationId(sixteen[i])), sixteen[i].Id + " on its default tile");
+            }
+            Assert.AreEqual(5, GardenGrid.SegmentOf(g.TileOf("station:ho-sen").Value), "the lotus garden is on the band up now");
+            Assert.IsNull(g.TileOf("station:ruong-nep"), "no plot, no tile");
+            for (int k = 0; k < 6; k++) Assert.AreEqual(GardenGrid.DefaultRestTile(k), g.TileOf(GardenGrid.RestId(k)), "rest " + k);
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(0), g.TileOf(GardenGrid.DecorId(0)));
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(7), g.TileOf(GardenGrid.DecorId(7)));
+            Assert.AreEqual("den-da", s.DecorSpots[0]);
+            Assert.AreEqual("bon-hoa", s.DecorSpots[7]);
+            foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId }) Assert.AreEqual(GardenGrid.DefaultTile(id, sixteen), g.TileOf(id), id);
+            Assert.AreEqual(13 + 6 + 2 + 3, g.OccupantCount, "thirteen stations out, six seats, two decorations, three props");
+            AssertSettledApart(g);
+            Assert.AreEqual(0d, s.ViewZoom);
+            Assert.AreEqual(0d, s.ViewX);
+            Assert.AreEqual(0d, s.ViewY);
+            string again = SaveCodec.Encode(sixteen, s);
+            StringAssert.Contains("\"version\":14", again);
+            StringAssert.Contains("\"grid\":{\"map\":5,", again);
+            StringAssert.DoesNotContain("\"segments\"", again);
+            StringAssert.Contains("\"stored\":[\"station:lo-keo\"]", again);
+            Assert.AreEqual(again, SaveCodec.Encode(sixteen, SaveCodec.Decode(sixteen, again).State), "migrated once, it stays");
+        }
+
+        [TestCase(0, 4)]
+        [TestCase(2, 8)]
+        [TestCase(4, 12)]
+        [TestCase(6, 16)]
+        public void An_Old_Strip_Save_Keeps_Its_Open_Land_And_Its_Store_At_Any_Size(int segments, int plots)
+        {
+            List<StationDef> sixteen = SixteenStations();
+            string json = "{\"version\":14,\"stations\":" + StationsJson(sixteen, plots) + ",\"plots\":" + plots + ",\"restSpots\":" + System.Math.Min(RestSpots.Max, 2 + segments)
+                + ",\"grid\":{\"segments\":" + segments + ",\"tiles\":[{\"q\":-11,\"r\":0,\"id\":\"station:gio-la\"}],\"stored\":[\"station:noi-mut\"]}}";
+            GameState s = SaveCodec.Decode(sixteen, json).State;
+            Assert.AreEqual(segments, s.Grid.Segments);
+            Assert.AreEqual(plots, s.Plots);
+            Assert.IsTrue(s.Grid.IsStored("station:noi-mut"), "what was put away stays put away");
+            Assert.AreEqual(GardenGrid.DefaultStationTile(1), s.Grid.TileOf("station:gio-la"), "a strip tile is not kept: the default tile");
+            for (int i = 0; i < plots; i++) if (i != 2) Assert.AreEqual(GardenGrid.DefaultStationTile(i), s.Grid.TileOf(GardenGrid.StationId(sixteen[i])), sixteen[i].Id);
+            for (int k = 0; k < s.RestSpots; k++) Assert.AreEqual(GardenGrid.DefaultRestTile(k), s.Grid.TileOf(GardenGrid.RestId(k)), "rest " + k);
+            AssertSettledApart(s.Grid);
+        }
+
+        [Test]
+        public void A_Station_Whose_Default_Tile_Is_Taken_Settles_On_The_Nearest_Free_Tile_That_Keeps_The_Stations_Apart()
+        {
+            List<StationDef> sixteen = SixteenStations();
+            Hex bakery = GardenGrid.DefaultStationTile(9);
+            string json = "{\"version\":14,\"stations\":" + StationsJson(sixteen, 10) + ",\"plots\":10,"
+                + "\"decor\":{\"owned\":{\"den-da\":1},\"spots\":[null,null,null,\"den-da\",null,null,null,null],\"lantern\":0},"
+                + "\"grid\":{\"map\":3,\"tiles\":[{\"q\":" + bakery.Q + ",\"r\":" + bakery.R + ",\"id\":\"decor:3\"}]}}";
+            GameState s = SaveCodec.Decode(sixteen, json).State;
+            GardenGrid g = s.Grid;
+            Assert.AreEqual(bakery, g.TileOf("decor:3"), "a map save keeps its tiles");
+            Hex at = g.TileOf("station:tiem-banh").Value;
+            Assert.AreNotEqual(bakery, at);
+            AssertSettledApart(g);
+            foreach (Hex h in g.EmptyTiles())
+            {
+                if (GardenGrid.Distance(h, bakery) >= GardenGrid.Distance(at, bakery)) continue;
+                bool apart = true;
+                foreach (KeyValuePair<string, Hex> o in g.Occupants)
+                    if (o.Key.StartsWith("station:") && o.Key != "station:tiem-banh" && GardenGrid.Distance(o.Value, h) < Expansion.StationSpacing) apart = false;
+                Assert.IsFalse(apart, h + " is nearer and keeps the stations apart");
+            }
+        }
+
+        [Test]
+        public void Each_Segment_Of_The_Map_Asks_What_The_Strip_s_Segment_Asked_And_Brings_The_Same_Plots_And_Seats()
+        {
+            List<StationDef> sixteen = SixteenStations();
+            GameState s = GameState.NewGame(sixteen);
+            s.GardenXp = Garden.XpForLevel(60);
+            for (int i = 0; i < 20; i++) s.Rabbits.Add(new Rabbit { Id = ++s.NextRabbitId, Tier = 0, Name = "R" });
+            foreach (RabbitKind kind in RabbitKinds.All) s.SeenKinds.Add(kind.Id);
+            s.FirstDaySeen = 0;
+            s.MaxDaySeen = 100;
+            Assert.AreEqual(6, Expansion.LastSegments(sixteen), "sixteen stations: six segments");
+            Assert.AreEqual(Expansion.Segment5Days, Expansion.Segment(5).NeedDays, "the band up keeps the fifth segment's days");
+            Assert.AreEqual(Expansion.Segment6Days, Expansion.Segment(6).NeedDays, "the band down keeps the sixth segment's days");
+            Assert.AreEqual(Expansion.Segment56CostTimes, Expansion.Segment(5).CostTimes, "and their price times");
+            Assert.AreEqual(Expansion.Segment56CostTimes, Expansion.Segment(6).CostTimes);
+            for (int n = 1; n <= 6; n++)
+            {
+                MistSegment next = Expansion.Next(sixteen, s);
+                Assert.AreSame(Expansion.Table[n - 1], next, "segment " + n + " is the table's own entry: its level, rabbits and kinds");
+                Assert.AreEqual(n, next.SegmentsAfter);
+                Assert.AreEqual(Order[n - 1], next.Side, "segment " + n + "'s side");
+                Assert.AreEqual(GardenGrid.SegmentTileCount(n), next.Tiles);
+                int first = s.Plots;
+                double price = (sixteen[first].BaseCost + sixteen[first + 1].BaseCost) * Plots.CostShare * next.CostTimes;
+                Assert.AreEqual(price, Expansion.CostOfNext(sixteen, s).ToDouble(), price * 1e-9, "a quarter of the next two stations' price, times the segment's own factor");
+                s.Coins = Expansion.CostOfNext(sixteen, s);
+                Assert.IsTrue(Expansion.Expand(sixteen, s));
+                Assert.AreEqual(0d, s.Coins.ToDouble(), price * 1e-9, "and that is what it takes");
+                Assert.AreEqual(n, s.Grid.Segments);
+                Assert.AreEqual(Plots.Starting + 2 * n, s.Plots, "two plots a segment");
+                Assert.AreEqual(System.Math.Min(RestSpots.Max, RestSpots.Starting + n), s.RestSpots, "and a place to rest, as far as there are");
+                for (int i = 0; i < s.Plots; i++) Assert.AreEqual(GardenGrid.DefaultStationTile(i), s.Grid.TileOf(GardenGrid.StationId(sixteen[i])), "station " + i + " on its own tile");
+                for (int i = first; i < s.Plots; i++) Assert.IsTrue(s.Grid.InLawn(GardenGrid.DefaultStationTile(i)), "station " + i + " on land open by now");
+                AssertSettledApart(s.Grid);
+            }
+            Assert.IsNull(Expansion.Next(sixteen, s), "all the catalog's land is open");
+        }
+
+        [Test]
+        public void On_The_Bands_Up_And_Down_Things_Move_Swap_Store_And_Keep_Apart_And_Not_Onto_Land_Still_Shut()
+        {
+            List<StationDef> sixteen = SixteenStations();
+            GameState s = GameState.NewGame(sixteen);
+            s.Plots = 12;
+            for (int i = 0; i < 12; i++) s.Levels[i] = 1;
+            GardenGrid.Settle(sixteen, s);
+            GardenGrid g = s.Grid;
+            Assert.AreEqual(4, g.Segments);
+            Hex oven = g.TileOf("station:lo-banh").Value, up = new Hex(2, -6), down = new Hex(-4, 6);
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(sixteen, s, oven, up), "the band up is mist yet");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(sixteen, s, oven, down), "and so is the band down");
+            s.Plots = 16; for (int i = 12; i < 16; i++) s.Levels[i] = 1;
+            GardenGrid.Settle(sixteen, s);
+            Assert.AreEqual(6, g.Segments);
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(sixteen, s, oven, up), "open, the oven stands on the band up");
+            Assert.AreEqual(up, g.TileOf("station:lo-banh").Value);
+            Hex beside = new Hex(up.Q + 1, up.R);
+            Hex boat = g.TileOf("station:thuyen-tra").Value;
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(sixteen, s, boat, beside), "not beside another station (#88)");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(sixteen, s, boat, new Hex(14, 0)), "nor on the seventh segment's land, past the catalog's six");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(sixteen, s, boat, new Hex(-1, -1)), "nor on the pond's plate");
+            Hex stump = g.TileOf(GardenGrid.RestId(0)).Value;
+            Assert.AreEqual(LayoutDrop.Swapped, Layout.Drop(sixteen, s, boat, stump), "the boat and a stump trade places");
+            Assert.AreEqual(stump, g.TileOf("station:thuyen-tra").Value);
+            Assert.AreEqual(boat, g.TileOf(GardenGrid.RestId(0)).Value, "the stump on the band down");
+            Assert.IsTrue(Layout.Store(sixteen, s, "station:lo-keo"), "a station of the band up goes into storage");
+            Assert.IsNull(g.TileOf("station:lo-keo"));
+            Assert.IsTrue(Layout.TakeOut(sixteen, s, 13));
+            Hex back = g.TileOf("station:lo-keo").Value;
+            Assert.IsTrue(g.InLawn(back) && !GardenGrid.IsReserved(back), "it comes out on an empty lawn tile");
+            foreach (Hex h in g.EmptyTiles()) Assert.GreaterOrEqual(GardenGrid.Distance(h), GardenGrid.Distance(back), "nearest the teapot");
+            var settled = new Dictionary<string, Hex>();
+            foreach (KeyValuePair<string, Hex> o in g.Occupants) settled[o.Key] = o.Value;
+            GardenGrid.Settle(sixteen, s);
+            foreach (KeyValuePair<string, Hex> o in settled) Assert.AreEqual(o.Value, g.TileOf(o.Key).Value, o.Key + " stays where the player stood it");
+        }
+
+        [Test]
+        public void After_A_New_Moon_What_Stood_On_The_Bands_Up_And_Down_Comes_Back_To_The_Middle()
+        {
+            List<StationDef> sixteen = SixteenStations();
+            GameState s = GameState.NewGame(sixteen);
+            s.Plots = 16; for (int i = 0; i < 16; i++) s.Levels[i] = 1;
+            s.RestSpots = RestSpots.Max;
+            s.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(s, "den-da")); Assert.IsTrue(Decor.Place(s, 2, "den-da"));
+            GardenGrid.Settle(sixteen, s);
+            GardenGrid g = s.Grid;
+            Assert.IsTrue(g.Move(new Hex(0, 0), new Hex(-2, -8)), "the teapot dragged onto the band up");
+            Assert.IsTrue(g.Move(GardenGrid.DefaultStationTile(1), new Hex(0, 0)), "the leaf basket onto the teapot's home");
+            Assert.IsTrue(g.Move(GardenGrid.DefaultDecorTile(2), new Hex(3, 8)), "a lantern onto the band down");
+            Assert.IsTrue(g.Move(GardenGrid.DefaultRestTile(1), new Hex(6, -9)), "a stump onto the band up");
+            Assert.IsTrue(Layout.Store(sixteen, s, "station:noi-mut"));
+            s.Season = 0; s.GardenXp = Garden.XpForLevel(NewMoon.LevelNeeded(0));
+            Assert.IsTrue(NewMoon.Begin(sixteen, s, "Trăng", out _));
+            Assert.AreEqual(0, g.Segments, "the middle alone again");
+            AssertAllOnTheLawn(g);
+            Assert.AreEqual(new Hex(0, 0), g.TileOf("station:am-tra"), "the teapot is home");
+            Assert.AreEqual(GardenGrid.DefaultStationTile(1), g.TileOf("station:gio-la"), "the leaf basket made way, to its own tile");
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(2), g.TileOf(GardenGrid.DecorId(2)), "the lantern back on its spot");
+            Assert.AreEqual(GardenGrid.DefaultRestTile(1), g.TileOf(GardenGrid.RestId(1)), "the stump back by the tea table");
+            Assert.AreEqual(0, g.StoredCount, "the store is emptied with the levels");
+            GameState back = SaveCodec.Decode(sixteen, SaveCodec.Encode(sixteen, s)).State;
+            AssertAllOnTheLawn(back.Grid);
+            Assert.AreEqual(new Hex(0, 0), back.Grid.TileOf("station:am-tra"), "and stays home after a save");
         }
     }
 }

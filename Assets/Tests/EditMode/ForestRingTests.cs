@@ -26,7 +26,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void A_New_Garden_Has_The_Middle_Open_And_Each_Segment_Opens_Twenty_One_Tiles_On_Its_Side()
+        public void A_New_Garden_Has_The_Middle_Open_And_Each_Segment_Opens_Its_Band_On_Its_Side()
         {
             Assert.AreEqual(0, Expansion.Segments(s));
             Assert.AreEqual(GardenGrid.StartTiles, s.Grid.LawnTiles);
@@ -36,8 +36,8 @@ namespace VuonTra.Core.Tests
                 int before = s.Grid.LawnTiles;
                 Assert.IsTrue(Expansion.Expand(defs, s));
                 Assert.AreEqual(n, s.Grid.Segments);
-                Assert.AreEqual(GardenGrid.TilesPerSegment, s.Grid.LawnTiles - before, "a segment opens 21 tiles");
-                Assert.AreEqual(21, Expansion.Segment(n).Tiles);
+                Assert.AreEqual(n <= 2 ? 21 : 42, s.Grid.LawnTiles - before, "a segment opens three tiles a row on its side, then six (#91)");
+                Assert.AreEqual(s.Grid.LawnTiles - before, Expansion.Segment(n).Tiles);
                 Assert.AreEqual(n % 2 == 1 ? GardenSide.Right : GardenSide.Left, Expansion.Segment(n).Side, "right, then left, in turn");
                 foreach (Hex h in GardenGrid.SegmentTiles(n)) Assert.AreNotEqual(TileState.ForestBorder, s.Grid.Tile(h.Q, h.R).State, "the new segment is lawn");
                 foreach (Hex h in GardenGrid.SegmentTiles(n + 1)) Assert.AreNotEqual(TileState.UnlockedEmpty, s.Grid.Tile(h.Q, h.R).State, "the mist stands one segment further out");
@@ -165,7 +165,7 @@ namespace VuonTra.Core.Tests
                 + ",\"grid\":{\"radius\":" + radius + ",\"tiles\":[{\"q\":2,\"r\":-6,\"id\":\"station:s3\"}]}}";
             GameState old = SaveCodec.Decode(defs, json).State;
             Assert.AreEqual(segments, old.Grid.Segments);
-            Assert.AreEqual(GardenGrid.DefaultStationTile(3), old.Grid.TileOf("station:s3"), "an old column tile means nothing on the strip");
+            Assert.AreEqual(GardenGrid.DefaultStationTile(3), old.Grid.TileOf("station:s3"), "an old column tile means nothing on the map");
             for (int i = 0; i < plots; i++) Assert.IsTrue(old.Grid.InLawn(old.Grid.TileOf("station:s" + i).Value), "station " + i + " on the open lawn");
         }
 

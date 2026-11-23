@@ -23,10 +23,7 @@ namespace VuonTra.Game.UI
         // The world is a clearing seen from above at an angle, bigger than the screen and dragged
         // around in every direction. Sizes are in reference pixels; the screen is portrait, 1080 × 1920.
         const float ScreenW = 1080f, ScreenH = 1920f;
-        // The garden is a horizontal strip (the horizontal garden, 23 Nov): seven rows of tiles, as wide as every segment of
-        // the catalog's land (GardenGrid: 25 doubled columns each side of the teapot, 1950 units) plus 450 of wood at each end,
-        // and about 1.2 times the height the view shows between the HUD and the tab bar at the usual zoom.
-        const float WorldW = 4800f, WorldH = 2200f;
+        const float WorldW = 4800f, WorldH = 5400f;
         /// <summary>The feet of the nearest trees of the wood stand this far past the lawn's sides: clear of every station by 200 and more.</summary>
         const float RimLeft = -300f, RimRight = WorldW + 310f;
         /// <summary>No tree of the wood comes nearer than this to a station's sign, pad, rabbit or prop, or to the props that must be read (#50).</summary>
@@ -6470,6 +6467,7 @@ namespace VuonTra.Game.UI
         const float ForestSignOut = 50f;
         /// <summary>New grass and the sign keep this far from the garden's top and bottom, where the wood closes over the lawn.</summary>
         const float RingGrassBand = 540f;
+        const float StripHalfHeight = 1100f;
 
         /// <summary>Where the sign's foot stands in the garden: at the lawn's edge, beside the land the next segment opens.</summary>
         public Vector2 ForestSignSpot { get; private set; }
@@ -6484,7 +6482,7 @@ namespace VuonTra.Game.UI
             var spots = new List<Vector2>();
             void Add(Vector2 at)
             {
-                if (at.y < RingGrassBand || at.y > WorldH - RingGrassBand) return;
+                if (Mathf.Abs(at.y - Heart.y) > StripHalfHeight - RingGrassBand) return;
                 foreach (Vector2 other in spots) if (Vector2.Distance(other, at) < 60f) return;
                 spots.Add(at);
             }
@@ -6559,8 +6557,7 @@ namespace VuonTra.Game.UI
         /// <summary>The x of the open lawn's edge on one side with this many segments open: half a tile past the last tile of its rows.</summary>
         static float LawnEdgeX(int segments, GardenSide side)
         {
-            int along = side == GardenSide.Left ? GardenGrid.LeftOf(segments) : GardenGrid.RightOf(segments);
-            float half = (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * along + 1) * (float)GardenGrid.PitchX / 2f;
+            float half = (GardenGrid.Reach(segments, side == GardenSide.Left ? GardenSide.Left : GardenSide.Right) + 1) * (float)GardenGrid.PitchX / 2f;
             return Heart.x + (side == GardenSide.Left ? -half : half);
         }
 
@@ -6600,14 +6597,26 @@ namespace VuonTra.Game.UI
         public static Vector2 SegmentSpan(int segment)
         {
             GardenSide side = GardenGrid.SideOf(segment);
-            int along = side == GardenSide.Left ? GardenGrid.LeftOf(segment) : GardenGrid.RightOf(segment);
-            float inner = (GardenGrid.StartHalfWidth + GardenGrid.SegmentWidth * (along - 1) + 1) * (float)GardenGrid.PitchX / 2f;
-            float outer = inner + GardenGrid.SegmentWidth * (float)GardenGrid.PitchX / 2f;
+            if (side == GardenSide.Up || side == GardenSide.Down)
+                return new Vector2(LawnEdgeX(segment, GardenSide.Left), LawnEdgeX(segment, GardenSide.Right));
+            float inner = (GardenGrid.Reach(segment - 1, side) + 1) * (float)GardenGrid.PitchX / 2f;
+            float outer = (GardenGrid.Reach(segment, side) + 1) * (float)GardenGrid.PitchX / 2f;
             return side == GardenSide.Left ? new Vector2(Heart.x - outer, Heart.x - inner) : new Vector2(Heart.x + inner, Heart.x + outer);
         }
 
         /// <summary>The rows of the strip, top and bottom, with the art that stands on them: what the mist covers top to bottom.</summary>
         static readonly float MistLow = -760f, MistHigh = 860f;
+
+        static Vector2 MistRows(int segment)
+        {
+            GardenSide side = GardenGrid.SideOf(segment);
+            float pitch = (float)GardenGrid.PitchY, middleEdge = pitch * (GardenGrid.HalfRows + 0.5f);
+            if (side == GardenSide.Up)
+                return new Vector2(pitch * (GardenGrid.Reach(segment - 1, side) + 0.5f), pitch * (GardenGrid.Reach(segment, side) + 0.5f) + MistHigh - middleEdge);
+            if (side == GardenSide.Down)
+                return new Vector2(-pitch * (GardenGrid.Reach(segment, side) + 0.5f) + MistLow + middleEdge, -pitch * (GardenGrid.Reach(segment - 1, side) + 0.5f));
+            return new Vector2(MistLow, MistHigh);
+        }
 
         /// <summary>
         /// Soft mist over one segment's land: watercolour washes of pale blue-white that overlap into a cloud bank, a little
@@ -6615,28 +6624,31 @@ namespace VuonTra.Game.UI
         /// </summary>
         CanvasGroup BuildMist(GameCatalog catalog, int segment)
         {
-            Vector2 span = SegmentSpan(segment);
+            Vector2 span = SegmentSpan(segment), rows = MistRows(segment);
+            float low = rows.x, high = rows.y;
+            bool sideways = GardenGrid.SideOf(segment) == GardenSide.Right || GardenGrid.SideOf(segment) == GardenSide.Left;
             var mist = UiKit.Rect("Segment Mist " + segment, _street).Stretch(0, 0, 1, 1);
             CanvasGroup group = mist.gameObject.AddComponent<CanvasGroup>();
             group.blocksRaycasts = false;
             group.interactable = false;
             Color[] washes = { Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.9f), Palette.Alpha(Palette.Mix(Color.white, Palette.Moss, 0.14f), 0.8f), Palette.Alpha(Palette.Mix(Palette.Paper, Color.white, 0.6f), 0.85f) };
             // A broad veil first, so the land reads as hidden; the washes over it make the cloud bank's soft shapes.
-            UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (MistLow + MistHigh) / 2f, span.y - span.x + 320f, MistHigh - MistLow + 300f)
+            UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (low + high) / 2f, span.y - span.x + 320f, high - low + 300f)
                 .AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.18f), 0.75f)).raycastTarget = false;
             // The bank at the edge it shares with the open lawn (#16): thick, with a wandering edge like a wash that dried, so the
             // land still to open reads as such on the dark grass. The washes over it keep it soft.
             bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
             float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
-            UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (MistLow + MistHigh) / 2f, MistEdgeWidth, MistHigh - MistLow + 200f)
-                .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
-            const int Across = 3, Down = 9;
+            if (sideways)
+                UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (low + high) / 2f, MistEdgeWidth, high - low + 200f)
+                    .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
+            int Across = sideways ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9;
             for (int a = 0; a < Across; a++)
                 for (int d = 0; d < Down; d++)
                 {
                     float seed = segment * 13.1f + a * 3.7f + d * 1.9f;
                     float x = Mathf.Lerp(span.x, span.y, (a + 0.5f) / Across) + (Hash(seed) - 0.5f) * 60f;
-                    float y = Heart.y + Mathf.Lerp(MistLow + 120f, MistHigh - 120f, d / (Down - 1f)) + (Hash(seed + 1f) - 0.5f) * 40f;
+                    float y = Heart.y + Mathf.Lerp(low + 120f, high - 120f, d / (Down - 1f)) + (Hash(seed + 1f) - 0.5f) * 40f;
                     float w = 330f + Hash(seed + 2f) * 120f, h = 300f + Hash(seed + 3f) * 90f;
                     UiKit.Rect("Wash", mist).Place(0f, 0f, x, y, w, h).AddImage(catalog.Glow, washes[(a + d) % washes.Length]).raycastTarget = false;
                 }

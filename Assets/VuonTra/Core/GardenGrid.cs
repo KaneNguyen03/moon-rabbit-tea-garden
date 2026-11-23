@@ -23,8 +23,7 @@ namespace VuonTra.Core
         Reserved
     }
 
-    public enum GardenSide { Middle = 0, Right = 1, Left = -1 }
-
+    public enum GardenSide { Middle = 0, Right = 1, Left = -1, Up = 2, Down = -2 }
     public struct TileData
     {
         public int Q, R;
@@ -37,13 +36,43 @@ namespace VuonTra.Core
     {
         public const int HalfRows = 3;
         public const int StartHalfWidth = 7;
-        public const int SegmentWidth = 6;
-        public const int TilesPerSegment = (2 * HalfRows + 1) * SegmentWidth / 2;
+        public const int StartTiles = 53;
         public const int MaxSegments = 9;
         public const double PitchX = 150d, PitchY = 200d;
         public const string MortarId = "mortar", ShopId = "shop", CounterId = "counter";
 
         static readonly Hex[] Directions = { new Hex(1, 0), new Hex(1, -1), new Hex(0, -1), new Hex(-1, 0), new Hex(-1, 1), new Hex(0, 1) };
+
+        struct Band
+        {
+            public GardenSide Side;
+            public int Depth;
+            public Band(GardenSide side, int depth) { Side = side; Depth = depth; }
+        }
+
+        static readonly Band[] Bands =
+        {
+            new Band(GardenSide.Right, 6), new Band(GardenSide.Left, 6),
+            new Band(GardenSide.Right, 12), new Band(GardenSide.Left, 12),
+            new Band(GardenSide.Up, 8), new Band(GardenSide.Down, 8),
+            new Band(GardenSide.Right, 6), new Band(GardenSide.Left, 6), new Band(GardenSide.Up, 4),
+        };
+
+        static readonly int[] ReachRight = new int[MaxSegments + 1], ReachLeft = new int[MaxSegments + 1], ReachUp = new int[MaxSegments + 1], ReachDown = new int[MaxSegments + 1];
+
+        static GardenGrid()
+        {
+            ReachRight[0] = ReachLeft[0] = StartHalfWidth;
+            ReachUp[0] = ReachDown[0] = HalfRows;
+            for (int n = 1; n <= MaxSegments; n++)
+            {
+                Band b = Bands[n - 1];
+                ReachRight[n] = ReachRight[n - 1] + (b.Side == GardenSide.Right ? b.Depth : 0);
+                ReachLeft[n] = ReachLeft[n - 1] + (b.Side == GardenSide.Left ? b.Depth : 0);
+                ReachUp[n] = ReachUp[n - 1] + (b.Side == GardenSide.Up ? b.Depth : 0);
+                ReachDown[n] = ReachDown[n - 1] + (b.Side == GardenSide.Down ? b.Depth : 0);
+            }
+        }
 
         static readonly Hex[] StationTiles =
         {
@@ -56,13 +85,13 @@ namespace VuonTra.Core
             new Hex(5, -2),
             new Hex(-5, 2),
             new Hex(8, -2),
-            new Hex(9, 0),
+            new Hex(10, -2),
             new Hex(-8, 2),
             new Hex(-8, 0),
-            new Hex(11, -2),
-            new Hex(10, 2),
-            new Hex(12, 0),
-            new Hex(-11, 0),
+            new Hex(11, -4),
+            new Hex(13, -5),
+            new Hex(11, -6),
+            new Hex(-7, 5),
         };
         static readonly Hex[] RestTiles = { new Hex(-3, 1), new Hex(-4, 1), new Hex(4, 1), new Hex(-5, 0), new Hex(7, 2), new Hex(-7, -2) };
         static readonly Hex[] DecorTiles = { new Hex(-5, 3), new Hex(-3, 3), new Hex(-1, 3), new Hex(3, 1), new Hex(1, 3), new Hex(5, -3), new Hex(3, -2), new Hex(2, -3) };
@@ -77,23 +106,48 @@ namespace VuonTra.Core
 
         public static int Column(Hex h) => 2 * h.Q + h.R;
 
-        public static GardenSide SideOf(int segment) => segment <= 0 ? GardenSide.Middle : segment % 2 == 1 ? GardenSide.Right : GardenSide.Left;
+        public static GardenSide SideOf(int segment) => segment < 1 || segment > MaxSegments ? GardenSide.Middle : Bands[segment - 1].Side;
+        public static int DepthOf(int segment) => segment < 1 || segment > MaxSegments ? 0 : Bands[segment - 1].Depth;
 
-        public static int RightOf(int segments) => Math.Max(0, segments + 1) / 2;
-        public static int LeftOf(int segments) => Math.Max(0, segments) / 2;
+        public static int RightOf(int segments) => Count(segments, GardenSide.Right);
+        public static int LeftOf(int segments) => Count(segments, GardenSide.Left);
+        public static int UpOf(int segments) => Count(segments, GardenSide.Up);
+        public static int DownOf(int segments) => Count(segments, GardenSide.Down);
+
+        static int Count(int segments, GardenSide side)
+        {
+            int n = 0;
+            for (int i = 1; i <= Math.Min(segments, MaxSegments); i++) if (Bands[i - 1].Side == side) n++;
+            return n;
+        }
+
+        public static int Reach(int segments, GardenSide side)
+        {
+            int n = Math.Max(0, Math.Min(MaxSegments, segments));
+            switch (side)
+            {
+                case GardenSide.Right: return ReachRight[n];
+                case GardenSide.Left: return ReachLeft[n];
+                case GardenSide.Up: return ReachUp[n];
+                case GardenSide.Down: return ReachDown[n];
+                default: return 0;
+            }
+        }
+
+        static bool Within(Hex h, int n)
+        {
+            int c = Column(h);
+            return h.R >= -ReachUp[n] && h.R <= ReachDown[n] && c >= -ReachLeft[n] && c <= ReachRight[n];
+        }
 
         public static int SegmentOf(Hex h)
         {
-            if (Math.Abs(h.R) > HalfRows) return -1;
-            int c = Column(h);
-            if (Math.Abs(c) <= StartHalfWidth) return 0;
-            int along = (Math.Abs(c) - StartHalfWidth + SegmentWidth - 1) / SegmentWidth;
-            int segment = c > 0 ? 2 * along - 1 : 2 * along;
-            return segment <= MaxSegments ? segment : -1;
+            for (int n = 0; n <= MaxSegments; n++) if (Within(h, n)) return n;
+            return -1;
         }
 
-        public static int TileCount(int segments) => segments < 0 ? 0 : StartTiles + TilesPerSegment * Math.Min(segments, MaxSegments);
-        public const int StartTiles = 53;
+        public static int TileCount(int segments) => segments < 0 ? 0 : Strip(segments).Count;
+        public static int SegmentTileCount(int segment) => segment < 1 || segment > MaxSegments ? 0 : TileCount(segment) - TileCount(segment - 1);
         public int LawnTiles => TileCount(Segments);
 
         public static int Distance(Hex a, Hex b) => Distance(new Hex(a.Q - b.Q, a.R - b.R));
@@ -135,19 +189,20 @@ namespace VuonTra.Core
             int n = Math.Max(0, Math.Min(MaxSegments, segments));
             List<Hex> cached = StripCache[n];
             if (cached != null) return cached;
-            var all = new List<Hex>(TileCount(n));
-            for (int radius = 0; all.Count < TileCount(n); radius++)
+            int count = 0;
+            for (int r = -ReachUp[n]; r <= ReachDown[n]; r++)
+                for (int c = -ReachLeft[n]; c <= ReachRight[n]; c++)
+                    if (((c - r) & 1) == 0) count++;
+            var all = new List<Hex>(count);
+            for (int radius = 0; all.Count < count; radius++)
                 foreach (Hex h in Ring(radius))
-                {
-                    int segment = SegmentOf(h);
-                    if (segment >= 0 && segment <= n) all.Add(h);
-                }
+                    if (Within(h, n)) all.Add(h);
             return StripCache[n] = all;
         }
 
         public static List<Hex> SegmentTiles(int segment)
         {
-            var tiles = new List<Hex>(TilesPerSegment);
+            var tiles = new List<Hex>(SegmentTileCount(segment));
             if (segment < 1 || segment > MaxSegments) return tiles;
             foreach (Hex h in Strip(segment)) if (SegmentOf(h) == segment) tiles.Add(h);
             return tiles;
@@ -237,9 +292,31 @@ namespace VuonTra.Core
         {
             if (index >= 0 && index < StationTiles.Length) return StationTiles[index];
             int segment = Expansion.WavesTaken(Math.Max(index, StationTiles.Length) + 1);
-            int along = (segment + 1) / 2, column = 6 * along + 4, r = index % 2 == 0 ? -2 : 2;
-            if (SideOf(segment) == GardenSide.Left) column = -column;
-            return new Hex((column - r) / 2, r);
+            bool first = index % 2 == 0;
+            int c, r;
+            if (segment > MaxSegments)
+            {
+                int past = segment - MaxSegments;
+                c = (ReachRight[MaxSegments] + 4 * ((past + 1) / 2) + 1) * (past % 2 == 1 ? 1 : -1);
+                r = first ? -2 : 2;
+            }
+            else
+            {
+                GardenSide side = SideOf(segment);
+                int middle = Reach(segment - 1, side) + DepthOf(segment) / 2;
+                if (side == GardenSide.Right || side == GardenSide.Left)
+                {
+                    r = first ? -2 : 2;
+                    c = side == GardenSide.Right ? middle : -middle;
+                }
+                else
+                {
+                    r = side == GardenSide.Up ? -middle : middle;
+                    c = first ? -6 : 6;
+                }
+            }
+            if (((c - r) & 1) != 0) c += c > 0 ? 1 : -1;
+            return new Hex((c - r) / 2, r);
         }
 
         public static Hex DefaultRestTile(int n) => n >= 0 && n < RestTiles.Length ? RestTiles[n] : new Hex(-5 - n, 3);
@@ -286,7 +363,8 @@ namespace VuonTra.Core
                 if (g._tileOf.ContainsKey(id)) continue;
                 Hex home = DefaultTile(id, defs);
                 if (g.Seat(id, home)) continue;
-                if (g.NearestEmpty(home, out Hex spare)) g.Seat(id, spare);
+                bool found = id.StartsWith("station:") ? g.NearestEmptyApart(home, Expansion.StationSpacing, id, out Hex spare) : g.NearestEmpty(home, out spare);
+                if (found) g.Seat(id, spare);
             }
         }
 
@@ -330,6 +408,19 @@ namespace VuonTra.Core
                 if (ApartFromStations(h, spacing, null, null)) { found = h; return true; }
             }
             return NearestEmpty(out found);
+        }
+
+        public bool NearestEmptyApart(Hex near, int spacing, string self, out Hex found)
+        {
+            found = default;
+            int best = int.MaxValue;
+            foreach (Hex h in Strip(Segments))
+            {
+                if (_occupantAt.ContainsKey(h) || IsReserved(h)) continue;
+                int d = Distance(h, near);
+                if (d < best && ApartFromStations(h, spacing, self, null)) { best = d; found = h; }
+            }
+            return best != int.MaxValue || NearestEmpty(near, out found);
         }
 
         bool ApartFromStations(Hex h, int spacing, string self, string partner)

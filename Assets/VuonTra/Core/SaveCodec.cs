@@ -289,7 +289,7 @@ namespace VuonTra.Core
                 }
             }
             sb.Append("},\"passUntil\":").Append(s.NoAdsUntilDay.ToString(CultureInfo.InvariantCulture)).Append('}');
-            sb.Append(",\"grid\":{\"segments\":").Append(s.Grid.Segments.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
+            sb.Append(",\"grid\":{\"map\":").Append(s.Grid.Segments.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
             {
                 var ids = new List<string>();
                 foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) ids.Add(o.Key);
@@ -748,9 +748,9 @@ namespace VuonTra.Core
             s.Grid = new GardenGrid(GardenGrid.SegmentsForPlots(s.Plots));
             if (root.TryGetValue("grid", out object gridObj) && gridObj is Dictionary<string, object> grid)
             {
-                if (TryNumber(grid, "segments", out double segments))
+                if (TryNumber(grid, "map", out double map))
                 {
-                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(segments, GardenGrid.MaxSegments));
+                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(map, GardenGrid.MaxSegments));
                     if (grid.TryGetValue("tiles", out object tilesObj) && tilesObj is List<object> tiles)
                         foreach (object raw in tiles)
                         {
@@ -762,9 +762,9 @@ namespace VuonTra.Core
                             s.Grid.Place(id, at.Q, at.R, true);
                         }
                 }
-                else if (TryNumber(grid, "radius", out double radius))
+                else if (LegacySegments(grid, out double legacy))
                 {
-                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(radius - LegacyStartingRadius, GardenGrid.MaxSegments));
+                    s.Grid.Segments = (int)Math.Max(0d, Math.Min(legacy, GardenGrid.MaxSegments));
                     s.ViewX = s.ViewY = s.ViewZoom = 0d;
                 }
                 if (grid.TryGetValue("stored", out object storedObj) && storedObj is List<object> stored)
@@ -817,6 +817,14 @@ namespace VuonTra.Core
             var sb = new StringBuilder((value ?? "").Length + 2);
             WriteString(sb, value);
             return sb.ToString();
+        }
+
+        static bool LegacySegments(Dictionary<string, object> grid, out double segments)
+        {
+            if (TryNumber(grid, "segments", out segments)) return true;
+            if (!TryNumber(grid, "radius", out double radius)) return false;
+            segments = radius - LegacyStartingRadius;
+            return true;
         }
 
         public static bool TryNumber(Dictionary<string, object> obj, string key, out double value)
