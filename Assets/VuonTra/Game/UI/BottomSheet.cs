@@ -1,27 +1,27 @@
 using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using TweenEase = DG.Tweening.Ease;
 
 namespace VuonTra.Game.UI
 {
     public sealed class BottomSheet
     {
         public const float Fling = 1100f;
+        const float GentleOvershoot = 1f;
 
         public readonly GameObject Root;
         public readonly RectTransform Card;
-        readonly Tweens _tweens;
         readonly float _height;
         readonly Action _onClosed;
-        int _run;
         float _dragSpeed;
 
         public bool IsOpen { get; private set; }
 
         public BottomSheet(RectTransform canvas, string name, GameCatalog catalog, Tweens tweens, float height, Action onClosed, float lipScale = 1f)
         {
-            _tweens = tweens;
             _height = height;
             _onClosed = onClosed;
 
@@ -74,21 +74,21 @@ namespace VuonTra.Game.UI
         {
             IsOpen = true;
             Root.SetActive(true);
-            Slide(0f, Motion.Time(Motion.Panel), Motion.Curve(Ease.OutBackLight), null);
+            Slide(0f, Motion.Time(Motion.Panel), Motion.Curve(TweenEase.OutBack), null);
         }
 
         public void Close()
         {
             if (!IsOpen) return;
             IsOpen = false;
-            Slide(-_height - 60f, Motion.Time(Motion.PanelOut), Ease.InCubic, () => Root.SetActive(false));
+            Slide(-_height - 60f, Motion.Time(Motion.PanelOut), TweenEase.InCubic, () => Root.SetActive(false));
             _onClosed?.Invoke();
         }
 
         public void Drag(float dy)
         {
             if (!IsOpen) return;
-            _run++;
+            Card.DOKill();
             Card.anchoredPosition = new Vector2(0, Mathf.Clamp(Card.anchoredPosition.y + dy, -_height, 0f));
         }
 
@@ -96,15 +96,13 @@ namespace VuonTra.Game.UI
         {
             if (!IsOpen) return;
             if (speed < -Fling || Card.anchoredPosition.y < -_height * 0.3f) Close();
-            else Slide(0f, Motion.Time(Motion.Panel), Motion.Curve(Ease.OutBackLight), null);
+            else Slide(0f, Motion.Time(Motion.Panel), Motion.Curve(TweenEase.OutBack), null);
         }
 
-        void Slide(float toY, float seconds, Func<float, float> curve, Action done)
+        void Slide(float toY, float seconds, TweenEase curve, Action done)
         {
-            int run = ++_run;
-            float fromY = Card.anchoredPosition.y;
-            _tweens.Add(seconds, t => { if (run == _run && Card != null) Card.anchoredPosition = new Vector2(0, Mathf.LerpUnclamped(fromY, toY, t)); },
-                curve, 0f, () => { if (run == _run) done?.Invoke(); });
+            Card.DOKill();
+            Card.DOAnchorPos(new Vector2(0f, toY), seconds).SetEase(curve, GentleOvershoot).OnComplete(() => done?.Invoke()).OnUiClock(Card);
         }
     }
 }

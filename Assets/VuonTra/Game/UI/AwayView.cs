@@ -1,7 +1,9 @@
 using System;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
+using TweenEase = DG.Tweening.Ease;
 
 namespace VuonTra.Game.UI
 {
@@ -10,6 +12,8 @@ namespace VuonTra.Game.UI
         public const float Height = 1180f;
 
         readonly GameCatalog _catalog;
+        const float YawnPeak = 0.206f;
+
         readonly Tweens _tweens;
         readonly Func<int> _doubleCost;
         readonly Func<int> _golden;
@@ -129,12 +133,10 @@ namespace VuonTra.Game.UI
                 _portrait = tile.gameObject;
                 _rabbit.text = L10n.T("away.rabbit", sleepy.Name);
                 if (!Motion.Reduced)
-                    _tweens.Add(Motion.Yawn, t =>
-                    {
-                        if (tile == null) return;
-                        float k = Mathf.Sin(t * Mathf.PI);
-                        tile.localScale = new Vector3(1f - 0.04f * k, 1f + 0.09f * k, 1f);
-                    });
+                    DOTween.Sequence()
+                        .Append(tile.DOScale(new Vector3(0.96f, 1.09f, 1f), Motion.Yawn * YawnPeak).SetEase(TweenEase.OutSine))
+                        .Append(tile.DOScale(Vector3.one, Motion.Yawn * (1f - YawnPeak)).SetEase(TweenEase.InOutCubic))
+                        .SetTarget(tile).OnUiClock(tile);
             }
             RefreshDouble();
             Sheet.Root.transform.SetAsLastSibling();
