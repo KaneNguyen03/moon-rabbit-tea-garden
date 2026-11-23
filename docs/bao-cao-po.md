@@ -1664,6 +1664,20 @@ Sau khi sửa cả bốn xanh.
 - Phao đứng trước mặt trăng của hình ao và dây câu đi ngang mặt trăng; nếu vướng thì dời phao sang trái hoặc xuống dưới một chút.
 - Ảnh "trước" không có khung phao đang nổi vì khung đó mới thêm trong lần chụp sau.
 
+## #84 — Bong bóng đơn khách che bảng Câu cá (agent-84)
+- **Test:** 1133/1134 (verify GREEN). Mới: `AccessibilityTests.The_Guest_s_Order_Bubble_Covers_No_Plate_Nor_The_Shop_Nor_The_Guest` × 8 (vi/en × chữ thường/to × zoom mặc định/gần); trước khi sửa 8/8 đỏ.
+- **Commit:** `c7a53ab`, merge `f1f8a74`. Main sau gộp: 1133/1134.
+- **Đã làm:** bong bóng đơn neo mép trái ngay trên đầu khách và mọc sang phải (trước: căn giữa, lệch phải 34, nên tràn trái lên bảng); bảng "Câu cá N/5" dời trái 35 và hẹp 210 → 180. Ô quầy, ô ao và danh sách ô giữ chỗ không đổi (test ô giữ chỗ vẫn xanh). Thêm khung preview `84-khach-cho-ao`, `84-khach-cho-ao-gan`.
+- **Ảnh:** `docs/anh/qa-84/qa-84-truoc.png`, `qa-84-sau.png`, `qa-84-truoc-gan.png`, `qa-84-sau-gan.png`.
+
+### Chưa đạt / cần PO quyết
+- Bong bóng giờ nằm ngay trên lọ đom đóm (lọ ở phía dưới, bảng "Đom đóm · còn N lượt" vẫn đọc được). PO xem có ổn không.
+- Chưa thử trên máy thật.
+
+## Ảnh xem trước lẫn chữ Anh/Việt (QA, nhánh fix/preview-rebuild-vi)
+
+- `52d73ff` (QA): thêm `screen.RebuildUi()` sau khi đổi về tiếng Việt ở `PreviewShot.cs`, nên các khung 15-*, 16-*, 17-rest-*, 31-* sau bộ ảnh tiếng Anh không còn lẫn hai thứ tiếng. Chỉ đổi công cụ chụp ảnh, không đổi game. Gộp cùng lượt #84, main xanh 1133/1134.
+
 ## Bàn giao (22/11 ~17:40, mốc giữa chiều; mục mới hơn ở trên)
 
 ### Trạng thái
