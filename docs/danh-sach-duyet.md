@@ -103,6 +103,12 @@ Mọi việc dưới đây đã có trên `main` và đã push. Ảnh ở `docs/
 | #5 Chụm trackpad Mac | Bundle gốc macOS đọc magnify, chụm để zoom | Thử trên bản Mac mới (build sau `73d1611`) |
 | #16 Hàng đợi MVP | Mọi dòng đã tick trừ "Màn lúc bạn đi vắng" | Nói muốn thêm gì ngoài tấm Away đang có, hoặc tick và đóng |
 
+## G. Chờ thử trên máy thật sau bản build (#41)
+
+| Issue | Code đã có | Thử gì trên máy thật |
+|---|---|---|
+| #109 Xin đánh giá đúng lúc | Thẻ "Bạn thích vườn trà chứ?" sau thỏ bậc Vàng trở lên, trò nhỏ 3 sao, mở đoạn đất hoặc tim thứ 10; chỉ từ ngày 3, sau 30 phút chơi, không lỗi văng hay mua hỏng trong phiên; tối đa 3 lần, cách 60 ngày; "Thích lắm" một lần là thôi hỏi. Seam `IReviewPrompt`, editor và Mac dùng bản giả ghi log. Ảnh `po-109/` | Cắm hộp đánh giá gốc (iOS `SKStoreReviewController`, Android Play In-App Review) và link trang cửa hàng vào `NativeReviewPrompt.Create()`; bấm "Thích lắm" thấy hộp của hệ điều hành; "Đánh giá game" trong Hồ sơ mở trang cửa hàng; "Chưa lắm" mở app mail với mã người chơi |
+
 ## Gợi ý cách làm
 
 0. Bảng "Các con số cần chủ project quyết": trả lời "giữ" hoặc đưa số khác cho từng dòng; session điều phối chuyển cho session code.

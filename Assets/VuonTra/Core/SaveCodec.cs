@@ -397,7 +397,11 @@ namespace VuonTra.Core
                 sb.Append(",\"closed\":").Append(offer.Closed ? "true" : "false");
                 sb.Append('}');
             }
-            sb.Append("]}}");
+            sb.Append("]}");
+            sb.Append(",\"review\":{\"asks\":").Append(s.Review.Asks.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"last\":").Append(s.Review.LastAskDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"liked\":").Append(s.Review.Liked ? "true" : "false");
+            sb.Append("}}");
             return sb.ToString();
         }
 
@@ -876,6 +880,13 @@ namespace VuonTra.Core
                         for (int d = 0; d < Recipes.Dishes && d < levels.Count; d++)
                             if (levels[d] is double level) Recipes.SetLevel(s, index, d, (int)Math.Max(1d, Math.Min(level, Recipes.MaxLevel)));
                     }
+            }
+
+            if (root.TryGetValue("review", out object reviewObj) && reviewObj is Dictionary<string, object> review)
+            {
+                s.Review.Asks = (int)Math.Max(0d, Math.Min(ReadNumber(review, "asks"), ReviewAsk.MaxAsks));
+                s.Review.LastAskDay = TryNumber(review, "last", out double lastAsk) ? Math.Max(-1L, ToLong(lastAsk)) : -1;
+                s.Review.Liked = review.TryGetValue("liked", out object liked) && liked is bool likedFlag && likedFlag;
             }
 
             result.Status = LoadStatus.Ok;

@@ -1234,7 +1234,7 @@ namespace VuonTra.Game.UI
                     Shell.Resume();
                     Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
                     Refresh(-1f);
-                }), OnRedeemCode);
+                }), OnRedeemCode, () => Runner.OpenStorePage());
             BuildMail(catalog);
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
@@ -1284,6 +1284,7 @@ namespace VuonTra.Game.UI
             BuildPond(catalog); // the moon pond's card and the rabbit's Feed button (#58b)
             BuildAdSeams(catalog); // the three rewarded-ad places and the no-ads pass (#66)
             BuildOffers(catalog);
+            ReviewCard = new ReviewView(_canvas, catalog, Tweens, OnReviewLiked, OnReviewFeedback);
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -3952,6 +3953,7 @@ namespace VuonTra.Game.UI
             Picker.Refresh(s);
             Workers.Refresh(defs, s);
             Profile.Refresh(defs, s, Runner.Account, Runner.CloudStatus);
+            AskForReview();
             Income.Refresh(defs, s, m);
             bool mortar = Pounding.Unlocked(s);
             if (_mortarProp.gameObject.activeSelf != mortar) _mortarProp.gameObject.SetActive(mortar);
@@ -4811,6 +4813,33 @@ namespace VuonTra.Game.UI
             Haptics.Light();
             VuonTra.Core.Shop.Dye colour = VuonTra.Core.Shop.Dyes[dye]; // the Shop property here is the sheet
             Feel.FloatText(new Vector2(0, 420), L10n.T("float.dye", L10n.T("dye." + colour.Id)), Palette.Hex(colour.Hex), 40);
+        }
+
+        public ReviewView ReviewCard { get; private set; }
+
+        public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
+            || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen;
+
+        void AskForReview()
+        {
+            if (Runner.Review.Waiting == ReviewMoment.None || ReviewCard == null) return;
+            if (Runner.TakeReviewMoment(ReviewBusy) != ReviewMoment.None) ReviewCard.Open(Runner.State.Profile.Code);
+        }
+
+        void OnReviewLiked()
+        {
+            Sfx.Reward();
+            Runner.LikeReview();
+            Feel.FloatText(new Vector2(0, 420), L10n.T("review.thanks"), Palette.Lantern, 44);
+        }
+
+        void OnReviewFeedback(string typed)
+        {
+            string mail = Runner.AnswerReviewFeedback(typed);
+            if (mail == null) return;
+            ProfileView.OpenUrl(mail);
+            Feel.FloatText(new Vector2(0, 420), L10n.T("review.thanks"), Palette.Lantern, 44);
         }
 
         void OnSummonGolden()

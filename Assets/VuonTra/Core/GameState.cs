@@ -134,6 +134,8 @@ namespace VuonTra.Core
         public double RestLeafSeconds;
         public int[] DishLevels = new int[0];
 
+        public ReviewRecord Review = new ReviewRecord();
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

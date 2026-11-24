@@ -3644,111 +3644,162 @@ MonoBehaviour:
     m_Localized: +{0} moon jar
     m_Metadata:
       m_Items: []
-  - m_Id: 841391763611648
+  - m_Id: 837451609268224
+    m_Localized: Enjoying the tea garden?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045440
+    m_Localized: Love it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045441
+    m_Localized: Not really
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045442
+    m_Localized: What could the garden do better?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045443
+    m_Localized: One line is enough
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045444
+    m_Localized: Goes to support by email, with your code {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045445
+    m_Localized: Send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045446
+    m_Localized: Not now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045447
+    m_Localized: Thank you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045448
+    m_Localized: "\u2605 Rate the game"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045449
+    m_Localized: Tea garden feedback {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045450
+    m_Localized: '{0}
+
+
+      Player code: {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852204570271744
     m_Localized: "Dish: {0} \xB7 level {1}"
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194560
+  - m_Id: 852204587048960
     m_Localized: Improve dish ({0} leaves)
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194561
+  - m_Id: 852204587048961
     m_Localized: Dish at top level
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194562
+  - m_Id: 852204587048962
     m_Localized: Open the station to cook it
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194563
+  - m_Id: 852204587048963
     m_Localized: Opens at garden level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194564
+  - m_Id: 852204587048964
     m_Localized: Dish level {0}!
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194565
+  - m_Id: 852204587048965
     m_Localized: "Recipe leaves: {0} \xB7 improve dishes on a station card"
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194566
+  - m_Id: 852204587048966
     m_Localized: "Big fish \u2192 +1 leaf"
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194567
+  - m_Id: 852204587048967
     m_Localized: +{0} recipe leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194568
+  - m_Id: 852204587048968
     m_Localized: Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194569
+  - m_Id: 852204587048969
     m_Localized: Young Tea Leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194570
+  - m_Id: 852204587048970
     m_Localized: Strawberry Jam
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194571
+  - m_Id: 852204587048971
     m_Localized: Pounded Petal Powder
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194572
+  - m_Id: 852204587048972
     m_Localized: Chestnut Bun
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194573
+  - m_Id: 852204587048973
     m_Localized: Wild Honey
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194574
+  - m_Id: 852204587048974
     m_Localized: Moon Milk Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194575
+  - m_Id: 852204587048975
     m_Localized: Star Syrup
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194576
+  - m_Id: 852204587048976
     m_Localized: Moon Grapes
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194577
+  - m_Id: 852204587048977
     m_Localized: Mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194578
+  - m_Id: 852204587048978
     m_Localized: Flower Spring Water
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194579
+  - m_Id: 852204587048979
     m_Localized: Jar of Falling Stars
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194580
+  - m_Id: 852204587048980
     m_Localized: Lotus Seeds
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194581
+  - m_Id: 852204587048981
     m_Localized: Malt Candy
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194582
+  - m_Id: 852204587048982
     m_Localized: Young Rice Flakes
     m_Metadata:
       m_Items: []
-  - m_Id: 841391776194583
+  - m_Id: 852204587048983
     m_Localized: Night Blossom Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 841391784583168
+  - m_Id: 852204595437568
     m_Localized: "Recipe leaf: {0} \xB7 improve dishes on a station card"
     m_Metadata:
       m_Items: []
-  - m_Id: 841391784583169
+  - m_Id: 852204595437569
     m_Localized: +{0} recipe leaf
     m_Metadata:
       m_Items: []

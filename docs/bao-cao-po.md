@@ -2102,6 +2102,19 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Mức "≤ 25" đo theo trung vị 17 hạt.
 - Hình rương vẽ tay chưa có.
 
+## #109 — Xin đánh giá đúng lúc (agent-109)
+
+**Test:** verify đầy đủ GREEN, tests 1339/1340 (1 test inconclusive, không lỗi), rules ok, 252 khung preview; Core 728/728.
+
+**Commit:** `e1d6a6d` (trên main `6a9aa2d`); gộp main `280df5c`, verify đầy đủ GREEN 1378/1379.
+
+**Đã làm:** luật `ReviewAsk` (ngày 3, 30 phút, không lỗi văng hay mua hỏng trong phiên, tối đa 3 lần cách 60 ngày, "Thích lắm" là thôi hỏi, chờ khi trò nhỏ hay thẻ khác đang mở, không hỏi trong hướng dẫn); seam `IReviewPrompt` + bản giả ghi log; thẻ "Bạn thích vườn trà chứ?" với ô góp ý một dòng gửi email hỗ trợ kèm mã người chơi; mục "★ Đánh giá game" trong Hồ sơ; analytics 3 sự kiện; save thêm khối `review`, vẫn version 14; ảnh trong `po-109/`; mục G trong danh sách duyệt.
+
+### Chưa đạt / cần PO quyết
+- Cắm hộp đánh giá gốc và link cửa hàng vào `NativeReviewPrompt` sau #41.
+- Duyệt: thẻ bỏ qua sau 120 giây; Failed/Unavailable tính là mua hỏng; ghép thỏ Vàng không tính.
+- Email hỗ trợ thật vẫn chờ chủ project.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

@@ -110,12 +110,16 @@ namespace VuonTra.Core
         public const string OfferShown = "offer_shown";
         public const string OfferBought = "offer_bought";
         public const string OfferExpired = "offer_expired";
+        public const string ReviewAsked = "review_asked";
+        public const string ReviewLiked = "review_liked";
+        public const string ReviewFeedback = "review_feedback";
 
         public static readonly string[] All =
         {
             GameOpen, SessionStart, SessionEnd, TutorialStep, TutorialComplete, TutorialSkip, GardenLevelUp, StationUnlocked,
             SegmentOpened, RabbitCalled, NewMoon, GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd,
             OfferShown, OfferBought, OfferExpired,
+            ReviewAsked, ReviewLiked, ReviewFeedback,
         };
 
         public const string NewGarden = "new_garden";
@@ -138,6 +142,10 @@ namespace VuonTra.Core
         public const string Placement = "placement";
         public const string Game = "game";
         public const string Result = "result";
+        public const string Moment = "moment";
+        public const string Asks = "asks";
+        public const string Sent = "sent";
+        public const string Chars = "chars";
 
         public const string ViaClover = "clover", ViaGolden = "golden";
         public const string FromShop = "shop";
@@ -213,6 +221,16 @@ namespace VuonTra.Core
             else
                 a.Log(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level));
         }
+
+        public static void LogReviewAsked(this IAnalytics a, ReviewMoment moment, int asks) =>
+            a.Log(AnalyticsEvents.ReviewAsked, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)), new AnalyticsParam(AnalyticsEvents.Asks, asks));
+
+        public static void LogReviewLiked(this IAnalytics a, ReviewMoment moment) =>
+            a.Log(AnalyticsEvents.ReviewLiked, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)));
+
+        public static void LogReviewFeedback(this IAnalytics a, ReviewMoment moment, bool sent, int chars) =>
+            a.Log(AnalyticsEvents.ReviewFeedback, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)),
+                new AnalyticsParam(AnalyticsEvents.Sent, sent), new AnalyticsParam(AnalyticsEvents.Chars, chars));
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>
             a.Log(AnalyticsEvents.RewardedAd, new AnalyticsParam(AnalyticsEvents.Placement, placement), new AnalyticsParam(AnalyticsEvents.Game, game ?? ""), new AnalyticsParam(AnalyticsEvents.Result, result));

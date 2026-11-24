@@ -350,6 +350,14 @@ namespace VuonTra.EditorTools
             screen.CloseSheet();
             Step(screen, 0.6f);
 
+            screen.ReviewCard.Open(state.Profile.Code);
+            Step(screen, 0.4f);
+            Capture(screen, "109-the-danh-gia");
+            screen.ReviewCard.ShowFeedback();
+            screen.ReviewCard.Input.text = "Muốn thêm nhạc đêm cho các bé thỏ";
+            Step(screen, 0.4f);
+            Capture(screen, "109-gop-y");
+            screen.ReviewCard.Close();
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "10-pause");
@@ -395,6 +403,14 @@ namespace VuonTra.EditorTools
             Step(screen, 0.5f);
             Capture(screen, "33-chu-to");
             screen.CloseSheet();
+            screen.ReviewCard.Open(state.Profile.Code);
+            Step(screen, 0.4f);
+            Capture(screen, "109-the-danh-gia-chu-to");
+            screen.ReviewCard.ShowFeedback();
+            screen.ReviewCard.Input.text = "Muốn thêm nhạc đêm cho các bé thỏ";
+            Step(screen, 0.4f);
+            Capture(screen, "109-gop-y-chu-to");
+            screen.ReviewCard.Close();
             UiKit.SetLargeText(false);
             screen.RebuildUi();
             Step(screen, 0.8f);
@@ -418,6 +434,14 @@ namespace VuonTra.EditorTools
             Step(screen, 0.2f);
             Capture(screen, "13-quests-en");
             screen.CloseSheet();
+            screen.ReviewCard.Open(state.Profile.Code);
+            Step(screen, 0.4f);
+            Capture(screen, "109-the-danh-gia-en");
+            screen.ReviewCard.ShowFeedback();
+            screen.ReviewCard.Input.text = "More night music for the rabbits";
+            Step(screen, 0.4f);
+            Capture(screen, "109-gop-y-en");
+            screen.ReviewCard.Close();
             screen.Shell.OpenPause();
             Step(screen, 0.6f);
             Capture(screen, "14-pause-en");

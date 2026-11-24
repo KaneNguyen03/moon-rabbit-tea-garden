@@ -329,6 +329,7 @@ namespace VuonTra.Game
             Rabbit rabbit = Shop.SummonGolden(State, _rng.NextDouble(), PickName(), _rng.NextDouble(), TodayNumber);
             _shopBought = rabbit != null;
             if (rabbit != null) Analytics.LogRabbitCalled(AnalyticsEvents.ViaGolden, rabbit);
+            if (ReviewAsk.IsHappy(rabbit)) NoteReview(ReviewMoment.GoldenRabbit);
             if (rabbit != null) Changed();
             return rabbit;
         }
@@ -456,6 +457,7 @@ namespace VuonTra.Game
         public PetResult PetRabbit(long id, bool wake = false)
         {
             PetResult result = Rabbits.Pet(State, Rabbits.Find(State, id), TodayNumber, wake);
+            if (result.TenHearts) NoteReview(ReviewMoment.TenHearts);
             if (result.FirstToday || result.Energy > 0d) Changed();
             return result;
         }
@@ -498,6 +500,7 @@ namespace VuonTra.Game
                     if (GrantPaid(r, false)) Changed();
                     else r.Outcome = PurchaseOutcome.Duplicate;
                 }
+                if (r.Outcome == PurchaseOutcome.Failed || r.Outcome == PurchaseOutcome.Unavailable) _review.PurchaseFailed = true;
                 Analytics.LogPurchase(r, Store.PriceOf(r.PackId));
                 done?.Invoke(r);
             });
@@ -658,6 +661,7 @@ namespace VuonTra.Game
         public PoundingResult FinishPounding(PoundingRun run)
         {
             PoundingResult result = Pounding.Finish(Defs, State, Mods, run);
+            if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
             return result;
         }
@@ -672,6 +676,7 @@ namespace VuonTra.Game
         public LeavesResult FinishLeaves(LeavesRun run)
         {
             LeavesResult result = Leaves.Finish(Defs, State, Mods, run);
+            if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
             return result;
         }
@@ -686,6 +691,7 @@ namespace VuonTra.Game
         public FirefliesResult FinishFireflies(FirefliesRun run)
         {
             FirefliesResult result = Fireflies.Finish(Defs, State, Mods, run);
+            if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
             return result;
         }
@@ -715,6 +721,7 @@ namespace VuonTra.Game
         {
             Rabbit rabbit = Rabbits.Summon(State, _rng.NextDouble(), PickName(), _rng.NextDouble());
             if (rabbit != null) Analytics.LogRabbitCalled(AnalyticsEvents.ViaClover, rabbit);
+            if (ReviewAsk.IsHappy(rabbit)) NoteReview(ReviewMoment.GoldenRabbit);
             if (rabbit != null) Changed();
             return rabbit;
         }
@@ -810,7 +817,9 @@ namespace VuonTra.Game
 
         public bool BuyPlot()
         {
+            int segments = Expansion.Segments(State);
             bool ok = Plots.TryBuy(Defs, State);
+            if (ok && Expansion.Segments(State) > segments) NoteReview(ReviewMoment.LandOpened);
             if (ok) Changed();
             return ok;
         }
@@ -974,6 +983,7 @@ namespace VuonTra.Game
         {
             if (_sessionStart >= 0) return;
             _sessionStart = SessionClock();
+            _review.NewSession();
             Analytics.LogSessionStart(State);
         }
 
@@ -984,11 +994,15 @@ namespace VuonTra.Game
             _sessionStart = -1;
         }
 
-        public void RecordException(Exception e) => Analytics.RecordException(e);
+        public void RecordException(Exception e)
+        {
+            if (e != null) _review.Crashed = true;
+            Analytics.RecordException(e);
+        }
 
         public void OnLogMessage(string condition, string stackTrace, LogType type)
         {
-            if (type == LogType.Exception) Analytics.RecordException(new LoggedException(condition, stackTrace));
+            if (type == LogType.Exception) RecordException(new LoggedException(condition, stackTrace));
         }
 
         public sealed class LoggedException : Exception
@@ -997,6 +1011,49 @@ namespace VuonTra.Game
             public LoggedException(string message, string stackTrace) : base(message) { _stack = stackTrace; }
             public override string StackTrace => _stack;
         }
+
+        IReviewPrompt _reviewPrompt;
+        public IReviewPrompt ReviewPrompt
+        {
+            get { if (_reviewPrompt == null) _reviewPrompt = ReviewPromptFor(NativeReviewPrompt.Create()); return _reviewPrompt; }
+            set => _reviewPrompt = value ?? ReviewPromptFor(null);
+        }
+
+        public static IReviewPrompt ReviewPromptFor(IReviewPrompt native) => native ?? new FakeReviewPrompt { Said = Debug.Log };
+
+        readonly ReviewWatch _review = new ReviewWatch();
+        public ReviewWatch Review => _review;
+
+        void NoteReview(ReviewMoment moment) => _review.Note(State, TodayNumber, moment);
+
+        public ReviewMoment TakeReviewMoment(bool busy)
+        {
+            if (_review.Waiting == ReviewMoment.None) return ReviewMoment.None;
+            ReviewMoment moment = _review.Take(State, TodayNumber, busy);
+            if (moment == ReviewMoment.None) return moment;
+            Analytics.LogReviewAsked(moment, State.Review.Asks);
+            Save();
+            return moment;
+        }
+
+        public void LikeReview()
+        {
+            ReviewAsk.Like(State);
+            Analytics.LogReviewLiked(_review.LastAsked);
+            Save();
+            ReviewPrompt.RequestReview();
+        }
+
+        public string AnswerReviewFeedback(string typed)
+        {
+            string line = ReviewAsk.OneLine(typed);
+            Analytics.LogReviewFeedback(_review.LastAsked, line.Length > 0, line.Length);
+            if (line.Length == 0) return null;
+            string code = State.Profile.Code;
+            return ReviewAsk.MailTo(AppInfo.SupportEmail, L10n.T("review.mail.subject", code), L10n.T("review.mail.body", line, code));
+        }
+
+        public void OpenStorePage() => ReviewPrompt.OpenStorePage();
 
         public bool RainingAt(double hour) => Weather.IsRaining(TodayNumber, hour);
 
@@ -1062,6 +1119,7 @@ namespace VuonTra.Game
         public FeedResult Feed(long rabbitId, int fish)
         {
             FeedResult result = Fishing.Feed(State, Rabbits.Find(State, rabbitId), fish);
+            if (result.Bond.TenHearts) NoteReview(ReviewMoment.TenHearts);
             if (result.Fed) Changed();
             return result;
         }
