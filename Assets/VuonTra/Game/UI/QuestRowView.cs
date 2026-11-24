@@ -9,10 +9,11 @@ namespace VuonTra.Game.UI
     public sealed class QuestRowView
     {
         readonly int _index;
-        GameObject _root, _track, _done;
-        Text _count, _carrots, _clovers, _golden, _jars, _claimLabel;
+        GameObject _root, _track, _done, _edge;
+        Text _title, _count, _carrots, _clovers, _golden, _jars, _claimLabel;
+        string _id;
         Image _face;
-        RectTransform _fill;
+        RectTransform _fill, _faceRect;
         float _shown;
 
         public RectTransform Root { get; private set; }
@@ -24,6 +25,9 @@ namespace VuonTra.Game.UI
         public bool Visible => _root.activeSelf;
         public bool CanClaim { get; private set; }
         public bool Daily { get; private set; }
+        public bool Chained { get; private set; }
+
+        const float EdgeWidth = 6f;
 
         public QuestRowView(int index)
         {
@@ -33,17 +37,24 @@ namespace VuonTra.Game.UI
         public void Build(Transform parent, GameCatalog catalog, QuestData data, Action<int> onClaim)
         {
             Daily = data.Daily;
+            Chained = data.Tiers != null && data.Tiers.Length > 0;
+            _id = data.Id;
             Root = UiKit.Rect("Quest " + data.Id, parent);
             _root = Root.gameObject;
             Root.AddImage(catalog.Panel, Palette.CardLip, true);
             var layout = _root.AddComponent<LayoutElement>();
             layout.preferredHeight = 176;
             layout.minHeight = 176;
-            _face = UiKit.Rect("Card", Root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Card, true);
+            var edge = UiKit.Rect("GoldEdge", Root).Stretch(0, 0, 1, 1);
+            edge.AddImage(catalog.Panel, Palette.Lantern, true);
+            _edge = edge.gameObject;
+            _edge.SetActive(false);
+            _faceRect = UiKit.Rect("Card", Root).Stretch(0, 0, 1, 1, 0, 8, 0, 0);
+            _face = _faceRect.AddImage(catalog.Panel, Palette.Card, true);
 
-            Text title = UiKit.Rect("Title", Root).Stretch(0, 0.58f, 1, 1, 36, 0, 290, 14)
+            _title = UiKit.Rect("Title", Root).Stretch(0, 0.58f, 1, 1, 36, 0, 290, 14)
                 .AddText(L10n.T("quest." + data.Id), UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
-            title.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _title.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             var track = UiKit.Rect("Track", Root).Band(36, 300, 76, 16);
             track.AddImage(catalog.Panel, Palette.Track, true);
@@ -65,8 +76,8 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("quest.claim"), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var done = UiKit.Rect("Done", Root).Place(1f, 1f, -146, -48, 236, 56);
-            done.AddImage(catalog.Panel, Palette.Track, true);
-            UiKit.Rect("Text", done).Stretch(0, 0, 1, 1).AddText(L10n.T("quest.claimed"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
+            done.AddImage(catalog.Panel, Chained ? Palette.Lantern : Palette.Track, true);
+            UiKit.Rect("Text", done).Stretch(0, 0, 1, 1).AddText(L10n.T(Chained ? "quest.tier.done" : "quest.claimed"), UiKit.TextBody, Chained ? Palette.Ink : Palette.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold);
             _done = done.gameObject;
             _done.SetActive(false);
         }
@@ -85,7 +96,7 @@ namespace VuonTra.Game.UI
         {
             QuestDef q = quests[_index];
             bool claimed = Quests.IsClaimed(q, s);
-            bool show = (q.Daily || !claimed) && Quests.IsAvailable(q, s.MaxDaySeen);
+            bool show = (q.Daily || q.Chained || !claimed) && Quests.IsAvailable(q, s.MaxDaySeen);
             if (_root.activeSelf != show) _root.SetActive(show);
             CanClaim = false;
             if (!show) return;
@@ -99,15 +110,27 @@ namespace VuonTra.Game.UI
 
             _shown = dt < 0f ? fraction : Mathf.Lerp(_shown, fraction, Mathf.Clamp01(dt * 8f));
             _fill.anchorMax = new Vector2(Mathf.Clamp01(_shown), 1f);
-            _count.text = claimed ? L10n.T("quest.done") : new BigNum(progress).Short() + " / " + new BigNum(target).Short();
+            if (q.Chained)
+            {
+                int tiers = Quests.TiersOf(q), reached = Math.Min(tiers, Quests.TiersClaimed(q, s) + (claimed ? 0 : 1));
+                _title.text = L10n.T("quest.tier", L10n.T("quest." + _id), reached, tiers);
+                _count.text = L10n.T("quest." + _id + ".count", new BigNum(progress).Short(), new BigNum(target).Short(), target);
+            }
+            else _count.text = claimed ? L10n.T("quest.done") : new BigNum(progress).Short() + " / " + new BigNum(target).Short();
 
+            bool finished = q.Chained && claimed;
+            if (_edge.activeSelf != finished)
+            {
+                _edge.SetActive(finished);
+                _faceRect.Stretch(0, 0, 1, 1, finished ? EdgeWidth : 0, 8, finished ? EdgeWidth : 0, finished ? EdgeWidth : 0);
+            }
             _carrots.text = "+" + Quests.RewardOf(q, defs, s, m).Short();
-            int clovers = Quests.CloversNow(q, s), jars = Quests.JarsNow(q, s);
+            if (CarrotChip.gameObject.activeSelf == finished) CarrotChip.gameObject.SetActive(!finished);
+            int clovers = finished ? 0 : Quests.CloversNow(q, s), jars = finished ? 0 : Quests.JarsNow(q, s), golden = finished ? 0 : Quests.GoldenNow(q, s);
             _clovers.text = "+" + clovers;
             if (CloverChip.gameObject.activeSelf != (clovers > 0)) CloverChip.gameObject.SetActive(clovers > 0);
             _jars.text = "+" + jars;
             if (JarChip.gameObject.activeSelf != (jars > 0)) JarChip.gameObject.SetActive(jars > 0);
-            int golden = Quests.GoldenNow(q, s);
             _golden.text = "+" + golden;
             if (clovers == 0 && jars == 0) GoldenChip.anchoredPosition = new Vector2(272 + 68, 44); else GoldenChip.anchoredPosition = new Vector2(420 + 68, 44);
             if (GoldenChip.gameObject.activeSelf != (golden > 0)) GoldenChip.gameObject.SetActive(golden > 0);
@@ -118,7 +141,7 @@ namespace VuonTra.Game.UI
             if (_track.activeSelf == CanClaim) _track.SetActive(!CanClaim);
             if (_count.gameObject.activeSelf == CanClaim) _count.gameObject.SetActive(!CanClaim);
             if (_done.activeSelf != claimed) _done.SetActive(claimed);
-            _face.color = CanClaim ? Palette.Mix(Palette.Lantern, Palette.Paper, 0.55f) : (claimed ? Palette.Mix(Palette.Card, Palette.CardLip, 0.45f) : Palette.Card);
+            _face.color = CanClaim ? Palette.Mix(Palette.Lantern, Palette.Paper, 0.55f) : finished ? Palette.Mix(Palette.Lantern, Palette.Paper, 0.82f) : (claimed ? Palette.Mix(Palette.Card, Palette.CardLip, 0.45f) : Palette.Card);
         }
     }
 }

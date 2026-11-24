@@ -24,3 +24,5 @@ MonoBehaviour:
   RewardGolden: 5
   RewardJars: 0
   Season: 2
+  Tiers: []
+  Merged: []

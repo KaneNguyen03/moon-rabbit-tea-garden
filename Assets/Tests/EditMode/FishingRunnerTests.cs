@@ -80,25 +80,34 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Two_Achievements_Are_Seeded_With_Their_Rewards()
+        public void The_Fish_And_The_Full_Hearts_Are_Seeded_As_Tiered_Achievements()
         {
             QuestDef fish = null, hearts = null;
             foreach (QuestDef q in runner.QuestDefs)
             {
-                if (q.Id == "ca-50") fish = q;
-                if (q.Id == "tim-10") hearts = q;
+                if (q.Id == "ca") fish = q;
+                if (q.Id == "tim") hearts = q;
+                Assert.AreNotEqual("ca-50", q.Id, "the fifty fish are a tier of the fishing chain now (#111)");
+                Assert.AreNotEqual("tim-10", q.Id, "the ten hearts are a tier of the full-hearts chain now (#111)");
             }
-            Assert.IsNotNull(fish, "Câu 50 con cá");
+            Assert.IsNotNull(fish, "Câu cá");
             Assert.AreEqual(QuestMetric.FishCaught, fish.Metric);
-            Assert.AreEqual(50d, fish.Target);
-            Assert.AreEqual(2, fish.RewardClovers);
+            Assert.AreEqual(8, Quests.TiersOf(fish));
+            Assert.AreEqual(5d, fish.Tiers[0].Target);
+            Assert.AreEqual(2000d, fish.Tiers[7].Target);
+            CollectionAssert.Contains(fish.Merged, "ca-50");
+            Assert.IsTrue(fish.Tiers[2].Merged, "the tier of fifty fish is the old achievement");
+            Assert.AreEqual(50d, fish.Tiers[2].Target);
+            Assert.AreEqual(2, fish.Tiers[2].RewardClovers, "and pays what it always paid");
             Assert.IsFalse(fish.Daily);
-            Assert.IsNotNull(hearts, "Một bé thỏ đạt 10 tim");
-            Assert.AreEqual(QuestMetric.MostHearts, hearts.Metric);
-            Assert.AreEqual(10d, hearts.Target);
-            Assert.AreEqual(3, hearts.RewardGolden);
-            Assert.AreEqual("Câu 50 con cá", L10n.T("quest.ca-50"));
-            Assert.AreEqual("Một bé thỏ đạt 10 tim", L10n.T("quest.tim-10"));
+            Assert.IsNotNull(hearts, "Tim đầy");
+            Assert.AreEqual(QuestMetric.RabbitsFullHearts, hearts.Metric);
+            Assert.AreEqual(1d, hearts.Tiers[0].Target);
+            Assert.AreEqual(30d, hearts.Tiers[7].Target);
+            CollectionAssert.Contains(hearts.Merged, "tim-10");
+            Assert.AreEqual("Câu cá", L10n.T("quest.ca"));
+            Assert.AreEqual("Tim đầy", L10n.T("quest.tim"));
+            Assert.AreEqual("42/100 con", L10n.T("quest.ca.count", "42", "100", 100d));
         }
     }
 }

@@ -24,12 +24,17 @@ namespace VuonTra.Game
         public int RewardJars;
         [Tooltip("A quest of a season shows only while that season runs; None is every day.")]
         public Season Season;
+        [Tooltip("A chain of tiers (#111): each tier its own target and reward, opened in order. Empty for a one-time quest.")]
+        public QuestTier[] Tiers = new QuestTier[0];
+        [Tooltip("Ids of the one-time achievements this chain replaced; each one an old save claimed counts as one tier claimed.")]
+        public string[] Merged = new string[0];
 
         public QuestDef ToDef() => new QuestDef
         {
             Id = Id, Title = Title, Metric = Metric, StationId = Station != null ? Station.Id : null,
             Target = Target, Daily = Daily, RewardSeconds = RewardSeconds,
-            RewardCarrots = RewardCarrots, RewardClovers = RewardClovers, RewardGolden = RewardGolden, Season = Season, RewardJars = RewardJars
+            RewardCarrots = RewardCarrots, RewardClovers = RewardClovers, RewardGolden = RewardGolden, Season = Season, RewardJars = RewardJars,
+            Tiers = Tiers != null && Tiers.Length > 0 ? Tiers : null, Merged = Merged
         };
     }
 }

@@ -97,8 +97,8 @@ namespace VuonTra.Core.Tests
         {
             if (s.MoonJars > jarsHeld)
             {
-                freeJars.TryGetValue(today, out int n);
-                freeJars[today] = n + s.MoonJars - jarsHeld;
+                freeJars.TryGetValue(s.MoonJarFreeDay, out int n);
+                freeJars[s.MoonJarFreeDay] = n + s.MoonJars - jarsHeld;
             }
             while (openJars && MoonJars.Shown(s) && s.MoonJars > 0)
             {
