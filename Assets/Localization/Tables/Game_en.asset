@@ -3532,6 +3532,118 @@ MonoBehaviour:
     m_Localized: Bought
     m_Metadata:
       m_Items: []
+  - m_Id: 826590958182400
+    m_Localized: Today {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959616
+    m_Localized: Claim every daily quest to open a box of {0} gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959617
+    m_Localized: "Your gift box is ready \xB7 tap to open"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959618
+    m_Localized: "Today's box is open \xB7 a new one tomorrow"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959619
+    m_Localized: '{0} more daily quests to open the box'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959620
+    m_Localized: Today's gift box
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959621
+    m_Localized: +{0} week points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959622
+    m_Localized: "This week \xB7 {0}/{1} points"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959623
+    m_Localized: "Each daily quest +{1}, gift box +{2} \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959624
+    m_Localized: '{0}-point chest'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959625
+    m_Localized: This week's chest gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959626
+    m_Localized: "{1} \xB7 {0} more points"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959627
+    m_Localized: Opened this week already
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959628
+    m_Localized: Lovely!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959629
+    m_Localized: '{0} min of income'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959630
+    m_Localized: Clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959631
+    m_Localized: Moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959632
+    m_Localized: Golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959633
+    m_Localized: Last week's unopened {0}-point chest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959634
+    m_Localized: +{0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959635
+    m_Localized: +1 {0} rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931136
+    m_Localized: '{0} more daily quest to open the box'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931137
+    m_Localized: "Each daily quest +{1}, gift box +{2} \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931138
+    m_Localized: "{1} \xB7 {0} more point"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931139
+    m_Localized: Clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931140
+    m_Localized: Moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931141
+    m_Localized: Golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931142
+    m_Localized: +{0} moon jar
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
