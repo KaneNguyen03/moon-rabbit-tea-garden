@@ -133,6 +133,7 @@ namespace VuonTra.Core
             int i = Math.Max(0, Math.Min(Kinds - 1, cast.Fish));
             s.Fish[i]++;
             s.FishCaught++;
+            s.BestFish = Math.Max(s.BestFish, i + 1);
             return true;
         }
 

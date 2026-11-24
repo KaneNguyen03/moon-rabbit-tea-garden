@@ -137,6 +137,7 @@ namespace VuonTra.Core
             if (result.FirstToday)
             {
                 r.PetDay = day;
+                s.Pets++;
                 BondStep step = AddBond(s, r, PetPoints);
                 result.LineUnlocked = step.LineUnlocked;
                 result.GiftGiven = step.GiftGiven;
@@ -261,6 +262,7 @@ namespace VuonTra.Core
         {
             if (s.Clovers < SummonCost) return null;
             s.Clovers -= SummonCost;
+            s.CloverCalls++;
             return Arrive(s, RollTier(roll), name, kindRoll);
         }
 
@@ -336,6 +338,7 @@ namespace VuonTra.Core
             var merged = new Rabbit { Id = ++s.NextRabbitId, Tier = tier + 1, Kind = RabbitKinds.Pick(tier + 1, kindRoll), Name = used[0].Name, Station = station, Level = level, Affection = affection, PetDay = petDay };
             merged.FirstOfKind = See(s, merged.Kind);
             s.Rabbits.Add(merged);
+            s.Merges++;
             if (merged.FirstOfKind) Garden.AddXp(s, Garden.XpNewKind);
             foreach (Rabbit r in used)
                 for (int i = 0; i < s.Items.Count; i++)

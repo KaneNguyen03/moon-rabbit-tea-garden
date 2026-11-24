@@ -145,6 +145,38 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void An_Intro_Card_Waits_While_The_Offer_Card_Or_The_First_Week_Panel_Is_Open()
+        {
+            Forget();
+            screen.OpenOffer(Offers.Find(Offers.Starter));
+            Assert.IsTrue(screen.OfferCard.IsOpen);
+            Step(2f);
+            Assert.IsFalse(screen.IntroCard.IsOpen, "one card at a time: the pack card is up");
+            Assert.AreEqual(0, S.IntrosSeen.Count, "the intro card waits its turn");
+            screen.OfferCard.Close();
+            screen.FirstWeek.Open();
+            Step(1f);
+            Assert.IsFalse(screen.IntroCard.IsOpen, "nor over the first-week panel");
+            screen.FirstWeek.Close();
+            Step(0.4f);
+            Assert.IsTrue(screen.IntroCard.IsOpen, "both gone: the card comes");
+            Assert.IsFalse(screen.OfferCardFree, "and while it is up no pack card may open");
+            Assert.IsTrue(screen.ReviewBusy, "nor the review card");
+        }
+
+        [Test]
+        public void Opening_The_First_Week_Panel_Over_An_Intro_Card_Puts_It_Away_With_A_Dot()
+        {
+            Forget();
+            Step(0.4f);
+            Assert.IsTrue(screen.IntroCard.IsOpen);
+            screen.FirstWeek.Open();
+            Step(0.4f);
+            Assert.IsFalse(screen.IntroCard.IsOpen, "only one card is ever open");
+            Assert.IsTrue(Intros.HasDot(S, Intros.Fishing));
+        }
+
+        [Test]
         public void Two_Features_Opened_At_Once_Show_One_Card_Then_The_Second_Ninety_Seconds_Later()
         {
             Forget();

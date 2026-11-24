@@ -27,6 +27,7 @@ namespace VuonTra.Core
             if (s.MoonJars <= 0) return BigNum.Zero;
             BigNum paid = Value(defs, s, m);
             s.MoonJars--;
+            s.JarsOpened++;
             s.Coins += paid;
             return paid;
         }

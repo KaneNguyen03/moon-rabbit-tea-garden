@@ -3448,147 +3448,626 @@ MonoBehaviour:
     m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
     m_Metadata:
       m_Items: []
-  - m_Id: 794031524143104
+  - m_Id: 799467463761920
+    m_Localized: Only once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733440
+    m_Localized: Starter pack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733441
+    m_Localized: A welcome bundle for new gardeners, sold once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733442
+    m_Localized: Garden level {0} pack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733443
+    m_Localized: For reaching garden level {0}, sold once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733444
+    m_Localized: '{0} left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733445
+    m_Localized: "{0} \xB7 {1} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733446
+    m_Localized: This pack has ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733447
+    m_Localized: Ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733448
+    m_Localized: '{0} golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733449
+    m_Localized: '{0} moon jars'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733450
+    m_Localized: '{0} clovers'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733451
+    m_Localized: 'Hat: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733452
+    m_Localized: 1 new {0} rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733453
+    m_Localized: "Buy \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733454
+    m_Localized: Maybe later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733455
+    m_Localized: Pack received. Thank you for supporting the tea garden!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733456
+    m_Localized: The store is waiting to confirm; the pack arrives by itself once it does
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733457
+    m_Localized: +{0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467497316352
+    m_Localized: +{0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 806681230434304
+    m_Localized: Bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590958182400
+    m_Localized: Today {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959616
+    m_Localized: Claim every daily quest to open a box of {0} gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959617
+    m_Localized: "Your gift box is ready \xB7 tap to open"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959618
+    m_Localized: "Today's box is open \xB7 a new one tomorrow"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959619
+    m_Localized: '{0} more daily quests to open the box'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959620
+    m_Localized: Today's gift box
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959621
+    m_Localized: +{0} week points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959622
+    m_Localized: "This week \xB7 {0}/{1} points"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959623
+    m_Localized: "Each daily quest +{1}, gift box +{2} \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959624
+    m_Localized: '{0}-point chest'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959625
+    m_Localized: This week's chest gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959626
+    m_Localized: "{1} \xB7 {0} more points"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959627
+    m_Localized: Opened this week already
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959628
+    m_Localized: Lovely!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959629
+    m_Localized: '{0} min of income'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959630
+    m_Localized: Clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959631
+    m_Localized: Moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959632
+    m_Localized: Golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959633
+    m_Localized: Last week's unopened {0}-point chest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959634
+    m_Localized: +{0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959635
+    m_Localized: +1 {0} rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931136
+    m_Localized: '{0} more daily quest to open the box'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931137
+    m_Localized: "Each daily quest +{1}, gift box +{2} \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931138
+    m_Localized: "{1} \xB7 {0} more point"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931139
+    m_Localized: Clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931140
+    m_Localized: Moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931141
+    m_Localized: Golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931142
+    m_Localized: +{0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451609268224
+    m_Localized: Enjoying the tea garden?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045440
+    m_Localized: Love it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045441
+    m_Localized: Not really
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045442
+    m_Localized: What could the garden do better?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045443
+    m_Localized: One line is enough
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045444
+    m_Localized: Goes to support by email, with your code {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045445
+    m_Localized: Send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045446
+    m_Localized: Not now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045447
+    m_Localized: Thank you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045448
+    m_Localized: "\u2605 Rate the game"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045449
+    m_Localized: Tea garden feedback {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045450
+    m_Localized: '{0}
+
+
+      Player code: {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794350788608
+    m_Localized: "First week \xB7 day {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371520
+    m_Localized: Your first week
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371521
+    m_Localized: "Four small tasks open each day \xB7 unclaimed gifts wait until day {0} ends"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371522
+    m_Localized: Day {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371523
+    m_Localized: '{0}/{1} tasks claimed'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371524
+    m_Localized: Opens in {0} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371525
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371526
+    m_Localized: '{0} moon jars'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371527
+    m_Localized: 1 Purple rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371528
+    m_Localized: 'All four done: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371529
+    m_Localized: Day 7 gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371530
+    m_Localized: '{0}: a Purple rabbit you have not met yet, with {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371531
+    m_Localized: "Instead of \u201C{0}\u201D: that opens at garden level {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371532
+    m_Localized: Raise the teapot to level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371533
+    m_Localized: Open {0} stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371534
+    m_Localized: Call {0} rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371535
+    m_Localized: Deliver {0} guest orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371536
+    m_Localized: Catch {0} fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371537
+    m_Localized: Pound the mooncake {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371538
+    m_Localized: Feed a rabbit fish {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371539
+    m_Localized: Take {0} garden photos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371540
+    m_Localized: Learn {0} charm levels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371541
+    m_Localized: Reach garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371542
+    m_Localized: Put {0} rabbits in their own trade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371543
+    m_Localized: Open {0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371544
+    m_Localized: Deliver {0} guest orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371545
+    m_Localized: Pet {0} rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371546
+    m_Localized: Play Catch the Tea Leaves {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371547
+    m_Localized: Have {0} stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371548
+    m_Localized: Move {0} stations with Arrange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371549
+    m_Localized: Meet {0} rabbit kinds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371550
+    m_Localized: Boost {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371551
+    m_Localized: Claim the shop's daily gift {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371552
+    m_Localized: Reach garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371553
+    m_Localized: Play Firefly Night {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371554
+    m_Localized: Merge rabbits or make a golden call {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371555
+    m_Localized: Have {0} rabbits on the rest spots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371556
+    m_Localized: Open land segment {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371557
+    m_Localized: Catch a tier {0} fish or better
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371558
+    m_Localized: Have {0} stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371559
+    m_Localized: Claim {0} daily quests today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371560
+    m_Localized: Raise stations {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371561
+    m_Localized: First-week gifts you did not claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371562
+    m_Localized: +{0} Purple rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760128
+    m_Localized: Opens in {0} day
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760129
+    m_Localized: '{0} moon jar'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760130
+    m_Localized: Deliver {0} guest order
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760131
+    m_Localized: Pound the mooncake {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760132
+    m_Localized: Feed a rabbit fish {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760133
+    m_Localized: Take {0} garden photo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760134
+    m_Localized: Put {0} rabbit in its own trade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760135
+    m_Localized: Open {0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760136
+    m_Localized: Play Catch the Tea Leaves {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760137
+    m_Localized: Move {0} station with Arrange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760138
+    m_Localized: Claim the shop's daily gift {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760139
+    m_Localized: Play Firefly Night {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760140
+    m_Localized: Merge rabbits or make a golden call {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760141
+    m_Localized: +{0} Purple rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 862292018192384
     m_Localized: New
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697536
+  - m_Id: 862292043358208
     m_Localized: Try it
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697537
+  - m_Id: 862292043358209
     m_Localized: Later
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697538
+  - m_Id: 862292043358210
     m_Localized: 'First try: a minute of income (+{0}) and {1} clovers'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697539
+  - m_Id: 862292043358211
     m_Localized: "First try: +{0} \xB7 +{1} clovers"
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697540
+  - m_Id: 862292043358212
     m_Localized: Unlocked
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697541
+  - m_Id: 862292043358213
     m_Localized: '{0}/{1} cards'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697542
+  - m_Id: 862292043358214
     m_Localized: Unlocked
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697543
+  - m_Id: 862292043358215
     m_Localized: No cards yet. Keep playing to open more!
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697544
+  - m_Id: 862292043358216
     m_Localized: Fishing at the moon pond
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697545
+  - m_Id: 862292043358217
     m_Localized: 'Tap the moon pond, cast, and tap the water when the float sinks.
 
       Feed the fish to your rabbits for hearts.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697546
+  - m_Id: 862292043358218
     m_Localized: Pound the mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697547
+  - m_Id: 862292043358219
     m_Localized: 'Tap the mortar by the teapot, then tap when the ring meets the cake.
 
       A few rounds a day; good timing earns stars.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697548
+  - m_Id: 862292043358220
     m_Localized: Catch the tea leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697549
+  - m_Id: 862292043358221
     m_Localized: 'Tap the basket under the tea tree, drag it under the leaves, dodge the pine cones.
 
       A few rounds a day; more leaves, more reward.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697550
+  - m_Id: 862292043358222
     m_Localized: Firefly night
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697551
+  - m_Id: 862292043358223
     m_Localized: 'Tap the glass jar by the pond, then tap the fireflies crossing the garden.
 
       A few rounds a day; catch more for more.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697552
+  - m_Id: 862292043358224
     m_Localized: Guests and tea orders
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697553
+  - m_Id: 862292043358225
     m_Localized: 'Guests wait at the shop counter; the bubble shows what they want.
 
       With the products on your tray, tap the guest to serve for carrots.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697554
+  - m_Id: 862292043358226
     m_Localized: The shop and the daily gift
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697555
+  - m_Id: 862292043358227
     m_Localized: 'Tap the shop by the pond for a gift each day; come back day after day for bigger ones.
 
       Inside are hats, decorations and today''s visitor.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697556
+  - m_Id: 862292043358228
     m_Localized: Moon jars
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697557
+  - m_Id: 862292043358229
     m_Localized: 'Each moon jar holds an hour of income, open it any time.
 
       Buy jars on the shop''s shelf; open them from the carrot purse.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697558
+  - m_Id: 862292043358230
     m_Localized: Arrange the garden
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697559
+  - m_Id: 862292043358231
     m_Localized: 'Tap Arrange in the bottom corner and hold to pick a station up.
 
       Drop it on an empty tile, on something to swap, or in storage.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697560
+  - m_Id: 862292043358232
     m_Localized: Rain and the Frog Rabbit
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697561
+  - m_Id: 862292043358233
     m_Localized: 'Now and then it rains and the Frog Rabbit visits the moon pond.
 
       Tap it before it leaves for a rainy-day gift.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697562
+  - m_Id: 862292043358234
     m_Localized: A new moon
     m_Metadata:
       m_Items: []
-  - m_Id: 794031557697563
+  - m_Id: 862292043358235
     m_Localized: 'Open it from the settings button: the garden goes back to its first four plots; rabbits and items stay.
 
       After each one, income grows for good.'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031582863360
+  - m_Id: 862292051746816
     m_Localized: 'First try: a minute of income (+{0}) and {1} clover'
     m_Metadata:
       m_Items: []
-  - m_Id: 794031582863361
+  - m_Id: 862292051746817
     m_Localized: "First try: +{0} \xB7 +{1} clover"
     m_Metadata:
       m_Items: []

@@ -336,11 +336,22 @@ namespace VuonTra.Core
                 sb.Append(",\"kind\":").Append(((int)letter.Kind).ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"season\":").Append(((int)letter.Season).ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"day\":").Append(letter.Day.ToString(CultureInfo.InvariantCulture));
+                if (letter.Kind == LetterKind.WeekChest) sb.Append(",\"chest\":").Append(letter.Chest.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"golden\":").Append(letter.Golden.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
+                if (letter.Kind == LetterKind.Newcomer)
+                {
+                    sb.Append(",\"jars\":").Append(letter.Jars.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(",\"purple\":").Append(letter.Purple.ToString(CultureInfo.InvariantCulture));
+                }
                 sb.Append('}');
             }
             sb.Append("]}");
+            sb.Append(",\"week\":{\"index\":").Append(s.WeekIndex.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"points\":").Append(s.WeekPoints.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"chests\":").Append(s.WeekChestsClaimed.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"boxDay\":").Append(s.BoxDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
             sb.Append(",\"frog\":{\"day\":").Append(s.FrogDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"showers\":").Append(s.FrogShowers.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"today\":").Append(s.FrogsToday.ToString(CultureInfo.InvariantCulture));
@@ -358,6 +369,41 @@ namespace VuonTra.Core
             }
             sb.Append("],\"caught\":").Append(s.FishCaught.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"fed\":").Append(s.FishFed.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            sb.Append(",\"tally\":{\"pets\":").Append(s.Pets.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"boosts\":").Append(s.Boosts.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"moves\":").Append(s.LayoutMoves.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"merges\":").Append(s.Merges.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"cloverCalls\":").Append(s.CloverCalls.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"goldenCalls\":").Append(s.GoldenCalls.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"jars\":").Append(s.JarsOpened.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"gifts\":").Append(s.DailyGifts.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"dailyToday\":").Append(s.DailyQuestsToday.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"bestFish\":").Append(s.BestFish.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            sb.Append(",\"newcomer\":{\"claimed\":").Append(s.Newcomer.Claimed.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"days\":").Append(s.Newcomer.DaysPaid.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"closed\":").Append(s.Newcomer.Closed ? "true" : "false");
+            sb.Append('}');
+            sb.Append(",\"offers\":{\"clock\":").Append(s.OfferClock.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"mark\":").Append(Sane(s.OfferPlayMark).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"list\":[");
+            for (int i = 0; i < s.OfferRecords.Count; i++)
+            {
+                OfferRecord offer = s.OfferRecords[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":");
+                WriteString(sb, offer.Id);
+                sb.Append(",\"start\":").Append(offer.Start.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"shown\":").Append(offer.Shown ? "true" : "false");
+                sb.Append(",\"bought\":").Append(offer.Bought ? "true" : "false");
+                sb.Append(",\"closed\":").Append(offer.Closed ? "true" : "false");
+                sb.Append('}');
+            }
+            sb.Append("]}");
+            sb.Append(",\"review\":{\"asks\":").Append(s.Review.Asks.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"last\":").Append(s.Review.LastAskDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"liked\":").Append(s.Review.Liked ? "true" : "false");
             sb.Append('}');
             sb.Append(",\"intros\":{\"seen\":");
             WriteIntroIds(sb, s.IntrosSeen);
@@ -749,16 +795,32 @@ namespace VuonTra.Core
                         if (!(raw is Dictionary<string, object> entry) || s.Letters.Count >= Mailbox.MaxLetters) continue;
                         if (!(entry.TryGetValue("id", out object letterIdObj) && letterIdObj is string letterId && letterId.Length > 0)) continue;
                         if (s.Letters.Exists(l => l.Id == letterId)) continue;
-                        double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season");
-                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season) continue;
+                        double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season"), letterChest = ReadNumber(entry, "chest");
+                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season && letterKind != (int)LetterKind.WeekChest && letterKind != (int)LetterKind.Newcomer) continue;
+                        bool chestLetter = letterKind == (int)LetterKind.WeekChest;
+                        if (chestLetter && (letterChest < 0d || letterChest >= QuestChests.Chests.Length || letterChest != Math.Floor(letterChest))) continue;
+                        bool gift = letterKind == (int)LetterKind.Newcomer;
                         s.Letters.Add(new Letter
                         {
                             Id = letterId,
                             Kind = (LetterKind)(int)letterKind,
                             Season = letterSeason >= 0d && letterSeason <= (double)Season.Christmas && letterSeason == Math.Floor(letterSeason) ? (Season)(int)letterSeason : Season.None,
                             Day = ToLong(ReadNumber(entry, "day")),
+                            Chest = chestLetter ? (int)letterChest : 0,
+                            GiftGolden = gift ? Small(ReadNumber(entry, "golden"), 1000) : 0,
+                            GiftClovers = gift ? Small(ReadNumber(entry, "clovers"), 1000) : 0,
+                            GiftJars = gift ? Small(ReadNumber(entry, "jars"), MoonJars.Cap) : 0,
+                            GiftPurple = gift ? Small(ReadNumber(entry, "purple"), Newcomer.Days) : 0,
                         });
                     }
+            }
+
+            if (root.TryGetValue("week", out object weekObj) && weekObj is Dictionary<string, object> week)
+            {
+                s.WeekIndex = TryNumber(week, "index", out double weekIndex) ? Math.Max(-1L, ToLong(weekIndex)) : -1;
+                s.WeekPoints = (int)Math.Max(0d, Math.Min(ReadNumber(week, "points"), QuestChests.MaxPoints));
+                s.WeekChestsClaimed = (int)Math.Max(0d, Math.Min(ReadNumber(week, "chests"), int.MaxValue)) & ((1 << QuestChests.Chests.Length) - 1);
+                s.BoxDay = TryNumber(week, "boxDay", out double boxDay) ? Math.Max(-1L, ToLong(boxDay)) : -1;
             }
 
             if (root.TryGetValue("ads", out object adsObj) && adsObj is Dictionary<string, object> ads)
@@ -821,6 +883,56 @@ namespace VuonTra.Core
                 s.FishCaught = Math.Max(0L, ToLong(ReadNumber(fishing, "caught")));
                 s.FishFed = Math.Max(0L, ToLong(ReadNumber(fishing, "fed")));
             }
+            if (root.TryGetValue("offers", out object offersObj) && offersObj is Dictionary<string, object> offers)
+            {
+                s.OfferClock = TryNumber(offers, "clock", out double offerClock) && offerClock >= 0d ? ToLong(offerClock) : -1;
+                s.OfferPlayMark = Math.Max(0d, Math.Min(Sane(ReadNumber(offers, "mark")), s.PlaySeconds));
+                if (offers.TryGetValue("list", out object listObj) && listObj is List<object> list)
+                    foreach (object raw in list)
+                    {
+                        if (!(raw is Dictionary<string, object> o) || !(o.TryGetValue("id", out object idObj) && idObj is string id)) continue;
+                        if (Offers.Find(id) == null || Offers.RecordOf(s, id) != null) continue;
+                        s.OfferRecords.Add(new OfferRecord
+                        {
+                            Id = id,
+                            Start = Math.Max(0L, ToLong(ReadNumber(o, "start"))),
+                            Shown = o.TryGetValue("shown", out object shown) && shown is bool sh && sh,
+                            Bought = o.TryGetValue("bought", out object bought) && bought is bool bo && bo,
+                            Closed = o.TryGetValue("closed", out object closed) && closed is bool cl && cl,
+                        });
+                    }
+            }
+
+            if (root.TryGetValue("review", out object reviewObj) && reviewObj is Dictionary<string, object> review)
+            {
+                s.Review.Asks = (int)Math.Max(0d, Math.Min(ReadNumber(review, "asks"), ReviewAsk.MaxAsks));
+                s.Review.LastAskDay = TryNumber(review, "last", out double lastAsk) ? Math.Max(-1L, ToLong(lastAsk)) : -1;
+                s.Review.Liked = review.TryGetValue("liked", out object liked) && liked is bool likedFlag && likedFlag;
+            }
+
+            if (root.TryGetValue("tally", out object tallyObj) && tallyObj is Dictionary<string, object> tally)
+            {
+                s.Pets = Math.Max(0L, ToLong(ReadNumber(tally, "pets")));
+                s.Boosts = Math.Max(0L, ToLong(ReadNumber(tally, "boosts")));
+                s.LayoutMoves = Math.Max(0L, ToLong(ReadNumber(tally, "moves")));
+                s.Merges = Math.Max(0L, ToLong(ReadNumber(tally, "merges")));
+                s.CloverCalls = Math.Max(0L, ToLong(ReadNumber(tally, "cloverCalls")));
+                s.GoldenCalls = Math.Max(0L, ToLong(ReadNumber(tally, "goldenCalls")));
+                s.JarsOpened = Math.Max(0L, ToLong(ReadNumber(tally, "jars")));
+                s.DailyGifts = Math.Max(0L, ToLong(ReadNumber(tally, "gifts")));
+                s.DailyQuestsToday = Small(ReadNumber(tally, "dailyToday"), 1000);
+                s.BestFish = Small(ReadNumber(tally, "bestFish"), Fishing.Kinds);
+            }
+            for (int i = s.Fish.Length - 1; i >= 0 && s.BestFish <= i; i--) if (s.Fish[i] > 0) s.BestFish = i + 1;
+
+            if (root.TryGetValue("newcomer", out object newcomerObj) && newcomerObj is Dictionary<string, object> newcomer)
+            {
+                int all = (1 << Newcomer.Tasks) - 1;
+                s.Newcomer.Claimed = Small(ReadNumber(newcomer, "claimed"), all) & all;
+                s.Newcomer.DaysPaid = Small(ReadNumber(newcomer, "days"), (1 << Newcomer.Days) - 1);
+                s.Newcomer.Closed = newcomer.TryGetValue("closed", out object closedObj) && closedObj is bool closed && closed;
+            }
+            else s.Newcomer.Closed = Seasons.DaysPlayed(s) >= Newcomer.Days;
 
             if (root.TryGetValue("intros", out object introsObj) && introsObj is Dictionary<string, object> intros)
             {
@@ -837,6 +949,8 @@ namespace VuonTra.Core
             result.Status = LoadStatus.Ok;
             return result;
         }
+
+        static int Small(double v, int max) => (int)Math.Max(0d, Math.Min(v, max));
 
         static int IndexOf(IReadOnlyList<StationDef> defs, string id)
         {
