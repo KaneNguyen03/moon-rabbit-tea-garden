@@ -664,6 +664,7 @@ namespace VuonTra.EditorTools
             RenderQuestChests(runner, screen);
             RenderMonthPass(runner, screen);
             RenderWelcomeBack(runner, screen);
+            RenderFair(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -1552,6 +1553,73 @@ namespace VuonTra.EditorTools
                 Step(screen, 0.5f);
                 Capture(screen, "108-diem-danh-da-nhan" + tail);
                 screen.WelcomeCard.Close();
+            }
+            runner.OfferCardsOn = cardsBefore;
+            runner.DayClock = clockBefore;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
+        }
+
+        static long FairSaturday()
+        {
+            FairRun run = Fairs.RunOn(GiftCodes.Day(2027, 5, Fairs.StartDay)).Value;
+            for (long d = run.Start; d <= run.End; d++)
+                if (Seasons.DateOf(d).DayOfWeek == System.DayOfWeek.Saturday) return d;
+            return run.Start;
+        }
+
+        static void RenderFair(GameRunner runner, GardenScreen screen)
+        {
+            long today = FairSaturday();
+            System.Func<long> clockBefore = runner.DayClock;
+            bool cardsBefore = runner.OfferCardsOn;
+            runner.OfferCardsOn = false;
+            runner.DayClock = () => today;
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                string tail = locale == "vi" ? "" : "-en";
+                GameState s = WelcomeBackGarden(runner, today, 1);
+                s.WelcomeBack.SeenDay = today;
+                s.MailDay = today;
+                s.GoldenCarrots = 12;
+                s.MoonJars = 2;
+                runner.Init(s);
+                Fairs.Roll(runner.Defs, s, Modifiers.None, today);
+                s.Fair.Coins = 265;
+                s.Fair.Bought[0] = 2;
+                ShowWelcomeBack(runner, screen, locale);
+                screen.FairCard.Open();
+                Step(screen, 0.4f);
+                if (!screen.FairCard.IsOpen) throw new System.Exception("Preview: the fair card did not open");
+                Capture(screen, "112-bang-ron-quay-hoi" + tail);
+                if (locale == "vi")
+                {
+                    UiKit.SetLargeText(true);
+                    ShowWelcomeBack(runner, screen, locale);
+                    screen.FairCard.Open();
+                    Step(screen, 0.4f);
+                    Capture(screen, "112-bang-ron-quay-hoi-chu-to");
+                    UiKit.SetLargeText(false);
+                }
+                screen.FairCard.Close();
+                screen.Refresh();
+                Step(screen, 0.4f);
+                Capture(screen, "112-o-tien-canh-vi" + tail);
+                screen.OpenShop();
+                Step(screen, 0.6f);
+                Capture(screen, "112-nut-quay-hoi-trong-tiem" + tail);
+                screen.Shop.Close();
+                Step(screen, 0.4f);
+                s.Fair.Coins = 420;
+                screen.FairCard.Open();
+                Step(screen, 0.4f);
+                Press(screen, "Canvas/FairCard/Card/Stall 5");
+                Press(screen, "Canvas/FairCard/Card/Stall 5");
+                Step(screen, 3.5f);
+                Capture(screen, "112-cong-tho-hoi" + tail);
+                screen.Arrival.Close();
+                Step(screen, 0.3f);
             }
             runner.OfferCardsOn = cardsBefore;
             runner.DayClock = clockBefore;

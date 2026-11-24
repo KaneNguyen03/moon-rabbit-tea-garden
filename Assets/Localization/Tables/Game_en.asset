@@ -4271,6 +4271,174 @@ MonoBehaviour:
     m_Localized: You were away {0} day; the garden kept your seat
     m_Metadata:
       m_Items: []
+  - m_Id: 889128878071808
+    m_Localized: Plum Blossom Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460416
+    m_Localized: Kite Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460417
+    m_Localized: Lotus Tea Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460418
+    m_Localized: Firefly Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460419
+    m_Localized: Summer Rain Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460420
+    m_Localized: Paper Lantern Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460421
+    m_Localized: Green Rice Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460422
+    m_Localized: Chrysanthemum Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460423
+    m_Localized: Plum blossoms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460424
+    m_Localized: Kite tails
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460425
+    m_Localized: Lotus flowers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460426
+    m_Localized: Glimmers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460427
+    m_Localized: Raindrops
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460428
+    m_Localized: Candles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460429
+    m_Localized: Rice flakes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460430
+    m_Localized: Petals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460431
+    m_Localized: "Little fair \xB7 day {1}/{2} \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460432
+    m_Localized: "Weekend: {0} drop \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460433
+    m_Localized: "Saturdays and Sundays: {0} drop \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460434
+    m_Localized: '{1}: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460435
+    m_Localized: "Earn {0}: guest orders +{1} \xB7 mini games +{2}/{3}/{4} by stars \xB7 fish +{5}\u2013{6} \xB7 photo asks +{7}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460436
+    m_Localized: 'When the fair ends, leftover {0} turn into carrots: each is {1} seconds of income'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460437
+    m_Localized: Fair stall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460438
+    m_Localized: Moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460439
+    m_Localized: Clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460440
+    m_Localized: 5 golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460441
+    m_Localized: Fair lantern colour
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460442
+    m_Localized: Fair photo frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460443
+    m_Localized: '{0}/{1} left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460444
+    m_Localized: Owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460445
+    m_Localized: Hang again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460446
+    m_Localized: Use again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460447
+    m_Localized: Sold out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460448
+    m_Localized: Got {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460449
+    m_Localized: The lanterns now glow for the {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460450
+    m_Localized: The {0} frame is on
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460451
+    m_Localized: '{0} more {1} needed'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460452
+    m_Localized: +{0} {1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460453
+    m_Localized: The {0} is open!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460454
+    m_Localized: Ten days to gather {0} from guest orders, mini games, fishing and photo asks, and trade them at the fair stall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128886460455
+    m_Localized: 'The {0} is over: leftover {1} became carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 889128890654720
+    m_Localized: "Little fair \xB7 day {1}/{2} \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

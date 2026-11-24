@@ -348,8 +348,8 @@ namespace VuonTra.Game.UI
         /// </summary>
         public static Color Fur(Rabbit r)
         {
-            if (r == null || r.Dye < 0 || r.Dye >= Shop.Dyes.Length) return Color.white;
-            return Palette.Mix(Color.white, Palette.Hex(Shop.Dyes[r.Dye].Hex), 0.6f);
+            string hex = r == null ? null : Fairs.DyeHex(r.Dye);
+            return hex == null ? Color.white : Palette.Mix(Color.white, Palette.Hex(hex), 0.6f);
         }
 
         /// <summary>
