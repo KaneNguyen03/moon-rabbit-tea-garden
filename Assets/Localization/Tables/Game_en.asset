@@ -4119,6 +4119,58 @@ MonoBehaviour:
     m_Localized: The pass gift of the {0} tier passed is yours
     m_Metadata:
       m_Items: []
+  - m_Id: 913254913138688
+    m_Localized: "Moon pass \xB7 30 days"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110208
+    m_Localized: "Moon pass \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110209
+    m_Localized: '{0} now + {1} a day = {2} golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110210
+    m_Localized: "+{0} hours away \xB7 one more free \xD72 a day"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110211
+    m_Localized: '{0} golden carrots added. The pass runs {1} more days, with a letter in the mailbox each day you play.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110212
+    m_Localized: "Moon pass \xB7 +{0} golden carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110213
+    m_Localized: Moon pass day {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110214
+    m_Localized: 'Moon pass: {0} days left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110215
+    m_Localized: Buy again before it ends to add {0} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110216
+    m_Localized: Reminder read
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254946693120
+    m_Localized: "Moon pass \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254946693121
+    m_Localized: "+{0} hour away \xB7 one more free \xD72 a day"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254946693122
+    m_Localized: 'Moon pass: {0} day left'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

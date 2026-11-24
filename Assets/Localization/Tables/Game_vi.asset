@@ -3894,6 +3894,46 @@ MonoBehaviour:
     m_Localized: "+khung \u1EA3nh"
     m_Metadata:
       m_Items: []
+  - m_Id: 913254913138688
+    m_Localized: "V\xE9 tr\u0103ng 30 ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110208
+    m_Localized: "V\xE9 tr\u0103ng \xB7 c\xF2n {0} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110209
+    m_Localized: "{0} ngay + {1} m\u1ED7i ng\xE0y = {2} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110210
+    m_Localized: "+{0} gi\u1EDD v\u1EAFng m\u1EB7t \xB7 th\xEAm 1 l\u01B0\u1EE3t \xD72 mi\u1EC5n ph\xED m\u1ED7i ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110211
+    m_Localized: "\u0110\xE3 c\u1ED9ng {0} c\xE0 r\u1ED1t v\xE0ng. V\xE9 c\xF2n {1} ng\xE0y, m\u1ED7i ng\xE0y m\u1EDF game c\xF3 th\u01B0 trong h\u1ED9p th\u01B0."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110212
+    m_Localized: "V\xE9 tr\u0103ng \xB7 +{0} c\xE0 r\u1ED1t v\xE0ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110213
+    m_Localized: "V\xE9 tr\u0103ng ng\xE0y {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110214
+    m_Localized: "V\xE9 tr\u0103ng c\xF2n {0} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110215
+    m_Localized: "Mua th\xEAm khi c\xF2n h\u1EA1n s\u1EBD c\u1ED9ng d\u1ED3n {0} ng\xE0y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 913254934110216
+    m_Localized: "\u0110\xE3 \u0111\u1ECDc th\u01B0 nh\u1EAFc"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

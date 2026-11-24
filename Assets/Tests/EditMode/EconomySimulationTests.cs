@@ -42,7 +42,7 @@ namespace VuonTra.Core.Tests
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
         bool takeFreeDouble, everyAd;
         bool moonPass;
-        int goldenPass;
+        int goldenMoonPass;
         bool upgradeAll;
         BigNum earnedDoubles, earnedAds;
         int goldenAds, extraRounds;
@@ -102,7 +102,7 @@ namespace VuonTra.Core.Tests
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             takeFreeDouble = everyAd = upgradeAll = false;
             moonPass = false;
-            goldenPass = 0;
+            goldenMoonPass = 0;
             earnedDoubles = earnedAds = BigNum.Zero;
             goldenAds = extraRounds = 0;
             newcomer = false;
@@ -192,7 +192,7 @@ namespace VuonTra.Core.Tests
         {
             MoonPass.Deliver(s, Today);
             foreach (Letter letter in s.Letters.FindAll(l => l.Kind == LetterKind.MoonPassDay))
-                goldenPass += Mailbox.Claim(s, letter.Id, Today).Golden;
+                goldenMoonPass += Mailbox.Claim(s, letter.Id, Today).Golden;
         }
 
         void GoFishing()
@@ -593,8 +593,8 @@ namespace VuonTra.Core.Tests
             return total.IsZero ? 0d : Math.Round((part / total).ToDouble() * 1000d) / 10d;
         }
 
-        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + GoldenFromLevels;
-        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass;
+        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + goldenMoonPass + GoldenFromLevels;
+        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass - goldenMoonPass;
         int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversNewcomer - cloversPass;
 
         void Snapshot(string label)
@@ -672,7 +672,7 @@ namespace VuonTra.Core.Tests
                 moonPass = true;
                 VuonTra.Core.Seasons.Clamp(s, Today);
                 MoonPass.Grant(s, Today);
-                goldenPass = MoonPass.GoldenNow;
+                goldenMoonPass = MoonPass.GoldenNow;
                 mods = Modifiers.From(ups, s);
             }
             upgradeAll = pressUpgradeAll;
@@ -1193,7 +1193,7 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < Seeds.Length; i++)
             {
                 buyers[i] = CasualWeek(true, false, false, Seeds[i], buyMoonPass: true);
-                golden[i] = goldenPass;
+                golden[i] = goldenMoonPass;
                 sameGolden[i] = CasualWeek(true, false, false, Seeds[i], goldenAtStart: DayOneGolden);
             }
             Assert.AreEqual(MoonPass.GoldenNow + 7 * MoonPass.GoldenPerDay, golden[0], "the pass paid 100 at once and 15 on each of the seven days");

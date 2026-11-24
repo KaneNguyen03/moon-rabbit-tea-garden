@@ -6585,11 +6585,6 @@ namespace VuonTra.Game.UI
             _moonPill.AddImage(catalog.Panel, Palette.Mix(Palette.Night, Palette.Paper, 0.25f), true);
             UiKit.Rect("Moon", _moonPill).Place(0f, 0.5f, 24, 0, 24, 24).AddImage(catalog.Round, Palette.Lantern);
             _moonPillText = UiKit.Rect("Text", _moonPill).Stretch(0, 0, 1, 1, 42, 0, 12, 0).AddText("", UiKit.TextSmall, Palette.Paper, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _moonPillText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            _moonPillText.verticalOverflow = VerticalWrapMode.Truncate;
-            _moonPillText.resizeTextForBestFit = true;
-            _moonPillText.resizeTextMinSize = 12;
-            _moonPillText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
             _moonPill.gameObject.SetActive(false);
         }
 
@@ -6599,7 +6594,13 @@ namespace VuonTra.Game.UI
             bool show = days > 0;
             if (_moonPill.gameObject.activeSelf != show) _moonPill.gameObject.SetActive(show);
             if (!show) return;
-            _moonPillText.text = L10n.T("moonpass.active", days);
+            string pill = L10n.T("moonpass.active", days);
+            if (_moonPillText.text != pill)
+            {
+                _moonPillText.fontSize = UiKit.Scaled(UiKit.TextSmall);
+                _moonPillText.text = pill;
+                _moonPillText.FitOneLine(MoonPillWidth - 54f, 12);
+            }
             RectTransform after = _jarChip.gameObject.activeSelf ? _jarChip : _goldenChip.gameObject.activeSelf ? _goldenChip : null;
             float left = after != null ? after.anchoredPosition.x + after.sizeDelta.x / 2f + MoonPillGap : _goldenChip.anchoredPosition.x - _goldenChip.sizeDelta.x / 2f;
             _moonPill.anchoredPosition = new Vector2(left + MoonPillWidth / 2f, _moonPill.anchoredPosition.y);
