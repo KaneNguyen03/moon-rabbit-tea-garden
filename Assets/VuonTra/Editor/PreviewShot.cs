@@ -660,6 +660,7 @@ namespace VuonTra.EditorTools
             RenderPond(runner, screen);
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
+            RenderAchievementTiers(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -870,6 +871,87 @@ namespace VuonTra.EditorTools
             screen.ShowRabbitAlbum(false);
             screen.CloseSheet();
             Step(screen, 1.6f);
+        }
+
+        static void RenderAchievementTiers(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 120, 80, 60, 40, 30, 24, 12, 8 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 10;
+            s.GardenXp = Garden.XpForLevel(24) + 120;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e14);
+            s.TotalEarned = new BigNum(3.1e26);
+            s.TotalTaps = 23480;
+            s.LevelsBought = 4120;
+            s.OrdersDelivered = 62;
+            s.FishCaught = 64;
+            s.PhotosTaken = 500;
+            s.PoundingGames = 31; s.Leaves.Games = 17; s.Fireflies.Games = 9;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            foreach (string id in new[] { "cham-100", "cham-1000", "thu-1k", "thu-1m", "thu-1b", "ca-50", "don-20", "mo-2", "mo-4", "mo-8", "tra-10", "tra-25", "tra-50", "bua-1" }) s.Claimed.Add(id);
+            foreach (string id in new[] { "ca.1", "ca.2", "don.1", "nang.1", "van.1", "van.2", "cap.1" }) s.Claimed.Add(id);
+            for (int tier = 1; tier <= 8; tier++) s.Claimed.Add("anh." + tier);
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 4f);
+            foreach (string language in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(language);
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                ShowAchievements(screen);
+                Capture(screen, "111-" + language + "-thanh-tuu");
+                screen.CloseSheet();
+                Step(screen, 0.5f);
+            }
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.OpenSheet(2);
+            screen.DragSheet(500f);
+            screen.ReleaseSheet();
+            Step(screen, 0.5f);
+            Capture(screen, "111-vi-san-nhan");
+            Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest cham/Claim");
+            Step(screen, 1.2f);
+            ShowAchievements(screen);
+            Capture(screen, "111-vi-sau-nhan");
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            ShowAchievements(screen);
+            Capture(screen, "111-vi-chu-to");
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+            UiKit.SetLargeText(false);
+            screen.RebuildUi();
+        }
+
+        static void ShowAchievements(GardenScreen screen)
+        {
+            screen.OpenSheet(2);
+            screen.DragSheet(500f);
+            screen.ReleaseSheet();
+            Step(screen, 0.5f);
+            var scroll = screen.transform.Find("Canvas/Sheet/Panel/Quests").GetComponent<ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            RectTransform heading = null;
+            int headings = 0;
+            foreach (RectTransform child in scroll.content)
+                if (child.name == "Heading" && ++headings == 2) heading = child;
+            float top = -heading.anchoredPosition.y - heading.rect.height * (1f - heading.pivot.y);
+            scroll.StopMovement();
+            scroll.content.anchoredPosition = new Vector2(scroll.content.anchoredPosition.x, top - 12f);
+            Step(screen, 0.3f);
         }
 
         static void RenderMoonJars(GameRunner runner, GardenScreen screen)

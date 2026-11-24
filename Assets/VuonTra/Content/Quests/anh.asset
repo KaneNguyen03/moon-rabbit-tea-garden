@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8704501d219f436d93221f29ed4dd17, type: 3}
+  m_Name: anh
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
+  Id: anh
+  Title: "\u1EA2nh"
+  Metric: 6
+  Station: {fileID: 0}
+  Target: 500
+  Daily: 0
+  RewardSeconds: 0
+  RewardCarrots: 0
+  RewardClovers: 0
+  RewardGolden: 0
+  RewardJars: 0
+  Season: 0
+  Tiers:
+  - Target: 1
+    RewardSeconds: 12
+    RewardCarrots: 100
+    RewardClovers: 0
+    RewardGolden: 0
+    RewardJars: 0
+    Merged: 1
+  - Target: 20
+    RewardSeconds: 30
+    RewardCarrots: 300
+    RewardClovers: 2
+    RewardGolden: 0
+    RewardJars: 0
+    Merged: 0
+  - Target: 35
+    RewardSeconds: 60
+    RewardCarrots: 1000
+    RewardClovers: 0
+    RewardGolden: 1
+    RewardJars: 0
+    Merged: 0
+  - Target: 50
+    RewardSeconds: 90
+    RewardCarrots: 3000
+    RewardClovers: 2
+    RewardGolden: 0
+    RewardJars: 0
+    Merged: 0
+  - Target: 65
+    RewardSeconds: 180
+    RewardCarrots: 10000
+    RewardClovers: 2
+    RewardGolden: 0
+    RewardJars: 1
+    Merged: 0
+  - Target: 80
+    RewardSeconds: 300
+    RewardCarrots: 30000
+    RewardClovers: 3
+    RewardGolden: 0
+    RewardJars: 1
+    Merged: 0
+  - Target: 200
+    RewardSeconds: 600
+    RewardCarrots: 100000
+    RewardClovers: 3
+    RewardGolden: 0
+    RewardJars: 1
+    Merged: 0
+  - Target: 500
+    RewardSeconds: 900
+    RewardCarrots: 300000
+    RewardClovers: 4
+    RewardGolden: 0
+    RewardJars: 1
+    Merged: 0
+  Merged:
+  - anh-1

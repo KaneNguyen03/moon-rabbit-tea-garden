@@ -215,9 +215,10 @@ namespace VuonTra.Game
             if (index < 0 || index >= QuestDefs.Count) return false;
             QuestDef quest = QuestDefs[index];
             LastQuestItem = null;
+            int clovers = quest.Chained ? Quests.CurrentTier(quest, State).RewardClovers : quest.RewardClovers;
             bool ok = Quests.TryClaim(quest, Defs, State, Mods, out paid);
             if (!ok) return false;
-            if (quest.Daily || quest.RewardClovers >= 2)
+            if (quest.Daily || clovers >= 2)
             {
                 var gifts = new System.Collections.Generic.List<ItemDef>();
                 foreach (ItemDef def in ItemDefs) if (def.Price <= 0) gifts.Add(def);
