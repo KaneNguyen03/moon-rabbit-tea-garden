@@ -134,6 +134,9 @@ namespace VuonTra.Core
         public double RestLeafSeconds;
         public int[] DishLevels = new int[0];
 
+        public long Pets, Boosts, LayoutMoves, Merges, CloverCalls, GoldenCalls, JarsOpened, DailyGifts;
+        public int DailyQuestsToday, BestFish;
+        public NewcomerRecord Newcomer = new NewcomerRecord();
         public ReviewRecord Review = new ReviewRecord();
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)

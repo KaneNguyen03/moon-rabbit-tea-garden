@@ -21,8 +21,11 @@ namespace VuonTra.Core
         {
             GardenGrid g = s.Grid;
             if (g == null || from == to || GardenGrid.IsReserved(to)) return LayoutDrop.Back;
-            if (g.OccupantAt(to.Q, to.R) == null) return g.Move(from, to) ? LayoutDrop.Placed : LayoutDrop.Back;
-            return g.Swap(from, to) ? LayoutDrop.Swapped : LayoutDrop.Back;
+            LayoutDrop done = g.OccupantAt(to.Q, to.R) == null
+                ? (g.Move(from, to) ? LayoutDrop.Placed : LayoutDrop.Back)
+                : (g.Swap(from, to) ? LayoutDrop.Swapped : LayoutDrop.Back);
+            if (done != LayoutDrop.Back) s.LayoutMoves++;
+            return done;
         }
 
         public static bool Store(IReadOnlyList<StationDef> defs, GameState s, string id)
