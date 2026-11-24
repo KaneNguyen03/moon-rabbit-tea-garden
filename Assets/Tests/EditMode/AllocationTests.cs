@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using VuonTra.Game;
+using VuonTra.Game.UI;
 using UnityEngine.TestTools.Constraints;
 using AllocIs = UnityEngine.TestTools.Constraints.Is;
 
@@ -13,6 +14,7 @@ namespace VuonTra.Core.Tests
         List<StationDef> defs;
         List<UpgradeDef> ups;
         static object sink;
+        static UnityEngine.Vector2 spot;
         static int count;
 
         [SetUp]
@@ -46,6 +48,24 @@ namespace VuonTra.Core.Tests
             return (GC.GetAllocatedBytesForCurrentThread() - before) / calls;
         }
 
+        static int AllocationsIn(Action call)
+        {
+            UnityEngine.Profiling.Recorder recorder = UnityEngine.Profiling.Recorder.Get("GC.Alloc");
+            recorder.enabled = false;
+            recorder.FilterToCurrentThread();
+            recorder.enabled = true;
+            try
+            {
+                call();
+            }
+            finally
+            {
+                recorder.enabled = false;
+                recorder.CollectFromAllThreads();
+            }
+            return recorder.sampleBlockCount;
+        }
+
         [Test]
         public void A_Full_Garden_Earns_And_Ticks_Without_Allocating([Values(false, true)] bool storeOne)
         {
@@ -74,6 +94,44 @@ namespace VuonTra.Core.Tests
             Assert.That(() => { count = AlbumSets.KindsMet(s); }, AllocIs.Not.AllocatingGCMemory(), "the album's every-day kinds");
             Assert.That(() => { sink = Seasons.KindOf(Season.MidAutumn); }, AllocIs.Not.AllocatingGCMemory(), "a season's kind");
             Assert.That(() => { count = RestSpots.SeatedCount(s); }, AllocIs.Not.AllocatingGCMemory(), "how many rabbits are seated");
+        }
+
+        [Test]
+        public void A_Full_Garden_Screen_Finds_Its_Stations_Each_Frame_Without_Allocating()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
+            var root = new UnityEngine.GameObject("Game");
+            try
+            {
+                GameState s = FullGarden(false);
+                s.RestSpots = RestSpots.Max;
+                var cam = new UnityEngine.GameObject("Cam", typeof(UnityEngine.Camera));
+                cam.transform.SetParent(root.transform);
+                var runner = root.AddComponent<GameRunner>();
+                runner.Catalog = catalog;
+                runner.Init(s);
+                var screen = root.AddComponent<GardenScreen>();
+                screen.Runner = runner;
+                screen.Cam = cam.GetComponent<UnityEngine.Camera>();
+                screen.Raining = () => false;
+                screen.Build();
+                screen.Refresh();
+                screen.Shell.StartGame();
+                for (int i = 0; i < 90; i++) screen.Advance(1f / 30f);
+                Assert.AreEqual(16, runner.Defs.Count);
+                int walking = 0;
+                for (int k = 0; k < RestSpots.Max; k++) if (GardenScreen.Strolling(k, 3f)) walking++;
+                Assert.Greater(walking, 0, "rabbits are out strolling, so every walker is sorted against every station");
+
+                Action spots = () => { for (int i = 0; i < runner.Defs.Count; i++) spot = screen.StationSpot(i); };
+                Action frame = () => screen.Advance(1f / 60f);
+                TestContext.WriteLine("allocations in 16 StationSpot: " + AllocationsIn(spots) + "; in one full-garden frame: " + AllocationsIn(frame));
+                Assert.That(() => spots(), AllocIs.Not.AllocatingGCMemory(), "every station's spot on a full garden");
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(root);
+            }
         }
 
         [Test]

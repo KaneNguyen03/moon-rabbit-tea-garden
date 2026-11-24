@@ -2050,6 +2050,58 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Kéo hết lên trên có thể thấy bảng trạm nửa dưới HUD; cây ở mép thế giới dưới thanh tab (chưa sửa).
 - Khi chưa mở đoạn nào: góc bãi cỏ vuông chỗ sương gặp nhau, sương bên chiếm nhiều màn hình (chưa sửa).
 
+## #28 — Giảm chuyển động: vườn đứng yên (agent-28)
+
+**Test:** verify đầy đủ GREEN, 1318/1319 (1 Inconclusive có sẵn), rules ok; 2 test mới trong `GardenScreenTests`.
+
+**Commit:** `ba5c4e3` (gộp main `a58d2c3`, verify đầy đủ trên main GREEN 1319/1320).
+
+**Đã làm:** thêm điều kiện `Motion.Reduced` cho thỏ ở trạm (thở, nghiêng, nhảy mỗi mẻ), đế trống, biển giá, mũi tên nâng cấp, thỏ ở chỗ nghỉ, đom đóm vườn, đom đóm vàng, hạt bung, cà rốt bay, rung nút, nút năng lượng, bàn tay hướng dẫn; không thêm công thức chuyển động.
+
+### Chưa đạt / cần PO quyết
+- Vị trí đứng yên của đom đóm vàng (giữa màn hình).
+- Ba chuyển động ngoài danh sách QA cũng được tắt.
+
+## #97 — Vườn đầy không còn tạo chuỗi tên trạm mỗi khung (agent-97)
+
+**Test:** verify đầy đủ GREEN, 1317/1318 (1 Inconclusive có sẵn), rules ok; test mới trong `AllocationTests` đỏ trên code cũ (16 lần cấp phát) và xanh sau khi sửa.
+
+**Commit:** `7655146` (gộp main `a58d2c3`, verify đầy đủ trên main GREEN 1319/1320).
+
+**Đã làm:** `StationSpot` dùng `GridId`; khoá 0 lần cấp phát cho `StationSpot` trên vườn 16 trạm có thỏ đi dạo; đo build Development Mac trước/sau bằng probe của QA (17,5 → 15,5–16 KB/khung, 37 → 4 lần cấp phát/khung, 11–12 GC/phút).
+
+### Chưa đạt / cần PO quyết
+- Còn ~16 KB rác/khung ở vườn đầy (định dạng chữ UI, số Graphic tăng sau #91): có mở việc riêng không.
+
+## #105 — Gói người mới và gói mốc cấp vườn 10/20/30 (agent-105)
+
+**Test:** full `tools/verify.sh` GREEN (1339/1340, rules ok, 255 frames); Core 732/732; 17 test mới trong `OffersTests` và 6 test mới trong `OfferScreenTests`.
+
+**Commit:** `502571f` (tính năng), `72fe9e6` (merge main 8c3f5f3), `0b83f3a` (ảnh); gộp main `aa12bea`, verify đầy đủ GREEN 1342/1343.
+
+**Đã làm:** `Core/Offers.cs` với đồng hồ kẹp, giao gói một lần qua `Storefront.Grant`, lưu thêm khối `"offers"`; thẻ giữa màn `OfferView`; pill ở đầu Tiệm; 3 sự kiện analytics; `PurchaseOutcome.Pending`; 4 mã Non-Consumable trong `UnityStorefront` và `CHECKLIST.md`; khung preview `105-*` (vi, en, chữ to).
+
+### Chưa đạt / cần PO quyết
+- Bậc Tím là chỉ số 3 hay 4.
+- Đổi hũ thừa thành 12 cà rốt vàng mỗi hũ, Nơ trăng trùng thành 40 cà rốt vàng.
+- Vườn cũ chỉ nhận mốc cao nhất và gói người mới.
+- Pill đầu Tiệm không ghi nội dung gói.
+- Khung gói vẽ tay chưa có.
+
+## #103 — Hộp quà nhiệm vụ ngày và rương điểm tuần (agent-103)
+
+**Test:** `tools/verify.sh` GREEN — rules ok, preview 258 khung, tests 1332/1333 (1 inconclusive, 0 lỗi); Core ngoài Unity 727/727.
+
+**Commit:** d98d0f0 (trên main 8c3f5f3); gộp main `a616c20`, verify đầy đủ GREEN 1358/1359.
+
+**Đã làm:** `Core/QuestChests.cs` gom mọi con số (bảng hộp 40/25/15/15/5, 10 điểm/nhiệm vụ ngày, +10 hộp, rương 100/250/400, tuần từ thứ Hai theo ngày đã kẹp). Hộp mở một lần/ngày khi nhận đủ 5 nhiệm vụ ngày, rút cố định theo ngày + mã người chơi, không ra 2 lần cà rốt vàng. Rương chưa nhận khi sang tuần thành thư giữ 7 ngày (thư rương 400 vẫn cho bé thỏ bậc 3). Save thêm khối `week`, save cũ có 0 điểm. Tab Nhiệm vụ có thêm hai hàng ở đầu ("Hôm nay 3/5" + hộp rung, thanh "Tuần này" với 3 rương có huy hiệu), thẻ quà lật lần lượt 3 ô. Mô phỏng kinh tế có thêm người chơi làm đủ bộ để đo hộp + rương. Ảnh trong `docs/anh/po-103/`.
+
+### Chưa đạt / cần PO quyết
+- Rương 250 điểm đổi 10 → 5 cà rốt vàng (với 10: trung vị +29/tuần, vượt 25).
+- Người làm đủ bộ gọi vàng 8 lần/tuần (trung vị); luật mới ≤ 9 cho người này, người thong thả thường vẫn ≤ 6.
+- Mức "≤ 25" đo theo trung vị 17 hạt.
+- Hình rương vẽ tay chưa có.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

@@ -13,7 +13,7 @@ namespace VuonTra.Game.UI
     /// quests, rabbits) live in a sheet that opens over it. Views only read the state and call
     /// GameRunner; no rules live here.
     /// </summary>
-    public sealed class GardenScreen : MonoBehaviour
+    public sealed partial class GardenScreen : MonoBehaviour
     {
         public GameRunner Runner;
         public Camera Cam;
@@ -38,6 +38,9 @@ namespace VuonTra.Game.UI
         readonly List<StationRowView> _rows = new List<StationRowView>();
         readonly List<UpgradeRowView> _upgradeRows = new List<UpgradeRowView>();
         readonly List<QuestRowView> _questRows = new List<QuestRowView>();
+        QuestChestsView _questChests;
+        public QuestChestsView ChestRows => _questChests;
+        public QuestPrizeView Prizes { get; private set; }
         /// <summary>Every buy-mode button on the screen (the sheet's bar and the card's), by mode.</summary>
         readonly List<KeyValuePair<int, Image>> _modeButtons = new List<KeyValuePair<int, Image>>();
         readonly List<KeyValuePair<int, Text>> _modeLabels = new List<KeyValuePair<int, Text>>();
@@ -322,6 +325,7 @@ namespace VuonTra.Game.UI
             Runner.Payout -= OnPayout;
             Runner.ProductMade -= OnProductMade;
             Runner.AwayClaimed -= ShowAway;
+            if (_onOfferDelivered != null) Runner.OfferDelivered -= _onOfferDelivered;
         }
 
         void Update()
@@ -360,7 +364,7 @@ namespace VuonTra.Game.UI
                 s.ViewZoom = _zoom;
             }
             // A full bar breathes: the one hint that the boost is there to be taken.
-            _energyButton.FaceRect.localScale = Vector3.one * (_energyReady ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
+            _energyButton.FaceRect.localScale = Vector3.one * (_energyReady && !Motion.Reduced ? 1f + 0.025f * Mathf.Sin(_clock * 4f) : 1f);
 
             Tweens.Update(dt);
             SyncFronts(); // after the arranging mode's glides moved a station this frame
@@ -418,7 +422,7 @@ namespace VuonTra.Game.UI
         /// </summary>
         public Vector2 StationSpot(int i)
         {
-            string id = Runner != null && i >= 0 && i < Runner.Defs.Count ? GardenGrid.StationId(Runner.Defs[i]) : null;
+            string id = Runner != null && i >= 0 && i < Runner.Defs.Count ? Runner.Defs[i].GridId : null;
             return CellToWorld(Grid != null && Grid.TryTileOf(id, out Hex tile) ? tile : GardenGrid.DefaultStationTile(i));
         }
 
@@ -820,7 +824,7 @@ namespace VuonTra.Game.UI
             for (int k = 0; k < _seats.Count; k++)
             {
                 if (!_seats[k].gameObject.activeSelf) continue;
-                _seats[k].localRotation = Quaternion.Euler(0, 0, Mathf.Sin(_clock * 0.8f + k * 1.9f) * 3.2f);
+                _seats[k].localRotation = Motion.Reduced ? Quaternion.identity : Quaternion.Euler(0, 0, Mathf.Sin(_clock * 0.8f + k * 1.9f) * 3.2f);
                 bool dozing = Mathf.Repeat(_clock / 11f + k * 0.29f, 1f) < 0.3f;
                 if (_seatNaps[k].activeSelf != dozing) _seatNaps[k].SetActive(dozing);
             }
@@ -987,9 +991,9 @@ namespace VuonTra.Game.UI
             if (_gold.gameObject.activeSelf)
             {
                 _goldAge += dt;
-                float k = _goldAge / GoldSeconds;
-                _gold.anchoredPosition = new Vector2(-80f + k * (ScreenW + 160f), ScreenH * 0.55f + Mathf.Sin(k * 9f) * 160f);
-                _gold.localScale = Vector3.one * (1f + 0.15f * Mathf.Sin(_clock * 6f));
+                float k = _goldAge / GoldSeconds, across = Motion.Reduced ? 0.5f : k;
+                _gold.anchoredPosition = new Vector2(-80f + across * (ScreenW + 160f), ScreenH * 0.55f + (Motion.Reduced ? 0f : Mathf.Sin(k * 9f) * 160f));
+                _gold.localScale = Vector3.one * (Motion.Reduced ? 1f : 1f + 0.15f * Mathf.Sin(_clock * 6f));
                 if (k >= 1f) _gold.gameObject.SetActive(false);
             }
             else
@@ -1232,6 +1236,7 @@ namespace VuonTra.Game.UI
                     Refresh(-1f);
                 }), OnRedeemCode);
             BuildMail(catalog);
+            Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
             GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
@@ -1278,6 +1283,7 @@ namespace VuonTra.Game.UI
             });
             BuildPond(catalog); // the moon pond's card and the rabbit's Feed button (#58b)
             BuildAdSeams(catalog); // the three rewarded-ad places and the no-ads pass (#66)
+            BuildOffers(catalog);
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -2366,9 +2372,9 @@ namespace VuonTra.Game.UI
                     float t = Mathf.SmoothStep(0f, 1f, Mathf.PingPong(_clock / 26f + flock * 0.37f, 1f));
                     home = Vector2.Lerp(home, next, t) + new Vector2(Mathf.Sin(_clock * 0.3f + flock) * 30f, Mathf.Cos(_clock * 0.23f + flock) * 20f);
                 }
-                float angle = _clock * (0.35f + Hash(seed) * 0.4f) + seed, reach = 30f + Hash(seed + 2f) * 50f;
+                float angle = (Motion.Reduced ? 0f : _clock * (0.35f + Hash(seed) * 0.4f)) + seed, reach = 30f + Hash(seed + 2f) * 50f;
                 _fireflies[i].anchoredPosition = home + new Vector2(Mathf.Cos(angle) * reach, Mathf.Sin(angle * 1.3f) * reach * 0.6f);
-                float pulse = 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
+                float pulse = Motion.Reduced ? 0.5f : 0.5f + 0.5f * Mathf.Sin(_clock * (1.3f + Hash(seed + 9f)) + seed);
                 _fireflyImages[i].color = Palette.Alpha(Palette.Lantern, 0.2f + 0.6f * pulse);
                 _fireflies[i].localScale = Vector3.one * (0.7f + 0.5f * pulse);
             }
@@ -3542,6 +3548,7 @@ namespace VuonTra.Game.UI
             }
 
             RectTransform quests = AddList("Quests", 2);
+            _questChests = new QuestChestsView(quests, catalog, Tweens, OnOpenQuestBox, OnClaimWeekChest);
             // Finished quests gather up here, under one button that collects them all.
             _questReady = UiKit.Rect("Ready", quests);
             _questReady.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
@@ -3936,6 +3943,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _rows.Count; i++) _rows[i].Refresh(defs, s, m, dt);
             for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
             for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
+            _questChests.Refresh(Runner.QuestDefs, s, Runner.TodayNumber, dt);
             _questToday.text = L10n.T("quests.today.refresh", Span(SecondsToNextDay(System.DateTimeOffset.Now)));
             OrderQuestRows();
             RefreshPlotRow(defs, s);
@@ -3970,7 +3978,7 @@ namespace VuonTra.Game.UI
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
-            int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s);
+            int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s) + (_questChests.BoxReady ? 1 : 0) + QuestChests.ReadyCount(s, Runner.TodayNumber);
             _barBadge.SetActive(claimable > 0);
             _barBadgeText.text = claimable.ToString();
             if (_shownClaimable >= 0 && claimable > _shownClaimable)
@@ -3997,6 +4005,7 @@ namespace VuonTra.Game.UI
             }
             UpgradeAll.Refresh(defs, s);
             Shop.Refresh(s);
+            RefreshOffers();
             RefreshDecor(s);
             RefreshOrders(s);
             bool anyGolden = s.GoldenCarrots > 0;
@@ -4926,6 +4935,73 @@ namespace VuonTra.Game.UI
                 Feel.Moment(L10n.T("moment.gift.title", L10n.ItemName(gift)), L10n.T("moment.gift.sub", L10n.Rarity(gift.Tier), ItemPickerView.Describe(gift)));
         }
 
+        void OnOpenQuestBox()
+        {
+            GameState s = Runner.State;
+            if (!_questChests.BoxReady)
+            {
+                Sfx.Click();
+                _questChests.Pop(-1);
+                int left = QuestChests.DailyTotal(Runner.QuestDefs, s) - QuestChests.DailyDone(Runner.QuestDefs, s);
+                string why = QuestChests.BoxOpened(s) ? L10n.T("quests.box.opened") : L10n.T("quests.box.locked", left);
+                Feel.FloatText(Feel.PointOf(_questChests.Box, new Vector2(-160, 70)), why, Palette.Ink, 32);
+                return;
+            }
+            BoxPrize[] prizes = Runner.OpenQuestBox();
+            if (prizes == null) return;
+            Sfx.Reward();
+            Haptics.Light();
+            _questChests.Pop(-1);
+            var tiles = new List<QuestPrizeView.Tile>();
+            foreach (BoxPrize prize in prizes) tiles.Add(PrizeTile(prize.Kind, prize.Amount, prize.Coins));
+            Prizes.Open(L10n.T("quests.box.open.title"), L10n.T("quests.box.open.sub", QuestChests.BoxPoints), tiles, Color.white);
+            Refresh(-1f);
+        }
+
+        void OnClaimWeekChest(int chest)
+        {
+            GameState s = Runner.State;
+            long today = Runner.TodayNumber;
+            WeekChest def = QuestChests.Chests[chest];
+            if (!QuestChests.ChestReady(s, chest, today))
+            {
+                Sfx.Click();
+                _questChests.Pop(chest);
+                bool opened = QuestChests.Claimed(s, chest) && QuestChests.WeekOf(today) == s.WeekIndex;
+                string why = opened ? L10n.T("quests.chest.claimed") : L10n.T("quests.chest.need", def.Points - QuestChests.Points(s, today), MailView.GiftOf(def));
+                Feel.FloatText(Feel.PointOf(_questChests.Chest(chest), new Vector2(0, 90)), why, Palette.Ink, 30);
+                return;
+            }
+            if (!Runner.ClaimWeekChest(chest, out Rabbit rabbit)) return;
+            Sfx.Reward();
+            Haptics.Medium();
+            _questChests.Pop(chest);
+            var tiles = new List<QuestPrizeView.Tile>();
+            if (rabbit != null)
+                tiles.Add(new QuestPrizeView.Tile { Icon = Runner.Catalog.RabbitArt(rabbit), Tint = Color.white, Amount = rabbit.Name, Name = L10n.Rarity(rabbit.Tier) });
+            if (def.Jars > 0) tiles.Add(PrizeTile(BoxPrizeKind.Jar, def.Jars, BigNum.Zero));
+            if (def.Clovers > 0) tiles.Add(PrizeTile(BoxPrizeKind.Clover, def.Clovers, BigNum.Zero));
+            if (def.Golden > 0) tiles.Add(PrizeTile(BoxPrizeKind.Golden, def.Golden, BigNum.Zero));
+            Prizes.Open(L10n.T("quests.chest.title", def.Points), L10n.T("quests.chest.sub"), tiles, QuestChestsView.ChestTints[chest]);
+            Refresh(-1f);
+        }
+
+        QuestPrizeView.Tile PrizeTile(BoxPrizeKind kind, int amount, BigNum coins)
+        {
+            GameCatalog catalog = Runner.Catalog;
+            switch (kind)
+            {
+                case BoxPrizeKind.Income:
+                    return new QuestPrizeView.Tile { Icon = catalog.Currency, Tint = Color.white, Amount = "+" + coins.Short(), Name = L10n.T("quests.prize.income", Mathf.RoundToInt(amount / 60f)) };
+                case BoxPrizeKind.Clover:
+                    return new QuestPrizeView.Tile { Icon = catalog.Clover != null ? catalog.Clover : catalog.Round, Tint = catalog.Clover != null ? Color.white : Palette.Moss, Amount = "+" + amount, Name = L10n.T("quests.prize.clovers", amount) };
+                case BoxPrizeKind.Jar:
+                    return new QuestPrizeView.Tile { Jar = true, Tint = Color.white, Amount = "+" + amount, Name = L10n.T("quests.prize.jars", amount) };
+                default:
+                    return new QuestPrizeView.Tile { Icon = catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Tint = catalog.GoldenCarrot != null ? Color.white : Palette.Lantern, Amount = "+" + amount, Name = L10n.T("quests.prize.golden", amount) };
+            }
+        }
+
         /// <summary>Collects every finished quest at once.</summary>
         void OnClaimAll()
         {
@@ -4940,7 +5016,7 @@ namespace VuonTra.Game.UI
         /// </summary>
         void OrderQuestRows()
         {
-            var order = new List<Transform>();
+            var order = new List<Transform> { _questChests.TodayRow, _questChests.WeekRow };
             bool any = false;
             foreach (QuestRowView row in _questRows) any |= row.Visible && row.CanClaim;
             if (_questReady.gameObject.activeSelf != any) _questReady.gameObject.SetActive(any);
@@ -6258,11 +6334,12 @@ namespace VuonTra.Game.UI
         /// <summary>A letter claimed in the mailbox: its gift is paid, the card says what came and the badge counts down.</summary>
         void OnClaimLetter(string id)
         {
-            Letter letter = Runner.ClaimLetter(id);
+            Letter letter = Runner.ClaimLetter(id, out Rabbit rabbit);
             if (letter == null) return;
             Sfx.Reward();
             Haptics.Light();
-            Mail.ShowClaimed(L10n.T("mail.claimed", MailView.GiftOf(letter.Golden, letter.Clovers)));
+            Mail.ShowClaimed(L10n.T("mail.claimed", MailView.GiftOf(letter)));
+            if (rabbit != null) Feel.Moment(rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Rarity(rabbit.Tier)));
             Mail.Refresh(Runner.Letters, Runner.TodayNumber);
             Shell.RefreshMail();
             Refresh(-1f);

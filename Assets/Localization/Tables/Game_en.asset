@@ -3448,111 +3448,307 @@ MonoBehaviour:
     m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
     m_Metadata:
       m_Items: []
-  - m_Id: 831624370446336
+  - m_Id: 799467463761920
+    m_Localized: Only once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733440
+    m_Localized: Starter pack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733441
+    m_Localized: A welcome bundle for new gardeners, sold once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733442
+    m_Localized: Garden level {0} pack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733443
+    m_Localized: For reaching garden level {0}, sold once
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733444
+    m_Localized: '{0} left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733445
+    m_Localized: "{0} \xB7 {1} left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733446
+    m_Localized: This pack has ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733447
+    m_Localized: Ended
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733448
+    m_Localized: '{0} golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733449
+    m_Localized: '{0} moon jars'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733450
+    m_Localized: '{0} clovers'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733451
+    m_Localized: 'Hat: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733452
+    m_Localized: 1 new {0} rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733453
+    m_Localized: "Buy \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733454
+    m_Localized: Maybe later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733455
+    m_Localized: Pack received. Thank you for supporting the tea garden!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733456
+    m_Localized: The store is waiting to confirm; the pack arrives by itself once it does
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467484733457
+    m_Localized: +{0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 799467497316352
+    m_Localized: +{0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 806681230434304
+    m_Localized: Bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590958182400
+    m_Localized: Today {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959616
+    m_Localized: Claim every daily quest to open a box of {0} gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959617
+    m_Localized: "Your gift box is ready \xB7 tap to open"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959618
+    m_Localized: "Today's box is open \xB7 a new one tomorrow"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959619
+    m_Localized: '{0} more daily quests to open the box'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959620
+    m_Localized: Today's gift box
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959621
+    m_Localized: +{0} week points
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959622
+    m_Localized: "This week \xB7 {0}/{1} points"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959623
+    m_Localized: "Each daily quest +{1}, gift box +{2} \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959624
+    m_Localized: '{0}-point chest'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959625
+    m_Localized: This week's chest gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959626
+    m_Localized: "{1} \xB7 {0} more points"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959627
+    m_Localized: Opened this week already
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959628
+    m_Localized: Lovely!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959629
+    m_Localized: '{0} min of income'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959630
+    m_Localized: Clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959631
+    m_Localized: Moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959632
+    m_Localized: Golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959633
+    m_Localized: Last week's unopened {0}-point chest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959634
+    m_Localized: +{0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590974959635
+    m_Localized: +1 {0} rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931136
+    m_Localized: '{0} more daily quest to open the box'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931137
+    m_Localized: "Each daily quest +{1}, gift box +{2} \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931138
+    m_Localized: "{1} \xB7 {0} more point"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931139
+    m_Localized: Clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931140
+    m_Localized: Moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931141
+    m_Localized: Golden carrot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 826590995931142
+    m_Localized: +{0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 841391763611648
     m_Localized: "Dish: {0} \xB7 level {1}"
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223552
+  - m_Id: 841391776194560
     m_Localized: Improve dish ({0} leaves)
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223553
+  - m_Id: 841391776194561
     m_Localized: Dish at top level
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223554
+  - m_Id: 841391776194562
     m_Localized: Open the station to cook it
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223555
-    m_Localized: Recipe book at garden level {0}
+  - m_Id: 841391776194563
+    m_Localized: Opens at garden level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223556
+  - m_Id: 841391776194564
     m_Localized: Dish level {0}!
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223557
+  - m_Id: 841391776194565
     m_Localized: "Recipe leaves: {0} \xB7 improve dishes on a station card"
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223558
+  - m_Id: 841391776194566
     m_Localized: "Big fish \u2192 +1 leaf"
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223559
+  - m_Id: 841391776194567
     m_Localized: +{0} recipe leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223560
+  - m_Id: 841391776194568
     m_Localized: Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223561
+  - m_Id: 841391776194569
     m_Localized: Young Tea Leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223562
+  - m_Id: 841391776194570
     m_Localized: Strawberry Jam
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223563
+  - m_Id: 841391776194571
     m_Localized: Pounded Petal Powder
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223564
+  - m_Id: 841391776194572
     m_Localized: Chestnut Bun
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223565
+  - m_Id: 841391776194573
     m_Localized: Wild Honey
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223566
+  - m_Id: 841391776194574
     m_Localized: Moon Milk Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223567
+  - m_Id: 841391776194575
     m_Localized: Star Syrup
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223568
+  - m_Id: 841391776194576
     m_Localized: Moon Grapes
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223569
+  - m_Id: 841391776194577
     m_Localized: Mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223570
+  - m_Id: 841391776194578
     m_Localized: Flower Spring Water
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223571
+  - m_Id: 841391776194579
     m_Localized: Jar of Falling Stars
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223572
+  - m_Id: 841391776194580
     m_Localized: Lotus Seeds
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223573
+  - m_Id: 841391776194581
     m_Localized: Malt Candy
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223574
+  - m_Id: 841391776194582
     m_Localized: Young Rice Flakes
     m_Metadata:
       m_Items: []
-  - m_Id: 831624387223575
+  - m_Id: 841391776194583
     m_Localized: Night Blossom Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 831624391417856
+  - m_Id: 841391784583168
     m_Localized: "Recipe leaf: {0} \xB7 improve dishes on a station card"
     m_Metadata:
       m_Items: []
-  - m_Id: 831624391417857
+  - m_Id: 841391784583169
     m_Localized: +{0} recipe leaf
     m_Metadata:
       m_Items: []

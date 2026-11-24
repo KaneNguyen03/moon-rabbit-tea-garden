@@ -96,6 +96,12 @@ namespace VuonTra.Game.UI
             });
         }
 
+        public void Grow(Transform target, float from, float seconds, Func<float, float> curve)
+        {
+            target.localScale = Vector3.one * from;
+            Add(seconds, t => { if (target != null) target.localScale = Vector3.one * (from + (1f - from) * t); }, curve);
+        }
+
         public void Update(float dt)
         {
             for (int i = _items.Count - 1; i >= 0; i--)

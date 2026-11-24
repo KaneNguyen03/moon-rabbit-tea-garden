@@ -107,11 +107,15 @@ namespace VuonTra.Core
         public const string PurchaseSuccess = "purchase_success";
         public const string PurchaseFailed = "purchase_failed";
         public const string RewardedAd = "rewarded_ad";
+        public const string OfferShown = "offer_shown";
+        public const string OfferBought = "offer_bought";
+        public const string OfferExpired = "offer_expired";
 
         public static readonly string[] All =
         {
             GameOpen, SessionStart, SessionEnd, TutorialStep, TutorialComplete, TutorialSkip, GardenLevelUp, StationUnlocked,
             SegmentOpened, RabbitCalled, NewMoon, GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd,
+            OfferShown, OfferBought, OfferExpired,
         };
 
         public const string NewGarden = "new_garden";
@@ -154,6 +158,7 @@ namespace VuonTra.Core
                 case PurchaseOutcome.Failed: return "failed";
                 case PurchaseOutcome.Unavailable: return "unavailable";
                 case PurchaseOutcome.Duplicate: return "duplicate";
+                case PurchaseOutcome.Pending: return "pending";
                 default: return "paid";
             }
         }
@@ -198,6 +203,15 @@ namespace VuonTra.Core
                 a.Log(AnalyticsEvents.PurchaseSuccess, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
             else
                 a.Log(AnalyticsEvents.PurchaseFailed, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Reason, AnalyticsEvents.ReasonOf(r.Outcome)));
+        }
+
+        public static void LogOffer(this IAnalytics a, string name, OfferDef offer, bool late = false)
+        {
+            if (offer == null) return;
+            if (name == AnalyticsEvents.OfferBought)
+                a.Log(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level), new AnalyticsParam(AnalyticsEvents.Late, late));
+            else
+                a.Log(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level));
         }
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>

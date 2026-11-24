@@ -98,6 +98,9 @@ namespace VuonTra.Core
 
         public int PacksBought;
         public List<string> PaidTransactions = new List<string>();
+        public List<OfferRecord> OfferRecords = new List<OfferRecord>();
+        public long OfferClock = -1;
+        public double OfferPlayMark;
 
         public int MoonJars;
         public long MoonJarBuyDay = -1;
@@ -110,6 +113,11 @@ namespace VuonTra.Core
         public HashSet<string> CodesUsed = new HashSet<string>();
         public List<Letter> Letters = new List<Letter>();
         public long MailDay = -1;
+
+        public long BoxDay = -1;
+        public long WeekIndex = -1;
+        public int WeekPoints;
+        public int WeekChestsClaimed;
 
         public long FrogDay = -1;
         public int FrogShowers, FrogsToday;

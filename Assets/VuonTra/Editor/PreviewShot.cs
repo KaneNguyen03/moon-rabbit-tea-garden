@@ -635,6 +635,8 @@ namespace VuonTra.EditorTools
             RenderLayout(runner, screen);
             RenderPond(runner, screen);
             RenderRecipes(runner, screen);
+            RenderOffers(runner, screen);
+            RenderQuestChests(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -1276,6 +1278,78 @@ namespace VuonTra.EditorTools
             RenderMapEdges(runner, screen);
         }
 
+        [MenuItem("VuonTra/Render Quest Chests")]
+        public static void RenderQuestChestsOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderQuestChests(runner, screen);
+        }
+
+        static void RenderQuestChests(GameRunner runner, GardenScreen screen)
+        {
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+                int[] levels = { 40, 22, 14, 8 };
+                for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+                s.Plots = 8;
+                s.GardenXp = Garden.XpForLevel(12);
+                s.HintSeen = true;
+                s.TutorialStep = Tutorial.Steps;
+                s.Coins = new BigNum(2.4e6);
+                s.Profile.Code = "VT-103PREV";
+                Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+                Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.4).Id, 1);
+                s.FreshKinds.Clear();
+                runner.Init(s);
+                long today = runner.TodayNumber;
+                var dailies = new System.Collections.Generic.List<QuestDef>();
+                foreach (QuestDef q in runner.QuestDefs) if (q.Daily) dailies.Add(q);
+                for (int i = 0; i < 3; i++) s.Claimed.Add(dailies[i].Id);
+                s.WeekIndex = QuestChests.WeekOf(today);
+                s.WeekPoints = 130;
+                s.WeekChestsClaimed = 0;
+                L10n.SetLocale(locale);
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                screen.SelectStation(-1);
+                screen.OpenSheet(2);
+                screen.Refresh();
+                Step(screen, 6f);
+                Capture(screen, "103-" + locale + "-hom-nay-3-5");
+
+                foreach (QuestDef q in dailies) s.Claimed.Add(q.Id);
+                s.WeekPoints = 150;
+                screen.Refresh();
+                Step(screen, 1.75f);
+                Capture(screen, "103-" + locale + "-hop-rung");
+                Press(screen, "Canvas/Sheet/Panel/Quests/Content/QuestBoxRow/Box");
+                Step(screen, 0.75f);
+                Capture(screen, "103-" + locale + "-hop-lat");
+                Step(screen, 1.4f);
+                Capture(screen, "103-" + locale + "-hop-mo");
+                screen.Prizes.Close();
+                screen.Refresh();
+                Step(screen, 0.4f);
+                Capture(screen, "103-" + locale + "-tuan-ruong-san");
+                Press(screen, "Canvas/Sheet/Panel/Quests/Content/QuestWeekRow/Track/Chest 0");
+                Step(screen, 2.2f);
+                Capture(screen, "103-" + locale + "-ruong-mo");
+                screen.Prizes.Close();
+                screen.CloseSheet();
+            }
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
+        }
+
         static void RenderMapEdges(GameRunner runner, GardenScreen screen)
         {
             var defs = runner.Catalog.BuildDefs();
@@ -1624,6 +1698,91 @@ namespace VuonTra.EditorTools
             Step(screen, 0.6f);
             Capture(screen, "58-tim-10-o");
             screen.CloseSheet();
+            screen.Raining = null;
+            Step(screen, 0.4f);
+        }
+
+        static void RenderOffers(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 18, 9, 5, 2 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 6;
+            s.GardenXp = Garden.XpForLevel(Offers.StarterLevel) + 40;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(64000);
+            s.GoldenCarrots = 7;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            s.FreshKinds.Clear();
+            long[] wall = { (runner.TodayNumber + 1) * Offers.DaySeconds + 9 * 3600L };
+            System.Func<long> realClock = runner.OfferWallClock;
+            runner.OfferWallClock = () => wall[0];
+            runner.Store = new FakeStorefront();
+            runner.Init(s);
+            runner.OfferCardsOn = true;
+            screen.Raining = () => false;
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            Capture(screen, "105-the-giua");
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            screen.OpenOffer(Offers.Find(Offers.Starter));
+            Step(screen, 0.6f);
+            Capture(screen, "105-the-giua-chu-to");
+            UiKit.SetLargeText(false);
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            screen.OpenOffer(Offers.Find(Offers.Starter));
+            Step(screen, 0.6f);
+            Capture(screen, "105-the-giua-en");
+            screen.OfferCard.Close();
+
+            wall[0] += 5 * 3600L + 12 * 60L + 30L;
+            screen.OpenShop();
+            screen.Refresh();
+            Step(screen, 0.6f);
+            Capture(screen, "105-tiem-goi-en");
+            screen.Shop.Close();
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.OpenShop();
+            screen.Refresh();
+            Step(screen, 0.6f);
+            Capture(screen, "105-tiem-goi");
+            screen.Shop.Close();
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            screen.OpenShop();
+            screen.Refresh();
+            Step(screen, 0.6f);
+            Capture(screen, "105-tiem-goi-chu-to");
+            screen.Shop.Close();
+            UiKit.SetLargeText(false);
+            screen.RebuildUi();
+
+            s.GardenXp = Garden.XpForLevel(10) + 30;
+            typeof(GameRunner).GetMethod("NoteOffers", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic).Invoke(runner, null);
+            screen.Refresh();
+            Step(screen, 0.6f);
+            Capture(screen, "105-the-moc");
+            Press(screen, "Canvas/Offer/Card/Buy");
+            Step(screen, SummonMomentView.Length + 0.4f);
+            Capture(screen, "105-moc-tho-tim");
+            screen.Arrival.Tap();
+            screen.Arrival.Tap();
+            Step(screen, 0.4f);
+            screen.OpenOffer(Offers.Find(Offers.Starter));
+            Press(screen, "Canvas/Offer/Card/Buy");
+            Step(screen, 0.5f);
+            Capture(screen, "105-da-mua");
+            screen.OfferCard.Close();
+            runner.OfferCardsOn = false;
+            runner.OfferWallClock = realClock;
             screen.Raining = null;
             Step(screen, 0.4f);
         }
