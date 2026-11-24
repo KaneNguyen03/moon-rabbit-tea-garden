@@ -3635,6 +3635,54 @@ MonoBehaviour:
     m_Key: mail.jars.one
     m_Metadata:
       m_Items: []
+  - m_Id: 837451609268224
+    m_Key: review.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045440
+    m_Key: review.yes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045441
+    m_Key: review.no
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045442
+    m_Key: review.feedback.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045443
+    m_Key: review.feedback.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045444
+    m_Key: review.feedback.note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045445
+    m_Key: review.send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045446
+    m_Key: review.cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045447
+    m_Key: review.thanks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045448
+    m_Key: review.rate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045449
+    m_Key: review.mail.subject
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045450
+    m_Key: review.mail.body
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

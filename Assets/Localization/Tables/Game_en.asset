@@ -3644,6 +3644,57 @@ MonoBehaviour:
     m_Localized: +{0} moon jar
     m_Metadata:
       m_Items: []
+  - m_Id: 837451609268224
+    m_Localized: Enjoying the tea garden?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045440
+    m_Localized: Love it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045441
+    m_Localized: Not really
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045442
+    m_Localized: What could the garden do better?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045443
+    m_Localized: One line is enough
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045444
+    m_Localized: Goes to support by email, with your code {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045445
+    m_Localized: Send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045446
+    m_Localized: Not now
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045447
+    m_Localized: Thank you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045448
+    m_Localized: "\u2605 Rate the game"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045449
+    m_Localized: Tea garden feedback {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045450
+    m_Localized: '{0}
+
+
+      Player code: {1}'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
