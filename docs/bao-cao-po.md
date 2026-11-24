@@ -2358,6 +2358,20 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Cần thử tay khi chơi: khung cuộn mới có giật ở 5–6 đoạn không.
 - Mục 6 (góc sương, sương hai bên ≤ 30 %): chuyển cho design: bỏ sương (#134).
 
+## #126 — Test mùa không kết luận, test ghi đè save, preview vi lẫn en (agent-126)
+
+**Test:** verify đầy đủ GREEN — rules ok, seed ok, preview ok (407 khung, khung vi toàn chữ vi), tests 1640/1640, 0 Inconclusive, save ok (save người chơi không đổi).
+
+**Commit:** fedfffb (main fast-forward)
+
+**Đã làm:** `Fixture.TradeDefs()` có trạm Brewer nên test mùa chạy hết; test lưu vào `temporaryCachePath/tests/<tên test>` qua `TestRunCallback` + seam `SaveStore.DefaultDirectory`, xoá sau mỗi test, có test kiểm đường lưu trước khi tạo runner; `verify.sh` so mtime/sha1 `save.json` người chơi trước và sau, và bước preview chạy `PreviewLanguageCheck` (nhãn en trong khung vi thì FAIL); ảnh po-57 dựng lại, trước/sau ở `docs/anh/po-126/`; đổi tên hai test cà rốt vàng; sửa câu khách vào từ mép phải trong `docs/bao-cao-po.md`.
+
+### Chưa đạt / cần PO quyết
+- Sự cố 03:21:17 ngày 25/11: bản đầu của test bảo vệ ghi đè `~/Library/Application Support/VuonTraTho/Moon Rabbit Tea Garden/save.json`; ấm trà (am-tra) từ cấp 162 xuống 4, thu nhập lúc vắng mặt đã bị nhận; không có bản sao lưu (không có save.backup.json, Time Machine không gắn được ổ, /tmp không có bản cũ). Nguyên nhân: action NUnit cấp assembly không được Unity áp dụng, test chạy thẳng vào thư mục người chơi. File hiện tại giữ ở `~/Library/Application Support/VuonTraTho/save-incident-25-11.json`.
+- Bước `save` FAIL nếu có người chơi game trong lúc verify chạy.
+- Kiểm chữ en bỏ qua dòng có chữ cố định dưới 3 ký tự (ví dụ "Lv {0}").
+- `TestResults.xml` vẫn vào thư mục người chơi khi chạy test từ cửa sổ Test Runner/MCP không có `-testResults`.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
