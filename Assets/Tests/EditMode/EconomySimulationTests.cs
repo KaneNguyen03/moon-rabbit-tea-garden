@@ -64,6 +64,9 @@ namespace VuonTra.Core.Tests
         System.Random askRng;
         bool welcomeBack;
         int goldenWelcome, cloversWelcome, welcomeStarts, welcomeCheckIns;
+        bool atFair;
+        int fairEarned, fairRabbitDay, fairGolden, fairLeft;
+        readonly int[] fairBought = new int[Fairs.Stall.Length];
 
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
         readonly Dictionary<int, double> plotsAt = new Dictionary<int, double>();
@@ -131,6 +134,10 @@ namespace VuonTra.Core.Tests
             askRng = new System.Random(unchecked(seed * 31 + 103));
             welcomeBack = false;
             goldenWelcome = cloversWelcome = welcomeStarts = welcomeCheckIns = 0;
+            atFair = false;
+            fairEarned = fairGolden = fairLeft = 0;
+            fairRabbitDay = -1;
+            for (int i = 0; i < fairBought.Length; i++) fairBought[i] = 0;
             levelAt.Clear();
             plotsAt.Clear();
             for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
@@ -227,7 +234,7 @@ namespace VuonTra.Core.Tests
             {
                 casts++;
                 cast.Advance(cast.BobSeconds + (fishRng.NextDouble() < FishCatchRate ? 0.25 : 1d));
-                if (cast.Tap() == CastTap.Caught && Fishing.Land(s, cast)) fishCaught++;
+                if (cast.Tap() == CastTap.Caught && Fishing.Land(s, cast)) { fishCaught++; EarnFair(Fairs.ForFish(cast.Fish)); }
             }
             Rabbit r = Rabbits.AtStation(s, BestToTap());
             if (r == null) return;
@@ -248,7 +255,7 @@ namespace VuonTra.Core.Tests
             {
                 casts++;
                 cast.Advance(cast.BobSeconds + (fishRng.NextDouble() < FishCatchRate ? 0.25 : 1d));
-                if (cast.Tap() == CastTap.Caught && Fishing.Land(s, cast)) fishCaught++;
+                if (cast.Tap() == CastTap.Caught && Fishing.Land(s, cast)) { fishCaught++; EarnFair(Fairs.ForFish(cast.Fish)); }
             }
             if (tank != Tank.ReleaseFish) return;
             for (int k = 0; k < Fishing.Kinds; k++)
@@ -262,6 +269,31 @@ namespace VuonTra.Core.Tests
                     jarsHeld += r.Jars;
                 }
             mods = Modifiers.From(ups, s);
+        }
+
+        void EarnFair(int coins)
+        {
+            if (atFair) fairEarned += Fairs.Earn(defs, s, mods, Today, coins);
+        }
+
+        static readonly FairWare[] FairShopping = { FairWare.Rabbit, FairWare.Jars, FairWare.Clovers, FairWare.Golden };
+
+        void SpendFair()
+        {
+            if (!atFair) return;
+            foreach (FairWare ware in FairShopping)
+            {
+                int stall = Array.FindIndex(Fairs.Stall, w => w.Ware == ware);
+                while (Fairs.CanBuy(s, Today, stall) == FairBuyCheck.Ok)
+                {
+                    FairBuy bought = Fairs.Buy(defs, s, mods, Today, stall, "H");
+                    fairBought[stall]++;
+                    if (ware == FairWare.Golden) fairGolden += bought.Stall.Amount;
+                    if (bought.Rabbit != null) { fairRabbitDay = (int)(Today - firstDay) + 1; Rabbits.AutoAssign(defs, s); }
+                    jarsHeld += bought.Jars;
+                }
+                if (ware == FairWare.Rabbit && fairBought[stall] == 0) return;
+            }
         }
 
         int MostHearts()
@@ -469,7 +501,7 @@ namespace VuonTra.Core.Tests
         {
             if (!answerAsks) return;
             PhotoAsks.Advance(defs, s, 1d, Today, askRng.NextDouble);
-            if (PhotoAsks.Waiting(s) && PhotoAsks.Answer(defs, s, mods, Today, out BigNum paid)) earnedAsks += paid;
+            if (PhotoAsks.Waiting(s) && PhotoAsks.Answer(defs, s, mods, Today, out BigNum paid)) { earnedAsks += paid; EarnFair(Fairs.PhotoAskCoins); }
         }
 
         void OpenQuestChests()
@@ -540,11 +572,13 @@ namespace VuonTra.Core.Tests
             double seconds;
             BigNum carrots;
             int clovers = s.Clovers, golden = s.GoldenCarrots;
-            if (Pounding.CanPlay(s, day) && Pounding.Start(s, day)) { seconds = 25d; Busy(seconds); carrots = Pounding.Finish(defs, s, mods, poundingScore).Carrots; }
-            else if (Leaves.CanPlay(s, day) && Leaves.Start(s, day)) { seconds = Leaves.Seconds; Busy(seconds); carrots = Leaves.Finish(defs, s, mods, leavesScore).Carrots; }
-            else if (Fireflies.CanPlay(s, day) && Fireflies.Start(s, day)) { seconds = Fireflies.Seconds; Busy(seconds); carrots = Fireflies.Finish(defs, s, mods, firefliesScore).Carrots; }
+            int stars;
+            if (Pounding.CanPlay(s, day) && Pounding.Start(s, day)) { seconds = 25d; Busy(seconds); PoundingResult r = Pounding.Finish(defs, s, mods, poundingScore); carrots = r.Carrots; stars = r.Stars; }
+            else if (Leaves.CanPlay(s, day) && Leaves.Start(s, day)) { seconds = Leaves.Seconds; Busy(seconds); LeavesResult r = Leaves.Finish(defs, s, mods, leavesScore); carrots = r.Carrots; stars = r.Stars; }
+            else if (Fireflies.CanPlay(s, day) && Fireflies.Start(s, day)) { seconds = Fireflies.Seconds; Busy(seconds); FirefliesResult r = Fireflies.Finish(defs, s, mods, firefliesScore); carrots = r.Carrots; stars = r.Stars; }
             else if (everyAd && ExtraRound(day)) return PlayAGame();
             else return false;
+            EarnFair(Fairs.ForStars(stars));
             earnedGames += carrots;
             cloversGames += s.Clovers - clovers;
             goldenGames += s.GoldenCarrots - golden;
@@ -572,7 +606,7 @@ namespace VuonTra.Core.Tests
             if (s.Order != null && Orders.CanDeliver(s, s.Order))
             {
                 int clovers = s.Clovers;
-                if (Orders.Deliver(defs, s, mods, out BigNum paid, out _)) { earnedOrders += paid; ordersDelivered++; cloversOrders += s.Clovers - clovers; }
+                if (Orders.Deliver(defs, s, mods, out BigNum paid, out _)) { earnedOrders += paid; ordersDelivered++; cloversOrders += s.Clovers - clovers; EarnFair(Fairs.OrderCoins); }
             }
             if (Tray.IsFull(s) || sessionClock - lastSale >= SellEvery) SellTray(true);
             AnswerPhotoAsk();
@@ -585,6 +619,7 @@ namespace VuonTra.Core.Tests
             }
             if ((int)sessionClock % questEvery == 0) ClaimQuests();
             int rabbitsBefore = s.Rabbits.Count;
+            SpendFair();
             SpendClovers();
             SpendGolden();
             if (s.Rabbits.Count != rabbitsBefore) mods = Modifiers.From(ups, s);
@@ -1635,6 +1670,111 @@ namespace VuonTra.Core.Tests
                 weeksOverSeeds[key] = weeks;
             }
             return weeks;
+        }
+
+        sealed class FairDays
+        {
+            public int Seed, Month, Played, Earned, RabbitDay, Golden, Left, MostCalls, Weekends;
+            public string Days;
+        }
+
+        FairDays CasualFair(int seed, int month, int[] skipped, bool weekFirst)
+        {
+            Reset(false, seed);
+            FairRun fair = Fairs.RunOn(GiftCodes.Day(2027, month, Fairs.StartDay)).Value;
+            firstDay = fair.Start - (weekFirst ? 7 : 0);
+            var run = new FairDays { Seed = seed, Month = month };
+            var days = new StringBuilder();
+            int callsBefore = 0;
+            for (int day = 1; Today <= fair.End + 1; day++)
+            {
+                bool inFair = Today >= fair.Start && Today <= fair.End;
+                int fairDay = (int)(Today - fair.Start) + 1;
+                atFair = inFair;
+                goFishing = answerAsks = inFair;
+                if (inFair && Array.IndexOf(skipped, fairDay) >= 0)
+                {
+                    Away(Day);
+                    days.Append(fairDay).Append(":– ");
+                }
+                else
+                {
+                    int before = fairEarned;
+                    Play(20 * 60);
+                    Away(8 * 3600);
+                    Play(10 * 60);
+                    Away(Day - 8 * 3600 - 30 * 60);
+                    if (inFair) { run.Played++; days.Append(fairDay).Append(Fairs.Weekend(fair.Start + fairDay - 1) ? "w" : "").Append(':').Append(fairEarned - before).Append(' '); }
+                }
+                if (day % 7 == 0 || Today > fair.End + 1)
+                {
+                    run.MostCalls = Math.Max(run.MostCalls, goldenCalls + visitorsBought - callsBefore);
+                    callsBefore = goldenCalls + visitorsBought;
+                }
+            }
+            atFair = false;
+            Fairs.Roll(defs, s, mods, Today);
+            for (long d = fair.Start; d <= fair.End; d++) if (Fairs.Weekend(d)) run.Weekends++;
+            Letter letter = s.Letters.Find(l => l.Kind == LetterKind.FairEnd);
+            run.Left = letter != null ? letter.FairCoins : 0;
+            run.Earned = fairEarned;
+            run.RabbitDay = fairRabbitDay < 0 ? -1 : fairRabbitDay - (weekFirst ? 7 : 0);
+            run.Golden = fairGolden;
+            run.Days = days.ToString();
+            return run;
+        }
+
+        public const int FairDaysPlayed = 8;
+        static readonly int[] FairMonths = { 3, 4, 5, 6, 7, 8, 10, 11 };
+
+        static int[] WorstTwoDays(int month)
+        {
+            FairRun fair = Fairs.RunOn(GiftCodes.Day(2027, month, Fairs.StartDay)).Value;
+            var weekend = new List<int>();
+            for (int d = 1; d <= fair.Def.Days; d++) if (Fairs.Weekend(fair.Start + d - 1)) weekend.Add(d);
+            if (weekend.Count >= 2) return new[] { weekend[0], weekend[1] };
+            return new[] { weekend.Count > 0 ? weekend[0] : 1, fair.Def.Days };
+        }
+
+        [Test, Category("Slow"), Timeout(3600000)]
+        public void A_Casual_Player_Who_Plays_Eight_Of_The_Ten_Fair_Days_Buys_The_Fair_Rabbit_And_Keeps_Six_Golden_Calls_A_Week()
+        {
+            var fresh = new FairDays[Seeds.Length];
+            var settled = new FairDays[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                int month = FairMonths[i % FairMonths.Length];
+                fresh[i] = CasualFair(Seeds[i], month, WorstTwoDays(month), false);
+                settled[i] = CasualFair(Seeds[i], month, WorstTwoDays(month), true);
+            }
+
+            var report = new StringBuilder();
+            report.AppendLine("# Lễ hội nhỏ (#112)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả (hai buổi 20 và 10 phút mỗi ngày; trong ngày hội câu hết mồi và trả lời thỏ xin ảnh, vì cả hai cũng rơi tiền hội) chơi " + FairDaysPlayed + " trong " + Fairs.Days
+                + " ngày hội, bỏ hai ngày cuối tuần đầu tiên (ngày ×2) nên là trường hợp khó nhất. Tiền hội: đơn khách " + Fairs.OrderCoins + ", trò nhỏ 1/3/5 theo sao, cá 1–4, ảnh xin chụp " + Fairs.PhotoAskCoins
+                + "; thứ Bảy, Chủ nhật ×" + Fairs.WeekendTimes + ". Quầy: mua thỏ hội (" + Fairs.Stall[5].Price + ") trước, rồi hũ, cỏ, cà rốt vàng.");
+            report.AppendLine("\"Mới\": vườn mới mở đúng ngày hội bắt đầu; \"đã chơi một tuần\": vườn đã chơi 7 ngày trước hội.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Tháng | cuối tuần trong hội | Mới: tiền hội | ngày mua thỏ | vàng từ quầy | còn lại đổi cà rốt | gọi vàng tuần nhiều nhất | Đã chơi một tuần: tiền hội | ngày mua thỏ | gọi vàng tuần nhiều nhất | từng ngày (đã chơi một tuần) |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|");
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                FairDays f = fresh[i], w = settled[i];
+                report.AppendLine("| " + f.Seed + " | " + f.Month + " | " + f.Weekends + " | " + f.Earned + " | " + f.RabbitDay + " | " + f.Golden + " | " + f.Left + " | " + f.MostCalls
+                    + " | " + w.Earned + " | " + w.RabbitDay + " | " + w.MostCalls + " | " + w.Days + " |");
+            }
+            report.AppendLine("| **trung vị** | | | " + Median(fresh, r => r.Earned) + " | " + Median(fresh, r => r.RabbitDay) + " | " + Median(fresh, r => r.Golden) + " | " + Median(fresh, r => r.Left) + " | " + Median(fresh, r => r.MostCalls)
+                + " | " + Median(settled, r => r.Earned) + " | " + Median(settled, r => r.RabbitDay) + " | " + Median(settled, r => r.MostCalls) + " | |");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-fair.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            Always(fresh, r => r.Played == FairDaysPlayed, "every run plays exactly " + FairDaysPlayed + " of the fair's days", report.ToString());
+            Holds(fresh, r => r.RabbitDay > 0 && r.RabbitDay <= Fairs.Days, "a casual player new on the fair's first day buys the fair rabbit within the ten days", report.ToString());
+            Always(settled, r => r.RabbitDay > 0 && r.RabbitDay <= Fairs.Days, "a casual player who has played a week always does", report.ToString());
+            Holds(fresh, r => r.MostCalls <= 6, "with the fair stall the casual player still calls with golden carrots at most six times a week", report.ToString());
+            Holds(settled, r => r.MostCalls <= 6, "and so does the settled casual player", report.ToString());
         }
 
         [Test, Category("Slow"), Timeout(3600000)]

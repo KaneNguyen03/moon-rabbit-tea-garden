@@ -260,6 +260,8 @@ namespace VuonTra.Core
         {
             int cal = LanternMonth(color);
             if (cal >= 0) return LanternColors[cal];
+            int fair = Fairs.LanternFair(color);
+            if (fair >= 0) return Fairs.All[fair].Hex;
             return Decor.LanternColors[Math.Max(0, Math.Min(Decor.LanternColors.Length - 1, color))];
         }
 

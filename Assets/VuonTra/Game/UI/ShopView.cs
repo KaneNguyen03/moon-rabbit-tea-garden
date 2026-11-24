@@ -531,6 +531,41 @@ namespace VuonTra.Game.UI
             RefreshAd();
         }
 
+        public const float FairWidth = 300f, FairGap = 14f;
+        RectTransform _fairRow;
+        Text _fairText;
+
+        public bool FairShown => _fairRow != null && _fairRow.gameObject.activeSelf;
+        public RectTransform FairButton => _fairRow;
+
+        public void AttachFair(Action onTap)
+        {
+            _fairRow = UiKit.Rect("Fair", Sheet.Card).Place(1f, 1f, -40f - OfferWidth - FairGap - FairWidth / 2f, -OfferTop - OfferHeight / 2f, FairWidth, OfferHeight);
+            ChunkyButton button = null;
+            button = UiKit.Chunky(_fairRow, _catalog.Panel, () => { button.Press(_tweens); Sfx.Click(); onTap?.Invoke(); });
+            button.Face.color = Palette.Mix(Palette.Blush, Palette.Paper, 0.35f);
+            button.Lip.color = Palette.Mix(Palette.Blush, Palette.Ink, 0.3f);
+            Text stall = UiKit.Rect("Stall", button.FaceRect).Stretch(0, 0.5f, 1, 1, 16, 0, 12, 2).AddText(L10n.T("fair.stall"), UiKit.TextSmall, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
+            stall.resizeTextForBestFit = true;
+            stall.verticalOverflow = VerticalWrapMode.Truncate;
+            stall.resizeTextMinSize = 11;
+            stall.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _fairText = UiKit.Rect("Name", button.FaceRect).Stretch(0, 0, 1, 0.5f, 16, 2, 12, 0).AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.UpperLeft);
+            _fairText.resizeTextForBestFit = true;
+            _fairText.verticalOverflow = VerticalWrapMode.Truncate;
+            _fairText.resizeTextMinSize = 11;
+            _fairText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _fairRow.gameObject.SetActive(false);
+        }
+
+        public void RefreshFair(string fairName)
+        {
+            if (_fairRow == null) return;
+            bool on = fairName != null;
+            if (_fairRow.gameObject.activeSelf != on) _fairRow.gameObject.SetActive(on);
+            if (on) _fairText.text = fairName;
+        }
+
         public const float OfferWidth = 320f, OfferHeight = UiKit.MinTouch, OfferTop = 12f;
         RectTransform _offerRow;
         Text _offerTitle, _offerLeft;

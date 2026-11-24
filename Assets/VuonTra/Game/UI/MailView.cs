@@ -111,6 +111,7 @@ namespace VuonTra.Game.UI
                 case LetterKind.WeekChest: return L10n.T("mail.chest", QuestChests.Chests[letter.Chest].Points);
                 case LetterKind.MonthPass: return L10n.T(letter.Premium ? "mail.monthpass.premium" : "mail.monthpass", MonthPassView.MonthName(letter.Month));
                 case LetterKind.Newcomer: return L10n.T("mail.newcomer");
+                case LetterKind.FairEnd: return Fairs.RunOn(letter.Fair) is FairRun run ? L10n.T("mail.fair", L10n.T(run.Def.NameKey), L10n.T(run.Def.CoinKey)) : L10n.T("mail.coins", letter.Coins.ToShortString());
                 default: return L10n.T("mail.season", L10n.Season(letter.Season));
             }
         }
@@ -126,7 +127,9 @@ namespace VuonTra.Game.UI
             return string.Join(" · ", parts);
         }
 
-        public static string GiftOf(Letter letter) => letter.Kind == LetterKind.MonthPass ? GiftOfMonth(letter) : GiftOf(letter.Golden, letter.Clovers, letter.Jars, letter.RabbitTier, letter.Purple);
+        public static string GiftOf(Letter letter) => letter.Kind == LetterKind.MonthPass ? GiftOfMonth(letter)
+            : letter.Kind == LetterKind.FairEnd ? L10n.T("mail.coins", letter.Coins.ToShortString())
+            : GiftOf(letter.Golden, letter.Clovers, letter.Jars, letter.RabbitTier, letter.Purple);
 
         static string GiftOfMonth(Letter letter)
         {

@@ -114,6 +114,7 @@ namespace VuonTra.Game
             }
 
             CheckWelcomeBack();
+            CheckFair();
             Intros.Settle(State);
             Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             LoadGiftKey();
@@ -168,6 +169,7 @@ namespace VuonTra.Game
             if (_sinceSave >= AutosaveSeconds)
             {
                 if (CheckWelcomeBack()) StateChanged?.Invoke();
+                if (CheckFair()) StateChanged?.Invoke();
                 if (Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods)) StateChanged?.Invoke();
                 if (CheckMail()) StateChanged?.Invoke();
                 if (NoteOffers()) StateChanged?.Invoke();
@@ -291,6 +293,7 @@ namespace VuonTra.Game
             bool ok = Orders.Deliver(Defs, State, Mods, out paid, out clovers);
             if (ok)
             {
+                EarnFair(Fairs.OrderCoins);
                 TryIntro(Intros.Orders);
                 Changed();
             }
@@ -424,6 +427,7 @@ namespace VuonTra.Game
         public bool AnswerPhotoAsk(out BigNum paid)
         {
             bool ok = PhotoAsks.Answer(Defs, State, Mods, TodayNumber, out paid);
+            if (ok) EarnFair(Fairs.PhotoAskCoins);
             if (ok) Changed();
             return ok;
         }
@@ -677,6 +681,7 @@ namespace VuonTra.Game
         public PoundingResult FinishPounding(PoundingRun run)
         {
             PoundingResult result = Pounding.Finish(Defs, State, Mods, run);
+            EarnFair(Fairs.ForStars(result.Stars));
             TryIntro(Intros.Pounding);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
@@ -693,6 +698,7 @@ namespace VuonTra.Game
         public LeavesResult FinishLeaves(LeavesRun run)
         {
             LeavesResult result = Leaves.Finish(Defs, State, Mods, run);
+            EarnFair(Fairs.ForStars(result.Stars));
             TryIntro(Intros.Leaves);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
@@ -709,6 +715,7 @@ namespace VuonTra.Game
         public FirefliesResult FinishFireflies(FirefliesRun run)
         {
             FirefliesResult result = Fireflies.Finish(Defs, State, Mods, run);
+            EarnFair(Fairs.ForStars(result.Stars));
             TryIntro(Intros.Fireflies);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
@@ -1146,6 +1153,7 @@ namespace VuonTra.Game
             if (Cast == null) return CastTap.None;
             CastTap tap = Cast.Tap();
             bool landed = tap == CastTap.Caught && Fishing.Land(State, Cast);
+            if (landed) EarnFair(Fairs.ForFish(Cast.Fish));
             if (Cast.Over)
             {
                 Cast = null;
