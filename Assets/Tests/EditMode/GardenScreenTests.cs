@@ -28,6 +28,8 @@ namespace VuonTra.Core.Tests
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
             runner.Init(GameState.NewGame(catalog.BuildDefs()));
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();

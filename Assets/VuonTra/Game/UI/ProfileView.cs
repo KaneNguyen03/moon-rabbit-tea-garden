@@ -25,6 +25,7 @@ namespace VuonTra.Game.UI
         readonly RectTransform _giftField;
         readonly InputField _giftInput;
         readonly Text _giftNote;
+        readonly Text _introsCount;
         Vector2 _giftHome;
         float _copiedAt = -99f;
 
@@ -33,7 +34,7 @@ namespace VuonTra.Game.UI
 
         public ProfileView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onNextAvatar, Action onRename, Action onLink,
             Action onPushCloud = null, Action onRestoreCloud = null, Action onRestoreLocal = null, Action onDeleteData = null,
-            Func<string, GiftCodes.Result> onRedeem = null)
+            Func<string, GiftCodes.Result> onRedeem = null, Action onIntros = null)
         {
             _onRedeem = onRedeem;
             _catalog = catalog;
@@ -65,6 +66,24 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Inner", avatar).Stretch(0, 0, 1, 1, 10, 10, 10, 10).AddImage(catalog.Round, Palette.Card);
             _avatar = UiKit.Rect("Art", avatar).Stretch(0, 0, 1, 1, 24, 18, 24, 30).AddImage(catalog.Rabbit, Color.white);
             _avatar.preserveAspect = true;
+            var intros = UiKit.Rect("Intros", _card).Place(0f, 1f, 160, -250, 230, 110);
+            Image introsPlate = intros.AddImage(catalog.Panel, Palette.Track, true);
+            introsPlate.raycastTarget = true;
+            var introsButton = intros.gameObject.AddComponent<Button>();
+            introsButton.transition = Selectable.Transition.None;
+            introsButton.targetGraphic = introsPlate;
+            introsButton.onClick.AddListener(() => { Sfx.Click(); onIntros?.Invoke(); });
+            Text introsLabel = UiKit.Rect("Text", intros).Stretch(0, 0.45f, 1, 1, 12, 0, 12, 8)
+                .AddText(L10n.T("profile.intros"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            introsLabel.resizeTextForBestFit = true;
+            introsLabel.resizeTextMinSize = 14;
+            introsLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _introsCount = UiKit.Rect("Count", intros).Stretch(0, 0, 1, 0.5f, 12, 10, 12, 0)
+                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
+            _introsCount.resizeTextForBestFit = true;
+            _introsCount.resizeTextMinSize = 12;
+            _introsCount.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+
             UiKit.Rect("AvatarHint", _card).Place(0.5f, 1f, 0, -416, 700, 40)
                 .AddText(L10n.T("profile.avatar.hint"), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
 
@@ -305,6 +324,7 @@ namespace VuonTra.Game.UI
             _avatar.sprite = avatar != null ? _catalog.RabbitArt(avatar) : _catalog.Rabbit;
             _name.text = NameOf(s);
             _code.text = s.Profile.Code;
+            _introsCount.text = L10n.T("profile.intros.count", Intros.Opened(s).Count, Intros.All.Length);
             int open = 0;
             for (int i = 0; i < s.Levels.Length; i++) if (s.Levels[i] > 0) open++;
             _stats.text = s.Season > 0

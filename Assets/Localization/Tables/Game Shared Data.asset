@@ -3439,6 +3439,130 @@ MonoBehaviour:
     m_Key: upgradeall.locked
     m_Metadata:
       m_Items: []
+  - m_Id: 794031524143104
+    m_Key: intro.tag
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697536
+    m_Key: intro.try
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697537
+    m_Key: intro.later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697538
+    m_Key: intro.reward
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697539
+    m_Key: intro.paid
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697540
+    m_Key: profile.intros
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697541
+    m_Key: profile.intros.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697542
+    m_Key: intros.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697543
+    m_Key: intros.empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697544
+    m_Key: intro.fishing.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697545
+    m_Key: intro.fishing.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697546
+    m_Key: intro.pounding.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697547
+    m_Key: intro.pounding.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697548
+    m_Key: intro.leaves.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697549
+    m_Key: intro.leaves.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697550
+    m_Key: intro.fireflies.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697551
+    m_Key: intro.fireflies.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697552
+    m_Key: intro.orders.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697553
+    m_Key: intro.orders.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697554
+    m_Key: intro.shop.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697555
+    m_Key: intro.shop.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697556
+    m_Key: intro.moonjar.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697557
+    m_Key: intro.moonjar.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697558
+    m_Key: intro.layout.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697559
+    m_Key: intro.layout.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697560
+    m_Key: intro.rain.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697561
+    m_Key: intro.rain.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697562
+    m_Key: intro.newmoon.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031557697563
+    m_Key: intro.newmoon.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031582863360
+    m_Key: intro.reward.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 794031582863361
+    m_Key: intro.paid.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
