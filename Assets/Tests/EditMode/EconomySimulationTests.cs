@@ -42,6 +42,8 @@ namespace VuonTra.Core.Tests
         int goldenNewTiers;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
         bool takeFreeDouble, everyAd;
+        bool moonPass;
+        int goldenMoonPass;
         bool upgradeAll;
         bool raiseDishes;
         int dishesRaised;
@@ -110,6 +112,8 @@ namespace VuonTra.Core.Tests
             takeFreeDouble = everyAd = upgradeAll = false;
             raiseDishes = true;
             dishesRaised = 0;
+            moonPass = false;
+            goldenMoonPass = 0;
             earnedDoubles = earnedAds = BigNum.Zero;
             goldenAds = extraRounds = 0;
             newcomer = false;
@@ -168,6 +172,7 @@ namespace VuonTra.Core.Tests
             goldenGift += Shop.ClaimDailyGift(s, Today, null, BigGiftHat, out _, out _);
             if (Photos.Take(s, Today)) goldenPhoto += Photos.GiftGolden;
             if (everyAd) while (Ads.ClaimShopGolden(s, Today)) goldenAds += Ads.ShopGoldenReward;
+            if (moonPass) ClaimPassLetters();
             MeetFrog();
             GoFishing();
             if (newcomer) TryTheWeeksTasks();
@@ -211,6 +216,13 @@ namespace VuonTra.Core.Tests
                     if (claim.DayPaid) newcomerDayAt[day - 1] = (int)Today;
                     if (claim.Rabbit != null) Rabbits.AutoAssign(defs, s);
                 }
+        }
+
+        void ClaimPassLetters()
+        {
+            MoonPass.Deliver(s, Today);
+            foreach (Letter letter in s.Letters.FindAll(l => l.Kind == LetterKind.MoonPassDay))
+                goldenMoonPass += Mailbox.Claim(s, letter.Id, Today).Golden;
         }
 
         void GoFishing()
@@ -665,8 +677,8 @@ namespace VuonTra.Core.Tests
             return total.IsZero ? 0d : Math.Round((part / total).ToDouble() * 1000d) / 10d;
         }
 
-        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + goldenWelcome + GoldenFromLevels;
-        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass - goldenWelcome;
+        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + goldenWelcome + goldenMoonPass + GoldenFromLevels;
+        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass - goldenWelcome - goldenMoonPass;
         int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversNewcomer - cloversPass - cloversWelcome;
 
         void Snapshot(string label)
@@ -744,7 +756,8 @@ namespace VuonTra.Core.Tests
             public int Golden => GoldenCalls + Visitors;
         }
 
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true, bool dishes = true)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true, bool dishes = true,
+            bool buyMoonPass = false, int goldenAtStart = 0)
         {
             Reset(false, seed);
             raiseDishes = dishes;
@@ -754,6 +767,15 @@ namespace VuonTra.Core.Tests
             if (wholeSet) firstDay = QuestChests.MondayOf(QuestChests.WeekOf(1) + 1);
             newcomer = firstWeek;
             goFishing = fishing || firstWeek;
+            s.GoldenCarrots += goldenAtStart;
+            if (buyMoonPass)
+            {
+                moonPass = true;
+                VuonTra.Core.Seasons.Clamp(s, Today);
+                MoonPass.Grant(s, Today);
+                goldenMoonPass = MoonPass.GoldenNow;
+                mods = Modifiers.From(ups, s);
+            }
             upgradeAll = pressUpgradeAll;
             takeFreeDouble = freeDouble;
             everyAd = watchEveryAd;
@@ -1343,6 +1365,52 @@ namespace VuonTra.Core.Tests
             TestContext.WriteLine(report.ToString());
 
             HardRules(ads, report.ToString());
+        }
+
+        [Test]
+        public void Beyond_Its_Day_One_Golden_Carrots_The_Moon_Pass_Brings_Garden_Level_Ten_No_More_Than_A_Tenth_Earlier()
+        {
+            Week[] plain = OverSeeds(true, false, false);
+            var buyers = new Week[Seeds.Length];
+            var sameGolden = new Week[Seeds.Length];
+            const int DayOneGolden = MoonPass.GoldenNow + MoonPass.GoldenPerDay;
+            var golden = new int[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                buyers[i] = CasualWeek(true, false, false, Seeds[i], buyMoonPass: true);
+                golden[i] = goldenMoonPass;
+                sameGolden[i] = CasualWeek(true, false, false, Seeds[i], goldenAtStart: DayOneGolden);
+            }
+            Assert.AreEqual(MoonPass.GoldenNow + 7 * MoonPass.GoldenPerDay, golden[0], "the pass paid 100 at once and 15 on each of the seven days");
+
+            double plainLevel10 = Median(plain, w => w.Level10), buyerLevel10 = Median(buyers, w => w.Level10), sameGoldenLevel10 = Median(sameGolden, w => w.Level10);
+            var report = new StringBuilder();
+            report.AppendLine("# Người chơi thong thả mua Vé trăng 30 ngày ngay phút đầu (#106)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi với EconomySimulationTests, trung vị trên " + Seeds.Length + " hạt, cả hai cách dùng ×2 miễn phí mỗi ngày. Người mua vé: +" + MoonPass.GoldenNow + " cà rốt vàng ngay, nhận thư +" + MoonPass.GoldenPerDay
+                + " mỗi lần mở game đầu ngày, trần vắng mặt +1 giờ, thêm 1 lượt ×2 miễn phí mỗi ngày; cà rốt vàng tiêu ngay vào thỏ ghé tiệm và gọi vàng như người không mua.");
+            report.AppendLine();
+            report.AppendLine("| Cách chơi | Cấp vườn 5 | Cấp vườn 10 | Cấp hết ngày 1 | 12 ô đất | Cấp hết ngày 7 | Ô đất ngày 7 | Thỏ ngày 7 | Lượt gọi vàng + thỏ ghé tiệm | Vàng từ video | Lượt thêm từ video | ×2 miễn phí % | ×2 video % |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            report.AppendLine(Row("Không mua vé (×2 miễn phí mỗi ngày)", plain));
+            report.AppendLine(Row("Không mua vé, có sẵn " + DayOneGolden + " cà rốt vàng phút đầu (bằng vàng ngày 1 của vé)", sameGolden));
+            report.AppendLine(Row("Mua vé trăng phút đầu", buyers));
+            report.AppendLine();
+            report.AppendLine("Cấp vườn 10: không mua " + Clock(plainLevel10) + ", mua vé " + Clock(buyerLevel10) + " (" + Math.Round(100d * (1d - buyerLevel10 / plainLevel10), 1) + " % sớm hơn người không mua; tiêu chí của #106 là ≤ 10 %: CHƯA ĐẠT, cần chủ project quyết).");
+            report.AppendLine("Cấp vườn 10 ngay trong buổi chơi đầu: không mua " + Count(plain, w => w.Level10 >= 0 && w.Level10 < 2 * 3600) + "/" + plain.Length + " hạt, có sẵn " + DayOneGolden + " vàng "
+                + Count(sameGolden, w => w.Level10 >= 0 && w.Level10 < 2 * 3600) + "/" + plain.Length + ", mua vé " + Count(buyers, w => w.Level10 >= 0 && w.Level10 < 2 * 3600) + "/" + plain.Length
+                + ". Cấp 10 rơi vào buổi đầu (~20 phút) hoặc lúc nhận tiền vắng mặt 8 giờ (~8 giờ 22 phút), nên vài chục cà rốt vàng tiêu ngay vào gọi vàng đủ đổi bậc: " + MoonPass.GoldenNow
+                + " vàng chưa đổi, " + DayOneGolden + " vàng (100 + thư ngày 1) đổi.");
+            report.AppendLine("Riêng phần còn lại của vé (+1 giờ vắng mặt, thêm ×2, thư các ngày sau): có sẵn " + DayOneGolden + " cà rốt vàng " + Clock(sameGoldenLevel10) + ", mua vé " + Clock(buyerLevel10)
+                + " (" + Math.Round(100d * (1d - buyerLevel10 / sameGoldenLevel10), 1) + " % sớm hơn; trần 10 %).");
+            report.AppendLine();
+            report.AppendLine("Mua vé, từng hạt:");
+            report.Append(SeedTable(buyers));
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-moonpass.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            Assert.GreaterOrEqual(buyerLevel10, 0.9 * sameGoldenLevel10, "beyond its day-one golden carrots the pass brings garden level 10 no more than 10 % earlier, on the median\n" + report);
         }
 
         Week[] upgradeAllOverSeeds;

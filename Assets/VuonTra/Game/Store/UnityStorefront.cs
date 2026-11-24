@@ -31,6 +31,7 @@ namespace VuonTra.Game.Store
             builder.AddProduct(Storefront.NoAdsPass, ProductType.Consumable);
             foreach (OfferDef offer in Offers.All) builder.AddProduct(offer.Id, ProductType.NonConsumable);
             builder.AddProduct(MonthPass.ProductId, ProductType.Consumable);
+            builder.AddProduct(MoonPass.ProductId, ProductType.Consumable);
             UnityPurchasing.Initialize(this, builder);
         }
 

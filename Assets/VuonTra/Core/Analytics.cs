@@ -120,6 +120,8 @@ namespace VuonTra.Core
         public const string WelcomeBack = "welcome_back";
         public const string TrunkOpen = "trunk_open";
         public const string TrunkBuy = "trunk_buy";
+        public const string PassBought = "pass_bought";
+        public const string PassDayClaimed = "pass_day_claimed";
 
         public static readonly string[] All =
         {
@@ -131,6 +133,7 @@ namespace VuonTra.Core
             MonthPassTier, MonthPassBought,
             WelcomeBack,
             TrunkOpen, TrunkBuy,
+            PassBought, PassDayClaimed,
         };
 
         public const string NewGarden = "new_garden";
@@ -168,6 +171,7 @@ namespace VuonTra.Core
         public const string Items = "items";
         public const string Item = "item";
         public const string Sale = "sale";
+        public const string Days = "days";
 
         public const string ViaClover = "clover", ViaGolden = "golden", ViaTrunk = "trunk";
         public const string FromShop = "shop";
@@ -230,7 +234,10 @@ namespace VuonTra.Core
         public static void LogPurchase(this IAnalytics a, PurchaseResult r, string price, bool late = false)
         {
             if (r.Outcome == PurchaseOutcome.Paid)
+            {
                 a.Log(AnalyticsEvents.PurchaseSuccess, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
+                if (r.PackId == MoonPass.ProductId) a.Log(AnalyticsEvents.PassBought, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
+            }
             else
                 a.Log(AnalyticsEvents.PurchaseFailed, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Reason, AnalyticsEvents.ReasonOf(r.Outcome)));
         }
@@ -283,6 +290,12 @@ namespace VuonTra.Core
             if (!buy.Ok) return;
             a.Log(AnalyticsEvents.TrunkBuy, new AnalyticsParam(AnalyticsEvents.Item, buy.Offer.Code),
                 new AnalyticsParam(AnalyticsEvents.Price, buy.Offer.Price), new AnalyticsParam(AnalyticsEvents.Sale, buy.Offer.Sale));
+        }
+
+        public static void LogLetterClaimed(this IAnalytics a, Letter letter)
+        {
+            if (letter == null || letter.Kind != LetterKind.MoonPassDay) return;
+            a.Log(AnalyticsEvents.PassDayClaimed, new AnalyticsParam(AnalyticsEvents.Day, letter.PassDay), new AnalyticsParam(AnalyticsEvents.Days, letter.PassDays));
         }
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>

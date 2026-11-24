@@ -109,6 +109,7 @@ namespace VuonTra.Core
         public GardenGrid Grid = new GardenGrid();
         public AdsRecord AdsToday = new AdsRecord();
         public long NoAdsUntilDay = -1;
+        public long MoonPassFromDay = -1, MoonPassUntilDay = -1, MoonPassMailDay = -1, MoonPassRemindedUntil = -1, MoonPassDoubleDay = -1;
 
         public HashSet<string> CodesUsed = new HashSet<string>();
         public List<Letter> Letters = new List<Letter>();

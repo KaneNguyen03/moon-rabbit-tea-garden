@@ -68,14 +68,15 @@ namespace VuonTra.Core
             return best != null ? best.Id : 0;
         }
 
-        public static bool DoubleIsFree(GameState s, long day) => day > s.AwayDoubleDay;
+        public static bool DoubleIsFree(GameState s, long day) => day > s.AwayDoubleDay || MoonPass.ExtraDoubleFree(s, day);
 
         public static int DoubleCostToday(GameState s, long day) => DoubleIsFree(s, day) ? 0 : DoubleCost;
 
         public static bool Double(GameState s, long day, BigNum paid)
         {
             if (paid < BigNum.One) return false;
-            if (DoubleIsFree(s, day)) s.AwayDoubleDay = day;
+            if (day > s.AwayDoubleDay) s.AwayDoubleDay = day;
+            else if (MoonPass.ExtraDoubleFree(s, day)) s.MoonPassDoubleDay = day;
             else if (s.GoldenCarrots < DoubleCost) return false;
             else s.GoldenCarrots -= DoubleCost;
             s.Coins += paid;

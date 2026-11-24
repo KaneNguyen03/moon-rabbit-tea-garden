@@ -200,7 +200,7 @@ namespace VuonTra.Core.Tests
             screen.AwayCard.Close();
             screen.GoldenPacks.Open(runner.Store);
             Assert.IsFalse(screen.GoldenPacks.PassShown, "nothing to remove");
-            Assert.AreEqual(GoldenPacksView.CardHeight, ((RectTransform)root.transform.Find("Canvas/GoldenPacks/Card")).sizeDelta.y);
+            Assert.AreEqual(GoldenPacksView.CardHeight + GoldenPacksView.MoonExtra, ((RectTransform)root.transform.Find("Canvas/GoldenPacks/Card")).sizeDelta.y, "only the moon pass card below the packs");
         }
 
         [Test]
