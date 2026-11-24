@@ -46,6 +46,8 @@ namespace VuonTra.Core.Tests
             s.FirstDaySeen = s.MaxDaySeen = Today - 3;
             s.WelcomeBack.SeenDay = s.MaxDaySeen;
             runner.Init(s);
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();

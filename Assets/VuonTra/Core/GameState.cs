@@ -148,6 +148,11 @@ namespace VuonTra.Core
         public WelcomeBackRecord WelcomeBack = new WelcomeBackRecord();
         public TrunkRecord Trunk = new TrunkRecord();
 
+        public bool IntrosKnown;
+        public HashSet<string> IntrosSeen = new HashSet<string>();
+        public HashSet<string> IntrosTried = new HashSet<string>();
+        public HashSet<string> IntrosLater = new HashSet<string>();
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState

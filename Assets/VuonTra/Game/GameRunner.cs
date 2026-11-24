@@ -30,6 +30,7 @@ namespace VuonTra.Game
         public event Action<Season> SeasonBegan;
         public event Action<AlbumSet> AlbumSetCompleted;
         public event Action<int, int> AlbumMilestoneReached;
+        public event Action<string, BigNum, int> IntroRewarded;
 
         public bool GreetSeason()
         {
@@ -106,12 +107,14 @@ namespace VuonTra.Game
                 {
                     Rabbits.GiftFirst(State, PickName());
                     State.LastSeenUnixSeconds = Now;
+                    State.IntrosKnown = true;
                     if (loaded.Status == LoadStatus.Corrupt) Mailbox.Compensate(State, TodayNumber);
                 }
                 Mods = Modifiers.From(UpgradeDefs, State);
             }
 
             CheckWelcomeBack();
+            Intros.Settle(State);
             Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             LoadGiftKey();
             CheckMail();
@@ -286,7 +289,11 @@ namespace VuonTra.Game
         public bool DeliverOrder(out BigNum paid, out int clovers)
         {
             bool ok = Orders.Deliver(Defs, State, Mods, out paid, out clovers);
-            if (ok) Changed();
+            if (ok)
+            {
+                TryIntro(Intros.Orders);
+                Changed();
+            }
             return ok;
         }
 
@@ -305,7 +312,11 @@ namespace VuonTra.Game
         {
             int gift = Shop.ClaimDailyGift(State, TodayNumber, PickName(), ItemDefs, out Rabbit seasonRabbit, out big);
             if (seasonRabbit != null) SeasonArrived?.Invoke(seasonRabbit);
-            if (gift > 0) Changed();
+            if (gift > 0)
+            {
+                TryIntro(Intros.Shop);
+                Changed();
+            }
             return gift;
         }
 
@@ -666,6 +677,7 @@ namespace VuonTra.Game
         public PoundingResult FinishPounding(PoundingRun run)
         {
             PoundingResult result = Pounding.Finish(Defs, State, Mods, run);
+            TryIntro(Intros.Pounding);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
             return result;
@@ -681,6 +693,7 @@ namespace VuonTra.Game
         public LeavesResult FinishLeaves(LeavesRun run)
         {
             LeavesResult result = Leaves.Finish(Defs, State, Mods, run);
+            TryIntro(Intros.Leaves);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
             return result;
@@ -696,6 +709,7 @@ namespace VuonTra.Game
         public FirefliesResult FinishFireflies(FirefliesRun run)
         {
             FirefliesResult result = Fireflies.Finish(Defs, State, Mods, run);
+            TryIntro(Intros.Fireflies);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
             return result;
@@ -804,6 +818,7 @@ namespace VuonTra.Game
             Rabbits.GiftFirst(State, PickName());
             State.BuyMode = buyMode;
             State.HintSeen = true;
+            State.IntrosKnown = true;
             State.LastSeenUnixSeconds = Now;
             Mods = Modifiers.From(UpgradeDefs, State);
             Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
@@ -813,6 +828,7 @@ namespace VuonTra.Game
         public bool BeginNewMoon(out Rabbit gift)
         {
             if (!NewMoon.Begin(Defs, State, PickName(), out gift)) return false;
+            TryIntro(Intros.NewMoon);
             Quests.RerollCarrotTarget(Defs, State, Modifiers.From(UpgradeDefs, State));
             _plotsSeen = State.Plots;
             Analytics.LogNewMoon(State);
@@ -887,7 +903,11 @@ namespace VuonTra.Game
         public BigNum OpenMoonJar()
         {
             BigNum paid = MoonJars.Open(Defs, State, Mods);
-            if (paid > BigNum.Zero) Changed();
+            if (paid > BigNum.Zero)
+            {
+                TryIntro(Intros.MoonJar);
+                Changed();
+            }
             return paid;
         }
 
@@ -1073,7 +1093,11 @@ namespace VuonTra.Game
         public bool GreetFrog(double hour, out BigNum paid, out int clovers)
         {
             bool ok = FrogRabbit.Greet(Defs, State, Mods, TodayNumber, hour, _rng.NextDouble(), out paid, out clovers);
-            if (ok) Changed();
+            if (ok)
+            {
+                TryIntro(Intros.Rain);
+                Changed();
+            }
             return ok;
         }
 
@@ -1109,7 +1133,11 @@ namespace VuonTra.Game
         {
             if (Cast == null) return CastPhase.Lost;
             CastPhase phase = Cast.Advance(dt);
-            if (phase == CastPhase.Lost) Cast = null;
+            if (phase == CastPhase.Lost)
+            {
+                Cast = null;
+                if (TryIntro(Intros.Fishing)) Changed();
+            }
             return phase;
         }
 
@@ -1117,8 +1145,13 @@ namespace VuonTra.Game
         {
             if (Cast == null) return CastTap.None;
             CastTap tap = Cast.Tap();
-            if (tap == CastTap.Caught && Fishing.Land(State, Cast)) Changed();
-            if (Cast.Over) Cast = null;
+            bool landed = tap == CastTap.Caught && Fishing.Land(State, Cast);
+            if (Cast.Over)
+            {
+                Cast = null;
+                landed |= TryIntro(Intros.Fishing);
+            }
+            if (landed) Changed();
             return tap;
         }
 
@@ -1218,6 +1251,34 @@ namespace VuonTra.Game
 
         #endregion
 
+        public bool TryIntro(string id)
+        {
+            bool tried = !State.IntrosTried.Contains(id);
+            if (Intros.Use(Defs, State, Mods, id, out BigNum paid, out int clovers)) IntroRewarded?.Invoke(id, paid, clovers);
+            return tried && State.IntrosTried.Contains(id);
+        }
+
+        public bool TouchIntro(string id)
+        {
+            if (!Intros.Touch(State, id)) return false;
+            Changed();
+            return true;
+        }
+
+        public string ShowNextIntro(IntroQueue queue, double dt, bool blocked)
+        {
+            string id = queue.Tick(State, dt, blocked);
+            if (id != null) Changed();
+            return id;
+        }
+
+        public bool LeaveIntroForLater(string id)
+        {
+            if (!Intros.Later(State, id)) return false;
+            Changed();
+            return true;
+        }
+
         #region Month pass (#107)
 
         readonly MonthPassWatch _passWatch = new MonthPassWatch();
@@ -1270,7 +1331,11 @@ namespace VuonTra.Game
         public LayoutDrop DropInLayout(Hex from, Hex to)
         {
             LayoutDrop done = Layout.Drop(Defs, State, from, to);
-            if (done != VuonTra.Core.LayoutDrop.Back) Changed();
+            if (done != VuonTra.Core.LayoutDrop.Back)
+            {
+                TryIntro(Intros.Layout);
+                Changed();
+            }
             return done;
         }
 
