@@ -2372,6 +2372,15 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Kiểm chữ en bỏ qua dòng có chữ cố định dưới 3 ký tự (ví dụ "Lv {0}").
 - `TestResults.xml` vẫn vào thư mục người chơi khi chạy test từ cửa sổ Test Runner/MCP không có `-testResults`.
 
+## #117 — Đo phễu tính năng vòng 2 (agent-117)
+**Test:** verify đầy đủ GREEN, tests 1655/1655, rules ok, save ok; Core 928/928.
+**Commit:** f52ca82
+**Đã làm:** 17 sự kiện mới trong `AnalyticsEvents.All` (thẻ giới thiệu, bể cá, sổ công thức, lễ hội, nhiệm vụ ngày, rương tuần, thành tựu nấc, lần dùng đầu), ghi một lần cho mỗi hành động; `FunnelLog` và `DishWatch` trong `Core/Analytics.cs`; nối vào `GameRunner` (`GameRunner.Funnel.cs`) và `GardenScreen` (Thử ngay, Để sau, chấm vàng); test Core `AnalyticsFunnelTests`, test màn hình `AnalyticsFunnelScreenTests`; bảng phễu `docs/phat-hanh/PHEU-SU-KIEN.md`. Không đổi kinh tế, không đổi chuỗi chữ.
+### Chưa đạt / cần PO quyết
+- Duyệt `tank_full`, `fair_coins` và các tham số `from` thêm vào.
+- Lá công thức nhận dần lúc đang chơi không ghi (theo thời gian, không theo hành động).
+- Vườn cũ đã được `Intros.Settle` đánh dấu không gửi `feature_first_use` cho tính năng đó.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
