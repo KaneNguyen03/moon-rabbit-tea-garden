@@ -205,6 +205,7 @@ namespace VuonTra.Core
             if (day <= s.DailyDay) return false;
             s.DailyDay = day;
             QuestChests.Roll(s, day);
+            MonthPass.Roll(s, day, defs, m);
             s.DailyTapsBase = s.TotalTaps;
             s.DailyLevelsBase = s.LevelsBought;
             s.DailyEarnedBase = s.TotalEarned;

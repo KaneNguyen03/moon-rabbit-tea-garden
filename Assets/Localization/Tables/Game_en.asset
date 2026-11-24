@@ -3695,6 +3695,198 @@ MonoBehaviour:
       Player code: {1}'
     m_Metadata:
       m_Items: []
+  - m_Id: 847125809192960
+    m_Localized: "{0} pass \xB7 tier {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775872
+    m_Localized: January
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775873
+    m_Localized: February
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775874
+    m_Localized: March
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775875
+    m_Localized: April
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775876
+    m_Localized: May
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775877
+    m_Localized: June
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775878
+    m_Localized: July
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775879
+    m_Localized: August
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775880
+    m_Localized: September
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775881
+    m_Localized: October
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775882
+    m_Localized: November
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775883
+    m_Localized: December
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775884
+    m_Localized: "{0} days left \xB7 {1} daily quest points a tier"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775885
+    m_Localized: "Tiers {0}\u2013{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775886
+    m_Localized: Free
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775887
+    m_Localized: Pass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775888
+    m_Localized: "Unlock the pass \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775889
+    m_Localized: "{0} pass unlocked \xB7 every tier adds a lower-row gift"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775890
+    m_Localized: Unlock the pass for this row's gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775891
+    m_Localized: '{0} more points to tier {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775892
+    m_Localized: '{0} min'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775893
+    m_Localized: Lantern
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775894
+    m_Localized: Frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775895
+    m_Localized: 1 of {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775896
+    m_Localized: Tier {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775897
+    m_Localized: "{0} pass \xB7 free gift"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775898
+    m_Localized: '{0} pass gift'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775899
+    m_Localized: '{0} lantern colour'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775900
+    m_Localized: '{0} photo frame'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775901
+    m_Localized: '{0} lantern colour hung'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775902
+    m_Localized: Lanterns back to paper
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775903
+    m_Localized: Photos use the {0} frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775904
+    m_Localized: Photos back to the paper frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775905
+    m_Localized: Choose a Gold rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775906
+    m_Localized: Tier 30 of the {0} pass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775907
+    m_Localized: Later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775908
+    m_Localized: '{0} pass unlocked'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775909
+    m_Localized: Pass gifts of the {0} tiers passed are yours
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775910
+    m_Localized: From now on every tier adds a lower-row gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775911
+    m_Localized: "Unclaimed {0} pass gifts \xB7 free row"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775912
+    m_Localized: "Unclaimed {0} pass gifts \xB7 pass row"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775913
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775914
+    m_Localized: +lantern colour
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125821775915
+    m_Localized: +photo frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125830164480
+    m_Localized: "{0} day left \xB7 {1} daily quest points a tier"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125830164481
+    m_Localized: '{0} more point to tier {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 847125830164482
+    m_Localized: The pass gift of the {0} tier passed is yours
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

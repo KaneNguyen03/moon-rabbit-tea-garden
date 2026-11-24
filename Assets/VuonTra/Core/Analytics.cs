@@ -113,6 +113,8 @@ namespace VuonTra.Core
         public const string ReviewAsked = "review_asked";
         public const string ReviewLiked = "review_liked";
         public const string ReviewFeedback = "review_feedback";
+        public const string MonthPassTier = "monthpass_tier";
+        public const string MonthPassBought = "monthpass_bought";
 
         public static readonly string[] All =
         {
@@ -120,6 +122,7 @@ namespace VuonTra.Core
             SegmentOpened, RabbitCalled, NewMoon, GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd,
             OfferShown, OfferBought, OfferExpired,
             ReviewAsked, ReviewLiked, ReviewFeedback,
+            MonthPassTier, MonthPassBought,
         };
 
         public const string NewGarden = "new_garden";
@@ -146,6 +149,8 @@ namespace VuonTra.Core
         public const string Asks = "asks";
         public const string Sent = "sent";
         public const string Chars = "chars";
+        public const string Premium = "premium";
+        public const string Month = "month";
 
         public const string ViaClover = "clover", ViaGolden = "golden";
         public const string FromShop = "shop";
@@ -231,6 +236,12 @@ namespace VuonTra.Core
         public static void LogReviewFeedback(this IAnalytics a, ReviewMoment moment, bool sent, int chars) =>
             a.Log(AnalyticsEvents.ReviewFeedback, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)),
                 new AnalyticsParam(AnalyticsEvents.Sent, sent), new AnalyticsParam(AnalyticsEvents.Chars, chars));
+
+        public static void LogMonthPassTier(this IAnalytics a, int tier, bool premium, int month) =>
+            a.Log(AnalyticsEvents.MonthPassTier, new AnalyticsParam(AnalyticsEvents.Tier, tier), new AnalyticsParam(AnalyticsEvents.Premium, premium), new AnalyticsParam(AnalyticsEvents.Month, month));
+
+        public static void LogMonthPassBought(this IAnalytics a, int month, int tier) =>
+            a.Log(AnalyticsEvents.MonthPassBought, new AnalyticsParam(AnalyticsEvents.Month, month), new AnalyticsParam(AnalyticsEvents.Tier, tier));
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>
             a.Log(AnalyticsEvents.RewardedAd, new AnalyticsParam(AnalyticsEvents.Placement, placement), new AnalyticsParam(AnalyticsEvents.Game, game ?? ""), new AnalyticsParam(AnalyticsEvents.Result, result));

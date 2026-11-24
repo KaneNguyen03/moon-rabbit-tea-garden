@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
@@ -231,8 +232,8 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(QuestChests.ClaimChest(s, 0, s.DailyDay, "A", 0d, out _));
 
             Open(Monday + 9);
-            Assert.AreEqual(1, s.Letters.Count, "the 250 chest was left; the 400 was never reached");
-            Letter letter = s.Letters[0];
+            Assert.AreEqual(1, s.Letters.FindAll(l => l.Kind == LetterKind.WeekChest).Count, "the 250 chest was left; the 400 was never reached");
+            Letter letter = s.Letters.Find(l => l.Kind == LetterKind.WeekChest);
             Assert.AreEqual(LetterKind.WeekChest, letter.Kind);
             Assert.AreEqual(1, letter.Chest);
             Assert.AreEqual(QuestChests.Chests[1].Golden, letter.Golden);
@@ -240,9 +241,9 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, QuestChests.Points(s, s.DailyDay));
 
             Open(Monday + 10);
-            Assert.AreEqual(1, s.Letters.Count, "one letter per chest");
-            Assert.AreEqual(1, Mailbox.Open(s, Monday + 9 + QuestChests.ChestKeepDays).Count, "the seventh day still counts");
-            Assert.AreEqual(0, Mailbox.Open(s, Monday + 9 + QuestChests.ChestKeepDays + 1).Count);
+            Assert.AreEqual(1, s.Letters.FindAll(l => l.Kind == LetterKind.WeekChest).Count, "one letter per chest");
+            Assert.AreEqual(1, Mailbox.Open(s, Monday + 9 + QuestChests.ChestKeepDays).Count(l => l.Kind == LetterKind.WeekChest), "the seventh day still counts");
+            Assert.AreEqual(0, Mailbox.Open(s, Monday + 9 + QuestChests.ChestKeepDays + 1).Count(l => l.Kind == LetterKind.WeekChest));
         }
 
         [Test]

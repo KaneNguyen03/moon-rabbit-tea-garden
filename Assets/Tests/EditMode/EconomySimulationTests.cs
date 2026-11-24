@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using UnityEditor;
@@ -44,7 +45,8 @@ namespace VuonTra.Core.Tests
         BigNum earnedDoubles, earnedAds;
         int goldenAds, extraRounds;
         int goldenChests, cloversChests, boxesOpened, chestsOpened;
-        bool openChests, answerAsks;
+        int goldenPass, cloversPass, passTiers;
+        bool openChests, answerAsks, claimPass;
         long firstDay;
         BigNum earnedAsks;
         System.Random askRng;
@@ -95,7 +97,9 @@ namespace VuonTra.Core.Tests
             earnedDoubles = earnedAds = BigNum.Zero;
             goldenAds = extraRounds = 0;
             goldenChests = cloversChests = boxesOpened = chestsOpened = 0;
+            goldenPass = cloversPass = passTiers = 0;
             openChests = true;
+            claimPass = true;
             answerAsks = false;
             firstDay = 1;
             earnedAsks = BigNum.Zero;
@@ -332,6 +336,7 @@ namespace VuonTra.Core.Tests
                 goldenQuests += s.GoldenCarrots - golden;
             }
             OpenQuestChests();
+            ClaimMonthPass();
         }
 
         void AnswerPhotoAsk()
@@ -357,6 +362,21 @@ namespace VuonTra.Core.Tests
             goldenChests += s.GoldenCarrots - golden;
             jarsHeld += s.MoonJars - jars;
             if (s.Rabbits.Count != rabbits) Rabbits.AutoAssign(defs, s);
+        }
+
+        void ClaimMonthPass()
+        {
+            if (!claimPass) return;
+            int clovers = s.Clovers, golden = s.GoldenCarrots, jars = s.MoonJars;
+            for (int t = 1; t <= MonthPass.Tiers; t++)
+                if (MonthPass.Claim(defs, s, mods, MonthRow.Free, t, s.DailyDay, null, null, out MonthClaim claim))
+                {
+                    passTiers++;
+                    earnedQuests += claim.Coins;
+                }
+            cloversPass += s.Clovers - clovers;
+            goldenPass += s.GoldenCarrots - golden;
+            jarsHeld += s.MoonJars - jars;
         }
 
         void OpenJars()
@@ -521,9 +541,9 @@ namespace VuonTra.Core.Tests
             return total.IsZero ? 0d : Math.Round((part / total).ToDouble() * 1000d) / 10d;
         }
 
-        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + GoldenFromLevels;
-        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests;
-        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests;
+        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenPass + GoldenFromLevels;
+        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenPass;
+        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversPass;
 
         void Snapshot(string label)
         {
@@ -561,6 +581,7 @@ namespace VuonTra.Core.Tests
                 + "Câu cá (#58): thả " + casts + " lần, được " + fishCaught + " con (" + (int)(FishCatchRate * 100) + " % chạm đúng lúc), cho thỏ ở trạm thu nhiều nhất ăn " + fishPoints + " điểm, vuốt nó mỗi ngày; tim cao nhất "
                 + MostHearts() + " (×" + Rabbits.HeartMultipliers[MostHearts()] + "), " + goldenHearts + " cà rốt vàng từ quà 10 tim.\n"
                 + "Hộp quà ngày và rương tuần (#103): mở " + boxesOpened + " hộp, " + chestsOpened + " rương; " + goldenChests + " cà rốt vàng, " + cloversChests + " cỏ.\n"
+                + "Vé tháng (#107), hàng miễn phí: nhận " + passTiers + " nấc; " + goldenPass + " cà rốt vàng, " + cloversPass + " cỏ.\n"
                 + "Thỏ Ếch (#62): gặp " + frogsMet + " lần (mọi buổi chơi mở đầu trong mưa khi ngày còn ếch), " + earnedFrogs.ToShortString() + " cà rốt, " + cloversFrogs + " cỏ.\n"
                 + "Khác: " + gamesPlayed + " ván chơi, " + ordersDelivered + " đơn giao, " + rabbitLevels + " cấp thỏ mua, " + boosts + " lần trà lực, " + s.Claimed.Count + " nhiệm vụ đang nhận.\n";
         }
@@ -580,10 +601,11 @@ namespace VuonTra.Core.Tests
             public int Golden => GoldenCalls + Visitors;
         }
 
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool pass = true)
         {
             Reset(false, seed);
             openChests = chests;
+            claimPass = pass;
             answerAsks = wholeSet;
             if (wholeSet) firstDay = QuestChests.MondayOf(QuestChests.WeekOf(1) + 1);
             goFishing = fishing;
@@ -878,15 +900,15 @@ namespace VuonTra.Core.Tests
             var with = new Week[Seeds.Length];
             for (int i = 0; i < Seeds.Length; i++)
             {
-                without[i] = CasualWeek(false, false, false, Seeds[i], false, false, true);
-                with[i] = CasualWeek(false, false, false, Seeds[i], false, true, true);
+                without[i] = CasualWeek(false, false, false, Seeds[i], false, false, true, false);
+                with[i] = CasualWeek(false, false, false, Seeds[i], false, true, true, false);
             }
 
             var report = new StringBuilder();
             report.AppendLine("# Hộp quà ngày và rương tuần (#103)");
             report.AppendLine();
             report.AppendLine("Người chơi thong thả của EconomySimulationTests không trả lời thỏ xin ảnh, nên không bao giờ xong đủ 5 nhiệm vụ ngày: hộp ngày không mở, tuần của nó (thứ Sáu đến thứ Năm) chỉ tới rương " + QuestChests.Chests[0].Points + " điểm. "
-                + "Bảng dưới là người chơi thong thả làm đủ bộ: cùng hai buổi chơi mỗi ngày, trả lời mọi thỏ xin ảnh, tuần bắt đầu thứ Hai, so khi không có và có hộp + rương.");
+                + "Bảng dưới là người chơi thong thả làm đủ bộ: cùng hai buổi chơi mỗi ngày, trả lời mọi thỏ xin ảnh, tuần bắt đầu thứ Hai, so khi không có và có hộp + rương; cả hai không nhận Vé tháng (#107) để chỉ đo hộp + rương.");
             report.AppendLine();
             report.AppendLine("| Hạt | Cà rốt vàng miễn phí (không → có) | Tăng | Từ hộp + rương | Gọi vàng + thỏ ghé tiệm (không → có) | Hộp | Rương | Người thong thả thường: gọi vàng, rương |");
             report.AppendLine("|---|---|---|---|---|---|---|---|");
@@ -912,6 +934,91 @@ namespace VuonTra.Core.Tests
             Holds(with, w => w.Golden <= MostGoldenCallsWithChests, "the whole-set player calls with golden carrots at most " + MostGoldenCallsWithChests + " times a week", report.ToString());
             Holds(plain, w => w.Golden <= 6, "the casual player still calls at most six times a week", report.ToString());
             Always(plain, w => w.Boxes == 0, "the casual player who leaves the photo asks never opens the box", report.ToString());
+        }
+
+        sealed class PassMonth
+        {
+            public int Seed, Tier, Day20 = -1, GoldenPass, CloversPass, Tiers, Boxes;
+            public readonly List<int> GoldenByWeek = new List<int>();
+            public int MostGoldenInAWeek => GoldenByWeek.Count == 0 ? 0 : GoldenByWeek.Max();
+        }
+
+        public const int PassDays = 30;
+        public const int PassTierByDay30 = 20;
+        public const int WholeSetPassDays = 21;
+
+        PassMonth CasualMonth(int seed, bool wholeSet, int days)
+        {
+            Reset(false, seed);
+            answerAsks = wholeSet;
+            firstDay = MonthPass.FirstDayOf(MonthPass.MonthOf(1) + 2);
+            var run = new PassMonth { Seed = seed };
+            int callsBefore = 0;
+            for (int day = 1; day <= days; day++)
+            {
+                Play(20 * 60);
+                Away(8 * 3600);
+                Play(10 * 60);
+                Away(Day - 8 * 3600 - 30 * 60);
+                if (run.Day20 < 0 && MonthPass.Tier(s, s.DailyDay) >= PassTierByDay30) run.Day20 = day;
+                if (day % 7 == 0)
+                {
+                    run.GoldenByWeek.Add(goldenCalls + visitorsBought - callsBefore);
+                    callsBefore = goldenCalls + visitorsBought;
+                }
+            }
+            run.Tier = MonthPass.Tier(s, s.DailyDay);
+            run.GoldenPass = goldenPass;
+            run.CloversPass = cloversPass;
+            run.Tiers = passTiers;
+            run.Boxes = boxesOpened;
+            return run;
+        }
+
+        [Test, Category("Slow"), Timeout(1800000)]
+        public void A_Free_Player_Reaches_Month_Pass_Tier_Twenty_Within_Thirty_Days()
+        {
+            var casual = new PassMonth[Seeds.Length];
+            var whole = new PassMonth[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                casual[i] = CasualMonth(Seeds[i], false, PassDays);
+                whole[i] = CasualMonth(Seeds[i], true, WholeSetPassDays);
+            }
+
+            var report = new StringBuilder();
+            report.AppendLine("# Vé tháng, hàng miễn phí (#107)");
+            report.AppendLine();
+            report.AppendLine("Tháng 31 ngày, hai buổi mỗi ngày (20 và 10 phút) như người chơi thong thả, nhận mọi nấc miễn phí ngay khi tới. Mỗi nấc " + MonthPass.PointsPerTier + " điểm, cùng điểm nhiệm vụ ngày của rương tuần (#103). "
+                + "\"Thong thả\" (chơi " + PassDays + " ngày) không trả lời thỏ xin ảnh nên không bao giờ xong đủ 5 nhiệm vụ ngày; \"đủ bộ\" (chơi " + WholeSetPassDays + " ngày) là người chơi thong thả trả lời mọi thỏ xin ảnh, xong đủ 5 và mở hộp khi được (người chơi \"làm đủ mọi nhiệm vụ ngày\" của #103).");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Thong thả: nấc ngày " + PassDays + " | ngày tới nấc " + PassTierByDay30 + " | gọi vàng + thỏ ghé tiệm mỗi tuần | vàng, cỏ từ vé | Đủ bộ: nấc ngày " + WholeSetPassDays + " | ngày tới nấc " + PassTierByDay30 + " | gọi vàng mỗi tuần | hộp |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|");
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                PassMonth c = casual[i], w = whole[i];
+                report.AppendLine("| " + Seeds[i] + " | " + c.Tier + " | " + c.Day20 + " | " + string.Join("/", c.GoldenByWeek) + " | " + c.GoldenPass + ", " + c.CloversPass
+                    + " | " + w.Tier + " | " + w.Day20 + " | " + string.Join("/", w.GoldenByWeek) + " | " + w.Boxes + " |");
+            }
+            report.AppendLine("| **trung vị** | " + Median(casual, r => r.Tier) + " | " + Median(casual, r => r.Day20) + " | " + string.Join("/", WeekMedians(casual))
+                + " | " + Median(casual, r => r.GoldenPass) + ", " + Median(casual, r => r.CloversPass) + " | " + Median(whole, r => r.Tier) + " | " + Median(whole, r => r.Day20) + " | " + string.Join("/", WeekMedians(whole)) + " | " + Median(whole, r => r.Boxes) + " |");
+            report.AppendLine();
+            report.AppendLine("Gọi vàng nhiều nhất trong một tuần, trung vị: thong thả " + Median(casual, r => r.MostGoldenInAWeek) + " (luật cũ: tối đa 6), đủ bộ " + Median(whole, r => r.MostGoldenInAWeek) + " (luật #103: tối đa " + MostGoldenCallsWithChests + ").");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-monthpass.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+
+            Holds(casual, r => r.Day20 > 0 && r.Day20 <= PassDays, "the casual free player reaches tier " + PassTierByDay30 + " within " + PassDays + " days", report.ToString());
+            Always(whole, r => r.Day20 > 0 && r.Day20 <= WholeSetPassDays, "the whole-set free player always does, within " + WholeSetPassDays + " days", report.ToString());
+            Holds(casual, r => r.MostGoldenInAWeek <= 6, "with the free row the casual player still calls with golden carrots at most six times a week", report.ToString());
+            Holds(whole, r => r.MostGoldenInAWeek <= MostGoldenCallsWithChests, "and the whole-set player at most " + MostGoldenCallsWithChests, report.ToString());
+        }
+
+        static List<string> WeekMedians(PassMonth[] runs)
+        {
+            var medians = new List<string>();
+            for (int w = 0; w < runs[0].GoldenByWeek.Count; w++) { int week = w; medians.Add(Median(runs, r => r.GoldenByWeek[week]).ToString()); }
+            return medians;
         }
 
         static double Median(int n, Func<int, double> value)
