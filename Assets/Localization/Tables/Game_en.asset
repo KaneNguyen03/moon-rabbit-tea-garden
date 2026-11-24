@@ -4491,6 +4491,150 @@ MonoBehaviour:
     m_Localized: '{0}/{1} moon'
     m_Metadata:
       m_Items: []
+  - m_Id: 914305586290688
+    m_Localized: New
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262208
+    m_Localized: Try it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262209
+    m_Localized: Later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262210
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clovers'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262211
+    m_Localized: "First try: +{0} \xB7 +{1} clovers"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262212
+    m_Localized: Unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262213
+    m_Localized: '{0}/{1} cards'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262214
+    m_Localized: Unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262215
+    m_Localized: No cards yet. Keep playing to open more!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262216
+    m_Localized: Fishing at the moon pond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262217
+    m_Localized: 'Tap the moon pond, cast, and tap the water when the float sinks.
+
+      Feed the fish to your rabbits for hearts.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262218
+    m_Localized: Pound the mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262219
+    m_Localized: 'Tap the mortar by the teapot, then tap when the ring meets the cake.
+
+      A few rounds a day; good timing earns stars.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262220
+    m_Localized: Catch the tea leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262221
+    m_Localized: 'Tap the basket under the tea tree, drag it under the leaves, dodge the pine cones.
+
+      A few rounds a day; more leaves, more reward.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262222
+    m_Localized: Firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262223
+    m_Localized: 'Tap the glass jar by the pond, then tap the fireflies crossing the garden.
+
+      A few rounds a day; catch more for more.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262224
+    m_Localized: Guests and tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262225
+    m_Localized: 'Guests wait at the shop counter; the bubble shows what they want.
+
+      With the products on your tray, tap the guest to serve for carrots.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262226
+    m_Localized: The shop and the daily gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262227
+    m_Localized: 'Tap the shop by the pond for a gift each day; come back day after day for bigger ones.
+
+      Inside are hats, decorations and today''s visitor.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262228
+    m_Localized: Moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262229
+    m_Localized: 'Each moon jar holds an hour of income, open it any time.
+
+      Buy jars on the shop''s shelf; open them from the carrot purse.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262230
+    m_Localized: Arrange the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262231
+    m_Localized: 'Tap Arrange in the bottom corner and hold to pick a station up.
+
+      Drop it on an empty tile, on something to swap, or in storage.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262232
+    m_Localized: Rain and the Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262233
+    m_Localized: 'Now and then it rains and the Frog Rabbit visits the moon pond.
+
+      Tap it before it leaves for a rainy-day gift.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262234
+    m_Localized: A new moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262235
+    m_Localized: 'Open it from the settings button: the garden goes back to its first four plots; rabbits and items stay.
+
+      After each one, income grows for good.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428032
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428033
+    m_Localized: "First try: +{0} \xB7 +{1} clover"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
