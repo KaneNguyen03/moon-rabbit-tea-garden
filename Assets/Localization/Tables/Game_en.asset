@@ -3448,6 +3448,114 @@ MonoBehaviour:
     m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
     m_Metadata:
       m_Items: []
+  - m_Id: 831624370446336
+    m_Localized: "Dish: {0} \xB7 level {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223552
+    m_Localized: Improve dish ({0} leaves)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223553
+    m_Localized: Dish at top level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223554
+    m_Localized: Open the station to cook it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223555
+    m_Localized: Recipe book at garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223556
+    m_Localized: Dish level {0}!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223557
+    m_Localized: "Recipe leaves: {0} \xB7 improve dishes on a station card"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223558
+    m_Localized: "Big fish \u2192 +1 leaf"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223559
+    m_Localized: +{0} recipe leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223560
+    m_Localized: Dew Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223561
+    m_Localized: Young Tea Leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223562
+    m_Localized: Strawberry Jam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223563
+    m_Localized: Pounded Petal Powder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223564
+    m_Localized: Chestnut Bun
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223565
+    m_Localized: Wild Honey
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223566
+    m_Localized: Moon Milk Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223567
+    m_Localized: Star Syrup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223568
+    m_Localized: Moon Grapes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223569
+    m_Localized: Mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223570
+    m_Localized: Flower Spring Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223571
+    m_Localized: Jar of Falling Stars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223572
+    m_Localized: Lotus Seeds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223573
+    m_Localized: Malt Candy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223574
+    m_Localized: Young Rice Flakes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624387223575
+    m_Localized: Night Blossom Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624391417856
+    m_Localized: "Recipe leaf: {0} \xB7 improve dishes on a station card"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831624391417857
+    m_Localized: +{0} recipe leaf
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

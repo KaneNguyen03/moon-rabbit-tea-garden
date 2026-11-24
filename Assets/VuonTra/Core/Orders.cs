@@ -155,6 +155,7 @@ namespace VuonTra.Core
             s.TotalEarned += paid;
             s.Clovers += clovers;
             s.OrdersDelivered++;
+            Recipes.Earn(s, Recipes.LeavesPerOrder);
             s.Order = null;
             s.OrderClock = 0d;
             return true;

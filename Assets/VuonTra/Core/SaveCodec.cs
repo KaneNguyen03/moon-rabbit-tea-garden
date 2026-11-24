@@ -358,7 +358,24 @@ namespace VuonTra.Core
             }
             sb.Append("],\"caught\":").Append(s.FishCaught.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"fed\":").Append(s.FishFed.ToString(CultureInfo.InvariantCulture));
-            sb.Append("}}");
+            sb.Append('}');
+            sb.Append(",\"recipes\":{\"leaves\":").Append(s.RecipeLeaves.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"rest\":").Append(Sane(s.RestLeafSeconds).ToString("R", CultureInfo.InvariantCulture));
+            sb.Append(",\"dishes\":[");
+            for (int i = 0; i < defs.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"id\":");
+                WriteString(sb, defs[i].Id);
+                sb.Append(",\"levels\":[");
+                for (int d = 0; d < Recipes.Dishes; d++)
+                {
+                    if (d > 0) sb.Append(',');
+                    sb.Append(Recipes.DishLevel(s, i, d).ToString(CultureInfo.InvariantCulture));
+                }
+                sb.Append("]}");
+            }
+            sb.Append("]}}");
             return sb.ToString();
         }
 
@@ -792,6 +809,21 @@ namespace VuonTra.Core
                         if (basket[i] is double n && n > 0d) s.Fish[i] = (int)Math.Min(n, int.MaxValue);
                 s.FishCaught = Math.Max(0L, ToLong(ReadNumber(fishing, "caught")));
                 s.FishFed = Math.Max(0L, ToLong(ReadNumber(fishing, "fed")));
+            }
+
+            if (root.TryGetValue("recipes", out object recipesObj) && recipesObj is Dictionary<string, object> recipes)
+            {
+                s.RecipeLeaves = (int)Math.Max(0d, Math.Min(ReadNumber(recipes, "leaves"), int.MaxValue));
+                s.RestLeafSeconds = Math.Max(0d, Math.Min(ReadNumber(recipes, "rest"), Recipes.RestSecondsPerLeaf));
+                if (recipes.TryGetValue("dishes", out object dishesObj) && dishesObj is List<object> dishes)
+                    foreach (object item in dishes)
+                    {
+                        if (!(item is Dictionary<string, object> entry) || !(entry.TryGetValue("id", out object idObj) && idObj is string id)) continue;
+                        int index = IndexOf(defs, id);
+                        if (index < 0 || !(entry.TryGetValue("levels", out object levelsObj) && levelsObj is List<object> levels)) continue;
+                        for (int d = 0; d < Recipes.Dishes && d < levels.Count; d++)
+                            if (levels[d] is double level) Recipes.SetLevel(s, index, d, (int)Math.Max(1d, Math.Min(level, Recipes.MaxLevel)));
+                    }
             }
 
             result.Status = LoadStatus.Ok;

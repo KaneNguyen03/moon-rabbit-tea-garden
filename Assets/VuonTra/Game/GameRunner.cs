@@ -267,6 +267,13 @@ namespace VuonTra.Game
             return ok;
         }
 
+        public bool RaiseDish(int station)
+        {
+            if (!Recipes.Raise(State, station)) return false;
+            Changed();
+            return true;
+        }
+
         public bool GiftWaiting => Shop.GiftWaiting(State, TodayNumber);
 
         public int ClaimDailyGift() => ClaimDailyGift(out _);

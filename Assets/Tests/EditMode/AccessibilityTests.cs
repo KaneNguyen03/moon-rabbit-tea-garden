@@ -352,7 +352,7 @@ namespace VuonTra.Core.Tests
             }
             Rect top = WorldRect(feed.Find("Face/Top").GetComponent<RectTransform>()), pts = WorldRect(points.rectTransform);
             if (top.Overlaps(pts)) wrong.Add("the Feed button's word runs into its points");
-            foreach (string key in new[] { "feed.empty", "feed.full" })
+            foreach (string key in new[] { "feed.empty", "feed.full", "feed.leaf" })
             {
                 sub.text = L10n.T(key);
                 Check(sub);

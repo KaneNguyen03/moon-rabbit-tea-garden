@@ -373,7 +373,8 @@ namespace VuonTra.Game.UI
             long id = r.Id;
             int best = Fishing.BestInBasket(s);
             bool full = Rabbits.FullHearts(r) || r.Affection >= Rabbits.AffectionMax;
-            bool can = best >= 0 && !full;
+            bool leaf = full && best >= 0 && Fishing.MakesLeaf(best);
+            bool can = best >= 0 && Fishing.CanFeed(s, r, best);
             var feed = UiKit.Rect("Feed", _body).Place(1f, 1f, -194, -394, 300, 100);
             FeedButton = feed;
             ChunkyButton button = UiKit.Chunky(feed, _catalog.Panel, () => OnFeed?.Invoke(id));
@@ -393,11 +394,11 @@ namespace VuonTra.Game.UI
             label.resizeTextMinSize = 16;
             label.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
             Text points = UiKit.Rect("Points", button.FaceRect).Stretch(1, 1, 1, 1, -116, -42, 12, 16) // one line tall
-                .AddText(can ? L10n.T("feed.points", Fishing.Points[best]) : "", UiKit.TextSmall, ink, TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText(can && !leaf ? L10n.T("feed.points", Fishing.Points[best]) : "", UiKit.TextSmall, ink, TextAnchor.MiddleRight, FontStyle.Bold);
             points.resizeTextForBestFit = true;
             points.resizeTextMinSize = 13;
             points.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
-            string sub = full ? L10n.T("feed.full") : best < 0 ? L10n.T("feed.empty") : L10n.T("feed.with", L10n.T("fish." + best), s.Fish[best]);
+            string sub = leaf ? L10n.T("feed.leaf") : full ? L10n.T("feed.full") : best < 0 ? L10n.T("feed.empty") : L10n.T("feed.with", L10n.T("fish." + best), s.Fish[best]);
             Text subText = UiKit.Rect("Sub", button.FaceRect).Stretch(0, 0, 1, 0, textLeft, 10, 12, -36)
                 .AddText(sub, 18, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             subText.resizeTextForBestFit = true; // a box one line tall: a long name shrinks rather than wraps

@@ -6559,5 +6559,80 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0f, MistCoverAt(edge), 1e-4f, "its thick edge with it");
             Assert.IsTrue(screen.MistOf(2).gameObject.activeSelf, "the next segment's mist stays");
         }
+
+        [Test]
+        public void The_Station_Card_Names_Its_Dish_And_Recipe_Leaves_Raise_It()
+        {
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Text T(string path) { Transform x = root.transform.Find(path); Assert.IsNotNull(x, "Missing UI object: " + path); return x.GetComponent<Text>(); }
+            Assert.AreEqual("Món: Trà sương · cấp 1", T("Canvas/Card/Dish/Line").text);
+            Button raise = Find("Canvas/Card/Dish/Raise");
+            Assert.AreEqual("Mở sổ ở cấp vườn 30", T("Canvas/Card/Dish/Raise/Face/Text").text);
+            Assert.IsFalse(raise.interactable);
+            runner.State.Season = 1;
+            screen.Refresh();
+            Assert.IsFalse(raise.interactable, "no leaves yet");
+            Assert.AreEqual("Nâng món (5 lá)", T("Canvas/Card/Dish/Raise/Face/Text").text);
+            Transform chip = root.transform.Find("Canvas/Hud/RecipeLeaves");
+            Assert.IsFalse(chip.gameObject.activeSelf, "nothing strange for a new player");
+
+            runner.State.RecipeLeaves = 7;
+            screen.Refresh();
+            Assert.IsTrue(chip.gameObject.activeSelf);
+            Assert.AreEqual("7", T("Canvas/Hud/RecipeLeaves/Text").text);
+            Assert.IsTrue(raise.interactable);
+            BigNum before = Economy.IncomePerCycle(runner.Defs, runner.State, 0);
+            raise.onClick.Invoke();
+            Assert.AreEqual(2, Recipes.Level(runner.State, 0));
+            Assert.AreEqual(2, runner.State.RecipeLeaves);
+            Assert.AreEqual("Món: Trà sương · cấp 2", T("Canvas/Card/Dish/Line").text);
+            Assert.AreEqual("Nâng món (20 lá)", T("Canvas/Card/Dish/Raise/Face/Text").text);
+            Assert.IsFalse(raise.interactable, "20 leaves for the next level, 2 in hand");
+            Assert.AreEqual((before * Recipes.LevelMultiplier(2)).ToDouble(), Economy.IncomePerCycle(runner.Defs, runner.State, 0).ToDouble(), 1e-6);
+            Assert.AreEqual("2", T("Canvas/Hud/RecipeLeaves/Text").text);
+
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            screen.FocusStation(0);
+            screen.Refresh();
+            Assert.AreEqual("Dish: Dew Tea · level 2", T("Canvas/Card/Dish/Line").text);
+            Assert.AreEqual("Improve dish (20 leaves)", T("Canvas/Card/Dish/Raise/Face/Text").text);
+        }
+
+        [Test]
+        public void Every_Station_Has_A_First_Dish_Named_In_Both_Languages()
+        {
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(locale);
+                var names = new HashSet<string>();
+                foreach (StationDef d in runner.Defs)
+                {
+                    string name = L10n.Dish(d.Id, 0);
+                    Assert.AreNotEqual("dish." + d.Id + ".1", name, locale + ": " + d.Id);
+                    Assert.IsTrue(names.Add(name), locale + ": two stations share " + name);
+                }
+                Assert.AreEqual(16, names.Count);
+            }
+        }
+
+        [Test]
+        public void The_Station_Card_Keeps_Its_Old_Places_And_The_Dish_Row_Sits_Between_Them()
+        {
+            screen.Shell.StartGame();
+            screen.FocusStation(0);
+            screen.Refresh();
+            RectTransform Rt(string path) => (RectTransform)root.transform.Find(path);
+            RectTransform card = Rt("Canvas/Card"), dish = Rt("Canvas/Card/Dish"), modes = Rt("Canvas/Card/Modes"), buy = Rt("Canvas/Card/Buy"), worker = Rt("Canvas/Card/Worker");
+            Assert.AreEqual(-202f, modes.offsetMin.y, 1e-3f, "the buy modes keep their place under the card's top");
+            Assert.AreEqual(74f, buy.anchoredPosition.y, 1e-3f, "and the buy button its place over the card's foot");
+            Assert.AreEqual(74f, worker.anchoredPosition.y, 1e-3f);
+            float modesBottom = card.sizeDelta.y + modes.offsetMin.y, buyTop = buy.anchoredPosition.y + buy.sizeDelta.y / 2f;
+            Assert.GreaterOrEqual(dish.offsetMin.y, buyTop, "the dish row clears the buttons below");
+            Assert.LessOrEqual(dish.offsetMax.y, modesBottom, "and the buy modes above");
+            Assert.GreaterOrEqual(dish.offsetMax.y - dish.offsetMin.y, UiKit.MinTouch, "a full touch target");
+        }
     }
 }
