@@ -2249,6 +2249,28 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Thẻ hội tự mở một lần mỗi hội; tắm thỏ hội thì mất màu hội.
 - Hình riêng từng hội vẽ sau; rương #113 có thể bán màu đèn hội cũ.
 
+## #106 — Vé trăng 30 ngày (agent-106)
+
+**Test:** `tools/verify.sh` đầy đủ GREEN: rules ok, preview 303 ảnh, tests 1434/1435. Thêm `MoonPassTests` (12 test Core), `MoonPassScreenTests` (3), và một test nhịp chạy trên 17 hạt.
+
+**Commit:** `1d4ff11`, `8c38dd0` (merge 8c3f5f3), `b270cad`, `f57173a` (merge 700f872), `93db355` (merge 3dee762), `4cf62e4`; gộp main `c761c94`, verify đầy đủ GREEN 1560/1561.
+
+**Đã làm:**
+- `Core/MoonPass.cs` giữ các con số: 100 vàng ngay, 15 mỗi ngày, 30 ngày, +3600 s vắng mặt, nhắc khi còn 3 ngày.
+- Thư "Vé trăng ngày N/30" mỗi ngày mở game qua `Mailbox`; ngày bỏ lỡ không bù; ngày tính theo `MaxDaySeen`.
+- Trong hạn: trần vắng mặt +1 giờ (cộng sau bùa Giấc ngủ dài) và thêm 1 lượt ×2 miễn phí mỗi ngày.
+- Bán qua `IStorefront` (mã `vuontra.moonpass.30`); khối lưu `moonPass` thêm mới, bản lưu vẫn version 14.
+- Analytics `pass_bought`, `pass_day_claimed`.
+- Thẻ "Vé trăng 30 ngày" dưới các gói, viên "Vé trăng · còn N ngày" cạnh ô cà rốt vàng, thư nhắc gia hạn.
+- CHECKLIST 4.2b; ảnh trong `docs/anh/po-106/`.
+
+- Khi ô lá công thức (#110a) đang hiện, viên vé trăng xuống một hàng (có test).
+
+### Chưa đạt / cần PO quyết
+- Người mua vé phút đầu đạt cấp 10 lúc 21 phút thay vì 8 giờ 27 phút (sớm hơn 96 %, trần 10 %), do 115 vàng ngày đầu. Cần quyết: chấp nhận / thư ngày 1 sang hôm sau / giảm vàng ngay. Gói 150 vàng (#9) cũng có hiệu ứng này.
+- Thẻ đặt trong "Mua cà rốt vàng" thay vì sheet Tiệm.
+- Hình vé vẽ tay và thử mua sandbox chưa làm.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
