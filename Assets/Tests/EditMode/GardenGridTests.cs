@@ -298,7 +298,8 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(g.TileOf(GardenGrid.ShopId));
             Assert.IsNotNull(g.TileOf(GardenGrid.CounterId));
             Assert.IsNull(g.TileOf("decor:0"), "an empty decoration spot holds nothing");
-            Assert.AreEqual(3 + 2 + 3, g.OccupantCount);
+            Assert.AreEqual(GardenGrid.HomeBasketTile(defs), g.TileOf(GardenGrid.BasketId), "the leaf-catching basket by the leaf station");
+            Assert.AreEqual(3 + 2 + 3 + 2, g.OccupantCount, "and its plate");
         }
 
         [Test]
@@ -324,7 +325,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Decor.Swap(s, 3, "bon-hoa"));
             Assert.AreEqual(GardenGrid.DefaultDecorTile(3), s.Grid.TileOf("decor:3"), "swapping keeps the spot's tile");
             Assert.IsTrue(Decor.Store(s, 3));
-            Assert.IsNull(s.Grid.TileOf("decor:3"));
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(3), s.Grid.TileOf("decor:3"), "the empty spot keeps its tile while a piece waits in storage");
             Assert.IsTrue(Decor.Place(s, 5, "den-da"));
             s.RestSpots = 5; s.Grid.Segments = 3; GardenGrid.Settle(defs, s);
             Assert.IsNotNull(s.Grid.TileOf("rest:4"));
@@ -466,7 +467,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(2, decors, "the two pieces standing, not the empty spots");
             Assert.AreEqual(GardenGrid.DefaultDecorTile(1), g.TileOf("decor:1"));
             Assert.AreEqual(GardenGrid.DefaultDecorTile(6), g.TileOf("decor:6"));
-            Assert.AreEqual(3 + 3 + 2 + 3, g.OccupantCount, "plus the mortar, the shop and the counter");
+            Assert.AreEqual(3 + 3 + 2 + 3 + 2, g.OccupantCount, "plus the mortar, the shop, the counter, the leaf basket and its plate");
             var tiles = new HashSet<Hex>();
             foreach (KeyValuePair<string, Hex> o in g.Occupants) Assert.IsTrue(tiles.Add(o.Value), "nothing shares a tile: " + o.Key);
         }
@@ -518,12 +519,11 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Tiles_Of_The_Jar_The_Basket_And_The_Mortar_s_Plate_Are_Reserved_And_No_Home_Tile_Is()
+        public void The_Tiles_Of_The_Jar_The_Pond_And_The_Mortar_s_Plate_Are_Reserved_And_No_Home_Tile_Is()
         {
             var expected = new[]
             {
                 new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),
-                new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),
                 new Hex(-3, -1), new Hex(-2, -1), new Hex(-3, 0), new Hex(-2, 0), new Hex(-4, 0),
                 new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-1, -1), new Hex(0, -1),
             };
@@ -550,6 +550,10 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(GardenGrid.DefaultTile(GardenGrid.MortarId, big), s.Grid.TileOf(GardenGrid.MortarId));
             Assert.AreEqual(GardenGrid.DefaultTile(GardenGrid.ShopId, big), s.Grid.TileOf(GardenGrid.ShopId));
             Assert.AreEqual(GardenGrid.DefaultTile(GardenGrid.CounterId, big), s.Grid.TileOf(GardenGrid.CounterId));
+            Assert.AreEqual(new Hex(3, -1), s.Grid.TileOf(GardenGrid.BasketId), "the leaf basket holds its own tile now, up and right of its station");
+            Assert.AreEqual(new Hex(2, -1), s.Grid.TileOf(GardenGrid.BasketPlateId), "and its plate's");
+            Assert.AreEqual(new Hex(1, -4), s.Grid.TileOf(GardenGrid.ShopRoofIds[0]), "the tea shop's roof holds the two tiles behind it");
+            Assert.AreEqual(new Hex(2, -4), s.Grid.TileOf(GardenGrid.ShopRoofIds[1]));
         }
 
         [Test]
@@ -600,7 +604,9 @@ namespace VuonTra.Core.Tests
             s.GoldenCarrots = 100;
             Assert.IsTrue(Decor.Buy(s, Decor.Kinds[0].Id) && Decor.Place(s, 0, Decor.Kinds[0].Id));
             Assert.IsTrue(s.Grid.Place(GardenGrid.DecorId(0), -3, 0, true));
-            Assert.IsTrue(s.Grid.Place("station:jam", 3, -1, true));
+            s.Grid.Remove(GardenGrid.BasketId);
+            s.Grid.Remove(GardenGrid.BasketPlateId);
+            Assert.IsTrue(s.Grid.Place("station:jam", 3, -1, true), "an old save, before the basket held a tile");
             Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(0), 1, -2, true));
             Assert.IsTrue(Decor.Buy(s, Decor.Kinds[1].Id) && Decor.Place(s, 1, Decor.Kinds[1].Id));
             Assert.IsTrue(s.Grid.Place(GardenGrid.RestId(1), -1, -1, true));
@@ -610,7 +616,7 @@ namespace VuonTra.Core.Tests
             GameState back = SaveCodec.Decode(defs, json).State;
             var was = new Dictionary<string, Hex>
             {
-                { GardenGrid.DecorId(0), new Hex(-3, 0) }, { "station:jam", new Hex(3, -1) }, { GardenGrid.RestId(0), new Hex(1, -2) },
+                { GardenGrid.DecorId(0), new Hex(-3, 0) }, { GardenGrid.RestId(0), new Hex(1, -2) },
                 { GardenGrid.RestId(1), new Hex(-1, -1) }, { GardenGrid.DecorId(1), new Hex(-2, -2) },
             };
             foreach (KeyValuePair<string, Hex> moved in was)
@@ -622,6 +628,10 @@ namespace VuonTra.Core.Tests
                 foreach (Hex h in back.Grid.EmptyTiles())
                     Assert.GreaterOrEqual(GardenGrid.Distance(h, moved.Value), GardenGrid.Distance(now.Value, moved.Value), moved.Key + ": " + h + " was nearer");
             }
+            Assert.AreEqual(new Hex(3, -1), back.Grid.TileOf("station:jam"), "a station on the basket's old tile is not pushed (#119)");
+            Hex basket = back.Grid.TileOf(GardenGrid.BasketId).Value;
+            Assert.AreEqual(1, GardenGrid.Distance(basket, back.Grid.TileOf("station:leaf").Value), "the basket finds another tile beside the leaf station");
+            Assert.AreNotEqual(new Hex(3, -1), basket);
             Assert.AreEqual(Decor.Kinds[0].Id, back.DecorSpots[0], "the piece is kept");
             Assert.AreEqual(Decor.Kinds[1].Id, back.DecorSpots[1], "and the one from the pond");
             Assert.AreEqual(3, back.Levels[2]);
@@ -680,7 +690,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("den-da", s.DecorSpots[1]);
             Assert.AreEqual("bon-hoa", s.DecorSpots[6]);
             foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId }) Assert.AreEqual(GardenGrid.DefaultTile(id, ten), g.TileOf(id), id);
-            Assert.AreEqual(7 + 4 + 2 + 3, g.OccupantCount, "seven stations out, four seats, two decorations, three props");
+            Assert.AreEqual(7 + 4 + 2 + 3 + 2, g.OccupantCount, "seven stations out, four seats, two decorations, three props, the leaf basket and its plate");
             var tiles = new HashSet<Hex>();
             foreach (KeyValuePair<string, Hex> o in g.Occupants)
             {
@@ -820,7 +830,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual("den-da", s.DecorSpots[0]);
             Assert.AreEqual("bon-hoa", s.DecorSpots[7]);
             foreach (string id in new[] { GardenGrid.MortarId, GardenGrid.ShopId, GardenGrid.CounterId }) Assert.AreEqual(GardenGrid.DefaultTile(id, sixteen), g.TileOf(id), id);
-            Assert.AreEqual(13 + 6 + 2 + 3, g.OccupantCount, "thirteen stations out, six seats, two decorations, three props");
+            Assert.AreEqual(13 + 6 + 2 + 3 + 2 + 2, g.OccupantCount, "thirteen stations out, six seats, two decorations, three props, the leaf basket and its plate, the two tiles under the shop's roof");
             AssertSettledApart(g);
             Assert.AreEqual(0d, s.ViewZoom);
             Assert.AreEqual(0d, s.ViewX);

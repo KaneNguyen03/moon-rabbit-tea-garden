@@ -676,6 +676,8 @@ namespace VuonTra.EditorTools
             RenderGuestByPond();
             RenderNgangNits();
             RenderStationSpacing();
+            foreach (string locale in new[] { "vi", "en" }) RenderEmptySpotHold(locale);
+            foreach (string locale in new[] { "vi", "en" }) RenderBasketFollows(locale);
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -2860,6 +2862,92 @@ namespace VuonTra.EditorTools
             Capture(screen, "nits-1-khach");
             Step(screen, 2.4f);
             Capture(screen, "nits-1-khach-den");
+        }
+
+        static GameState Arranged(string locale, out GameRunner runner, out GardenScreen screen, out System.Collections.Generic.IReadOnlyList<StationDef> defs)
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale(locale);
+            runner = Object.FindAnyObjectByType<GameRunner>();
+            screen = Object.FindAnyObjectByType<GardenScreen>();
+            defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(5);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            s.GoldenCarrots = 100;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            PlayerPrefs.SetInt(GardenScreen.LayoutHintKey, 1);
+            screen.Build();
+            screen.ClockHours = () => 13.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            screen.Shell.StartGame();
+            screen.SelectStation(-1);
+            Step(screen, 1.4f);
+            return s;
+        }
+
+        static void CarryAndDrop(GardenScreen screen, Hex from, Hex to, string name)
+        {
+            screen.SimulateLayoutPress(screen.LayoutViewPoint(from));
+            Step(screen, GardenScreen.LayoutHoldSeconds + 0.05f);
+            screen.SimulateLayoutDrag((screen.LayoutViewPoint(from) + screen.LayoutViewPoint(to)) / 2f);
+            screen.SimulateLayoutDrag(screen.LayoutViewPoint(to));
+            Step(screen, 0.1f);
+            Capture(screen, name);
+            screen.SimulateLayoutRelease(screen.LayoutViewPoint(to));
+            Step(screen, 0.6f);
+        }
+
+        static void RenderEmptySpotHold(string locale)
+        {
+            GameState s = Arranged(locale, out GameRunner runner, out GardenScreen screen, out System.Collections.Generic.IReadOnlyList<StationDef> defs);
+            Decor.Buy(s, "den-da");
+            screen.Refresh();
+            Hex spot = GardenGrid.DefaultDecorTile(3), jam = s.Grid.TileOf(GardenGrid.StationId(defs[2])).Value;
+            screen.LookAt((GardenScreen.CellToWorld(spot) + GardenScreen.CellToWorld(jam)) / 2f + new Vector2(0f, 60f));
+            Step(screen, 0.5f);
+            screen.EnterLayoutMode();
+            Step(screen, 0.3f);
+            Capture(screen, "119-cho-trong-bo-tri-" + locale);
+            CarryAndDrop(screen, jam, spot, "119-cho-trong-keo-" + locale);
+            Capture(screen, "119-cho-trong-tha-" + locale);
+            screen.ExitLayoutMode();
+            Step(screen, 0.5f);
+            Capture(screen, "119-cho-trong-xong-" + locale);
+            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+        }
+
+        static void RenderBasketFollows(string locale)
+        {
+            GameState s = Arranged(locale, out GameRunner runner, out GardenScreen screen, out System.Collections.Generic.IReadOnlyList<StationDef> defs);
+            int leaf = Leaves.StationIndex(defs);
+            Hex from = s.Grid.TileOf(GardenGrid.StationId(defs[leaf])).Value, basket = s.Grid.TileOf(GardenGrid.BasketId).Value, to = from;
+            int best = int.MaxValue;
+            foreach (Hex h in screen.LayoutEmptyTiles())
+            {
+                int d = GardenGrid.Distance(h, new Hex(4, 2));
+                if (d < best && s.Grid.KeepsStationsApart(GardenGrid.StationId(defs[leaf]), h)) { best = d; to = h; }
+            }
+            screen.LookAt((GardenScreen.CellToWorld(from) + GardenScreen.CellToWorld(to)) / 2f + new Vector2(0f, 60f));
+            Step(screen, 0.5f);
+            screen.EnterLayoutMode();
+            Step(screen, 0.3f);
+            Capture(screen, "119-gio-bo-tri-" + locale);
+            CarryAndDrop(screen, from, to, "119-gio-keo-" + locale);
+            Capture(screen, "119-gio-theo-tram-" + locale);
+            CarryAndDrop(screen, s.Grid.TileOf(GardenGrid.StationId(defs[2])).Value, basket, "119-gio-o-cu-" + locale);
+            screen.ExitLayoutMode();
+            Step(screen, 0.5f);
+            Capture(screen, "119-gio-xong-" + locale);
+            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
 
         static void RenderStationSpacing()

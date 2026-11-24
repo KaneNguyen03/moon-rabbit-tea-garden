@@ -73,10 +73,14 @@ namespace VuonTra.Core
             if (i < 0 || TotalOwned(s) >= Spots || s.GoldenCarrots < Kinds[i].Price) return false;
             s.GoldenCarrots -= Kinds[i].Price;
             s.DecorOwned[i]++;
+            GardenGrid.SettleDecor(s);
             return true;
         }
 
         static bool SpotOk(GameState s, int spot) => spot >= 0 && spot < s.DecorSpots.Length;
+
+        public static bool IsEmptySpot(GameState s, string id) =>
+            id != null && id.StartsWith("decor:") && int.TryParse(id.Substring(6), out int spot) && SpotOk(s, spot) && s.DecorSpots[spot] == null;
 
         public static bool Place(GameState s, int spot, string kindId)
         {

@@ -386,6 +386,60 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(beside, TileOf(GardenGrid.DecorId(7)), "a free tile beside the jar still takes it");
         }
 
+        [Test]
+        public void A_Station_Dropped_On_An_Empty_Decoration_Spot_Springs_Back_And_The_Plus_Stays_On_Its_Tile()
+        {
+            Motion.SetReduced(true);
+            S.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(S, "den-da"), "one stone lantern bought and not placed yet");
+            screen.Refresh();
+            Hex spot = GardenGrid.DefaultDecorTile(3), jam = TileOf(Id(2));
+            Assert.AreEqual(new Hex(3, 1), spot);
+            screen.EnterLayoutMode();
+            screen.LookAt(GardenScreen.CellToWorld(spot));
+            Step(0.1f);
+            Assert.IsFalse(screen.LayoutEmptyTiles().Contains(spot), "no ring is drawn on the plus");
+            Transform ring = root.transform.Find("Canvas/Garden/Content/LayoutRings/Ring " + spot.Q + "," + spot.R);
+            Assert.IsTrue(ring == null || !ring.gameObject.activeSelf);
+            HoldDragDrop(jam, screen.LayoutViewPoint(spot));
+            Assert.IsNull(screen.LayoutLifted);
+            Assert.AreEqual(jam, TileOf(Id(2)), "the jam pot springs back");
+            Near(GardenScreen.CellToWorld(jam), Actor(2).anchoredPosition, "and is drawn there");
+            screen.ExitLayoutMode();
+            var plus = (RectTransform)root.transform.Find("Canvas/Garden/Content/Spot 3");
+            Assert.IsTrue(plus.Find("Plate").gameObject.activeInHierarchy, "the plus is out");
+            Near(GardenScreen.CellToWorld(spot), plus.anchoredPosition, "on its own tile");
+            Assert.AreEqual(GardenGrid.DecorId(3), S.Grid.OccupantAt(spot.Q, spot.R));
+        }
+
+        [Test]
+        public void The_Leaf_Basket_Goes_With_Its_Station_And_Its_Old_Tile_Lights_Up()
+        {
+            Motion.SetReduced(true);
+            S.GardenXp = Garden.XpForLevel(Leaves.UnlockLevel);
+            screen.Refresh();
+            int leaf = Leaves.StationIndex(runner.Defs);
+            Hex home = TileOf(GardenGrid.BasketId), plate = TileOf(GardenGrid.BasketPlateId);
+            var basket = (RectTransform)root.transform.Find("Canvas/Garden/Content/Basket");
+            Assert.IsTrue(basket.gameObject.activeSelf, "the basket is out from garden level four");
+            Vector2 before = basket.anchoredPosition;
+            screen.EnterLayoutMode();
+            Assert.IsFalse(screen.LayoutEmptyTiles().Contains(home), "no ring under the basket");
+            Assert.IsFalse(screen.LayoutEmptyTiles().Contains(plate), "nor under its plate");
+            Hex from = TileOf(Id(leaf)), to = ApartTileNear(TileOf(Id(0)), Id(leaf));
+            screen.LookAt(GardenScreen.CellToWorld(from));
+            HoldDragDrop(from, screen.LayoutViewPoint(to));
+            Assert.AreEqual(to, TileOf(Id(leaf)));
+            Hex now = TileOf(GardenGrid.BasketId);
+            Assert.AreEqual(1, GardenGrid.Distance(now, to), "the basket stands beside its station");
+            Assert.IsTrue(screen.LayoutEmptyTiles().Contains(home), "its old tile is offered");
+            Vector2 shift = GardenScreen.CellToWorld(now) - GardenScreen.CellToWorld(home);
+            Near(before + shift, basket.anchoredPosition, "and it is drawn there while arranging");
+            screen.ExitLayoutMode();
+            basket = (RectTransform)root.transform.Find("Canvas/Garden/Content/Basket");
+            Near(before + shift, basket.anchoredPosition, "and after Done");
+        }
+
         static string OneLine(Text text)
         {
             Vector2 size = text.rectTransform.rect.size;

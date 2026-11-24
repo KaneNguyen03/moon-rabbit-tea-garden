@@ -6233,7 +6233,7 @@ namespace VuonTra.Core.Tests
             GardenGrid.Settle(runner.Defs, s);
             screen.Refresh();
             Assert.AreEqual(GardenGrid.SegmentsForPlots(runner.Defs.Count), s.Grid.Segments);
-            Assert.AreEqual(runner.Defs.Count + RestSpots.Max + 3, s.Grid.OccupantCount, "every station, every seat, the mortar, the shop and the counter");
+            Assert.AreEqual(runner.Defs.Count + RestSpots.Max + 3 + 2 + GardenGrid.ShopRoofIds.Length, s.Grid.OccupantCount, "every station, every seat, the mortar, the shop, the counter, the leaf basket and its plate, and the tiles under the shop's roof");
             var world = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             var tiles = new HashSet<Hex>();
             foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants)

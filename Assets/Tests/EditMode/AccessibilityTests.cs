@@ -776,6 +776,7 @@ namespace VuonTra.Core.Tests
                 if (cell.Value <= Hair || GardenGrid.IsReserved(h)) continue;
                 string holder = s.Grid.OccupantAt(h.Q, h.R);
                 if (holder == GardenGrid.MortarId || holder == GardenGrid.CounterId || holder == GardenGrid.ShopId) continue;
+                if ((holder == GardenGrid.BasketId || holder == GardenGrid.BasketPlateId) && under[h].StartsWith("Basket")) continue;
                 missing.Add(h + " under " + under[h] + " by " + cell.Value);
             }
             Assert.IsEmpty(missing, "not reserved:\n" + string.Join("\n", missing));
@@ -783,17 +784,29 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(depth.ContainsKey(h), h + " is reserved, but no prop or plate reaches its cell");
             Assert.AreEqual(GardenGrid.MortarId, s.Grid.OccupantAt(1, -1), "the mortar holds its own tile");
 
-            int leaf = -1;
-            for (int i = 0; i < runner.Defs.Count; i++) if (runner.Defs[i].Id == "gio-la") leaf = i;
-            Hex home = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[leaf])).Value;
+            int leaf = Leaves.StationIndex(runner.Defs);
+            Hex home = s.Grid.TileOf(GardenGrid.StationId(runner.Defs[leaf])).Value, basketHome = s.Grid.TileOf(GardenGrid.BasketId).Value;
             Assert.IsTrue(s.Grid.NearestEmptyApart(Expansion.StationSpacing, out Hex elsewhere));
-            Assert.IsTrue(s.Grid.Move(home, elsewhere));
+            Assert.AreEqual(LayoutDrop.Placed, VuonTra.Core.Layout.Drop(runner.Defs, s, home, elsewhere));
             screen.RebuildUi();
             screen.Refresh();
             Layout();
             street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
+            Hex basketNow = s.Grid.TileOf(GardenGrid.BasketId).Value;
+            Assert.AreEqual(1, GardenGrid.Distance(basketNow, elsewhere), "the basket went with its station (#119)");
+            Assert.IsNull(s.Grid.OccupantAt(basketHome.Q, basketHome.R), "and gave its old tile back");
             Rect basketAfter = GardenRect((RectTransform)street.Find("Basket"), street);
-            Assert.Less(Vector2.Distance(basketBefore.center, basketAfter.center), 0.5f, "the basket stays under its tea tree: " + basketBefore + " then " + basketAfter);
+            Vector2 shift = GardenScreen.CellToWorld(basketNow) - GardenScreen.CellToWorld(basketHome);
+            Assert.Less(Vector2.Distance(basketBefore.center + shift, basketAfter.center), 0.5f, "drawn on its new tile as it was on the old: " + basketBefore + " then " + basketAfter);
+            Rect body = GardenRect((RectTransform)street.Find("Basket"), street);
+            for (float x = body.xMin + Hair; x <= body.xMax - Hair; x += 2f)
+                for (float y = body.yMin + Hair; y <= body.yMax - Hair; y += 2f)
+                {
+                    Hex h = GardenScreen.WorldToCell(new Vector2(x, y));
+                    Assert.AreEqual(GardenGrid.BasketId, s.Grid.OccupantAt(h.Q, h.R), "the basket reaches " + h);
+                }
+            Hex plate = GardenScreen.WorldToCell(GardenRect((RectTransform)street.Find("Basket/Plate"), street).center);
+            Assert.AreEqual(GardenGrid.BasketPlateId, s.Grid.OccupantAt(plate.Q, plate.R), "its plate hangs over the tile it holds");
         }
 
         [Category("Slow")]
@@ -821,14 +834,14 @@ namespace VuonTra.Core.Tests
             Assert.Greater(tiles.Count, Decor.Spots, "free tiles by the props");
             foreach (Hex h in tiles) Assert.IsFalse(GardenGrid.IsReserved(h), h + " is offered");
 
-            List<string> Covered(List<Hex> on, bool beyondRules)
+            List<string> Covered(List<Hex> on, bool beyondRules, int used, IEnumerable<string> platePaths)
             {
                 var covered = new List<string>();
                 foreach (DecorKind kind in Decor.Kinds)
-                    for (int start = 0; start < on.Count; start += Decor.Spots)
+                    for (int start = 0; start < on.Count; start += used)
                     {
-                        for (int n = 0; n < Decor.Spots; n++) { s.DecorSpots[n] = null; grid.Remove(GardenGrid.DecorId(n)); }
-                        for (int n = 0; n < Decor.Spots && start + n < on.Count; n++)
+                        for (int n = 0; n < used; n++) { s.DecorSpots[n] = null; grid.Remove(GardenGrid.DecorId(n)); }
+                        for (int n = 0; n < used && start + n < on.Count; n++)
                         {
                             s.DecorSpots[n] = kind.Id;
                             Assert.IsTrue(grid.Place(GardenGrid.DecorId(n), on[start + n].Q, on[start + n].R, beyondRules), "placed on " + on[start + n]);
@@ -838,13 +851,13 @@ namespace VuonTra.Core.Tests
                         Layout();
                         Transform street = root.transform.Find("Canvas/Garden/Content");
                         var plates = new List<RectTransform>();
-                        foreach (string path in new[] { "Jar", "Jar/Plate", "Basket/Plate", "Mortar/Plate", "PondTap/Plate" })
+                        foreach (string path in platePaths)
                         {
                             var rt = (RectTransform)street.Find(path);
                             Assert.IsTrue(rt.gameObject.activeInHierarchy, path + " is out");
                             plates.Add(rt);
                         }
-                        for (int n = 0; n < Decor.Spots && start + n < on.Count; n++)
+                        for (int n = 0; n < used && start + n < on.Count; n++)
                         {
                             var item = (RectTransform)street.Find("Spot " + n + "/Item");
                             Assert.IsTrue(item.gameObject.activeInHierarchy, kind.Id + " stands on spot " + n);
@@ -857,10 +870,32 @@ namespace VuonTra.Core.Tests
                 return covered;
             }
 
-            List<string> onPlates = Covered(tiles, false);
+            var plates = new[] { "Jar", "Jar/Plate", "Basket/Plate", "Mortar/Plate", "PondTap/Plate" };
+            List<string> onPlates = Covered(tiles, false, Decor.Spots, plates);
             Assert.IsEmpty(onPlates, onPlates.Count + " covered:\n" + string.Join("\n", onPlates));
             var reserved = new List<Hex>(GardenGrid.ReservedTiles);
-            Assert.IsNotEmpty(Covered(reserved, true), "a decoration on (4,-3) covers the jar's plate");
+            Assert.IsNotEmpty(Covered(reserved, true, Decor.Spots, plates), "a decoration on (4,-3) covers the jar's plate");
+
+            for (int n = 0; n < Decor.Spots; n++) { s.DecorSpots[n] = null; grid.Remove(GardenGrid.DecorId(n)); }
+            int leaf = Leaves.StationIndex(runner.Defs);
+            Hex station = grid.TileOf(GardenGrid.StationId(runner.Defs[leaf])).Value;
+            Assert.IsTrue(grid.NearestEmptyApart(Expansion.StationSpacing, out Hex elsewhere));
+            Assert.AreEqual(LayoutDrop.Placed, VuonTra.Core.Layout.Drop(runner.Defs, s, station, elsewhere), "the leaf station moves and its basket with it");
+            const int Empty = Decor.Spots - 1;
+            s.DecorOwned[0] = Decor.Spots;
+            GardenGrid.SettleDecor(s);
+            Hex plus = grid.TileOf(GardenGrid.DecorId(Empty)).Value, basket = grid.TileOf(GardenGrid.BasketId).Value;
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(Empty), plus, "the empty spot shows its plus on its own tile");
+            var beside = new List<Hex>();
+            foreach (Hex h in screen.LayoutEmptyTiles())
+            {
+                Assert.AreNotEqual(plus, h, "the plus's tile is not offered");
+                Assert.AreNotEqual(basket, h, "nor the basket's");
+                if ((GardenGrid.Distance(h, plus) <= 2 || GardenGrid.Distance(h, basket) <= 2) && !beside.Contains(h)) beside.Add(h);
+            }
+            Assert.Greater(beside.Count, Empty, "free tiles by the plus and the basket");
+            List<string> onHeld = Covered(beside, false, Empty, new[] { "Basket/Plate", "Spot " + Empty + "/Plate" });
+            Assert.IsEmpty(onHeld, onHeld.Count + " covered:\n" + string.Join("\n", onHeld));
         }
 
         [Test]

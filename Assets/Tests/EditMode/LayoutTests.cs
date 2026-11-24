@@ -190,7 +190,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Layout.Store(defs, s, "decor:2"));
             Assert.IsNull(s.DecorSpots[2]);
             Assert.AreEqual(1, Decor.Available(s, "den-da"));
-            Assert.IsNull(s.Grid.TileOf("decor:2"));
+            Assert.AreEqual(GardenGrid.DefaultDecorTile(2), s.Grid.TileOf("decor:2"), "its spot waits empty on its own tile");
             Assert.IsFalse(s.Grid.IsStored("decor:2"), "the grid's own store is for stations");
         }
 
@@ -283,6 +283,154 @@ namespace VuonTra.Core.Tests
             other.Levels[1] = 5; other.Levels[2] = 3;
             Assert.IsTrue(other.Grid.Move(other.Grid.TileOf("station:jam").Value, new Hex(-1, 2)), "only moved");
             Assert.AreEqual(Economy.IncomePerSecond(defs, s).ToDouble(), Economy.IncomePerSecond(defs, other).ToDouble(), 1e-12, "where a station stands does not change what it earns");
+        }
+            const string Basket = GardenGrid.BasketId;
+
+        static Hex HomeOfSpot(int n) => GardenGrid.DefaultDecorTile(n);
+
+        [Test]
+        public void An_Empty_Decoration_Spot_Takes_No_Station_So_Its_Plus_Is_Never_Drawn_Over_One()
+        {
+            s.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(s, "den-da"), "one stone lantern bought, not placed yet");
+            Assert.IsTrue(Decor.ShowEmptySpots(s), "so every empty spot shows its plus");
+            Hex spot = HomeOfSpot(3);
+            Assert.AreEqual(new Hex(3, 1), spot);
+            Hex jam = Tile(s, "station:jam");
+            Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, jam, spot), "the jam pot springs back from the empty spot's tile");
+            Assert.AreEqual(jam, Tile(s, "station:jam"));
+            Assert.AreEqual(spot, Tile(s, GardenGrid.DecorId(3)), "the plus keeps its tile");
+            Assert.IsFalse(s.Grid.EmptyTiles().Contains(spot), "and the tile is not offered");
+        }
+
+        [Test]
+        public void No_Station_Seat_Or_Decoration_Is_Dropped_On_An_Empty_Spot_The_Basket_Or_Under_The_Shop_Roof()
+        {
+            s.Grid.Segments = 5;
+            GardenGrid.Settle(defs, s);
+            s.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(s, "den-da") && Decor.Buy(s, "den-da") && Decor.Place(s, 0, "den-da"));
+            Assert.IsTrue(s.Grid.InLawn(new Hex(1, -4)) && s.Grid.InLawn(new Hex(2, -4)), "the land behind the tea shop is open");
+            Hex shop = Tile(s, GardenGrid.ShopId);
+            var kept = new List<Hex> { HomeOfSpot(3), HomeOfSpot(4), new Hex(3, -1), new Hex(2, -1), new Hex(shop.Q, shop.R - 1), new Hex(shop.Q + 1, shop.R - 1) };
+            Assert.AreEqual(new Hex(3, -1), Tile(s, Basket), "the basket stands up and right of the leaf station");
+            foreach (string id in new[] { "station:jam", "rest:0", GardenGrid.DecorId(0) })
+            {
+                Hex from = Tile(s, id);
+                foreach (Hex h in kept)
+                {
+                    Assert.AreEqual(LayoutDrop.Back, Layout.Drop(defs, s, from, h), id + " dropped on " + h + " springs back");
+                    Assert.AreEqual(from, Tile(s, id));
+                    Assert.IsFalse(s.Grid.EmptyTiles().Contains(h), h + " is not offered");
+                }
+            }
+        }
+
+        [Test]
+        public void The_Basket_Follows_The_Leaf_Station_And_Gives_Its_Old_Tiles_Back()
+        {
+            Hex leaf = Tile(s, "station:leaf"), home = Tile(s, Basket);
+            Assert.AreEqual(new Hex(3, -1), home);
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, leaf, new Hex(-1, 2)));
+            Hex basket = Tile(s, Basket);
+            Assert.AreEqual(1, GardenGrid.Distance(basket, new Hex(-1, 2)), "the basket stands beside the station");
+            Assert.Greater(GardenGrid.Column(basket), GardenGrid.Column(new Hex(-1, 2)), "on its right");
+            Assert.IsNull(s.Grid.OccupantAt(home.Q, home.R), "its old tile is free");
+            Assert.IsNull(s.Grid.OccupantAt(home.Q - 1, home.R), "and so is its plate's");
+            Assert.IsTrue(s.Grid.EmptyTiles().Contains(home));
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, Tile(s, "rest:0"), home), "something else may stand there now");
+        }
+
+        [Test]
+        public void The_Basket_Never_Takes_The_Tile_Its_Station_Just_Left_So_The_Station_Can_Go_Back()
+        {
+            GardenGrid g = s.Grid;
+            Hex leaf = Tile(s, "station:leaf"), basket = Tile(s, Basket);
+            foreach (Hex to in g.EmptyTiles())
+            {
+                if (GardenGrid.Distance(to, leaf) > 2) continue;
+                if (Layout.Drop(defs, s, leaf, to) != LayoutDrop.Placed) continue;
+                Assert.IsNull(g.OccupantAt(leaf.Q, leaf.R), "moved to " + to + ": its old tile stays free");
+                Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, to, leaf), "and it goes back from " + to);
+                Assert.AreEqual(basket, Tile(s, Basket), "the basket back on its own tile");
+            }
+            Hex jam = Tile(s, "station:jam");
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, jam, new Hex(-1, 2)));
+            Assert.AreEqual(basket, Tile(s, Basket), "another station moving leaves the basket where it is");
+        }
+
+        [Test]
+        public void A_New_Moon_Brings_The_Basket_Back_To_Open_Land_With_The_Leaf_Station()
+        {
+            s.Grid.Segments = 1;
+            Hex far = new Hex(5, 0);
+            Assert.AreEqual(1, GardenGrid.SegmentOf(far));
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, Tile(s, "station:leaf"), far));
+            Assert.AreEqual(1, GardenGrid.Distance(Tile(s, Basket), far), "the basket went along");
+            s.GardenXp = Garden.XpForLevel(NewMoon.LevelNeeded(0));
+            Assert.IsTrue(NewMoon.Begin(defs, s, "Trăng", out _));
+            Hex leaf = Tile(s, "station:leaf"), basket = Tile(s, Basket);
+            Assert.IsTrue(s.Grid.InLawn(leaf) && s.Grid.InLawn(basket), "both on the open lawn");
+            Assert.AreEqual(1, GardenGrid.Distance(basket, leaf), "side by side again");
+        }
+
+        [Test]
+        public void An_Old_Save_With_A_Station_On_An_Empty_Spot_s_Tile_Moves_The_Spot_And_Loses_No_Decoration()
+        {
+            Assert.IsTrue(s.Grid.Move(Tile(s, "station:jam"), new Hex(3, 1)), "while no spot was shown the jam pot went to spot 3's tile");
+            s.DecorOwned[Decor.IndexOf("den-da")] = 2;
+            s.DecorOwned[Decor.IndexOf("bon-hoa")] = 1;
+            s.DecorSpots[0] = "den-da";
+            s.DecorSpots[5] = "bon-hoa";
+            string json = SaveCodec.Encode(defs, s);
+            GameState back = SaveCodec.Decode(defs, json).State;
+            Assert.AreEqual(new Hex(3, 1), Tile(back, "station:jam"), "the station is not pushed");
+            Hex spot = Tile(back, GardenGrid.DecorId(3));
+            Assert.AreNotEqual(new Hex(3, 1), spot, "the empty spot moved off it");
+            Assert.IsNull(back.DecorSpots[3]);
+            Assert.AreEqual(2, Decor.Owned(back, "den-da"));
+            Assert.AreEqual(1, Decor.Owned(back, "bon-hoa"));
+            Assert.AreEqual("den-da", back.DecorSpots[0]);
+            Assert.AreEqual("bon-hoa", back.DecorSpots[5]);
+            Assert.AreEqual(1, Decor.Available(back, "den-da"));
+            var tiles = new HashSet<Hex>();
+            foreach (KeyValuePair<string, Hex> o in back.Grid.Occupants) Assert.IsTrue(tiles.Add(o.Value), o.Key + " shares " + o.Value);
+        }
+
+        [Test]
+        public void An_Old_Save_With_A_Station_Under_The_Shop_Roof_Keeps_It_There()
+        {
+            string json = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":3},{\"id\":\"leaf\",\"level\":2},{\"id\":\"jam\",\"level\":1}],\"plots\":3,"
+                + "\"grid\":{\"map\":5,\"tiles\":[{\"q\":0,\"r\":0,\"id\":\"station:tea\"},{\"q\":2,\"r\":0,\"id\":\"station:leaf\"},{\"q\":1,\"r\":-4,\"id\":\"station:jam\"},{\"q\":2,\"r\":-4,\"id\":\"rest:0\"}]}}";
+            GameState old = SaveCodec.Decode(defs, json).State;
+            Assert.AreEqual(new Hex(1, -4), Tile(old, "station:jam"), "a station is never pushed");
+            Assert.AreEqual(new Hex(2, -4), Tile(old, "rest:0"), "nor a seat");
+            Assert.IsNull(old.Grid.TileOf(GardenGrid.ShopRoofIds[0]), "the roof holds only free tiles");
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, old, new Hex(1, -4), new Hex(-1, 2)));
+            Assert.AreEqual(new Hex(1, -4), Tile(old, GardenGrid.ShopRoofIds[0]), "and takes its tile back once the station moves off");
+        }
+
+        [Test]
+        public void Storing_A_Decoration_Puts_Its_Empty_Spot_Back_On_Its_Own_Tile()
+        {
+            s.GoldenCarrots = 100;
+            Assert.IsTrue(Decor.Buy(s, "den-da") && Decor.Buy(s, "den-da") && Decor.Place(s, 2, "den-da"));
+            Hex lantern = Tile(s, GardenGrid.DecorId(2));
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, lantern, new Hex(0, 1)));
+            Assert.IsTrue(Layout.Store(defs, s, GardenGrid.DecorId(2)));
+            Assert.AreEqual(HomeOfSpot(2), Tile(s, GardenGrid.DecorId(2)), "the plus waits on its own tile again");
+            Assert.IsNull(s.Grid.OccupantAt(0, 1));
+        }
+
+        [Test]
+        public void The_Basket_Is_Not_Written_To_The_Save_And_Stands_By_The_Leaf_Station_Again_On_Load()
+        {
+            Assert.AreEqual(LayoutDrop.Placed, Layout.Drop(defs, s, Tile(s, "station:leaf"), new Hex(-1, 2)));
+            string json = SaveCodec.Encode(defs, s);
+            StringAssert.DoesNotContain("\"id\":\"basket\"", json);
+            GameState back = SaveCodec.Decode(defs, json).State;
+            Assert.AreEqual(Tile(s, Basket), Tile(back, Basket));
+            Assert.AreEqual(json, SaveCodec.Encode(defs, back));
         }
     }
 }

@@ -69,7 +69,7 @@ namespace VuonTra.Game.UI
         System.Action<Rabbit> _onSeasonArrived;
         /// <summary>The leaf-catching game, opened from the basket under the tea tree past the leaf station.</summary>
         public LeavesView Basket { get; private set; }
-        RectTransform _basketProp;
+        RectTransform _basketProp, _basketTree;
         Text _basketPlate;
         /// <summary>The firefly night, opened from the glass jar on a stump by the pond.</summary>
         public FirefliesView Jar { get; private set; }
@@ -1531,19 +1531,20 @@ namespace VuonTra.Game.UI
             }
             // The basket for the leaf-catching game waits under a small tea tree past the leaf basket station from garden level four.
             {
-                int leafStation = 1;
-                for (int i = 0; i < Runner.Defs.Count; i++) if (Runner.Defs[i].Id == "gio-la") { leafStation = i; break; }
+                int leafStation = Leaves.StationIndex(Runner.Defs);
                 // Past the leaf station on the right, in the one gap between its name and the next station's plate: a
                 // small basket, with its plate hung on its left so neither covers a sign.
-                Vector2 basketAt = BasketSpot(leafStation); // #54 follow-up: by the leaf station's home tile, wherever the station is moved
+                Vector2 basketAt = BasketSpot;
+                _basketTree = null;
                 if (catalog.Decor != null && catalog.Decor.Length > 0 && catalog.Decor[0] != null)
                 {
-                    Image tree = AddDecor(_street, catalog.Decor[0], basketAt.x + 30f, basketAt.y + 40f, 150f * DecorScale, Color.white);
-                    Rooted(tree, "Tree", basketAt.x + 30f, basketAt.y + 40f, _swayTrees);
-                    standing.Add(new KeyValuePair<float, Transform>(basketAt.y + 40f, tree.transform));
+                    Image tree = AddDecor(_street, catalog.Decor[0], basketAt.x + BasketTreeOffset.x, basketAt.y + BasketTreeOffset.y, 150f * DecorScale, Color.white);
+                    Rooted(tree, "Tree", basketAt.x + BasketTreeOffset.x, basketAt.y + BasketTreeOffset.y, _swayTrees);
+                    standing.Add(new KeyValuePair<float, Transform>(basketAt.y + BasketTreeOffset.y, tree.transform));
+                    _basketTree = tree.rectTransform;
                 }
                 Sprite basketSprite = leafStation < catalog.Stations.Length && catalog.Stations[leafStation] != null ? catalog.Stations[leafStation].Prop : null;
-                _basketProp = UiKit.Rect("Basket", _street).Place(0f, 0f, basketAt.x, basketAt.y + 48f, 110, 95);
+                _basketProp = UiKit.Rect("Basket", _street).Place(0f, 0f, basketAt.x, basketAt.y + BasketLift, 110, 95);
                 Image basketImage = _basketProp.AddImage(basketSprite != null ? basketSprite : catalog.Round, basketSprite != null ? Color.white : Palette.Mix(Palette.Carrot, Palette.Ink, 0.35f));
                 basketImage.preserveAspect = true;
                 basketImage.raycastTarget = true;
@@ -2478,6 +2479,8 @@ namespace VuonTra.Game.UI
                 string kind = s.DecorSpots[i];
                 bool shown = kind != null || empties;
                 if (view.Root.gameObject.activeSelf != shown) view.Root.gameObject.SetActive(shown);
+                Vector2 at = DecorSpotAt(i);
+                if (!LayoutMode && view.Root.anchoredPosition != at) view.Root.anchoredPosition = at;
                 bool plate = kind == null && empties;
                 if (view.Plate.activeSelf != plate) view.Plate.SetActive(plate);
                 bool item = kind != null;
@@ -2830,9 +2833,7 @@ namespace VuonTra.Game.UI
             var keepOff = new List<Rect>();
             for (int i = 0; i < stations; i++) keepOff.Add(StationReach(i));
             {
-                int leafStation = 1;
-                for (int i = 0; i < stations; i++) if (catalog.Stations[i] != null && catalog.Stations[i].Id == "gio-la") { leafStation = i; break; }
-                Vector2 basketAt = BasketSpot(leafStation);
+                Vector2 basketAt = BasketSpot;
                 keepOff.Add(Rect.MinMaxRect(basketAt.x - 245f, basketAt.y, basketAt.x + 60f, basketAt.y + 100f));
                 keepOff.Add(Rect.MinMaxRect(JarSpot.x - 140f, JarSpot.y - 40f, JarSpot.x + 140f, JarSpot.y + 160f));
                 keepOff.Add(Rect.MinMaxRect(MortarSpot.x - 130f, MortarSpot.y - 40f, MortarSpot.x + 130f, MortarSpot.y + 160f));
@@ -7700,6 +7701,7 @@ namespace VuonTra.Game.UI
                 Sfx.Blip();
                 Haptics.Light();
                 if (index < _actors.Count) _actors[index].Root.anchoredPosition = StationSpot(index); // the scenery around it follows at the next build
+                StandBasket();
                 Refresh();
                 RefreshRings();
                 return;
@@ -8039,6 +8041,7 @@ namespace VuonTra.Game.UI
                     EndLift(l);
                     Vector2 home = HomeOf(l.Id);
                     for (int k = 0; k < l.Parts.Length; k++) if (l.Parts[k] != null) l.Parts[k].anchoredPosition = home + l.Offsets[k];
+                    StandBasket();
                     _layoutDirty = true;
                     Sfx.Blip();
                     Haptics.Light();
@@ -8064,6 +8067,7 @@ namespace VuonTra.Game.UI
             EndLift(l);
             Glide(l.Parts, l.Offsets, l.Point, CellToWorld(to));
             if (done == VuonTra.Core.LayoutDrop.Swapped) Glide(otherParts, otherOffsets, CellToWorld(to), CellToWorld(l.From));
+            StandBasket();
             Sfx.Blip();
             Haptics.Light();
             Refresh();
@@ -8259,11 +8263,17 @@ namespace VuonTra.Game.UI
         /// <summary>Where the firefly jar stands by the pond, for the tests and previews: its tiles and its plate's are kept clear (<see cref="GardenGrid.ReservedTiles"/>).</summary>
         public static Vector2 FireflyJarSpot => JarSpot;
 
-        /// <summary>
-        /// Where the leaf-catching basket stands: past the leaf station's home tile on the right, under its small tea tree. It stays
-        /// there when the leaf station is moved (#54), so the tiles kept clear for it and its plate hold wherever things are arranged.
-        /// </summary>
-        static Vector2 BasketSpot(int leafStation) => CellToWorld(GardenGrid.DefaultStationTile(leafStation)) + new Vector2(104f, 130f);
+        static readonly Vector2 BasketFoot = new Vector2(29f, -70f), BasketTreeOffset = new Vector2(30f, 40f);
+        const float BasketLift = 48f;
+
+        public Vector2 BasketSpot => CellToWorld(Grid != null && Grid.TryTileOf(GardenGrid.BasketId, out Hex tile) ? tile : GardenGrid.HomeBasketTile(Runner.Defs)) + BasketFoot;
+
+        void StandBasket()
+        {
+            Vector2 at = BasketSpot;
+            if (_basketProp != null) _basketProp.anchoredPosition = at + new Vector2(0f, BasketLift);
+            if (_basketTree != null) _basketTree.anchoredPosition = at + BasketTreeOffset;
+        }
 
         #endregion
 

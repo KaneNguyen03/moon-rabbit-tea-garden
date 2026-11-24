@@ -40,6 +40,8 @@ namespace VuonTra.Core
         public const int MaxSegments = 9;
         public const double PitchX = 150d, PitchY = 200d;
         public const string MortarId = "mortar", ShopId = "shop", CounterId = "counter";
+        public const string BasketId = "basket", BasketPlateId = "basket:plate";
+        public static readonly string[] ShopRoofIds = { "shop:roof:0", "shop:roof:1" };
 
         static readonly Hex[] Directions = { new Hex(1, 0), new Hex(1, -1), new Hex(0, -1), new Hex(-1, 0), new Hex(-1, 1), new Hex(0, 1) };
 
@@ -96,6 +98,7 @@ namespace VuonTra.Core
         static readonly Hex[] RestTiles = { new Hex(-3, 1), new Hex(-4, 1), new Hex(4, 1), new Hex(-5, 0), new Hex(7, 2), new Hex(-7, -2) };
         static readonly Hex[] DecorTiles = { new Hex(-5, 3), new Hex(-3, 3), new Hex(-1, 3), new Hex(3, 1), new Hex(1, 3), new Hex(5, -3), new Hex(3, -2), new Hex(2, -3) };
         static readonly Hex MortarTile = new Hex(1, -1), ShopTile = new Hex(1, -3), CounterTile = new Hex(3, -3);
+        static readonly Hex[] BasketSides = { new Hex(1, -1), new Hex(1, 0), new Hex(0, 1), new Hex(0, -1), new Hex(-1, 0), new Hex(-1, 1) };
 
         public int Segments;
         readonly Dictionary<string, Hex> _tileOf = new Dictionary<string, Hex>();
@@ -351,8 +354,8 @@ namespace VuonTra.Core
             for (int i = 0; i < defs.Count && i < s.Plots; i++) if (!g.IsStored(StationId(defs[i]))) wanted.Add(StationId(defs[i]));
             for (int n = 0; n < Math.Min(s.RestSpots, RestSpots.Max); n++) wanted.Add(RestId(n));
             wanted.Add(MortarId); wanted.Add(ShopId); wanted.Add(CounterId);
-            for (int n = 0; n < s.DecorSpots.Length; n++) if (s.DecorSpots[n] != null) wanted.Add(DecorId(n));
             var keep = new HashSet<string>(wanted);
+            for (int n = 0; n < s.DecorSpots.Length; n++) if (DecorDrawn(s, n)) keep.Add(DecorId(n));
             var gone = new List<string>();
             foreach (string id in g._tileOf.Keys) if (!keep.Contains(id)) gone.Add(id);
             foreach (string id in gone) g.Remove(id);
@@ -366,6 +369,8 @@ namespace VuonTra.Core
                 bool found = id.StartsWith("station:") ? g.NearestEmptyApart(home, Expansion.StationSpacing, id, out Hex spare) : g.NearestEmpty(home, out spare);
                 if (found) g.Seat(id, spare);
             }
+            g.HoldTiles(defs);
+            g.SeatDecor(s);
         }
 
         void LeaveClosedLand(IReadOnlyList<StationDef> defs)
@@ -382,15 +387,82 @@ namespace VuonTra.Core
             }
         }
 
-        public static void SettleDecor(GameState s)
+        public static void SettleDecor(GameState s) => (s.Grid ?? (s.Grid = new GardenGrid())).SeatDecor(s);
+
+        static bool DecorDrawn(GameState s, int n) => s.DecorSpots[n] != null || Decor.ShowEmptySpots(s);
+
+        void SeatDecor(GameState s)
         {
-            GardenGrid g = s.Grid ?? (s.Grid = new GardenGrid());
             for (int n = 0; n < s.DecorSpots.Length; n++)
             {
                 string id = DecorId(n);
-                if (s.DecorSpots[n] == null) g.Remove(id);
-                else if (!g._tileOf.ContainsKey(id) && !g.Seat(id, DefaultDecorTile(n)) && g.NearestEmpty(DefaultDecorTile(n), out Hex spare)) g.Seat(id, spare);
+                Hex home = DefaultDecorTile(n);
+                if (!DecorDrawn(s, n)) { Remove(id); continue; }
+                if (s.DecorSpots[n] == null && TryTileOf(id, out Hex at) && at != home && Free(home)) Seat(id, home);
+                if (!_tileOf.ContainsKey(id) && !Seat(id, home) && NearestEmpty(home, out Hex spare)) Seat(id, spare);
             }
+        }
+
+        public static Hex HomeBasketTile(IReadOnlyList<StationDef> defs)
+        {
+            Hex station = DefaultStationTile(Leaves.StationIndex(defs));
+            return new Hex(station.Q + BasketSides[0].Q, station.R + BasketSides[0].R);
+        }
+
+        static Hex PlateOf(Hex basket) => new Hex(basket.Q - 1, basket.R);
+
+        bool Free(Hex h) => InLawn(h) && !IsReserved(h) && !_occupantAt.ContainsKey(h);
+
+        bool BasketFits(Hex h) => Free(h) && Free(PlateOf(h));
+
+        static bool Covers(Hex basket, Hex? tile) => tile.HasValue && (basket == tile.Value || PlateOf(basket) == tile.Value);
+
+        public void HoldTiles(IReadOnlyList<StationDef> defs) => HoldTiles(defs, null);
+
+        public void HoldTiles(IReadOnlyList<StationDef> defs, Hex? left)
+        {
+            SeatShopRoof();
+            SeatBasket(defs, left);
+        }
+
+        void SeatShopRoof()
+        {
+            foreach (string id in ShopRoofIds) Remove(id);
+            if (!TryTileOf(ShopId, out Hex shop)) return;
+            for (int n = 0; n < ShopRoofIds.Length; n++)
+            {
+                var behind = new Hex(shop.Q + n, shop.R - 1);
+                if (Free(behind)) Seat(ShopRoofIds[n], behind);
+            }
+        }
+
+        void SeatBasket(IReadOnlyList<StationDef> defs, Hex? left)
+        {
+            int leaf = Leaves.StationIndex(defs);
+            Hex station = defs != null && leaf < defs.Count && TryTileOf(StationId(defs[leaf]), out Hex at) ? at : DefaultStationTile(leaf);
+            if (!left.HasValue && TryTileOf(BasketId, out Hex now) && Distance(now, station) == 1 && TryTileOf(BasketPlateId, out Hex plate) && plate == PlateOf(now)) return;
+            Remove(BasketId);
+            Remove(BasketPlateId);
+            Hex best = default;
+            int bestDistance = int.MaxValue;
+            foreach (bool spareLeft in new[] { true, false })
+            {
+                foreach (Hex side in BasketSides)
+                {
+                    var h = new Hex(station.Q + side.Q, station.R + side.R);
+                    if (BasketFits(h) && !(spareLeft && Covers(h, left))) { best = h; bestDistance = 1; break; }
+                }
+                if (bestDistance != int.MaxValue) break;
+                foreach (Hex h in Strip(Segments))
+                {
+                    int d = Distance(h, station);
+                    if (d < bestDistance && BasketFits(h) && !(spareLeft && Covers(h, left))) { bestDistance = d; best = h; }
+                }
+                if (bestDistance != int.MaxValue) break;
+            }
+            if (bestDistance == int.MaxValue) return;
+            Seat(BasketId, best);
+            Seat(BasketPlateId, PlateOf(best));
         }
 
         public List<Hex> EmptyTiles()
@@ -494,7 +566,6 @@ namespace VuonTra.Core
         static readonly Hex[] ReservedTable =
         {
             new Hex(0, -2), new Hex(1, -2), new Hex(2, -2),
-            new Hex(2, -1), new Hex(3, -1), new Hex(4, -1),
             new Hex(-3, -1), new Hex(-2, -1), new Hex(-3, 0), new Hex(-2, 0), new Hex(-4, 0),
             new Hex(-2, -3), new Hex(-1, -3), new Hex(0, -3), new Hex(-3, -2), new Hex(-2, -2), new Hex(-1, -2), new Hex(-1, -1), new Hex(0, -1),
         };

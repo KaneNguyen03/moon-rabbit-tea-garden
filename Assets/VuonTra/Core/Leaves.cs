@@ -129,6 +129,7 @@ namespace VuonTra.Core
         public const int PlaysPerDay = 3;
         public const int UnlockLevel = 4;
         public const double RewardSeconds = 60d;
+        public const string StationKind = "gio-la";
 
         const ulong StreamApartFromOtherGames = 0x4C656166UL;
 
@@ -176,6 +177,12 @@ namespace VuonTra.Core
         public static int StarsFor(int score) => score >= ThreeStars ? 3 : (score >= TwoStars ? 2 : (score >= OneStar ? 1 : 0));
 
         public static bool Unlocked(GameState s) => Garden.Level(s) >= UnlockLevel;
+
+        public static int StationIndex(IReadOnlyList<StationDef> defs)
+        {
+            if (defs != null) for (int i = 0; i < defs.Count; i++) if (defs[i].Id == StationKind) return i;
+            return 1;
+        }
 
         public static int PlaysLeft(GameState s, long day) => s.Leaves.PlaysLeft(day, PlaysPerDay);
 

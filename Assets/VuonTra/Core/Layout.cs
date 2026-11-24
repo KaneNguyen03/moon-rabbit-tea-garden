@@ -21,10 +21,16 @@ namespace VuonTra.Core
         {
             GardenGrid g = s.Grid;
             if (g == null || from == to || GardenGrid.IsReserved(to)) return LayoutDrop.Back;
+            if (Decor.IsEmptySpot(s, g.OccupantAt(from.Q, from.R)) || Decor.IsEmptySpot(s, g.OccupantAt(to.Q, to.R))) return LayoutDrop.Back;
             LayoutDrop done = g.OccupantAt(to.Q, to.R) == null
                 ? (g.Move(from, to) ? LayoutDrop.Placed : LayoutDrop.Back)
                 : (g.Swap(from, to) ? LayoutDrop.Swapped : LayoutDrop.Back);
-            if (done != LayoutDrop.Back) s.LayoutMoves++;
+            if (done == LayoutDrop.Back) return done;
+            s.LayoutMoves++;
+            int leaf = Leaves.StationIndex(defs);
+            string leafId = defs != null && leaf < defs.Count ? GardenGrid.StationId(defs[leaf]) : null;
+            bool leafMoved = leafId != null && (g.OccupantAt(to.Q, to.R) == leafId || g.OccupantAt(from.Q, from.R) == leafId);
+            g.HoldTiles(defs, leafMoved ? from : (Hex?)null);
             return done;
         }
 
@@ -36,13 +42,16 @@ namespace VuonTra.Core
             int index = IndexOf(defs, id);
             if (index <= 0 || s.Levels[index] <= 0 || !s.Grid.Store(id)) return false;
             foreach (Rabbit r in s.Rabbits) if (r.Station == index) r.Station = -1;
+            s.Grid.HoldTiles(defs);
             return true;
         }
 
         public static bool TakeOut(IReadOnlyList<StationDef> defs, GameState s, int index)
         {
             if (s.Grid == null || defs == null || index < 0 || index >= defs.Count) return false;
-            return s.Grid.TakeOut(GardenGrid.StationId(defs[index]));
+            if (!s.Grid.TakeOut(GardenGrid.StationId(defs[index]))) return false;
+            s.Grid.HoldTiles(defs);
+            return true;
         }
 
         public static int IndexOf(IReadOnlyList<StationDef> defs, string id)

@@ -293,7 +293,7 @@ namespace VuonTra.Core
             sb.Append(",\"grid\":{\"map\":").Append(s.Grid.Segments.ToString(CultureInfo.InvariantCulture)).Append(",\"tiles\":[");
             {
                 var ids = new List<string>();
-                foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) ids.Add(o.Key);
+                foreach (KeyValuePair<string, Hex> o in s.Grid.Occupants) if (GardenGrid.Known(o.Key)) ids.Add(o.Key);
                 ids.Sort(string.CompareOrdinal);
                 for (int i = 0; i < ids.Count; i++)
                 {
