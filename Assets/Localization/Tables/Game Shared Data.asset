@@ -4351,6 +4351,174 @@ MonoBehaviour:
     m_Key: trunk.float.lantern
     m_Metadata:
       m_Items: []
+  - m_Id: 920054441959424
+    m_Key: fair.hoi-hoa-mo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125248
+    m_Key: fair.hoi-dieu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125249
+    m_Key: fair.hoi-tra-sen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125250
+    m_Key: fair.hoi-dom-dom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125251
+    m_Key: fair.hoi-mua-ha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125252
+    m_Key: fair.hoi-den-giay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125253
+    m_Key: fair.hoi-com-moi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125254
+    m_Key: fair.hoi-hoa-cuc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125255
+    m_Key: fair.coin.hoi-hoa-mo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125256
+    m_Key: fair.coin.hoi-dieu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125257
+    m_Key: fair.coin.hoi-tra-sen
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125258
+    m_Key: fair.coin.hoi-dom-dom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125259
+    m_Key: fair.coin.hoi-mua-ha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125260
+    m_Key: fair.coin.hoi-den-giay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125261
+    m_Key: fair.coin.hoi-com-moi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125262
+    m_Key: fair.coin.hoi-hoa-cuc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125263
+    m_Key: fair.days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125264
+    m_Key: fair.weekend
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125265
+    m_Key: fair.weekday
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125266
+    m_Key: fair.have
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125267
+    m_Key: fair.sources
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125268
+    m_Key: fair.end
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125269
+    m_Key: fair.stall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125270
+    m_Key: fair.ware.Jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125271
+    m_Key: fair.ware.Clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125272
+    m_Key: fair.ware.Golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125273
+    m_Key: fair.ware.Lantern
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125274
+    m_Key: fair.ware.Frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125275
+    m_Key: fair.left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125276
+    m_Key: fair.owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125277
+    m_Key: fair.hang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125278
+    m_Key: fair.wear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125279
+    m_Key: fair.soldout
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125280
+    m_Key: fair.bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125281
+    m_Key: fair.hung
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125282
+    m_Key: fair.framed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125283
+    m_Key: fair.short
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125284
+    m_Key: fair.earned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125285
+    m_Key: fair.began.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125286
+    m_Key: fair.began.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054467125287
+    m_Key: mail.fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 920054479708160
+    m_Key: fair.days.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
