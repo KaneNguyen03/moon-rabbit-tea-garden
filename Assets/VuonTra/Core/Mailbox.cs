@@ -7,8 +7,10 @@ namespace VuonTra.Core
     {
         MakeUp,
         Season,
-        MoonPassDay,
-        MoonPassRenew
+        WeekChest,
+        Newcomer,
+        MoonPassDay = 5,
+        MoonPassRenew = 6
     }
 
     public sealed class Letter
@@ -17,7 +19,11 @@ namespace VuonTra.Core
         public LetterKind Kind;
         public Season Season;
         public long Day;
+        public int Chest;
+        public int GiftGolden, GiftClovers, GiftJars, GiftPurple;
         public int PassDay, PassDays;
+
+        WeekChest ChestDef => Kind == LetterKind.WeekChest ? QuestChests.Chests[Chest] : null;
 
         public int Golden
         {
@@ -26,13 +32,19 @@ namespace VuonTra.Core
                 switch (Kind)
                 {
                     case LetterKind.MakeUp: return Mailbox.MakeUpGolden;
+                    case LetterKind.Season: return Mailbox.SeasonGolden;
+                    case LetterKind.WeekChest: return ChestDef.Golden;
                     case LetterKind.MoonPassDay: return MoonPass.GoldenPerDay;
                     case LetterKind.MoonPassRenew: return 0;
-                    default: return Mailbox.SeasonGolden;
+                    default: return GiftGolden;
                 }
             }
         }
-        public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : 0;
+        public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.WeekChest ? ChestDef.Clovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
+        public int Jars => Kind == LetterKind.WeekChest ? ChestDef.Jars : Kind == LetterKind.Newcomer ? GiftJars : 0;
+        public int Purple => Kind == LetterKind.Newcomer ? GiftPurple : 0;
+        public int RabbitTier => Kind == LetterKind.WeekChest ? ChestDef.RabbitTier : QuestChests.NoRabbit;
+        public int KeepDays => Kind == LetterKind.WeekChest ? QuestChests.ChestKeepDays : Mailbox.KeepDays;
     }
 
     public static class Mailbox
@@ -43,9 +55,9 @@ namespace VuonTra.Core
         public const int MakeUpGolden = 10, MakeUpClovers = 3;
         public const int SeasonGolden = 5;
 
-        public static bool Expired(Letter letter, long day) => day > letter.Day + KeepDays;
+        public static bool Expired(Letter letter, long day) => day > letter.Day + letter.KeepDays;
 
-        public static int DaysLeft(Letter letter, long day) => (int)Math.Max(0L, letter.Day + KeepDays - day);
+        public static int DaysLeft(Letter letter, long day) => (int)Math.Max(0L, letter.Day + letter.KeepDays - day);
 
         public static IReadOnlyList<Letter> Open(GameState s, long day)
         {
@@ -61,8 +73,14 @@ namespace VuonTra.Core
             return true;
         }
 
+        public static bool Send(GameState s, Letter letter) => Add(s, letter);
+
         public static bool Compensate(GameState s, long day)
             => Add(s, new Letter { Id = "makeup-" + day, Kind = LetterKind.MakeUp, Day = day });
+
+        public static bool AddChest(GameState s, int chest, long week, long day)
+            => chest >= 0 && chest < QuestChests.Chests.Length
+               && Add(s, new Letter { Id = "chest-" + week + "-" + chest, Kind = LetterKind.WeekChest, Chest = chest, Day = day });
 
         public static int Check(GameState s, long today)
         {
@@ -95,14 +113,24 @@ namespace VuonTra.Core
         static bool Greeted(GameState s, Season season, int year)
             => s.SeasonGreetedDay >= 0 && Seasons.SeasonOf(s.SeasonGreetedDay) == season && Seasons.DateOf(s.SeasonGreetedDay).Year == year;
 
-        public static Letter Claim(GameState s, string id, long day)
+        public static Letter Claim(GameState s, string id, long day) => Claim(s, id, day, null, 0d, out _);
+
+        public static Letter Claim(GameState s, string id, long day, string name, double kindRoll, out Rabbit rabbit)
         {
+            rabbit = null;
             Open(s, day);
             Letter letter = s.Letters.Find(l => l.Id == id);
             if (letter == null) return null;
             s.Letters.Remove(letter);
+            if (letter.Kind == LetterKind.WeekChest)
+            {
+                rabbit = QuestChests.Grant(s, QuestChests.Chests[letter.Chest], name, kindRoll);
+                return letter;
+            }
             s.GoldenCarrots += letter.Golden;
             s.Clovers += letter.Clovers;
+            s.MoonJars = Math.Min(MoonJars.Cap, s.MoonJars + letter.Jars);
+            for (int i = 0; i < letter.Purple; i++) rabbit = Rabbits.ArriveKind(s, Newcomer.PurpleKind(s, kindRoll), name);
             return letter;
         }
     }

@@ -108,25 +108,34 @@ namespace VuonTra.Game.UI
             switch (letter.Kind)
             {
                 case LetterKind.MakeUp: return L10n.T("mail.makeup");
+                case LetterKind.WeekChest: return L10n.T("mail.chest", QuestChests.Chests[letter.Chest].Points);
+                case LetterKind.Newcomer: return L10n.T("mail.newcomer");
                 case LetterKind.MoonPassDay: return L10n.T("mail.moonpass.day", letter.PassDay, letter.PassDays);
                 case LetterKind.MoonPassRenew: return L10n.T("mail.moonpass.renew", letter.PassDay);
                 default: return L10n.T("mail.season", L10n.Season(letter.Season));
             }
         }
 
-        public static string GiftOf(int golden, int clovers)
+        public static string GiftOf(int golden, int clovers, int jars = 0, int rabbitTier = QuestChests.NoRabbit, int purple = 0)
         {
-            var parts = new List<string>(2);
+            var parts = new List<string>(5);
+            if (purple > 0) parts.Add(L10n.T("mail.purple", purple));
             if (golden > 0) parts.Add(L10n.T("mail.golden", golden));
             if (clovers > 0) parts.Add(L10n.T("mail.clovers", clovers));
+            if (jars > 0) parts.Add(L10n.T("mail.jars", jars));
+            if (rabbitTier != QuestChests.NoRabbit) parts.Add(L10n.T("mail.rabbit", L10n.Tier(rabbitTier)));
             return string.Join(" · ", parts);
         }
+
+        public static string GiftOf(Letter letter) => GiftOf(letter.Golden, letter.Clovers, letter.Jars, letter.RabbitTier, letter.Purple);
+
+        public static string GiftOf(WeekChest chest) => GiftOf(chest.Golden, chest.Clovers, chest.Jars, chest.RabbitTier);
 
         public static string SubOf(Letter letter, long today)
         {
             if (letter.Kind == LetterKind.MoonPassRenew) return L10n.T("mail.moonpass.renew.sub", MoonPass.Days);
             int left = Mailbox.DaysLeft(letter, today);
-            return GiftOf(letter.Golden, letter.Clovers) + " · " + (left > 0 ? L10n.T("mail.days", left) : L10n.T("mail.lastday"));
+            return GiftOf(letter) + " · " + (left > 0 ? L10n.T("mail.days", left) : L10n.T("mail.lastday"));
         }
 
         public void Open(IReadOnlyList<Letter> letters, long today)

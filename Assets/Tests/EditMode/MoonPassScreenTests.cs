@@ -134,6 +134,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(jars.gameObject.activeSelf);
             Assert.GreaterOrEqual(Left(pill), Right(jars), "and right of the moon jars when they show");
             Assert.LessOrEqual(Right(pill), 1080f);
+            Assert.LessOrEqual(Right(pill), 1080f + NewcomerView.PillX - NewcomerView.PillWidth / 2f, "clear of the first-week pill on the right");
             Assert.AreEqual(392f, jars.anchoredPosition.x, "the jar chip keeps its place");
 
             L10n.SetLocale("en");

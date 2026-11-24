@@ -222,6 +222,23 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Saved_Letter_Kind_Numbers_Never_Move_And_The_Pass_Kinds_Come_After_Four()
+        {
+            Assert.AreEqual(0, (int)LetterKind.MakeUp);
+            Assert.AreEqual(1, (int)LetterKind.Season);
+            Assert.AreEqual(2, (int)LetterKind.WeekChest);
+            Assert.AreEqual(3, (int)LetterKind.Newcomer);
+            Assert.AreEqual(5, (int)LetterKind.MoonPassDay, "4 is the month pass's (#107)");
+            Assert.AreEqual(6, (int)LetterKind.MoonPassRenew);
+            string json = "{\"version\":14,\"stations\":[],\"mail\":{\"day\":5,\"letters\":[{\"id\":\"a\",\"kind\":5,\"season\":0,\"day\":5,\"n\":2,\"of\":30},{\"id\":\"b\",\"kind\":6,\"season\":0,\"day\":5,\"n\":3,\"of\":30},{\"id\":\"c\",\"kind\":9,\"season\":0,\"day\":5}]}}";
+            List<Letter> letters = SaveCodec.Decode(defs, json).State.Letters;
+            Assert.AreEqual(2, letters.Count, "an unknown kind is dropped");
+            Assert.AreEqual(LetterKind.MoonPassDay, letters[0].Kind);
+            Assert.AreEqual(2, letters[0].PassDay);
+            Assert.AreEqual(LetterKind.MoonPassRenew, letters[1].Kind);
+        }
+
+        [Test]
         public void Analytics_Log_The_Pass_Bought_And_Each_Day_Claimed()
         {
             var mem = new MemoryAnalytics();

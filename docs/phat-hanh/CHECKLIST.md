@@ -77,8 +77,22 @@ Tài liệu đi kèm trong thư mục này:
 |---|---|---|---|---|
 | 4.1 | App Store Connect: ba sản phẩm **Consumable** `vuontra.golden.50`, `vuontra.golden.150`, `vuontra.golden.500`, tên/mô tả vi+en, giá, ảnh xét duyệt (chụp thẻ "Mua cà rốt vàng"). | CP | 45 phút | [build-ios.md §5](../build-ios.md) |
 | 4.2 | Play Console: ba sản phẩm cùng ID, Activate. | CP | 30 phút | [build-android.md §5](../build-android.md) |
+| 4.2b | **Gói một lần (#105):** thêm bốn sản phẩm **Non-Consumable** (mua một lần, khôi phục được) trên cả App Store Connect và Play Console, xem bảng ngay dưới. Mã phải đúng từng chữ. | CP | 40 phút | bảng dưới |
 | 4.2b | Vé trăng 30 ngày (#106): App Store Connect thêm sản phẩm **Consumable** `vuontra.moonpass.30` (giá tham khảo 109.000 ₫), Play Console thêm **sản phẩm trong ứng dụng** cùng ID. Đây là sản phẩm **tiêu hao mua một lần**, KHÔNG phải đăng ký tự gia hạn (subscription): người chơi tự mua lại khi muốn, mua khi còn hạn thì cộng thêm 30 ngày. Mô tả cửa hàng: "100 cà rốt vàng ngay + 15 mỗi ngày mở game trong 30 ngày (tối đa 550), trần vắng mặt +1 giờ, thêm 1 lượt ×2 miễn phí mỗi ngày; ngày không mở game thì mất thư ngày đó". Ảnh xét duyệt: chụp thẻ "Vé trăng 30 ngày" ở "Mua cà rốt vàng". | CP | 20 phút | [docs/anh/po-106](../anh/po-106/) |
 | 4.3 | Unity: bật In-App Purchasing, dán Google Play public key vào Receipt Validation Obfuscator, thêm define `RECEIPT_VALIDATION`, commit `GooglePlayTangle`/`AppleTangle`. | CP+Máy | 30 phút | [build-ios.md §5.4](../build-ios.md) |
+
+### Mã sản phẩm gói một lần (#105)
+
+Bốn gói này chỉ mua được một lần mỗi vườn, nên khai là **Non-Consumable** (App Store) / sản phẩm một lần không tiêu hao (Play); game tự chặn giao lần hai kể cả khi khôi phục giao dịch. Giá trong bảng là giá tham khảo đang dùng trong `FakeStorefront`; giá thật do chủ project đặt.
+
+| Mã sản phẩm | Loại | Tên gợi ý (vi / en) | Nội dung | Giá tham khảo | Khi nào hiện trong game |
+|---|---|---|---|---|---|
+| `vuontra.starter` | Non-Consumable | Gói người mới / Starter pack | 80 cà rốt vàng, 3 hũ trăng, 3 cỏ bốn lá, mũ Nơ trăng | 25.000 ₫ (bằng gói 50) | cấp vườn 4, đếm ngược 72 giờ |
+| `vuontra.milestone.10` | Non-Consumable | Gói mốc cấp vườn 10 / Garden level 10 pack | 150 cà rốt vàng, 5 hũ trăng, 1 thỏ bậc Tím loài chưa gặp | 69.000 ₫ (bằng gói 150) | lần đầu tới cấp 10, 48 giờ |
+| `vuontra.milestone.20` | Non-Consumable | Gói mốc cấp vườn 20 / Garden level 20 pack | như trên | 69.000 ₫ | lần đầu tới cấp 20, 48 giờ |
+| `vuontra.milestone.30` | Non-Consumable | Gói mốc cấp vườn 30 / Garden level 30 pack | như trên | 69.000 ₫ | lần đầu tới cấp 30, 48 giờ |
+
+Ảnh xét duyệt: `docs/anh/po-105/105-the-giua.png` (thẻ giữa màn) và `105-tiem-goi.png` (đầu Tiệm).
 
 ## Bước 5. Build, ký và thử trên máy thật
 

@@ -107,6 +107,14 @@ namespace VuonTra.Core
         public const string PurchaseSuccess = "purchase_success";
         public const string PurchaseFailed = "purchase_failed";
         public const string RewardedAd = "rewarded_ad";
+        public const string NewcomerTask = "newcomer_task";
+        public const string NewcomerDay = "newcomer_day";
+        public const string OfferShown = "offer_shown";
+        public const string OfferBought = "offer_bought";
+        public const string OfferExpired = "offer_expired";
+        public const string ReviewAsked = "review_asked";
+        public const string ReviewLiked = "review_liked";
+        public const string ReviewFeedback = "review_feedback";
         public const string PassBought = "pass_bought";
         public const string PassDayClaimed = "pass_day_claimed";
 
@@ -114,6 +122,9 @@ namespace VuonTra.Core
         {
             GameOpen, SessionStart, SessionEnd, TutorialStep, TutorialComplete, TutorialSkip, GardenLevelUp, StationUnlocked,
             SegmentOpened, RabbitCalled, NewMoon, GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd,
+            OfferShown, OfferBought, OfferExpired,
+            ReviewAsked, ReviewLiked, ReviewFeedback,
+            NewcomerTask, NewcomerDay,
             PassBought, PassDayClaimed,
         };
 
@@ -138,6 +149,13 @@ namespace VuonTra.Core
         public const string Game = "game";
         public const string Result = "result";
         public const string Day = "day";
+        public const string Slot = "slot";
+        public const string Task = "task";
+        public const string Fallback = "fallback";
+        public const string Moment = "moment";
+        public const string Asks = "asks";
+        public const string Sent = "sent";
+        public const string Chars = "chars";
         public const string Days = "days";
 
         public const string ViaClover = "clover", ViaGolden = "golden";
@@ -159,6 +177,7 @@ namespace VuonTra.Core
                 case PurchaseOutcome.Failed: return "failed";
                 case PurchaseOutcome.Unavailable: return "unavailable";
                 case PurchaseOutcome.Duplicate: return "duplicate";
+                case PurchaseOutcome.Pending: return "pending";
                 default: return "paid";
             }
         }
@@ -207,6 +226,33 @@ namespace VuonTra.Core
             else
                 a.Log(AnalyticsEvents.PurchaseFailed, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Reason, AnalyticsEvents.ReasonOf(r.Outcome)));
         }
+
+        public static void LogNewcomer(this IAnalytics a, NewcomerClaim claim, bool fallback)
+        {
+            if (!claim.Ok) return;
+            a.Log(AnalyticsEvents.NewcomerTask, new AnalyticsParam(AnalyticsEvents.Day, claim.Task.Day), new AnalyticsParam(AnalyticsEvents.Slot, claim.Task.Slot),
+                new AnalyticsParam(AnalyticsEvents.Task, fallback ? Newcomer.FallbackOf(claim.Task).Id : claim.Task.Id), new AnalyticsParam(AnalyticsEvents.Fallback, fallback));
+            if (claim.DayPaid) a.Log(AnalyticsEvents.NewcomerDay, new AnalyticsParam(AnalyticsEvents.Day, claim.Task.Day));
+        }
+
+        public static void LogOffer(this IAnalytics a, string name, OfferDef offer, bool late = false)
+        {
+            if (offer == null) return;
+            if (name == AnalyticsEvents.OfferBought)
+                a.Log(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level), new AnalyticsParam(AnalyticsEvents.Late, late));
+            else
+                a.Log(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level));
+        }
+
+        public static void LogReviewAsked(this IAnalytics a, ReviewMoment moment, int asks) =>
+            a.Log(AnalyticsEvents.ReviewAsked, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)), new AnalyticsParam(AnalyticsEvents.Asks, asks));
+
+        public static void LogReviewLiked(this IAnalytics a, ReviewMoment moment) =>
+            a.Log(AnalyticsEvents.ReviewLiked, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)));
+
+        public static void LogReviewFeedback(this IAnalytics a, ReviewMoment moment, bool sent, int chars) =>
+            a.Log(AnalyticsEvents.ReviewFeedback, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)),
+                new AnalyticsParam(AnalyticsEvents.Sent, sent), new AnalyticsParam(AnalyticsEvents.Chars, chars));
 
         public static void LogLetterClaimed(this IAnalytics a, Letter letter)
         {

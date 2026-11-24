@@ -494,10 +494,10 @@ namespace VuonTra.Game.UI
 
             if (_rabbit.gameObject.activeSelf)
             {
-                float breathe = Mathf.Sin(time * 3f * tempo + _index * 1.7f) * 0.03f;
+                float breathe = Motion.Reduced ? 0f : Mathf.Sin(time * 3f * tempo + _index * 1.7f) * 0.03f;
                 // Landing squash at the end of a jump, stretch on the way up.
-                float air = Mathf.Sin((1f - _hop) * Mathf.PI) * (_hop > 0f ? 1f : 0f);
-                float land = _hop > 0f && _hop < 0.18f ? (0.18f - _hop) / 0.18f * 0.12f : 0f;
+                float air = Motion.Reduced ? 0f : Mathf.Sin((1f - _hop) * Mathf.PI) * (_hop > 0f ? 1f : 0f);
+                float land = !Motion.Reduced && _hop > 0f && _hop < 0.18f ? (0.18f - _hop) / 0.18f * 0.12f : 0f;
                 // The yawn: one slow stretch up from the feet, from fixed numbers, so it never adds up.
                 float yawn = Ease.Pop(1f - _yawn) * (_yawn > 0f ? 1f : 0f);
                 _rabbit.localScale = new Vector3(
@@ -505,7 +505,7 @@ namespace VuonTra.Game.UI
                     1f - _squish * 0.18f + breathe + air * 0.10f - land + yawn * 0.09f, 1f);
                 _rabbit.anchoredPosition = _rabbitHome + new Vector2(0, air * 46f);
                 // A working rabbit sways as it works; a sleeping one nods slowly.
-                float lean = Dozing ? Mathf.Sin(time * 0.9f + _index) * 2.2f - 9f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
+                float lean = Dozing ? (Motion.Reduced ? 0f : Mathf.Sin(time * 0.9f + _index) * 2.2f) - 9f : Motion.Reduced ? 0f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
                 _rabbit.localRotation = Quaternion.Euler(0, 0, lean * (1f - air));
                 if (_tool.gameObject.activeSelf) MoveTool(time * tempo);
             }
@@ -517,10 +517,10 @@ namespace VuonTra.Game.UI
             // The rank-3 halo breathes slowly, between fixed sizes; still under reduced motion.
             if (_rankHalo.activeSelf) _rankHaloRect.localScale = Vector3.one * (Motion.Reduced ? 1f : 1f + 0.06f * Mathf.Sin(time * 1.1f + _index));
             // The empty pad breathes a little, so it reads as something waiting rather than part of the ground.
-            if (_pad.gameObject.activeSelf) _pad.localScale = Vector3.one * (1f + 0.03f * Mathf.Sin(time * 2.2f + _index));
+            if (_pad.gameObject.activeSelf) _pad.localScale = Vector3.one * (Motion.Reduced ? 1f : 1f + 0.03f * Mathf.Sin(time * 2.2f + _index));
             // A price sign that can be paid bobs on its spot; everything else about it stays put.
-            if (_signBob) _chipRect.anchoredPosition = _chipHome + new Vector2(0f, Mathf.Abs(Mathf.Sin(time * 3.4f + _index)) * 10f);
-            if (_upArrow.activeSelf) _upArrowRect.anchoredPosition = new Vector2(150, -118 + Mathf.Abs(Mathf.Sin(time * 4f + _index)) * 16f); // bounces on the end of the plate
+            if (_signBob) _chipRect.anchoredPosition = _chipHome + (Motion.Reduced ? Vector2.zero : new Vector2(0f, Mathf.Abs(Mathf.Sin(time * 3.4f + _index)) * 10f));
+            if (_upArrow.activeSelf) _upArrowRect.anchoredPosition = new Vector2(150, -118 + (Motion.Reduced ? 0f : Mathf.Abs(Mathf.Sin(time * 4f + _index)) * 16f)); // bounces on the end of the plate
             float hop = Ease.Pop(1f - _propPop) * (_propPop > 0f ? 1f : 0f);
             _prop.localScale = new Vector3(1f - hop * 0.08f, 1f + hop * 0.14f, 1f);
         }

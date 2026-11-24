@@ -85,6 +85,7 @@ namespace VuonTra.Game.UI
                 RectTransform rt = UiKit.Rect("Fly", _root).Place(0.5f, 0.5f, from.x, from.y, size, size);
                 Image img = rt.AddImage(sprite, color);
                 img.preserveAspect = true;
+                if (Motion.Reduced) rt.gameObject.SetActive(false);
                 Vector2 start = from + new Vector2(Random.Range(-30f, 30f), Random.Range(-14f, 14f));
                 Vector2 mid = (start + to) * 0.5f + new Vector2(Random.Range(-60f, 60f), 150f + Random.Range(0f, 90f));
                 bool last = i == count - 1;
@@ -106,6 +107,7 @@ namespace VuonTra.Game.UI
 
         public void Burst(Vector2 at, Sprite sprite, Color[] colors, int count, float speed = 520f, float size = 34f)
         {
+            if (Motion.Reduced) return;
             for (int i = 0; i < count && _particles.Count < MaxParticles; i++)
             {
                 float angle = Mathf.Lerp(25f, 155f, (i + Random.value * 0.8f) / count) * Mathf.Deg2Rad;
