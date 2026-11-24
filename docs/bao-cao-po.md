@@ -2205,6 +2205,29 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Mốc chỉnh theo mô phỏng; Thu cà rốt tới 1e36; Mùa trăng mới 7 nấc.
 - Biên tuần 5–6 mỏng (thấp nhất 4 nấc).
 
+## #104 — Thẻ giới thiệu khi mở tính năng (agent-104)
+
+**Test:** `tools/verify.sh` RESULT GREEN, 1339/1340 (1 Inconclusive là test mùa phụ thuộc ngày, không liên quan); quy tắc ok; 255 khung ảnh. Mới có 12 test `IntrosTests` và 12 test `IntrosScreenTests`.
+
+**Commit:** 2f07f64 (tính năng), 24e0f7a (merge main 700f872), 2d8d6d8 (merge 3dee762); main gộp main `070e17f` cùng #108, #110a, #111, #113 và đẩy; verify đầy đủ GREEN 1522/1523.
+
+**Đã làm:**
+- `Core/Intros.cs`: 10 thẻ, điều kiện mở gọi luật sẵn có, mỗi thẻ hiện đúng một lần.
+- Thưởng thử lần đầu 60 giây thu nhập + 1 cỏ, trả một lần; Mùa trăng mới không thưởng. Hàng chờ cách nhau 90 giây.
+- Khối save `intros` (vẫn v14): save cũ được đánh dấu đã xem và đã thử mọi thẻ đã đủ điều kiện.
+- Thẻ trượt lên với "Thử ngay" (bay camera, viền vàng sáng 3 giây) và "Để sau" (chấm vàng tại chỗ).
+- Nút "Đã mở N/10" trong Hồ sơ mở danh sách đọc lại.
+- 9 ảnh trong `docs/anh/po-104/`.
+
+- Thẻ giới thiệu tuân theo luật một thẻ một lúc cùng thẻ gói, thẻ đánh giá, bảng Tuần đầu, quà rương, chọn loài thỏ Vé tháng và thẻ Vườn nhớ bạn; mở bảng khác trên thẻ thì thẻ tự thành "Để sau".
+
+
+### Chưa đạt / cần PO quyết
+- Mốc mở thẻ Bố trí (xong hướng dẫn và đã mở đoạn đất đầu tiên), thẻ Khách (khách đầu tiên tới), thẻ Tiệm (xong hướng dẫn).
+- Thời điểm trả thưởng "lần đầu dùng xong" cho từng tính năng, và việc vẫn trả thưởng khi người chơi dùng trước lúc thẻ hiện.
+- Thẻ đang hiện mà người chơi mở bảng thì tự thành "Để sau".
+- Chưa có analytics; danh sách "Đã mở" chỉ để đọc; mới có ảnh 4/10 thẻ.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
