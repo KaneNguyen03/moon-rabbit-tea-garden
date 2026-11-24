@@ -123,6 +123,24 @@ namespace VuonTra.Core
         public const string PassBought = "pass_bought";
         public const string PassDayClaimed = "pass_day_claimed";
 
+        public const string IntroShown = "intro_shown";
+        public const string IntroTry = "intro_try";
+        public const string IntroLater = "intro_later";
+        public const string TankRelease = "tank_release";
+        public const string TankMilestone = "tank_milestone";
+        public const string TankFull = "tank_full";
+        public const string RecipeLeaf = "recipe_leaf";
+        public const string DishUnlocked = "dish_unlocked";
+        public const string DishLevel = "dish_level";
+        public const string FairStart = "fair_start";
+        public const string FairCoins = "fair_coins";
+        public const string FairTrade = "fair_trade";
+        public const string FairRabbit = "fair_rabbit";
+        public const string DailySetDone = "daily_set_done";
+        public const string WeekChestOpened = "week_chest";
+        public const string AchievementTier = "achievement_tier";
+        public const string FeatureFirstUse = "feature_first_use";
+
         public static readonly string[] All =
         {
             GameOpen, SessionStart, SessionEnd, TutorialStep, TutorialComplete, TutorialSkip, GardenLevelUp, StationUnlocked,
@@ -134,6 +152,12 @@ namespace VuonTra.Core
             WelcomeBack,
             TrunkOpen, TrunkBuy,
             PassBought, PassDayClaimed,
+            IntroShown, IntroTry, IntroLater,
+            TankRelease, TankMilestone, TankFull,
+            RecipeLeaf, DishUnlocked, DishLevel,
+            FairStart, FairCoins, FairTrade, FairRabbit,
+            DailySetDone, WeekChestOpened, AchievementTier,
+            FeatureFirstUse,
         };
 
         public const string NewGarden = "new_garden";
@@ -173,9 +197,39 @@ namespace VuonTra.Core
         public const string Sale = "sale";
         public const string Days = "days";
 
+        public const string Id = "id";
+        public const string Count = "count";
+        public const string Dish = "dish";
+        public const string Fair = "fair";
+        public const string Cost = "cost";
+        public const string Coins = "coins";
+        public const string Chest = "chest";
+        public const string Chain = "chain";
+        public const string Feature = "feature";
+
         public const string ViaClover = "clover", ViaGolden = "golden", ViaTrunk = "trunk";
         public const string FromShop = "shop";
         public const string AdWatched = "watched", AdClosed = "closed", AdPass = "pass";
+
+        public const string FromCard = "card", FromDot = "dot", FromCovered = "covered";
+        public const string FromOrder = "order", FromFish = "fish", FromAway = "away", FromPhotoAsk = "photo_ask",
+            FromPounding = "pounding", FromLeaves = "leaves", FromFireflies = "fireflies", FromWeek = "week", FromMail = "mail";
+        public const string FeatureFishing = "fishing", FeaturePounding = "pounding", FeatureMiniGame = "minigame", FeatureLayout = "layout", FeaturePhoto = "photo";
+
+        public static string FeatureOf(string intro)
+        {
+            switch (intro)
+            {
+                case Intros.Fishing: return FeatureFishing;
+                case Intros.Pounding: return FeaturePounding;
+                case Intros.Leaves:
+                case Intros.Fireflies: return FeatureMiniGame;
+                case Intros.Layout: return FeatureLayout;
+                default: return null;
+            }
+        }
+
+        public static string WareName(FairWare ware) => ware.ToString().ToLowerInvariant();
 
         public const string UserMoon = "moon";
         public const string UserGardenLevel = "garden_level";
@@ -300,6 +354,137 @@ namespace VuonTra.Core
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>
             a.Log(AnalyticsEvents.RewardedAd, new AnalyticsParam(AnalyticsEvents.Placement, placement), new AnalyticsParam(AnalyticsEvents.Game, game ?? ""), new AnalyticsParam(AnalyticsEvents.Result, result));
+    }
+
+    public static class FunnelLog
+    {
+        public static void LogIntroShown(this IAnalytics a, string id) =>
+            a.Log(AnalyticsEvents.IntroShown, new AnalyticsParam(AnalyticsEvents.Id, id));
+
+        public static void LogIntroTry(this IAnalytics a, string id, string from) =>
+            a.Log(AnalyticsEvents.IntroTry, new AnalyticsParam(AnalyticsEvents.Id, id), new AnalyticsParam(AnalyticsEvents.From, from));
+
+        public static void LogIntroLater(this IAnalytics a, string id, string from) =>
+            a.Log(AnalyticsEvents.IntroLater, new AnalyticsParam(AnalyticsEvents.Id, id), new AnalyticsParam(AnalyticsEvents.From, from));
+
+        public static void LogTankRelease(this IAnalytics a, GameState s, ReleaseResult r)
+        {
+            if (!r.Released) return;
+            int count = Aquarium.Released(s, r.Fish);
+            a.Log(AnalyticsEvents.TankRelease, new AnalyticsParam(AnalyticsEvents.Kind, r.Fish), new AnalyticsParam(AnalyticsEvents.Count, count));
+            if (r.Milestones > 0)
+                a.Log(AnalyticsEvents.TankMilestone, new AnalyticsParam(AnalyticsEvents.Step, Aquarium.MilestonesOf(count)), new AnalyticsParam(AnalyticsEvents.Kind, r.Fish));
+            if (r.FullSet)
+            {
+                long fish = 0;
+                for (int k = 0; k < Aquarium.Kinds; k++) fish += Aquarium.Released(s, k);
+                a.Log(AnalyticsEvents.TankFull, new AnalyticsParam(AnalyticsEvents.Count, fish));
+            }
+        }
+
+        public static void LogRecipeLeaves(this IAnalytics a, int count, string from)
+        {
+            if (count <= 0) return;
+            a.Log(AnalyticsEvents.RecipeLeaf, new AnalyticsParam(AnalyticsEvents.Count, count), new AnalyticsParam(AnalyticsEvents.From, from));
+        }
+
+        public static void LogDishLevel(this IAnalytics a, IReadOnlyList<StationDef> defs, int station, int dish, int level) =>
+            a.Log(AnalyticsEvents.DishLevel, new AnalyticsParam(AnalyticsEvents.Station, StationId(defs, station)),
+                new AnalyticsParam(AnalyticsEvents.Dish, dish + 1), new AnalyticsParam(AnalyticsEvents.Level, level));
+
+        public static string StationId(IReadOnlyList<StationDef> defs, int station) => defs != null && station >= 0 && station < defs.Count ? defs[station].Id : "";
+
+        static string FairId(GameState s)
+        {
+            FairRun? run = s.Fair.Start >= 0 ? Fairs.RunOn(s.Fair.Start) : null;
+            return run != null ? run.Value.Def.Id : "";
+        }
+
+        public static void LogFairStart(this IAnalytics a, GameState s, long before)
+        {
+            if (s.Fair.Start < 0 || s.Fair.Start == before) return;
+            a.Log(AnalyticsEvents.FairStart, new AnalyticsParam(AnalyticsEvents.Fair, FairId(s)));
+        }
+
+        public static void LogFairCoins(this IAnalytics a, int coins, string from)
+        {
+            if (coins <= 0) return;
+            a.Log(AnalyticsEvents.FairCoins, new AnalyticsParam(AnalyticsEvents.Coins, coins), new AnalyticsParam(AnalyticsEvents.From, from));
+        }
+
+        public static void LogFairTrade(this IAnalytics a, GameState s, FairBuy buy)
+        {
+            if (!buy.Ok) return;
+            string fair = FairId(s);
+            a.Log(AnalyticsEvents.FairTrade, new AnalyticsParam(AnalyticsEvents.Item, AnalyticsEvents.WareName(buy.Stall.Ware)),
+                new AnalyticsParam(AnalyticsEvents.Cost, buy.Stall.Price), new AnalyticsParam(AnalyticsEvents.Fair, fair));
+            if (buy.Rabbit != null)
+                a.Log(AnalyticsEvents.FairRabbit, new AnalyticsParam(AnalyticsEvents.Fair, fair), new AnalyticsParam(AnalyticsEvents.Kind, buy.Rabbit.Kind));
+        }
+
+        public static bool DailySetDone(IReadOnlyList<QuestDef> quests, GameState s)
+        {
+            int total = QuestChests.DailyTotal(quests, s);
+            return total > 0 && QuestChests.DailyDone(quests, s) >= total;
+        }
+
+        public static void LogQuestClaimed(this IAnalytics a, IReadOnlyList<QuestDef> quests, QuestDef q, GameState s, bool setDoneBefore)
+        {
+            if (q == null) return;
+            if (q.Chained)
+                a.Log(AnalyticsEvents.AchievementTier, new AnalyticsParam(AnalyticsEvents.Chain, q.Id), new AnalyticsParam(AnalyticsEvents.Tier, Quests.TiersClaimed(q, s)));
+            if (q.Daily && !setDoneBefore && DailySetDone(quests, s))
+                a.Log(AnalyticsEvents.DailySetDone, new AnalyticsParam(AnalyticsEvents.Day, Seasons.DaysPlayed(s) + 1));
+        }
+
+        public static void LogWeekChest(this IAnalytics a, int chest, string from) =>
+            a.Log(AnalyticsEvents.WeekChestOpened, new AnalyticsParam(AnalyticsEvents.Chest, chest + 1), new AnalyticsParam(AnalyticsEvents.From, from));
+
+        public static void LogWeekChest(this IAnalytics a, Letter letter)
+        {
+            if (letter == null || letter.Kind != LetterKind.WeekChest) return;
+            a.LogWeekChest(letter.Chest, AnalyticsEvents.FromMail);
+        }
+
+        public static void LogIntroFirstUse(this IAnalytics a, string intro)
+        {
+            string feature = AnalyticsEvents.FeatureOf(intro);
+            if (feature == null) return;
+            if (feature == AnalyticsEvents.FeatureMiniGame)
+                a.Log(AnalyticsEvents.FeatureFirstUse, new AnalyticsParam(AnalyticsEvents.Feature, feature), new AnalyticsParam(AnalyticsEvents.Game, intro));
+            else
+                a.Log(AnalyticsEvents.FeatureFirstUse, new AnalyticsParam(AnalyticsEvents.Feature, feature));
+        }
+
+        public static void LogPhotoTaken(this IAnalytics a, long photosBefore)
+        {
+            if (photosBefore != 0) return;
+            a.Log(AnalyticsEvents.FeatureFirstUse, new AnalyticsParam(AnalyticsEvents.Feature, AnalyticsEvents.FeaturePhoto));
+        }
+    }
+
+    public sealed class DishWatch
+    {
+        int[] _open = Array.Empty<int>();
+
+        public void Reset(GameState s)
+        {
+            _open = new int[s.Levels.Length];
+            for (int i = 0; i < _open.Length; i++) _open[i] = Recipes.DishesOpen(s, i);
+        }
+
+        public void Note(IReadOnlyList<StationDef> defs, GameState s, IAnalytics a)
+        {
+            if (_open.Length != s.Levels.Length) Array.Resize(ref _open, s.Levels.Length);
+            for (int i = 0; i < s.Levels.Length; i++)
+            {
+                int open = Recipes.DishesOpen(s, i);
+                for (int dish = Math.Max(1, _open[i]); dish < open; dish++)
+                    a.Log(AnalyticsEvents.DishUnlocked, new AnalyticsParam(AnalyticsEvents.Station, FunnelLog.StationId(defs, i)),
+                        new AnalyticsParam(AnalyticsEvents.Dish, dish + 1), new AnalyticsParam(AnalyticsEvents.Moon, s.Season));
+                _open[i] = open;
+            }
+        }
     }
 
     public sealed class AnalyticsWatch

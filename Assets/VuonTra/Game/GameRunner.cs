@@ -101,7 +101,7 @@ namespace VuonTra.Game
                 if (loaded.Status == LoadStatus.Ok)
                 {
                     Mods = Modifiers.From(UpgradeDefs, State);
-                    _pendingAway = Away.Claim(Defs, State, Now, Mods, TodayNumber);
+                    _pendingAway = ClaimAway();
                 }
                 else
                 {
@@ -124,6 +124,7 @@ namespace VuonTra.Game
             NoteAlbum(false);
             _watch.Reset(State);
             _passWatch.Reset(State, TodayNumber);
+            _dishWatch.Reset(State);
             _ready = true;
             Analytics.LogGameOpen(newGarden);
             StartSession();
@@ -152,7 +153,7 @@ namespace VuonTra.Game
             }
             else if (dt > LongFrameSeconds)
             {
-                AwayReport away = Away.Claim(Defs, State, Now, Mods, TodayNumber);
+                AwayReport away = ClaimAway();
                 if (away.Paid >= BigNum.One) TellAway(away);
             }
             else
@@ -224,8 +225,10 @@ namespace VuonTra.Game
             QuestDef quest = QuestDefs[index];
             LastQuestItem = null;
             int clovers = quest.Chained ? Quests.CurrentTier(quest, State).RewardClovers : quest.RewardClovers;
+            bool setDone = FunnelLog.DailySetDone(QuestDefs, State);
             bool ok = Quests.TryClaim(quest, Defs, State, Mods, out paid);
             if (!ok) return false;
+            Analytics.LogQuestClaimed(QuestDefs, quest, State, setDone);
             if (quest.Daily || clovers >= 2)
             {
                 var gifts = new System.Collections.Generic.List<ItemDef>();
@@ -247,6 +250,7 @@ namespace VuonTra.Game
         {
             bool ok = QuestChests.ClaimChest(State, chest, TodayNumber, PickName(), _rng.NextDouble(), out rabbit);
             if (!ok) return false;
+            Analytics.LogWeekChest(chest, AnalyticsEvents.FromWeek);
             if (rabbit != null) Rabbits.AutoAssign(Defs, State);
             Changed();
             return true;
@@ -290,10 +294,12 @@ namespace VuonTra.Game
 
         public bool DeliverOrder(out BigNum paid, out int clovers)
         {
+            int leaves = State.RecipeLeaves;
             bool ok = Orders.Deliver(Defs, State, Mods, out paid, out clovers);
             if (ok)
             {
-                EarnFair(Fairs.OrderCoins);
+                Analytics.LogRecipeLeaves(State.RecipeLeaves - leaves, AnalyticsEvents.FromOrder);
+                EarnFair(Fairs.OrderCoins, AnalyticsEvents.FromOrder);
                 TryIntro(Intros.Orders);
                 Changed();
             }
@@ -305,6 +311,7 @@ namespace VuonTra.Game
         public bool RaiseDish(int station, int dish)
         {
             if (!Recipes.Raise(State, station, dish)) return false;
+            Analytics.LogDishLevel(Defs, station, dish, Recipes.DishLevel(State, station, dish));
             Changed();
             return true;
         }
@@ -412,7 +419,9 @@ namespace VuonTra.Game
 
         public bool TakePhoto(string path = null)
         {
+            long photos = State.PhotosTaken;
             bool gift = Photos.Take(State, TodayNumber, path);
+            Analytics.LogPhotoTaken(photos);
             Changed();
             return gift;
         }
@@ -436,7 +445,7 @@ namespace VuonTra.Game
         public bool AnswerPhotoAsk(out BigNum paid)
         {
             bool ok = PhotoAsks.Answer(Defs, State, Mods, TodayNumber, out paid);
-            if (ok) EarnFair(Fairs.PhotoAskCoins);
+            if (ok) EarnFair(Fairs.PhotoAskCoins, AnalyticsEvents.FromPhotoAsk);
             if (ok) Changed();
             return ok;
         }
@@ -588,6 +597,7 @@ namespace VuonTra.Game
             NoteAlbum(false);
             _watch.Reset(State);
             _passWatch.Reset(State, TodayNumber);
+            _dishWatch.Reset(State);
             StateChanged?.Invoke();
             Save();
         }
@@ -690,7 +700,7 @@ namespace VuonTra.Game
         public PoundingResult FinishPounding(PoundingRun run)
         {
             PoundingResult result = Pounding.Finish(Defs, State, Mods, run);
-            EarnFair(Fairs.ForStars(result.Stars));
+            EarnFair(Fairs.ForStars(result.Stars), AnalyticsEvents.FromPounding);
             TryIntro(Intros.Pounding);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
@@ -707,7 +717,7 @@ namespace VuonTra.Game
         public LeavesResult FinishLeaves(LeavesRun run)
         {
             LeavesResult result = Leaves.Finish(Defs, State, Mods, run);
-            EarnFair(Fairs.ForStars(result.Stars));
+            EarnFair(Fairs.ForStars(result.Stars), AnalyticsEvents.FromLeaves);
             TryIntro(Intros.Leaves);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
@@ -724,7 +734,7 @@ namespace VuonTra.Game
         public FirefliesResult FinishFireflies(FirefliesRun run)
         {
             FirefliesResult result = Fireflies.Finish(Defs, State, Mods, run);
-            EarnFair(Fairs.ForStars(result.Stars));
+            EarnFair(Fairs.ForStars(result.Stars), AnalyticsEvents.FromFireflies);
             TryIntro(Intros.Fireflies);
             if (ReviewAsk.IsHappy(result.Stars)) NoteReview(ReviewMoment.ThreeStars);
             Changed();
@@ -866,6 +876,7 @@ namespace VuonTra.Game
             if (!Tutorial.IsDone(State)) Tutorial.Advance(State);
             _watch.Note(Defs, State, Analytics);
             _passWatch.Note(State, TodayNumber, Analytics);
+            _dishWatch.Note(Defs, State, Analytics);
             NoteAlbum(true);
             NoteOffers();
             Mods = Modifiers.From(UpgradeDefs, State);
@@ -1169,7 +1180,7 @@ namespace VuonTra.Game
             if (Cast == null) return CastTap.None;
             CastTap tap = Cast.Tap();
             bool landed = tap == CastTap.Caught && Fishing.Land(State, Cast);
-            if (landed) EarnFair(Fairs.ForFish(Cast.Fish));
+            if (landed) EarnFair(Fairs.ForFish(Cast.Fish), AnalyticsEvents.FromFish);
             if (Cast.Over)
             {
                 Cast = null;
@@ -1181,7 +1192,9 @@ namespace VuonTra.Game
 
         public FeedResult Feed(long rabbitId, int fish)
         {
+            int leaves = State.RecipeLeaves;
             FeedResult result = Fishing.Feed(State, Rabbits.Find(State, rabbitId), fish);
+            Analytics.LogRecipeLeaves(State.RecipeLeaves - leaves, AnalyticsEvents.FromFish);
             if (result.Bond.TenHearts) NoteReview(ReviewMoment.TenHearts);
             if (result.Fed) Changed();
             return result;
@@ -1252,6 +1265,7 @@ namespace VuonTra.Game
             Letter letter = Mailbox.Claim(State, id, TodayNumber, PickName(), kindRoll, out rabbit);
             if (letter == null) return null;
             Analytics.LogLetterClaimed(letter);
+            Analytics.LogWeekChest(letter);
             if (rabbit != null) Rabbits.AutoAssign(Defs, State);
             Changed();
             return letter;
@@ -1280,7 +1294,9 @@ namespace VuonTra.Game
         {
             bool tried = !State.IntrosTried.Contains(id);
             if (Intros.Use(Defs, State, Mods, id, out BigNum paid, out int clovers)) IntroRewarded?.Invoke(id, paid, clovers);
-            return tried && State.IntrosTried.Contains(id);
+            bool first = tried && State.IntrosTried.Contains(id);
+            if (first) Analytics.LogIntroFirstUse(id);
+            return first;
         }
 
         public bool TouchIntro(string id)
@@ -1293,13 +1309,18 @@ namespace VuonTra.Game
         public string ShowNextIntro(IntroQueue queue, double dt, bool blocked)
         {
             string id = queue.Tick(State, dt, blocked);
-            if (id != null) Changed();
+            if (id == null) return null;
+            Analytics.LogIntroShown(id);
+            Changed();
             return id;
         }
 
-        public bool LeaveIntroForLater(string id)
+        public bool LeaveIntroForLater(string id) => LeaveIntroForLater(id, AnalyticsEvents.FromCard);
+
+        public bool LeaveIntroForLater(string id, string from)
         {
             if (!Intros.Later(State, id)) return false;
+            Analytics.LogIntroLater(id, from);
             Changed();
             return true;
         }

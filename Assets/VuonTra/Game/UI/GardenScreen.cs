@@ -8371,7 +8371,7 @@ namespace VuonTra.Game.UI
             {
                 string id = IntroCard.Showing;
                 IntroCard.Close();
-                Runner.LeaveIntroForLater(id);
+                Runner.LeaveIntroForLater(id, AnalyticsEvents.FromCovered);
             }
             string next = Runner.ShowNextIntro(_introQueue, dt, blocked || IntroCard.IsOpen || Feel.BannerVisible);
             if (next != null) ShowIntro(next);
@@ -8461,7 +8461,7 @@ namespace VuonTra.Game.UI
             Sfx.Click();
             if (SheetOpen) CloseSheet();
             SelectStation(-1);
-            Runner.TouchIntro(id);
+            Runner.ChooseIntroTry(id);
             FlyToIntro(id);
         }
 
@@ -8561,7 +8561,7 @@ namespace VuonTra.Game.UI
             button.onClick.AddListener(() =>
             {
                 Sfx.Click();
-                Runner.TouchIntro(id);
+                Runner.TapIntroDot(id);
                 FlyToIntro(id);
                 Refresh(-1f);
             });

@@ -11,6 +11,7 @@ namespace VuonTra.Game
         public ReleaseResult ReleaseFish(int fish)
         {
             ReleaseResult result = Aquarium.Release(State, fish);
+            Analytics.LogTankRelease(State, result);
             if (result.Released) Changed();
             return result;
         }
