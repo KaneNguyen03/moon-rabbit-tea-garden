@@ -20,6 +20,7 @@ namespace VuonTra.Core.Tests
         public void SetUp()
         {
             L10n.SetLocale("vi");
+            UiKit.SetLargeText(false);
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
             root = new GameObject("Game");
             var cam = new GameObject("Cam", typeof(Camera));
@@ -39,6 +40,8 @@ namespace VuonTra.Core.Tests
         public void TearDown()
         {
             Object.DestroyImmediate(root);
+            UiKit.SetLargeText(false);
+            PlayerPrefs.DeleteKey("text.large");
             Motion.SetReduced(false);
             L10n.SetLocale("vi");
         }
@@ -47,7 +50,7 @@ namespace VuonTra.Core.Tests
         Transform Sign => World.Find("Forest Sign");
         static Vector2 Teapot => GardenScreen.CellToWorld(new Hex(0, 0));
 
-        Vector2 ShownY() => new Vector2(-World.anchoredPosition.y / World.localScale.y, (1920f - World.anchoredPosition.y) / World.localScale.y);
+        Vector2 ShownY() => new Vector2((16f + 170f + 10f + GardenScreen.ReadMargin - World.anchoredPosition.y) / World.localScale.y, (1920f - 160f - GardenScreen.ReadMargin - World.anchoredPosition.y) / World.localScale.y);
 
         void HavePlots(int plots)
         {
@@ -381,6 +384,180 @@ namespace VuonTra.Core.Tests
                 Assert.GreaterOrEqual(view.xMin, 0f, "looking at " + look + " as far as the view goes, the label of plot " + plots + " is whole on the left: " + view);
                 Assert.LessOrEqual(view.xMax, 1080f, "looking at " + look + " and on the right: " + view);
             }
+        }
+
+        const float HudBottom = 1920f - 160f, TabTop = 16f + 170f;
+
+        void OpenSegmentsWithEverythingToRaise(int segments)
+        {
+            GameState s = runner.State;
+            HavePlots(Expansion.PlotsForSegments(runner.Defs, segments));
+            s.Grid.Segments = segments;
+            Rabbits.GiftFirst(s, "Bông");
+            s.Rabbits[0].Station = 0;
+            if (Expansion.Next(runner.Defs, s) != null) ReadyForTheNextSegment();
+            s.Coins = new BigNum(1e300);
+            PhotoAsks.Decline(s);
+            StandOnTheOutermostRow(1, -Mathf.Min(GardenGrid.Reach(segments, GardenSide.Up), HighestRowInTheWorld));
+            StandOnTheOutermostRow(2, GardenGrid.Reach(segments, GardenSide.Down));
+        }
+
+        static int HighestRowInTheWorld => Mathf.FloorToInt((5400f - Teapot.y - 100f) / (float)GardenGrid.PitchY);
+
+        void StandOnTheOutermostRow(int station, int r)
+        {
+            GardenGrid grid = runner.State.Grid;
+            string id = GardenGrid.StationId(runner.Defs[station]);
+            for (int col = 0; col < 12; col++)
+                foreach (int c in new[] { -col, col })
+                {
+                    if ((c - r) % 2 != 0) continue;
+                    int q = (c - r) / 2;
+                    if (!grid.InLawn(q, r) || grid.OccupantAt(q, r) != null || GardenGrid.IsReserved(new Hex(q, r))) continue;
+                    Hex? home = grid.TileOf(id);
+                    grid.Remove(id);
+                    if (grid.Place(id, q, r)) return;
+                    if (home.HasValue) Assert.IsTrue(grid.Place(id, home.Value.Q, home.Value.R), id + " goes back home");
+                }
+            Assert.Fail("no free tile on row " + r);
+        }
+
+        List<KeyValuePair<string, RectTransform>> Readables(bool wood)
+        {
+            var list = new List<KeyValuePair<string, RectTransform>>();
+            foreach (Transform child in World)
+            {
+                if (!child.gameObject.activeInHierarchy || child.name.StartsWith("Spot ")) continue;
+                Transform plate = child.name.StartsWith("Station ") ? child.Find("Level") : child.name == "Forest Sign" ? child.Find("Board") : child.Find("Plate");
+                if (plate != null && plate.gameObject.activeInHierarchy) list.Add(new KeyValuePair<string, RectTransform>(child.name + "/" + plate.name, (RectTransform)plate));
+                if (child.name == "ChatLine") list.Add(new KeyValuePair<string, RectTransform>("ChatLine", (RectTransform)child));
+                if (wood && child.name.StartsWith("Wood "))
+                {
+                    var img = child.GetComponent<Image>();
+                    if (img != null && img.color.a > 0.5f) list.Add(new KeyValuePair<string, RectTransform>(child.name, (RectTransform)child));
+                }
+            }
+            return list;
+        }
+
+        static bool OnScreen(Rect view) => view.xMax > 0f && view.xMin < 1080f && view.yMax > 0f && view.yMin < 1920f;
+
+        static Rect SidePillRect(RectTransform pill) => new Rect(new Vector2(pill.anchorMin.x * 1080f, pill.anchorMin.y * 1920f) + pill.anchoredPosition - pill.sizeDelta / 2f, pill.sizeDelta);
+
+        [TestCase(0, GardenScreen.ZoomLevel.Far)]
+        [TestCase(0, GardenScreen.ZoomLevel.Default)]
+        [TestCase(0, GardenScreen.ZoomLevel.Near)]
+        [TestCase(4, GardenScreen.ZoomLevel.Far)]
+        [TestCase(4, GardenScreen.ZoomLevel.Default)]
+        [TestCase(4, GardenScreen.ZoomLevel.Near)]
+        [TestCase(5, GardenScreen.ZoomLevel.Far)]
+        [TestCase(5, GardenScreen.ZoomLevel.Default)]
+        [TestCase(5, GardenScreen.ZoomLevel.Near)]
+        [TestCase(6, GardenScreen.ZoomLevel.Far)]
+        [TestCase(6, GardenScreen.ZoomLevel.Default)]
+        [TestCase(6, GardenScreen.ZoomLevel.Near)]
+        [TestCase(9, GardenScreen.ZoomLevel.Far)]
+        [TestCase(9, GardenScreen.ZoomLevel.Default)]
+        [TestCase(9, GardenScreen.ZoomLevel.Near)]
+        public void Across_The_Views_Whole_Range_No_Pill_Covers_A_Plate_And_Nothing_To_Read_Hides_Under_The_Bars_Or_Off_The_Screen(int segments, GardenScreen.ZoomLevel zoom)
+        {
+            Motion.SetReduced(true);
+            var faults = new List<string>();
+            int spoke = 0, pills = 0;
+            foreach (KeyValuePair<string, bool> text in new[] { new KeyValuePair<string, bool>("vi", false), new KeyValuePair<string, bool>("en", true) })
+            {
+                L10n.SetLocale(text.Key);
+                UiKit.SetLargeText(text.Value);
+                OpenSegmentsWithEverythingToRaise(segments);
+                screen.RebuildUi();
+                screen.Shell.StartGame();
+                screen.Refresh();
+                screen.SetZoom(zoom, false);
+                long bong = runner.State.Rabbits[0].Id;
+                string where = text.Key + (text.Value ? " large" : "") + ", " + segments + " segments, " + zoom;
+
+                screen.LookAt(new Vector2(-99999f, -99999f));
+                Vector2 leftBottom = World.anchoredPosition;
+                screen.LookAt(new Vector2(99999f, 99999f));
+                Vector2 rightTop = World.anchoredPosition;
+                screen.LookAt(screen.StationSpot(0) + new Vector2(0f, 500f));
+                screen.Advance(0f);
+                if (screen.ChatterBy(bong))
+                {
+                    spoke++;
+                    Rect b = ViewRect(GardenRect((RectTransform)World.Find("ChatLine"), World));
+                    if (b.xMin < -0.5f || b.xMax > 1080.5f || b.yMax > HudBottom + 0.5f || b.yMin < TabTop - 0.5f) faults.Add("4 " + where + ", looking above the teapot: Bông's line " + b + " is not whole in view");
+                }
+                Vector2 span = screen.OpenSpan(), rows = screen.OpenRows();
+                float[] steps = { 0f, 0.25f, 0.5f, 0.75f, 1f };
+                foreach (float fx in steps)
+                    foreach (float fy in new[] { 0f, 1f / 6f, 2f / 6f, 0.5f, 4f / 6f, 5f / 6f, 1f })
+                    {
+                        float x = fx == 0f ? -99999f : fx == 1f ? 99999f : Mathf.Lerp(span.x, span.y, fx);
+                        float y = fy == 0f ? -99999f : fy == 1f ? 99999f : Mathf.Lerp(rows.x, rows.y, fy);
+                        screen.LookAt(new Vector2(x, y));
+                        screen.Advance(0f);
+                        Vector2 at = World.anchoredPosition;
+                        string look = where + ", looking at " + new Vector2(fx, fy) + " (" + at + "): ";
+                        bool left = Mathf.Abs(at.x - leftBottom.x) < 0.5f, right = Mathf.Abs(at.x - rightTop.x) < 0.5f;
+                        bool bottom = Mathf.Abs(at.y - leftBottom.y) < 0.5f, top = Mathf.Abs(at.y - rightTop.y) < 0.5f;
+
+                        foreach (string edge in new[] { "EdgeLeft", "EdgeRight" })
+                        {
+                            var pill = (RectTransform)root.transform.Find("Canvas/" + edge);
+                            if (!pill.gameObject.activeSelf) continue;
+                            pills++;
+                            Rect p = SidePillRect(pill);
+                            foreach (KeyValuePair<string, RectTransform> plate in Readables(false))
+                            {
+                                if (plate.Key == "ChatLine") continue;
+                                Rect r = ViewRect(GardenRect(plate.Value, World));
+                                if (r.Overlaps(p)) faults.Add("1 " + look + edge + " " + p + " covers " + plate.Key + " " + r);
+                            }
+                            if (p.yMax > HudBottom || p.yMin < TabTop) faults.Add("1 " + look + edge + " " + p + " is under a bar");
+                        }
+
+                        foreach (KeyValuePair<string, RectTransform> thing in Readables(true))
+                        {
+                            Rect r = ViewRect(GardenRect(thing.Value, World));
+                            if (!OnScreen(r)) continue;
+                            bool tree = thing.Key.StartsWith("Wood ");
+                            if (top && !tree && r.yMax > HudBottom + 0.5f) faults.Add("2 " + look + thing.Key + " " + r + " is under the HUD at the top of the range");
+                            if (bottom && r.yMin < TabTop - 0.5f) faults.Add((tree ? "3 " : "2 ") + look + thing.Key + " " + r + " is under the tab bar at the bottom of the range");
+                            if (tree) continue;
+                            if (left && r.xMin < -0.5f) faults.Add("2 " + look + thing.Key + " " + r + " is cut by the left edge at the left of the range");
+                            if (right && r.xMax > 1080.5f) faults.Add("2 " + look + thing.Key + " " + r + " is cut by the right edge at the right of the range");
+                        }
+
+                        if (screen.ChatterBy(bong))
+                        {
+                            spoke++;
+                            Rect b = ViewRect(GardenRect((RectTransform)World.Find("ChatLine"), World));
+                            if (b.xMin < -0.5f || b.xMax > 1080.5f || b.yMax > HudBottom + 0.5f || b.yMin < TabTop - 0.5f) faults.Add("4 " + look + "Bông's line " + b + " is not whole in view");
+                        }
+                    }
+
+                foreach (KeyValuePair<string, RectTransform> thing in Readables(false))
+                {
+                    if (thing.Key == "ChatLine") continue;
+                    Rect g = GardenRect(thing.Value, World);
+                    screen.LookAt(g.center);
+                    screen.Advance(0f);
+                    Rect r = ViewRect(GardenRect(thing.Value, World));
+                    if (r.xMin < -0.5f || r.xMax > 1080.5f || r.yMax > HudBottom + 0.5f || r.yMin < TabTop - 0.5f)
+                        faults.Add((thing.Key.StartsWith("Forest Sign") || thing.Key.StartsWith("Station ") && thing.Value.GetComponentInChildren<Text>() != null && thing.Value.GetComponentInChildren<Text>().text == L10n.ExpandSign(runner.Defs, runner.State) ? "5 " : "2 ")
+                            + where + ", looking at " + thing.Key + ": it stands at " + r + ", not whole between the bars");
+                }
+            }
+            if (zoom != GardenScreen.ZoomLevel.Far && segments >= 4) Assert.Greater(pills, 0, "the side pills showed somewhere in the sweep");
+            if (zoom != GardenScreen.ZoomLevel.Near) Assert.Greater(spoke, 0, "Bông spoke somewhere in the sweep");
+            var byItem = new SortedDictionary<string, int>();
+            foreach (string fault in faults) byItem[fault.Substring(0, 1)] = byItem.TryGetValue(fault.Substring(0, 1), out int n) ? n + 1 : 1;
+            var counts = new List<string>();
+            foreach (KeyValuePair<string, int> item in byItem) counts.Add("item " + item.Key + ": " + item.Value);
+            var shown = new List<string>();
+            foreach (string item in byItem.Keys) shown.AddRange(faults.FindAll(f => f.StartsWith(item)).GetRange(0, Mathf.Min(8, byItem[item])));
+            Assert.IsEmpty(faults, faults.Count + " faults (" + string.Join(", ", counts) + "):\n" + string.Join("\n", shown));
         }
 
         Rect ViewRect(Rect garden)

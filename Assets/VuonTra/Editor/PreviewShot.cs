@@ -678,6 +678,7 @@ namespace VuonTra.EditorTools
             RenderStationSpacing();
             foreach (string locale in new[] { "vi", "en" }) RenderEmptySpotHold(locale);
             foreach (string locale in new[] { "vi", "en" }) RenderBasketFollows(locale);
+            RenderViewEdges();
 
             Debug.Log("[VuonTra] Previews written to " + Folder);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -2862,6 +2863,91 @@ namespace VuonTra.EditorTools
             Capture(screen, "nits-1-khach");
             Step(screen, 2.4f);
             Capture(screen, "nits-1-khach-den");
+        }
+
+        static void RenderViewEdges()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            screen.Raining = () => false;
+            bool reduced = VuonTra.Game.UI.Motion.Reduced;
+            VuonTra.Game.UI.Motion.Reduced = true;
+            foreach (string code in new[] { "vi", "en" })
+            {
+                bool large = code == "en";
+                string tail = code == "en" ? "-en" : "";
+
+                ViewEdgesGarden(runner, screen, 4, code, large);
+                screen.LookAt(new Vector2(screen.StationSpot(0).x, 99999f));
+                Step(screen, 0.3f);
+                Capture(screen, "120-1-vien-mep" + tail);
+
+                ViewEdgesGarden(runner, screen, 6, code, large);
+                screen.LookAt(new Vector2(screen.StationSpot(0).x, 99999f));
+                Step(screen, 0.3f);
+                Capture(screen, "120-2-dinh" + tail);
+                screen.LookAt(new Vector2(-99999f, -99999f));
+                Step(screen, 0.3f);
+                Capture(screen, "120-3-day" + tail);
+
+                GameState s = ViewEdgesGarden(runner, screen, 1, code, large);
+                screen.LookAt(screen.StationSpot(0) + new Vector2(430f, 0f));
+                Step(screen, 0.3f);
+                screen.ChatterBy(s.Rabbits[0].Id);
+                Step(screen, 0.4f);
+                Capture(screen, "120-4-tho-noi" + tail);
+
+                ViewEdgesGarden(runner, screen, 1, code, large);
+                screen.LookAt(screen.ForestSignSpot);
+                Step(screen, 0.3f);
+                Capture(screen, "120-5-bien" + tail);
+            }
+            VuonTra.Game.UI.Motion.Reduced = reduced;
+            UiKit.SetLargeText(false);
+            L10n.SetLocale("vi");
+        }
+
+        [MenuItem("VuonTra/Render View Edges (#120)")]
+        public static void RenderViewEdgesOnly()
+        {
+            Directory.CreateDirectory(Folder);
+            RenderViewEdges();
+        }
+
+        static GameState ViewEdgesGarden(GameRunner runner, GardenScreen screen, int segments, string code, bool large)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Plots = Expansion.PlotsForSegments(defs, segments);
+            s.Grid.Segments = segments;
+            for (int i = 0; i < s.Plots; i++) s.Levels[i] = 8 - i / 3;
+            Rabbits.GiftFirst(s, "Bông");
+            MistSegment next = Expansion.Next(defs, s);
+            if (next != null)
+            {
+                s.GardenXp = Garden.XpForLevel(next.NeedLevel);
+                while (s.Rabbits.Count < next.NeedRabbits) Rabbits.Arrive(s, 0, "Thỏ " + (s.Rabbits.Count + 1), (s.Rabbits.Count * 0.37) % 1d);
+                foreach (RabbitKind kind in RabbitKinds.All) if (s.SeenKinds.Count < next.NeedKinds) s.SeenKinds.Add(kind.Id);
+            }
+            s.Coins = new BigNum(1e300);
+            s.FreshKinds.Clear();
+            PhotoAsks.Decline(s);
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(large);
+            runner.Init(s);
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.StartGame();
+            screen.SetZoom(GardenScreen.ZoomLevel.Default, false);
+            Step(screen, 1f);
+            return s;
         }
 
         static GameState Arranged(string locale, out GameRunner runner, out GardenScreen screen, out System.Collections.Generic.IReadOnlyList<StationDef> defs)
