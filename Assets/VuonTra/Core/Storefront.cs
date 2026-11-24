@@ -50,7 +50,8 @@ namespace VuonTra.Core
         {
             { Storefront.Small, "25.000 ₫" }, { Storefront.Medium, "69.000 ₫" }, { Storefront.Large, "199.000 ₫" },
             { Storefront.NoAdsPass, "75.000 ₫" },
-            { Offers.Starter, "25.000 ₫" }, { Offers.Milestone10, "69.000 ₫" }, { Offers.Milestone20, "69.000 ₫" }, { Offers.Milestone30, "69.000 ₫" }
+            { Offers.Starter, "25.000 ₫" }, { Offers.Milestone10, "69.000 ₫" }, { Offers.Milestone20, "69.000 ₫" }, { Offers.Milestone30, "69.000 ₫" },
+            { MonthPass.ProductId, MonthPass.ReferencePrice }
         };
 
         public event Action<PurchaseResult> Delivered;
@@ -94,7 +95,7 @@ namespace VuonTra.Core
 
         public const string NoAdsPass = "vuontra.noads.30";
 
-        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass || Offers.Find(productId) != null;
+        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass || Offers.Find(productId) != null || productId == MonthPass.ProductId;
 
         public const int ReceiptMemory = 64;
 
@@ -112,8 +113,9 @@ namespace VuonTra.Core
             gift = default;
             GoldenPack pack = Find(packId);
             OfferDef offer = Offers.Find(packId);
-            if (pack == null && offer == null && packId != NoAdsPass) return false;
+            if (pack == null && offer == null && !Sells(packId)) return false;
             if (offer != null && Offers.Bought(s, packId)) return false;
+            if (packId == MonthPass.ProductId && !MonthPass.CanBuy(s, s.MaxDaySeen)) return false;
             if (!string.IsNullOrEmpty(transactionId))
             {
                 if (s.PaidTransactions.Contains(transactionId)) return false;
@@ -124,6 +126,11 @@ namespace VuonTra.Core
             {
                 gift = Offers.Deliver(s, offer, items, rabbitName, roll);
                 s.PacksBought++;
+                return true;
+            }
+            if (packId == MonthPass.ProductId)
+            {
+                MonthPass.Buy(s, s.MaxDaySeen);
                 return true;
             }
             if (pack == null)

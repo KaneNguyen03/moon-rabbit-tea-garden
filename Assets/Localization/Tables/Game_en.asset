@@ -3927,111 +3927,303 @@ MonoBehaviour:
     m_Localized: +{0} Purple rabbit
     m_Metadata:
       m_Items: []
-  - m_Id: 857606120792064
+  - m_Id: 852717978247168
+    m_Localized: "{0} pass \xB7 tier {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218688
+    m_Localized: January
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218689
+    m_Localized: February
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218690
+    m_Localized: March
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218691
+    m_Localized: April
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218692
+    m_Localized: May
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218693
+    m_Localized: June
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218694
+    m_Localized: July
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218695
+    m_Localized: August
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218696
+    m_Localized: September
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218697
+    m_Localized: October
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218698
+    m_Localized: November
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218699
+    m_Localized: December
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218700
+    m_Localized: "{0} days left \xB7 {1} daily quest points a tier"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218701
+    m_Localized: "Tiers {0}\u2013{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218702
+    m_Localized: Free
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218703
+    m_Localized: Pass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218704
+    m_Localized: "Unlock the pass \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218705
+    m_Localized: "{0} pass unlocked \xB7 every tier adds a lower-row gift"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218706
+    m_Localized: Unlock the pass for this row's gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218707
+    m_Localized: '{0} more points to tier {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218708
+    m_Localized: '{0} min'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218709
+    m_Localized: Lantern
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218710
+    m_Localized: Frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218711
+    m_Localized: 1 of {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218712
+    m_Localized: Tier {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218713
+    m_Localized: "{0} pass \xB7 free gift"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218714
+    m_Localized: '{0} pass gift'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218715
+    m_Localized: '{0} lantern colour'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218716
+    m_Localized: '{0} photo frame'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218717
+    m_Localized: '{0} lantern colour hung'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218718
+    m_Localized: Lanterns back to paper
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218719
+    m_Localized: Photos use the {0} frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218720
+    m_Localized: Photos back to the paper frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218721
+    m_Localized: Choose a Gold rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218722
+    m_Localized: Tier 30 of the {0} pass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218723
+    m_Localized: Later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218724
+    m_Localized: '{0} pass unlocked'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218725
+    m_Localized: Pass gifts of the {0} tiers passed are yours
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218726
+    m_Localized: From now on every tier adds a lower-row gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218727
+    m_Localized: "Unclaimed {0} pass gifts \xB7 free row"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218728
+    m_Localized: "Unclaimed {0} pass gifts \xB7 pass row"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218729
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218730
+    m_Localized: +lantern colour
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717999218731
+    m_Localized: +photo frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852718007607296
+    m_Localized: "{0} day left \xB7 {1} daily quest points a tier"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852718007607297
+    m_Localized: '{0} more point to tier {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852718007607298
+    m_Localized: The pass gift of the {0} tier passed is yours
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401810059264
     m_Localized: "Dish: {0} \xB7 level {1}"
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374976
+  - m_Id: 863401826836480
     m_Localized: Improve dish ({0} leaves)
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374977
+  - m_Id: 863401826836481
     m_Localized: Dish at top level
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374978
+  - m_Id: 863401826836482
     m_Localized: Open the station to cook it
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374979
+  - m_Id: 863401826836483
     m_Localized: Opens at garden level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374980
+  - m_Id: 863401826836484
     m_Localized: Dish level {0}!
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374981
+  - m_Id: 863401826836485
     m_Localized: "Recipe leaves: {0} \xB7 improve dishes on a station card"
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374982
+  - m_Id: 863401826836486
     m_Localized: "Big fish \u2192 +1 leaf"
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374983
+  - m_Id: 863401826836487
     m_Localized: +{0} recipe leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374984
+  - m_Id: 863401826836488
     m_Localized: Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374985
+  - m_Id: 863401826836489
     m_Localized: Young Tea Leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374986
+  - m_Id: 863401826836490
     m_Localized: Strawberry Jam
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374987
+  - m_Id: 863401826836491
     m_Localized: Pounded Petal Powder
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374988
+  - m_Id: 863401826836492
     m_Localized: Chestnut Bun
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374989
+  - m_Id: 863401826836493
     m_Localized: Wild Honey
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374990
+  - m_Id: 863401826836494
     m_Localized: Moon Milk Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374991
+  - m_Id: 863401826836495
     m_Localized: Star Syrup
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374992
+  - m_Id: 863401826836496
     m_Localized: Moon Grapes
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374993
+  - m_Id: 863401826836497
     m_Localized: Mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374994
+  - m_Id: 863401826836498
     m_Localized: Flower Spring Water
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374995
+  - m_Id: 863401826836499
     m_Localized: Jar of Falling Stars
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374996
+  - m_Id: 863401826836500
     m_Localized: Lotus Seeds
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374997
+  - m_Id: 863401826836501
     m_Localized: Malt Candy
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374998
+  - m_Id: 863401826836502
     m_Localized: Young Rice Flakes
     m_Metadata:
       m_Items: []
-  - m_Id: 857606133374999
+  - m_Id: 863401826836503
     m_Localized: Night Blossom Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 857606141763584
+  - m_Id: 863401835225088
     m_Localized: "Recipe leaf: {0} \xB7 improve dishes on a station card"
     m_Metadata:
       m_Items: []
-  - m_Id: 857606141763585
+  - m_Id: 863401835225089
     m_Localized: +{0} recipe leaf
     m_Metadata:
       m_Items: []
