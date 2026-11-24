@@ -4803,6 +4803,58 @@ MonoBehaviour:
     m_Localized: "Little fair \xB7 day {1}/{2} \xB7 {0} day left"
     m_Metadata:
       m_Items: []
+  - m_Id: 969180097536000
+    m_Localized: "Moon pass \xB7 30 days"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313216
+    m_Localized: "Moon pass \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313217
+    m_Localized: '{0} now + {1} a day = {2} golden carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313218
+    m_Localized: "+{0} hours away \xB7 one more free \xD72 a day"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313219
+    m_Localized: '{0} golden carrots added. The pass runs {1} more days, with a letter in the mailbox each day you play.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313220
+    m_Localized: "Moon pass \xB7 +{0} golden carrots"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313221
+    m_Localized: Moon pass day {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313222
+    m_Localized: 'Moon pass: {0} days left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313223
+    m_Localized: Buy again before it ends to add {0} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180114313224
+    m_Localized: Reminder read
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180122701824
+    m_Localized: "Moon pass \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180122701825
+    m_Localized: "+{0} hour away \xB7 one more free \xD72 a day"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 969180122701826
+    m_Localized: 'Moon pass: {0} day left'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
