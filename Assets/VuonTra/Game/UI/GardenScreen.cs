@@ -1227,6 +1227,7 @@ namespace VuonTra.Game.UI
                     Refresh(-1f);
                 }), OnRedeemCode);
             BuildMail(catalog);
+            FirstWeek = new NewcomerView(_canvas, _hud, Runner, Tweens, OnClaimNewcomer);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
             GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
@@ -3940,6 +3941,8 @@ namespace VuonTra.Game.UI
             Shop.Refresh(s);
             RefreshDecor(s);
             RefreshOrders(s);
+            FirstWeek?.RefreshPill(_orderBadge.activeSelf);
+            FirstWeek?.Refresh();
             bool anyGolden = s.GoldenCarrots > 0;
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
             _goldenText.text = s.GoldenCarrots.ToString();
@@ -6166,14 +6169,41 @@ namespace VuonTra.Game.UI
         /// <summary>A letter claimed in the mailbox: its gift is paid, the card says what came and the badge counts down.</summary>
         void OnClaimLetter(string id)
         {
-            Letter letter = Runner.ClaimLetter(id);
+            Letter letter = Runner.ClaimLetter(id, out Rabbit arrived);
             if (letter == null) return;
             Sfx.Reward();
             Haptics.Light();
-            Mail.ShowClaimed(L10n.T("mail.claimed", MailView.GiftOf(letter.Golden, letter.Clovers)));
+            Mail.ShowClaimed(L10n.T("mail.claimed", MailView.GiftOf(letter)));
             Mail.Refresh(Runner.Letters, Runner.TodayNumber);
             Shell.RefreshMail();
             Refresh(-1f);
+            if (arrived == null) return;
+            Mail.Close();
+            Sfx.Summon(arrived.Tier);
+            Welcome(arrived);
+        }
+
+        public NewcomerView FirstWeek { get; private set; }
+
+        void OnClaimNewcomer(int day, int slot)
+        {
+            NewcomerClaim claim = Runner.ClaimNewcomer(day, slot);
+            if (!claim.Ok)
+            {
+                Sfx.Deny();
+                return;
+            }
+            Sfx.Reward();
+            Haptics.Light();
+            string paid = L10n.T("newcomer.carrots", claim.Carrots.Short()) + (claim.Clovers > 0 ? " · " + L10n.T("mail.clovers", claim.Clovers) : "") + (claim.Golden > 0 ? " · " + L10n.T("mail.golden", claim.Golden) : "");
+            if (claim.DayPaid) paid += " + " + NewcomerView.DayGiftOf(day);
+            FirstWeek.ShowClaimed(L10n.T("mail.claimed", paid));
+            Refresh(-1f);
+            if (claim.DayPaid) Sfx.Milestone();
+            if (claim.Rabbit == null) return;
+            FirstWeek.Close();
+            Sfx.Summon(claim.Rabbit.Tier);
+            Welcome(claim.Rabbit);
         }
 
         /// <summary>A gift from a code: golden carrots fly to their chip under the purse, clovers and a hat say so in words.</summary>

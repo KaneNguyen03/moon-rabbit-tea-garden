@@ -104,20 +104,26 @@ namespace VuonTra.Game.UI
         }
 
         public static string TitleOf(Letter letter)
-            => letter.Kind == LetterKind.MakeUp ? L10n.T("mail.makeup") : L10n.T("mail.season", L10n.Season(letter.Season));
+            => letter.Kind == LetterKind.MakeUp ? L10n.T("mail.makeup")
+                : letter.Kind == LetterKind.Newcomer ? L10n.T("mail.newcomer")
+                : L10n.T("mail.season", L10n.Season(letter.Season));
 
-        public static string GiftOf(int golden, int clovers)
+        public static string GiftOf(int golden, int clovers, int jars = 0, int purple = 0)
         {
-            var parts = new List<string>(2);
+            var parts = new List<string>(4);
+            if (purple > 0) parts.Add(L10n.T("mail.purple", purple));
             if (golden > 0) parts.Add(L10n.T("mail.golden", golden));
             if (clovers > 0) parts.Add(L10n.T("mail.clovers", clovers));
+            if (jars > 0) parts.Add(L10n.T("mail.jars", jars));
             return string.Join(" · ", parts);
         }
+
+        public static string GiftOf(Letter letter) => GiftOf(letter.Golden, letter.Clovers, letter.Jars, letter.Purple);
 
         public static string SubOf(Letter letter, long today)
         {
             int left = Mailbox.DaysLeft(letter, today);
-            return GiftOf(letter.Golden, letter.Clovers) + " · " + (left > 0 ? L10n.T("mail.days", left) : L10n.T("mail.lastday"));
+            return GiftOf(letter) + " · " + (left > 0 ? L10n.T("mail.days", left) : L10n.T("mail.lastday"));
         }
 
         public void Open(IReadOnlyList<Letter> letters, long today)

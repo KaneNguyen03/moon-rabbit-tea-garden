@@ -3448,6 +3448,246 @@ MonoBehaviour:
     m_Localized: Upgrade all opens at garden level {0}. Upgrade one station at a time for now!
     m_Metadata:
       m_Items: []
+  - m_Id: 831647564947456
+    m_Localized: "First week \xB7 day {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530368
+    m_Localized: Your first week
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530369
+    m_Localized: "Four small tasks open each day \xB7 unclaimed gifts wait until day {0} ends"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530370
+    m_Localized: Day {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530371
+    m_Localized: '{0}/{1} tasks claimed'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530372
+    m_Localized: Opens in {0} days
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530373
+    m_Localized: +{0} carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530374
+    m_Localized: '{0} moon jars'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530375
+    m_Localized: 1 Purple rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530376
+    m_Localized: 'All four done: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530377
+    m_Localized: Day 7 gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530378
+    m_Localized: '{0}: a Purple rabbit you have not met yet, with {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530379
+    m_Localized: "Instead of \u201C{0}\u201D: that opens at garden level {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530380
+    m_Localized: Raise the teapot to level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530381
+    m_Localized: Open {0} stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530382
+    m_Localized: Call {0} rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530383
+    m_Localized: Deliver {0} guest orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530384
+    m_Localized: Catch {0} fish
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530385
+    m_Localized: Pound the mooncake {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530386
+    m_Localized: Feed a rabbit fish {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530387
+    m_Localized: Take {0} garden photos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530388
+    m_Localized: Learn {0} charm levels
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530389
+    m_Localized: Reach garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530390
+    m_Localized: Put {0} rabbits in their own trade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530391
+    m_Localized: Open {0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530392
+    m_Localized: Deliver {0} guest orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530393
+    m_Localized: Pet {0} rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530394
+    m_Localized: Play Catch the Tea Leaves {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530395
+    m_Localized: Have {0} stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530396
+    m_Localized: Move {0} stations with Arrange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530397
+    m_Localized: Meet {0} rabbit kinds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530398
+    m_Localized: Boost {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530399
+    m_Localized: Claim the shop's daily gift {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530400
+    m_Localized: Reach garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530401
+    m_Localized: Play Firefly Night {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530402
+    m_Localized: Merge rabbits or make a golden call {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530403
+    m_Localized: Have {0} rabbits on the rest spots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530404
+    m_Localized: Open land segment {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530405
+    m_Localized: Catch a tier {0} fish or better
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530406
+    m_Localized: Have {0} stations
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530407
+    m_Localized: Claim {0} daily quests today
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530408
+    m_Localized: Raise stations {0} times
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530409
+    m_Localized: First-week gifts you did not claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530410
+    m_Localized: +{0} moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647577530411
+    m_Localized: +{0} Purple rabbits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918976
+    m_Localized: Opens in {0} day
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918977
+    m_Localized: '{0} moon jar'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918978
+    m_Localized: Deliver {0} guest order
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918979
+    m_Localized: Pound the mooncake {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918980
+    m_Localized: Feed a rabbit fish {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918981
+    m_Localized: Take {0} garden photo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918982
+    m_Localized: Put {0} rabbit in its own trade
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918983
+    m_Localized: Open {0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918984
+    m_Localized: Play Catch the Tea Leaves {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918985
+    m_Localized: Move {0} station with Arrange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918986
+    m_Localized: Claim the shop's daily gift {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918987
+    m_Localized: Play Firefly Night {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918988
+    m_Localized: Merge rabbits or make a golden call {0} time
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918989
+    m_Localized: +{0} moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 831647585918990
+    m_Localized: +{0} Purple rabbit
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

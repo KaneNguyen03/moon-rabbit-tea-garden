@@ -91,6 +91,7 @@ namespace VuonTra.Core
             s.GoldenCarrots += gift;
             s.GiftDay = day;
             s.GiftStreak = streak;
+            s.DailyGifts++;
             Season season = Seasons.SeasonOf(day);
             if (Seasons.IsLastDay(day) && !Seasons.HasSeasonRabbit(s, season))
                 seasonRabbit = Rabbits.ArriveKind(s, Seasons.KindOf(season).Id, name ?? Seasons.KindOf(season).NameVi);
@@ -121,6 +122,7 @@ namespace VuonTra.Core
                 if (kindRoll >= Seasons.GoldenCallShare) return SummonGolden(s, roll, name, (kindRoll - Seasons.GoldenCallShare) / (1d - Seasons.GoldenCallShare));
                 if (s.GoldenCarrots < GoldenSummonCost) return null;
                 s.GoldenCarrots -= GoldenSummonCost;
+                s.GoldenCalls++;
                 return Rabbits.ArriveKind(s, seasonKind.Id, name);
             }
             return SummonGolden(s, roll, name, kindRoll);
@@ -130,6 +132,7 @@ namespace VuonTra.Core
         {
             if (s.GoldenCarrots < GoldenSummonCost) return null;
             s.GoldenCarrots -= GoldenSummonCost;
+            s.GoldenCalls++;
             return Rabbits.Arrive(s, Rabbits.RollTier(roll, GoldenOdds), name, kindRoll);
         }
 

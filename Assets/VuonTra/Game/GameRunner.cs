@@ -1089,14 +1089,31 @@ namespace VuonTra.Game
 
         public IReadOnlyList<Letter> Letters => Mailbox.Open(State, TodayNumber);
 
-        public Letter ClaimLetter(string id)
+        public Letter ClaimLetter(string id) => ClaimLetter(id, out _);
+
+        public Letter ClaimLetter(string id, out Rabbit arrived)
         {
-            Letter letter = Mailbox.Claim(State, id, TodayNumber);
+            Letter letter = Mailbox.Claim(State, id, TodayNumber, PickName(), Newcomer.ShownKindRoll, out arrived);
             if (letter != null) Changed();
             return letter;
         }
 
-        bool CheckMail() => Mailbox.Check(State, TodayNumber) > 0;
+        bool CheckMail()
+        {
+            bool closed = Newcomer.Expire(Defs, State, TodayNumber) != null;
+            return Mailbox.Check(State, TodayNumber) > 0 || closed;
+        }
+
+        public NewcomerClaim ClaimNewcomer(int day, int slot)
+        {
+            if (day < 1 || day > Newcomer.Days || slot < 0 || slot >= Newcomer.TasksPerDay) return default;
+            bool fallback = Newcomer.IsFallback(Newcomer.At(day, slot), State);
+            NewcomerClaim claim = Newcomer.Claim(Defs, State, Mods, day, slot, PickName(), Newcomer.ShownKindRoll);
+            if (!claim.Ok) return claim;
+            Analytics.LogNewcomer(claim, fallback);
+            Changed();
+            return claim;
+        }
 
         #endregion
 

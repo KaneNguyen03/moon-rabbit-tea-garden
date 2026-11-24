@@ -107,11 +107,13 @@ namespace VuonTra.Core
         public const string PurchaseSuccess = "purchase_success";
         public const string PurchaseFailed = "purchase_failed";
         public const string RewardedAd = "rewarded_ad";
+        public const string NewcomerTask = "newcomer_task";
+        public const string NewcomerDay = "newcomer_day";
 
         public static readonly string[] All =
         {
             GameOpen, SessionStart, SessionEnd, TutorialStep, TutorialComplete, TutorialSkip, GardenLevelUp, StationUnlocked,
-            SegmentOpened, RabbitCalled, NewMoon, GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd,
+            SegmentOpened, RabbitCalled, NewMoon, GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd, NewcomerTask, NewcomerDay,
         };
 
         public const string NewGarden = "new_garden";
@@ -134,6 +136,10 @@ namespace VuonTra.Core
         public const string Placement = "placement";
         public const string Game = "game";
         public const string Result = "result";
+        public const string Day = "day";
+        public const string Slot = "slot";
+        public const string Task = "task";
+        public const string Fallback = "fallback";
 
         public const string ViaClover = "clover", ViaGolden = "golden";
         public const string FromShop = "shop";
@@ -198,6 +204,14 @@ namespace VuonTra.Core
                 a.Log(AnalyticsEvents.PurchaseSuccess, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
             else
                 a.Log(AnalyticsEvents.PurchaseFailed, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Reason, AnalyticsEvents.ReasonOf(r.Outcome)));
+        }
+
+        public static void LogNewcomer(this IAnalytics a, NewcomerClaim claim, bool fallback)
+        {
+            if (!claim.Ok) return;
+            a.Log(AnalyticsEvents.NewcomerTask, new AnalyticsParam(AnalyticsEvents.Day, claim.Task.Day), new AnalyticsParam(AnalyticsEvents.Slot, claim.Task.Slot),
+                new AnalyticsParam(AnalyticsEvents.Task, fallback ? Newcomer.FallbackOf(claim.Task).Id : claim.Task.Id), new AnalyticsParam(AnalyticsEvents.Fallback, fallback));
+            if (claim.DayPaid) a.Log(AnalyticsEvents.NewcomerDay, new AnalyticsParam(AnalyticsEvents.Day, claim.Task.Day));
         }
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>

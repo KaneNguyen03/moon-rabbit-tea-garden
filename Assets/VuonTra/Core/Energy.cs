@@ -19,6 +19,7 @@ namespace VuonTra.Core
             if (!CanBoost(s)) return false;
             s.Energy -= BoostCost;
             s.BoostSecondsLeft = BoostSeconds;
+            s.Boosts++;
             return true;
         }
 

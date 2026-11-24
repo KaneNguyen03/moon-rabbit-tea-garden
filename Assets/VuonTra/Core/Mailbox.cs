@@ -6,7 +6,8 @@ namespace VuonTra.Core
     public enum LetterKind
     {
         MakeUp,
-        Season
+        Season,
+        Newcomer
     }
 
     public sealed class Letter
@@ -15,9 +16,12 @@ namespace VuonTra.Core
         public LetterKind Kind;
         public Season Season;
         public long Day;
+        public int GiftGolden, GiftClovers, GiftJars, GiftPurple;
 
-        public int Golden => Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Mailbox.SeasonGolden;
-        public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : 0;
+        public int Golden => Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.Season ? Mailbox.SeasonGolden : GiftGolden;
+        public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
+        public int Jars => Kind == LetterKind.Newcomer ? GiftJars : 0;
+        public int Purple => Kind == LetterKind.Newcomer ? GiftPurple : 0;
     }
 
     public static class Mailbox
@@ -45,6 +49,8 @@ namespace VuonTra.Core
             s.Letters.Add(letter);
             return true;
         }
+
+        public static bool Send(GameState s, Letter letter) => Add(s, letter);
 
         public static bool Compensate(GameState s, long day)
             => Add(s, new Letter { Id = "makeup-" + day, Kind = LetterKind.MakeUp, Day = day });
@@ -79,14 +85,19 @@ namespace VuonTra.Core
         static bool Greeted(GameState s, Season season, int year)
             => s.SeasonGreetedDay >= 0 && Seasons.SeasonOf(s.SeasonGreetedDay) == season && Seasons.DateOf(s.SeasonGreetedDay).Year == year;
 
-        public static Letter Claim(GameState s, string id, long day)
+        public static Letter Claim(GameState s, string id, long day) => Claim(s, id, day, null, 0d, out _);
+
+        public static Letter Claim(GameState s, string id, long day, string name, double roll, out Rabbit arrived)
         {
+            arrived = null;
             Open(s, day);
             Letter letter = s.Letters.Find(l => l.Id == id);
             if (letter == null) return null;
             s.Letters.Remove(letter);
             s.GoldenCarrots += letter.Golden;
             s.Clovers += letter.Clovers;
+            s.MoonJars = Math.Min(MoonJars.Cap, s.MoonJars + letter.Jars);
+            for (int i = 0; i < letter.Purple; i++) arrived = Rabbits.ArriveKind(s, Newcomer.PurpleKind(s, roll), name);
             return letter;
         }
     }
