@@ -2271,6 +2271,49 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Thẻ đặt trong "Mua cà rốt vàng" thay vì sheet Tiệm.
 - Hình vé vẽ tay và thử mua sandbox chưa làm.
 
+## #114 — Bể cá cạnh ao (agent-114)
+
+**Test:** verify đủ GREEN 1568/1569 (1 inconclusive SeasonTests có sẵn); Core không Unity 891/891. Test mới: `AquariumTests` (16), `AquariumScreenTests` (6), 1 test lưới, 2 mô phỏng trong `EconomySimulationTests`; `AccessibilityTests` thêm "Tank" vào các đồ không thuộc lưới.
+
+**Commit:** `5f086aa`, merge `7fc601f` (#104, #111), merge `d942d81` (#112); gộp main `4c8c3a5` cùng #106 và #110b, verify đầy đủ GREEN 1595/1596, bản Mac sạch.
+
+**Đã làm:**
+- `Core/Aquarium.cs`: thả cá từ giỏ, mốc 1/5/20/50, tối đa +12 %, quà đủ bộ 10 cà rốt vàng + 1 hũ (một lần), dấu "Mới".
+- Hệ số: `Modifiers.GardenMultiplier` = trăng mới × chỗ nghỉ × bể, vào `IncomeMultiplier`; thứ tự nhân của trạm: cấp × mốc × nguyên liệu × thỏ × sổ thỏ × món.
+- Save: khối `aquarium` cộng thêm, đứng trước `intros`.
+- Bể trên ô (0,-2) cạnh ao: hình ao thu nhỏ + khung kính vẽ bằng code, cá đã thả bơi trong bể, nhãn "Mới".
+- Tấm Bể cá 6 ô loài; nút "Thả vào bể" trong giỏ của tấm Câu cá; thẻ "Bể cá đủ bộ" theo luật một thẻ một lúc; dòng "Bể cá" trong thẻ thu nhập.
+- Ảnh trong `docs/anh/po-114/`.
+
+
+### Chưa đạt / cần PO quyết
+- Duyệt trọng số mốc +0,25/+0,25/+0,5/+1 % (lý do: +0,5 % đều làm tuần 1 đổi 3,74 % > 3 %).
+- +12 % trung vị sau khoảng 1.222 ngày với 5 mồi/ngày: có muốn nhanh hơn không?
+- Hũ thành cỏ khi kệ đầy (theo `QuestChests.GiveJars`).
+- Hình bể vẽ tay, thẻ giới thiệu bể và analytics cho việc thả cá để issue sau.
+
+## #110 — Sổ công thức, phần b: món 2–3 và sổ (agent-110b)
+
+**Test:** `tools/verify.sh` đầy đủ GREEN, 1553/1554 (1 inconclusive), rules ok, 358 khung xem trước.
+
+**Commit:** `81009f8`, gộp main `f0651a5` và `9e65cb2` ; gộp main `4c8c3a5` cùng #106 và #114, verify đầy đủ GREEN 1595/1596, bản Mac sạch.
+
+**Đã làm:**
+- Trạm cấp 25 và 100 mở món 2 và 3 khi sổ đã mở, mỗi món ×1,25 cho riêng trạm đó.
+- Trạm bán món cao nhất; món mới nối cấp của món trước.
+- Có `Recipes.Raise(s, trạm, món)` và 32 tên món vi/en.
+- Thẻ "Món mới!" theo luật một thẻ một lúc, cùng các thẻ chào mừng trở lại, tuần đầu, giới thiệu tính năng, rương và hội chợ.
+- Trường `seen` trong khối `recipes` của save; save cũ vẫn chạy.
+- Sổ công thức 16 × 3 với bóng món chưa mở, mở từ tab Trạm, từ thẻ và từ chip lá.
+- Khung `PreviewShot` 110b và ảnh trong `docs/anh/po-110/`.
+- Mô phỏng: tuần 1 ×1,000; tuần 2–6 là 54/82/112/139/171 (#110a: 52/79/106/132/168); trăng mới 2–3 ở ngày 18/27 (#110a: 19/28).
+
+### Chưa đạt / cần PO quyết
+- Duyệt quy tắc "chỉ món đang bán tính cấp, món mới nối cấp món trước".
+- Duyệt 32 tên món và các lối vào sổ.
+- Phần thêm của 110b so với 110a nhỏ (+2 đến +7 cấp mỗi tuần, trăng mới sớm hơn 1 ngày) vì lịch trăng mới giới hạn tốc độ leo cấp; nếu muốn món 2–3 có cảm giác mạnh hơn thì cần đổi hệ số ×1,25.
+- 32 icon món vẽ tay chưa làm.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
