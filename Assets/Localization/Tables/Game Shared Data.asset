@@ -4107,6 +4107,50 @@ MonoBehaviour:
     m_Key: monthpass.bought.sub.one
     m_Metadata:
       m_Items: []
+  - m_Id: 869038086414336
+    m_Key: welcome.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997248
+    m_Key: welcome.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997249
+    m_Key: welcome.line
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997250
+    m_Key: welcome.line.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997251
+    m_Key: welcome.gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997252
+    m_Key: welcome.checkin
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997253
+    m_Key: welcome.quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997254
+    m_Key: welcome.claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997255
+    m_Key: welcome.tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038098997256
+    m_Key: welcome.pill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 869038111580160
+    m_Key: welcome.sub.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
