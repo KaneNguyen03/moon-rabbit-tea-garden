@@ -41,6 +41,10 @@ namespace VuonTra.Game.UI
         QuestChestsView _questChests;
         public QuestChestsView ChestRows => _questChests;
         public QuestPrizeView Prizes { get; private set; }
+        MonthPassView _monthPass;
+        public MonthPassView MonthPassRows => _monthPass;
+        public MonthKindChooser KindChooser { get; private set; }
+        readonly List<Image> _framePaper = new List<Image>();
         /// <summary>Every buy-mode button on the screen (the sheet's bar and the card's), by mode.</summary>
         readonly List<KeyValuePair<int, Image>> _modeButtons = new List<KeyValuePair<int, Image>>();
         readonly List<KeyValuePair<int, Text>> _modeLabels = new List<KeyValuePair<int, Text>>();
@@ -173,8 +177,8 @@ namespace VuonTra.Game.UI
         /// <summary>The tint a paper lantern's picture takes for a lantern colour: none for paper, a wash of the colour for the rest.</summary>
         public static Color LanternTint(int color)
         {
-            if (color <= 0 || color >= Decor.LanternColors.Length) return Color.white;
-            return Palette.Mix(Color.white, Palette.Hex(Decor.LanternColors[color]), 0.7f);
+            if (color <= 0 || color >= Decor.LanternColors.Length + MonthPass.Months) return Color.white;
+            return Palette.Mix(Color.white, Palette.Hex(MonthPass.LanternHex(color)), 0.7f);
         }
         RectTransform _pondGlow;
         /// <summary>The wood around the clearing, on its own layer that slides a little slower than the ground.</summary>
@@ -1233,6 +1237,7 @@ namespace VuonTra.Game.UI
             BuildMail(catalog);
             FirstWeek = new NewcomerView(_canvas, _hud, Runner, Tweens, OnClaimNewcomer);
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
+            KindChooser = new MonthKindChooser(_canvas, catalog, Tweens);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
             GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
@@ -1873,10 +1878,11 @@ namespace VuonTra.Game.UI
             var photoFrame = UiKit.Rect("PhotoFrame", _canvas).Stretch(0, 0, 1, 1);
             const float Edge = 44f, Foot = 150f;
             Color paper = Palette.Paper, ink = Palette.Ink;
-            UiKit.Rect("Top", photoFrame).Stretch(0, 1, 1, 1, 0, -Edge, 0, 0).AddImage(null, paper);
-            UiKit.Rect("Left", photoFrame).Stretch(0, 0, 0, 1, 0, 0, -Edge, 0).AddImage(null, paper);
-            UiKit.Rect("Right", photoFrame).Stretch(1, 0, 1, 1, -Edge, 0, 0, 0).AddImage(null, paper);
-            UiKit.Rect("Bottom", photoFrame).Stretch(0, 0, 1, 0, 0, 0, 0, -Foot).AddImage(null, paper);
+            _framePaper.Clear();
+            _framePaper.Add(UiKit.Rect("Top", photoFrame).Stretch(0, 1, 1, 1, 0, -Edge, 0, 0).AddImage(null, paper));
+            _framePaper.Add(UiKit.Rect("Left", photoFrame).Stretch(0, 0, 0, 1, 0, 0, -Edge, 0).AddImage(null, paper));
+            _framePaper.Add(UiKit.Rect("Right", photoFrame).Stretch(1, 0, 1, 1, -Edge, 0, 0, 0).AddImage(null, paper));
+            _framePaper.Add(UiKit.Rect("Bottom", photoFrame).Stretch(0, 0, 1, 0, 0, 0, 0, -Foot).AddImage(null, paper));
             UiKit.Rect("Line", photoFrame).Stretch(0, 0, 1, 1, Edge - 4, Foot - 4, Edge - 4, Edge - 4).AddImage(catalog.Panel, Palette.Alpha(ink, 0.5f), true).pixelsPerUnitMultiplier = 3f;
             UiKit.Rect("Inner", photoFrame).Stretch(0, 0, 1, 1, Edge, Foot, Edge, Edge).AddImage(catalog.Panel, new Color(0, 0, 0, 0), true);
             _frameName = UiKit.Rect("GardenName", photoFrame).Stretch(0, 0, 0.6f, 0, Edge + 16, 70, 0, -(Foot - 10)).AddText("", 40, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -1965,6 +1971,9 @@ namespace VuonTra.Game.UI
             if (frame)
             {
                 _frameName.text = string.IsNullOrEmpty(Runner.State.Profile.GardenName) ? L10n.T("profile.unnamed") : Runner.State.Profile.GardenName;
+                int month = Runner.State.PhotoFrame;
+                Color paper = month >= 0 && month < MonthPass.Months ? Palette.Hex(MonthPass.FrameColors[month]) : Palette.Paper;
+                foreach (Image side in _framePaper) side.color = paper;
                 _frameDate.text = System.DateTime.Now.ToString("dd/MM/yyyy") + (Runner.State.Season > 0 ? " · " + L10n.T("hud.season", Runner.State.Season) : "");
             }
             bool fireflies = !PhotoMode || PhotoFirefliesOn;
@@ -2419,7 +2428,7 @@ namespace VuonTra.Game.UI
             }
             Color tint = LanternTint(s.LanternColor);
             foreach (Image lantern in _lanternArt) if (lantern != null && lantern.color != tint) lantern.color = tint;
-            _lanternGlowColor = s.LanternColor > 0 ? Palette.Mix(Palette.Lantern, Palette.Hex(Decor.LanternColors[s.LanternColor]), 0.5f) : Palette.Lantern;
+            _lanternGlowColor = s.LanternColor > 0 ? Palette.Mix(Palette.Lantern, Palette.Hex(MonthPass.LanternHex(s.LanternColor)), 0.5f) : Palette.Lantern;
             if (DecorCard != null) DecorCard.Refresh(s);
         }
 
@@ -3493,6 +3502,8 @@ namespace VuonTra.Game.UI
 
             RectTransform quests = AddList("Quests", 2);
             _questChests = new QuestChestsView(quests, catalog, Tweens, OnOpenQuestBox, OnClaimWeekChest);
+            _monthPass = new MonthPassView(quests, catalog, Tweens, OnMonthCell, OnBuyMonthPass);
+            _monthPass.Changed += () => Refresh(-1f);
             // Finished quests gather up here, under one button that collects them all.
             _questReady = UiKit.Rect("Ready", quests);
             _questReady.gameObject.AddComponent<LayoutElement>().preferredHeight = 76;
@@ -3891,6 +3902,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
             for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
             _questChests.Refresh(Runner.QuestDefs, s, Runner.TodayNumber, dt);
+            _monthPass.Refresh(s, Runner.TodayNumber, Runner.Store.PriceOf(MonthPass.ProductId));
             _questToday.text = L10n.T("quests.today.refresh", Span(SecondsToNextDay(System.DateTimeOffset.Now)));
             _achievementTiers.text = L10n.T("quests.tiers.total", Quests.TiersDone(Runner.QuestDefs, s));
             OrderQuestRows();
@@ -3927,7 +3939,7 @@ namespace VuonTra.Game.UI
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
-            int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s) + (_questChests.BoxReady ? 1 : 0) + QuestChests.ReadyCount(s, Runner.TodayNumber);
+            int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s) + (_questChests.BoxReady ? 1 : 0) + QuestChests.ReadyCount(s, Runner.TodayNumber) + MonthPass.ReadyCount(s, Runner.TodayNumber);
             _barBadge.SetActive(claimable > 0);
             _barBadgeText.text = claimable.ToString();
             if (_shownClaimable >= 0 && claimable > _shownClaimable)
@@ -4767,7 +4779,7 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen;
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen;
 
         void AskForReview()
         {
@@ -4963,6 +4975,123 @@ namespace VuonTra.Game.UI
             Refresh(-1f);
         }
 
+        void OnMonthCell(MonthRow row, int tier)
+        {
+            GameState s = Runner.State;
+            long today = Runner.TodayNumber;
+            long month = MonthPass.MonthOf(today);
+            int cal = MonthPass.CalendarMonth(month);
+            MonthGift gift = MonthPass.GiftOf(row, tier);
+            Vector2 at = Feel.PointOf(_monthPass.CellOf(row, tier), new Vector2(0, 90));
+            if (MonthPass.Claimed(s, row, tier) && gift.Kind == MonthGiftKind.Lantern)
+            {
+                bool hung = MonthPass.LanternMonth(s.LanternColor) == cal;
+                if (hung ? Runner.PaperLanterns() : Runner.HangMonthLantern(cal))
+                {
+                    Sfx.Click();
+                    _monthPass.Pop(row, tier);
+                    Feel.FloatText(at, hung ? L10n.T("monthpass.unhung") : L10n.T("monthpass.hung", MonthPassView.MonthName(month)), Palette.Ink, 30);
+                    Refresh(-1f);
+                }
+                return;
+            }
+            if (MonthPass.Claimed(s, row, tier) && gift.Kind == MonthGiftKind.Frame)
+            {
+                bool worn = s.PhotoFrame == cal;
+                if (Runner.WearMonthFrame(worn ? MonthPass.PlainFrame : cal))
+                {
+                    Sfx.Click();
+                    _monthPass.Pop(row, tier);
+                    Feel.FloatText(at, worn ? L10n.T("monthpass.unframed") : L10n.T("monthpass.framed", MonthPassView.MonthName(month)), Palette.Ink, 30);
+                    Refresh(-1f);
+                }
+                return;
+            }
+            if (!MonthPass.Ready(s, row, tier, today))
+            {
+                Sfx.Click();
+                _monthPass.Pop(row, tier);
+                string why = MonthPass.Claimed(s, row, tier) ? L10n.T("quest.claimed")
+                    : tier > MonthPass.Tier(s, today) ? L10n.T("monthpass.need", tier * MonthPass.PointsPerTier - MonthPass.Points(s, today), tier)
+                    : L10n.T("monthpass.locked");
+                Feel.FloatText(at, why, Palette.Ink, 30);
+                return;
+            }
+            if (gift.Kind == MonthGiftKind.Rabbit)
+            {
+                Sfx.Click();
+                KindChooser.Open(month, kind => ClaimMonth(row, tier, kind));
+                return;
+            }
+            ClaimMonth(row, tier, null);
+        }
+
+        void ClaimMonth(MonthRow row, int tier, string kind)
+        {
+            long month = MonthPass.MonthOf(Runner.TodayNumber);
+            if (!Runner.ClaimMonthTier(row, tier, kind, out MonthClaim claim)) return;
+            Sfx.Reward();
+            Haptics.Light();
+            _monthPass.Pop(row, tier);
+            var tiles = new List<QuestPrizeView.Tile> { MonthTile(claim, month) };
+            if (claim.Gift.Golden > 0) tiles.Add(PrizeTile(BoxPrizeKind.Golden, claim.Gift.Golden, BigNum.Zero));
+            Prizes.Open(L10n.T("monthpass.claimed.title", tier), L10n.T(row == MonthRow.Free ? "monthpass.claimed.free" : "monthpass.claimed.premium", MonthPassView.MonthName(month)),
+                tiles, row == MonthRow.Free ? Color.white : Palette.Mix(Palette.Lantern, Color.white, 0.3f));
+            Refresh(-1f);
+        }
+
+        QuestPrizeView.Tile MonthTile(MonthClaim claim, long month)
+        {
+            GameCatalog catalog = Runner.Catalog;
+            int cal = MonthPass.CalendarMonth(month);
+            switch (claim.Gift.Kind)
+            {
+                case MonthGiftKind.Income: return PrizeTile(BoxPrizeKind.Income, claim.Gift.Amount, claim.Coins);
+                case MonthGiftKind.Clover: return PrizeTile(BoxPrizeKind.Clover, claim.Gift.Amount, BigNum.Zero);
+                case MonthGiftKind.Jar: return claim.Jars > 0 ? PrizeTile(BoxPrizeKind.Jar, claim.Jars, BigNum.Zero) : PrizeTile(BoxPrizeKind.Clover, claim.JarClovers, BigNum.Zero);
+                case MonthGiftKind.Golden: return PrizeTile(BoxPrizeKind.Golden, claim.Gift.Amount, BigNum.Zero);
+                case MonthGiftKind.Lantern:
+                    return new QuestPrizeView.Tile { Icon = catalog.Round, Tint = Palette.Hex(MonthPass.LanternColors[cal]), Amount = L10n.T("monthpass.cell.lantern"), Name = L10n.T("monthpass.lantern", MonthPassView.MonthName(month)) };
+                case MonthGiftKind.Frame:
+                    return new QuestPrizeView.Tile { Icon = catalog.Panel, Tint = Palette.Hex(MonthPass.FrameColors[cal]), Amount = L10n.T("monthpass.cell.frame"), Name = L10n.T("monthpass.frame", MonthPassView.MonthName(month)) };
+                default:
+                    Rabbit rabbit = claim.Rabbit;
+                    return new QuestPrizeView.Tile { Icon = rabbit != null ? catalog.RabbitArt(rabbit) : catalog.RabbitFor(MonthPass.RabbitRarity), Tint = Color.white, Amount = rabbit != null ? rabbit.Name : "", Name = L10n.Rarity(MonthPass.RabbitRarity) };
+            }
+        }
+
+        void OnBuyMonthPass()
+        {
+            GameState s = Runner.State;
+            long today = Runner.TodayNumber;
+            int passed = Mathf.Min(MonthPass.Tier(s, today), MonthPass.RabbitTier - 1);
+            string name = MonthPassView.MonthName(MonthPass.MonthOf(today));
+            Runner.BuyMonthPass(result =>
+            {
+                switch (result.Outcome)
+                {
+                    case PurchaseOutcome.Paid:
+                        Sfx.Reward();
+                        Haptics.Medium();
+                        Feel.Moment(L10n.T("monthpass.bought.title", name), passed > 0 ? L10n.T("monthpass.bought.sub", passed) : L10n.T("monthpass.bought.none"));
+                        break;
+                    case PurchaseOutcome.Cancelled:
+                        Feel.FloatText(Feel.PointOf(_monthPass.BuyButton, new Vector2(0, 90)), L10n.T("packs.cancelled"), Palette.Ink, 30);
+                        break;
+                    case PurchaseOutcome.Duplicate:
+                        Feel.FloatText(Feel.PointOf(_monthPass.BuyButton, new Vector2(0, 90)), L10n.T("packs.duplicate"), Palette.Ink, 30);
+                        break;
+                    case PurchaseOutcome.Unavailable:
+                        Feel.FloatText(Feel.PointOf(_monthPass.BuyButton, new Vector2(0, 90)), L10n.T("packs.notready"), Palette.Ink, 30);
+                        break;
+                    default:
+                        Feel.FloatText(Feel.PointOf(_monthPass.BuyButton, new Vector2(0, 90)), L10n.T("packs.failed"), Palette.Ink, 30);
+                        break;
+                }
+                Refresh(-1f);
+            });
+        }
+
         QuestPrizeView.Tile PrizeTile(BoxPrizeKind kind, int amount, BigNum coins)
         {
             GameCatalog catalog = Runner.Catalog;
@@ -4999,6 +5128,7 @@ namespace VuonTra.Game.UI
             if (_questReady.gameObject.activeSelf != any) _questReady.gameObject.SetActive(any);
             order.Add(_questReady);
             foreach (QuestRowView row in _questRows) if (row.CanClaim) order.Add(row.Root);
+            order.Add(_monthPass.Root);
             order.Add(_clovers.rectTransform);
             order.Add(_questToday.rectTransform);
             foreach (QuestRowView row in _questRows) if (row.Daily && !row.CanClaim) order.Add(row.Root);

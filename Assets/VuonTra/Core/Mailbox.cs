@@ -8,7 +8,8 @@ namespace VuonTra.Core
         MakeUp,
         Season,
         WeekChest,
-        Newcomer
+        Newcomer,
+        MonthPass
     }
 
     public sealed class Letter
@@ -18,16 +19,22 @@ namespace VuonTra.Core
         public Season Season;
         public long Day;
         public int Chest;
+        public long Month;
+        public bool Premium;
+        public int Tiers;
+        public BigNum Coins;
         public int GiftGolden, GiftClovers, GiftJars, GiftPurple;
 
         WeekChest ChestDef => Kind == LetterKind.WeekChest ? QuestChests.Chests[Chest] : null;
 
-        public int Golden => Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.Season ? Mailbox.SeasonGolden : Kind == LetterKind.WeekChest ? ChestDef.Golden : GiftGolden;
-        public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.WeekChest ? ChestDef.Clovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
-        public int Jars => Kind == LetterKind.WeekChest ? ChestDef.Jars : Kind == LetterKind.Newcomer ? GiftJars : 0;
+        MonthBundle Gifts => MonthPass.BundleOf(this);
+
+        public int Golden => Kind == LetterKind.MonthPass ? Gifts.Golden : Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.Season ? Mailbox.SeasonGolden : Kind == LetterKind.WeekChest ? ChestDef.Golden : GiftGolden;
+        public int Clovers => Kind == LetterKind.MonthPass ? Gifts.Clovers : Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.WeekChest ? ChestDef.Clovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
+        public int Jars => Kind == LetterKind.MonthPass ? Gifts.Jars : Kind == LetterKind.WeekChest ? ChestDef.Jars : Kind == LetterKind.Newcomer ? GiftJars : 0;
         public int Purple => Kind == LetterKind.Newcomer ? GiftPurple : 0;
-        public int RabbitTier => Kind == LetterKind.WeekChest ? ChestDef.RabbitTier : QuestChests.NoRabbit;
-        public int KeepDays => Kind == LetterKind.WeekChest ? QuestChests.ChestKeepDays : Mailbox.KeepDays;
+        public int RabbitTier => Kind == LetterKind.MonthPass ? (Gifts.Rabbit ? MonthPass.RabbitRarity : QuestChests.NoRabbit) : Kind == LetterKind.WeekChest ? ChestDef.RabbitTier : QuestChests.NoRabbit;
+        public int KeepDays => Kind == LetterKind.MonthPass ? MonthPass.KeepDays : Kind == LetterKind.WeekChest ? QuestChests.ChestKeepDays : Mailbox.KeepDays;
     }
 
     public static class Mailbox
@@ -64,6 +71,9 @@ namespace VuonTra.Core
         public static bool AddChest(GameState s, int chest, long week, long day)
             => chest >= 0 && chest < QuestChests.Chests.Length
                && Add(s, new Letter { Id = "chest-" + week + "-" + chest, Kind = LetterKind.WeekChest, Chest = chest, Day = day });
+
+        public static bool AddMonth(GameState s, Letter letter)
+            => letter.Kind == LetterKind.MonthPass && letter.Tiers != 0 && Add(s, letter);
 
         public static int Check(GameState s, long today)
         {
@@ -104,6 +114,11 @@ namespace VuonTra.Core
             Letter letter = s.Letters.Find(l => l.Id == id);
             if (letter == null) return null;
             s.Letters.Remove(letter);
+            if (letter.Kind == LetterKind.MonthPass)
+            {
+                rabbit = MonthPass.GrantLetter(s, letter, name, kindRoll);
+                return letter;
+            }
             if (letter.Kind == LetterKind.WeekChest)
             {
                 rabbit = QuestChests.Grant(s, QuestChests.Chests[letter.Chest], name, kindRoll);

@@ -119,6 +119,13 @@ namespace VuonTra.Core
         public int WeekPoints;
         public int WeekChestsClaimed;
 
+        public long PassMonth = -1;
+        public int PassPoints;
+        public int PassFreeClaimed, PassPremiumClaimed;
+        public long PassBoughtMonth = -1;
+        public int MonthLanterns, MonthFrames;
+        public int PhotoFrame = MonthPass.PlainFrame;
+
         public long FrogDay = -1;
         public int FrogShowers, FrogsToday;
         public long FrogsMet;

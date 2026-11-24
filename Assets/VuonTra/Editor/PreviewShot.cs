@@ -662,6 +662,7 @@ namespace VuonTra.EditorTools
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
             RenderAchievementTiers(runner, screen);
+            RenderMonthPass(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -1454,6 +1455,92 @@ namespace VuonTra.EditorTools
             L10n.SetLocale("vi");
             screen.RebuildUi();
             Step(screen, 0.3f);
+        }
+
+        [MenuItem("VuonTra/Render Month Pass")]
+        public static void RenderMonthPassOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderMonthPass(runner, screen);
+        }
+
+        static void RenderMonthPass(GameRunner runner, GardenScreen screen)
+        {
+            System.Func<long> clock = runner.DayClock;
+            long day = GiftCodes.Day(2026, 12, 12);
+            runner.DayClock = () => day;
+            foreach (string locale in new[] { "vi", "en", "vi-large" })
+            {
+                bool large = locale == "vi-large";
+                GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+                int[] levels = { 40, 22, 14, 8 };
+                for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+                s.Plots = 8;
+                s.GardenXp = Garden.XpForLevel(12);
+                s.HintSeen = true;
+                s.TutorialStep = Tutorial.Steps;
+                s.Coins = new BigNum(2.4e6);
+                s.Profile.Code = "VT-107PREV";
+                Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+                Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.4).Id, 1);
+                s.FreshKinds.Clear();
+                runner.Init(s);
+                s.WeekIndex = QuestChests.WeekOf(day);
+                s.WeekPoints = 160;
+                s.PassMonth = MonthPass.MonthOf(day);
+                s.PassPoints = 0;
+                L10n.SetLocale(large ? "vi" : locale);
+                if (large) UiKit.SetLargeText(true);
+                string name = "107-" + locale + "-";
+                if (!large)
+                {
+                    ShowMonthPass(screen);
+                    Capture(screen, name + "nac-0");
+                }
+
+                s.PassPoints = 12 * MonthPass.PointsPerTier + 15;
+                s.PassFreeClaimed = (1 << 10) - 1;
+                if (!large)
+                {
+                    ShowMonthPass(screen);
+                    Capture(screen, name + "nac-12-chua-mua");
+                }
+
+                MonthPass.Buy(s, day);
+                ShowMonthPass(screen);
+                Capture(screen, name + "nac-12-da-mua");
+                screen.CloseSheet();
+                if (large) UiKit.SetLargeText(false);
+            }
+            runner.DayClock = clock;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
+        }
+
+        static void ShowMonthPass(GardenScreen screen)
+        {
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.OpenSheet(2);
+            screen.Refresh();
+            Step(screen, 1.5f);
+            RectTransform row = screen.MonthPassRows.Root;
+            var content = (RectTransform)row.parent;
+            Canvas.ForceUpdateCanvases();
+            LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+            float top = -row.anchoredPosition.y - row.rect.height * (1f - row.pivot.y);
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, top - 24f);
+            screen.Refresh();
+            Step(screen, 0.2f);
         }
 
         static void RenderMapEdges(GameRunner runner, GardenScreen screen)
