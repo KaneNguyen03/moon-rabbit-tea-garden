@@ -51,7 +51,8 @@ namespace VuonTra.Core
             { Storefront.Small, "25.000 ₫" }, { Storefront.Medium, "69.000 ₫" }, { Storefront.Large, "199.000 ₫" },
             { Storefront.NoAdsPass, "75.000 ₫" },
             { Offers.Starter, "25.000 ₫" }, { Offers.Milestone10, "69.000 ₫" }, { Offers.Milestone20, "69.000 ₫" }, { Offers.Milestone30, "69.000 ₫" },
-            { MonthPass.ProductId, MonthPass.ReferencePrice }
+            { MonthPass.ProductId, MonthPass.ReferencePrice },
+            { MoonPass.ProductId, MoonPass.ReferencePrice }
         };
 
         public event Action<PurchaseResult> Delivered;
@@ -95,7 +96,7 @@ namespace VuonTra.Core
 
         public const string NoAdsPass = "vuontra.noads.30";
 
-        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass || Offers.Find(productId) != null || productId == MonthPass.ProductId;
+        public static bool Sells(string productId) => Find(productId) != null || productId == NoAdsPass || Offers.Find(productId) != null || productId == MonthPass.ProductId || productId == MoonPass.ProductId;
 
         public const int ReceiptMemory = 64;
 
@@ -126,6 +127,11 @@ namespace VuonTra.Core
             {
                 gift = Offers.Deliver(s, offer, items, rabbitName, roll);
                 s.PacksBought++;
+                return true;
+            }
+            if (packId == MoonPass.ProductId)
+            {
+                MoonPass.Grant(s, s.MaxDaySeen);
                 return true;
             }
             if (packId == MonthPass.ProductId)

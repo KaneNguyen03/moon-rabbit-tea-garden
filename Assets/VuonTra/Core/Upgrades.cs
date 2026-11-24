@@ -45,6 +45,7 @@ namespace VuonTra.Core
             m.AwayIncomeMultiplier += Items.GardenBonus(s, ItemEffect.AwayIncome);
             if (s != null) m.IncomeMultiplier *= NewMoon.Bonus(s);
             if (s != null) m.IncomeMultiplier *= RestSpots.Multiplier(s);
+            if (s != null && MoonPass.Active(s, s.MaxDaySeen)) m.AwayCapSeconds += MoonPass.AwayBonusSeconds;
             if (upgrades == null || s.UpgradeLevels == null) return m;
             for (int i = 0; i < upgrades.Count && i < s.UpgradeLevels.Length; i++)
             {

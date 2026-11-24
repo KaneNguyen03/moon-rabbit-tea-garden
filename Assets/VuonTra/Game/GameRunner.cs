@@ -1227,6 +1227,7 @@ namespace VuonTra.Game
             double kindRoll = pending != null && pending.Kind == LetterKind.Newcomer ? Newcomer.ShownKindRoll : _rng.NextDouble();
             Letter letter = Mailbox.Claim(State, id, TodayNumber, PickName(), kindRoll, out rabbit);
             if (letter == null) return null;
+            Analytics.LogLetterClaimed(letter);
             if (rabbit != null) Rabbits.AutoAssign(Defs, State);
             Changed();
             return letter;
@@ -1278,6 +1279,18 @@ namespace VuonTra.Game
             Changed();
             return true;
         }
+
+        #region Moon pass (#106)
+
+        public int MoonPassDaysLeft => MoonPass.DaysLeft(State, TodayNumber);
+
+        public void BuyMoonPass(Action<PurchaseResult> done)
+        {
+            Seasons.Clamp(State, DayClock());
+            BuyGolden(MoonPass.ProductId, done);
+        }
+
+        #endregion
 
         #region Month pass (#107)
 

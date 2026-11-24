@@ -9,7 +9,9 @@ namespace VuonTra.Core
         Season,
         WeekChest,
         Newcomer,
-        MonthPass
+        MonthPass,
+        MoonPassDay = 5,
+        MoonPassRenew = 6
     }
 
     public sealed class Letter
@@ -24,12 +26,28 @@ namespace VuonTra.Core
         public int Tiers;
         public BigNum Coins;
         public int GiftGolden, GiftClovers, GiftJars, GiftPurple;
+        public int PassDay, PassDays;
 
         WeekChest ChestDef => Kind == LetterKind.WeekChest ? QuestChests.Chests[Chest] : null;
 
         MonthBundle Gifts => MonthPass.BundleOf(this);
 
-        public int Golden => Kind == LetterKind.MonthPass ? Gifts.Golden : Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.Season ? Mailbox.SeasonGolden : Kind == LetterKind.WeekChest ? ChestDef.Golden : GiftGolden;
+        public int Golden
+        {
+            get
+            {
+                switch (Kind)
+                {
+                    case LetterKind.MonthPass: return Gifts.Golden;
+                    case LetterKind.MakeUp: return Mailbox.MakeUpGolden;
+                    case LetterKind.Season: return Mailbox.SeasonGolden;
+                    case LetterKind.WeekChest: return ChestDef.Golden;
+                    case LetterKind.MoonPassDay: return MoonPass.GoldenPerDay;
+                    case LetterKind.MoonPassRenew: return 0;
+                    default: return GiftGolden;
+                }
+            }
+        }
         public int Clovers => Kind == LetterKind.MonthPass ? Gifts.Clovers : Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.WeekChest ? ChestDef.Clovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
         public int Jars => Kind == LetterKind.MonthPass ? Gifts.Jars : Kind == LetterKind.WeekChest ? ChestDef.Jars : Kind == LetterKind.Newcomer ? GiftJars : 0;
         public int Purple => Kind == LetterKind.Newcomer ? GiftPurple : 0;
@@ -55,7 +73,7 @@ namespace VuonTra.Core
             return s.Letters;
         }
 
-        static bool Add(GameState s, Letter letter)
+        internal static bool Add(GameState s, Letter letter)
         {
             foreach (Letter l in s.Letters) if (l.Id == letter.Id) return false;
             while (s.Letters.Count >= MaxLetters) s.Letters.RemoveAt(0);
@@ -78,10 +96,11 @@ namespace VuonTra.Core
         public static int Check(GameState s, long today)
         {
             Open(s, today);
-            if (today <= s.MailDay) return 0;
+            int pass = MoonPass.Deliver(s, today);
+            if (today <= s.MailDay) return pass;
             long from = s.MailDay;
             s.MailDay = today;
-            if (from < 0) return 0;
+            if (from < 0) return pass;
             from = Math.Max(from, today - LookBackDays);
 
             Season now = Seasons.SeasonOf(today);
@@ -99,7 +118,7 @@ namespace VuonTra.Core
             int added = 0;
             foreach (KeyValuePair<Season, int> m in missed)
                 if (Add(s, new Letter { Id = "season-" + m.Key + "-" + m.Value, Kind = LetterKind.Season, Season = m.Key, Day = today })) added++;
-            return added;
+            return added + pass;
         }
 
         static bool Greeted(GameState s, Season season, int year)

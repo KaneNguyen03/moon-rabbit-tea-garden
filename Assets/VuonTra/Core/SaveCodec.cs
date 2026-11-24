@@ -22,6 +22,7 @@ namespace VuonTra.Core
     public static class SaveCodec
     {
         const int LegacyStartingRadius = 3;
+        const int MaxPassDays = 100000;
         public const long LegacyFirstDay = 0;
 
         public const int CurrentVersion = 14;
@@ -351,6 +352,8 @@ namespace VuonTra.Core
                     sb.Append(",\"jars\":").Append(letter.Jars.ToString(CultureInfo.InvariantCulture));
                     sb.Append(",\"purple\":").Append(letter.Purple.ToString(CultureInfo.InvariantCulture));
                 }
+                if (letter.Kind == LetterKind.MoonPassDay || letter.Kind == LetterKind.MoonPassRenew)
+                    sb.Append(",\"n\":").Append(letter.PassDay.ToString(CultureInfo.InvariantCulture)).Append(",\"of\":").Append(letter.PassDays.ToString(CultureInfo.InvariantCulture));
                 sb.Append('}');
             }
             sb.Append("]}");
@@ -358,6 +361,12 @@ namespace VuonTra.Core
             sb.Append(",\"points\":").Append(s.WeekPoints.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"chests\":").Append(s.WeekChestsClaimed.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"boxDay\":").Append(s.BoxDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append('}');
+            sb.Append(",\"moonPass\":{\"from\":").Append(s.MoonPassFromDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"until\":").Append(s.MoonPassUntilDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"mail\":").Append(s.MoonPassMailDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"reminded\":").Append(s.MoonPassRemindedUntil.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"double\":").Append(s.MoonPassDoubleDay.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
             sb.Append(",\"monthPass\":{\"month\":").Append(s.PassMonth.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"points\":").Append(s.PassPoints.ToString(CultureInfo.InvariantCulture));
@@ -846,7 +855,8 @@ namespace VuonTra.Core
                         if (!(entry.TryGetValue("id", out object letterIdObj) && letterIdObj is string letterId && letterId.Length > 0)) continue;
                         if (s.Letters.Exists(l => l.Id == letterId)) continue;
                         double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season"), letterChest = ReadNumber(entry, "chest");
-                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season && letterKind != (int)LetterKind.WeekChest && letterKind != (int)LetterKind.Newcomer && letterKind != (int)LetterKind.MonthPass) continue;
+                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season && letterKind != (int)LetterKind.WeekChest && letterKind != (int)LetterKind.Newcomer && letterKind != (int)LetterKind.MonthPass
+                            && letterKind != (int)LetterKind.MoonPassDay && letterKind != (int)LetterKind.MoonPassRenew) continue;
                         bool chestLetter = letterKind == (int)LetterKind.WeekChest;
                         if (chestLetter && (letterChest < 0d || letterChest >= QuestChests.Chests.Length || letterChest != Math.Floor(letterChest))) continue;
                         bool gift = letterKind == (int)LetterKind.Newcomer;
@@ -868,6 +878,8 @@ namespace VuonTra.Core
                             GiftClovers = gift ? Small(ReadNumber(entry, "clovers"), 1000) : 0,
                             GiftJars = gift ? Small(ReadNumber(entry, "jars"), MoonJars.Cap) : 0,
                             GiftPurple = gift ? Small(ReadNumber(entry, "purple"), Newcomer.Days) : 0,
+                            PassDay = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "n"), MaxPassDays)),
+                            PassDays = (int)Math.Max(0d, Math.Min(ReadNumber(entry, "of"), MaxPassDays)),
                         });
                     }
             }
@@ -904,6 +916,15 @@ namespace VuonTra.Core
                         if (n > 0) s.AdsToday.Used[key] = n;
                     }
                 s.NoAdsUntilDay = TryNumber(ads, "passUntil", out double passUntil) ? Math.Max(-1L, ToLong(passUntil)) : -1;
+            }
+
+            if (root.TryGetValue("moonPass", out object moonObj) && moonObj is Dictionary<string, object> moon)
+            {
+                s.MoonPassFromDay = TryNumber(moon, "from", out double moonFrom) ? Math.Max(-1L, ToLong(moonFrom)) : -1;
+                s.MoonPassUntilDay = TryNumber(moon, "until", out double moonUntil) ? Math.Max(-1L, ToLong(moonUntil)) : -1;
+                s.MoonPassMailDay = TryNumber(moon, "mail", out double moonMail) ? Math.Max(-1L, ToLong(moonMail)) : -1;
+                s.MoonPassRemindedUntil = TryNumber(moon, "reminded", out double moonReminded) ? Math.Max(-1L, ToLong(moonReminded)) : -1;
+                s.MoonPassDoubleDay = TryNumber(moon, "double", out double moonDouble) ? Math.Max(-1L, ToLong(moonDouble)) : -1;
             }
 
             s.Grid = new GardenGrid(GardenGrid.SegmentsForPlots(s.Plots));

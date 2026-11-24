@@ -111,6 +111,8 @@ namespace VuonTra.Game.UI
                 case LetterKind.WeekChest: return L10n.T("mail.chest", QuestChests.Chests[letter.Chest].Points);
                 case LetterKind.MonthPass: return L10n.T(letter.Premium ? "mail.monthpass.premium" : "mail.monthpass", MonthPassView.MonthName(letter.Month));
                 case LetterKind.Newcomer: return L10n.T("mail.newcomer");
+                case LetterKind.MoonPassDay: return L10n.T("mail.moonpass.day", letter.PassDay, letter.PassDays);
+                case LetterKind.MoonPassRenew: return L10n.T("mail.moonpass.renew", letter.PassDay);
                 default: return L10n.T("mail.season", L10n.Season(letter.Season));
             }
         }
@@ -144,6 +146,7 @@ namespace VuonTra.Game.UI
 
         public static string SubOf(Letter letter, long today)
         {
+            if (letter.Kind == LetterKind.MoonPassRenew) return L10n.T("mail.moonpass.renew.sub", MoonPass.Days);
             int left = Mailbox.DaysLeft(letter, today);
             return GiftOf(letter) + " · " + (left > 0 ? L10n.T("mail.days", left) : L10n.T("mail.lastday"));
         }
