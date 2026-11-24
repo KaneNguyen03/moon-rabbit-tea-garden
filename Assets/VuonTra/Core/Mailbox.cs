@@ -9,7 +9,8 @@ namespace VuonTra.Core
         Season,
         WeekChest,
         Newcomer,
-        MonthPass
+        MonthPass,
+        FairEnd = 7
     }
 
     public sealed class Letter
@@ -24,6 +25,8 @@ namespace VuonTra.Core
         public int Tiers;
         public BigNum Coins;
         public int GiftGolden, GiftClovers, GiftJars, GiftPurple;
+        public long Fair;
+        public int FairCoins;
 
         WeekChest ChestDef => Kind == LetterKind.WeekChest ? QuestChests.Chests[Chest] : null;
 
@@ -122,6 +125,11 @@ namespace VuonTra.Core
             if (letter.Kind == LetterKind.WeekChest)
             {
                 rabbit = QuestChests.Grant(s, QuestChests.Chests[letter.Chest], name, kindRoll);
+                return letter;
+            }
+            if (letter.Kind == LetterKind.FairEnd)
+            {
+                s.Coins += letter.Coins;
                 return letter;
             }
             s.GoldenCarrots += letter.Golden;

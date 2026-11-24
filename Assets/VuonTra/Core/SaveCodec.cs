@@ -344,6 +344,12 @@ namespace VuonTra.Core
                     sb.Append(",\"tiers\":").Append(letter.Tiers.ToString(CultureInfo.InvariantCulture));
                     WriteBig(sb, "coins", letter.Coins);
                 }
+                if (letter.Kind == LetterKind.FairEnd)
+                {
+                    sb.Append(",\"fair\":").Append(letter.Fair.ToString(CultureInfo.InvariantCulture));
+                    sb.Append(",\"fairCoins\":").Append(letter.FairCoins.ToString(CultureInfo.InvariantCulture));
+                    WriteBig(sb, "coins", letter.Coins);
+                }
                 sb.Append(",\"golden\":").Append(letter.Golden.ToString(CultureInfo.InvariantCulture));
                 sb.Append(",\"clovers\":").Append(letter.Clovers.ToString(CultureInfo.InvariantCulture));
                 if (letter.Kind == LetterKind.Newcomer)
@@ -445,6 +451,19 @@ namespace VuonTra.Core
             sb.Append(",\"checkIns\":").Append(s.WelcomeBack.CheckIns.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"checkInDay\":").Append(s.WelcomeBack.CheckInDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"cardSeen\":").Append(s.WelcomeBack.CardSeen ? "true" : "false");
+            sb.Append('}');
+            sb.Append(",\"fair\":{\"start\":").Append(s.Fair.Start.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"done\":").Append(s.Fair.Done.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"seen\":").Append(s.Fair.Seen.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"coins\":").Append(s.Fair.Coins.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"bought\":[");
+            for (int i = 0; i < s.Fair.Bought.Length; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append(s.Fair.Bought[i].ToString(CultureInfo.InvariantCulture));
+            }
+            sb.Append("],\"lanterns\":").Append(s.Fair.Lanterns.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"frames\":").Append(s.Fair.Frames.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
             sb.Append(",\"trunk\":{\"window\":").Append(s.Trunk.Window.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"items\":[");
@@ -608,7 +627,7 @@ namespace VuonTra.Core
                         ? (int)Math.Max(0d, Math.Min(bond, Rabbits.AffectionMax))
                         : Rabbits.PointsFor((int)Math.Max(0d, Math.Min(ReadNumber(entry, "affection"), Rabbits.GiftHearts)));
                     rabbit.PetDay = TryNumber(entry, "petDay", out double petDay) && petDay >= 0d ? ToLong(petDay) : -1;
-                    rabbit.Dye = TryNumber(entry, "dye", out double dye) && dye >= 0d && dye < Shop.Dyes.Length ? (int)dye : -1;
+                    rabbit.Dye = TryNumber(entry, "dye", out double dye) && dye >= 0d && dye < Shop.Dyes.Length + Fairs.All.Count && dye == Math.Floor(dye) ? (int)dye : -1;
                     rabbit.Kind = entry.TryGetValue("kind", out object kindObj) && kindObj is string kindId ? kindId : null;
                     rabbit.Kind = Rabbits.KindOf(rabbit);
                     s.Rabbits.Add(rabbit);
@@ -777,7 +796,7 @@ namespace VuonTra.Core
                         s.DecorSpots[i] = kind;
                     }
                 double lantern = ReadNumber(decor, "lantern");
-                s.LanternColor = lantern >= 0d && lantern < Decor.LanternColors.Length + MonthPass.Months ? (int)lantern : 0;
+                s.LanternColor = lantern >= 0d && lantern < Fairs.LanternIndex(Fairs.All.Count) && lantern == Math.Floor(lantern) ? (int)lantern : 0;
             }
             if (root.TryGetValue("orders", out object ordersObj) && ordersObj is Dictionary<string, object> orders)
             {
@@ -847,13 +866,14 @@ namespace VuonTra.Core
                         if (!(entry.TryGetValue("id", out object letterIdObj) && letterIdObj is string letterId && letterId.Length > 0)) continue;
                         if (s.Letters.Exists(l => l.Id == letterId)) continue;
                         double letterKind = ReadNumber(entry, "kind"), letterSeason = ReadNumber(entry, "season"), letterChest = ReadNumber(entry, "chest");
-                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season && letterKind != (int)LetterKind.WeekChest && letterKind != (int)LetterKind.Newcomer && letterKind != (int)LetterKind.MonthPass) continue;
+                        if (letterKind != (int)LetterKind.MakeUp && letterKind != (int)LetterKind.Season && letterKind != (int)LetterKind.WeekChest && letterKind != (int)LetterKind.Newcomer && letterKind != (int)LetterKind.MonthPass && letterKind != (int)LetterKind.FairEnd) continue;
                         bool chestLetter = letterKind == (int)LetterKind.WeekChest;
                         if (chestLetter && (letterChest < 0d || letterChest >= QuestChests.Chests.Length || letterChest != Math.Floor(letterChest))) continue;
                         bool gift = letterKind == (int)LetterKind.Newcomer;
                         bool monthLetter = letterKind == (int)LetterKind.MonthPass;
                         int letterTiers = monthLetter ? (int)Math.Max(0d, Math.Min(ReadNumber(entry, "tiers"), MonthPass.AllTiers)) & MonthPass.AllTiers : 0;
                         if (monthLetter && letterTiers == 0) continue;
+                        bool fairLetter = letterKind == (int)LetterKind.FairEnd;
                         s.Letters.Add(new Letter
                         {
                             Id = letterId,
@@ -864,7 +884,9 @@ namespace VuonTra.Core
                             Month = monthLetter ? ToLong(ReadNumber(entry, "month")) : 0,
                             Premium = monthLetter && entry.TryGetValue("premium", out object premiumObj) && premiumObj is bool premiumLetter && premiumLetter,
                             Tiers = letterTiers,
-                            Coins = monthLetter ? ReadBig(entry, "coins") : BigNum.Zero,
+                            Coins = monthLetter || fairLetter ? ReadBig(entry, "coins") : BigNum.Zero,
+                            Fair = fairLetter ? ToLong(ReadNumber(entry, "fair")) : 0,
+                            FairCoins = fairLetter ? Small(ReadNumber(entry, "fairCoins"), int.MaxValue) : 0,
                             GiftGolden = gift ? Small(ReadNumber(entry, "golden"), 1000) : 0,
                             GiftClovers = gift ? Small(ReadNumber(entry, "clovers"), 1000) : 0,
                             GiftJars = gift ? Small(ReadNumber(entry, "jars"), MoonJars.Cap) : 0,
@@ -881,6 +903,23 @@ namespace VuonTra.Core
                 s.BoxDay = TryNumber(week, "boxDay", out double boxDay) ? Math.Max(-1L, ToLong(boxDay)) : -1;
             }
 
+            if (root.TryGetValue("fair", out object fairObj) && fairObj is Dictionary<string, object> fair)
+            {
+                s.Fair.Start = TryNumber(fair, "start", out double fairStart) ? Math.Max(-1L, ToLong(fairStart)) : -1;
+                s.Fair.Done = TryNumber(fair, "done", out double fairDone) ? Math.Max(-1L, ToLong(fairDone)) : -1;
+                s.Fair.Seen = TryNumber(fair, "seen", out double fairSeen) ? Math.Max(-1L, ToLong(fairSeen)) : -1;
+                FairRun? joined = s.Fair.Start >= 0 ? Fairs.RunOn(s.Fair.Start) : null;
+                if (joined == null || joined.Value.Start != s.Fair.Start || s.Fair.Start <= s.Fair.Done) s.Fair.Start = -1;
+                int stalls = s.Fair.Start >= 0 ? joined.Value.Def.Stalls.Length : 0;
+                s.Fair.Coins = s.Fair.Start >= 0 ? Small(ReadNumber(fair, "coins"), int.MaxValue) : 0;
+                s.Fair.Bought = new int[stalls];
+                if (stalls > 0 && fair.TryGetValue("bought", out object boughtObj) && boughtObj is List<object> bought)
+                    for (int i = 0; i < stalls && i < bought.Count; i++)
+                        if (bought[i] is double n) s.Fair.Bought[i] = Small(n, joined.Value.Def.Stalls[i].Max);
+                s.Fair.Lanterns = MonthMask(fair, "lanterns", Fairs.AllFairs);
+                s.Fair.Frames = MonthMask(fair, "frames", Fairs.AllFairs);
+            }
+
             if (root.TryGetValue("monthPass", out object monthObj) && monthObj is Dictionary<string, object> month)
             {
                 s.PassMonth = TryNumber(month, "month", out double passMonth) ? Math.Max(-1L, ToLong(passMonth)) : -1;
@@ -891,9 +930,11 @@ namespace VuonTra.Core
                 s.MonthLanterns = MonthMask(month, "lanterns", MonthPass.AllMonths);
                 s.MonthFrames = MonthMask(month, "frames", MonthPass.AllMonths);
                 double frame = ReadNumber(month, "frame");
-                s.PhotoFrame = frame == Math.Floor(frame) && MonthPass.OwnsFrame(s, (int)Math.Max(-1d, Math.Min(frame, MonthPass.Months))) ? (int)frame : MonthPass.PlainFrame;
+                int wornFrame = (int)Math.Max(-1d, Math.Min(frame, Fairs.FrameIndex(Fairs.All.Count)));
+                s.PhotoFrame = frame == Math.Floor(frame) && (MonthPass.OwnsFrame(s, wornFrame) || Fairs.OwnsFrame(s, Fairs.FrameFair(wornFrame))) ? wornFrame : MonthPass.PlainFrame;
             }
             if (MonthPass.LanternMonth(s.LanternColor) >= 0 && !MonthPass.OwnsLantern(s, MonthPass.LanternMonth(s.LanternColor))) s.LanternColor = 0;
+            if (Fairs.LanternFair(s.LanternColor) >= 0 && !Fairs.OwnsLantern(s, Fairs.LanternFair(s.LanternColor))) s.LanternColor = 0;
 
             if (root.TryGetValue("ads", out object adsObj) && adsObj is Dictionary<string, object> ads)
             {

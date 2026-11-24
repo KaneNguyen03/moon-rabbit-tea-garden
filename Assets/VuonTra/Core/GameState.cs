@@ -147,6 +147,7 @@ namespace VuonTra.Core
         public NewcomerRecord Newcomer = new NewcomerRecord();
         public ReviewRecord Review = new ReviewRecord();
         public WelcomeBackRecord WelcomeBack = new WelcomeBackRecord();
+        public FairRecord Fair = new FairRecord();
         public TrunkRecord Trunk = new TrunkRecord();
 
         public bool IntrosKnown;

@@ -4635,203 +4635,371 @@ MonoBehaviour:
     m_Localized: "First try: +{0} \xB7 +{1} clover"
     m_Metadata:
       m_Items: []
-  - m_Id: 950783519481856
+  - m_Id: 934052923170816
+    m_Localized: Plum Blossom Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725248
+    m_Localized: Kite Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725249
+    m_Localized: Lotus Tea Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725250
+    m_Localized: Firefly Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725251
+    m_Localized: Summer Rain Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725252
+    m_Localized: Paper Lantern Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725253
+    m_Localized: Green Rice Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725254
+    m_Localized: Chrysanthemum Fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725255
+    m_Localized: Plum blossoms
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725256
+    m_Localized: Kite tails
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725257
+    m_Localized: Lotus flowers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725258
+    m_Localized: Glimmers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725259
+    m_Localized: Raindrops
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725260
+    m_Localized: Candles
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725261
+    m_Localized: Rice flakes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725262
+    m_Localized: Petals
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725263
+    m_Localized: "Little fair \xB7 day {1}/{2} \xB7 {0} days left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725264
+    m_Localized: "Weekend: {0} drop \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725265
+    m_Localized: "Saturdays and Sundays: {0} drop \xD7{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725266
+    m_Localized: '{1}: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725267
+    m_Localized: "Earn {0}: guest orders +{1} \xB7 mini games +{2}/{3}/{4} by stars \xB7 fish +{5}\u2013{6} \xB7 photo asks +{7}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725268
+    m_Localized: 'When the fair ends, leftover {0} turn into carrots: each is {1} seconds of income'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725269
+    m_Localized: Fair stall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725270
+    m_Localized: Moon jar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725271
+    m_Localized: Clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725272
+    m_Localized: 5 golden carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725273
+    m_Localized: Fair lantern colour
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725274
+    m_Localized: Fair photo frame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725275
+    m_Localized: '{0}/{1} left'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725276
+    m_Localized: Owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725277
+    m_Localized: Hang again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725278
+    m_Localized: Use again
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725279
+    m_Localized: Sold out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725280
+    m_Localized: Got {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725281
+    m_Localized: The lanterns now glow for the {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725282
+    m_Localized: The {0} frame is on
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725283
+    m_Localized: '{0} more {1} needed'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725284
+    m_Localized: +{0} {1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725285
+    m_Localized: The {0} is open!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725286
+    m_Localized: Ten days to gather {0} from guest orders, mini games, fishing and photo asks, and trade them at the fair stall
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052956725287
+    m_Localized: 'The {0} is over: leftover {1} became carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 934052977696768
+    m_Localized: "Little fair \xB7 day {1}/{2} \xB7 {0} day left"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 968958084636672
     m_Localized: Lotus Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647680
+  - m_Id: 968958101413888
     m_Localized: Full Moon Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647681
+  - m_Id: 968958101413889
     m_Localized: Roasted Tea Leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647682
+  - m_Id: 968958101413890
     m_Localized: Silver Tea Buds
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647683
+  - m_Id: 968958101413891
     m_Localized: Mulberry Jam
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647684
+  - m_Id: 968958101413892
     m_Localized: Rose Berry Jam
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647685
+  - m_Id: 968958101413893
     m_Localized: Chrysanthemum Powder
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647686
+  - m_Id: 968958101413894
     m_Localized: Jasmine Powder
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647687
+  - m_Id: 968958101413895
     m_Localized: Honey Chestnut Bun
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647688
+  - m_Id: 968958101413896
     m_Localized: Charcoal Chestnut Cake
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647689
+  - m_Id: 968958101413897
     m_Localized: Longan Blossom Honey
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647690
+  - m_Id: 968958101413898
     m_Localized: Golden Honeycomb
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647691
+  - m_Id: 968958101413899
     m_Localized: Taro Milk Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647692
+  - m_Id: 968958101413900
     m_Localized: Cloud Milk Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647693
+  - m_Id: 968958101413901
     m_Localized: Sparkling Star Water
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647694
+  - m_Id: 968958101413902
     m_Localized: Silver Star Nectar
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647695
+  - m_Id: 968958101413903
     m_Localized: Moon Raisins
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647696
+  - m_Id: 968958101413904
     m_Localized: Silver Grape Juice
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647697
+  - m_Id: 968958101413905
     m_Localized: Snow Skin Mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647698
+  - m_Id: 968958101413906
     m_Localized: Five Nut Mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647699
+  - m_Id: 968958101413907
     m_Localized: Mint Spring Water
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647700
+  - m_Id: 968958101413908
     m_Localized: Peach Blossom Water
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647701
+  - m_Id: 968958101413909
     m_Localized: Shooting Star Candy
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647702
+  - m_Id: 968958101413910
     m_Localized: Milky Way Cake
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647703
+  - m_Id: 968958101413911
     m_Localized: Lotus Seed Soup
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647704
+  - m_Id: 968958101413912
     m_Localized: Lotus Heart Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647705
+  - m_Id: 968958101413913
     m_Localized: Peanut Brittle
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647706
+  - m_Id: 968958101413914
     m_Localized: Ginger Candy
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647707
+  - m_Id: 968958101413915
     m_Localized: Purple Sticky Rice
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647708
+  - m_Id: 968958101413916
     m_Localized: Sticky Rice Cake
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647709
+  - m_Id: 968958101413917
     m_Localized: Night Cactus Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647710
+  - m_Id: 968958101413918
     m_Localized: Moonlight Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647711
+  - m_Id: 968958101413919
     m_Localized: New dish!
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647712
+  - m_Id: 968958101413920
     m_Localized: '{0} now sells this dish'
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647713
+  - m_Id: 968958101413921
     m_Localized: "Each new dish: station income \xD71.25 \xB7 improve it with leaves"
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647714
+  - m_Id: 968958101413922
     m_Localized: +{0} more new dishes in the book
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647715
+  - m_Id: 968958101413923
     m_Localized: Lovely!
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647716
+  - m_Id: 968958101413924
     m_Localized: Open book
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647717
+  - m_Id: 968958101413925
     m_Localized: Recipe book
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647718
+  - m_Id: 968958101413926
     m_Localized: 'Three dishes a station: the second at level {0}, the third at {1}'
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647719
+  - m_Id: 968958101413927
     m_Localized: Open
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647720
+  - m_Id: 968958101413928
     m_Localized: "Recipe leaves: {0} \xB7 a station sells its highest dish"
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647721
+  - m_Id: 968958101413929
     m_Localized: "On sale \xB7 level {0}"
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647722
+  - m_Id: 968958101413930
     m_Localized: Level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647723
+  - m_Id: 968958101413931
     m_Localized: Not yet open
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647724
+  - m_Id: 968958101413932
     m_Localized: Opens at station level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647725
+  - m_Id: 968958101413933
     m_Localized: "Improve \xB7 {0}"
     m_Metadata:
       m_Items: []
-  - m_Id: 950783544647726
+  - m_Id: 968958101413934
     m_Localized: Top level
     m_Metadata:
       m_Items: []
-  - m_Id: 950783561424896
+  - m_Id: 968958109802496
     m_Localized: +{0} more new dish in the book
     m_Metadata:
       m_Items: []
-  - m_Id: 950783561424897
+  - m_Id: 968958109802497
     m_Localized: "Recipe leaf: {0} \xB7 a station sells its highest dish"
     m_Metadata:
       m_Items: []

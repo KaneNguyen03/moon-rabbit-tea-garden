@@ -95,6 +95,7 @@ namespace VuonTra.Game.UI
             _tier = tier;
             _isNew = isNew;
             _rabbitImage.sprite = art;
+            _fur = Color.white;
             _name.text = name;
             _kind.text = kindLine;
             _plate.color = tier;
@@ -121,10 +122,17 @@ namespace VuonTra.Game.UI
             _root.SetActive(false);
         }
 
-        public void SetSeasonDecor(Sprite decor)
+        Color _fur = Color.white;
+
+        public void Dye(Color fur) => _fur = fur;
+
+        public void SetSeasonDecor(Sprite decor) => SetSeasonDecor(decor, Color.white);
+
+        public void SetSeasonDecor(Sprite decor, Color tint)
         {
             bool show = decor != null;
             if (show) _gateDecorImage.sprite = decor;
+            _gateDecorImage.color = tint;
             if (_gateDecor.gameObject.activeSelf != show) _gateDecor.gameObject.SetActive(show);
             _gateDecor.localRotation = Quaternion.identity;
         }
@@ -168,7 +176,7 @@ namespace VuonTra.Game.UI
             _rabbit.localScale = Vector3.one * Mathf.Lerp(0.42f, 1f, step);
 
             float reveal = Span(_t, StepEnd, Length);
-            _rabbitImage.color = Color.Lerp(new Color(0.05f, 0.03f, 0.1f, 0.95f), Color.white, Ease.OutCubic(reveal));
+            _rabbitImage.color = Color.Lerp(new Color(0.05f, 0.03f, 0.1f, 0.95f), _fur, Ease.OutCubic(reveal));
             _textGroup.alpha = reveal;
             _texts.anchoredPosition = new Vector2(0, -290f - 30f * (1f - Ease.OutCubic(reveal)));
 

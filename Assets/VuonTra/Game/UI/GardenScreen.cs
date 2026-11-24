@@ -177,7 +177,7 @@ namespace VuonTra.Game.UI
         /// <summary>The tint a paper lantern's picture takes for a lantern colour: none for paper, a wash of the colour for the rest.</summary>
         public static Color LanternTint(int color)
         {
-            if (color <= 0 || color >= Decor.LanternColors.Length + MonthPass.Months) return Color.white;
+            if (color <= 0 || color >= Fairs.LanternIndex(Fairs.All.Count)) return Color.white;
             return Palette.Mix(Color.white, Palette.Hex(MonthPass.LanternHex(color)), 0.7f);
         }
         RectTransform _pondGlow;
@@ -1245,6 +1245,7 @@ namespace VuonTra.Game.UI
             BuildMail(catalog);
             FirstWeek = new NewcomerView(_canvas, _hud, Runner, Tweens, OnClaimNewcomer);
             BuildWelcomeBack();
+            BuildFair();
             BuildTrunk();
             BuildRecipeBook(catalog);
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
@@ -2037,7 +2038,8 @@ namespace VuonTra.Game.UI
             {
                 _frameName.text = string.IsNullOrEmpty(Runner.State.Profile.GardenName) ? L10n.T("profile.unnamed") : Runner.State.Profile.GardenName;
                 int month = Runner.State.PhotoFrame;
-                Color paper = month >= 0 && month < MonthPass.Months ? Palette.Hex(MonthPass.FrameColors[month]) : Palette.Paper;
+                string frameHex = Fairs.FrameHex(month);
+                Color paper = frameHex != null ? Palette.Hex(frameHex) : Palette.Paper;
                 foreach (Image side in _framePaper) side.color = paper;
                 _frameDate.text = System.DateTime.Now.ToString("dd/MM/yyyy") + (Runner.State.Season > 0 ? " · " + L10n.T("hud.season", Runner.State.Season) : "");
             }
@@ -4038,6 +4040,7 @@ namespace VuonTra.Game.UI
             UpgradeAll.Refresh(defs, s);
             Shop.Refresh(s);
             RefreshWelcomeBack();
+            RefreshFair();
             RefreshTrunk();
             RefreshOffers();
             RefreshRecipeBook(s);
@@ -4859,7 +4862,7 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || TrunkCard.IsOpen || IntroShowing
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen || TrunkCard.IsOpen || IntroShowing
             || NewDishCard.IsOpen || Book.IsOpen;
 
         void AskForReview()
@@ -4914,9 +4917,10 @@ namespace VuonTra.Game.UI
 
         void Welcome(Rabbit rabbit)
         {
-            Arrival.SetSeasonDecor(Runner.Catalog.GateDecor(Runner.SeasonNow));
+            DecorateGate();
             Arrival.Show(Runner.Catalog.RabbitArt(rabbit), rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Rarity(rabbit.Tier)),
                 Palette.Tiers[rabbit.Tier], rabbit.FirstOfKind, L10n.T("summon.new"), L10n.T("summon.hint"), rabbit.Tier == 0);
+            Arrival.Dye(RabbitGridView.Fur(rabbit));
         }
 
         void OnLevelUp(long rabbitId)
