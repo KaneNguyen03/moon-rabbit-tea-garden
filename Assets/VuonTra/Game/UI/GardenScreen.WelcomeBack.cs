@@ -29,10 +29,9 @@ namespace VuonTra.Game.UI
                 Sfx.Deny();
                 return;
             }
-            Sfx.Reward();
-            Haptics.Light();
             WelcomeCard.ShowClaimed(L10n.T("mail.claimed", WelcomeBackView.DayGiftOf(gift.Day)));
             Refresh(-1f);
+            Rewarded(Feel.PointOf(WelcomeCard.Card), new Haul { Jars = gift.Jars, Clovers = gift.Clovers, Golden = gift.Golden }, Fanfare.Gift);
             if (gift.Rabbit == null) return;
             WelcomeCard.Close();
             Sfx.Summon(gift.Rabbit.Tier);

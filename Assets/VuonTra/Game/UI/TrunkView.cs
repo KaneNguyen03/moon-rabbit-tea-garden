@@ -45,6 +45,7 @@ namespace VuonTra.Game.UI
         public bool OldShown(int slot) => _tiles[slot].Old.activeSelf;
         public bool SaleShown(int slot) => _tiles[slot].Sale.activeSelf;
         public bool TileShown(int slot) => _tiles[slot].Root.gameObject.activeSelf;
+        public RectTransform TileOf(int slot) => _tiles[slot].Root;
 
         public TrunkView(RectTransform canvas, GameRunner runner, Tweens tweens, Action<int> onBuy)
         {

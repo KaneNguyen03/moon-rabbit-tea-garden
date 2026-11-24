@@ -5103,6 +5103,10 @@ MonoBehaviour:
     m_Key: recipes.book.leaves.one
     m_Metadata:
       m_Items: []
+  - m_Id: 1093024263168000
+    m_Key: tank.float
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

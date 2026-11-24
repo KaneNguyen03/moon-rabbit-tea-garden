@@ -5135,6 +5135,10 @@ MonoBehaviour:
     m_Localized: "Recipe leaf: {0} \xB7 a station sells its highest dish"
     m_Metadata:
       m_Items: []
+  - m_Id: 1093024263168000
+    m_Localized: +{0}% income
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

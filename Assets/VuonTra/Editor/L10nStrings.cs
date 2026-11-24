@@ -1168,6 +1168,7 @@ namespace VuonTra.EditorTools
             { "tank.basket", "Bể: {0}/{1} loài · +{2}%", "Tank: {0}/{1} kinds · +{2}%" },
             { "tank.released", "{0} vào bể · {1} con", "{0} into the tank · {1} in all" },
             { "tank.milestone", "Mốc mới! +{0}% thu nhập vườn", "New milestone! +{0}% garden income" },
+            { "tank.float", "+{0}% thu nhập", "+{0}% income" },
             { "tank.full.title", "Bể cá đủ bộ", "The fish tank is complete" },
             { "tank.full.sub", "Đủ {0} loài cá trong bể", "All {0} fish kinds are in the tank" },
             { "tank.full.gifts", "Quà đủ bộ · đã vào túi", "Full-set gift · already yours" },

@@ -673,6 +673,7 @@ namespace VuonTra.EditorTools
             RenderWelcomeBack(runner, screen);
             RenderFair(runner, screen);
             RenderTrunk(runner, screen);
+            RenderJuice(runner, screen);
             RenderIntros(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
@@ -1486,6 +1487,120 @@ namespace VuonTra.EditorTools
             screen.ClockHours = () => 22.0;
             Directory.CreateDirectory(Folder);
             RenderMapEdges(runner, screen);
+        }
+
+        [MenuItem("VuonTra/Render Juice")]
+        public static void RenderJuiceOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderJuice(runner, screen);
+        }
+
+        static GameState JuiceGarden(GameRunner runner, long day)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 40, 22, 14, 8 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 8;
+            s.GardenXp = Garden.XpForLevel(12);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Newcomer.Closed = true;
+            s.Coins = new BigNum(2.4e6);
+            s.GoldenCarrots = 40;
+            s.Profile.Code = "VT-116PREV";
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.4).Id, 1);
+            s.FreshKinds.Clear();
+            s.FirstDaySeen = day - 20;
+            s.MaxDaySeen = day;
+            s.WelcomeBack.SeenDay = day;
+            s.MailDay = day;
+            s.GiftDay = day;
+            s.IntrosSeen.UnionWith(Intros.All);
+            s.IntrosTried.UnionWith(Intros.All);
+            return s;
+        }
+
+        static void JuiceFrames(GardenScreen screen, string name, string press, float settle)
+        {
+            Capture(screen, name + "-1-truoc");
+            Press(screen, press);
+            Step(screen, 0.2f);
+            Capture(screen, name + "-2-dang-bay");
+            Step(screen, settle);
+            Capture(screen, name + "-3-sau");
+        }
+
+        static void RenderJuice(GameRunner runner, GardenScreen screen)
+        {
+            System.Func<long> clock = runner.DayClock;
+            System.Func<long> fishing = runner.FishingClock;
+            long day = GiftCodes.Day(2026, 12, 12);
+            runner.DayClock = () => day;
+            const long now = 1_800_000_000L;
+            runner.FishingClock = () => now;
+            screen.Raining = () => false;
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(locale);
+                string name = "116-" + locale + "-";
+
+                GameState s = JuiceGarden(runner, day);
+                runner.Init(s);
+                s.WeekIndex = QuestChests.WeekOf(day);
+                s.WeekPoints = 150;
+                s.WeekChestsClaimed = 0;
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                screen.SelectStation(-1);
+                screen.OpenSheet(2);
+                screen.Refresh();
+                Step(screen, 1.5f);
+                JuiceFrames(screen, name + "ruong-tuan", "Canvas/Sheet/Panel/Quests/Content/QuestWeekRow/Track/Chest 0", 1.4f);
+                screen.Prizes.Close();
+                screen.CloseSheet();
+
+                s = JuiceGarden(runner, day);
+                runner.Init(s);
+                s.WeekIndex = QuestChests.WeekOf(day);
+                s.PassMonth = MonthPass.MonthOf(day);
+                s.PassPoints = 2 * MonthPass.PointsPerTier;
+                ShowMonthPass(screen);
+                JuiceFrames(screen, name + "nac-ve-thang", "Canvas/Sheet/Panel/Quests/Content/MonthPassRow/Free/Tier 2", 1.4f);
+                screen.Prizes.Close();
+                screen.CloseSheet();
+
+                s = JuiceGarden(runner, day);
+                s.Fish[0] = 6; s.Fish[2] = 2;
+                s.Baits = 4;
+                s.BaitAt = now - 300;
+                runner.Init(s);
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                Step(screen, 0.4f);
+                screen.OpenFishing();
+                Step(screen, 0.6f);
+                Press(screen, "Canvas/Pond/Card/Basket/Fish 2");
+                Step(screen, 0.3f);
+                JuiceFrames(screen, name + "tha-ca", "Canvas/Pond/Card/Release", 1.2f);
+                screen.FishingCard.Close();
+                Step(screen, 0.5f);
+            }
+            runner.DayClock = clock;
+            runner.FishingClock = fishing;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
         }
 
         [MenuItem("VuonTra/Render Quest Chests")]

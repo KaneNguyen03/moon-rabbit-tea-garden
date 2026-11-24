@@ -4818,6 +4818,10 @@ MonoBehaviour:
     m_Localized: "B\u1EC3 c\xE1 ({0}/{1} lo\xE0i) +{2}%"
     m_Metadata:
       m_Items: []
+  - m_Id: 1093024263168000
+    m_Localized: "+{0}% thu nh\u1EADp"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
