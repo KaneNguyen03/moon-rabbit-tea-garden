@@ -4363,83 +4363,355 @@ MonoBehaviour:
     m_Localized: The lanterns have a new colour
     m_Metadata:
       m_Items: []
-  - m_Id: 905693140869120
-    m_Localized: Fish tank
+  - m_Id: 900689285865472
+    m_Localized: '{0} tiers reached in all'
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840640
-    m_Localized: "{0}/{1} kinds \xB7 +{2}% garden income (up to +{3}%)"
+  - m_Id: 900689298448384
+    m_Localized: "{0} \xB7 tier {1}/{2}"
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840641
-    m_Localized: "Next: {0} fish \xB7 +{1}%"
+  - m_Id: 900689298448385
+    m_Localized: Complete
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840642
-    m_Localized: Every milestone
+  - m_Id: 900689298448386
+    m_Localized: Taps
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840643
-    m_Localized: None released yet
+  - m_Id: 900689298448387
+    m_Localized: '{0}/{1} taps'
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840644
+  - m_Id: 900689298448388
+    m_Localized: Upgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448389
+    m_Localized: '{0}/{1} levels'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448390
+    m_Localized: Carrots earned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448391
+    m_Localized: '{0}/{1} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448392
+    m_Localized: Guest orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448393
+    m_Localized: '{0}/{1} orders'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448394
+    m_Localized: Fishing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448395
+    m_Localized: '{0}/{1} fish'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448396
+    m_Localized: Photos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448397
+    m_Localized: '{0}/{1} photos'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448398
+    m_Localized: Games played
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448399
+    m_Localized: '{0}/{1} rounds'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448400
+    m_Localized: Kinds met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448401
+    m_Localized: '{0}/{1} kinds'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448402
+    m_Localized: Rabbits at level cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448403
+    m_Localized: '{0}/{1} rabbits'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448404
+    m_Localized: Full hearts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448405
+    m_Localized: '{0}/{1} rabbits'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448406
+    m_Localized: Garden level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448407
+    m_Localized: level {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448408
+    m_Localized: New moons
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448409
+    m_Localized: '{0}/{1} moons'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836992
+    m_Localized: '{0} tier reached in all'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836993
+    m_Localized: '{0}/{1} photo'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836994
+    m_Localized: '{0}/{1} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836995
+    m_Localized: '{0}/{1} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836996
+    m_Localized: '{0}/{1} moon'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305586290688
     m_Localized: New
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840645
+  - m_Id: 914305607262208
+    m_Localized: Try it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262209
+    m_Localized: Later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262210
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clovers'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262211
+    m_Localized: "First try: +{0} \xB7 +{1} clovers"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262212
+    m_Localized: Unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262213
+    m_Localized: '{0}/{1} cards'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262214
+    m_Localized: Unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262215
+    m_Localized: No cards yet. Keep playing to open more!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262216
+    m_Localized: Fishing at the moon pond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262217
+    m_Localized: 'Tap the moon pond, cast, and tap the water when the float sinks.
+
+      Feed the fish to your rabbits for hearts.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262218
+    m_Localized: Pound the mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262219
+    m_Localized: 'Tap the mortar by the teapot, then tap when the ring meets the cake.
+
+      A few rounds a day; good timing earns stars.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262220
+    m_Localized: Catch the tea leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262221
+    m_Localized: 'Tap the basket under the tea tree, drag it under the leaves, dodge the pine cones.
+
+      A few rounds a day; more leaves, more reward.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262222
+    m_Localized: Firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262223
+    m_Localized: 'Tap the glass jar by the pond, then tap the fireflies crossing the garden.
+
+      A few rounds a day; catch more for more.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262224
+    m_Localized: Guests and tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262225
+    m_Localized: 'Guests wait at the shop counter; the bubble shows what they want.
+
+      With the products on your tray, tap the guest to serve for carrots.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262226
+    m_Localized: The shop and the daily gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262227
+    m_Localized: 'Tap the shop by the pond for a gift each day; come back day after day for bigger ones.
+
+      Inside are hats, decorations and today''s visitor.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262228
+    m_Localized: Moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262229
+    m_Localized: 'Each moon jar holds an hour of income, open it any time.
+
+      Buy jars on the shop''s shelf; open them from the carrot purse.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262230
+    m_Localized: Arrange the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262231
+    m_Localized: 'Tap Arrange in the bottom corner and hold to pick a station up.
+
+      Drop it on an empty tile, on something to swap, or in storage.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262232
+    m_Localized: Rain and the Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262233
+    m_Localized: 'Now and then it rains and the Frog Rabbit visits the moon pond.
+
+      Tap it before it leaves for a rainy-day gift.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262234
+    m_Localized: A new moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262235
+    m_Localized: 'Open it from the settings button: the garden goes back to its first four plots; rabbits and items stay.
+
+      After each one, income grows for good.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428032
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428033
+    m_Localized: "First try: +{0} \xB7 +{1} clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 951086377590784
+    m_Localized: Fish tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 951086419533824
+    m_Localized: "{0}/{1} kinds \xB7 +{2}% garden income (up to +{3}%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 951086419533825
+    m_Localized: "Next: {0} fish \xB7 +{1}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 951086419533826
+    m_Localized: Every milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 951086419533827
+    m_Localized: None released yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 951086419533828
+    m_Localized: New
+    m_Metadata:
+      m_Items: []
+  - m_Id: 951086419533829
     m_Localized: 'Each kind, at {0} fish: +{1}% garden income for good'
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840646
+  - m_Id: 951086419533830
     m_Localized: Released fish stay in the tank for good
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840647
+  - m_Id: 951086419533831
     m_Localized: 'All {0} kinds: +{1} golden carrots, +{2} moon jar'
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840648
+  - m_Id: 951086419533832
     m_Localized: All {0} kinds in, full-set gift claimed
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840649
+  - m_Id: 951086419533833
     m_Localized: Release to tank
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840650
+  - m_Id: 951086419533834
     m_Localized: Basket empty
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840651
+  - m_Id: 951086419533835
     m_Localized: "Tank: {0}/{1} kinds \xB7 +{2}%"
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840652
+  - m_Id: 951086419533836
     m_Localized: "{0} into the tank \xB7 {1} in all"
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840653
+  - m_Id: 951086419533837
     m_Localized: New milestone! +{0}% garden income
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840654
+  - m_Id: 951086419533838
     m_Localized: The fish tank is complete
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840655
+  - m_Id: 951086419533839
     m_Localized: All {0} fish kinds are in the tank
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840656
+  - m_Id: 951086419533840
     m_Localized: "Full-set gift \xB7 already yours"
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840657
+  - m_Id: 951086419533841
     m_Localized: Lovely!
     m_Metadata:
       m_Items: []
-  - m_Id: 905693161840658
+  - m_Id: 951086419533842
     m_Localized: Fish tank ({0}/{1} kinds) +{2}%
     m_Metadata:
       m_Items: []

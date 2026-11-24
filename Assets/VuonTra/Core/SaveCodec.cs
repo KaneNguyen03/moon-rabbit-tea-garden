@@ -465,8 +465,36 @@ namespace VuonTra.Core
             sb.Append(",\"set\":").Append(s.Aquarium != null && s.Aquarium.SetGiven ? "true" : "false");
             sb.Append(",\"setJars\":").Append((s.Aquarium != null ? s.Aquarium.SetJarsGiven : 0).ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"cardSeen\":").Append(s.Aquarium == null || s.Aquarium.CardSeen ? "true" : "false");
+            sb.Append('}');
+            sb.Append(",\"intros\":{\"seen\":");
+            WriteIntroIds(sb, s.IntrosSeen);
+            sb.Append(",\"tried\":");
+            WriteIntroIds(sb, s.IntrosTried);
+            sb.Append(",\"later\":");
+            WriteIntroIds(sb, s.IntrosLater);
             sb.Append("}}");
             return sb.ToString();
+        }
+
+        static void WriteIntroIds(StringBuilder sb, HashSet<string> ids)
+        {
+            sb.Append('[');
+            bool first = true;
+            foreach (string id in Intros.All)
+            {
+                if (!ids.Contains(id)) continue;
+                if (!first) sb.Append(',');
+                first = false;
+                WriteString(sb, id);
+            }
+            sb.Append(']');
+        }
+
+        static void ReadIntroIds(Dictionary<string, object> block, string key, HashSet<string> into)
+        {
+            if (!(block.TryGetValue(key, out object listObj) && listObj is List<object> list)) return;
+            foreach (object item in list)
+                if (item is string id && Intros.Known(id)) into.Add(id);
         }
 
         public static LoadResult Decode(IReadOnlyList<StationDef> defs, string json, IReadOnlyList<UpgradeDef> upgrades = null)
@@ -1027,6 +1055,18 @@ namespace VuonTra.Core
                 s.Newcomer.Closed = newcomer.TryGetValue("closed", out object closedObj) && closedObj is bool closed && closed;
             }
             else s.Newcomer.Closed = Seasons.DaysPlayed(s) >= Newcomer.Days;
+
+            if (root.TryGetValue("intros", out object introsObj) && introsObj is Dictionary<string, object> intros)
+            {
+                s.IntrosKnown = true;
+                ReadIntroIds(intros, "seen", s.IntrosSeen);
+                ReadIntroIds(intros, "tried", s.IntrosTried);
+                ReadIntroIds(intros, "later", s.IntrosLater);
+                s.IntrosSeen.UnionWith(s.IntrosTried);
+                s.IntrosLater.IntersectWith(s.IntrosSeen);
+                s.IntrosLater.ExceptWith(s.IntrosTried);
+            }
+            else Intros.Settle(s);
 
             result.Status = LoadStatus.Ok;
             return result;

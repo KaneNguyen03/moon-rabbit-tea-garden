@@ -38,6 +38,8 @@ namespace VuonTra.Core.Tests
             s.TutorialStep = Tutorial.Steps;
             s.Newcomer.Closed = true;
             runner.Init(s);
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             runner.FishingClock = () => now;
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;

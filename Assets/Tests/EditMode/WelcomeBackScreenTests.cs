@@ -64,6 +64,8 @@ namespace VuonTra.Core.Tests
             s.Newcomer.Closed = !newcomer;
             if (newcomer) s.FirstDaySeen = s.MaxDaySeen - 1;
             runner.Init(s);
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();

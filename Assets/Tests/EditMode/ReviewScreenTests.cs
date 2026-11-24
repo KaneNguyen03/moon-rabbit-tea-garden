@@ -44,6 +44,8 @@ namespace VuonTra.Core.Tests
             s.FirstDaySeen = s.MaxDaySeen = Today - ReviewAsk.MinDaysPlayed;
             s.PlaySeconds = ReviewAsk.MinPlaySeconds;
             runner.Init(s);
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             prompt = new FakeReviewPrompt();
             runner.ReviewPrompt = prompt;
             screen = root.AddComponent<GardenScreen>();
