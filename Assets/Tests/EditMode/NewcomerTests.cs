@@ -315,6 +315,19 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(3, letter.Clovers);
             Assert.AreEqual(2, letter.Jars);
             Assert.AreEqual(1, letter.Purple);
+
+            Assert.IsTrue(Mailbox.AddChest(s, 2, 9, FirstDay));
+            Assert.IsTrue(Mailbox.Compensate(s, FirstDay));
+            GameState mixed = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(s.Letters.Count, mixed.Letters.Count, "letters of every kind load side by side");
+            Letter chest = mixed.Letters.Find(l => l.Kind == LetterKind.WeekChest);
+            Assert.AreEqual(2, chest.Chest);
+            Assert.AreEqual(0, chest.Purple);
+            Assert.AreEqual(QuestChests.Chests[2].RabbitTier, chest.RabbitTier);
+            Letter gift = mixed.Letters.Find(l => l.Kind == LetterKind.Newcomer);
+            Assert.AreEqual(QuestChests.NoRabbit, gift.RabbitTier);
+            Assert.AreEqual(Mailbox.KeepDays, gift.KeepDays);
+            Assert.AreEqual(7, gift.Golden);
         }
 
         [Test]

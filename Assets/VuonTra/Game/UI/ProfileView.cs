@@ -33,7 +33,7 @@ namespace VuonTra.Game.UI
 
         public ProfileView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Action onNextAvatar, Action onRename, Action onLink,
             Action onPushCloud = null, Action onRestoreCloud = null, Action onRestoreLocal = null, Action onDeleteData = null,
-            Func<string, GiftCodes.Result> onRedeem = null)
+            Func<string, GiftCodes.Result> onRedeem = null, Action onRate = null)
         {
             _onRedeem = onRedeem;
             _catalog = catalog;
@@ -172,6 +172,14 @@ namespace VuonTra.Game.UI
 
             UiKit.Rect("PrivacyTitle", _card).Place(0.5f, 1f, 0, -1420, 740, 44)
                 .AddText(L10n.T("privacy.title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var rate = UiKit.Rect("Rate", _card).Place(0.5f, 1f, 240, -1420, 260, UiKit.MinTouch);
+            Image rateHit = rate.AddImage(null, new Color(0, 0, 0, 0));
+            rateHit.raycastTarget = true;
+            var rateButton = rate.gameObject.AddComponent<Button>();
+            rateButton.transition = Selectable.Transition.None;
+            rateButton.onClick.AddListener(() => { Sfx.Click(); onRate?.Invoke(); });
+            UiKit.Rect("Text", rate).Stretch(0, 0, 1, 1).AddText(L10n.T("review.rate"), UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleRight, FontStyle.Bold)
+                .FitOneLine(260, 14);
             var privacy = UiKit.Rect("Privacy", _card).Place(0.5f, 1f, 0, -1472, 740, UiKit.MinTouch);
             Image privacyHit = privacy.AddImage(null, new Color(0, 0, 0, 0));
             privacyHit.raycastTarget = true;

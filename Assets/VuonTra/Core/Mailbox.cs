@@ -7,6 +7,7 @@ namespace VuonTra.Core
     {
         MakeUp,
         Season,
+        WeekChest,
         Newcomer
     }
 
@@ -16,12 +17,17 @@ namespace VuonTra.Core
         public LetterKind Kind;
         public Season Season;
         public long Day;
+        public int Chest;
         public int GiftGolden, GiftClovers, GiftJars, GiftPurple;
 
-        public int Golden => Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.Season ? Mailbox.SeasonGolden : GiftGolden;
-        public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
-        public int Jars => Kind == LetterKind.Newcomer ? GiftJars : 0;
+        WeekChest ChestDef => Kind == LetterKind.WeekChest ? QuestChests.Chests[Chest] : null;
+
+        public int Golden => Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.Season ? Mailbox.SeasonGolden : Kind == LetterKind.WeekChest ? ChestDef.Golden : GiftGolden;
+        public int Clovers => Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.WeekChest ? ChestDef.Clovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
+        public int Jars => Kind == LetterKind.WeekChest ? ChestDef.Jars : Kind == LetterKind.Newcomer ? GiftJars : 0;
         public int Purple => Kind == LetterKind.Newcomer ? GiftPurple : 0;
+        public int RabbitTier => Kind == LetterKind.WeekChest ? ChestDef.RabbitTier : QuestChests.NoRabbit;
+        public int KeepDays => Kind == LetterKind.WeekChest ? QuestChests.ChestKeepDays : Mailbox.KeepDays;
     }
 
     public static class Mailbox
@@ -32,9 +38,9 @@ namespace VuonTra.Core
         public const int MakeUpGolden = 10, MakeUpClovers = 3;
         public const int SeasonGolden = 5;
 
-        public static bool Expired(Letter letter, long day) => day > letter.Day + KeepDays;
+        public static bool Expired(Letter letter, long day) => day > letter.Day + letter.KeepDays;
 
-        public static int DaysLeft(Letter letter, long day) => (int)Math.Max(0L, letter.Day + KeepDays - day);
+        public static int DaysLeft(Letter letter, long day) => (int)Math.Max(0L, letter.Day + letter.KeepDays - day);
 
         public static IReadOnlyList<Letter> Open(GameState s, long day)
         {
@@ -54,6 +60,10 @@ namespace VuonTra.Core
 
         public static bool Compensate(GameState s, long day)
             => Add(s, new Letter { Id = "makeup-" + day, Kind = LetterKind.MakeUp, Day = day });
+
+        public static bool AddChest(GameState s, int chest, long week, long day)
+            => chest >= 0 && chest < QuestChests.Chests.Length
+               && Add(s, new Letter { Id = "chest-" + week + "-" + chest, Kind = LetterKind.WeekChest, Chest = chest, Day = day });
 
         public static int Check(GameState s, long today)
         {
@@ -87,17 +97,22 @@ namespace VuonTra.Core
 
         public static Letter Claim(GameState s, string id, long day) => Claim(s, id, day, null, 0d, out _);
 
-        public static Letter Claim(GameState s, string id, long day, string name, double roll, out Rabbit arrived)
+        public static Letter Claim(GameState s, string id, long day, string name, double kindRoll, out Rabbit rabbit)
         {
-            arrived = null;
+            rabbit = null;
             Open(s, day);
             Letter letter = s.Letters.Find(l => l.Id == id);
             if (letter == null) return null;
             s.Letters.Remove(letter);
+            if (letter.Kind == LetterKind.WeekChest)
+            {
+                rabbit = QuestChests.Grant(s, QuestChests.Chests[letter.Chest], name, kindRoll);
+                return letter;
+            }
             s.GoldenCarrots += letter.Golden;
             s.Clovers += letter.Clovers;
             s.MoonJars = Math.Min(MoonJars.Cap, s.MoonJars + letter.Jars);
-            for (int i = 0; i < letter.Purple; i++) arrived = Rabbits.ArriveKind(s, Newcomer.PurpleKind(s, roll), name);
+            for (int i = 0; i < letter.Purple; i++) rabbit = Rabbits.ArriveKind(s, Newcomer.PurpleKind(s, kindRoll), name);
             return letter;
         }
     }

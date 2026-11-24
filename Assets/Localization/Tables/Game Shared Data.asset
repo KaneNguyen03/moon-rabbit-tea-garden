@@ -3439,244 +3439,248 @@ MonoBehaviour:
     m_Key: upgradeall.locked
     m_Metadata:
       m_Items: []
-  - m_Id: 831647564947456
-    m_Key: newcomer.pill
+  - m_Id: 799467463761920
+    m_Key: offer.once
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530368
-    m_Key: newcomer.title
+  - m_Id: 799467484733440
+    m_Key: offer.starter.title
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530369
-    m_Key: newcomer.sub
+  - m_Id: 799467484733441
+    m_Key: offer.starter.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530370
-    m_Key: newcomer.day
+  - m_Id: 799467484733442
+    m_Key: offer.milestone.title
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530371
-    m_Key: newcomer.done
+  - m_Id: 799467484733443
+    m_Key: offer.milestone.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530372
-    m_Key: newcomer.opens
+  - m_Id: 799467484733444
+    m_Key: offer.left
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530373
-    m_Key: newcomer.carrots
+  - m_Id: 799467484733445
+    m_Key: offer.shop
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530374
-    m_Key: newcomer.jars
+  - m_Id: 799467484733446
+    m_Key: offer.ended
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530375
-    m_Key: newcomer.purple
+  - m_Id: 799467484733447
+    m_Key: offer.ended.short
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530376
-    m_Key: newcomer.daygift
+  - m_Id: 799467484733448
+    m_Key: offer.golden
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530377
-    m_Key: newcomer.big
+  - m_Id: 799467484733449
+    m_Key: offer.jars
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530378
-    m_Key: newcomer.big.sub
+  - m_Id: 799467484733450
+    m_Key: offer.clovers
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530379
-    m_Key: newcomer.fallback
+  - m_Id: 799467484733451
+    m_Key: offer.hat
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530380
-    m_Key: newcomer.task.teapot-25
+  - m_Id: 799467484733452
+    m_Key: offer.rabbit
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530381
-    m_Key: newcomer.task.stations-4
+  - m_Id: 799467484733453
+    m_Key: offer.buy
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530382
-    m_Key: newcomer.task.call-2
+  - m_Id: 799467484733454
+    m_Key: offer.later
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530383
-    m_Key: newcomer.task.order-1
+  - m_Id: 799467484733455
+    m_Key: offer.paid
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530384
-    m_Key: newcomer.task.fish-3
+  - m_Id: 799467484733456
+    m_Key: offer.pending
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530385
-    m_Key: newcomer.task.pounding-1
+  - m_Id: 799467484733457
+    m_Key: offer.jars.float
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530386
-    m_Key: newcomer.task.feed-1
+  - m_Id: 799467497316352
+    m_Key: offer.jars.float.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530387
-    m_Key: newcomer.task.photo-1
+  - m_Id: 806681230434304
+    m_Key: offer.bought.short
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530388
-    m_Key: newcomer.task.charms-3
+  - m_Id: 826590958182400
+    m_Key: quests.box.title
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530389
-    m_Key: newcomer.task.level-8
+  - m_Id: 826590974959616
+    m_Key: quests.box.hint
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530390
-    m_Key: newcomer.task.trade-1
+  - m_Id: 826590974959617
+    m_Key: quests.box.ready
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530391
-    m_Key: newcomer.task.jar-1
+  - m_Id: 826590974959618
+    m_Key: quests.box.opened
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530392
-    m_Key: newcomer.task.orders-4
+  - m_Id: 826590974959619
+    m_Key: quests.box.locked
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530393
-    m_Key: newcomer.task.pet-3
+  - m_Id: 826590974959620
+    m_Key: quests.box.open.title
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530394
-    m_Key: newcomer.task.leaves-1
+  - m_Id: 826590974959621
+    m_Key: quests.box.open.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530395
-    m_Key: newcomer.task.stations-6
+  - m_Id: 826590974959622
+    m_Key: quests.week.title
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530396
-    m_Key: newcomer.task.layout-1
+  - m_Id: 826590974959623
+    m_Key: quests.week.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530397
-    m_Key: newcomer.task.kinds-12
+  - m_Id: 826590974959624
+    m_Key: quests.chest.title
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530398
-    m_Key: newcomer.task.boost-3
+  - m_Id: 826590974959625
+    m_Key: quests.chest.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530399
-    m_Key: newcomer.task.gift-1
+  - m_Id: 826590974959626
+    m_Key: quests.chest.need
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530400
-    m_Key: newcomer.task.level-12
+  - m_Id: 826590974959627
+    m_Key: quests.chest.claimed
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530401
-    m_Key: newcomer.task.fireflies-1
+  - m_Id: 826590974959628
+    m_Key: quests.prize.ok
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530402
-    m_Key: newcomer.task.merge-or-golden-1
+  - m_Id: 826590974959629
+    m_Key: quests.prize.income
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530403
-    m_Key: newcomer.task.rest-3
+  - m_Id: 826590974959630
+    m_Key: quests.prize.clovers
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530404
-    m_Key: newcomer.task.segment-5
+  - m_Id: 826590974959631
+    m_Key: quests.prize.jars
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530405
-    m_Key: newcomer.task.fish-tier-3
+  - m_Id: 826590974959632
+    m_Key: quests.prize.golden
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530406
-    m_Key: newcomer.task.stations-8
+  - m_Id: 826590974959633
+    m_Key: mail.chest
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530407
-    m_Key: newcomer.task.daily-4
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647577530408
-    m_Key: newcomer.task.levels-30
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647577530409
-    m_Key: mail.newcomer
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647577530410
+  - m_Id: 826590974959634
     m_Key: mail.jars
     m_Metadata:
       m_Items: []
-  - m_Id: 831647577530411
-    m_Key: mail.purple
+  - m_Id: 826590974959635
+    m_Key: mail.rabbit
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918976
-    m_Key: newcomer.opens.one
+  - m_Id: 826590995931136
+    m_Key: quests.box.locked.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918977
-    m_Key: newcomer.jars.one
+  - m_Id: 826590995931137
+    m_Key: quests.week.sub.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918978
-    m_Key: newcomer.task.order-1.one
+  - m_Id: 826590995931138
+    m_Key: quests.chest.need.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918979
-    m_Key: newcomer.task.pounding-1.one
+  - m_Id: 826590995931139
+    m_Key: quests.prize.clovers.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918980
-    m_Key: newcomer.task.feed-1.one
+  - m_Id: 826590995931140
+    m_Key: quests.prize.jars.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918981
-    m_Key: newcomer.task.photo-1.one
+  - m_Id: 826590995931141
+    m_Key: quests.prize.golden.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918982
-    m_Key: newcomer.task.trade-1.one
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647585918983
-    m_Key: newcomer.task.jar-1.one
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647585918984
-    m_Key: newcomer.task.leaves-1.one
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647585918985
-    m_Key: newcomer.task.layout-1.one
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647585918986
-    m_Key: newcomer.task.gift-1.one
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647585918987
-    m_Key: newcomer.task.fireflies-1.one
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647585918988
-    m_Key: newcomer.task.merge-or-golden-1.one
-    m_Metadata:
-      m_Items: []
-  - m_Id: 831647585918989
+  - m_Id: 826590995931142
     m_Key: mail.jars.one
     m_Metadata:
       m_Items: []
-  - m_Id: 831647585918990
-    m_Key: mail.purple.one
+  - m_Id: 837451609268224
+    m_Key: review.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045440
+    m_Key: review.yes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045441
+    m_Key: review.no
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045442
+    m_Key: review.feedback.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045443
+    m_Key: review.feedback.hint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045444
+    m_Key: review.feedback.note
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045445
+    m_Key: review.send
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045446
+    m_Key: review.cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045447
+    m_Key: review.thanks
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045448
+    m_Key: review.rate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045449
+    m_Key: review.mail.subject
+    m_Metadata:
+      m_Items: []
+  - m_Id: 837451626045450
+    m_Key: review.mail.body
     m_Metadata:
       m_Items: []
   m_Metadata:

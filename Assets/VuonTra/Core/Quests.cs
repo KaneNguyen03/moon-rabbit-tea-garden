@@ -230,7 +230,11 @@ namespace VuonTra.Core
             s.Clovers += clovers;
             s.GoldenCarrots += q.RewardGolden;
             s.Claimed.Add(q.Id);
-            if (q.Daily) s.DailyQuestsToday++;
+            if (q.Daily)
+            {
+                s.DailyQuestsToday++;
+                QuestChests.AddPoints(s, s.DailyDay, QuestChests.QuestPoints);
+            }
             Garden.AddXp(s, Garden.XpQuest);
             return true;
         }
@@ -247,6 +251,7 @@ namespace VuonTra.Core
         {
             if (day <= s.DailyDay) return false;
             s.DailyDay = day;
+            QuestChests.Roll(s, day);
             s.DailyTapsBase = s.TotalTaps;
             s.DailyLevelsBase = s.LevelsBought;
             s.DailyEarnedBase = s.TotalEarned;

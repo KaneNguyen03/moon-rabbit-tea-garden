@@ -328,6 +328,7 @@ namespace VuonTra.Game.UI
 
         public void Shake(Tweens tweens)
         {
+            if (Motion.Reduced) return;
             RectTransform face = FaceRect;
             tweens.Add(0.28f, t =>
             {

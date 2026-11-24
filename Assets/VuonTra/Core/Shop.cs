@@ -151,7 +151,7 @@ namespace VuonTra.Core
             public bool Seen;
         }
 
-        static double Roll(long day, string code, int salt)
+        internal static double Roll(long day, string code, int salt)
         {
             ulong h = 1469598103934665603UL;
             unchecked
