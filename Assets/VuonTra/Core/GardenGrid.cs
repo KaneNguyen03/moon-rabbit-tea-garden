@@ -500,6 +500,8 @@ namespace VuonTra.Core
         };
         static readonly HashSet<Hex> ReservedSet = new HashSet<Hex>(ReservedTable);
 
+        public static readonly Hex TankTile = new Hex(0, -2);
+
         public static IReadOnlyList<Hex> ReservedTiles => ReservedTable;
         public static bool IsReserved(Hex h) => ReservedSet.Contains(h);
         public static bool IsReserved(int q, int r) => IsReserved(new Hex(q, r));

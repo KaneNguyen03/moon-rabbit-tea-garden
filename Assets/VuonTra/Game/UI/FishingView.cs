@@ -6,7 +6,7 @@ namespace VuonTra.Game.UI
 {
     public sealed class FishingView
     {
-        public const float Height = 1240f;
+        public const float Height = 1380f;
         public const float ShowSeconds = 0.5f, FlySeconds = 0.55f;
         const float SinkDepth = 46f;
         public const float RippleSeconds = 2f * RingGap + RingLife;
@@ -19,7 +19,7 @@ namespace VuonTra.Game.UI
             new Color(0.96f, 0.90f, 0.62f), new Color(0.98f, 0.80f, 0.25f), new Color(0.36f, 0.40f, 0.78f),
         };
 
-        enum Say { Hint, Wait, Sink, Early, Lost, Caught }
+        enum Say { Hint, Wait, Sink, Early, Lost, Caught, Released }
 
         readonly GameRunner _runner;
         readonly GameCatalog _catalog;
@@ -30,6 +30,11 @@ namespace VuonTra.Game.UI
         readonly Image[] _dots = new Image[Fishing.BaitCap];
         readonly Text[] _counts;
         readonly Image[] _fishIcons;
+        readonly Image[] _picks;
+        readonly ChunkyButton _releaseButton;
+        readonly Text _releaseLabel, _tankLine;
+        int _chosen = -1, _shownRelease = -1;
+        string _releasedLine = "";
         readonly int[] _pending;
         readonly ChunkyButton _castButton;
         readonly Image _picture;
@@ -47,6 +52,12 @@ namespace VuonTra.Game.UI
         public bool IsOpen => Sheet.IsOpen;
         public string Status => _status.text;
         public RectTransform BasketIcon => _basket;
+        public int Chosen => _chosen;
+        public bool ReleaseEnabled => _releaseButton.Button.interactable;
+        public string ReleaseLabel => _releaseLabel.text;
+        public string TankLine => _tankLine.text;
+        public RectTransform ReleaseButton => _releaseButton.Root;
+        public System.Action<ReleaseResult> Released;
         public int FishFlying { get; private set; }
         public Color FloatColor => _cap.color;
         public Vector3 FloatScale => _floatArt.localScale;
@@ -69,6 +80,7 @@ namespace VuonTra.Game.UI
             _counts = new Text[Fishing.Kinds];
             _fishIcons = new Image[Fishing.Kinds];
             _pending = new int[Fishing.Kinds];
+            _picks = new Image[Fishing.Kinds];
 
             Sheet = new BottomSheet(canvas, "Pond", catalog, tweens, Height, null);
             _card = Sheet.Card;
@@ -187,10 +199,31 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < Fishing.Kinds; i++)
             {
                 var slot = UiKit.Rect("Fish " + i, basketRow).Place(0f, 0.5f, 200f + 65f + i * 128f, 0, 124, 190);
+                _picks[i] = slot.AddImage(catalog.Panel, Palette.Alpha(Palette.Lantern, 0f), true);
+                _picks[i].raycastTarget = true;
+                int fish = i;
+                var pick = slot.gameObject.AddComponent<Button>();
+                pick.transition = Selectable.Transition.None;
+                pick.targetGraphic = _picks[i];
+                pick.onClick.AddListener(() => Choose(fish));
                 _fishIcons[i] = FishImage(UiKit.Rect("Art", slot).Place(0.5f, 1f, 0, -58, 112, 84), catalog, i);
                 _counts[i] = UiKit.Rect("Count", slot).Place(0.5f, 0f, 0, 34, 124, 44)
                     .AddText("×0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             }
+
+            var release = UiKit.Rect("Release", _card).Place(0.5f, 1f, -230, -1240, 500, 100);
+            _releaseButton = UiKit.Chunky(release, catalog.Panel, Release);
+            _releaseLabel = UiKit.Rect("Text", _releaseButton.FaceRect).Stretch(0, 0, 1, 1, 16, 0, 16, 0)
+                .AddText(L10n.T("tank.release"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _releaseLabel.resizeTextForBestFit = true;
+            _releaseLabel.resizeTextMinSize = 14;
+            _releaseLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _tankLine = UiKit.Rect("Tank", _card).Place(0.5f, 1f, 260, -1236, 440, 64)
+                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _tankLine.resizeTextForBestFit = true;
+            _tankLine.resizeTextMinSize = 12;
+            _tankLine.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _tankLine.verticalOverflow = VerticalWrapMode.Truncate;
 
             _catch = UiKit.Rect("Catch", _card).Place(0.5f, 1f, 0, -430, 260, 180);
             _catchImage = _catch.AddImage(catalog.Round, Color.white);
@@ -262,6 +295,8 @@ namespace VuonTra.Game.UI
             _rippleAge = 99f;
             for (int i = 0; i < _pending.Length; i++) _pending[i] = 0;
             FishFlying = 0;
+            _chosen = -1;
+            _shownRelease = -1;
             Sheet.Open();
             Sheet.Root.transform.SetAsLastSibling();
             Draw();
@@ -299,6 +334,57 @@ namespace VuonTra.Game.UI
                 _popAge = 0f;
             }
             else if (tap == CastTap.Caught) Caught(fish);
+            Draw();
+        }
+
+        int Have(int fish) => Mathf.Max(0, _runner.Basket[fish] - _pending[fish]);
+
+        public void Choose(int fish)
+        {
+            if (!IsOpen || fish < 0 || fish >= Fishing.Kinds) return;
+            if (Have(fish) <= 0)
+            {
+                Sfx.Deny();
+                return;
+            }
+            Sfx.Click();
+            _chosen = fish;
+            RectTransform icon = _fishIcons[fish].rectTransform;
+            _tweens.Add(Motion.Tap, t => { if (icon != null) icon.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                () => { if (icon != null) icon.localScale = Vector3.one; });
+            Draw();
+        }
+
+        public void Release()
+        {
+            int fish = _chosen;
+            if (!IsOpen || fish < 0 || Have(fish) <= 0)
+            {
+                Sfx.Deny();
+                _releaseButton.Shake(_tweens);
+                return;
+            }
+            ReleaseResult result = _runner.ReleaseFish(fish);
+            if (!result.Released)
+            {
+                Sfx.Deny();
+                _releaseButton.Shake(_tweens);
+                return;
+            }
+            _releaseButton.Press(_tweens);
+            if (result.Milestones > 0)
+            {
+                Sfx.Milestone();
+                Haptics.Light();
+            }
+            else Sfx.Pet();
+            _say = Say.Released;
+            string line = L10n.T("tank.released", L10n.T("fish." + fish), Aquarium.Released(_runner.State, fish));
+            _releasedLine = result.Milestones > 0 ? L10n.T("tank.milestone", AquariumView.Percent(result.Bonus)) : line;
+            RectTransform tank = _tankLine.rectTransform;
+            _tweens.Add(Motion.Tap, t => { if (tank != null) tank.localScale = Vector3.one * (1f + 0.1f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                () => { if (tank != null) tank.localScale = Vector3.one; });
+            Released?.Invoke(result);
             Draw();
         }
 
@@ -391,17 +477,41 @@ namespace VuonTra.Game.UI
                 _castLabel.color = ChunkyButton.InkFor(can);
                 _castLabel.text = cast != null ? L10n.T("pond.casting") : baits > 0 ? L10n.T("pond.cast") : L10n.T("pond.nobait");
             }
+            if (_chosen < 0 || Have(_chosen) <= 0) _chosen = FirstToRelease();
             for (int i = 0; i < Fishing.Kinds; i++)
             {
-                int have = Mathf.Max(0, _runner.Basket[i] - _pending[i]);
+                int have = Have(i);
                 string count = "×" + have;
                 if (_counts[i].text != count) _counts[i].text = count;
                 Color c = _fishIcons[i].sprite == _catalog.Round ? FishTints[i] : Color.white;
                 _fishIcons[i].color = have > 0 ? c : Palette.Alpha(c, 0.3f);
+                _picks[i].color = i == _chosen ? Palette.Alpha(Palette.Lantern, 0.55f) : Palette.Alpha(Palette.Lantern, 0f);
             }
+            DrawRelease();
             _status.text = StatusLine(cast, baits);
             DrawFloat(cast);
             DrawRipples();
+        }
+
+        int FirstToRelease()
+        {
+            for (int i = 0; i < Fishing.Kinds; i++) if (Have(i) > 0) return i;
+            return -1;
+        }
+
+        void DrawRelease()
+        {
+            GameState s = _runner.State;
+            bool can = _chosen >= 0 && _runner.CanReleaseFish(_chosen);
+            int shown = (can ? 1 : 0) + 2 * (Aquarium.KindsIn(s) + 8 * Aquarium.Reached(s));
+            if (shown == _shownRelease) return;
+            _shownRelease = shown;
+            _releaseButton.SetEnabled(can);
+            _releaseLabel.color = ChunkyButton.InkFor(can);
+            string label = can ? L10n.T("tank.release") : L10n.T("tank.release.none");
+            if (_releaseLabel.text != label) _releaseLabel.text = label;
+            string tank = L10n.T("tank.basket", Aquarium.KindsIn(s), Aquarium.Kinds, AquariumView.Percent(Aquarium.Bonus(s)));
+            if (_tankLine.text != tank) _tankLine.text = tank;
         }
 
         string StatusLine(FishingCast cast, int baits)
@@ -413,6 +523,7 @@ namespace VuonTra.Game.UI
                 case Say.Early: return L10n.T("pond.early");
                 case Say.Lost: return baits > 0 ? L10n.T("pond.lost") : L10n.T("pond.lost") + " · " + L10n.T("fish.nobait");
                 case Say.Caught: return _caughtLine;
+                case Say.Released: return _releasedLine;
                 default: return baits > 0 || cast != null ? L10n.T("pond.hint") : L10n.T("fish.nobait");
             }
         }

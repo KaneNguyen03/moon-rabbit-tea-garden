@@ -143,7 +143,9 @@ namespace VuonTra.Game.UI
             int seated = RestSpots.SeatedCount(s);
             double rest = RestSpots.Multiplier(s);
             if (seated > 0) AddNote("Resting", L10n.T("income.resting", seated, RabbitGridView.Percent(rest - 1d)), Palette.Ink);
-            AddNote("Charms", L10n.T("income.charms", UiKit.Times(m.IncomeMultiplier / rest)), Palette.Ink);
+            double tank = Aquarium.Multiplier(s);
+            if (tank > 1d) AddNote("Tank", L10n.T("income.tank", Aquarium.KindsIn(s), Aquarium.Kinds, AquariumView.Percent(tank - 1d)), Palette.Ink);
+            AddNote("Charms", L10n.T("income.charms", UiKit.Times(m.IncomeMultiplier / (rest * tank))), Palette.Ink);
             AddNote("Speed", L10n.T("income.speed", UiKit.Times(m.SpeedMultiplier)), Palette.Ink);
             if (boosting) AddNote("Boost", L10n.T("income.boost", UiKit.Times(Energy.BoostSpeed)), Palette.Moss);
             BigNum total = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));

@@ -483,6 +483,17 @@ namespace VuonTra.Core
             sb.Append("],\"sale\":").Append(s.Trunk.Sale.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"bought\":").Append(s.Trunk.Bought.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
+            sb.Append(",\"aquarium\":{\"released\":[");
+            for (int i = 0; i < Aquarium.Kinds; i++)
+            {
+                if (i > 0) sb.Append(',');
+                sb.Append(Aquarium.Released(s, i).ToString(CultureInfo.InvariantCulture));
+            }
+            sb.Append("],\"fresh\":").Append((s.Aquarium != null ? s.Aquarium.Fresh & Aquarium.AllKinds : 0).ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"set\":").Append(s.Aquarium != null && s.Aquarium.SetGiven ? "true" : "false");
+            sb.Append(",\"setJars\":").Append((s.Aquarium != null ? s.Aquarium.SetJarsGiven : 0).ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"cardSeen\":").Append(s.Aquarium == null || s.Aquarium.CardSeen ? "true" : "false");
+            sb.Append('}');
             sb.Append(",\"intros\":{\"seen\":");
             WriteIntroIds(sb, s.IntrosSeen);
             sb.Append(",\"tried\":");
@@ -1071,6 +1082,17 @@ namespace VuonTra.Core
 
             if (root.TryGetValue("trunk", out object trunkObj) && trunkObj is Dictionary<string, object> trunk)
                 ReadTrunk(s.Trunk, trunk);
+
+            if (root.TryGetValue("aquarium", out object aquariumObj) && aquariumObj is Dictionary<string, object> aquarium)
+            {
+                if (aquarium.TryGetValue("released", out object releasedObj) && releasedObj is List<object> released)
+                    for (int i = 0; i < Aquarium.Kinds && i < released.Count; i++)
+                        if (released[i] is double n && n > 0d) s.Aquarium.Released[i] = (int)Math.Min(n, int.MaxValue);
+                s.Aquarium.Fresh = (int)(ToLong(ReadNumber(aquarium, "fresh")) & Aquarium.AllKinds);
+                s.Aquarium.SetGiven = aquarium.TryGetValue("set", out object setObj) && setObj is bool set && set;
+                s.Aquarium.SetJarsGiven = s.Aquarium.SetGiven ? Small(ReadNumber(aquarium, "setJars"), Aquarium.SetJars) : 0;
+                s.Aquarium.CardSeen = !s.Aquarium.SetGiven || !(aquarium.TryGetValue("cardSeen", out object tankSeenObj) && tankSeenObj is bool tankSeen) || tankSeen;
+            }
 
             if (root.TryGetValue("tally", out object tallyObj) && tallyObj is Dictionary<string, object> tally)
             {

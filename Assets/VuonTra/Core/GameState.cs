@@ -149,6 +149,7 @@ namespace VuonTra.Core
         public WelcomeBackRecord WelcomeBack = new WelcomeBackRecord();
         public FairRecord Fair = new FairRecord();
         public TrunkRecord Trunk = new TrunkRecord();
+        public AquariumRecord Aquarium = new AquariumRecord();
 
         public bool IntrosKnown;
         public HashSet<string> IntrosSeen = new HashSet<string>();
