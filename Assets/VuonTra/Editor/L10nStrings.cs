@@ -993,6 +993,28 @@ namespace VuonTra.EditorTools
             { "welcome.claim", "Nhận quà ngày {0}", "Claim day {0}" },
             { "welcome.tomorrow", "Mai ghé lại nhé", "Come back tomorrow" },
             { "welcome.pill", "Mừng bạn về · ngày {0}/{1}", "Welcome home · day {0}/{1}" },
+
+            { "trunk.title", "Rương xe đẩy", "Little trunk" },
+            { "trunk.open", "Mở đến {0}:00 · mỗi món mua một lần", "Open until {0}:00 · one of each" },
+            { "trunk.closed", "Mở lúc {0}:00", "Opens at {0}:00" },
+            { "trunk.closed.title", "Rương đang đóng", "The trunk is closed" },
+            { "trunk.closed.sub", "Mỗi ngày rương mở 11:00–13:00 và 19:00–22:00, mỗi lần 4 món mới", "Open every day 11:00–13:00 and 19:00–22:00, with four new things each time" },
+            { "trunk.tag.open", "Rương đang mở", "Trunk open" },
+            { "trunk.old", "Món mùa cũ", "Past season" },
+            { "trunk.sale", "Hôm nay giảm {0}%", "{0}% off today" },
+            { "trunk.bought", "Đã mua", "Bought" },
+            { "trunk.owned", "Đã có", "Owned" },
+            { "trunk.season", "Thỏ mùa {0}", "{0} rabbit" },
+            { "trunk.jars", "{0} hũ trăng", "{0} moon jars" },
+            { "trunk.clovers", "{0} cỏ bốn lá", "{0} clovers" },
+            { "trunk.golden", "Gọi vàng ×{0}", "Golden call ×{0}" },
+            { "trunk.golden.sub", "{0} bé thỏ về vườn", "{0} rabbits come home" },
+            { "trunk.lantern.sub", "Treo ngay khi mua", "Hung as soon as it is yours" },
+            { "trunk.hat.sub", "Mũ cho bé thỏ", "A hat to wear" },
+            { "trunk.pack.sub", "Gói rẻ hơn ở Tiệm", "Cheaper than the shop" },
+            { "trunk.float.two", "{0} và {1} về vườn", "{0} and {1} came home" },
+            { "trunk.float.bought", "Đã mua từ rương", "Bought from the trunk" },
+            { "trunk.float.lantern", "Đèn lồng đã đổi màu", "The lanterns have a new colour" },
         };
 
         /// <summary>
@@ -1059,6 +1081,8 @@ namespace VuonTra.EditorTools
             { "monthpass.sub.one", "{0} day left · {1} daily quest points a tier" },
             { "monthpass.need.one", "{0} more point to tier {1}" },
             { "monthpass.bought.sub.one", "The pass gift of the {0} tier passed is yours" },
+            { "trunk.jars.one", "{0} moon jar" },
+            { "trunk.clovers.one", "{0} clover" },
         };
     }
 }

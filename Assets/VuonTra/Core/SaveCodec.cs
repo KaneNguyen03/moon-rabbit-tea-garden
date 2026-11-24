@@ -444,6 +444,16 @@ namespace VuonTra.Core
             sb.Append(",\"checkIns\":").Append(s.WelcomeBack.CheckIns.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"checkInDay\":").Append(s.WelcomeBack.CheckInDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"cardSeen\":").Append(s.WelcomeBack.CardSeen ? "true" : "false");
+            sb.Append('}');
+            sb.Append(",\"trunk\":{\"window\":").Append(s.Trunk.Window.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"items\":[");
+            for (int i = 0; i < s.Trunk.Codes.Count; i++)
+            {
+                if (i > 0) sb.Append(',');
+                WriteString(sb, s.Trunk.Codes[i]);
+            }
+            sb.Append("],\"sale\":").Append(s.Trunk.Sale.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"bought\":").Append(s.Trunk.Bought.ToString(CultureInfo.InvariantCulture));
             sb.Append("}}");
             return sb.ToString();
         }
@@ -969,6 +979,9 @@ namespace VuonTra.Core
             }
             else s.WelcomeBack.SeenDay = s.MaxDaySeen;
 
+            if (root.TryGetValue("trunk", out object trunkObj) && trunkObj is Dictionary<string, object> trunk)
+                ReadTrunk(s.Trunk, trunk);
+
             if (root.TryGetValue("tally", out object tallyObj) && tallyObj is Dictionary<string, object> tally)
             {
                 s.Pets = Math.Max(0L, ToLong(ReadNumber(tally, "pets")));
@@ -998,6 +1011,19 @@ namespace VuonTra.Core
         }
 
         static int Small(double v, int max) => (int)Math.Max(0d, Math.Min(v, max));
+
+        static void ReadTrunk(TrunkRecord r, Dictionary<string, object> trunk)
+        {
+            if (!TryNumber(trunk, "window", out double window) || !(trunk.TryGetValue("items", out object itemsObj) && itemsObj is List<object> items)) return;
+            var codes = new List<string>();
+            foreach (object item in items)
+                if (item is string code && Trunk.IsCode(code) && codes.Count < Trunk.Shown) codes.Add(code);
+            if (codes.Count != items.Count) return;
+            r.Window = Math.Max(-1L, ToLong(window));
+            r.Codes = codes;
+            r.Sale = TryNumber(trunk, "sale", out double sale) && sale >= 0d && sale < codes.Count ? (int)sale : -1;
+            r.Bought = Small(ReadNumber(trunk, "bought"), (1 << Trunk.Shown) - 1);
+        }
 
         static int IndexOf(IReadOnlyList<StationDef> defs, string id)
         {

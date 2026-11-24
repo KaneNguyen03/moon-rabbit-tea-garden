@@ -115,17 +115,19 @@ namespace VuonTra.Core
 
         public static Rabbit SummonGolden(GameState s, double roll, string name, double kindRoll, long day)
         {
+            if (s.GoldenCarrots < GoldenSummonCost) return null;
+            s.GoldenCarrots -= GoldenSummonCost;
+            return CallGolden(s, roll, name, kindRoll, day);
+        }
+
+        internal static Rabbit CallGolden(GameState s, double roll, string name, double kindRoll, long day)
+        {
+            s.GoldenCalls++;
             int tier = Rabbits.RollTier(roll, GoldenOdds);
             RabbitKind seasonKind = Seasons.KindOf(Seasons.SeasonOf(day));
-            if (seasonKind != null && tier == seasonKind.Tier)
-            {
-                if (kindRoll >= Seasons.GoldenCallShare) return SummonGolden(s, roll, name, (kindRoll - Seasons.GoldenCallShare) / (1d - Seasons.GoldenCallShare));
-                if (s.GoldenCarrots < GoldenSummonCost) return null;
-                s.GoldenCarrots -= GoldenSummonCost;
-                s.GoldenCalls++;
-                return Rabbits.ArriveKind(s, seasonKind.Id, name);
-            }
-            return SummonGolden(s, roll, name, kindRoll);
+            if (seasonKind == null || tier != seasonKind.Tier) return Rabbits.Arrive(s, tier, name, kindRoll);
+            if (kindRoll < Seasons.GoldenCallShare) return Rabbits.ArriveKind(s, seasonKind.Id, name);
+            return Rabbits.Arrive(s, tier, name, (kindRoll - Seasons.GoldenCallShare) / (1d - Seasons.GoldenCallShare));
         }
 
         public static Rabbit SummonGolden(GameState s, double roll, string name, double kindRoll = 0d)

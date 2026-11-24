@@ -4259,6 +4259,98 @@ MonoBehaviour:
     m_Key: welcome.sub.one
     m_Metadata:
       m_Items: []
+  - m_Id: 887708875481088
+    m_Key: trunk.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869696
+    m_Key: trunk.open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869697
+    m_Key: trunk.closed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869698
+    m_Key: trunk.closed.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869699
+    m_Key: trunk.closed.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869700
+    m_Key: trunk.tag.open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869701
+    m_Key: trunk.old
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869702
+    m_Key: trunk.sale
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869703
+    m_Key: trunk.bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869704
+    m_Key: trunk.owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869705
+    m_Key: trunk.season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869706
+    m_Key: trunk.jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869707
+    m_Key: trunk.clovers
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869708
+    m_Key: trunk.golden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869709
+    m_Key: trunk.golden.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869710
+    m_Key: trunk.lantern.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869711
+    m_Key: trunk.hat.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869712
+    m_Key: trunk.pack.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869713
+    m_Key: trunk.float.two
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869714
+    m_Key: trunk.float.bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708888064000
+    m_Key: trunk.jars.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708888064001
+    m_Key: trunk.clovers.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 892189742718976
+    m_Key: trunk.float.lantern
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

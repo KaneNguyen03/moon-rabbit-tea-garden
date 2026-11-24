@@ -664,6 +664,7 @@ namespace VuonTra.EditorTools
             RenderQuestChests(runner, screen);
             RenderMonthPass(runner, screen);
             RenderWelcomeBack(runner, screen);
+            RenderTrunk(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -1555,6 +1556,88 @@ namespace VuonTra.EditorTools
             }
             runner.OfferCardsOn = cardsBefore;
             runner.DayClock = clockBefore;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
+        }
+
+        [MenuItem("VuonTra/Render Trunk")]
+        public static void RenderTrunkOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderTrunk(runner, screen);
+        }
+
+        static void RenderTrunk(GameRunner runner, GardenScreen screen)
+        {
+            const long today = 20781;
+            System.Func<long> clockBefore = runner.DayClock, localBefore = runner.LocalClock;
+            bool cardsBefore = runner.OfferCardsOn;
+            runner.OfferCardsOn = false;
+            runner.DayClock = () => today;
+            long clock = today * 86400L + 14 * 3600L;
+            runner.LocalClock = () => clock;
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                string tail = locale == "vi" ? "" : "-en";
+                clock = today * 86400L + 14 * 3600L;
+                GameState s = WelcomeBackGarden(runner, today, 0);
+                s.WelcomeBack.SeenDay = today;
+                s.GoldenCarrots = 64;
+                runner.Init(s);
+                ShowWelcomeBack(runner, screen, locale);
+                screen.LookAt(screen.ShopSpot);
+                screen.Refresh();
+                Step(screen, 0.4f);
+                Capture(screen, "113-ruong-canh-tiem" + tail);
+                screen.OpenTrunk();
+                Step(screen, 0.5f);
+                if (!screen.TrunkCard.IsOpen || screen.TrunkCard.ShowsGoods) throw new System.Exception("Preview: the closed trunk card did not open");
+                Capture(screen, "113-ruong-dong" + tail);
+                screen.TrunkCard.Close();
+
+                clock = today * 86400L + 19 * 3600L + 1200L;
+                screen.Refresh();
+                Step(screen, 0.3f);
+                Capture(screen, "113-ruong-mo-canh-tiem" + tail);
+                screen.OpenTrunk();
+                Step(screen, 0.5f);
+                if (!screen.TrunkCard.ShowsGoods) throw new System.Exception("Preview: the open trunk shows no goods");
+                Capture(screen, "113-ruong-mo" + tail);
+                if (locale == "vi")
+                {
+                    UiKit.SetLargeText(true);
+                    screen.TrunkCard.Close();
+                    ShowWelcomeBack(runner, screen, locale);
+                    screen.OpenTrunk();
+                    Step(screen, 0.5f);
+                    Capture(screen, "113-ruong-mo-chu-to");
+                    UiKit.SetLargeText(false);
+                    screen.TrunkCard.Close();
+                    ShowWelcomeBack(runner, screen, locale);
+                    screen.OpenTrunk();
+                    Step(screen, 0.3f);
+                }
+                int item = 1;
+                foreach (TrunkOffer offer in screen.TrunkCard.Shelf.Offers)
+                    if (offer.Kind != TrunkKind.SeasonRabbit && offer.Kind != TrunkKind.GoldenCall) { item = offer.Slot + 1; break; }
+                Press(screen, "Canvas/TrunkCard/Card/Goods/Item " + item + "/Buy");
+                Press(screen, "Canvas/TrunkCard/Card/Goods/Item " + item + "/Buy");
+                Step(screen, 0.5f);
+                if (screen.TrunkCard.IsOpen) Capture(screen, "113-ruong-da-mua" + tail);
+                screen.TrunkCard.Close();
+                if (screen.Arrival.IsOpen) screen.Arrival.Close();
+            }
+            runner.OfferCardsOn = cardsBefore;
+            runner.DayClock = clockBefore;
+            runner.LocalClock = localBefore;
             L10n.SetLocale("vi");
             screen.RebuildUi();
             Step(screen, 0.3f);

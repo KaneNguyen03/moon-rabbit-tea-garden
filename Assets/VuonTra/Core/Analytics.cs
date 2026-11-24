@@ -118,6 +118,8 @@ namespace VuonTra.Core
         public const string MonthPassTier = "monthpass_tier";
         public const string MonthPassBought = "monthpass_bought";
         public const string WelcomeBack = "welcome_back";
+        public const string TrunkOpen = "trunk_open";
+        public const string TrunkBuy = "trunk_buy";
 
         public static readonly string[] All =
         {
@@ -128,6 +130,7 @@ namespace VuonTra.Core
             NewcomerTask, NewcomerDay,
             MonthPassTier, MonthPassBought,
             WelcomeBack,
+            TrunkOpen, TrunkBuy,
         };
 
         public const string NewGarden = "new_garden";
@@ -161,8 +164,12 @@ namespace VuonTra.Core
         public const string Premium = "premium";
         public const string Month = "month";
         public const string DaysAway = "days_away";
+        public const string Window = "window";
+        public const string Items = "items";
+        public const string Item = "item";
+        public const string Sale = "sale";
 
-        public const string ViaClover = "clover", ViaGolden = "golden";
+        public const string ViaClover = "clover", ViaGolden = "golden", ViaTrunk = "trunk";
         public const string FromShop = "shop";
         public const string AdWatched = "watched", AdClosed = "closed", AdPass = "pass";
 
@@ -265,6 +272,17 @@ namespace VuonTra.Core
         {
             if (!gift.Ok || gift.Day > 0) return;
             a.Log(AnalyticsEvents.WelcomeBack, new AnalyticsParam(AnalyticsEvents.DaysAway, gift.AwayDays));
+        }
+
+        public static void LogTrunkOpen(this IAnalytics a, TrunkShelf shelf) =>
+            a.Log(AnalyticsEvents.TrunkOpen, new AnalyticsParam(AnalyticsEvents.Window, shelf.Open ? Trunk.WindowNames[shelf.Slot] : "closed"),
+                new AnalyticsParam(AnalyticsEvents.Items, shelf.Offers != null ? shelf.Offers.Length : 0));
+
+        public static void LogTrunkBuy(this IAnalytics a, TrunkBuy buy)
+        {
+            if (!buy.Ok) return;
+            a.Log(AnalyticsEvents.TrunkBuy, new AnalyticsParam(AnalyticsEvents.Item, buy.Offer.Code),
+                new AnalyticsParam(AnalyticsEvents.Price, buy.Offer.Price), new AnalyticsParam(AnalyticsEvents.Sale, buy.Offer.Sale));
         }
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>

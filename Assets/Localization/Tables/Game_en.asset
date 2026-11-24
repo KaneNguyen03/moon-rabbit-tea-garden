@@ -4271,6 +4271,98 @@ MonoBehaviour:
     m_Localized: You were away {0} day; the garden kept your seat
     m_Metadata:
       m_Items: []
+  - m_Id: 887708875481088
+    m_Localized: Little trunk
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869696
+    m_Localized: "Open until {0}:00 \xB7 one of each"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869697
+    m_Localized: Opens at {0}:00
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869698
+    m_Localized: The trunk is closed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869699
+    m_Localized: "Open every day 11:00\u201313:00 and 19:00\u201322:00, with four new things each time"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869700
+    m_Localized: Trunk open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869701
+    m_Localized: Past season
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869702
+    m_Localized: '{0}% off today'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869703
+    m_Localized: Bought
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869704
+    m_Localized: Owned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869705
+    m_Localized: '{0} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869706
+    m_Localized: '{0} moon jars'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869707
+    m_Localized: '{0} clovers'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869708
+    m_Localized: "Golden call \xD7{0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869709
+    m_Localized: '{0} rabbits come home'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869710
+    m_Localized: Hung as soon as it is yours
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869711
+    m_Localized: A hat to wear
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869712
+    m_Localized: Cheaper than the shop
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869713
+    m_Localized: '{0} and {1} came home'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708883869714
+    m_Localized: Bought from the trunk
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708888064000
+    m_Localized: '{0} moon jar'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 887708888064001
+    m_Localized: '{0} clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 892189742718976
+    m_Localized: The lanterns have a new colour
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

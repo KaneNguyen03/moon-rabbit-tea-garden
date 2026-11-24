@@ -146,6 +146,7 @@ namespace VuonTra.Core
         public NewcomerRecord Newcomer = new NewcomerRecord();
         public ReviewRecord Review = new ReviewRecord();
         public WelcomeBackRecord WelcomeBack = new WelcomeBackRecord();
+        public TrunkRecord Trunk = new TrunkRecord();
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {

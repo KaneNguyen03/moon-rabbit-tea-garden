@@ -61,7 +61,7 @@ namespace VuonTra.Core.Tests
                 Assert.IsFalse(name.StartsWith("firebase_") || name.StartsWith("google_") || name.StartsWith("ga_"), name);
                 Assert.IsTrue(seen.Add(name), name + " twice");
             }
-            Assert.AreEqual(26, AnalyticsEvents.All.Length, "add a new event to All as well");
+            Assert.AreEqual(28, AnalyticsEvents.All.Length, "add a new event to All as well");
             foreach (string step in AnalyticsEvents.StepNames) StringAssert.IsMatch(snake.ToString(), step);
             Assert.AreEqual(Tutorial.Steps, AnalyticsEvents.StepNames.Length, "one name per step of the guidance");
             Assert.AreEqual("cancelled", AnalyticsEvents.ReasonOf(PurchaseOutcome.Cancelled));
