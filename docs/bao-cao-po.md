@@ -2418,3 +2418,12 @@ Lựa chọn không phải con số:
 - Tối đa 3 lượt Unity batch trên cả máy, còn 2 khi swap trên ~4 GB (`sysctl -n vm.swapusage`). Lượt của session khác cũng tính.
 - Test chậm mang `[Category("Slow")]` và `[Timeout(600000)]`. Nếu test chỉ hỏng vì quá thời gian khi máy bận thì coi là tải máy, không phải lỗi.
 - Mô phỏng kinh tế chạy ngoài Unity bằng .NET SDK, 17 hạt, kết quả lặp lại được; harness để trong `/tmp`, không commit.
+
+### Cập nhật 24/11 chiều (sau vòng 2 Cats & Soup)
+- main = origin/main tại commit này (sau `ed28b6d`). `tools/verify.sh --build` trên main `4c8c3a5`: GREEN 1595/1596 (1 test mùa không kết luận có từ trước), 379 khung preview, bản Mac dựng và chạy, Player.log sạch.
+- Đã gộp từ sáng 24/11 (mỗi issue có comment đối chiếu, nhãn chờ-PO-duyệt, mục riêng ở trên): #91 bản đồ 2D; QA trả lại #8, #88, #28, #97; vòng 2: #102 tuần đầu, #103 hộp quà ngày và rương tuần, #104 thẻ giới thiệu, #105 gói người mới và gói mốc, #106 vé trăng, #107 vé tháng, #108 vườn nhớ bạn, #109 xin đánh giá, #110 sổ công thức (a + b), #111 thành tựu nhiều nấc, #112 lễ hội nhỏ, #113 rương xe đẩy, #114 bể cá.
+- Issue mở: 14; 12 chờ-PO-duyệt (9 có thêm cần-chủ-project), ngoài ra #4 và #16.
+- Số thư đã lưu trong save (`LetterKind`, chỉ được thêm vào cuối): MakeUp 0, Season 1, WeekChest 2, Newcomer 3, MonthPass 4, MoonPassDay 5, MoonPassRenew 6, FairEnd 7.
+- Luật một thẻ một lúc: thẻ gói, xin đánh giá, Tuần đầu, quà rương, chọn thỏ Vé tháng, Vườn nhớ bạn, rương xe đẩy, hội, thẻ giới thiệu, bể cá, "Món mới!" và sổ công thức đều chặn nhau qua `OfferCardFree`, `ReviewBusy`, `IntroBlocked`.
+- Cần chủ project quyết thêm (chi tiết trong từng issue): #106 người mua vé trăng phút đầu lên cấp 10 sau 21 phút (115 vàng ngày đầu); #102, #103, #111 đã giảm quà so với issue để giữ luật gọi vàng; #110 sổ mở ở cấp 30, nâng món thêm ít vì lịch trăng mới; #112 thỏ hội cần câu cá và trả lời thỏ xin ảnh; #114 trọng số mốc bể cá +0,25/+0,25/+0,5/+1 %; #113 giảm 30 % mỗi khung.
+- Kỹ thuật: bộ đếm Unity chỉ đếm `projectPath /Users/...` (đếm chuỗi khác làm agent chờ mãi); không chạy batch mới khi pin dưới 30 % mà chưa cắm sạc; nhánh cũ phải gộp main mới nhất trước khi lên main.
