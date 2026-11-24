@@ -2314,6 +2314,17 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Phần thêm của 110b so với 110a nhỏ (+2 đến +7 cấp mỗi tuần, trăng mới sớm hơn 1 ngày) vì lịch trăng mới giới hạn tốc độ leo cấp; nếu muốn món 2–3 có cảm giác mạnh hơn thì cần đổi hệ số ×1,25.
 - 32 icon món vẽ tay chưa làm.
 
+## #125 — Xem quảng cáo không trả thưởng khi không có callback; cảnh báo ComputeBuffer khi thoát (agent-125)
+
+**Test:** `verify.sh --fast --build`: tests ok (1570/1571, bỏ Slow), build ok, rules ok, RESULT GREEN. 
+
+**Commit:** 6ad7728 (main fast-forward); verify đầy đủ GREEN 1597/1598.
+
+**Đã làm:** `GameRunner.WatchAd` luôn chạy `ClaimAd` rồi mới gọi callback, ở cả nhánh Instant và nhánh xem xong; thêm 2 test trong `AdSeamsScreenTests`. Tìm ra dòng ComputeBuffer lúc thoát là lỗi của `com.unity.2d.animation` 16.0.1 (bộ đệm dự phòng tĩnh của `GpuDeformationSystem` không được giải phóng khi chưa có `SpriteSkin`); bản 18.0.1 vẫn còn lỗi này.
+
+### Chưa đạt / cần PO quyết
+- Dòng ComputeBuffer vẫn còn trong Player.log; cần chọn (a), (b) hoặc (c) như trong comment.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
