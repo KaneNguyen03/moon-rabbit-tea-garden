@@ -121,6 +121,7 @@ namespace VuonTra.Game
             _goldSeen = GoldRabbits();
             NoteAlbum(false);
             _watch.Reset(State);
+            _passWatch.Reset(State, TodayNumber);
             _ready = true;
             Analytics.LogGameOpen(newGarden);
             StartSession();
@@ -563,6 +564,7 @@ namespace VuonTra.Game
             _goldSeen = GoldRabbits();
             NoteAlbum(false);
             _watch.Reset(State);
+            _passWatch.Reset(State, TodayNumber);
             StateChanged?.Invoke();
             Save();
         }
@@ -837,6 +839,7 @@ namespace VuonTra.Game
         {
             if (!Tutorial.IsDone(State)) Tutorial.Advance(State);
             _watch.Note(Defs, State, Analytics);
+            _passWatch.Note(State, TodayNumber, Analytics);
             NoteAlbum(true);
             NoteOffers();
             Mods = Modifiers.From(UpgradeDefs, State);
@@ -1265,6 +1268,55 @@ namespace VuonTra.Game
             Changed();
             return true;
         }
+
+        #region Month pass (#107)
+
+        readonly MonthPassWatch _passWatch = new MonthPassWatch();
+
+        public bool ClaimMonthTier(MonthRow row, int tier, string kindId, out MonthClaim claim)
+        {
+            if (!MonthPass.Claim(Defs, State, Mods, row, tier, TodayNumber, kindId, PickName(), out claim)) return false;
+            if (claim.Rabbit != null) Rabbits.AutoAssign(Defs, State);
+            Changed();
+            return true;
+        }
+
+        public void BuyMonthPass(Action<PurchaseResult> done)
+        {
+            if (!MonthPass.CanBuy(State, TodayNumber))
+            {
+                PurchaseResult refused = PurchaseResult.Of(PurchaseOutcome.Duplicate, MonthPass.ProductId);
+                Analytics.LogPurchase(refused, Store.PriceOf(MonthPass.ProductId));
+                done?.Invoke(refused);
+                return;
+            }
+            MonthPass.Roll(State, TodayNumber, Defs, Mods);
+            BuyGolden(MonthPass.ProductId, done);
+        }
+
+        public bool HangMonthLantern(int cal)
+        {
+            bool ok = MonthPass.HangLantern(State, cal);
+            if (ok) Changed();
+            return ok;
+        }
+
+        public bool PaperLanterns()
+        {
+            if (MonthPass.LanternMonth(State.LanternColor) < 0) return false;
+            State.LanternColor = 0;
+            Changed();
+            return true;
+        }
+
+        public bool WearMonthFrame(int cal)
+        {
+            bool ok = MonthPass.WearFrame(State, cal);
+            if (ok) Changed();
+            return ok;
+        }
+
+        #endregion
 
         public LayoutDrop DropInLayout(Hex from, Hex to)
         {

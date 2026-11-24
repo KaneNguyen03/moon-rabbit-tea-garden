@@ -165,6 +165,18 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void An_Intro_Card_Waits_While_The_Month_Kind_Chooser_Is_Open()
+        {
+            Forget();
+            Assert.IsFalse(screen.IntroBlocked);
+            screen.KindChooser.Open(MonthPass.MonthOf(runner.TodayNumber), null);
+            Assert.IsTrue(screen.IntroBlocked, "the month pass's kind chooser counts as an open card");
+            Step(1f);
+            Assert.IsFalse(screen.IntroCard.IsOpen);
+            Assert.AreEqual(0, S.IntrosSeen.Count);
+        }
+
+        [Test]
         public void Opening_The_First_Week_Panel_Over_An_Intro_Card_Puts_It_Away_With_A_Dot()
         {
             Forget();

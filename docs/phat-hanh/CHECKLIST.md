@@ -79,6 +79,7 @@ Tài liệu đi kèm trong thư mục này:
 | 4.2 | Play Console: ba sản phẩm cùng ID, Activate. | CP | 30 phút | [build-android.md §5](../build-android.md) |
 | 4.2b | **Gói một lần (#105):** thêm bốn sản phẩm **Non-Consumable** (mua một lần, khôi phục được) trên cả App Store Connect và Play Console, xem bảng ngay dưới. Mã phải đúng từng chữ. | CP | 40 phút | bảng dưới |
 | 4.3 | Unity: bật In-App Purchasing, dán Google Play public key vào Receipt Validation Obfuscator, thêm define `RECEIPT_VALIDATION`, commit `GooglePlayTangle`/`AppleTangle`. | CP+Máy | 30 phút | [build-ios.md §5.4](../build-ios.md) |
+| 4.4 | Vé tháng (#107): App Store Connect thêm sản phẩm **Consumable** `vuontra.monthpass` (giá tham khảo 129.000 ₫), Play Console thêm **sản phẩm trong ứng dụng** cùng ID. Tiêu hao, mua mỗi tháng một lần, KHÔNG phải đăng ký tự gia hạn: quyền chỉ có trong tháng dương lịch đã mua, tháng sau hàng Vé tháng khoá lại. Game tự chặn mua lần hai trong cùng tháng và không cho biên lai cũ mở tháng mới. Mô tả cửa hàng: "Mở hàng quà Vé tháng của tháng này: mỗi nấc 5 cà rốt vàng hoặc 2 hũ trăng, nấc 10 màu đèn lồng của tháng, nấc 20 khung ảnh của tháng, nấc 30 một bé thỏ bậc Vàng chọn 1 trong 3; mua giữa tháng nhận ngay quà các nấc đã qua". Ảnh xét duyệt: `docs/anh/po-107/107-vi-nac-12-chua-mua.png`. | CP | 20 phút | [docs/anh/po-107](../anh/po-107/) |
 
 ### Mã sản phẩm gói một lần (#105)
 

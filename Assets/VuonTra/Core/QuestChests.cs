@@ -187,6 +187,7 @@ namespace VuonTra.Core
 
         public static void AddPoints(GameState s, long day, int points)
         {
+            MonthPass.AddPoints(s, day, points);
             Roll(s, day);
             if (WeekOf(day) != s.WeekIndex) return;
             s.WeekPoints = Math.Min(MaxPoints, s.WeekPoints + points);
