@@ -2177,6 +2177,21 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt hạn 14 ngày cho 7 lần điểm danh, quy tắc bỏ ngày không mất quà, ×2 không nhân hũ miễn phí.
 - Duyệt mức vàng tuần quay lại: trung vị 4 → 5 lượt gọi vàng, mọi hạt ≤ 6.
 
+## #113 — Rương xe đẩy hai khung giờ (agent-113)
+
+**Test:** verify đầy đủ GREEN, tests 1483/1484 (1 inconclusive là `SeasonTests.Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit`, không thuộc #113), rules ok, 323 khung preview; Core 838/838.
+
+**Commit:** `306fd9c` (main fast-forward)
+
+**Đã làm:** `Core/Trunk.cs` (giờ mở, rút 4 món theo trọng số, 1 món giảm 30 %, mua 1 lần mỗi khung, chống lùi giờ, nguồn màu đèn lấy từ dữ liệu); khối `trunk` trong save v14; `trunk_open`/`trunk_buy`; `Shop.CallGolden` cho Gọi vàng ×2; rương thu nhỏ, tô màu cạnh Tiệm và thẻ `TrunkView` (vi/en, chữ to); ảnh trong `docs/anh/po-113/`.
+
+### Chưa đạt / cần PO quyết
+- Giảm 30 % mỗi khung hay mỗi ngày.
+- Seed theo người chơi.
+- Khóa mọi khung đã mở khi lùi giờ.
+- Trọng số và cách làm tròn giá giảm.
+- Màu đèn hội #112 chờ #112 lên main.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

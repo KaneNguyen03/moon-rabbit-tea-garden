@@ -1243,6 +1243,7 @@ namespace VuonTra.Game.UI
             FirstWeek = new NewcomerView(_canvas, _hud, Runner, Tweens, OnClaimNewcomer);
             BuildWelcomeBack();
             BuildFair();
+            BuildTrunk();
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
             KindChooser = new MonthKindChooser(_canvas, catalog, Tweens);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
@@ -1499,6 +1500,7 @@ namespace VuonTra.Game.UI
                 _shopBadge = shopBadge.gameObject;
                 _shopBadge.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(shopAt.y, _shopProp));
+                BuildTrunkProp(catalog, shopAt, shopWidth, shopHeight, standing);
             }
             // The mortar for the mooncake game stands near the teapot from garden level three; a touch starts a game.
             {
@@ -4025,6 +4027,7 @@ namespace VuonTra.Game.UI
             Shop.Refresh(s);
             RefreshWelcomeBack();
             RefreshFair();
+            RefreshTrunk();
             RefreshOffers();
             RefreshDecor(s);
             RefreshOrders(s);
@@ -4839,7 +4842,7 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen;
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen || TrunkCard.IsOpen;
 
         void AskForReview()
         {
