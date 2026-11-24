@@ -2451,3 +2451,9 @@ Lựa chọn không phải con số:
 - Luật một thẻ một lúc: thẻ gói, xin đánh giá, Tuần đầu, quà rương, chọn thỏ Vé tháng, Vườn nhớ bạn, rương xe đẩy, hội, thẻ giới thiệu, bể cá, "Món mới!" và sổ công thức đều chặn nhau qua `OfferCardFree`, `ReviewBusy`, `IntroBlocked`.
 - Cần chủ project quyết thêm (chi tiết trong từng issue): #106 người mua vé trăng phút đầu lên cấp 10 sau 21 phút (115 vàng ngày đầu); #102, #103, #111 đã giảm quà so với issue để giữ luật gọi vàng; #110 sổ mở ở cấp 30, nâng món thêm ít vì lịch trăng mới; #112 thỏ hội cần câu cá và trả lời thỏ xin ảnh; #114 trọng số mốc bể cá +0,25/+0,25/+0,5/+1 %; #113 giảm 30 % mỗi khung.
 - Kỹ thuật: bộ đếm Unity chỉ đếm `projectPath /Users/...` (đếm chuỗi khác làm agent chờ mãi); không chạy batch mới khi pin dưới 30 % mà chưa cắm sạc; nhánh cũ phải gộp main mới nhất trước khi lên main.
+
+### Sự cố 25/11 03:21: save của người chơi trên máy Mac bị test ghi đè
+- Tệp `~/Library/Application Support/VuonTraTho/Moon Rabbit Tea Garden/save.json`: một test mới của #126 chạy trên thư mục thật vì NUnit action cấp assembly không được trình chạy test của Unity áp dụng; test nhận tiền đi vắng, đặt Ấm trà về cấp 4 (trước đó 162) rồi lưu đè. Lúc 01:27 tệp đã bị một lần chạy test khác ghi (lỗi cũ #126).
+- Không khôi phục được: không có bản sao, không snapshot APFS, Time Machine không gắn được. Tệp hiện tại sao ở `~/Library/Application Support/VuonTraTho/save-incident-25-11.json`. Không ai sửa `save.json` thật.
+- Chặn: cổng Unity chung `/tmp/unity-gate.sh` sao và trả lại save quanh mỗi lần chạy (`/tmp/save-guard/restored.log`); #126 đưa save của test vào `temporaryCachePath` bằng `TestRunCallback`; `tools/verify.sh` có bước "save" báo FAIL khi save người chơi đổi. Chi tiết: comment trên #126.
+- Cần chủ project: khôi phục từ bản sao riêng nếu có, hoặc chấp nhận vườn hiện tại.
