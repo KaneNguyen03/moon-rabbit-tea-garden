@@ -394,7 +394,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, Rabbits.HeartsOf(r));
             var fill = (RectTransform)root.transform.Find(Body + "/Bond/Bar/Fill");
             Assert.AreEqual((13f - 10f) / (30f - 10f), fill.anchorMax.x, 0.001f, "the bar runs to the next heart");
-            Assert.Greater(screen.Feel.Flying, 0, "the fish flies to its hearts");
+            Assert.AreEqual(0, screen.Feel.Flying, "under reduced motion the fish lands at once");
             Assert.AreEqual(L10n.T("feed.with", L10n.T("fish.2"), 1), TextAt(Body + "/Feed/Face/Sub"));
 
             Find(Body + "/Feed").onClick.Invoke();

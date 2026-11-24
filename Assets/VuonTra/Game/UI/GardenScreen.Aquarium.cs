@@ -93,8 +93,23 @@ namespace VuonTra.Game.UI
 
         void OnFishReleased(ReleaseResult result)
         {
-            if (result.FullSet && !_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
             Refresh(-1f);
+            GameCatalog catalog = Runner.Catalog;
+            Vector2 from = Feel.PointOf(FishingCard.IconOf(result.Fish));
+            RectTransform tank = FishingCard.TankSpot;
+            Vector2 to = Feel.PointOf(tank);
+            Sfx.Sink();
+            Feel.BringToFront();
+            Sprite art = catalog.FishSprite(result.Fish);
+            string gain = result.Milestones > 0 ? L10n.T("tank.float", AquariumView.Percent(result.Bonus)) : null;
+            Feel.Fly(from, to, art != null ? art : catalog.Round, art != null ? Color.white : Palette.Blush, 1, 64f, () =>
+            {
+                if (tank == null) return;
+                if (gain != null) Feel.FloatText(to + new Vector2(0f, 70f), gain, Palette.Lantern, 36);
+            });
+            var haul = new Haul { Golden = result.Golden, Jars = result.Jars, Clovers = result.Clovers };
+            if (result.Milestones > 0 || result.FullSet) Rewarded(to, haul, Fanfare.Milestone);
+            else Haptics.Light();
         }
     }
 }

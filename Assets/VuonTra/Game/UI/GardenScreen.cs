@@ -4846,16 +4846,13 @@ namespace VuonTra.Game.UI
             {
                 if (result.Outcome == PurchaseOutcome.Paid)
                 {
-                    Sfx.Reward();
-                    Haptics.Light();
-                    GameCatalog catalog = Runner.Catalog;
                     GoldenPack pack = Storefront.Find(packId);
                     Vector2 from = new Vector2(0, -120); // the middle of the packs card
-                    Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, 5, 44f,
-                        () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+                    Rewarded(from, new Haul { Golden = pack != null ? pack.Golden : 1 }, Fanfare.Purchase);
                     Feel.FloatText(new Vector2(0, 420), L10n.T("packs.float", pack != null ? pack.Golden : 0), Palette.Lantern, 44);
                     Refresh(-1f);
                 }
+                else PurchaseRefused(result.Outcome);
                 done?.Invoke(result);
             });
         }
@@ -5030,6 +5027,8 @@ namespace VuonTra.Game.UI
             if (!Runner.ClaimQuest(index, out BigNum paid)) return;
             if (row != null) row.Claim.Press(Tweens);
             Sfx.Reward();
+            Haptics.Light();
+            Feel.BringToFront();
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();
             // The carrots fly from the row up to the purse, which swells as they land.
@@ -5066,13 +5065,17 @@ namespace VuonTra.Game.UI
             }
             BoxPrize[] prizes = Runner.OpenQuestBox();
             if (prizes == null) return;
-            Sfx.Reward();
-            Haptics.Light();
             _questChests.Pop(-1);
             var tiles = new List<QuestPrizeView.Tile>();
-            foreach (BoxPrize prize in prizes) tiles.Add(PrizeTile(prize.Kind, prize.Amount, prize.Coins));
+            var haul = new Haul();
+            foreach (BoxPrize prize in prizes)
+            {
+                tiles.Add(PrizeTile(prize.Kind, prize.Amount, prize.Coins));
+                AddPrize(ref haul, prize.Kind, prize.Amount, prize.Coins);
+            }
             Prizes.Open(L10n.T("quests.box.open.title"), L10n.T("quests.box.open.sub", QuestChests.BoxPoints), tiles, Color.white);
             Refresh(-1f);
+            Rewarded(Feel.PointOf(_questChests.Box), haul, Fanfare.Gift);
         }
 
         void OnClaimWeekChest(int chest)
@@ -5090,8 +5093,6 @@ namespace VuonTra.Game.UI
                 return;
             }
             if (!Runner.ClaimWeekChest(chest, out Rabbit rabbit)) return;
-            Sfx.Reward();
-            Haptics.Medium();
             _questChests.Pop(chest);
             var tiles = new List<QuestPrizeView.Tile>();
             if (rabbit != null)
@@ -5101,6 +5102,7 @@ namespace VuonTra.Game.UI
             if (def.Golden > 0) tiles.Add(PrizeTile(BoxPrizeKind.Golden, def.Golden, BigNum.Zero));
             Prizes.Open(L10n.T("quests.chest.title", def.Points), L10n.T("quests.chest.sub"), tiles, QuestChestsView.ChestTints[chest]);
             Refresh(-1f);
+            Rewarded(Feel.PointOf(_questChests.Chest(chest)), new Haul { Jars = def.Jars, Clovers = def.Clovers, Golden = def.Golden }, Fanfare.Chest);
         }
 
         void OnMonthCell(MonthRow row, int tier)
@@ -5158,14 +5160,37 @@ namespace VuonTra.Game.UI
         {
             long month = MonthPass.MonthOf(Runner.TodayNumber);
             if (!Runner.ClaimMonthTier(row, tier, kind, out MonthClaim claim)) return;
-            Sfx.Reward();
-            Haptics.Light();
             _monthPass.Pop(row, tier);
             var tiles = new List<QuestPrizeView.Tile> { MonthTile(claim, month) };
             if (claim.Gift.Golden > 0) tiles.Add(PrizeTile(BoxPrizeKind.Golden, claim.Gift.Golden, BigNum.Zero));
             Prizes.Open(L10n.T("monthpass.claimed.title", tier), L10n.T(row == MonthRow.Free ? "monthpass.claimed.free" : "monthpass.claimed.premium", MonthPassView.MonthName(month)),
                 tiles, row == MonthRow.Free ? Color.white : Palette.Mix(Palette.Lantern, Color.white, 0.3f));
             Refresh(-1f);
+            Rewarded(Feel.PointOf(_monthPass.CellOf(row, tier)), HaulOf(claim), claim.Gift.Kind == MonthGiftKind.Rabbit ? Fanfare.Chest : Fanfare.Gift);
+        }
+
+        static Haul HaulOf(MonthClaim claim)
+        {
+            var haul = new Haul { Golden = claim.Gift.Golden };
+            switch (claim.Gift.Kind)
+            {
+                case MonthGiftKind.Income: haul.Carrots = claim.Coins; break;
+                case MonthGiftKind.Clover: haul.Clovers = claim.Gift.Amount; break;
+                case MonthGiftKind.Jar: haul.Jars = claim.Jars; haul.Clovers = claim.JarClovers; break;
+                case MonthGiftKind.Golden: haul.Golden += claim.Gift.Amount; break;
+            }
+            return haul;
+        }
+
+        static void AddPrize(ref Haul haul, BoxPrizeKind kind, int amount, BigNum coins)
+        {
+            switch (kind)
+            {
+                case BoxPrizeKind.Income: haul.Carrots += coins; break;
+                case BoxPrizeKind.Clover: haul.Clovers += amount; break;
+                case BoxPrizeKind.Jar: haul.Jars += amount; break;
+                default: haul.Golden += amount; break;
+            }
         }
 
         QuestPrizeView.Tile MonthTile(MonthClaim claim, long month)
@@ -5194,13 +5219,14 @@ namespace VuonTra.Game.UI
             long today = Runner.TodayNumber;
             int passed = Mathf.Min(MonthPass.Tier(s, today), MonthPass.RabbitTier - 1);
             string name = MonthPassView.MonthName(MonthPass.MonthOf(today));
+            int golden = s.GoldenCarrots;
             Runner.BuyMonthPass(result =>
             {
+                PurchaseRefused(result.Outcome);
                 switch (result.Outcome)
                 {
                     case PurchaseOutcome.Paid:
-                        Sfx.Reward();
-                        Haptics.Medium();
+                        Rewarded(Feel.PointOf(_monthPass.BuyButton), new Haul { Golden = Mathf.Max(0, Runner.State.GoldenCarrots - golden) }, Fanfare.Purchase);
                         Feel.Moment(L10n.T("monthpass.bought.title", name), passed > 0 ? L10n.T("monthpass.bought.sub", passed) : L10n.T("monthpass.bought.none"));
                         break;
                     case PurchaseOutcome.Cancelled:
@@ -6580,7 +6606,7 @@ namespace VuonTra.Game.UI
             Profile.Close();
             Shell.Resume();
             Refresh(-1f);
-            GiftArrived(from, r.Golden, r.Clovers, r.Hat);
+            GiftArrived(from, new Haul { Golden = r.Golden, Clovers = r.Clovers }, r.Hat, Fanfare.Gift);
             return r.Result;
         }
 
@@ -6589,8 +6615,8 @@ namespace VuonTra.Game.UI
         {
             Letter letter = Runner.ClaimLetter(id, out Rabbit rabbit);
             if (letter == null) return;
-            Sfx.Reward();
-            Haptics.Light();
+            Rewarded(Feel.PointOf(Mail.Root), new Haul { Carrots = letter.Coins, Golden = letter.Golden, Clovers = letter.Clovers, Jars = letter.Jars },
+                letter.Kind == LetterKind.WeekChest ? Fanfare.Chest : Fanfare.Gift);
             Mail.ShowClaimed(letter.Kind == LetterKind.MoonPassRenew ? L10n.T("mail.moonpass.read") : L10n.T("mail.claimed", MailView.GiftOf(letter)));
             if (rabbit != null && letter.Kind != LetterKind.Newcomer) Feel.Moment(rabbit.Name, L10n.T("detail.kind", L10n.Kind(rabbit), L10n.Rarity(rabbit.Tier)));
             Mail.Refresh(Runner.Letters, Runner.TodayNumber);
@@ -6612,13 +6638,15 @@ namespace VuonTra.Game.UI
                 Sfx.Deny();
                 return;
             }
-            Sfx.Reward();
-            Haptics.Light();
+            Rewarded(Feel.PointOf(FirstWeek.Root), new Haul
+            {
+                Carrots = claim.Carrots, Clovers = claim.Clovers,
+                Golden = claim.Golden + (claim.DayPaid ? claim.DayGolden : 0), Jars = claim.DayPaid ? claim.DayJars : 0
+            }, claim.DayPaid ? Fanfare.Milestone : Fanfare.Gift);
             string paid = L10n.T("newcomer.carrots", claim.Carrots.Short()) + (claim.Clovers > 0 ? " · " + L10n.T("mail.clovers", claim.Clovers) : "") + (claim.Golden > 0 ? " · " + L10n.T("mail.golden", claim.Golden) : "");
             if (claim.DayPaid) paid += " + " + NewcomerView.DayGiftOf(day);
             FirstWeek.ShowClaimed(L10n.T("mail.claimed", paid));
             Refresh(-1f);
-            if (claim.DayPaid) Sfx.Milestone();
             if (claim.Rabbit == null) return;
             FirstWeek.Close();
             Sfx.Summon(claim.Rabbit.Tier);
@@ -6626,19 +6654,9 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>A gift from a code: golden carrots fly to their chip under the purse, clovers and a hat say so in words.</summary>
-        void GiftArrived(Vector2 from, int golden, int clovers, Item hat)
+        void GiftArrived(Vector2 from, Haul haul, Item hat, Fanfare fanfare)
         {
-            Sfx.Reward();
-            Haptics.Light();
-            GameCatalog catalog = Runner.Catalog;
-            if (golden > 0)
-            {
-                if (!_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
-                Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, Mathf.Min(golden, 5), 44f,
-                    () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
-                Feel.FloatText(Feel.PointOf(_goldenChip, new Vector2(0, -70)), L10n.T("mail.golden", golden), Palette.Lantern, 34);
-            }
-            if (clovers > 0) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -150)), L10n.T("mail.clovers", clovers), Palette.Lantern, 34);
+            Rewarded(from, haul, fanfare);
             if (hat != null) Feel.FloatText(new Vector2(0, 420), L10n.T("float.hat", L10n.ItemName(hat)), Palette.Lantern, 40);
         }
 
@@ -6738,11 +6756,11 @@ namespace VuonTra.Game.UI
             {
                 if (result.Outcome == PurchaseOutcome.Paid)
                 {
-                    Sfx.Reward();
-                    Haptics.Light();
+                    Rewarded(GoldenPacks.PassRow != null ? Feel.PointOf(GoldenPacks.PassRow) : new Vector2(0, -120), new Haul(), Fanfare.Purchase);
                     Feel.FloatText(new Vector2(0, 420), L10n.T("noads.float", Ads.PassDays), Palette.Lantern, 44);
                     Refresh(-1f);
                 }
+                else PurchaseRefused(result.Outcome);
                 done?.Invoke(result);
             });
         }
@@ -6795,17 +6813,13 @@ namespace VuonTra.Game.UI
             {
                 if (result.Outcome == PurchaseOutcome.Paid)
                 {
-                    Sfx.Reward();
-                    Haptics.Light();
-                    GameCatalog catalog = Runner.Catalog;
                     Vector2 from = GoldenPacks.MoonPassRow != null ? Feel.PointOf(GoldenPacks.MoonPassRow) : new Vector2(0, -120);
-                    if (!_goldenChip.gameObject.activeSelf) _goldenChip.gameObject.SetActive(true);
-                    Feel.Fly(from, Feel.PointOf(_goldenChip), catalog.GoldenCarrot != null ? catalog.GoldenCarrot : catalog.Currency, Color.white, 5, 44f,
-                        () => Tweens.Add(Motion.Tap, t => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_goldenChip != null) _goldenChip.localScale = Vector3.one; }));
+                    Rewarded(from, new Haul { Golden = MoonPass.GoldenNow }, Fanfare.Purchase);
                     Feel.FloatText(new Vector2(0, 420), L10n.T("moonpass.float", MoonPass.GoldenNow), Palette.Lantern, 44);
                     Shell.RefreshMail();
                     Refresh(-1f);
                 }
+                else PurchaseRefused(result.Outcome);
                 done?.Invoke(result);
             });
         }

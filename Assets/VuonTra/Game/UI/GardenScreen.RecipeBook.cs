@@ -57,9 +57,8 @@ namespace VuonTra.Game.UI
             int dish = Recipes.DishesOpen(s, station) - 1;
             int more = Recipes.NewDishes(s) - 1;
             Runner.SeeNewDishes();
-            Sfx.Milestone();
-            Haptics.Light();
             NewDishCard.Open(Runner.Catalog.Stations[station], dish, more);
+            Rewarded(Feel.PointOf(NewDishCard.Card), new Haul(), Fanfare.Milestone);
         }
 
         void OnRaiseBookDish(int station, int dish)

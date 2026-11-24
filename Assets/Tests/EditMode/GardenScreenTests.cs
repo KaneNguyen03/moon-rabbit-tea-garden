@@ -4962,7 +4962,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, runner.State.Tray.Count, "only the golden batch is left");
             Assert.IsTrue(runner.State.Tray[0].Golden);
             Assert.IsFalse(screen.OrderCard.IsOpen);
-            Assert.Greater(screen.Feel.Flying, 0, "carrots fly to the purse");
+            Assert.AreEqual(0, screen.Feel.Flying, "under reduced motion the carrots land at once");
             Assert.IsTrue(screen.Feel.BannerVisible, "a happy guest");
             Assert.AreEqual("reward", Sfx.Last);
             screen.Refresh();
@@ -5735,7 +5735,7 @@ namespace VuonTra.Core.Tests
             Find("Canvas/PhotoBar/Done").onClick.Invoke();
             Assert.IsFalse(screen.PhotoMode);
             Assert.IsTrue(root.transform.Find("Canvas/Hud").gameObject.activeSelf);
-            Assert.Greater(screen.Feel.Flying, 0, "the carrots fly from the rabbit to the purse");
+            Assert.AreEqual(0, screen.Feel.Flying, "under reduced motion the carrots land at once");
             Assert.AreEqual("reward", Sfx.Last);
             Assert.IsTrue(runner.State.Coins.Equals(before + expected), "and nothing more is paid for the thanks");
         }

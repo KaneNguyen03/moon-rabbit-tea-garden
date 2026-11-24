@@ -79,13 +79,17 @@ namespace VuonTra.Game.UI
 
         public void Fly(Vector2 from, Vector2 to, Sprite sprite, Color color, int count, float size, System.Action onArrive = null)
         {
+            if (Motion.Reduced)
+            {
+                onArrive?.Invoke();
+                return;
+            }
             count = Mathf.Clamp(count, 1, 12);
             for (int i = 0; i < count; i++)
             {
                 RectTransform rt = UiKit.Rect("Fly", _root).Place(0.5f, 0.5f, from.x, from.y, size, size);
                 Image img = rt.AddImage(sprite, color);
                 img.preserveAspect = true;
-                if (Motion.Reduced) rt.gameObject.SetActive(false);
                 Vector2 start = from + new Vector2(Random.Range(-30f, 30f), Random.Range(-14f, 14f));
                 Vector2 mid = (start + to) * 0.5f + new Vector2(Random.Range(-60f, 60f), 150f + Random.Range(0f, 90f));
                 bool last = i == count - 1;

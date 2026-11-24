@@ -56,6 +56,8 @@ namespace VuonTra.Game.UI
         public bool ReleaseEnabled => _releaseButton.Button.interactable;
         public string ReleaseLabel => _releaseLabel.text;
         public string TankLine => _tankLine.text;
+        public RectTransform TankSpot => _tankLine.rectTransform;
+        public RectTransform IconOf(int fish) => _fishIcons[fish].rectTransform;
         public RectTransform ReleaseButton => _releaseButton.Root;
         public System.Action<ReleaseResult> Released;
         public int FishFlying { get; private set; }
@@ -372,12 +374,6 @@ namespace VuonTra.Game.UI
                 return;
             }
             _releaseButton.Press(_tweens);
-            if (result.Milestones > 0)
-            {
-                Sfx.Milestone();
-                Haptics.Light();
-            }
-            else Sfx.Pet();
             _say = Say.Released;
             string line = L10n.T("tank.released", L10n.T("fish." + fish), Aquarium.Released(_runner.State, fish));
             _releasedLine = result.Milestones > 0 ? L10n.T("tank.milestone", AquariumView.Percent(result.Bonus)) : line;
