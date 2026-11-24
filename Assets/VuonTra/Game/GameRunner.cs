@@ -965,13 +965,20 @@ namespace VuonTra.Game
         {
             AdOffer offer = AdShowing ? AdOffer.None : AdOfferFor(placement, game);
             if (offer == AdOffer.None) { done?.Invoke(false); return; }
-            if (offer == AdOffer.Instant) { Analytics.LogRewardedAd(placement, game, AnalyticsEvents.AdPass); done?.Invoke(ClaimAd(placement, game)); return; }
+            if (offer == AdOffer.Instant)
+            {
+                Analytics.LogRewardedAd(placement, game, AnalyticsEvents.AdPass);
+                bool paid = ClaimAd(placement, game);
+                done?.Invoke(paid);
+                return;
+            }
             AdShowing = true;
             AdProvider.Show(placement, watched =>
             {
                 AdShowing = false;
                 Analytics.LogRewardedAd(placement, game, watched ? AnalyticsEvents.AdWatched : AnalyticsEvents.AdClosed);
-                done?.Invoke(watched && ClaimAd(placement, game));
+                bool paid = watched && ClaimAd(placement, game);
+                done?.Invoke(paid);
             });
         }
 

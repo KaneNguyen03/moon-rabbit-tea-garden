@@ -164,6 +164,37 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Video_Watched_From_A_Place_With_No_Callback_Still_Pays_And_Logs()
+        {
+            var mem = new MemoryAnalytics();
+            runner.Analytics = mem;
+
+            runner.WatchAd(Ads.ShopGolden, null, null);
+            fake.Finish();
+            Assert.AreEqual(Ads.ShopGoldenReward, runner.State.GoldenCarrots, "watched to the end pays even with nobody listening");
+            Assert.AreEqual(AnalyticsEvents.AdWatched, mem.Last(AnalyticsEvents.RewardedAd)[AnalyticsEvents.Result].Text);
+
+            Ads.GrantPass(runner.State, runner.TodayNumber);
+            runner.WatchAd(Ads.ShopGolden, null, null);
+            Assert.AreEqual(2 * Ads.ShopGoldenReward, runner.State.GoldenCarrots, "the pass pays at once, also with nobody listening");
+            Assert.AreEqual(AnalyticsEvents.AdPass, mem.Last(AnalyticsEvents.RewardedAd)[AnalyticsEvents.Result].Text);
+            Assert.AreEqual(2, mem.Count(AnalyticsEvents.RewardedAd));
+        }
+
+        [Test]
+        public void The_Callback_Hears_Of_A_Video_Only_After_Its_Reward_Is_In_The_Garden()
+        {
+            int carrotsWhenTold = -1;
+            runner.WatchAd(Ads.ShopGolden, null, _ => carrotsWhenTold = runner.State.GoldenCarrots);
+            fake.Finish();
+            Assert.AreEqual(Ads.ShopGoldenReward, carrotsWhenTold);
+
+            Ads.GrantPass(runner.State, runner.TodayNumber);
+            runner.WatchAd(Ads.ShopGolden, null, _ => carrotsWhenTold = runner.State.GoldenCarrots);
+            Assert.AreEqual(2 * Ads.ShopGoldenReward, carrotsWhenTold);
+        }
+
+        [Test]
         public void A_Game_Whose_Rounds_Are_Spent_Offers_One_More_Round_Once()
         {
             GameState s = runner.State;
