@@ -179,7 +179,7 @@ namespace VuonTra.EditorTools
                 new C { Id = "loai",  Title = "Loài đã gặp",     Metric = QuestMetric.KindsMet,          Targets = new[] { 10d, 20d, 40d, 50d, 55d, 60d, 66d, 72d }, Merged = new[] { "loai-10", "loai-20", "loai-40", "loai-72" }, MergedAt = new[] { 0, 1, 2, 7 }, JarTiers = true },
                 new C { Id = "tho",   Title = "Thỏ cấp tối đa",  Metric = QuestMetric.RabbitsAtCap,      Targets = new[] { 1d, 20d, 24d, 28d, 32d, 36d, 38d, 40d }, Merged = new[] { "tho-max" }, MergedAt = new[] { 0 } },
                 new C { Id = "tim",   Title = "Tim đầy",         Metric = QuestMetric.RabbitsFullHearts, Targets = new[] { 1d, 2d, 4d, 6d, 10d, 15d, 22d, 30d }, Merged = new[] { "tim-10" }, MergedAt = new[] { 0 }, JarTiers = true },
-                new C { Id = "cap",   Title = "Cấp vườn",        Metric = QuestMetric.GardenLevel,       Targets = new[] { 5d, 32d, 34d, 36d, 40d, 60d, 80d, 99d }, Merged = new string[0], MergedAt = new int[0] },
+                new C { Id = "cap",   Title = "Cấp vườn",        Metric = QuestMetric.GardenLevelReached, Targets = new[] { 5d, 32d, 34d, 36d, 40d, 60d, 80d, 99d }, Merged = new string[0], MergedAt = new int[0] },
                 new C { Id = "trang", Title = "Mùa trăng mới",   Metric = QuestMetric.NewMoons,          Targets = new[] { 1d, 2d, 3d, 4d, 5d, 6d, 7d }, Merged = new string[0], MergedAt = new int[0], JarTiers = true },
             };
             var quests = new List<QuestData>();

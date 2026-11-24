@@ -658,6 +658,7 @@ namespace VuonTra.EditorTools
             RenderMapEdges(runner, screen);
             RenderLayout(runner, screen);
             RenderPond(runner, screen);
+            RenderNewcomer(runner, screen);
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
             RenderAchievementTiers(runner, screen);
@@ -1733,6 +1734,97 @@ namespace VuonTra.EditorTools
             screen.CloseSheet();
             screen.Raining = null;
             Step(screen, 0.4f);
+        }
+
+        static GameState NewcomerGarden(GameRunner runner, int day, int gardenLevel, int[] levels, long today)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = System.Math.Max(s.Plots, levels.Length);
+            s.GardenXp = Garden.XpForLevel(gardenLevel);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(3.4e5);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.ArriveKind(s, "tho-me", "Mè");
+            s.FreshKinds.Clear();
+            s.FirstDaySeen = today - (day - 1);
+            s.MaxDaySeen = today;
+            s.MailDay = today;
+            s.DailyDay = today;
+            s.GiftDay = today;
+            for (int d = 1; d < day; d++)
+            {
+                for (int slot = 0; slot < Newcomer.TasksPerDay; slot++) s.Newcomer.Claimed |= Newcomer.At(d, slot).Bit;
+                s.Newcomer.DaysPaid |= 1 << (d - 1);
+            }
+            return s;
+        }
+
+        static void ShowNewcomer(GameRunner runner, GardenScreen screen, GameState s, long today, string locale, int select)
+        {
+            runner.DayClock = () => today;
+            runner.Init(s);
+            L10n.SetLocale(locale);
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.LookAt(screen.StationSpot(0));
+            screen.Refresh();
+            screen.FirstWeek.Open();
+            if (select > 0) screen.FirstWeek.Select(select);
+            Step(screen, 0.5f);
+        }
+
+        static void RenderNewcomer(GameRunner runner, GardenScreen screen)
+        {
+            const long today = 20781;
+            System.Func<long> clockBefore = runner.DayClock;
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                string tail = locale == "vi" ? "" : "-en";
+                GameState one = NewcomerGarden(runner, 1, 2, new[] { 27, 6, 3, 1 }, today);
+                one.CloverCalls = 1;
+                ShowNewcomer(runner, screen, one, today, locale, 0);
+                screen.FirstWeek.Close();
+                screen.Refresh();
+                Step(screen, 0.3f);
+                Capture(screen, "102-vien" + tail);
+                screen.FirstWeek.Open();
+                Step(screen, 0.5f);
+                Capture(screen, "102-ngay-1" + tail);
+                screen.FirstWeek.Select(2);
+                Step(screen, 0.2f);
+                Capture(screen, "102-ngay-2-khoa" + tail);
+
+                GameState four = NewcomerGarden(runner, 4, 7, new[] { 60, 24, 18, 12, 6, 2 }, today);
+                four.OrdersDelivered = 4;
+                four.Pets = 1;
+                ShowNewcomer(runner, screen, four, today, locale, 4);
+                Capture(screen, "102-ngay-4" + tail);
+                if (locale == "vi")
+                {
+                    UiKit.SetLargeText(true);
+                    ShowNewcomer(runner, screen, four, today, locale, 4);
+                    Capture(screen, "102-ngay-4-chu-to");
+                    UiKit.SetLargeText(false);
+                }
+
+                GameState seven = NewcomerGarden(runner, 7, 14, new[] { 120, 60, 40, 30, 20, 14, 8, 3 }, today);
+                for (int slot = 0; slot < 3; slot++) seven.Newcomer.Claimed |= Newcomer.At(7, slot).Bit;
+                seven.DailyQuestsToday = 4;
+                ShowNewcomer(runner, screen, seven, today, locale, 7);
+                Capture(screen, "102-ngay-7" + tail);
+                Press(screen, "Canvas/NewcomerSheet/Card/Task 3/Claim");
+                Step(screen, 2.2f);
+                Capture(screen, "102-ngay-7-tho-tim" + tail);
+                Step(screen, 3f);
+            }
+            runner.DayClock = clockBefore;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
         }
 
         static void RenderOffers(GameRunner runner, GardenScreen screen)

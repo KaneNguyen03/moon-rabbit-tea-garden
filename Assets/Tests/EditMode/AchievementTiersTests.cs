@@ -233,7 +233,7 @@ namespace VuonTra.Core.Tests
 
             var games = new QuestDef { Id = "van", Metric = QuestMetric.MiniGames };
             var hearts = new QuestDef { Id = "tim", Metric = QuestMetric.RabbitsFullHearts };
-            var level = new QuestDef { Id = "cap", Metric = QuestMetric.GardenLevel };
+            var level = new QuestDef { Id = "cap", Metric = QuestMetric.GardenLevelReached };
             var moons = new QuestDef { Id = "mua", Metric = QuestMetric.NewMoons };
 
             GameState loaded = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
@@ -249,7 +249,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Garden_Level_Tier_Remembers_The_Level_Passed_Before_A_New_Moon()
         {
-            var level = new QuestDef { Id = "cap", Metric = QuestMetric.GardenLevel };
+            var level = new QuestDef { Id = "cap", Metric = QuestMetric.GardenLevelReached };
             s.Season = 1;
             s.GardenXp = Garden.XpForLevel(4);
             Assert.AreEqual((double)NewMoon.LevelPassed(s), Quests.Progress(level, defs, s), "a new moon does not take the climb back");

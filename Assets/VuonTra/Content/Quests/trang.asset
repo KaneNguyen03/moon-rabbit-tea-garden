@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
   Id: trang
   Title: "M\xF9a tr\u0103ng m\u1EDBi"
-  Metric: 31
+  Metric: 44
   Station: {fileID: 0}
   Target: 7
   Daily: 0

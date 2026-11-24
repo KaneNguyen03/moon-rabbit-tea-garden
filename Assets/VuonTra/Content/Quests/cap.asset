@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
   Id: cap
   Title: "C\u1EA5p v\u01B0\u1EDDn"
-  Metric: 30
+  Metric: 43
   Station: {fileID: 0}
   Target: 99
   Daily: 0

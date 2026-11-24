@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.QuestData
   Id: tim
   Title: "Tim \u0111\u1EA7y"
-  Metric: 29
+  Metric: 42
   Station: {fileID: 0}
   Target: 30
   Daily: 0
