@@ -2192,6 +2192,19 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Trọng số và cách làm tròn giá giảm.
 - Màu đèn hội #112 chờ #112 lên main.
 
+## #111 — Thành tựu nhiều nấc (agent-111)
+
+**Test:** verify đầy đủ sau khi gộp main ebae1ef: rules ok, seed ok, preview ok (308 khung), compile ok, tests ok (1452/1453), RESULT GREEN.
+
+**Commit:** de82f65 (tính năng), 0cd084d + c5dd741 (gộp #102, #107), 6f8a0ac (gộp #110a và bỏ cỏ khỏi nấc mới); gộp cùng #108, #113 ở main `c88c309`, verify đầy đủ GREEN 1496/1497.
+
+**Đã làm:** 12 chuỗi thành tựu trong tab Nhiệm vụ, mỗi dòng "Tên · nấc x/8 · tiến độ/mốc" có thanh; nhận xong dòng chuyển sang nấc kế; chuỗi xong ghi "Hoàn tất", viền vàng; dòng "Tổng thành tựu: N nấc" đầu mục. 17 thành tựu một lần cũ thành nấc có đúng mốc và quà cũ; save cũ giữ phần đã nhận, không trả hai lần. Bốn chỉ số mới tính lại từ save. Mô phỏng 17 hạt, 42 ngày: vàng từ nấc mới tuần 1 = 0; nấc mới tuần 2–6 trung vị 9/8/8/5/5; gọi vàng vẫn ≤ 6/tuần. Ảnh vi/en ở docs/anh/po-111.
+
+### Chưa đạt / cần PO quyết
+- Thưởng nấc mới nhỏ hơn đề xuất (lý do: các luật nhịp chơi hiện có).
+- Mốc chỉnh theo mô phỏng; Thu cà rốt tới 1e36; Mùa trăng mới 7 nấc.
+- Biên tuần 5–6 mỏng (thấp nhất 4 nấc).
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
