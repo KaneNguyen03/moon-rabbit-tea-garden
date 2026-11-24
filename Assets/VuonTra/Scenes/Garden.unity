@@ -119,7 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1 &98871372
+--- !u!1 &135845182
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -127,9 +127,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 98871375}
-  - component: {fileID: 98871374}
-  - component: {fileID: 98871373}
+  - component: {fileID: 135845185}
+  - component: {fileID: 135845184}
+  - component: {fileID: 135845183}
   m_Layer: 0
   m_Name: Game
   m_TagString: Untagged
@@ -137,28 +137,28 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &98871373
+--- !u!114 &135845183
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98871372}
+  m_GameObject: {fileID: 135845182}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: b0dcd5fe14d2042f7b0a8ab051a3b7c1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.UI.GardenScreen
-  Runner: {fileID: 98871374}
-  Cam: {fileID: 1128868959}
+  Runner: {fileID: 135845184}
+  Cam: {fileID: 1942641165}
   PhotoFolder: 
---- !u!114 &98871374
+--- !u!114 &135845184
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98871372}
+  m_GameObject: {fileID: 135845182}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8efcfe3fd326f4a05928210228429292, type: 3}
@@ -167,13 +167,13 @@ MonoBehaviour:
   Catalog: {fileID: 11400000, guid: 6721a829d346b49768b2d33f07279af0, type: 2}
   SaveDirectory: 
   Paused: 0
---- !u!4 &98871375
+--- !u!4 &135845185
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 98871372}
+  m_GameObject: {fileID: 135845182}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
@@ -182,7 +182,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1128868958
+--- !u!1 &1942641164
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -190,9 +190,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1128868961}
-  - component: {fileID: 1128868959}
-  - component: {fileID: 1128868960}
+  - component: {fileID: 1942641167}
+  - component: {fileID: 1942641165}
+  - component: {fileID: 1942641166}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -200,13 +200,13 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!20 &1128868959
+--- !u!20 &1942641165
 Camera:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1128868958}
+  m_GameObject: {fileID: 1942641164}
   m_Enabled: 1
   serializedVersion: 2
   m_ClearFlags: 2
@@ -251,21 +251,21 @@ Camera:
   m_OcclusionCulling: 1
   m_StereoConvergence: 10
   m_StereoSeparation: 0.022
---- !u!81 &1128868960
+--- !u!81 &1942641166
 AudioListener:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1128868958}
+  m_GameObject: {fileID: 1942641164}
   m_Enabled: 1
---- !u!4 &1128868961
+--- !u!4 &1942641167
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1128868958}
+  m_GameObject: {fileID: 1942641164}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
@@ -278,5 +278,5 @@ Transform:
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 1128868961}
-  - {fileID: 98871375}
+  - {fileID: 1942641167}
+  - {fileID: 135845185}
