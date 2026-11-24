@@ -130,6 +130,8 @@ namespace VuonTra.Core
         public int[] Fish = new int[VuonTra.Core.Fishing.Points.Length];
         public long FishCaught, FishFed;
 
+        public ReviewRecord Review = new ReviewRecord();
+
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {
             var s = new GameState
