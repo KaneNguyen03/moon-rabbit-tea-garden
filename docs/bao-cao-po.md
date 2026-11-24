@@ -2325,6 +2325,19 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 ### Chưa đạt / cần PO quyết
 - Dòng ComputeBuffer vẫn còn trong Player.log; cần chọn (a), (b) hoặc (c) như trong comment.
 
+## #119 — Bố trí: chỗ trang trí trống, giỏ hứng lá và mái tiệm trà giữ ô (agent-119)
+
+**Test:** `tools/verify.sh` đủ: tests ok (1608/1609), rules ok, preview 397 khung, RESULT GREEN; Core 917/917.
+
+**Commit:** `c52385b` (main fast-forward)
+
+**Đã làm:** Chỗ trang trí trống đang hiện "+", giỏ hứng lá cùng bảng của nó, và hai ô sau tiệm trà nay giữ ô trên lưới. Thả trạm, ghế hay đồ trang trí vào đó thì bật về, và không có vòng nét đứt. Giỏ đi theo trạm Giỏ lá (ô sát trạm, ưu tiên bên phải, không chiếm ô trạm vừa rời) và trả ô cũ. Save cũ không đẩy trạm, chỉ dời chỗ trang trí hoặc giỏ sang ô trống gần nhất. Ảnh trước/sau ở `docs/anh/po-119/` (vi, en).
+
+### Chưa đạt / cần PO quyết
+- Duyệt việc bỏ (2,-1), (3,-1), (4,-1) khỏi danh sách ô giữ cố định (giỏ giữ ô như một vật trên lưới).
+- Duyệt thứ tự chọn ô cho giỏ, và việc giỏ không ghi vào save.
+- Chưa có ảnh "trước" cho giỏ và mái (lỗi giỏ chưa tái hiện được).
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
