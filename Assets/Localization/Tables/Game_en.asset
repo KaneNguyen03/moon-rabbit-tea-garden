@@ -4363,6 +4363,134 @@ MonoBehaviour:
     m_Localized: The lanterns have a new colour
     m_Metadata:
       m_Items: []
+  - m_Id: 900689285865472
+    m_Localized: '{0} tiers reached in all'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448384
+    m_Localized: "{0} \xB7 tier {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448385
+    m_Localized: Complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448386
+    m_Localized: Taps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448387
+    m_Localized: '{0}/{1} taps'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448388
+    m_Localized: Upgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448389
+    m_Localized: '{0}/{1} levels'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448390
+    m_Localized: Carrots earned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448391
+    m_Localized: '{0}/{1} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448392
+    m_Localized: Guest orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448393
+    m_Localized: '{0}/{1} orders'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448394
+    m_Localized: Fishing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448395
+    m_Localized: '{0}/{1} fish'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448396
+    m_Localized: Photos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448397
+    m_Localized: '{0}/{1} photos'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448398
+    m_Localized: Games played
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448399
+    m_Localized: '{0}/{1} rounds'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448400
+    m_Localized: Kinds met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448401
+    m_Localized: '{0}/{1} kinds'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448402
+    m_Localized: Rabbits at level cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448403
+    m_Localized: '{0}/{1} rabbits'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448404
+    m_Localized: Full hearts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448405
+    m_Localized: '{0}/{1} rabbits'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448406
+    m_Localized: Garden level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448407
+    m_Localized: level {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448408
+    m_Localized: New moons
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448409
+    m_Localized: '{0}/{1} moons'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836992
+    m_Localized: '{0} tier reached in all'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836993
+    m_Localized: '{0}/{1} photo'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836994
+    m_Localized: '{0}/{1} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836995
+    m_Localized: '{0}/{1} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836996
+    m_Localized: '{0}/{1} moon'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -4351,6 +4351,134 @@ MonoBehaviour:
     m_Key: trunk.float.lantern
     m_Metadata:
       m_Items: []
+  - m_Id: 900689285865472
+    m_Key: quests.tiers.total
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448384
+    m_Key: quest.tier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448385
+    m_Key: quest.tier.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448386
+    m_Key: quest.cham
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448387
+    m_Key: quest.cham.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448388
+    m_Key: quest.nang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448389
+    m_Key: quest.nang.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448390
+    m_Key: quest.thu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448391
+    m_Key: quest.thu.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448392
+    m_Key: quest.don
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448393
+    m_Key: quest.don.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448394
+    m_Key: quest.ca
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448395
+    m_Key: quest.ca.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448396
+    m_Key: quest.anh
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448397
+    m_Key: quest.anh.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448398
+    m_Key: quest.van
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448399
+    m_Key: quest.van.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448400
+    m_Key: quest.loai
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448401
+    m_Key: quest.loai.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448402
+    m_Key: quest.tho
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448403
+    m_Key: quest.tho.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448404
+    m_Key: quest.tim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448405
+    m_Key: quest.tim.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448406
+    m_Key: quest.cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448407
+    m_Key: quest.cap.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448408
+    m_Key: quest.trang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448409
+    m_Key: quest.trang.count
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836992
+    m_Key: quests.tiers.total.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836993
+    m_Key: quest.anh.count.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836994
+    m_Key: quest.tho.count.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836995
+    m_Key: quest.tim.count.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836996
+    m_Key: quest.trang.count.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
