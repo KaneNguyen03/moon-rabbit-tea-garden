@@ -357,6 +357,26 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Month_Letters_Keep_Their_Own_Saved_Kind_Beside_The_Newcomer_Letters()
+        {
+            Assert.AreEqual(3, (int)LetterKind.Newcomer, "kinds already in saved games keep their numbers");
+            Assert.AreEqual(4, (int)LetterKind.MonthPass);
+            s.Letters.Add(new Letter { Id = "newcomer-x", Kind = LetterKind.Newcomer, Day = Dec1, GiftGolden = 3, GiftClovers = 2 });
+            s.Letters.Add(new Letter { Id = "month-x-premium", Kind = LetterKind.MonthPass, Day = Dec1, Month = MonthPass.MonthOf(Dec1), Premium = true, Tiers = 1 });
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Letter gift = r.Letters.Find(l => l.Id == "newcomer-x");
+            Letter month = r.Letters.Find(l => l.Id == "month-x-premium");
+            Assert.AreEqual(LetterKind.Newcomer, gift.Kind);
+            Assert.AreEqual(3, gift.Golden);
+            Assert.AreEqual(2, gift.Clovers);
+            Assert.AreEqual(Mailbox.KeepDays, gift.KeepDays);
+            Assert.AreEqual(LetterKind.MonthPass, month.Kind);
+            Assert.AreEqual(MonthPass.PremiumGolden, month.Golden);
+            Assert.AreEqual(0, month.Purple);
+            Assert.AreEqual(MonthPass.KeepDays, month.KeepDays);
+        }
+
+        [Test]
         public void Analytics_Note_Each_New_Tier_And_The_Purchase()
         {
             var mem = new MemoryAnalytics();

@@ -32,7 +32,20 @@ namespace VuonTra.Core
         KindsMet,
         FrogsMet,
         FishCaught,
-        MostHearts
+        MostHearts,
+        GardenLevel,
+        RabbitsInTrade,
+        RabbitsCalled,
+        RabbitsFed,
+        JarsOpened,
+        Pets,
+        LayoutMoves,
+        Boosts,
+        DailyGifts,
+        MergesOrGoldenCalls,
+        SegmentsOpened,
+        BestFish,
+        DailyQuestsToday
     }
 
     public sealed class QuestDef
@@ -145,6 +158,36 @@ namespace VuonTra.Core
                 }
                 case QuestMetric.OrdersDelivered:
                     return q.Daily ? Math.Max(0, s.OrdersDelivered - s.DailyOrdersBase) : s.OrdersDelivered;
+                case QuestMetric.GardenLevel:
+                    return Garden.Level(s);
+                case QuestMetric.RabbitsInTrade:
+                {
+                    int inTrade = 0;
+                    foreach (Rabbit r in s.Rabbits) if (Rabbits.InTrade(defs, r)) inTrade++;
+                    return inTrade;
+                }
+                case QuestMetric.RabbitsCalled:
+                    return s.CloverCalls + s.GoldenCalls;
+                case QuestMetric.RabbitsFed:
+                    return s.FishFed;
+                case QuestMetric.JarsOpened:
+                    return s.JarsOpened;
+                case QuestMetric.Pets:
+                    return s.Pets;
+                case QuestMetric.LayoutMoves:
+                    return s.LayoutMoves;
+                case QuestMetric.Boosts:
+                    return s.Boosts;
+                case QuestMetric.DailyGifts:
+                    return s.DailyGifts;
+                case QuestMetric.MergesOrGoldenCalls:
+                    return s.Merges + s.GoldenCalls;
+                case QuestMetric.SegmentsOpened:
+                    return Expansion.Segments(s);
+                case QuestMetric.BestFish:
+                    return s.BestFish;
+                case QuestMetric.DailyQuestsToday:
+                    return s.DailyQuestsToday;
                 default:
                     return 0;
             }
@@ -187,7 +230,11 @@ namespace VuonTra.Core
             s.Clovers += clovers;
             s.GoldenCarrots += q.RewardGolden;
             s.Claimed.Add(q.Id);
-            if (q.Daily) QuestChests.AddPoints(s, s.DailyDay, QuestChests.QuestPoints);
+            if (q.Daily)
+            {
+                s.DailyQuestsToday++;
+                QuestChests.AddPoints(s, s.DailyDay, QuestChests.QuestPoints);
+            }
             Garden.AddXp(s, Garden.XpQuest);
             return true;
         }
@@ -212,6 +259,7 @@ namespace VuonTra.Core
             s.DailyOrdersBase = s.OrdersDelivered;
             s.DailyPhotoAsksBase = s.PhotoAsksAnswered;
             s.GoldenToday = 0;
+            s.DailyQuestsToday = 0;
             BigNum goal = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * DailyCarrotSeconds);
             var floor = new BigNum(DailyCarrotMinimum);
             s.DailyCarrotTarget = goal > floor ? goal : floor;

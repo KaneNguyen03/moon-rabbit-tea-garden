@@ -137,6 +137,9 @@ namespace VuonTra.Core
         public int[] Fish = new int[VuonTra.Core.Fishing.Points.Length];
         public long FishCaught, FishFed;
 
+        public long Pets, Boosts, LayoutMoves, Merges, CloverCalls, GoldenCalls, JarsOpened, DailyGifts;
+        public int DailyQuestsToday, BestFish;
+        public NewcomerRecord Newcomer = new NewcomerRecord();
         public ReviewRecord Review = new ReviewRecord();
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)

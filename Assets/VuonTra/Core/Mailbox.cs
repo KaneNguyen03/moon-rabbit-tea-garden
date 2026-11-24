@@ -8,6 +8,7 @@ namespace VuonTra.Core
         MakeUp,
         Season,
         WeekChest,
+        Newcomer,
         MonthPass
     }
 
@@ -22,14 +23,16 @@ namespace VuonTra.Core
         public bool Premium;
         public int Tiers;
         public BigNum Coins;
+        public int GiftGolden, GiftClovers, GiftJars, GiftPurple;
 
         WeekChest ChestDef => Kind == LetterKind.WeekChest ? QuestChests.Chests[Chest] : null;
 
         MonthBundle Gifts => MonthPass.BundleOf(this);
 
-        public int Golden => Kind == LetterKind.MonthPass ? Gifts.Golden : Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.WeekChest ? ChestDef.Golden : Mailbox.SeasonGolden;
-        public int Clovers => Kind == LetterKind.MonthPass ? Gifts.Clovers : Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.WeekChest ? ChestDef.Clovers : 0;
-        public int Jars => Kind == LetterKind.MonthPass ? Gifts.Jars : Kind == LetterKind.WeekChest ? ChestDef.Jars : 0;
+        public int Golden => Kind == LetterKind.MonthPass ? Gifts.Golden : Kind == LetterKind.MakeUp ? Mailbox.MakeUpGolden : Kind == LetterKind.Season ? Mailbox.SeasonGolden : Kind == LetterKind.WeekChest ? ChestDef.Golden : GiftGolden;
+        public int Clovers => Kind == LetterKind.MonthPass ? Gifts.Clovers : Kind == LetterKind.MakeUp ? Mailbox.MakeUpClovers : Kind == LetterKind.WeekChest ? ChestDef.Clovers : Kind == LetterKind.Newcomer ? GiftClovers : 0;
+        public int Jars => Kind == LetterKind.MonthPass ? Gifts.Jars : Kind == LetterKind.WeekChest ? ChestDef.Jars : Kind == LetterKind.Newcomer ? GiftJars : 0;
+        public int Purple => Kind == LetterKind.Newcomer ? GiftPurple : 0;
         public int RabbitTier => Kind == LetterKind.MonthPass ? (Gifts.Rabbit ? MonthPass.RabbitRarity : QuestChests.NoRabbit) : Kind == LetterKind.WeekChest ? ChestDef.RabbitTier : QuestChests.NoRabbit;
         public int KeepDays => Kind == LetterKind.MonthPass ? MonthPass.KeepDays : Kind == LetterKind.WeekChest ? QuestChests.ChestKeepDays : Mailbox.KeepDays;
     }
@@ -59,6 +62,8 @@ namespace VuonTra.Core
             s.Letters.Add(letter);
             return true;
         }
+
+        public static bool Send(GameState s, Letter letter) => Add(s, letter);
 
         public static bool Compensate(GameState s, long day)
             => Add(s, new Letter { Id = "makeup-" + day, Kind = LetterKind.MakeUp, Day = day });
@@ -121,6 +126,8 @@ namespace VuonTra.Core
             }
             s.GoldenCarrots += letter.Golden;
             s.Clovers += letter.Clovers;
+            s.MoonJars = Math.Min(MoonJars.Cap, s.MoonJars + letter.Jars);
+            for (int i = 0; i < letter.Purple; i++) rabbit = Rabbits.ArriveKind(s, Newcomer.PurpleKind(s, kindRoll), name);
             return letter;
         }
     }

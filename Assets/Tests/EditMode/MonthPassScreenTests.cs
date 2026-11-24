@@ -105,6 +105,7 @@ namespace VuonTra.Core.Tests
             Tap("Free/Tier 2");
             Assert.IsTrue(screen.Prizes.IsOpen);
             Assert.AreEqual(clovers + 1, s.Clovers);
+            Assert.IsTrue(screen.ReviewBusy, "one card at a time");
             screen.Prizes.Close();
             screen.Refresh();
             Assert.IsTrue(At("Free/Tier 2/Tick").gameObject.activeSelf);
@@ -145,6 +146,8 @@ namespace VuonTra.Core.Tests
             Tap("Premium/Tier 10");
             Assert.IsTrue(screen.KindChooser.IsOpen);
             Assert.AreEqual(rabbits, s.Rabbits.Count, "nothing comes before the choice");
+            Assert.IsTrue(screen.ReviewBusy, "the review card waits while the choice is open");
+            Assert.IsFalse(screen.OfferCardFree, "and so does an offer card");
             screen.KindChooser.Pick(2);
             Assert.IsFalse(screen.KindChooser.IsOpen);
             Assert.AreEqual(rabbits + 1, s.Rabbits.Count);

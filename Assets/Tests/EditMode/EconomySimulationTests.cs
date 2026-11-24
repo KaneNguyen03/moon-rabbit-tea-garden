@@ -44,6 +44,11 @@ namespace VuonTra.Core.Tests
         bool upgradeAll;
         BigNum earnedDoubles, earnedAds;
         int goldenAds, extraRounds;
+        bool newcomer;
+        BigNum earnedNewcomer;
+        int cloversNewcomer, goldenNewcomer;
+        System.Random newcomerRng;
+        readonly int[] newcomerDayAt = new int[VuonTra.Core.Newcomer.Days];
         int goldenChests, cloversChests, boxesOpened, chestsOpened;
         int goldenPass, cloversPass, passTiers;
         bool openChests, answerAsks, claimPass;
@@ -96,6 +101,11 @@ namespace VuonTra.Core.Tests
             takeFreeDouble = everyAd = upgradeAll = false;
             earnedDoubles = earnedAds = BigNum.Zero;
             goldenAds = extraRounds = 0;
+            newcomer = false;
+            earnedNewcomer = BigNum.Zero;
+            cloversNewcomer = goldenNewcomer = 0;
+            newcomerRng = new System.Random(unchecked(seed * 31 + 102));
+            for (int i = 0; i < newcomerDayAt.Length; i++) newcomerDayAt[i] = 0;
             goldenChests = cloversChests = boxesOpened = chestsOpened = 0;
             goldenPass = cloversPass = passTiers = 0;
             openChests = true;
@@ -142,6 +152,35 @@ namespace VuonTra.Core.Tests
             if (everyAd) while (Ads.ClaimShopGolden(s, Today)) goldenAds += Ads.ShopGoldenReward;
             MeetFrog();
             GoFishing();
+            if (newcomer) TryTheWeeksTasks();
+        }
+
+        void TryTheWeeksTasks()
+        {
+            int petted = 0;
+            foreach (Rabbit r in s.Rabbits)
+            {
+                if (petted >= 3) break;
+                if (Rabbits.Pet(s, r, Today).FirstToday) petted++;
+            }
+            if (s.LayoutMoves == 0 && s.Grid.TryTileOf(GardenGrid.StationId(defs[1]), out Hex a) && s.Grid.TryTileOf(GardenGrid.StationId(defs[2]), out Hex b)
+                && Layout.Drop(defs, s, a, b) == LayoutDrop.Swapped)
+                Layout.Drop(defs, s, a, b);
+        }
+
+        void ClaimTheWeek()
+        {
+            for (int day = 1; day <= VuonTra.Core.Newcomer.Days; day++)
+                for (int slot = 0; slot < VuonTra.Core.Newcomer.TasksPerDay; slot++)
+                {
+                    NewcomerClaim claim = VuonTra.Core.Newcomer.Claim(defs, s, mods, day, slot, "T", newcomerRng.NextDouble());
+                    if (!claim.Ok) continue;
+                    earnedNewcomer += claim.Carrots;
+                    cloversNewcomer += claim.Clovers;
+                    goldenNewcomer += claim.Golden + claim.DayGolden;
+                    if (claim.DayPaid) newcomerDayAt[day - 1] = (int)Today;
+                    if (claim.Rabbit != null) Rabbits.AutoAssign(defs, s);
+                }
         }
 
         void GoFishing()
@@ -327,6 +366,7 @@ namespace VuonTra.Core.Tests
 
         void ClaimQuests()
         {
+            if (newcomer) ClaimTheWeek();
             foreach (QuestDef quest in quests)
             {
                 int clovers = s.Clovers, golden = s.GoldenCarrots;
@@ -533,7 +573,7 @@ namespace VuonTra.Core.Tests
             return total >= 3600 ? (total / 3600) + " giờ " + (total % 3600 / 60) + " phút" : (total / 60) + " phút " + (total % 60) + " giây";
         }
 
-        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders + earnedJars + earnedDoubles + earnedAds + earnedFrogs + earnedAsks;
+        BigNum TotalEarned => earnedTaps + earnedIdle + earnedBoost + earnedAway + earnedQuests + earnedTray + earnedGames + earnedOrders + earnedJars + earnedDoubles + earnedAds + earnedFrogs + earnedAsks + earnedNewcomer;
 
         double Share(BigNum part)
         {
@@ -541,9 +581,9 @@ namespace VuonTra.Core.Tests
             return total.IsZero ? 0d : Math.Round((part / total).ToDouble() * 1000d) / 10d;
         }
 
-        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenPass + GoldenFromLevels;
-        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenPass;
-        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversPass;
+        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + GoldenFromLevels;
+        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass;
+        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversNewcomer - cloversPass;
 
         void Snapshot(string label)
         {
@@ -596,19 +636,23 @@ namespace VuonTra.Core.Tests
             public double DoubleShare, AdShare;
             public double PlayShare, QuestShare;
             public int MostHearts, FishCaught, MostFreeJars, JarsOpened, FrogsMet;
+            public int NewcomerClaimed, NewcomerGolden, NewcomerClovers;
+            public int[] NewcomerDayAt;
+            public string NewcomerMissing;
             public double Income7;
             public string Table, Report, Fingerprint;
             public int Golden => GoldenCalls + Visitors;
         }
 
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool pass = true)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true)
         {
             Reset(false, seed);
             openChests = chests;
             claimPass = pass;
             answerAsks = wholeSet;
             if (wholeSet) firstDay = QuestChests.MondayOf(QuestChests.WeekOf(1) + 1);
-            goFishing = fishing;
+            newcomer = firstWeek;
+            goFishing = fishing || firstWeek;
             upgradeAll = pressUpgradeAll;
             takeFreeDouble = freeDouble;
             everyAd = watchEveryAd;
@@ -649,6 +693,15 @@ namespace VuonTra.Core.Tests
             w.MostHearts = MostHearts(); w.FishCaught = fishCaught;
             w.MostFreeJars = MostFreeJarsInADay(); w.JarsOpened = jarsOpened; w.FrogsMet = frogsMet;
             w.Income7 = Income.ToDouble();
+            w.NewcomerClaimed = 0;
+            var missing = new List<string>();
+            foreach (NewcomerTask task in VuonTra.Core.Newcomer.All)
+                if (VuonTra.Core.Newcomer.IsClaimed(task, s)) w.NewcomerClaimed++;
+                else missing.Add(task.Day + "/" + task.Id);
+            w.NewcomerMissing = string.Join(" ", missing);
+            w.NewcomerGolden = goldenNewcomer;
+            w.NewcomerClovers = cloversNewcomer;
+            w.NewcomerDayAt = (int[])newcomerDayAt.Clone();
             w.Table = Milestones();
             var report = new StringBuilder();
             report.AppendLine(w.Table);
@@ -889,6 +942,47 @@ namespace VuonTra.Core.Tests
             Assert.GreaterOrEqual(tirelessTenAfter, 0.7 * tirelessTenBefore, "nor for the tireless player\n" + report);
         }
 
+        [Test]
+        public void A_Casual_Newcomer_Claims_All_Twenty_Eight_Tasks_Of_The_First_Week_And_Keeps_The_Pace()
+        {
+            Week[] before = OverSeeds(false, false, false);
+            var after = new Week[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++) after[i] = CasualWeek(false, false, false, Seeds[i], firstWeek: true);
+
+            var report = new StringBuilder();
+            report.AppendLine("# Tuần đầu của người mới (#102)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi thong thả với EconomySimulationTests, trên " + Seeds.Length + " hạt; người mới thêm: câu cá mỗi buổi như #58, vuốt 3 bé mỗi ngày, đổi chỗ hai trạm một lần ở Bố trí, nhận việc Tuần đầu mỗi 30 giây cùng lúc xem nhiệm vụ.");
+            report.AppendLine("Quà mỗi việc: " + VuonTra.Core.Newcomer.TaskSeconds + " giây thu nhập + cỏ " + string.Join("/", VuonTra.Core.Newcomer.TaskClovers) + " + cà rốt vàng " + string.Join("/", VuonTra.Core.Newcomer.TaskGolden)
+                + " (ngày 1–7); quà đủ ngày: hũ trăng " + string.Join("/", VuonTra.Core.Newcomer.DayJars) + ", cà rốt vàng " + string.Join("/", VuonTra.Core.Newcomer.DayGolden) + ", thỏ Tím " + string.Join("/", VuonTra.Core.Newcomer.DayPurple) + ".");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Việc đã nhận | Ngày nhận đủ (ngày 1–7) | Cấp 5 (không → có) | Cấp 10 (không → có) | Cấp hết ngày 1 | 12 ô đất | Gọi vàng + thỏ ghé tiệm | Vàng từ tuần đầu | Cỏ từ tuần đầu | Cấp hết ngày 7 | Chưa nhận |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|");
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                Week b = before[i], a = after[i];
+                report.AppendLine("| " + Seeds[i] + " | " + a.NewcomerClaimed + "/" + VuonTra.Core.Newcomer.Tasks + " | " + string.Join(" ", a.NewcomerDayAt) + " | " + Clock(b.Level5) + " → " + Clock(a.Level5) + " | " + Clock(b.Level10) + " → " + Clock(a.Level10)
+                    + " | " + b.LevelDayOne + " → " + a.LevelDayOne + " | " + Clock(b.Plots12) + " → " + Clock(a.Plots12) + " | " + b.Golden + " → " + a.Golden + " | " + a.NewcomerGolden + " | " + a.NewcomerClovers
+                    + " | " + b.LevelEnd + " → " + a.LevelEnd + " | " + a.NewcomerMissing + " |");
+            }
+            double tenBefore = Median(before, w => w.Level10), tenAfter = Median(after, w => w.Level10);
+            report.AppendLine("| **trung vị** | " + Median(after, w => w.NewcomerClaimed) + " | | " + Clock(Median(before, w => w.Level5)) + " → " + Clock(Median(after, w => w.Level5)) + " | " + Clock(tenBefore) + " → " + Clock(tenAfter) + " | " + Median(before, w => w.LevelDayOne) + " → " + Median(after, w => w.LevelDayOne)
+                + " | " + Clock(Median(before, w => Late(w.Plots12))) + " → " + Clock(Median(after, w => Late(w.Plots12))) + " | " + Median(before, w => w.Golden) + " → " + Median(after, w => w.Golden)
+                + " | " + Median(after, w => w.NewcomerGolden) + " | " + Median(after, w => w.NewcomerClovers) + " | " + Median(before, w => w.LevelEnd) + " → " + Median(after, w => w.LevelEnd) + " | |");
+            report.AppendLine();
+            report.AppendLine("Người mới, hạt " + Seed + ":");
+            report.AppendLine(after[0].Report);
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-newcomer.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Always(after, w => w.NewcomerClaimed == VuonTra.Core.Newcomer.Tasks, "the casual newcomer claims all 28 tasks within the seven days", text);
+            Holds(after, w => w.Golden <= 6, "golden calls stay a few a week, at most six", text);
+            Assert.GreaterOrEqual(tenAfter, 0.85 * tenBefore, "level 10 no more than 15 % sooner, on the median\n" + text);
+            HardRules(after, text);
+        }
+
         public const int MostGoldenFromChests = 25;
         public const int MostGoldenCallsWithChests = 9;
 
@@ -900,8 +994,8 @@ namespace VuonTra.Core.Tests
             var with = new Week[Seeds.Length];
             for (int i = 0; i < Seeds.Length; i++)
             {
-                without[i] = CasualWeek(false, false, false, Seeds[i], false, false, true, false);
-                with[i] = CasualWeek(false, false, false, Seeds[i], false, true, true, false);
+                without[i] = CasualWeek(false, false, false, Seeds[i], false, false, true, pass: false);
+                with[i] = CasualWeek(false, false, false, Seeds[i], false, true, true, pass: false);
             }
 
             var report = new StringBuilder();

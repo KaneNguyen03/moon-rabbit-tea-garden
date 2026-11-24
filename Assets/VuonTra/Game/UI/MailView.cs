@@ -110,13 +110,15 @@ namespace VuonTra.Game.UI
                 case LetterKind.MakeUp: return L10n.T("mail.makeup");
                 case LetterKind.WeekChest: return L10n.T("mail.chest", QuestChests.Chests[letter.Chest].Points);
                 case LetterKind.MonthPass: return L10n.T(letter.Premium ? "mail.monthpass.premium" : "mail.monthpass", MonthPassView.MonthName(letter.Month));
+                case LetterKind.Newcomer: return L10n.T("mail.newcomer");
                 default: return L10n.T("mail.season", L10n.Season(letter.Season));
             }
         }
 
-        public static string GiftOf(int golden, int clovers, int jars = 0, int rabbitTier = QuestChests.NoRabbit)
+        public static string GiftOf(int golden, int clovers, int jars = 0, int rabbitTier = QuestChests.NoRabbit, int purple = 0)
         {
-            var parts = new List<string>(4);
+            var parts = new List<string>(5);
+            if (purple > 0) parts.Add(L10n.T("mail.purple", purple));
             if (golden > 0) parts.Add(L10n.T("mail.golden", golden));
             if (clovers > 0) parts.Add(L10n.T("mail.clovers", clovers));
             if (jars > 0) parts.Add(L10n.T("mail.jars", jars));
@@ -124,7 +126,7 @@ namespace VuonTra.Game.UI
             return string.Join(" · ", parts);
         }
 
-        public static string GiftOf(Letter letter) => letter.Kind == LetterKind.MonthPass ? GiftOfMonth(letter) : GiftOf(letter.Golden, letter.Clovers, letter.Jars, letter.RabbitTier);
+        public static string GiftOf(Letter letter) => letter.Kind == LetterKind.MonthPass ? GiftOfMonth(letter) : GiftOf(letter.Golden, letter.Clovers, letter.Jars, letter.RabbitTier, letter.Purple);
 
         static string GiftOfMonth(Letter letter)
         {

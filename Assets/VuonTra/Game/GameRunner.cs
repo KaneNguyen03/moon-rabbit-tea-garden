@@ -1180,14 +1180,31 @@ namespace VuonTra.Game
 
         public Letter ClaimLetter(string id, out Rabbit rabbit)
         {
-            Letter letter = Mailbox.Claim(State, id, TodayNumber, PickName(), _rng.NextDouble(), out rabbit);
+            Letter pending = State.Letters.Find(l => l.Id == id);
+            double kindRoll = pending != null && pending.Kind == LetterKind.Newcomer ? Newcomer.ShownKindRoll : _rng.NextDouble();
+            Letter letter = Mailbox.Claim(State, id, TodayNumber, PickName(), kindRoll, out rabbit);
             if (letter == null) return null;
             if (rabbit != null) Rabbits.AutoAssign(Defs, State);
             Changed();
             return letter;
         }
 
-        bool CheckMail() => Mailbox.Check(State, TodayNumber) > 0;
+        bool CheckMail()
+        {
+            bool closed = Newcomer.Expire(Defs, State, TodayNumber) != null;
+            return Mailbox.Check(State, TodayNumber) > 0 || closed;
+        }
+
+        public NewcomerClaim ClaimNewcomer(int day, int slot)
+        {
+            if (day < 1 || day > Newcomer.Days || slot < 0 || slot >= Newcomer.TasksPerDay) return default;
+            bool fallback = Newcomer.IsFallback(Newcomer.At(day, slot), State);
+            NewcomerClaim claim = Newcomer.Claim(Defs, State, Mods, day, slot, PickName(), Newcomer.ShownKindRoll);
+            if (!claim.Ok) return claim;
+            Analytics.LogNewcomer(claim, fallback);
+            Changed();
+            return claim;
+        }
 
         #endregion
 

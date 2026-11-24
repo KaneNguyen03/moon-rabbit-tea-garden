@@ -3683,195 +3683,427 @@ MonoBehaviour:
     m_Key: review.mail.body
     m_Metadata:
       m_Items: []
-  - m_Id: 847125809192960
+  - m_Id: 844794350788608
+    m_Key: newcomer.pill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371520
+    m_Key: newcomer.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371521
+    m_Key: newcomer.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371522
+    m_Key: newcomer.day
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371523
+    m_Key: newcomer.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371524
+    m_Key: newcomer.opens
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371525
+    m_Key: newcomer.carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371526
+    m_Key: newcomer.jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371527
+    m_Key: newcomer.purple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371528
+    m_Key: newcomer.daygift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371529
+    m_Key: newcomer.big
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371530
+    m_Key: newcomer.big.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371531
+    m_Key: newcomer.fallback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371532
+    m_Key: newcomer.task.teapot-25
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371533
+    m_Key: newcomer.task.stations-4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371534
+    m_Key: newcomer.task.call-2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371535
+    m_Key: newcomer.task.order-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371536
+    m_Key: newcomer.task.fish-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371537
+    m_Key: newcomer.task.pounding-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371538
+    m_Key: newcomer.task.feed-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371539
+    m_Key: newcomer.task.photo-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371540
+    m_Key: newcomer.task.charms-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371541
+    m_Key: newcomer.task.level-8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371542
+    m_Key: newcomer.task.trade-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371543
+    m_Key: newcomer.task.jar-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371544
+    m_Key: newcomer.task.orders-4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371545
+    m_Key: newcomer.task.pet-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371546
+    m_Key: newcomer.task.leaves-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371547
+    m_Key: newcomer.task.stations-6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371548
+    m_Key: newcomer.task.layout-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371549
+    m_Key: newcomer.task.kinds-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371550
+    m_Key: newcomer.task.boost-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371551
+    m_Key: newcomer.task.gift-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371552
+    m_Key: newcomer.task.level-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371553
+    m_Key: newcomer.task.fireflies-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371554
+    m_Key: newcomer.task.merge-or-golden-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371555
+    m_Key: newcomer.task.rest-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371556
+    m_Key: newcomer.task.segment-5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371557
+    m_Key: newcomer.task.fish-tier-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371558
+    m_Key: newcomer.task.stations-8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371559
+    m_Key: newcomer.task.daily-4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371560
+    m_Key: newcomer.task.levels-30
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371561
+    m_Key: mail.newcomer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371562
+    m_Key: mail.purple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760128
+    m_Key: newcomer.opens.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760129
+    m_Key: newcomer.jars.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760130
+    m_Key: newcomer.task.order-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760131
+    m_Key: newcomer.task.pounding-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760132
+    m_Key: newcomer.task.feed-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760133
+    m_Key: newcomer.task.photo-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760134
+    m_Key: newcomer.task.trade-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760135
+    m_Key: newcomer.task.jar-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760136
+    m_Key: newcomer.task.leaves-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760137
+    m_Key: newcomer.task.layout-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760138
+    m_Key: newcomer.task.gift-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760139
+    m_Key: newcomer.task.fireflies-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760140
+    m_Key: newcomer.task.merge-or-golden-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760141
+    m_Key: mail.purple.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 852717978247168
     m_Key: monthpass.title
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775872
+  - m_Id: 852717999218688
     m_Key: monthpass.month.1
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775873
+  - m_Id: 852717999218689
     m_Key: monthpass.month.2
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775874
+  - m_Id: 852717999218690
     m_Key: monthpass.month.3
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775875
+  - m_Id: 852717999218691
     m_Key: monthpass.month.4
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775876
+  - m_Id: 852717999218692
     m_Key: monthpass.month.5
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775877
+  - m_Id: 852717999218693
     m_Key: monthpass.month.6
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775878
+  - m_Id: 852717999218694
     m_Key: monthpass.month.7
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775879
+  - m_Id: 852717999218695
     m_Key: monthpass.month.8
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775880
+  - m_Id: 852717999218696
     m_Key: monthpass.month.9
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775881
+  - m_Id: 852717999218697
     m_Key: monthpass.month.10
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775882
+  - m_Id: 852717999218698
     m_Key: monthpass.month.11
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775883
+  - m_Id: 852717999218699
     m_Key: monthpass.month.12
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775884
+  - m_Id: 852717999218700
     m_Key: monthpass.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775885
+  - m_Id: 852717999218701
     m_Key: monthpass.page
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775886
+  - m_Id: 852717999218702
     m_Key: monthpass.free
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775887
+  - m_Id: 852717999218703
     m_Key: monthpass.premium
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775888
+  - m_Id: 852717999218704
     m_Key: monthpass.buy
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775889
+  - m_Id: 852717999218705
     m_Key: monthpass.bought
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775890
+  - m_Id: 852717999218706
     m_Key: monthpass.locked
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775891
+  - m_Id: 852717999218707
     m_Key: monthpass.need
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775892
+  - m_Id: 852717999218708
     m_Key: monthpass.cell.minutes
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775893
+  - m_Id: 852717999218709
     m_Key: monthpass.cell.lantern
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775894
+  - m_Id: 852717999218710
     m_Key: monthpass.cell.frame
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775895
+  - m_Id: 852717999218711
     m_Key: monthpass.cell.rabbit
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775896
+  - m_Id: 852717999218712
     m_Key: monthpass.claimed.title
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775897
+  - m_Id: 852717999218713
     m_Key: monthpass.claimed.free
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775898
+  - m_Id: 852717999218714
     m_Key: monthpass.claimed.premium
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775899
+  - m_Id: 852717999218715
     m_Key: monthpass.lantern
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775900
+  - m_Id: 852717999218716
     m_Key: monthpass.frame
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775901
+  - m_Id: 852717999218717
     m_Key: monthpass.hung
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775902
+  - m_Id: 852717999218718
     m_Key: monthpass.unhung
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775903
+  - m_Id: 852717999218719
     m_Key: monthpass.framed
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775904
+  - m_Id: 852717999218720
     m_Key: monthpass.unframed
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775905
+  - m_Id: 852717999218721
     m_Key: monthpass.choose.title
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775906
+  - m_Id: 852717999218722
     m_Key: monthpass.choose.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775907
+  - m_Id: 852717999218723
     m_Key: monthpass.choose.later
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775908
+  - m_Id: 852717999218724
     m_Key: monthpass.bought.title
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775909
+  - m_Id: 852717999218725
     m_Key: monthpass.bought.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775910
+  - m_Id: 852717999218726
     m_Key: monthpass.bought.none
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775911
+  - m_Id: 852717999218727
     m_Key: mail.monthpass
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775912
+  - m_Id: 852717999218728
     m_Key: mail.monthpass.premium
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775913
+  - m_Id: 852717999218729
     m_Key: mail.coins
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775914
+  - m_Id: 852717999218730
     m_Key: mail.lantern
     m_Metadata:
       m_Items: []
-  - m_Id: 847125821775915
+  - m_Id: 852717999218731
     m_Key: mail.frame
     m_Metadata:
       m_Items: []
-  - m_Id: 847125830164480
+  - m_Id: 852718007607296
     m_Key: monthpass.sub.one
     m_Metadata:
       m_Items: []
-  - m_Id: 847125830164481
+  - m_Id: 852718007607297
     m_Key: monthpass.need.one
     m_Metadata:
       m_Items: []
-  - m_Id: 847125830164482
+  - m_Id: 852718007607298
     m_Key: monthpass.bought.sub.one
     m_Metadata:
       m_Items: []
