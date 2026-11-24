@@ -661,6 +661,7 @@ namespace VuonTra.EditorTools
             RenderPond(runner, screen);
             RenderRecipes(runner, screen);
             RenderAquarium(runner, screen);
+            RenderRecipeBook(runner, screen);
             RenderNewcomer(runner, screen);
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
@@ -2086,6 +2087,79 @@ namespace VuonTra.EditorTools
             rt.GetWorldCorners(c);
             Vector3 a = street.InverseTransformPoint(c[0]), b = street.InverseTransformPoint(c[2]);
             return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        static void RenderRecipeBook(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            bool cardsBefore = runner.OfferCardsOn;
+            runner.OfferCardsOn = false;
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                GameState s = GameState.NewGame(defs);
+                int[] levels = { 112, 64, 41, 27, 18, 9 };
+                for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+                s.Plots = 8;
+                s.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel + 2);
+                s.HintSeen = true;
+                s.TutorialStep = Tutorial.Steps;
+                s.Newcomer.Closed = true;
+                s.Coins = new BigNum(3.1e9);
+                s.RecipeLeaves = 86;
+                Recipes.SetLevel(s, 0, 0, 4);
+                Recipes.SetLevel(s, 0, 1, 6);
+                Recipes.SetLevel(s, 2, 0, 3);
+                Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+                Rabbits.Arrive(s, 1, "Mây", 0.4);
+                s.FreshKinds.Clear();
+                runner.Init(s);
+                L10n.SetLocale(locale);
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                Step(screen, 0.5f);
+                if (!screen.NewDishCard.IsOpen) throw new System.Exception("Preview: the new dish card did not open");
+                Capture(screen, "110b-mon-moi-" + locale);
+                Press(screen, "Canvas/NewDish/Card/Book");
+                Step(screen, 0.5f);
+                Capture(screen, "110b-so-cong-thuc-" + locale);
+                var bookScroll = screen.transform.Find("Canvas/RecipeBook/Card/Scroll").GetComponent<ScrollRect>();
+                bookScroll.verticalNormalizedPosition = 0.62f;
+                Step(screen, 0.3f);
+                Capture(screen, "110b-so-cong-thuc-giua-" + locale);
+                screen.Book.Close();
+                UiKit.SetLargeText(true);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                screen.Book.Open(runner.Defs, s);
+                Step(screen, 0.5f);
+                Capture(screen, "110b-so-cong-thuc-chu-to-" + locale);
+                screen.Book.Close();
+                UiKit.SetLargeText(false);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                screen.OpenSheet(0);
+                Step(screen, 0.5f);
+                var sheetScroll = screen.transform.Find("Canvas/Sheet/Panel/Scroll").GetComponent<ScrollRect>();
+                sheetScroll.verticalNormalizedPosition = 0f;
+                Step(screen, 0.3f);
+                Capture(screen, "110b-tab-tram-" + locale);
+                screen.CloseSheet();
+                Step(screen, 0.4f);
+                screen.FocusStation(0);
+                Step(screen, 0.5f);
+                Capture(screen, "110b-tam-tram-mon-3-" + locale);
+                screen.SelectStation(-1);
+                Step(screen, 0.3f);
+            }
+            runner.OfferCardsOn = cardsBefore;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            Step(screen, 0.4f);
         }
 
         static void RenderAquarium(GameRunner runner, GardenScreen screen)

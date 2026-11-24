@@ -141,6 +141,7 @@ namespace VuonTra.Core
         public int RecipeLeaves;
         public double RestLeafSeconds;
         public int[] DishLevels = new int[0];
+        public int[] DishesSeen = new int[0];
 
         public long Pets, Boosts, LayoutMoves, Merges, CloverCalls, GoldenCalls, JarsOpened, DailyGifts;
         public int DailyQuestsToday, BestFish;
@@ -169,6 +170,7 @@ namespace VuonTra.Core
             s.Plots = System.Math.Min(defs.Count, VuonTra.Core.Plots.Starting);
             s.TrayWork = new double[defs.Count];
             s.DishLevels = Recipes.NewLevels(defs.Count);
+            s.DishesSeen = Recipes.NewSeen(defs.Count);
             if (defs.Count > 0) s.Levels[0] = 1;
             GardenGrid.Settle(defs, s);
             return s;

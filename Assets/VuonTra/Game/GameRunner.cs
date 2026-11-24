@@ -300,11 +300,20 @@ namespace VuonTra.Game
             return ok;
         }
 
-        public bool RaiseDish(int station)
+        public bool RaiseDish(int station) => RaiseDish(station, Recipes.CurrentDish(State, station));
+
+        public bool RaiseDish(int station, int dish)
         {
-            if (!Recipes.Raise(State, station)) return false;
+            if (!Recipes.Raise(State, station, dish)) return false;
             Changed();
             return true;
+        }
+
+        public void SeeNewDishes()
+        {
+            if (Recipes.NewDishes(State) <= 0) return;
+            Recipes.SeeDishes(State);
+            Changed();
         }
 
         public bool GiftWaiting => Shop.GiftWaiting(State, TodayNumber);

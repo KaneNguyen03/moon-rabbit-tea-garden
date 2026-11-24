@@ -24,7 +24,8 @@ namespace VuonTra.Core
             var scratch = new GameState
             {
                 Levels = (int[])s.Levels.Clone(), Progress = s.Progress, Rabbits = s.Rabbits, Items = s.Items,
-                UpgradeLevels = s.UpgradeLevels, Plots = s.Plots, Coins = budget, DishLevels = s.DishLevels
+                UpgradeLevels = s.UpgradeLevels, Plots = s.Plots, Coins = budget, DishLevels = s.DishLevels,
+                GardenXp = s.GardenXp, Season = s.Season
             };
             var byStation = new Dictionary<int, UpgradeStep>();
             var order = new List<UpgradeStep>();

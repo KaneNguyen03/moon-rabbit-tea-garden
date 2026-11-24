@@ -153,7 +153,7 @@ namespace VuonTra.Core.Tests
             var m = Modifiers.None;
             m.IncomeMultiplier = 2d;
             m.SpeedMultiplier = 1.5d;
-            double minute = 80d * 60d * 2d * 1.5d;
+            double minute = 80d * 60d * 2d * 1.5d * Recipes.ExtraDishMultiplier;
             Assert.AreEqual(minute, Intros.Reward(defs, s, m).ToDouble(), 1e-6 * minute);
             Assert.AreEqual(Economy.IncomePerSecond(defs, s).ToDouble() * 60d * 3d, Intros.Reward(defs, s, m).ToDouble(), 1e-6 * minute);
 

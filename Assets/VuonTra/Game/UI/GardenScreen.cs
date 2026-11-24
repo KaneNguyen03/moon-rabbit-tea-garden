@@ -1247,6 +1247,7 @@ namespace VuonTra.Game.UI
             BuildWelcomeBack();
             BuildFair();
             BuildTrunk();
+            BuildRecipeBook(catalog);
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
             KindChooser = new MonthKindChooser(_canvas, catalog, Tweens);
             BuildIntros(catalog);
@@ -3565,6 +3566,7 @@ namespace VuonTra.Game.UI
             }
             BuildPlotRow(stations, catalog);
             BuildStoredRows(stations, catalog);
+            BuildBookRow(stations, catalog);
 
             RectTransform upgrades = AddList("Upgrades", 1);
             AddNote(upgrades, L10n.T("upgrades.note"));
@@ -4048,6 +4050,7 @@ namespace VuonTra.Game.UI
             RefreshFair();
             RefreshTrunk();
             RefreshOffers();
+            RefreshRecipeBook(s);
             RefreshDecor(s);
             RefreshOrders(s);
             FirstWeek?.RefreshPill(_orderBadge.activeSelf);
@@ -4867,7 +4870,8 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen || TrunkCard.IsOpen || IntroShowing || TankPanelsOpen;
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen || TrunkCard.IsOpen || IntroShowing || TankPanelsOpen
+            || NewDishCard.IsOpen || Book.IsOpen;
 
         void AskForReview()
         {
@@ -8293,7 +8297,8 @@ namespace VuonTra.Game.UI
             || Detail.IsOpen || Workers.IsOpen || Picker.IsOpen || DecorCard.IsOpen || UpgradeAll.IsOpen
             || GoldenPacks.IsOpen || CloudChoice.IsOpen || Mail.IsOpen || Rename.IsOpen || Profile.IsOpen
             || OfferCard.IsOpen || ReviewCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen
-            || WelcomeCard.IsOpen || TrunkCard.IsOpen || TankPanelsOpen;
+            || WelcomeCard.IsOpen || TrunkCard.IsOpen || TankPanelsOpen
+            || NewDishCard.IsOpen || Book.IsOpen;
 
         public bool IntroShowing => IntroCard != null && IntroCard.IsOpen;
 

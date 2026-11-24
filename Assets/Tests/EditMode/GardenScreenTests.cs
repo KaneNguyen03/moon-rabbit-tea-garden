@@ -6757,19 +6757,20 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Every_Station_Has_A_First_Dish_Named_In_Both_Languages()
+        public void Every_Station_Has_Three_Dishes_Named_In_Both_Languages()
         {
             foreach (string locale in new[] { "vi", "en" })
             {
                 L10n.SetLocale(locale);
                 var names = new HashSet<string>();
                 foreach (StationDef d in runner.Defs)
-                {
-                    string name = L10n.Dish(d.Id, 0);
-                    Assert.AreNotEqual("dish." + d.Id + ".1", name, locale + ": " + d.Id);
-                    Assert.IsTrue(names.Add(name), locale + ": two stations share " + name);
-                }
-                Assert.AreEqual(16, names.Count);
+                    for (int dish = 0; dish < Recipes.Dishes; dish++)
+                    {
+                        string name = L10n.Dish(d.Id, dish);
+                        Assert.AreNotEqual("dish." + d.Id + "." + (dish + 1), name, locale + ": " + d.Id);
+                        Assert.IsTrue(names.Add(name), locale + ": two dishes share " + name);
+                    }
+                Assert.AreEqual(16 * Recipes.Dishes, names.Count);
             }
         }
 
