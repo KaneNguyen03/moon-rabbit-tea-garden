@@ -4215,6 +4215,50 @@ MonoBehaviour:
     m_Key: fish.leaf.one
     m_Metadata:
       m_Items: []
+  - m_Id: 874172891783168
+    m_Key: welcome.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171776
+    m_Key: welcome.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171777
+    m_Key: welcome.line
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171778
+    m_Key: welcome.line.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171779
+    m_Key: welcome.gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171780
+    m_Key: welcome.checkin
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171781
+    m_Key: welcome.quests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171782
+    m_Key: welcome.claim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171783
+    m_Key: welcome.tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171784
+    m_Key: welcome.pill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172908560384
+    m_Key: welcome.sub.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

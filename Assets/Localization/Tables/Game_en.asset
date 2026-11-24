@@ -4227,6 +4227,50 @@ MonoBehaviour:
     m_Localized: +{0} recipe leaf
     m_Metadata:
       m_Items: []
+  - m_Id: 874172891783168
+    m_Localized: The garden missed you
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171776
+    m_Localized: You were away {0} days; the garden kept your seat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171777
+    m_Localized: "\u201CI missed you! {0} days already, and I kept a cup of tea for you.\u201D"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171778
+    m_Localized: "\u201CThe whole garden missed you!\u201D"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171779
+    m_Localized: "Welcome-home gifts \xB7 already yours"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171780
+    m_Localized: "Daily check-in \xB7 day {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171781
+    m_Localized: "While the check-in lasts: daily quest rewards \xD72"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171782
+    m_Localized: Claim day {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171783
+    m_Localized: Come back tomorrow
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172900171784
+    m_Localized: "Welcome home \xB7 day {0}/{1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874172908560384
+    m_Localized: You were away {0} day; the garden kept your seat
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
