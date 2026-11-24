@@ -57,6 +57,8 @@ namespace VuonTra.Core.Tests
             s.HintSeen = true;
             s.GardenXp = Garden.XpForLevel(level);
             runner.Init(s);
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             if (!withScreen) return s;
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;

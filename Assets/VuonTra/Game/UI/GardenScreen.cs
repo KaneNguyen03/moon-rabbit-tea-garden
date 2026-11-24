@@ -293,7 +293,7 @@ namespace VuonTra.Game.UI
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
         Text _recipeLeaves;
-        Text _coins, _perSecond, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
+        Text _coins, _perSecond, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements, _achievementTiers;
         RectTransform _questReady, _cardModes;
         ChunkyButton _claimAll;
         Text _plotTitle, _plotSub, _plotCost;
@@ -313,6 +313,7 @@ namespace VuonTra.Game.UI
             Runner.Payout += OnPayout;
             Runner.ProductMade += OnProductMade;
             Runner.AwayClaimed += ShowAway;
+            Runner.IntroRewarded += OnIntroRewarded;
             L10n.Changed += RebuildUi;
             UiKit.TextChanged += RebuildUi;
             TrackpadPinch.Start();
@@ -329,6 +330,7 @@ namespace VuonTra.Game.UI
             Runner.Payout -= OnPayout;
             Runner.ProductMade -= OnProductMade;
             Runner.AwayClaimed -= ShowAway;
+            Runner.IntroRewarded -= OnIntroRewarded;
             if (_onOfferDelivered != null) Runner.OfferDelivered -= _onOfferDelivered;
         }
 
@@ -382,6 +384,7 @@ namespace VuonTra.Game.UI
             UpdateWorld(dt);
             UpdateFireflies();
             UpdateGuide(dt);
+            UpdateIntros(dt);
             UpdateChatter(dt);
             UpdateBoostEdge(boosting, dt);
             UpdateSounds(boosting, dt);
@@ -1238,7 +1241,7 @@ namespace VuonTra.Game.UI
                     Shell.Resume();
                     Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
                     Refresh(-1f);
-                }), OnRedeemCode, () => Runner.OpenStorePage());
+                }), OnRedeemCode, () => Runner.OpenStorePage(), () => IntroList.Open(Runner.State));
             BuildMail(catalog);
             FirstWeek = new NewcomerView(_canvas, _hud, Runner, Tweens, OnClaimNewcomer);
             BuildWelcomeBack();
@@ -1246,6 +1249,7 @@ namespace VuonTra.Game.UI
             BuildTrunk();
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
             KindChooser = new MonthKindChooser(_canvas, catalog, Tweens);
+            BuildIntros(catalog);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
             NewMoonCard = new NewMoonView(_canvas, catalog, Tweens, OnNewMoonBegun);
             GoldenPacks = new GoldenPacksView(_canvas, catalog, Tweens, OnBuyPack, done => Runner.RestorePurchases(done));
@@ -3241,6 +3245,7 @@ namespace VuonTra.Game.UI
             {
                 if (_purseHeld) { _purseHeld = false; return; } // the hold already answered; letting go is not a tap
                 Sfx.Click();
+                Runner.TouchIntro(Intros.MoonJar);
                 Income.Open(Runner.Defs, Runner.State, Runner.Mods);
             });
             var purseTrigger = _purse.gameObject.AddComponent<EventTrigger>();
@@ -3326,11 +3331,13 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var gear = UiKit.Rect("Settings", _hud).Place(1f, 1f, -76, -76, 96, 96);
+            _gear = gear;
             gear.AddShadow(14f, 10f, 0.3f);
             ChunkyButton gearButton = null;
             gearButton = UiKit.Chunky(gear, catalog.Round, () =>
             {
                 gearButton.Press(Tweens);
+                Runner.TouchIntro(Intros.NewMoon);
                 Shell.OpenPause();
             });
             gearButton.Lip.type = Image.Type.Simple;
@@ -3581,7 +3588,11 @@ namespace VuonTra.Game.UI
             _questToday = AddNote(quests, L10n.T("quests.today"), true);
             for (int pass = 0; pass < 2; pass++)
             {
-                if (pass == 1) _questAchievements = AddNote(quests, L10n.T("quests.achievements"), true);
+                if (pass == 1)
+                {
+                    _questAchievements = AddNote(quests, L10n.T("quests.achievements"), true);
+                    _achievementTiers = AddNote(quests, "");
+                }
                 for (int i = 0; i < catalog.Quests.Length; i++)
                 {
                     if (catalog.Quests[i].Daily != (pass == 0)) continue;
@@ -3964,6 +3975,7 @@ namespace VuonTra.Game.UI
             _questChests.Refresh(Runner.QuestDefs, s, Runner.TodayNumber, dt);
             _monthPass.Refresh(s, Runner.TodayNumber, Runner.Store.PriceOf(MonthPass.ProductId));
             _questToday.text = L10n.T("quests.today.refresh", Span(SecondsToNextDay(System.DateTimeOffset.Now)));
+            _achievementTiers.text = L10n.T("quests.tiers.total", Quests.TiersDone(Runner.QuestDefs, s));
             OrderQuestRows();
             RefreshPlotRow(defs, s);
             _rabbitList.Refresh(defs, s);
@@ -4046,6 +4058,7 @@ namespace VuonTra.Game.UI
             if (ProductTray.Root.gameObject.activeSelf != trayShown) ProductTray.Root.gameObject.SetActive(trayShown);
             RefreshAdSeams();
             RefreshLayout(s);
+            RefreshIntroDots(s);
             SyncFronts();
         }
 
@@ -4707,6 +4720,7 @@ namespace VuonTra.Game.UI
                 Feel.FloatText(Feel.PointOf(_mortarProp, new Vector2(0, 120)), L10n.T("mortar.tomorrow"), Palette.Lantern, 36);
                 return;
             }
+            Runner.TouchIntro(Intros.Pounding);
             PoundingRun run = Runner.StartPounding();
             if (run == null) return;
             if (SheetOpen) CloseSheet();
@@ -4727,6 +4741,7 @@ namespace VuonTra.Game.UI
                 Feel.FloatText(Feel.PointOf(_basketProp, new Vector2(0, 100)), L10n.T("basket.tomorrow"), Palette.Lantern, 36);
                 return;
             }
+            Runner.TouchIntro(Intros.Leaves);
             LeavesRun run = Runner.StartLeaves();
             if (run == null) return;
             if (SheetOpen) CloseSheet();
@@ -4746,6 +4761,7 @@ namespace VuonTra.Game.UI
                 Feel.FloatText(Feel.PointOf(_jarProp, new Vector2(0, 100)), L10n.T("jar.tomorrow"), Palette.Lantern, 36);
                 return;
             }
+            Runner.TouchIntro(Intros.Fireflies);
             FirefliesRun run = Runner.StartFireflies();
             if (run == null) return;
             if (SheetOpen) CloseSheet();
@@ -4761,6 +4777,7 @@ namespace VuonTra.Game.UI
             if (SheetOpen) CloseSheet();
             SelectStation(-1);
             Runner.MarkVisitorSeen();
+            Runner.TouchIntro(Intros.Shop);
             Shop.Open(Runner.State);
         }
 
@@ -4842,7 +4859,7 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen || TrunkCard.IsOpen;
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen || TrunkCard.IsOpen || IntroShowing;
 
         void AskForReview()
         {
@@ -5198,6 +5215,7 @@ namespace VuonTra.Game.UI
             order.Add(_questToday.rectTransform);
             foreach (QuestRowView row in _questRows) if (row.Daily && !row.CanClaim) order.Add(row.Root);
             order.Add(_questAchievements.rectTransform);
+            order.Add(_achievementTiers.rectTransform);
             foreach (QuestRowView row in _questRows) if (!row.Daily && !row.CanClaim) order.Add(row.Root);
             for (int k = 0; k < order.Count; k++)
                 if (order[k].GetSiblingIndex() != k) order[k].SetSiblingIndex(k);
@@ -5611,6 +5629,7 @@ namespace VuonTra.Game.UI
         public void OpenOrder()
         {
             if (Shell.State != ShellState.Playing || PhotoMode || Runner.State.Order == null) return;
+            Runner.TouchIntro(Intros.Orders);
             if (SheetOpen) CloseSheet();
             SelectStation(-1);
             Sfx.Click();
@@ -6943,6 +6962,7 @@ namespace VuonTra.Game.UI
         void OnFrogTap()
         {
             if (_frogPhase != FrogPhase.Coming && _frogPhase != FrogPhase.Waiting) return;
+            Runner.TouchIntro(Intros.Rain);
             Vector2 from = Feel.PointOf(_frog, new Vector2(0, 90));
             if (!Runner.GreetFrog(ClockHours(), out BigNum paid, out int clovers)) return;
             GameCatalog catalog = Runner.Catalog;
@@ -7436,6 +7456,7 @@ namespace VuonTra.Game.UI
         void BuildLayoutButton(GameCatalog catalog)
         {
             var rt = UiKit.Rect("Layout", _tabBar).Stretch(0, 0, LayoutSlot, 1);
+            _layoutTab = rt;
             Image hit = rt.AddImage(null, new Color(0, 0, 0, 0));
             hit.raycastTarget = true;
             var button = rt.gameObject.AddComponent<Button>();
@@ -7641,6 +7662,7 @@ namespace VuonTra.Game.UI
         {
             if (LayoutMode || _layoutBar == null || Shell.State != ShellState.Playing || PhotoMode) return;
             if (Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
+            Runner.TouchIntro(Intros.Layout);
             LayoutMode = true;
             _layoutDirty = _layoutPressed = _layoutScrolling = false;
             if (SheetOpen) CloseSheet();
@@ -8082,6 +8104,7 @@ namespace VuonTra.Game.UI
         {
             if (Shell.State != ShellState.Playing || PhotoMode || LayoutMode || !Runner.PondOpen) return;
             if (FishingCard.IsOpen || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
+            Runner.TouchIntro(Intros.Fishing);
             if (SheetOpen) CloseSheet();
             SelectStation(-1);
             Sfx.Click();
@@ -8166,6 +8189,256 @@ namespace VuonTra.Game.UI
         /// there when the leaf station is moved (#54), so the tiles kept clear for it and its plate hold wherever things are arranged.
         /// </summary>
         static Vector2 BasketSpot(int leafStation) => CellToWorld(GardenGrid.DefaultStationTile(leafStation)) + new Vector2(104f, 130f);
+
+        #endregion
+
+        #region First-time feature cards (#104)
+
+        public IntroView IntroCard { get; private set; }
+        public IntroListView IntroList { get; private set; }
+        public const float IntroHighlightSeconds = 3f;
+        readonly IntroQueue _introQueue = new IntroQueue();
+        readonly Dictionary<string, RectTransform> _introDots = new Dictionary<string, RectTransform>();
+        RectTransform _layoutTab, _gear, _introGlow;
+        int _introGlowRun;
+
+        public IntroQueue IntroQueue => _introQueue;
+        public RectTransform IntroGlow => _introGlow != null && _introGlow.gameObject.activeSelf ? _introGlow : null;
+        public RectTransform IntroDot(string id) => _introDots.TryGetValue(id, out RectTransform dot) && dot != null && dot.gameObject.activeInHierarchy ? dot : null;
+
+        void BuildIntros(GameCatalog catalog)
+        {
+            _introDots.Clear();
+            _introGlow = null;
+            IntroCard = new IntroView(_canvas, catalog, Tweens, OnIntroTry, OnIntroLater);
+            IntroList = new IntroListView(_canvas, catalog, Tweens, IntroIcon, IntroTint);
+        }
+
+        public bool IntroBlocked =>
+            Shell.State != ShellState.Playing || PhotoMode || LayoutMode || !Tutorial.IsDone(Runner.State)
+            || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
+            || Arrival.IsOpen || NewMoonMoment.IsOpen || NewMoonCard.IsOpen
+            || SheetOpen || Selected >= 0 || Shop.IsOpen || OrderCard.IsOpen || AwayCard.IsOpen || Income.IsOpen
+            || Detail.IsOpen || Workers.IsOpen || Picker.IsOpen || DecorCard.IsOpen || UpgradeAll.IsOpen
+            || GoldenPacks.IsOpen || CloudChoice.IsOpen || Mail.IsOpen || Rename.IsOpen || Profile.IsOpen
+            || OfferCard.IsOpen || ReviewCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen
+            || WelcomeCard.IsOpen || TrunkCard.IsOpen;
+
+        public bool IntroShowing => IntroCard != null && IntroCard.IsOpen;
+
+        void UpdateIntros(float dt)
+        {
+            if (IntroCard == null) return;
+            bool blocked = IntroBlocked;
+            if (IntroCard.IsOpen && blocked)
+            {
+                string id = IntroCard.Showing;
+                IntroCard.Close();
+                Runner.LeaveIntroForLater(id);
+            }
+            string next = Runner.ShowNextIntro(_introQueue, dt, blocked || IntroCard.IsOpen || Feel.BannerVisible);
+            if (next != null) ShowIntro(next);
+        }
+
+        void ShowIntro(string id)
+        {
+            string reward = Intros.HasReward(id)
+                ? L10n.T("intro.reward", Intros.Reward(Runner.Defs, Runner.State, Runner.Mods).Short(), Intros.RewardClovers)
+                : "";
+            IntroCard.Show(id, IntroIcon(id), IntroTint(id), reward);
+            Sfx.Blip();
+        }
+
+        Sprite IntroIcon(string id)
+        {
+            GameCatalog catalog = Runner.Catalog;
+            Sprite icon = null;
+            switch (id)
+            {
+                case Intros.Fishing: icon = catalog.FishSprite(0) ?? catalog.FishBasket; break;
+                case Intros.Pounding: icon = catalog.Mortar; break;
+                case Intros.Leaves:
+                    for (int i = 0; i < Runner.Defs.Count && i < catalog.Stations.Length; i++)
+                        if (Runner.Defs[i].Id == "gio-la" && catalog.Stations[i] != null) icon = catalog.Stations[i].Prop;
+                    break;
+                case Intros.Fireflies: icon = catalog.Glow; break;
+                case Intros.Orders: icon = catalog.Rabbit; break;
+                case Intros.Shop: icon = catalog.ShopProp; break;
+                case Intros.MoonJar: icon = catalog.MoonJar; break;
+                case Intros.Layout: icon = catalog.PlotSign; break;
+                case Intros.Rain: icon = catalog.KindSprite(FrogKind); break;
+                case Intros.NewMoon: icon = catalog.MoonGate; break;
+            }
+            return icon != null ? icon : catalog.Round;
+        }
+
+        Color IntroTint(string id)
+        {
+            Sprite icon = IntroIcon(id);
+            return id == Intros.Fireflies || icon == Runner.Catalog.Round ? Palette.Lantern : Color.white;
+        }
+
+        bool IntroPlace(string id, out Vector2 world, out bool inWorld, out RectTransform target)
+        {
+            world = default;
+            inWorld = true;
+            target = null;
+            switch (id)
+            {
+                case Intros.Fishing: world = PondSpot; target = _pondTap; break;
+                case Intros.Pounding: world = MortarSpot; target = _mortarProp; break;
+                case Intros.Leaves: target = _basketProp; world = _basketProp != null ? _basketProp.anchoredPosition : default; break;
+                case Intros.Fireflies: target = _jarProp; world = _jarProp != null ? _jarProp.anchoredPosition : default; break;
+                case Intros.Orders: world = GuestSpot; target = GuestShown ? _guest : _shopProp; break;
+                case Intros.Shop: world = ShopSpot; target = _shopProp; break;
+                case Intros.Rain: world = FrogGateSpot; target = FrogShown ? _frog : _pondTap; break;
+                case Intros.MoonJar: inWorld = false; target = _purse; break;
+                case Intros.Layout: inWorld = false; target = _layoutTab; break;
+                case Intros.NewMoon: inWorld = false; target = _gear; break;
+                default: return false;
+            }
+            return target != null;
+        }
+
+        RectTransform IntroDotHost(string id, out Vector2 anchor, out Vector2 at)
+        {
+            anchor = new Vector2(1f, 1f);
+            at = new Vector2(-14f, -14f);
+            switch (id)
+            {
+                case Intros.Fishing:
+                    anchor = new Vector2(0.5f, 1f);
+                    at = new Vector2(-40f, -30f);
+                    return _pondTap;
+                case Intros.Rain:
+                    anchor = new Vector2(0.5f, 1f);
+                    at = new Vector2(-110f, -30f);
+                    return _pondTap;
+                case Intros.Orders: return _shopProp;
+                default: return IntroPlace(id, out _, out _, out RectTransform target) ? target : null;
+            }
+        }
+
+        void OnIntroTry(string id)
+        {
+            Sfx.Click();
+            if (SheetOpen) CloseSheet();
+            SelectStation(-1);
+            Runner.TouchIntro(id);
+            FlyToIntro(id);
+        }
+
+        void OnIntroLater(string id)
+        {
+            Runner.LeaveIntroForLater(id);
+            Refresh(-1f);
+        }
+
+        void FlyToIntro(string id)
+        {
+            if (!IntroPlace(id, out Vector2 world, out bool inWorld, out RectTransform target)) return;
+            if (inWorld) GlideTo(world);
+            RectTransform pondArt = target == _pondTap && _pondTap != null && _pondTap.GetSiblingIndex() > 0
+                ? _street.GetChild(_pondTap.GetSiblingIndex() - 1) as RectTransform
+                : null;
+            HighlightIntro(target, pondArt);
+        }
+
+        void HighlightIntro(RectTransform target, RectTransform rimOf)
+        {
+            if (_introGlow != null) Discard(_introGlow.gameObject);
+            RectTransform parent = target.parent as RectTransform;
+            if (parent == null) return;
+            GameCatalog catalog = Runner.Catalog;
+            RectTransform under = rimOf != null ? rimOf : target;
+            var glow = UiKit.Rect("IntroGlow", parent);
+            glow.anchorMin = target.anchorMin;
+            glow.anchorMax = target.anchorMax;
+            glow.pivot = target.pivot;
+            glow.anchoredPosition = target.anchoredPosition;
+            glow.sizeDelta = target.sizeDelta;
+            glow.SetSiblingIndex(under.GetSiblingIndex());
+            var group = glow.gameObject.AddComponent<CanvasGroup>();
+            group.blocksRaycasts = false;
+            group.interactable = false;
+            UiKit.Rect("Halo", glow).Stretch(0, 0, 1, 1, -110, -110, -110, -110).AddImage(catalog.Glow, Palette.Lantern).raycastTarget = false;
+            UiKit.Rect("Core", glow).Stretch(0, 0, 1, 1, -40, -40, -40, -40).AddImage(catalog.Glow, Palette.Lantern).raycastTarget = false;
+            if (rimOf != null)
+            {
+                var rim = UiKit.Rect("Rim", glow);
+                rim.anchorMin = rim.anchorMax = new Vector2(0.5f, 0.5f);
+                rim.pivot = new Vector2(0.5f, 0.5f);
+                rim.sizeDelta = rimOf.rect.size + new Vector2(30f, 30f);
+                rim.position = rimOf.TransformPoint(rimOf.rect.center);
+                rim.AddImage(catalog.Round, Palette.Lantern).raycastTarget = false;
+            }
+            _introGlow = glow;
+            int run = ++_introGlowRun;
+            Vector3 home = target.localScale;
+            bool still = Motion.Reduced;
+            Tweens.Add(IntroHighlightSeconds, k =>
+            {
+                if (run != _introGlowRun || glow == null) return;
+                float pulse = still ? 1f : Ease.Pop(k * 3f % 1f);
+                group.alpha = 0.55f + 0.45f * pulse;
+                if (!still && target != null && rimOf == null) target.localScale = home * (1f + 0.06f * pulse);
+            }, Ease.Linear, 0f, () =>
+            {
+                if (target != null) target.localScale = home;
+                if (run != _introGlowRun || glow == null) return;
+                Discard(glow.gameObject);
+                _introGlow = null;
+            });
+        }
+
+        void RefreshIntroDots(GameState s)
+        {
+            if (IntroCard == null) return;
+            foreach (string id in Intros.All)
+            {
+                bool want = Intros.HasDot(s, id);
+                _introDots.TryGetValue(id, out RectTransform dot);
+                if (want && dot == null)
+                {
+                    RectTransform host = IntroDotHost(id, out Vector2 anchor, out Vector2 at);
+                    if (host == null) continue;
+                    dot = BuildIntroDot(host, id, anchor, at);
+                    _introDots[id] = dot;
+                }
+                if (dot != null && dot.gameObject.activeSelf != want) dot.gameObject.SetActive(want);
+            }
+        }
+
+        RectTransform BuildIntroDot(RectTransform host, string id, Vector2 anchor, Vector2 at)
+        {
+            GameCatalog catalog = Runner.Catalog;
+            var dot = UiKit.Rect("IntroDot " + id, host).Place(anchor.x, anchor.y, at.x, at.y, 50f, 50f);
+            UiKit.Touchable(dot, 50f, 50f);
+            Image rim = dot.AddImage(catalog.Round, Palette.CarrotLip);
+            rim.raycastTarget = true;
+            UiKit.Rect("Gold", dot).Stretch(0, 0, 1, 1, 6, 6, 6, 6).AddImage(catalog.Round, Palette.Lantern);
+            UiKit.Rect("Shine", dot).Place(0.5f, 0.5f, -7, 7, 12, 12).AddImage(catalog.Round, Palette.Alpha(Color.white, 0.8f));
+            var button = dot.gameObject.AddComponent<Button>();
+            button.transition = Selectable.Transition.None;
+            button.targetGraphic = rim;
+            button.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                Runner.TouchIntro(id);
+                FlyToIntro(id);
+                Refresh(-1f);
+            });
+            dot.SetAsLastSibling();
+            dot.gameObject.SetActive(false);
+            return dot;
+        }
+
+        void OnIntroRewarded(string id, BigNum paid, int clovers)
+        {
+            if (!_built || _purse == null) return;
+            Sfx.Reward();
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -130)), L10n.T("intro.paid", paid.Short(), clovers), Palette.Lantern, 36);
+        }
 
         #endregion
     }

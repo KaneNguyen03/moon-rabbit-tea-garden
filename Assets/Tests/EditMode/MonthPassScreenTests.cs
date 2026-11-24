@@ -39,6 +39,8 @@ namespace VuonTra.Core.Tests
             s.TutorialStep = Tutorial.Steps;
             Rabbits.GiftFirst(s, "Bông");
             runner.Init(s);
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();

@@ -2192,6 +2192,42 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Trọng số và cách làm tròn giá giảm.
 - Màu đèn hội #112 chờ #112 lên main.
 
+## #111 — Thành tựu nhiều nấc (agent-111)
+
+**Test:** verify đầy đủ sau khi gộp main ebae1ef: rules ok, seed ok, preview ok (308 khung), compile ok, tests ok (1452/1453), RESULT GREEN.
+
+**Commit:** de82f65 (tính năng), 0cd084d + c5dd741 (gộp #102, #107), 6f8a0ac (gộp #110a và bỏ cỏ khỏi nấc mới); gộp cùng #108, #113 ở main `c88c309`, verify đầy đủ GREEN 1496/1497.
+
+**Đã làm:** 12 chuỗi thành tựu trong tab Nhiệm vụ, mỗi dòng "Tên · nấc x/8 · tiến độ/mốc" có thanh; nhận xong dòng chuyển sang nấc kế; chuỗi xong ghi "Hoàn tất", viền vàng; dòng "Tổng thành tựu: N nấc" đầu mục. 17 thành tựu một lần cũ thành nấc có đúng mốc và quà cũ; save cũ giữ phần đã nhận, không trả hai lần. Bốn chỉ số mới tính lại từ save. Mô phỏng 17 hạt, 42 ngày: vàng từ nấc mới tuần 1 = 0; nấc mới tuần 2–6 trung vị 9/8/8/5/5; gọi vàng vẫn ≤ 6/tuần. Ảnh vi/en ở docs/anh/po-111.
+
+### Chưa đạt / cần PO quyết
+- Thưởng nấc mới nhỏ hơn đề xuất (lý do: các luật nhịp chơi hiện có).
+- Mốc chỉnh theo mô phỏng; Thu cà rốt tới 1e36; Mùa trăng mới 7 nấc.
+- Biên tuần 5–6 mỏng (thấp nhất 4 nấc).
+
+## #104 — Thẻ giới thiệu khi mở tính năng (agent-104)
+
+**Test:** `tools/verify.sh` RESULT GREEN, 1339/1340 (1 Inconclusive là test mùa phụ thuộc ngày, không liên quan); quy tắc ok; 255 khung ảnh. Mới có 12 test `IntrosTests` và 12 test `IntrosScreenTests`.
+
+**Commit:** 2f07f64 (tính năng), 24e0f7a (merge main 700f872), 2d8d6d8 (merge 3dee762); main gộp main `070e17f` cùng #108, #110a, #111, #113 và đẩy; verify đầy đủ GREEN 1522/1523.
+
+**Đã làm:**
+- `Core/Intros.cs`: 10 thẻ, điều kiện mở gọi luật sẵn có, mỗi thẻ hiện đúng một lần.
+- Thưởng thử lần đầu 60 giây thu nhập + 1 cỏ, trả một lần; Mùa trăng mới không thưởng. Hàng chờ cách nhau 90 giây.
+- Khối save `intros` (vẫn v14): save cũ được đánh dấu đã xem và đã thử mọi thẻ đã đủ điều kiện.
+- Thẻ trượt lên với "Thử ngay" (bay camera, viền vàng sáng 3 giây) và "Để sau" (chấm vàng tại chỗ).
+- Nút "Đã mở N/10" trong Hồ sơ mở danh sách đọc lại.
+- 9 ảnh trong `docs/anh/po-104/`.
+
+- Thẻ giới thiệu tuân theo luật một thẻ một lúc cùng thẻ gói, thẻ đánh giá, bảng Tuần đầu, quà rương, chọn loài thỏ Vé tháng và thẻ Vườn nhớ bạn; mở bảng khác trên thẻ thì thẻ tự thành "Để sau".
+
+
+### Chưa đạt / cần PO quyết
+- Mốc mở thẻ Bố trí (xong hướng dẫn và đã mở đoạn đất đầu tiên), thẻ Khách (khách đầu tiên tới), thẻ Tiệm (xong hướng dẫn).
+- Thời điểm trả thưởng "lần đầu dùng xong" cho từng tính năng, và việc vẫn trả thưởng khi người chơi dùng trước lúc thẻ hiện.
+- Thẻ đang hiện mà người chơi mở bảng thì tự thành "Để sau".
+- Chưa có analytics; danh sách "Đã mở" chỉ để đọc; mới có ảnh 4/10 thẻ.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

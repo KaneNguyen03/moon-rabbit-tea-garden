@@ -4363,172 +4363,276 @@ MonoBehaviour:
     m_Localized: The lanterns have a new colour
     m_Metadata:
       m_Items: []
-  - m_Id: 920054441959424
-    m_Localized: Plum Blossom Fair
+  - m_Id: 900689285865472
+    m_Localized: '{0} tiers reached in all'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125248
-    m_Localized: Kite Fair
+  - m_Id: 900689298448384
+    m_Localized: "{0} \xB7 tier {1}/{2}"
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125249
-    m_Localized: Lotus Tea Fair
+  - m_Id: 900689298448385
+    m_Localized: Complete
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125250
-    m_Localized: Firefly Fair
+  - m_Id: 900689298448386
+    m_Localized: Taps
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125251
-    m_Localized: Summer Rain Fair
+  - m_Id: 900689298448387
+    m_Localized: '{0}/{1} taps'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125252
-    m_Localized: Paper Lantern Fair
+  - m_Id: 900689298448388
+    m_Localized: Upgrades
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125253
-    m_Localized: Green Rice Fair
+  - m_Id: 900689298448389
+    m_Localized: '{0}/{1} levels'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125254
-    m_Localized: Chrysanthemum Fair
+  - m_Id: 900689298448390
+    m_Localized: Carrots earned
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125255
-    m_Localized: Plum blossoms
+  - m_Id: 900689298448391
+    m_Localized: '{0}/{1} carrots'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125256
-    m_Localized: Kite tails
+  - m_Id: 900689298448392
+    m_Localized: Guest orders
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125257
-    m_Localized: Lotus flowers
+  - m_Id: 900689298448393
+    m_Localized: '{0}/{1} orders'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125258
-    m_Localized: Glimmers
+  - m_Id: 900689298448394
+    m_Localized: Fishing
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125259
-    m_Localized: Raindrops
+  - m_Id: 900689298448395
+    m_Localized: '{0}/{1} fish'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125260
-    m_Localized: Candles
+  - m_Id: 900689298448396
+    m_Localized: Photos
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125261
-    m_Localized: Rice flakes
+  - m_Id: 900689298448397
+    m_Localized: '{0}/{1} photos'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125262
-    m_Localized: Petals
+  - m_Id: 900689298448398
+    m_Localized: Games played
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125263
-    m_Localized: "Little fair \xB7 day {1}/{2} \xB7 {0} days left"
+  - m_Id: 900689298448399
+    m_Localized: '{0}/{1} rounds'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125264
-    m_Localized: "Weekend: {0} drop \xD7{1}"
+  - m_Id: 900689298448400
+    m_Localized: Kinds met
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125265
-    m_Localized: "Saturdays and Sundays: {0} drop \xD7{1}"
+  - m_Id: 900689298448401
+    m_Localized: '{0}/{1} kinds'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125266
-    m_Localized: '{1}: {0}'
+  - m_Id: 900689298448402
+    m_Localized: Rabbits at level cap
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125267
-    m_Localized: "Earn {0}: guest orders +{1} \xB7 mini games +{2}/{3}/{4} by stars \xB7 fish +{5}\u2013{6} \xB7 photo asks +{7}"
+  - m_Id: 900689298448403
+    m_Localized: '{0}/{1} rabbits'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125268
-    m_Localized: 'When the fair ends, leftover {0} turn into carrots: each is {1} seconds of income'
+  - m_Id: 900689298448404
+    m_Localized: Full hearts
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125269
-    m_Localized: Fair stall
+  - m_Id: 900689298448405
+    m_Localized: '{0}/{1} rabbits'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125270
-    m_Localized: Moon jar
+  - m_Id: 900689298448406
+    m_Localized: Garden level
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125271
-    m_Localized: Clover
+  - m_Id: 900689298448407
+    m_Localized: level {0}/{1}
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125272
-    m_Localized: 5 golden carrots
+  - m_Id: 900689298448408
+    m_Localized: New moons
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125273
-    m_Localized: Fair lantern colour
+  - m_Id: 900689298448409
+    m_Localized: '{0}/{1} moons'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125274
-    m_Localized: Fair photo frame
+  - m_Id: 900689306836992
+    m_Localized: '{0} tier reached in all'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125275
-    m_Localized: '{0}/{1} left'
+  - m_Id: 900689306836993
+    m_Localized: '{0}/{1} photo'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125276
-    m_Localized: Owned
+  - m_Id: 900689306836994
+    m_Localized: '{0}/{1} rabbit'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125277
-    m_Localized: Hang again
+  - m_Id: 900689306836995
+    m_Localized: '{0}/{1} rabbit'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125278
-    m_Localized: Use again
+  - m_Id: 900689306836996
+    m_Localized: '{0}/{1} moon'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125279
-    m_Localized: Sold out
+  - m_Id: 914305586290688
+    m_Localized: New
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125280
-    m_Localized: Got {0}
+  - m_Id: 914305607262208
+    m_Localized: Try it
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125281
-    m_Localized: The lanterns now glow for the {0}
+  - m_Id: 914305607262209
+    m_Localized: Later
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125282
-    m_Localized: The {0} frame is on
+  - m_Id: 914305607262210
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clovers'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125283
-    m_Localized: '{0} more {1} needed'
+  - m_Id: 914305607262211
+    m_Localized: "First try: +{0} \xB7 +{1} clovers"
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125284
-    m_Localized: +{0} {1}
+  - m_Id: 914305607262212
+    m_Localized: Unlocked
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125285
-    m_Localized: The {0} is open!
+  - m_Id: 914305607262213
+    m_Localized: '{0}/{1} cards'
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125286
-    m_Localized: Ten days to gather {0} from guest orders, mini games, fishing and photo asks, and trade them at the fair stall
+  - m_Id: 914305607262214
+    m_Localized: Unlocked
     m_Metadata:
       m_Items: []
-  - m_Id: 920054467125287
-    m_Localized: 'The {0} is over: leftover {1} became carrots'
+  - m_Id: 914305607262215
+    m_Localized: No cards yet. Keep playing to open more!
     m_Metadata:
       m_Items: []
-  - m_Id: 920054479708160
-    m_Localized: "Little fair \xB7 day {1}/{2} \xB7 {0} day left"
+  - m_Id: 914305607262216
+    m_Localized: Fishing at the moon pond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262217
+    m_Localized: 'Tap the moon pond, cast, and tap the water when the float sinks.
+
+      Feed the fish to your rabbits for hearts.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262218
+    m_Localized: Pound the mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262219
+    m_Localized: 'Tap the mortar by the teapot, then tap when the ring meets the cake.
+
+      A few rounds a day; good timing earns stars.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262220
+    m_Localized: Catch the tea leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262221
+    m_Localized: 'Tap the basket under the tea tree, drag it under the leaves, dodge the pine cones.
+
+      A few rounds a day; more leaves, more reward.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262222
+    m_Localized: Firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262223
+    m_Localized: 'Tap the glass jar by the pond, then tap the fireflies crossing the garden.
+
+      A few rounds a day; catch more for more.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262224
+    m_Localized: Guests and tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262225
+    m_Localized: 'Guests wait at the shop counter; the bubble shows what they want.
+
+      With the products on your tray, tap the guest to serve for carrots.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262226
+    m_Localized: The shop and the daily gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262227
+    m_Localized: 'Tap the shop by the pond for a gift each day; come back day after day for bigger ones.
+
+      Inside are hats, decorations and today''s visitor.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262228
+    m_Localized: Moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262229
+    m_Localized: 'Each moon jar holds an hour of income, open it any time.
+
+      Buy jars on the shop''s shelf; open them from the carrot purse.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262230
+    m_Localized: Arrange the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262231
+    m_Localized: 'Tap Arrange in the bottom corner and hold to pick a station up.
+
+      Drop it on an empty tile, on something to swap, or in storage.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262232
+    m_Localized: Rain and the Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262233
+    m_Localized: 'Now and then it rains and the Frog Rabbit visits the moon pond.
+
+      Tap it before it leaves for a rainy-day gift.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262234
+    m_Localized: A new moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262235
+    m_Localized: 'Open it from the settings button: the garden goes back to its first four plots; rabbits and items stay.
+
+      After each one, income grows for good.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428032
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428033
+    m_Localized: "First try: +{0} \xB7 +{1} clover"
     m_Metadata:
       m_Items: []
   references:
