@@ -2164,6 +2164,19 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Món của trạm nguyên liệu nhân như thỏ, một trạm pha có thể lên khoảng ×8.
 - Với số mặc định, 16 món 1 đầy cấp khoảng ngày 42; có thể giảm nửa tốc độ lá khi nghỉ.
 
+## #108 — Vườn nhớ bạn: quà quay lại và điểm danh 7 ngày (agent-108)
+
+**Test:** `tools/verify.sh` RESULT GREEN: rules ok, preview ok (312 khung), tests ok 1464/1465 (1 test Inconclusive có từ trước: SeasonTests phụ thuộc ngày). Core 822/822.
+
+**Commit:** `b7cf2db`, `d5da24c`, `b1624b0` (merge main #110a), `972d2bb`; main `972d2bb`.
+
+**Đã làm:** `Core/WelcomeBack.cs`: vắng ≥ 3 ngày sau ≥ 2 ngày chơi, tối đa 1 lần/30 ngày, không trùng với Tuần đầu. Quà ngay 2 hũ + 3 cỏ + 5 vàng (×2 khi vắng ≥ 14 ngày). Điểm danh 7 ngày tới thỏ Tím loài chưa gặp; nhiệm vụ ngày ×2 trong lúc điểm danh. Lưu khối `welcomeBack` (save vẫn bản 14, save cũ tải được). Thẻ "Vườn nhớ bạn" với thỏ được thương nhất, mở sau tấm Mừng bạn quay lại và xếp hàng với thẻ ưu đãi/đánh giá/Tuần đầu. Viên "Mừng bạn về · ngày N/7" đúng ô của viên Tuần đầu. Analytics `welcome_back` (`days_away`). Mô phỏng người quay lại 17 hạt. Ảnh trong `docs/anh/po-108/`.
+
+
+### Chưa đạt / cần PO quyết
+- Duyệt hạn 14 ngày cho 7 lần điểm danh, quy tắc bỏ ngày không mất quà, ×2 không nhân hũ miễn phí.
+- Duyệt mức vàng tuần quay lại: trung vị 4 → 5 lượt gọi vàng, mọi hạt ≤ 6.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
