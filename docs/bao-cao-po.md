@@ -2338,6 +2338,26 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt thứ tự chọn ô cho giỏ, và việc giỏ không ghi vào save.
 - Chưa có ảnh "trước" cho giỏ và mái (lỗi giỏ chưa tái hiện được).
 
+## #120 — Mép khung nhìn: viên ◀ ▶, bảng trạm dưới HUD, cây dưới thanh tab, bong bóng thỏ (agent-120)
+
+**Test:** `tools/verify.sh` đầy đủ GREEN: rules ok, seed ok, preview ok (389 khung), tests 1612/1613 (1 inconclusive có sẵn). Test quét camera mới trong `MapViewScreenTests`: trước khi sửa đỏ 14/15 ca (mục 1, 3, 4).
+
+**Commit:** `f2e300f`; gộp main `d976da4` cùng #119, verify đầy đủ GREEN 1623/1624.
+
+**Đã làm:**
+- Viên ◀ ▶ che bảng thì trượt dọc mép tới chỗ trống gần nhất, không ẩn, tránh nút "Về tiệm trà" và viên ▼.
+- Giới hạn dọc của khung nhìn chừa HUD + 24 ở trên và thanh tab + 24 ở dưới; dải ngắn hơn khoảng giữa hai thanh thì nằm giữa. Lề 360/600 và cách viên ▼ né giữ nguyên.
+- Khung cuộn tính theo dải giữa HUD và thanh tab, để lực bật về mép thế giới không giành với giới hạn mới.
+- Bong bóng thỏ chỉ hiện khi nằm trọn trong khung đang nhìn; hết chỗ thì không nói.
+- Ảnh trước/sau trong `docs/anh/po-120/` (vi và en, chữ to).
+
+### Chưa đạt / cần PO quyết
+- Mục 2 và 5 không tái hiện được thành test đỏ; giới hạn mới vẫn bảo đảm khoảng hở.
+- Zoom gần: thỏ ở giữa màn hình thường không nói được.
+- Ngọn rừng ở đáy thế giới ló trên thanh tab.
+- Cần thử tay khi chơi: khung cuộn mới có giật ở 5–6 đoạn không.
+- Mục 6 (góc sương, sương hai bên ≤ 30 %): chuyển cho design: bỏ sương (#134).
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
