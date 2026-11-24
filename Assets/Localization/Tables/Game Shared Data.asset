@@ -3683,6 +3683,238 @@ MonoBehaviour:
     m_Key: review.mail.body
     m_Metadata:
       m_Items: []
+  - m_Id: 844794350788608
+    m_Key: newcomer.pill
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371520
+    m_Key: newcomer.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371521
+    m_Key: newcomer.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371522
+    m_Key: newcomer.day
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371523
+    m_Key: newcomer.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371524
+    m_Key: newcomer.opens
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371525
+    m_Key: newcomer.carrots
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371526
+    m_Key: newcomer.jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371527
+    m_Key: newcomer.purple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371528
+    m_Key: newcomer.daygift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371529
+    m_Key: newcomer.big
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371530
+    m_Key: newcomer.big.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371531
+    m_Key: newcomer.fallback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371532
+    m_Key: newcomer.task.teapot-25
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371533
+    m_Key: newcomer.task.stations-4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371534
+    m_Key: newcomer.task.call-2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371535
+    m_Key: newcomer.task.order-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371536
+    m_Key: newcomer.task.fish-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371537
+    m_Key: newcomer.task.pounding-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371538
+    m_Key: newcomer.task.feed-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371539
+    m_Key: newcomer.task.photo-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371540
+    m_Key: newcomer.task.charms-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371541
+    m_Key: newcomer.task.level-8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371542
+    m_Key: newcomer.task.trade-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371543
+    m_Key: newcomer.task.jar-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371544
+    m_Key: newcomer.task.orders-4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371545
+    m_Key: newcomer.task.pet-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371546
+    m_Key: newcomer.task.leaves-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371547
+    m_Key: newcomer.task.stations-6
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371548
+    m_Key: newcomer.task.layout-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371549
+    m_Key: newcomer.task.kinds-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371550
+    m_Key: newcomer.task.boost-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371551
+    m_Key: newcomer.task.gift-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371552
+    m_Key: newcomer.task.level-12
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371553
+    m_Key: newcomer.task.fireflies-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371554
+    m_Key: newcomer.task.merge-or-golden-1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371555
+    m_Key: newcomer.task.rest-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371556
+    m_Key: newcomer.task.segment-5
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371557
+    m_Key: newcomer.task.fish-tier-3
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371558
+    m_Key: newcomer.task.stations-8
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371559
+    m_Key: newcomer.task.daily-4
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371560
+    m_Key: newcomer.task.levels-30
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371561
+    m_Key: mail.newcomer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794363371562
+    m_Key: mail.purple
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760128
+    m_Key: newcomer.opens.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760129
+    m_Key: newcomer.jars.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760130
+    m_Key: newcomer.task.order-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760131
+    m_Key: newcomer.task.pounding-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760132
+    m_Key: newcomer.task.feed-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760133
+    m_Key: newcomer.task.photo-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760134
+    m_Key: newcomer.task.trade-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760135
+    m_Key: newcomer.task.jar-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760136
+    m_Key: newcomer.task.leaves-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760137
+    m_Key: newcomer.task.layout-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760138
+    m_Key: newcomer.task.gift-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760139
+    m_Key: newcomer.task.fireflies-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760140
+    m_Key: newcomer.task.merge-or-golden-1.one
+    m_Metadata:
+      m_Items: []
+  - m_Id: 844794371760141
+    m_Key: mail.purple.one
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
