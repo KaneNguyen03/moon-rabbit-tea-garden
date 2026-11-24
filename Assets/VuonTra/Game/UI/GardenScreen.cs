@@ -509,10 +509,11 @@ namespace VuonTra.Game.UI
         Vector2 ClampView(Vector2 pos, float zoom, float lift = 0f)
         {
             Vector2 span = OpenSpan(), rows = OpenRows();
-            float w = (span.y - span.x) * zoom, h = (rows.y - rows.x) * zoom, middle = ScreenH / 2f - (rows.x + rows.y) / 2f * zoom, floor = -rows.x * zoom;
+            float top = ScreenH - HudCover - ReadMargin, bottom = TabCover + ReadMargin;
+            float w = (span.y - span.x) * zoom, h = (rows.y - rows.x) * zoom, middle = (top + bottom) / 2f - (rows.x + rows.y) / 2f * zoom, floor = Mathf.Max(bottom, lift) - rows.x * zoom;
             return new Vector2(
                 w <= ScreenW ? ScreenW / 2f - (span.x + span.y) / 2f * zoom : Mathf.Clamp(pos.x, ScreenW - span.y * zoom, -span.x * zoom),
-                h <= ScreenH ? Mathf.Clamp(pos.y, middle, Mathf.Max(middle, floor + lift)) : Mathf.Clamp(pos.y, ScreenH - rows.y * zoom, floor + lift));
+                h <= top - bottom ? Mathf.Clamp(pos.y, middle, Mathf.Max(middle, floor)) : Mathf.Clamp(pos.y, Mathf.Min(top - rows.y * zoom, floor), floor));
         }
 
         public const float ViewMarginY = 600f;
@@ -1346,7 +1347,7 @@ namespace VuonTra.Game.UI
             _street.localScale = new Vector3(_zoom, _zoom, 1f);
             scroll.horizontal = WorldW * _zoom > ScreenW + 1f;
             scroll.content = _street;
-            scroll.viewport = view;
+            scroll.viewport = UiKit.Rect("Viewport", view).Stretch(0, 0, 1, 1, 0, TabCover + ReadMargin, 0, HudCover + ReadMargin);
             // The canopy lies over the content and follows it at nine tenths of the pace: the trees at the edge drift a little, for depth.
             _canopy = UiKit.Rect("Canopy", view);
             _canopy.anchorMin = _canopy.anchorMax = _canopy.pivot = Vector2.zero;
@@ -4543,7 +4544,40 @@ namespace VuonTra.Game.UI
             Vector2 pot = _actors.Count > 0 ? ViewPointOf(0) : default;
             bool far = shown && _actors.Count > 0 && (Mathf.Abs(pot.y - ScreenH / 2f) > ScreenH / 2f + 160f || Mathf.Abs(pot.x - ScreenW / 2f) > ScreenW / 2f + 160f);
             if (_home.activeSelf != far) _home.SetActive(far);
+            if (left > 0) _edgeLeft.anchoredPosition = new Vector2(_edgeLeft.anchoredPosition.x, SidePillY(_edgeLeft));
+            if (right > 0) _edgeRight.anchoredPosition = new Vector2(_edgeRight.anchoredPosition.x, SidePillY(_edgeRight));
         }
+
+        const float SidePillStep = 8f, SidePillAir = 8f;
+
+        float SidePillY(RectTransform pill)
+        {
+            Vector2 size = pill.sizeDelta;
+            float x = pill.anchorMin.x * ScreenW + pill.anchoredPosition.x - size.x / 2f;
+            float tray = ProductTray != null ? ProductTray.Root.anchoredPosition.y + ProductTray.Root.sizeDelta.y : 0f;
+            float low = Mathf.Max(TabCover, tray) + ReadMargin + size.y / 2f, high = ScreenH - HudCover - ReadMargin - size.y / 2f;
+            float reach = Mathf.Max(SideEdgeY - low, high - SideEdgeY);
+            for (float step = 0f; step <= reach; step += SidePillStep)
+            {
+                float up = SideEdgeY + step, down = SideEdgeY - step;
+                if (up <= high && SidePillClear(new Rect(x, up - size.y / 2f, size.x, size.y))) return up;
+                if (step > 0f && down >= low && SidePillClear(new Rect(x, down - size.y / 2f, size.x, size.y))) return down;
+            }
+            return SideEdgeY;
+        }
+
+        bool SidePillClear(Rect pill)
+        {
+            Rect wide = Rect.MinMaxRect(pill.xMin - SidePillAir, pill.yMin - SidePillAir, pill.xMax + SidePillAir, pill.yMax + SidePillAir);
+            List<RectTransform> plates = Plates();
+            for (int i = 0; i < plates.Count; i++)
+                if (plates[i] != null && plates[i].gameObject.activeInHierarchy && InView(StreetRect(plates[i])).Overlaps(wide)) return false;
+            if (_home.activeSelf && Pinned((RectTransform)_home.transform).Overlaps(wide)) return false;
+            return !_edgeDown.gameObject.activeSelf || !Pinned(_edgeDown).Overlaps(wide);
+        }
+
+        static Rect Pinned(RectTransform rt) =>
+            new Rect(new Vector2(rt.anchorMin.x * ScreenW, rt.anchorMin.y * ScreenH) + rt.anchoredPosition - Vector2.Scale(rt.sizeDelta, rt.pivot), rt.sizeDelta);
 
         float DownPillShift()
         {
@@ -6290,7 +6324,6 @@ namespace VuonTra.Game.UI
             string key = Chatter.Pick(keys, Hash(_clock + 7f));
             if (key == null || !AskSpot(speaker.Id, out Vector2 head, out _)) return false;
             if (_chatLine == null) BuildChatLine();
-            KeepChatOff();
             _chatShift = Vector2.zero;
             if (!PlaceChat(head, out Vector2 at)) return false; // no room clear of the plates: the line waits for another time
             _chatText.text = key == Chatter.BoostKey ? L10n.T(key, L10n.Station(Runner.Defs[booster].Id)) : L10n.T(key);
@@ -6316,22 +6349,37 @@ namespace VuonTra.Game.UI
             new Vector2(-150f, 60f), new Vector2(150f, 60f), new Vector2(-240f, 0f), new Vector2(240f, 0f),
             new Vector2(-240f, 90f), new Vector2(240f, 90f), new Vector2(0f, 180f),
         };
-        /// <summary>The plates a line keeps off, gathered when it starts.</summary>
-        readonly List<RectTransform> _chatKeepOff = new List<RectTransform>();
-
         /// <summary>
         /// The plates of the garden a line must not cover (#16): every station's level plate, the mortar's "Giã bánh", the
         /// basket's, the jar's and the pond's "Câu cá" plates, and the sign at the lawn's end.
         /// </summary>
-        void KeepChatOff()
+        readonly List<RectTransform> _plates = new List<RectTransform>();
+        RectTransform _platesOf;
+        int _platesAmong = -1;
+
+        List<RectTransform> Plates()
         {
-            _chatKeepOff.Clear();
-            foreach (Transform child in _street)
+            if (_platesOf == _street && _platesAmong == _street.childCount) return _plates;
+            _plates.Clear();
+            _platesOf = _street;
+            _platesAmong = _street.childCount;
+            for (int i = 0; i < _street.childCount; i++)
             {
+                Transform child = _street.GetChild(i);
                 if (child.name.StartsWith("Spot ")) continue; // a decoration spot's faint "+" is no plate to read
                 Transform plate = child.name.StartsWith("Station ") ? child.Find("Level") : child.name == "Forest Sign" ? child.Find("Board") : child.Find("Plate");
-                if (plate != null) _chatKeepOff.Add((RectTransform)plate);
+                if (plate != null) _plates.Add((RectTransform)plate);
             }
+            return _plates;
+        }
+
+        Rect InView(Rect garden) => Rect.MinMaxRect(garden.xMin * _zoom + _street.anchoredPosition.x, garden.yMin * _zoom + _street.anchoredPosition.y,
+            garden.xMax * _zoom + _street.anchoredPosition.x, garden.yMax * _zoom + _street.anchoredPosition.y);
+
+        Rect ChatRoom()
+        {
+            Vector2 at = _street.anchoredPosition;
+            return Rect.MinMaxRect((ReadMargin - at.x) / _zoom, (TabCover - at.y) / _zoom, (ScreenW - ReadMargin - at.x) / _zoom, (ScreenH - HudCover - at.y) / _zoom);
         }
 
         /// <summary>
@@ -6340,25 +6388,27 @@ namespace VuonTra.Game.UI
         /// </summary>
         bool PlaceChat(Vector2 head, out Vector2 at)
         {
-            var plates = new List<Rect>(_chatKeepOff.Count);
-            foreach (RectTransform plate in _chatKeepOff)
+            var plates = new List<Rect>();
+            foreach (RectTransform plate in Plates())
                 if (plate != null && plate.gameObject.activeInHierarchy) plates.Add(StreetRect(plate));
+            Rect room = ChatRoom();
             at = head + _chatShift;
-            if (ChatClear(at, plates)) return true;
+            if (ChatClear(at, plates, room)) return true;
             foreach (Vector2 shift in ChatShifts)
             {
                 at = head + shift;
-                if (!ChatClear(at, plates)) continue;
+                if (!ChatClear(at, plates, room)) continue;
                 _chatShift = shift;
                 return true;
             }
             return false;
         }
 
-        static bool ChatClear(Vector2 foot, List<Rect> plates)
+        static bool ChatClear(Vector2 foot, List<Rect> plates, Rect room)
         {
             var line = new Rect(foot.x - ChatSize.x / 2f, foot.y, ChatSize.x, ChatSize.y);
             if (line.xMin < WorldW - ReadableRight || line.xMax > ReadableRight) return false;
+            if (line.xMin < room.xMin || line.xMax > room.xMax || line.yMin < room.yMin || line.yMax > room.yMax) return false;
             foreach (Rect plate in plates) if (plate.Overlaps(line)) return false;
             return true;
         }
@@ -7133,11 +7183,12 @@ namespace VuonTra.Game.UI
         }
 
         /// <summary>A rectangle of the garden, in its own units, from anything standing on it.</summary>
+        static readonly Vector3[] StreetCorners = new Vector3[4];
+
         Rect StreetRect(RectTransform rt)
         {
-            var corners = new Vector3[4];
-            rt.GetWorldCorners(corners);
-            Vector2 a = _street.InverseTransformPoint(corners[0]), b = _street.InverseTransformPoint(corners[2]);
+            rt.GetWorldCorners(StreetCorners);
+            Vector2 a = _street.InverseTransformPoint(StreetCorners[0]), b = _street.InverseTransformPoint(StreetCorners[2]);
             return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
         }
 

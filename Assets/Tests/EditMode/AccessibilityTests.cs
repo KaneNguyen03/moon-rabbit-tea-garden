@@ -1113,7 +1113,17 @@ namespace VuonTra.Core.Tests
             int spoke = 0;
             foreach (Rabbit r in new List<Rabbit>(s.Rabbits))
             {
-                if (!screen.ChatterBy(r.Id)) continue;
+                var looks = new List<Vector2>();
+                if (r.Station >= 0) looks.Add(screen.StationSpot(r.Station));
+                else for (int k = 0; k < RestSpots.Max; k++) looks.Add(screen.RestSpot(k));
+                bool said = false;
+                foreach (Vector2 look in looks)
+                {
+                    screen.LookAt(look);
+                    said = screen.ChatterBy(r.Id);
+                    if (said) break;
+                }
+                if (!said) continue;
                 spoke++;
                 Layout();
                 var line = (RectTransform)street.Find("ChatLine");
