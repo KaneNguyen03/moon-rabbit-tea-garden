@@ -2115,6 +2115,27 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt: thẻ bỏ qua sau 120 giây; Failed/Unavailable tính là mua hỏng; ghép thỏ Vàng không tính.
 - Email hỗ trợ thật vẫn chờ chủ project.
 
+## #102 — Tuần đầu của người mới (agent-102)
+
+**Test:** `tools/verify.sh` đầy đủ GREEN: rules ok, tests 1336/1337 (0 lỗi, 1 inconclusive), preview 259 ảnh. Core 730/730.
+
+**Commit:** `fcb5c23`, nằm trên main 8c3f5f3 (merge main là fast-forward); gộp cùng #103/#105/#109 ở `3e97a26`, main `a17e083`, verify đầy đủ GREEN 1398/1399.
+
+**Đã làm:**
+- `Core/Newcomer.cs`: 7 ngày × 4 việc, tính tiến độ bằng `QuestMetric` (thêm 13 loại), việc dự phòng "Nâng trạm 30 lần".
+- Mở ngày theo `DaysPlayed`; quà trả một lần; thỏ Tím loài chưa gặp ở ngày 7.
+- Sau ngày 14, quà chưa nhận gộp thành một thư (#68).
+- Thêm khối save `tally` và `newcomer`, save vẫn v14; save cũ đã qua ngày 7 không thấy viên.
+- Viên "Tuần đầu · ngày N" có huy hiệu, tấm 7 cột mới (`NewcomerView`).
+- Sự kiện analytics `newcomer_task` và `newcomer_day`.
+- Test giả lập kinh tế 17 hạt cho người mới; ảnh vi/en trong `docs/anh/po-102/`.
+
+
+### Chưa đạt / cần PO quyết
+- Quà khác với issue: ngày 1 không có cỏ; ngày 4–6 trả 2 cỏ thay 2 cà rốt vàng; ngày 7 trả thỏ Tím + 3 hũ thay 10 cà rốt vàng. Lý do: với số gốc, gọi vàng 5 → 9 lần/tuần (0/17 hạt ≤ 6) và cấp 5 đến trước phút 4 trên 9/17 hạt.
+- "Làm xong nhiệm vụ ngày" đang là "nhận 4 nhiệm vụ ngày trong hôm nay".
+- Chân dung thỏ Tím dùng hình bậc Tím chung.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
