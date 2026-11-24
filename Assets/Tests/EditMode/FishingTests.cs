@@ -317,8 +317,15 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Rabbits.TenHeartGolden, s.GoldenCarrots);
             Assert.IsTrue(Rabbits.FullHearts(r), "it wears the heart badge");
 
-            Assert.IsFalse(Fishing.Feed(s, r, 5).Fed, "a full bond takes no more fish");
-            Assert.AreEqual(2, s.Fish[5], "and the fish stays in the basket");
+            s.Fish[1] = 1;
+            Assert.IsFalse(Fishing.Feed(s, r, 1).Fed, "a full bond takes no more small fish");
+            Assert.AreEqual(1, s.Fish[1], "and the fish stays in the basket");
+            Assert.IsFalse(Fishing.Feed(s, r, 5).Fed, "before the recipe book opens a big fish stays in the basket too");
+            s.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel);
+            FeedResult leaf = Fishing.Feed(s, r, 5);
+            Assert.AreEqual(Recipes.LeavesPerFish, leaf.Leaves, "a big fish becomes a recipe leaf instead (#110)");
+            Assert.AreEqual(0, leaf.Points);
+            Assert.IsFalse(leaf.Bond.TenHearts);
             Assert.IsFalse(Rabbits.Pet(s, r, 99).TenHearts, "nor does stroking pay the gift again");
             Assert.AreEqual(Rabbits.TenHeartGolden, s.GoldenCarrots, "paid exactly once");
         }

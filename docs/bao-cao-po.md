@@ -2149,6 +2149,21 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Khi gộp #106: `LetterKind` của #106 phải khác số 3 (`MonthPass`).
 - Chưa có chỗ chọn lại màu đèn/khung của tháng cũ; chưa đặt giá thật.
 
+## #110 — Sổ công thức, phần a: lá công thức và cấp món 1 (agent-110a)
+
+**Test:** `tools/verify.sh` đầy đủ GREEN, 1419/1420; core-tests 789/789; 17 test pacing chậm xanh.
+
+**Commit:** 9be9009, 9c90f94, 8053c88, 25f4d6e, 3b8feed, gộp #107 `1a0fee0`; main `1a0fee0`, verify đầy đủ GREEN 1439/1440
+
+**Đã làm:** `Core/Recipes.cs` mới: lá công thức từ thỏ nghỉ (1 lá/10 phút, tính cả lúc vắng theo trần), đơn khách +2, cá bậc 3 trở lên cho thỏ đủ 10 tim +1; cấp món 1–10 giá 5·k² lá, cấp 10 ×2 thu nhập riêng trạm đó. Save thêm khối `recipes`, save cũ 0 lá và món cấp 1. Ô lá vàng dưới ví, dòng lá trong tab Nhiệm vụ, dòng "Món: … · cấp N" và nút "Nâng món (N lá)" trên tấm trạm, 16 tên món vi và en. Thêm test pacing #110 chạy 42 ngày; "Nâng tất cả" cũng tính cấp món.
+
+### Chưa đạt / cần PO quyết
+- Sổ mở ở cấp vườn 30 hoặc sau trăng mới (không khoá thì thu nhập tuần 1 gấp khoảng 5 lần).
+- Tuần 2 bằng tuần không có sổ; tuần 3–6 nhanh hơn 7–14 cấp.
+- Mỗi cấp món +11,1 %, không phải +10 %, để cấp 1 giữ nguyên ×1.
+- Món của trạm nguyên liệu nhân như thỏ, một trạm pha có thể lên khoảng ×8.
+- Với số mặc định, 16 món 1 đầy cấp khoảng ngày 42; có thể giảm nửa tốc độ lá khi nghỉ.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

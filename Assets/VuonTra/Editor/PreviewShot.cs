@@ -658,6 +658,7 @@ namespace VuonTra.EditorTools
             RenderMapEdges(runner, screen);
             RenderLayout(runner, screen);
             RenderPond(runner, screen);
+            RenderRecipes(runner, screen);
             RenderNewcomer(runner, screen);
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
@@ -1763,6 +1764,78 @@ namespace VuonTra.EditorTools
             rt.GetWorldCorners(c);
             Vector3 a = street.InverseTransformPoint(c[0]), b = street.InverseTransformPoint(c[2]);
             return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        static void RenderRecipes(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 41, 18, 12, 6 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 6;
+            s.GardenXp = Garden.XpForLevel(7);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(2.4e5);
+            s.GoldenCarrots = 4;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Arrive(s, 1, "Mây", 0.4);
+            Rabbits.Arrive(s, 0, "Sữa", 0.7);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 0.3f);
+            screen.FocusStation(0);
+            Step(screen, 0.5f);
+            Capture(screen, "110-tam-tram-khoa-vi");
+            s.Season = 1;
+            Recipes.SetLevel(s, 0, 0, 3);
+            Recipes.SetLevel(s, 2, 0, 6);
+            s.RecipeLeaves = 57;
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(locale);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                Step(screen, 0.4f);
+                screen.FocusStation(0);
+                Step(screen, 0.5f);
+                Capture(screen, "110-tam-tram-" + locale);
+                screen.FocusStation(2);
+                Step(screen, 0.5f);
+                Capture(screen, "110-tam-tram-thieu-la-" + locale);
+                screen.FocusStation(4);
+                Step(screen, 0.5f);
+                Capture(screen, "110-tam-tram-chua-mo-" + locale);
+                UiKit.SetLargeText(true);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                Step(screen, 0.3f);
+                screen.FocusStation(0);
+                Step(screen, 0.5f);
+                Capture(screen, "110-tam-tram-chu-to-" + locale);
+                UiKit.SetLargeText(false);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                Step(screen, 0.3f);
+            }
+            screen.FocusStation(0);
+            Step(screen, 0.4f);
+            Press(screen, "Canvas/Card/Dish/Raise");
+            Step(screen, 0.35f);
+            Capture(screen, "110-nang-mon-en");
+            Step(screen, 2f);
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            Step(screen, 0.4f);
         }
 
         static void RenderPond(GameRunner runner, GardenScreen screen)

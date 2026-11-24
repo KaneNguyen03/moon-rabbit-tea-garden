@@ -4119,48 +4119,112 @@ MonoBehaviour:
     m_Localized: The pass gift of the {0} tier passed is yours
     m_Metadata:
       m_Items: []
-  - m_Id: 869038086414336
-    m_Localized: The garden missed you
+  - m_Id: 863401810059264
+    m_Localized: "Dish: {0} \xB7 level {1}"
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997248
-    m_Localized: You were away {0} days; the garden kept your seat
+  - m_Id: 863401826836480
+    m_Localized: Improve dish ({0} leaves)
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997249
-    m_Localized: "\u201CI missed you! {0} days already, and I kept a cup of tea for you.\u201D"
+  - m_Id: 863401826836481
+    m_Localized: Dish at top level
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997250
-    m_Localized: "\u201CThe whole garden missed you!\u201D"
+  - m_Id: 863401826836482
+    m_Localized: Open the station to cook it
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997251
-    m_Localized: "Welcome-home gifts \xB7 already yours"
+  - m_Id: 863401826836483
+    m_Localized: Opens at garden level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997252
-    m_Localized: "Daily check-in \xB7 day {0}/{1}"
+  - m_Id: 863401826836484
+    m_Localized: Dish level {0}!
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997253
-    m_Localized: "While the check-in lasts: daily quest rewards \xD72"
+  - m_Id: 863401826836485
+    m_Localized: "Recipe leaves: {0} \xB7 improve dishes on a station card"
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997254
-    m_Localized: Claim day {0}
+  - m_Id: 863401826836486
+    m_Localized: "Big fish \u2192 +1 leaf"
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997255
-    m_Localized: Come back tomorrow
+  - m_Id: 863401826836487
+    m_Localized: +{0} recipe leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 869038098997256
-    m_Localized: "Welcome home \xB7 day {0}/{1}"
+  - m_Id: 863401826836488
+    m_Localized: Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 869038111580160
-    m_Localized: You were away {0} day; the garden kept your seat
+  - m_Id: 863401826836489
+    m_Localized: Young Tea Leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836490
+    m_Localized: Strawberry Jam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836491
+    m_Localized: Pounded Petal Powder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836492
+    m_Localized: Chestnut Bun
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836493
+    m_Localized: Wild Honey
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836494
+    m_Localized: Moon Milk Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836495
+    m_Localized: Star Syrup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836496
+    m_Localized: Moon Grapes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836497
+    m_Localized: Mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836498
+    m_Localized: Flower Spring Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836499
+    m_Localized: Jar of Falling Stars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836500
+    m_Localized: Lotus Seeds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836501
+    m_Localized: Malt Candy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836502
+    m_Localized: Young Rice Flakes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836503
+    m_Localized: Night Blossom Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401835225088
+    m_Localized: "Recipe leaf: {0} \xB7 improve dishes on a station card"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401835225089
+    m_Localized: +{0} recipe leaf
     m_Metadata:
       m_Items: []
   references:

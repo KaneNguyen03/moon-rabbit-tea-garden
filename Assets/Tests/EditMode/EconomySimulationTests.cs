@@ -42,6 +42,8 @@ namespace VuonTra.Core.Tests
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
         bool takeFreeDouble, everyAd;
         bool upgradeAll;
+        bool raiseDishes;
+        int dishesRaised;
         BigNum earnedDoubles, earnedAds;
         int goldenAds, extraRounds;
         bool newcomer;
@@ -101,6 +103,8 @@ namespace VuonTra.Core.Tests
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             takeFreeDouble = everyAd = upgradeAll = false;
+            raiseDishes = true;
+            dishesRaised = 0;
             earnedDoubles = earnedAds = BigNum.Zero;
             goldenAds = extraRounds = 0;
             newcomer = false;
@@ -216,7 +220,7 @@ namespace VuonTra.Core.Tests
             int golden = s.GoldenCarrots;
             Rabbits.Pet(s, r, Today);
             for (int k = Fishing.Kinds - 1; k >= 0; k--)
-                while (s.Fish[k] > 0 && Fishing.Feed(s, r, k).Fed) fishPoints += Fishing.Points[k];
+                for (FeedResult fed; s.Fish[k] > 0 && (fed = Fishing.Feed(s, r, k)).Fed;) fishPoints += fed.Points;
             goldenHearts += s.GoldenCarrots - golden;
         }
 
@@ -349,6 +353,29 @@ namespace VuonTra.Core.Tests
             {
                 if (r.Station < 0 || Rabbits.IsMaxLevel(r) || Rabbits.LevelCost(r) > budget) continue;
                 if (Rabbits.TryLevelUp(s, r.Id)) rabbitLevels++;
+            }
+        }
+
+        void RaiseDishes()
+        {
+            while (raiseDishes)
+            {
+                int best = -1;
+                double bestGain = 0d;
+                BigNum before = Economy.IncomePerSecond(defs, s);
+                if (before.IsZero) return;
+                for (int i = 0; i < defs.Count; i++)
+                {
+                    if (!Recipes.CanRaise(s, i)) continue;
+                    int dish = Recipes.CurrentDish(s, i), level = Recipes.Level(s, i);
+                    Recipes.SetLevel(s, i, dish, level + 1);
+                    double gain = (Economy.IncomePerSecond(defs, s) / before).ToDouble() - 1d;
+                    Recipes.SetLevel(s, i, dish, level);
+                    gain /= Recipes.CostOfNext(level);
+                    if (gain > bestGain) { best = i; bestGain = gain; }
+                }
+                if (best < 0 || !Recipes.Raise(s, best)) return;
+                dishesRaised++;
             }
         }
 
@@ -512,6 +539,7 @@ namespace VuonTra.Core.Tests
             {
                 for (int buys = 0; buys < buysAtOnce; buys++) BuyCheapest();
                 LevelRabbits();
+                RaiseDishes();
             }
             if ((int)sessionClock % questEvery == 0) ClaimQuests();
             int rabbitsBefore = s.Rabbits.Count;
@@ -640,7 +668,22 @@ namespace VuonTra.Core.Tests
                 + "Hộp quà ngày và rương tuần (#103): mở " + boxesOpened + " hộp, " + chestsOpened + " rương; " + goldenChests + " cà rốt vàng, " + cloversChests + " cỏ.\n"
                 + "Vé tháng (#107), hàng miễn phí: nhận " + passTiers + " nấc; " + goldenPass + " cà rốt vàng, " + cloversPass + " cỏ.\n"
                 + "Thỏ Ếch (#62): gặp " + frogsMet + " lần (mọi buổi chơi mở đầu trong mưa khi ngày còn ếch), " + earnedFrogs.ToShortString() + " cà rốt, " + cloversFrogs + " cỏ.\n"
+                + "Sổ công thức (#110): nâng món " + dishesRaised + " lần, món cao nhất cấp " + TopDish() + ", còn " + s.RecipeLeaves + " lá.\n"
                 + "Khác: " + gamesPlayed + " ván chơi, " + ordersDelivered + " đơn giao, " + rabbitLevels + " cấp thỏ mua, " + boosts + " lần trà lực, " + s.Claimed.Count + " nhiệm vụ đang nhận.\n";
+        }
+
+        int TopDish()
+        {
+            int top = 1;
+            for (int i = 0; i < defs.Count; i++) top = Math.Max(top, Recipes.Level(s, i));
+            return top;
+        }
+
+        int LevelsClimbed()
+        {
+            int climbed = Garden.Level(s) - 1;
+            for (int k = 0; k < s.Season; k++) climbed += NewMoon.LevelNeeded(k) - 1;
+            return climbed;
         }
 
         sealed class Week
@@ -656,14 +699,16 @@ namespace VuonTra.Core.Tests
             public int NewcomerClaimed, NewcomerGolden, NewcomerClovers;
             public int[] NewcomerDayAt;
             public string NewcomerMissing;
-            public double Income7;
+            public double Income7, Earned7;
+            public int DishesRaised, TopDish, LeavesLeft;
             public string Table, Report, Fingerprint;
             public int Golden => GoldenCalls + Visitors;
         }
 
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true, bool dishes = true)
         {
             Reset(false, seed);
+            raiseDishes = dishes;
             openChests = chests;
             claimPass = pass;
             answerAsks = wholeSet;
@@ -710,6 +755,8 @@ namespace VuonTra.Core.Tests
             w.MostHearts = MostHearts(); w.FishCaught = fishCaught;
             w.MostFreeJars = MostFreeJarsInADay(); w.JarsOpened = jarsOpened; w.FrogsMet = frogsMet;
             w.Income7 = Income.ToDouble();
+            w.Earned7 = TotalEarned.ToDouble();
+            w.DishesRaised = dishesRaised; w.TopDish = TopDish(); w.LeavesLeft = s.RecipeLeaves;
             w.NewcomerClaimed = 0;
             var missing = new List<string>();
             foreach (NewcomerTask task in VuonTra.Core.Newcomer.All)
@@ -1345,6 +1392,8 @@ namespace VuonTra.Core.Tests
             public int Seed;
             public readonly List<long> MoonDays = new List<long>();
             public readonly List<int> GoldenByWeek = new List<int>();
+            public readonly List<int> ClimbByWeek = new List<int>();
+            public int DishesRaised, TopDish;
             public int LongestStill;
             public long MoonDay(int n) => MoonDays.Count >= n ? MoonDays[n - 1] : 99;
         }
@@ -1380,9 +1429,10 @@ namespace VuonTra.Core.Tests
             SellTray(false);
         }
 
-        Seasons CasualSeasons(int seed, int days)
+        Seasons CasualSeasons(int seed, int days, bool dishes = true)
         {
             Reset(false, seed);
+            raiseDishes = dishes;
             var run = new Seasons { Seed = seed };
             int callsBefore = 0, levelBefore = 0, openBefore = 0, segmentsBefore = 0, seasonBefore = 0, still = 0;
             for (int day = 1; day <= days; day++)
@@ -1394,6 +1444,7 @@ namespace VuonTra.Core.Tests
                 if (day % 7 == 0)
                 {
                     run.GoldenByWeek.Add(goldenCalls + visitorsBought - callsBefore);
+                    run.ClimbByWeek.Add(LevelsClimbed());
                     callsBefore = goldenCalls + visitorsBought;
                 }
                 int open = 0;
@@ -1403,20 +1454,110 @@ namespace VuonTra.Core.Tests
                 if (day >= 8) { still = news ? 0 : still + 1; run.LongestStill = Math.Max(run.LongestStill, still); }
                 levelBefore = level; openBefore = open; segmentsBefore = segments; seasonBefore = s.Season;
             }
+            run.DishesRaised = dishesRaised;
+            run.TopDish = TopDish();
             return run;
+        }
+
+        const int SeasonDays = 42;
+        readonly Dictionary<bool, Seasons[]> seasonsOverSeeds = new Dictionary<bool, Seasons[]>();
+
+        Seasons[] SeasonsOverSeeds(bool dishes)
+        {
+            if (!seasonsOverSeeds.TryGetValue(dishes, out Seasons[] runs))
+            {
+                runs = new Seasons[Seeds.Length];
+                for (int i = 0; i < Seeds.Length; i++) runs[i] = CasualSeasons(Seeds[i], SeasonDays, dishes);
+                seasonsOverSeeds[dishes] = runs;
+            }
+            return runs;
+        }
+
+        Week[] WithoutDishesOverSeeds()
+        {
+            const string key = "no-dishes";
+            if (!weeksOverSeeds.TryGetValue(key, out Week[] weeks))
+            {
+                weeks = new Week[Seeds.Length];
+                for (int i = 0; i < Seeds.Length; i++) weeks[i] = CasualWeek(false, false, false, Seeds[i], dishes: false);
+                weeksOverSeeds[key] = weeks;
+            }
+            return weeks;
+        }
+
+        [Test, Category("Slow"), Timeout(3600000)]
+        public void Recipe_Leaves_Lift_Week_One_At_Most_Fifteen_Percent_And_Speed_Up_Weeks_Two_To_Six()
+        {
+            Week[] before = WithoutDishesOverSeeds();
+            Week[] after = OverSeeds(false, false, false);
+            Seasons[] slow = SeasonsOverSeeds(false), fast = SeasonsOverSeeds(true);
+            int weeks = SeasonDays / 7;
+
+            var report = new StringBuilder();
+            report.AppendLine("# Sổ công thức: lá công thức và cấp món (#110a)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả như trên, trên " + Seeds.Length + " hạt; sổ mở ở cấp vườn " + Recipes.UnlockLevel + " (cấp của Mùa trăng mới đầu tiên) và từ đó luôn mở; người có sổ nâng món ngay khi đủ lá, chọn món cho nhiều thu nhập nhất trên mỗi lá. Lá: mỗi thỏ ở chỗ nghỉ 1 lá / "
+                + (int)(Recipes.RestSecondsPerLeaf / 60) + " phút (cả lúc vắng, theo trần vắng mặt), mỗi đơn khách +" + Recipes.LeavesPerOrder + ". Cấp món k → k+1 giá " + Recipes.CostPerLevelSquared + "·k² lá, cấp 10 ×" + Recipes.TopLevelMultiplier + " thu nhập của riêng trạm đó.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Thu/giây hết ngày 7: không sổ → có sổ | Tỉ lệ | Cà rốt kiếm tuần 1: tỉ lệ | Nâng món tuần 1 | Món cao nhất | Lá còn |");
+            report.AppendLine("|---|---|---|---|---|---|---|");
+            var ratios = new double[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                Week b = before[i], a = after[i];
+                ratios[i] = a.Income7 / b.Income7;
+                report.AppendLine("| " + Seeds[i] + " | " + new BigNum(b.Income7).ToShortString() + " → " + new BigNum(a.Income7).ToShortString() + " | " + Math.Round(ratios[i], 3) + " | " + Math.Round(a.Earned7 / b.Earned7, 3)
+                    + " | " + a.DishesRaised + " | " + a.TopDish + " | " + a.LeavesLeft + " |");
+            }
+            Array.Sort(ratios);
+            double medianRatio = ratios[ratios.Length / 2];
+            report.AppendLine("| **trung vị** | | " + Math.Round(medianRatio, 3) + " | | " + Median(after, w => w.DishesRaised) + " | " + Median(after, w => w.TopDish) + " | |");
+            report.AppendLine();
+            report.AppendLine("Tuần 2–6 (chơi tới ngày " + SeasonDays + ", bắt đầu Mùa trăng mới ngay khi được; cấp món giữ qua mùa trăng mới). Số cấp vườn đã leo, cộng dồn qua các mùa, hết mỗi tuần (trung vị):");
+            report.AppendLine();
+            report.AppendLine("| | " + string.Join(" | ", Enumerable(weeks, w => "Tuần " + (w + 1))) + " | Trăng mới 1 | 2 | 3 | Nâng món | Món cao nhất |");
+            report.AppendLine("|---" + string.Concat(Enumerable(weeks + 5, w => "|---")) + "|");
+            report.AppendLine("| Không sổ (#98) | " + string.Join(" | ", Enumerable(weeks, w => Median(slow, r => r.ClimbByWeek[w]).ToString())) + " | " + Median(slow, r => r.MoonDay(1)) + " | " + Median(slow, r => r.MoonDay(2)) + " | " + Median(slow, r => r.MoonDay(3)) + " | – | 1 |");
+            report.AppendLine("| Có sổ (#110a) | " + string.Join(" | ", Enumerable(weeks, w => Median(fast, r => r.ClimbByWeek[w]).ToString())) + " | " + Median(fast, r => r.MoonDay(1)) + " | " + Median(fast, r => r.MoonDay(2)) + " | " + Median(fast, r => r.MoonDay(3))
+                + " | " + Median(fast, r => r.DishesRaised) + " | " + Median(fast, r => r.TopDish) + " |");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Trăng mới 2: không sổ → có sổ | Trăng mới 3 | Cấp đã leo hết tuần 5 |");
+            report.AppendLine("|---|---|---|---|");
+            for (int i = 0; i < Seeds.Length; i++)
+                report.AppendLine("| " + Seeds[i] + " | " + slow[i].MoonDay(2) + " → " + fast[i].MoonDay(2) + " | " + slow[i].MoonDay(3) + " → " + fast[i].MoonDay(3) + " | " + slow[i].ClimbByWeek[weeks - 1] + " → " + fast[i].ClimbByWeek[weeks - 1] + " |");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-recipes.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Assert.LessOrEqual(medianRatio, 1.15, "week one's income at most 15 % higher with the recipe book, on the median\n" + text);
+            Holds(Pairs(before, after), p => p.All <= 1.25 * p.Single, "and no seed more than a quarter higher", text);
+            Assert.GreaterOrEqual(Median(fast, r => r.ClimbByWeek[1]), Median(slow, r => r.ClimbByWeek[1]), "week two no slower: the book opens with the first new moon, around day ten\n" + text);
+            for (int w = 2; w < weeks; w++)
+            {
+                int week = w;
+                Assert.Greater(Median(fast, r => r.ClimbByWeek[week]), Median(slow, r => r.ClimbByWeek[week]) + 5, "clearly more garden levels climbed by the end of week " + (week + 1) + "\n" + text);
+            }
+            Assert.Less(Median(fast, r => r.MoonDay(2)), Median(slow, r => r.MoonDay(2)), "the second new moon comes sooner\n" + text);
+            Assert.Less(Median(fast, r => r.MoonDay(3)), Median(slow, r => r.MoonDay(3)), "and the third\n" + text);
+            Holds(fast, r => r.LongestStill <= 3, "never more than three days without a garden level or something opening", text);
+        }
+
+        static IEnumerable<string> Enumerable(int count, Func<int, string> make)
+        {
+            for (int i = 0; i < count; i++) yield return make(i);
         }
 
         [Test, Category("Slow"), Timeout(1800000)]
         public void A_Casual_Player_Reaches_The_Second_New_Moon_Before_Day_25_And_The_Third_Before_Day_35()
         {
             const int days = 35;
-            var runs = new Seasons[Seeds.Length];
-            for (int i = 0; i < Seeds.Length; i++) runs[i] = CasualSeasons(Seeds[i], days);
+            Seasons[] runs = SeasonsOverSeeds(true);
 
             var report = new StringBuilder();
             report.AppendLine("# Các mùa sau mùa trăng mới đầu tiên (#98)");
             report.AppendLine();
-            report.AppendLine("Người chơi thong thả như trên, chơi tới ngày " + days + ", bắt đầu Mùa trăng mới ngay khi được. Mùa trăng mới cần cấp " + NewMoon.LevelNeeded(0) + ", rồi mỗi mùa thêm " + NewMoon.LevelStep
+            report.AppendLine("Người chơi thong thả như trên, chơi tới ngày " + SeasonDays + ", bắt đầu Mùa trăng mới ngay khi được. Mùa trăng mới cần cấp " + NewMoon.LevelNeeded(0) + ", rồi mỗi mùa thêm " + NewMoon.LevelStep
                 + " cấp; điểm vườn mùa n nhân " + NewMoon.BonusPerSeason + "·n như thu nhập.");
             report.AppendLine();
             report.AppendLine("| Hạt | Trăng mới 1 | 2 | 3 | Gọi vàng + thỏ ghé tiệm mỗi tuần | Chuỗi ngày dài nhất không lên cấp, không mở gì |");
