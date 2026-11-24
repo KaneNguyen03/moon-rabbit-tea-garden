@@ -117,6 +117,7 @@ namespace VuonTra.Core
         public const string ReviewFeedback = "review_feedback";
         public const string MonthPassTier = "monthpass_tier";
         public const string MonthPassBought = "monthpass_bought";
+        public const string WelcomeBack = "welcome_back";
 
         public static readonly string[] All =
         {
@@ -126,6 +127,7 @@ namespace VuonTra.Core
             ReviewAsked, ReviewLiked, ReviewFeedback,
             NewcomerTask, NewcomerDay,
             MonthPassTier, MonthPassBought,
+            WelcomeBack,
         };
 
         public const string NewGarden = "new_garden";
@@ -158,6 +160,7 @@ namespace VuonTra.Core
         public const string Chars = "chars";
         public const string Premium = "premium";
         public const string Month = "month";
+        public const string DaysAway = "days_away";
 
         public const string ViaClover = "clover", ViaGolden = "golden";
         public const string FromShop = "shop";
@@ -257,6 +260,12 @@ namespace VuonTra.Core
 
         public static void LogMonthPassBought(this IAnalytics a, int month, int tier) =>
             a.Log(AnalyticsEvents.MonthPassBought, new AnalyticsParam(AnalyticsEvents.Month, month), new AnalyticsParam(AnalyticsEvents.Tier, tier));
+
+        public static void LogWelcomeBack(this IAnalytics a, WelcomeBackGift gift)
+        {
+            if (!gift.Ok || gift.Day > 0) return;
+            a.Log(AnalyticsEvents.WelcomeBack, new AnalyticsParam(AnalyticsEvents.DaysAway, gift.AwayDays));
+        }
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>
             a.Log(AnalyticsEvents.RewardedAd, new AnalyticsParam(AnalyticsEvents.Placement, placement), new AnalyticsParam(AnalyticsEvents.Game, game ?? ""), new AnalyticsParam(AnalyticsEvents.Result, result));

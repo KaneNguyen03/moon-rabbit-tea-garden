@@ -1236,6 +1236,7 @@ namespace VuonTra.Game.UI
                 }), OnRedeemCode, () => Runner.OpenStorePage());
             BuildMail(catalog);
             FirstWeek = new NewcomerView(_canvas, _hud, Runner, Tweens, OnClaimNewcomer);
+            BuildWelcomeBack();
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
             KindChooser = new MonthKindChooser(_canvas, catalog, Tweens);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
@@ -3961,6 +3962,7 @@ namespace VuonTra.Game.UI
             }
             UpgradeAll.Refresh(defs, s);
             Shop.Refresh(s);
+            RefreshWelcomeBack();
             RefreshOffers();
             RefreshDecor(s);
             RefreshOrders(s);
@@ -4774,7 +4776,7 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen;
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen;
 
         void AskForReview()
         {

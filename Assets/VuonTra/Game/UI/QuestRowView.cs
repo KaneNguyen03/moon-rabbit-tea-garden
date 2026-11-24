@@ -107,9 +107,10 @@ namespace VuonTra.Game.UI
             if (CloverChip.gameObject.activeSelf != (clovers > 0)) CloverChip.gameObject.SetActive(clovers > 0);
             _jars.text = "+" + jars;
             if (JarChip.gameObject.activeSelf != (jars > 0)) JarChip.gameObject.SetActive(jars > 0);
-            _golden.text = "+" + q.RewardGolden;
+            int golden = Quests.GoldenNow(q, s);
+            _golden.text = "+" + golden;
             if (clovers == 0 && jars == 0) GoldenChip.anchoredPosition = new Vector2(272 + 68, 44); else GoldenChip.anchoredPosition = new Vector2(420 + 68, 44);
-            if (GoldenChip.gameObject.activeSelf != (q.RewardGolden > 0)) GoldenChip.gameObject.SetActive(q.RewardGolden > 0);
+            if (GoldenChip.gameObject.activeSelf != (golden > 0)) GoldenChip.gameObject.SetActive(golden > 0);
 
             if (Claim.Root.gameObject.activeSelf != CanClaim) Claim.Root.gameObject.SetActive(CanClaim);
             Claim.SetEnabled(CanClaim);

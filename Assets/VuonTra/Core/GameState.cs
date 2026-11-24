@@ -141,6 +141,7 @@ namespace VuonTra.Core
         public int DailyQuestsToday, BestFish;
         public NewcomerRecord Newcomer = new NewcomerRecord();
         public ReviewRecord Review = new ReviewRecord();
+        public WelcomeBackRecord WelcomeBack = new WelcomeBackRecord();
 
         public static GameState NewGame(IReadOnlyList<StationDef> defs, int upgradeCount = 0)
         {

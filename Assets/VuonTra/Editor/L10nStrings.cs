@@ -958,6 +958,16 @@ namespace VuonTra.EditorTools
             { "mail.newcomer", "Quà tuần đầu bạn chưa nhận", "First-week gifts you did not claim" },
             { "mail.jars", "+{0} hũ trăng", "+{0} moon jars" },
             { "mail.purple", "+{0} thỏ bậc Tím", "+{0} Purple rabbits" },
+            { "welcome.title", "Vườn nhớ bạn", "The garden missed you" },
+            { "welcome.sub", "Bạn vắng {0} ngày, vườn vẫn giữ chỗ cho bạn", "You were away {0} days; the garden kept your seat" },
+            { "welcome.line", "“Mình nhớ bạn lắm! {0} ngày rồi đó, trà vẫn để phần bạn.”", "“I missed you! {0} days already, and I kept a cup of tea for you.”" },
+            { "welcome.line.none", "“Cả vườn nhớ bạn lắm!”", "“The whole garden missed you!”" },
+            { "welcome.gifts", "Quà về nhà · đã vào túi", "Welcome-home gifts · already yours" },
+            { "welcome.checkin", "Điểm danh mỗi ngày · ngày {0}/{1}", "Daily check-in · day {0}/{1}" },
+            { "welcome.quests", "Trong lúc điểm danh: thưởng nhiệm vụ ngày ×2", "While the check-in lasts: daily quest rewards ×2" },
+            { "welcome.claim", "Nhận quà ngày {0}", "Claim day {0}" },
+            { "welcome.tomorrow", "Mai ghé lại nhé", "Come back tomorrow" },
+            { "welcome.pill", "Mừng bạn về · ngày {0}/{1}", "Welcome home · day {0}/{1}" },
         };
 
         /// <summary>
@@ -1000,6 +1010,7 @@ namespace VuonTra.EditorTools
             { "newcomer.task.merge-or-golden-1.one", "Merge rabbits or make a golden call {0} time" },
             { "mail.jars.one", "+{0} moon jar" },
             { "mail.purple.one", "+{0} Purple rabbit" },
+            { "welcome.sub.one", "You were away {0} day; the garden kept your seat" },
             { "noads.active.one", "No ads · {0} day left" },
             { "shop.gift.streak.one", "{0} day in a row · miss a day and it steps back one" },
             { "leaves.caught.one", "{0} leaf caught" },

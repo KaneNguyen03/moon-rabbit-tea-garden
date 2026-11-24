@@ -662,6 +662,7 @@ namespace VuonTra.EditorTools
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
             RenderMonthPass(runner, screen);
+            RenderWelcomeBack(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -1459,6 +1460,103 @@ namespace VuonTra.EditorTools
             content.anchoredPosition = new Vector2(content.anchoredPosition.x, top - 24f);
             screen.Refresh();
             Step(screen, 0.2f);
+        }
+
+        [MenuItem("VuonTra/Render Welcome Back")]
+        public static void RenderWelcomeBackOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderWelcomeBack(runner, screen);
+        }
+
+        static GameState WelcomeBackGarden(GameRunner runner, long today, int awayDays)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 40, 22, 14, 8, 3 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 8;
+            s.GardenXp = Garden.XpForLevel(12) + 40;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(1.8e6);
+            s.Newcomer.Closed = true;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbit loved = Rabbits.ArriveKind(s, "tho-me", "Mè");
+            Rabbits.Assign(s, loved.Id, 1);
+            Rabbits.AddBond(s, loved, Rabbits.PointsFor(6));
+            Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.4).Id, 2);
+            s.FreshKinds.Clear();
+            s.FirstDaySeen = today - awayDays - 20;
+            s.MaxDaySeen = today - awayDays;
+            s.WelcomeBack.SeenDay = s.MaxDaySeen;
+            s.MailDay = s.MaxDaySeen;
+            s.GiftDay = today;
+            return s;
+        }
+
+        static void ShowWelcomeBack(GameRunner runner, GardenScreen screen, string locale)
+        {
+            L10n.SetLocale(locale);
+            screen.RebuildUi();
+            if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.CloseSheet();
+            screen.SelectStation(-1);
+            screen.LookAt(screen.StationSpot(0));
+            screen.Refresh();
+            Step(screen, 0.6f);
+        }
+
+        static void RenderWelcomeBack(GameRunner runner, GardenScreen screen)
+        {
+            const long today = 20781;
+            System.Func<long> clockBefore = runner.DayClock;
+            bool cardsBefore = runner.OfferCardsOn;
+            runner.OfferCardsOn = false;
+            runner.DayClock = () => today;
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                string tail = locale == "vi" ? "" : "-en";
+                GameState s = WelcomeBackGarden(runner, today, 5);
+                runner.Init(s);
+                ShowWelcomeBack(runner, screen, locale);
+                if (!screen.WelcomeCard.IsOpen) throw new System.Exception("Preview: the welcome-back card did not open");
+                Capture(screen, "108-the-vuon-nho-ban" + tail);
+                if (locale == "vi")
+                {
+                    UiKit.SetLargeText(true);
+                    s.WelcomeBack.CardSeen = false;
+                    ShowWelcomeBack(runner, screen, locale);
+                    Capture(screen, "108-the-vuon-nho-ban-chu-to");
+                    UiKit.SetLargeText(false);
+                }
+
+                s.WelcomeBack.StartDay = today - 2;
+                s.WelcomeBack.CheckIns = 2;
+                s.WelcomeBack.CheckInDay = today - 1;
+                s.WelcomeBack.CardSeen = true;
+                ShowWelcomeBack(runner, screen, locale);
+                Capture(screen, "108-vien-ngay-3-7" + tail);
+                Press(screen, "Canvas/Hud/WelcomeBack");
+                Step(screen, 0.5f);
+                Capture(screen, "108-diem-danh-ngay-3" + tail);
+                Press(screen, "Canvas/WelcomeBackCard/Card/Claim");
+                Step(screen, 0.5f);
+                Capture(screen, "108-diem-danh-da-nhan" + tail);
+                screen.WelcomeCard.Close();
+            }
+            runner.OfferCardsOn = cardsBefore;
+            runner.DayClock = clockBefore;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
         }
 
         static void RenderMapEdges(GameRunner runner, GardenScreen screen)

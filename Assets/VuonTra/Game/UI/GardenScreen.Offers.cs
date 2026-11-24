@@ -24,7 +24,7 @@ namespace VuonTra.Game.UI
             && !Shop.IsOpen && !GoldenPacks.IsOpen && !Pound.IsOpen && !Basket.IsOpen && !Jar.IsOpen && !FishingCard.IsOpen
             && !AwayCard.IsOpen && !Arrival.IsOpen && !NewMoonCard.IsOpen && !NewMoonMoment.IsOpen && !CloudChoice.IsOpen
             && !Mail.IsOpen && !Profile.IsOpen && !Rename.IsOpen && !Picker.IsOpen && !Workers.IsOpen && !Detail.IsOpen
-            && !UpgradeAll.IsOpen && !Income.IsOpen && !DecorCard.IsOpen && !OrderCard.IsOpen && !ReviewCard.IsOpen && !FirstWeek.IsOpen && !Prizes.IsOpen && !KindChooser.IsOpen;
+            && !UpgradeAll.IsOpen && !Income.IsOpen && !DecorCard.IsOpen && !OrderCard.IsOpen && !ReviewCard.IsOpen && !FirstWeek.IsOpen && !Prizes.IsOpen && !KindChooser.IsOpen && !WelcomeCard.IsOpen;
 
         void RefreshOffers()
         {

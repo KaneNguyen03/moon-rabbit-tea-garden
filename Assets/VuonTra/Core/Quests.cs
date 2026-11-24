@@ -212,12 +212,14 @@ namespace VuonTra.Core
         {
             BigNum bySeconds = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * q.RewardSeconds);
             var flat = new BigNum(q.RewardCarrots);
-            return bySeconds > flat ? bySeconds : flat;
+            return (bySeconds > flat ? bySeconds : flat) * WelcomeBack.QuestTimesFor(q, s);
         }
 
         public static int JarsNow(QuestDef q, GameState s) => q.RewardJars > 0 && MoonJars.DailyWaiting(s, s.DailyDay) ? 1 : 0;
 
-        public static int CloversNow(QuestDef q, GameState s) => q.RewardClovers + q.RewardJars - JarsNow(q, s);
+        public static int CloversNow(QuestDef q, GameState s) => (q.RewardClovers + q.RewardJars - JarsNow(q, s)) * WelcomeBack.QuestTimesFor(q, s);
+
+        public static int GoldenNow(QuestDef q, GameState s) => q.RewardGolden * WelcomeBack.QuestTimesFor(q, s);
 
         public static bool TryClaim(QuestDef q, IReadOnlyList<StationDef> defs, GameState s, Modifiers m, out BigNum paid)
         {
@@ -228,7 +230,7 @@ namespace VuonTra.Core
             int clovers = CloversNow(q, s);
             if (JarsNow(q, s) > 0) MoonJars.GiveFree(s, s.DailyDay);
             s.Clovers += clovers;
-            s.GoldenCarrots += q.RewardGolden;
+            s.GoldenCarrots += GoldenNow(q, s);
             s.Claimed.Add(q.Id);
             if (q.Daily)
             {

@@ -55,6 +55,8 @@ namespace VuonTra.Core.Tests
         long firstDay;
         BigNum earnedAsks;
         System.Random askRng;
+        bool welcomeBack;
+        int goldenWelcome, cloversWelcome, welcomeStarts, welcomeCheckIns;
 
         readonly Dictionary<int, double> levelAt = new Dictionary<int, double>();
         readonly Dictionary<int, double> plotsAt = new Dictionary<int, double>();
@@ -114,6 +116,8 @@ namespace VuonTra.Core.Tests
             firstDay = 1;
             earnedAsks = BigNum.Zero;
             askRng = new System.Random(unchecked(seed * 31 + 103));
+            welcomeBack = false;
+            goldenWelcome = cloversWelcome = welcomeStarts = welcomeCheckIns = 0;
             levelAt.Clear();
             plotsAt.Clear();
             for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
@@ -145,6 +149,7 @@ namespace VuonTra.Core.Tests
         {
             sessionClock = 0;
             lastSale = 0;
+            if (welcomeBack) TakeWelcomeBack();
             VuonTra.Core.Seasons.Clamp(s, Today);
             Quests.RollDaily(quests, defs, s, Today, mods);
             goldenGift += Shop.ClaimDailyGift(s, Today, null, BigGiftHat, out _, out _);
@@ -153,6 +158,18 @@ namespace VuonTra.Core.Tests
             MeetFrog();
             GoFishing();
             if (newcomer) TryTheWeeksTasks();
+        }
+
+        void TakeWelcomeBack()
+        {
+            int golden = s.GoldenCarrots, clovers = s.Clovers, jars = s.MoonJars;
+            if (VuonTra.Core.WelcomeBack.Check(s, Today).Ok) welcomeStarts++;
+            WelcomeBackGift gift = VuonTra.Core.WelcomeBack.CheckIn(s, Today, "W", VuonTra.Core.Newcomer.ShownKindRoll);
+            if (gift.Ok) welcomeCheckIns++;
+            if (gift.Rabbit != null) Rabbits.AutoAssign(defs, s);
+            goldenWelcome += s.GoldenCarrots - golden;
+            cloversWelcome += s.Clovers - clovers;
+            jarsHeld += s.MoonJars - jars;
         }
 
         void TryTheWeeksTasks()
@@ -581,9 +598,9 @@ namespace VuonTra.Core.Tests
             return total.IsZero ? 0d : Math.Round((part / total).ToDouble() * 1000d) / 10d;
         }
 
-        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + GoldenFromLevels;
-        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass;
-        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversNewcomer - cloversPass;
+        int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + goldenWelcome + GoldenFromLevels;
+        int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass - goldenWelcome;
+        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversNewcomer - cloversPass - cloversWelcome;
 
         void Snapshot(string label)
         {
@@ -1113,6 +1130,88 @@ namespace VuonTra.Core.Tests
             var medians = new List<string>();
             for (int w = 0; w < runs[0].GoldenByWeek.Count; w++) { int week = w; medians.Add(Median(runs, r => r.GoldenByWeek[week]).ToString()); }
             return medians;
+        }
+
+        sealed class Return
+        {
+            public int AwayDays, Calls, CallsBefore, GoldenWelcome, CloversWelcome, Starts, CheckIns, LevelBefore, LevelEnd, PurpleRabbits;
+        }
+
+        Return ReturningPlayer(int seed, int awayDays, bool welcome)
+        {
+            CasualWeek(false, false, false, seed);
+            var r = new Return { AwayDays = awayDays, CallsBefore = goldenCalls + visitorsBought, LevelBefore = Garden.Level(s) };
+            int purple = 0;
+            foreach (Rabbit rabbit in s.Rabbits) if (rabbit.Tier == VuonTra.Core.WelcomeBack.PurpleTier) purple++;
+            welcomeBack = welcome;
+            s.WelcomeBack.SeenDay = s.MaxDaySeen;
+            Away(awayDays * Day);
+            for (int day = 1; day <= 7; day++)
+            {
+                Play(20 * 60);
+                Away(8 * 3600);
+                Play(10 * 60);
+                Away(Day - 8 * 3600 - 30 * 60);
+            }
+            r.Calls = goldenCalls + visitorsBought - r.CallsBefore;
+            r.GoldenWelcome = goldenWelcome;
+            r.CloversWelcome = cloversWelcome;
+            r.Starts = welcomeStarts;
+            r.CheckIns = welcomeCheckIns;
+            r.LevelEnd = Garden.Level(s);
+            foreach (Rabbit rabbit in s.Rabbits) if (rabbit.Tier == VuonTra.Core.WelcomeBack.PurpleTier) r.PurpleRabbits++;
+            r.PurpleRabbits -= purple;
+            return r;
+        }
+
+        [Test]
+        public void A_Casual_Player_Back_After_Ten_Or_Twenty_Days_Gets_One_Welcome_Back_And_At_Most_Nine_Golden_Calls_That_Week()
+        {
+            int[] gaps = { 10, 20 };
+            var without = new Return[gaps.Length][];
+            var with = new Return[gaps.Length][];
+            for (int g = 0; g < gaps.Length; g++)
+            {
+                without[g] = new Return[Seeds.Length];
+                with[g] = new Return[Seeds.Length];
+                for (int i = 0; i < Seeds.Length; i++)
+                {
+                    without[g][i] = ReturningPlayer(Seeds[i], gaps[g], false);
+                    with[g][i] = ReturningPlayer(Seeds[i], gaps[g], true);
+                }
+            }
+
+            var report = new StringBuilder();
+            report.AppendLine("# Vườn nhớ bạn (#108)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả của EconomySimulationTests chơi tuần đầu, rồi vắng " + string.Join(" hoặc ", gaps) + " ngày (tuần đầu đã hết, viên Tuần đầu không còn), rồi chơi lại 7 ngày như cũ, trên " + Seeds.Length + " hạt. "
+                + "Có Vườn nhớ bạn: quà ngay " + VuonTra.Core.WelcomeBack.GiftJars + " hũ + " + VuonTra.Core.WelcomeBack.GiftClovers + " cỏ + " + VuonTra.Core.WelcomeBack.GiftGolden + " cà rốt vàng (×" + VuonTra.Core.WelcomeBack.BigAwayTimes + " khi vắng ≥ " + VuonTra.Core.WelcomeBack.BigAwayDays + " ngày), điểm danh mỗi buổi đầu ngày, nhiệm vụ ngày ×" + VuonTra.Core.WelcomeBack.QuestTimes + ".");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Vắng | Gọi vàng + thỏ ghé tiệm tuần đầu | Tuần quay lại (không → có) | Vàng từ Vườn nhớ bạn | Cỏ từ Vườn nhớ bạn | Lần bật | Điểm danh | Thỏ Tím | Cấp vườn (trước → hết tuần quay lại, có) |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|");
+            for (int g = 0; g < gaps.Length; g++)
+            {
+                for (int i = 0; i < Seeds.Length; i++)
+                {
+                    Return a = without[g][i], b = with[g][i];
+                    report.AppendLine("| " + Seeds[i] + " | " + gaps[g] + " | " + b.CallsBefore + " | " + a.Calls + " → " + b.Calls + " | " + b.GoldenWelcome + " | " + b.CloversWelcome + " | " + b.Starts + " | " + b.CheckIns + " | " + b.PurpleRabbits + " | " + b.LevelBefore + " → " + b.LevelEnd + " |");
+                }
+                report.AppendLine("| **trung vị** | " + gaps[g] + " | " + Median(with[g], r => r.CallsBefore) + " | " + Median(without[g], r => r.Calls) + " → " + Median(with[g], r => r.Calls) + " | " + Median(with[g], r => r.GoldenWelcome)
+                    + " | " + Median(with[g], r => r.CloversWelcome) + " | | | | " + Median(with[g], r => r.LevelBefore) + " → " + Median(with[g], r => r.LevelEnd) + " |");
+            }
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-welcome-back.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            for (int g = 0; g < gaps.Length; g++)
+            {
+                Always(with[g], r => r.Starts == 1 && r.CheckIns == VuonTra.Core.WelcomeBack.Days && r.PurpleRabbits >= 1, "one welcome back, seven check-ins and the Purple rabbit after " + gaps[g] + " days away", text);
+                Always(without[g], r => r.Starts == 0 && r.GoldenWelcome == 0, "nothing without it", text);
+                Holds(with[g], r => r.Calls <= MostGoldenCallsWithChests, "the week back calls with golden carrots at most " + MostGoldenCallsWithChests + " times, like the whole-set player", text);
+            }
+            Assert.AreEqual(VuonTra.Core.WelcomeBack.GiftGolden + 8, Median(with[0], r => r.GoldenWelcome), "ten days away: 5 at once and 3 + 5 from the check-in\n" + text);
+            Assert.AreEqual(2 * VuonTra.Core.WelcomeBack.GiftGolden + 8, Median(with[1], r => r.GoldenWelcome), "twenty days away: the instant gifts doubled\n" + text);
         }
 
         static double Median(int n, Func<int, double> value)

@@ -420,6 +420,13 @@ namespace VuonTra.Core
             sb.Append(",\"review\":{\"asks\":").Append(s.Review.Asks.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"last\":").Append(s.Review.LastAskDay.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"liked\":").Append(s.Review.Liked ? "true" : "false");
+            sb.Append('}');
+            sb.Append(",\"welcomeBack\":{\"seen\":").Append(s.WelcomeBack.SeenDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"start\":").Append(s.WelcomeBack.StartDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"away\":").Append(s.WelcomeBack.AwayDays.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"checkIns\":").Append(s.WelcomeBack.CheckIns.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"checkInDay\":").Append(s.WelcomeBack.CheckInDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"cardSeen\":").Append(s.WelcomeBack.CardSeen ? "true" : "false");
             sb.Append("}}");
             return sb.ToString();
         }
@@ -918,6 +925,17 @@ namespace VuonTra.Core
                 s.Review.LastAskDay = TryNumber(review, "last", out double lastAsk) ? Math.Max(-1L, ToLong(lastAsk)) : -1;
                 s.Review.Liked = review.TryGetValue("liked", out object liked) && liked is bool likedFlag && likedFlag;
             }
+
+            if (root.TryGetValue("welcomeBack", out object welcomeObj) && welcomeObj is Dictionary<string, object> welcome)
+            {
+                s.WelcomeBack.SeenDay = TryNumber(welcome, "seen", out double welcomeSeen) ? Math.Max(-1L, ToLong(welcomeSeen)) : s.MaxDaySeen;
+                s.WelcomeBack.StartDay = TryNumber(welcome, "start", out double start) ? Math.Max(-1L, ToLong(start)) : -1;
+                s.WelcomeBack.AwayDays = Small(ReadNumber(welcome, "away"), WelcomeBack.MaxAwayDays);
+                s.WelcomeBack.CheckIns = Small(ReadNumber(welcome, "checkIns"), WelcomeBack.Days);
+                s.WelcomeBack.CheckInDay = TryNumber(welcome, "checkInDay", out double checkInDay) ? Math.Max(-1L, ToLong(checkInDay)) : -1;
+                s.WelcomeBack.CardSeen = !(welcome.TryGetValue("cardSeen", out object cardSeenObj) && cardSeenObj is bool cardSeen) || cardSeen;
+            }
+            else s.WelcomeBack.SeenDay = s.MaxDaySeen;
 
             if (root.TryGetValue("tally", out object tallyObj) && tallyObj is Dictionary<string, object> tally)
             {

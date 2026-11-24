@@ -111,6 +111,7 @@ namespace VuonTra.Game
                 Mods = Modifiers.From(UpgradeDefs, State);
             }
 
+            CheckWelcomeBack();
             Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods);
             LoadGiftKey();
             CheckMail();
@@ -163,6 +164,7 @@ namespace VuonTra.Game
             _sinceSave += dt;
             if (_sinceSave >= AutosaveSeconds)
             {
+                if (CheckWelcomeBack()) StateChanged?.Invoke();
                 if (Quests.RollDaily(QuestDefs, Defs, State, TodayNumber, Mods)) StateChanged?.Invoke();
                 if (CheckMail()) StateChanged?.Invoke();
                 if (NoteOffers()) StateChanged?.Invoke();
