@@ -2136,6 +2136,19 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - "Làm xong nhiệm vụ ngày" đang là "nhận 4 nhiệm vụ ngày trong hôm nay".
 - Chân dung thỏ Tím dùng hình bậc Tím chung.
 
+## #107 — Vé nhiệm vụ tháng (agent-107)
+
+**Test:** `tools/verify.sh` GREEN, tests 1397/1398, rules ok, preview 280 khung.
+
+**Commit:** f521785, gộp main `766e9b4` (thư Vé tháng là loại số 4); main `766e9b4`, verify đầy đủ GREEN 1418/1419
+
+**Đã làm:** `Core/MonthPass.cs` (30 nấc × 40 điểm, dùng chung điểm nhiệm vụ ngày với rương tuần #103; hàng miễn phí và hàng Vé tháng; màu đèn tháng ở nấc 10, khung ảnh tháng ở nấc 20, thỏ bậc Vàng chọn 1 trong 3 ở nấc 30); thẻ "Vé tháng N" trong tab Nhiệm vụ với nút "Mở Vé tháng · 129.000 ₫"; mã `vuontra.monthpass` trong `FakeStorefront` và `UnityStorefront`; quà sót thành thư giữ 7 ngày; analytics `monthpass_tier`/`monthpass_bought`; khối lưu `monthPass`; dòng 4.4 trong CHECKLIST; ảnh trong `docs/anh/po-107/`.
+
+### Chưa đạt / cần PO quyết
+- Duyệt vị trí thẻ (dưới "Nhận được"), bảng màu đèn/khung, cách xử lý thỏ nấc 30 khi mua giữa tháng.
+- Khi gộp #106: `LetterKind` của #106 phải khác số 3 (`MonthPass`).
+- Chưa có chỗ chọn lại màu đèn/khung của tháng cũ; chưa đặt giá thật.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
