@@ -4363,203 +4363,475 @@ MonoBehaviour:
     m_Localized: The lanterns have a new colour
     m_Metadata:
       m_Items: []
-  - m_Id: 931304680972288
+  - m_Id: 900689285865472
+    m_Localized: '{0} tiers reached in all'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448384
+    m_Localized: "{0} \xB7 tier {1}/{2}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448385
+    m_Localized: Complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448386
+    m_Localized: Taps
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448387
+    m_Localized: '{0}/{1} taps'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448388
+    m_Localized: Upgrades
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448389
+    m_Localized: '{0}/{1} levels'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448390
+    m_Localized: Carrots earned
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448391
+    m_Localized: '{0}/{1} carrots'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448392
+    m_Localized: Guest orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448393
+    m_Localized: '{0}/{1} orders'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448394
+    m_Localized: Fishing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448395
+    m_Localized: '{0}/{1} fish'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448396
+    m_Localized: Photos
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448397
+    m_Localized: '{0}/{1} photos'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448398
+    m_Localized: Games played
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448399
+    m_Localized: '{0}/{1} rounds'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448400
+    m_Localized: Kinds met
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448401
+    m_Localized: '{0}/{1} kinds'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448402
+    m_Localized: Rabbits at level cap
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448403
+    m_Localized: '{0}/{1} rabbits'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448404
+    m_Localized: Full hearts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448405
+    m_Localized: '{0}/{1} rabbits'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448406
+    m_Localized: Garden level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448407
+    m_Localized: level {0}/{1}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448408
+    m_Localized: New moons
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689298448409
+    m_Localized: '{0}/{1} moons'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836992
+    m_Localized: '{0} tier reached in all'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836993
+    m_Localized: '{0}/{1} photo'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836994
+    m_Localized: '{0}/{1} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836995
+    m_Localized: '{0}/{1} rabbit'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 900689306836996
+    m_Localized: '{0}/{1} moon'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305586290688
+    m_Localized: New
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262208
+    m_Localized: Try it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262209
+    m_Localized: Later
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262210
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clovers'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262211
+    m_Localized: "First try: +{0} \xB7 +{1} clovers"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262212
+    m_Localized: Unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262213
+    m_Localized: '{0}/{1} cards'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262214
+    m_Localized: Unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262215
+    m_Localized: No cards yet. Keep playing to open more!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262216
+    m_Localized: Fishing at the moon pond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262217
+    m_Localized: 'Tap the moon pond, cast, and tap the water when the float sinks.
+
+      Feed the fish to your rabbits for hearts.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262218
+    m_Localized: Pound the mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262219
+    m_Localized: 'Tap the mortar by the teapot, then tap when the ring meets the cake.
+
+      A few rounds a day; good timing earns stars.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262220
+    m_Localized: Catch the tea leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262221
+    m_Localized: 'Tap the basket under the tea tree, drag it under the leaves, dodge the pine cones.
+
+      A few rounds a day; more leaves, more reward.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262222
+    m_Localized: Firefly night
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262223
+    m_Localized: 'Tap the glass jar by the pond, then tap the fireflies crossing the garden.
+
+      A few rounds a day; catch more for more.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262224
+    m_Localized: Guests and tea orders
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262225
+    m_Localized: 'Guests wait at the shop counter; the bubble shows what they want.
+
+      With the products on your tray, tap the guest to serve for carrots.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262226
+    m_Localized: The shop and the daily gift
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262227
+    m_Localized: 'Tap the shop by the pond for a gift each day; come back day after day for bigger ones.
+
+      Inside are hats, decorations and today''s visitor.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262228
+    m_Localized: Moon jars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262229
+    m_Localized: 'Each moon jar holds an hour of income, open it any time.
+
+      Buy jars on the shop''s shelf; open them from the carrot purse.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262230
+    m_Localized: Arrange the garden
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262231
+    m_Localized: 'Tap Arrange in the bottom corner and hold to pick a station up.
+
+      Drop it on an empty tile, on something to swap, or in storage.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262232
+    m_Localized: Rain and the Frog Rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262233
+    m_Localized: 'Now and then it rains and the Frog Rabbit visits the moon pond.
+
+      Tap it before it leaves for a rainy-day gift.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262234
+    m_Localized: A new moon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305607262235
+    m_Localized: 'Open it from the settings button: the garden goes back to its first four plots; rabbits and items stay.
+
+      After each one, income grows for good.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428032
+    m_Localized: 'First try: a minute of income (+{0}) and {1} clover'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 914305632428033
+    m_Localized: "First try: +{0} \xB7 +{1} clover"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 950783519481856
     m_Localized: Lotus Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138112
+  - m_Id: 950783544647680
     m_Localized: Full Moon Dew Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138113
+  - m_Id: 950783544647681
     m_Localized: Roasted Tea Leaves
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138114
+  - m_Id: 950783544647682
     m_Localized: Silver Tea Buds
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138115
+  - m_Id: 950783544647683
     m_Localized: Mulberry Jam
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138116
+  - m_Id: 950783544647684
     m_Localized: Rose Berry Jam
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138117
+  - m_Id: 950783544647685
     m_Localized: Chrysanthemum Powder
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138118
+  - m_Id: 950783544647686
     m_Localized: Jasmine Powder
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138119
+  - m_Id: 950783544647687
     m_Localized: Honey Chestnut Bun
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138120
+  - m_Id: 950783544647688
     m_Localized: Charcoal Chestnut Cake
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138121
+  - m_Id: 950783544647689
     m_Localized: Longan Blossom Honey
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138122
+  - m_Id: 950783544647690
     m_Localized: Golden Honeycomb
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138123
+  - m_Id: 950783544647691
     m_Localized: Taro Milk Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138124
+  - m_Id: 950783544647692
     m_Localized: Cloud Milk Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138125
+  - m_Id: 950783544647693
     m_Localized: Sparkling Star Water
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138126
+  - m_Id: 950783544647694
     m_Localized: Silver Star Nectar
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138127
+  - m_Id: 950783544647695
     m_Localized: Moon Raisins
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138128
+  - m_Id: 950783544647696
     m_Localized: Silver Grape Juice
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138129
+  - m_Id: 950783544647697
     m_Localized: Snow Skin Mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138130
+  - m_Id: 950783544647698
     m_Localized: Five Nut Mooncake
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138131
+  - m_Id: 950783544647699
     m_Localized: Mint Spring Water
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138132
+  - m_Id: 950783544647700
     m_Localized: Peach Blossom Water
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138133
+  - m_Id: 950783544647701
     m_Localized: Shooting Star Candy
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138134
+  - m_Id: 950783544647702
     m_Localized: Milky Way Cake
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138135
+  - m_Id: 950783544647703
     m_Localized: Lotus Seed Soup
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138136
+  - m_Id: 950783544647704
     m_Localized: Lotus Heart Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138137
+  - m_Id: 950783544647705
     m_Localized: Peanut Brittle
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138138
+  - m_Id: 950783544647706
     m_Localized: Ginger Candy
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138139
+  - m_Id: 950783544647707
     m_Localized: Purple Sticky Rice
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138140
+  - m_Id: 950783544647708
     m_Localized: Sticky Rice Cake
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138141
+  - m_Id: 950783544647709
     m_Localized: Night Cactus Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138142
+  - m_Id: 950783544647710
     m_Localized: Moonlight Tea
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138143
+  - m_Id: 950783544647711
     m_Localized: New dish!
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138144
+  - m_Id: 950783544647712
     m_Localized: '{0} now sells this dish'
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138145
+  - m_Id: 950783544647713
     m_Localized: "Each new dish: station income \xD71.25 \xB7 improve it with leaves"
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138146
+  - m_Id: 950783544647714
     m_Localized: +{0} more new dishes in the book
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138147
+  - m_Id: 950783544647715
     m_Localized: Lovely!
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138148
+  - m_Id: 950783544647716
     m_Localized: Open book
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138149
+  - m_Id: 950783544647717
     m_Localized: Recipe book
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138150
+  - m_Id: 950783544647718
     m_Localized: 'Three dishes a station: the second at level {0}, the third at {1}'
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138151
+  - m_Id: 950783544647719
     m_Localized: Open
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138152
+  - m_Id: 950783544647720
     m_Localized: "Recipe leaves: {0} \xB7 a station sells its highest dish"
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138153
+  - m_Id: 950783544647721
     m_Localized: "On sale \xB7 level {0}"
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138154
+  - m_Id: 950783544647722
     m_Localized: Level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138155
+  - m_Id: 950783544647723
     m_Localized: Not yet open
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138156
+  - m_Id: 950783544647724
     m_Localized: Opens at station level {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138157
+  - m_Id: 950783544647725
     m_Localized: "Improve \xB7 {0}"
     m_Metadata:
       m_Items: []
-  - m_Id: 931304706138158
+  - m_Id: 950783544647726
     m_Localized: Top level
     m_Metadata:
       m_Items: []
-  - m_Id: 931304727109632
+  - m_Id: 950783561424896
     m_Localized: +{0} more new dish in the book
     m_Metadata:
       m_Items: []
-  - m_Id: 931304727109633
+  - m_Id: 950783561424897
     m_Localized: "Recipe leaf: {0} \xB7 a station sells its highest dish"
     m_Metadata:
       m_Items: []

@@ -82,6 +82,10 @@ namespace VuonTra.Core.Tests
             var questDefs = new List<QuestDef>();
             foreach (QuestMetric metric in Enum.GetValues(typeof(QuestMetric))) questDefs.Add(new QuestDef { Id = "q", Metric = metric, StationId = defs[2].Id, Target = 1 });
             Action progress = () => { for (int i = 0; i < questDefs.Count; i++) Quests.Progress(questDefs[i], defs, s); };
+            var chain = new QuestDef { Id = "chain", Metric = QuestMetric.Taps, Merged = new[] { "old" }, Tiers = new[] { new QuestTier { Target = 1 }, new QuestTier { Target = 2 }, new QuestTier { Target = 3 } } };
+            s.Claimed.Add("old");
+            Action tiers = () => { count = Quests.TiersClaimed(chain, s); sink = Quests.CurrentTier(chain, s); };
+            tiers();
 
             TestContext.WriteLine("IncomePerSecond: " + BytesPerCall(income, 1000) + " B a call; 16 StationIncomePerSecond: " + BytesPerCall(shares, 200)
                 + " B; 600 ticks: " + BytesPerCall(tenSeconds, 5) + " B (stored " + s.Grid.StoredCount + ")");
@@ -91,6 +95,7 @@ namespace VuonTra.Core.Tests
             Assert.That(() => shares(), AllocIs.Not.AllocatingGCMemory(), "each station's share of the income");
             Assert.That(() => tenSeconds(), AllocIs.Not.AllocatingGCMemory(), "ten seconds of Simulation.Tick");
             Assert.That(() => progress(), AllocIs.Not.AllocatingGCMemory(), "every quest's progress");
+            Assert.That(() => tiers(), AllocIs.Not.AllocatingGCMemory(), "a tiered achievement's claimed tiers (#111)");
             Assert.That(() => { count = AlbumSets.KindsMet(s); }, AllocIs.Not.AllocatingGCMemory(), "the album's every-day kinds");
             Assert.That(() => { sink = Seasons.KindOf(Season.MidAutumn); }, AllocIs.Not.AllocatingGCMemory(), "a season's kind");
             Assert.That(() => { count = RestSpots.SeatedCount(s); }, AllocIs.Not.AllocatingGCMemory(), "how many rabbits are seated");

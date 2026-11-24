@@ -663,9 +663,11 @@ namespace VuonTra.EditorTools
             RenderNewcomer(runner, screen);
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
+            RenderAchievementTiers(runner, screen);
             RenderMonthPass(runner, screen);
             RenderWelcomeBack(runner, screen);
             RenderTrunk(runner, screen);
+            RenderIntros(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -876,6 +878,87 @@ namespace VuonTra.EditorTools
             screen.ShowRabbitAlbum(false);
             screen.CloseSheet();
             Step(screen, 1.6f);
+        }
+
+        static void RenderAchievementTiers(GameRunner runner, GardenScreen screen)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 120, 80, 60, 40, 30, 24, 12, 8 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 10;
+            s.GardenXp = Garden.XpForLevel(24) + 120;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(4.2e14);
+            s.TotalEarned = new BigNum(3.1e26);
+            s.TotalTaps = 23480;
+            s.LevelsBought = 4120;
+            s.OrdersDelivered = 62;
+            s.FishCaught = 64;
+            s.PhotosTaken = 500;
+            s.PoundingGames = 31; s.Leaves.Games = 17; s.Fireflies.Games = 9;
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            foreach (string id in new[] { "cham-100", "cham-1000", "thu-1k", "thu-1m", "thu-1b", "ca-50", "don-20", "mo-2", "mo-4", "mo-8", "tra-10", "tra-25", "tra-50", "bua-1" }) s.Claimed.Add(id);
+            foreach (string id in new[] { "ca.1", "ca.2", "don.1", "nang.1", "van.1", "van.2", "cap.1" }) s.Claimed.Add(id);
+            for (int tier = 1; tier <= 8; tier++) s.Claimed.Add("anh." + tier);
+            runner.Init(s);
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            Step(screen, 4f);
+            foreach (string language in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(language);
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                ShowAchievements(screen);
+                Capture(screen, "111-" + language + "-thanh-tuu");
+                screen.CloseSheet();
+                Step(screen, 0.5f);
+            }
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.OpenSheet(2);
+            screen.DragSheet(500f);
+            screen.ReleaseSheet();
+            Step(screen, 0.5f);
+            Capture(screen, "111-vi-san-nhan");
+            Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest cham/Claim");
+            Step(screen, 1.2f);
+            ShowAchievements(screen);
+            Capture(screen, "111-vi-sau-nhan");
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            ShowAchievements(screen);
+            Capture(screen, "111-vi-chu-to");
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+            UiKit.SetLargeText(false);
+            screen.RebuildUi();
+        }
+
+        static void ShowAchievements(GardenScreen screen)
+        {
+            screen.OpenSheet(2);
+            screen.DragSheet(500f);
+            screen.ReleaseSheet();
+            Step(screen, 0.5f);
+            var scroll = screen.transform.Find("Canvas/Sheet/Panel/Quests").GetComponent<ScrollRect>();
+            Canvas.ForceUpdateCanvases();
+            RectTransform heading = null;
+            int headings = 0;
+            foreach (RectTransform child in scroll.content)
+                if (child.name == "Heading" && ++headings == 2) heading = child;
+            float top = -heading.anchoredPosition.y - heading.rect.height * (1f - heading.pivot.y);
+            scroll.StopMovement();
+            scroll.content.anchoredPosition = new Vector2(scroll.content.anchoredPosition.x, top - 12f);
+            Step(screen, 0.3f);
         }
 
         static void RenderMoonJars(GameRunner runner, GardenScreen screen)
@@ -2242,6 +2325,102 @@ namespace VuonTra.EditorTools
             runner.OfferCardsOn = false;
             runner.OfferWallClock = realClock;
             screen.Raining = null;
+            Step(screen, 0.4f);
+        }
+
+        static GameState IntroGarden(GameRunner runner)
+        {
+            GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+            int[] levels = { 27, 12, 9, 4, 2, 0 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.Plots = 6;
+            GardenGrid.Settle(runner.Catalog.BuildDefs(), s);
+            s.GardenXp = Garden.XpForLevel(5) + 90;
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            s.IntrosSeen.UnionWith(Intros.All);
+            s.IntrosTried.Clear();
+            s.IntrosLater.Clear();
+            return s;
+        }
+
+        static void ShowIntroFrame(GameRunner runner, GardenScreen screen, GameState s, string id, string name)
+        {
+            if (runner.State != s) Debug.LogWarning("[VuonTra] intro preview: the runner's state was replaced before " + name);
+            s = runner.State;
+            s.IntrosSeen.UnionWith(Intros.All);
+            s.IntrosSeen.Remove(id);
+            screen.IntroQueue.Reset();
+            Step(screen, 0.8f);
+            Capture(screen, name);
+        }
+
+        static void StartIntroScreen(GardenScreen screen)
+        {
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(screen.StationSpot(0) + new Vector2(0f, -120f));
+            Step(screen, 0.4f);
+        }
+
+        static void RenderIntros(GameRunner runner, GardenScreen screen)
+        {
+            foreach (string lang in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(lang);
+                GameState s = IntroGarden(runner);
+                StartIntroScreen(screen);
+                ShowIntroFrame(runner, screen, s, Intros.Fishing, "104-the-cau-ca-" + lang);
+                Press(screen, "Canvas/Intro/Later");
+                Step(screen, 0.4f);
+                if (lang == "vi")
+                {
+                    screen.Refresh();
+                    screen.LookAt(GardenScreen.PondSpot + new Vector2(-60f, -260f));
+                    Step(screen, 0.5f);
+                    Capture(screen, "104-cham-vang-de-sau");
+                    screen.IntroDot(Intros.Fishing).GetComponent<Button>().onClick.Invoke();
+                    Step(screen, 1.1f);
+                    Capture(screen, "104-thu-ngay-sang-ao");
+                    Step(screen, 2.5f);
+                }
+                ShowIntroFrame(runner, screen, s, Intros.Layout, "104-the-bo-tri-" + lang);
+                Press(screen, "Canvas/Intro/Later");
+                Step(screen, 0.4f);
+                if (lang == "vi")
+                {
+                    screen.Profile.Open(runner.Defs, s, runner.Account, runner.CloudStatus);
+                    Step(screen, 0.4f);
+                    Press(screen, "Canvas/Profile/Card/Intros");
+                    Step(screen, 0.5f);
+                    Capture(screen, "104-da-mo-ho-so");
+                    screen.IntroList.Close();
+                    screen.Profile.Close();
+                }
+            }
+            UiKit.SetLargeText(true);
+            L10n.SetLocale("vi");
+            GameState big = IntroGarden(runner);
+            big.GardenXp = Garden.XpForLevel(FrogRabbit.FromLevel);
+            big.NextOrderId = 1;
+            StartIntroScreen(screen);
+            ShowIntroFrame(runner, screen, big, Intros.Rain, "104-the-thu-ech-chu-to");
+            Press(screen, "Canvas/Intro/Later");
+            L10n.SetLocale("en");
+            screen.RebuildUi();
+            ShowIntroFrame(runner, screen, big, Intros.Orders, "104-the-khach-chu-to-en");
+            Press(screen, "Canvas/Intro/Later");
+            UiKit.SetLargeText(false);
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            screen.IntroQueue.Reset();
             Step(screen, 0.4f);
         }
 

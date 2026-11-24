@@ -28,6 +28,8 @@ namespace VuonTra.Core.Tests
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
             runner.Init(GameState.NewGame(catalog.BuildDefs()));
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
             screen.Cam = cam.GetComponent<Camera>();
@@ -2784,11 +2786,53 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Tiered_Achievement_Row_Moves_To_Its_Next_Tier_In_Place_And_Turns_Gold_When_Complete()
+        {
+            screen.Shell.StartGame();
+            runner.State.OrdersDelivered = 7;
+            screen.OpenSheet(2);
+            screen.Refresh();
+            Transform content = root.transform.Find("Canvas/Sheet/Panel/Quests/Content");
+            Transform row = content.Find("Quest don");
+            Text title = row.Find("Title").GetComponent<Text>();
+            Assert.AreEqual("Đơn khách · nấc 1/8", title.text);
+            Assert.IsTrue(row.Find("Claim").gameObject.activeSelf);
+            int index = -1;
+            for (int i = 0; i < runner.QuestDefs.Count; i++) if (runner.QuestDefs[i].Id == "don") index = i;
+
+            Assert.IsTrue(runner.ClaimQuest(index, out _));
+            screen.Refresh();
+            Assert.AreSame(row, content.Find("Quest don"), "the same row");
+            Assert.AreEqual("Đơn khách · nấc 2/8", title.text, "now on the next tier");
+            Assert.AreEqual("7/20 đơn", row.Find("Count").GetComponent<Text>().text);
+            Assert.IsFalse(row.Find("Claim").gameObject.activeSelf);
+            Assert.IsFalse(row.Find("GoldEdge").gameObject.activeSelf);
+            bool total = false;
+            foreach (Transform child in content)
+            {
+                Text text = child.GetComponent<Text>();
+                total |= text != null && text.text == "Tổng thành tựu: 1 nấc";
+            }
+            Assert.IsTrue(total, "the achievements open with the tiers reached in all");
+
+            runner.State.OrdersDelivered = 5000;
+            while (runner.ClaimQuest(index, out _)) { }
+            screen.Refresh();
+            Assert.AreEqual("Đơn khách · nấc 8/8", title.text);
+            string last = new BigNum(2000).Short();
+            Assert.AreEqual(last + "/" + last + " đơn", row.Find("Count").GetComponent<Text>().text);
+            Assert.IsTrue(row.Find("GoldEdge").gameObject.activeSelf, "a finished chain wears a gold edge");
+            Assert.IsTrue(row.Find("Done").gameObject.activeSelf);
+            Assert.AreEqual("Hoàn tất", row.Find("Done/Text").GetComponent<Text>().text);
+            Assert.IsFalse(row.Find("Carrots").gameObject.activeSelf, "nothing left to pay");
+        }
+
+        [Test]
         public void The_Three_Photo_Quests_Are_In_The_List_And_The_First_Finishes_With_A_Snap()
         {
             screen.Shell.StartGame();
             Transform content = root.transform.Find("Canvas/Sheet/Panel/Quests/Content");
-            Assert.IsNotNull(content.Find("Quest anh-1"));
+            Assert.IsNotNull(content.Find("Quest anh"), "the photo achievement is a tiered row (#111)");
             Assert.IsNotNull(content.Find("Quest anh-vang"));
             Assert.IsNotNull(content.Find("Quest anh-nghi"));
             string dir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "vuontra-quest-" + System.Guid.NewGuid().ToString("N"));
@@ -2799,7 +2843,7 @@ namespace VuonTra.Core.Tests
                 Find("Canvas/PhotoBar/Snap").onClick.Invoke();
                 screen.ExitPhotoMode();
                 screen.Refresh();
-                Assert.IsTrue(content.Find("Quest anh-1/Claim").gameObject.activeSelf, "the first photo quest is ready to collect");
+                Assert.IsTrue(content.Find("Quest anh/Claim").gameObject.activeSelf, "the first photo tier is ready to collect");
                 Assert.IsFalse(content.Find("Quest anh-vang/Claim").gameObject.activeSelf);
             }
             finally
@@ -5120,7 +5164,7 @@ namespace VuonTra.Core.Tests
 
             Transform quest = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-don");
             Assert.IsNotNull(quest, "the daily order quest is in the list");
-            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest don-20"), "and the achievement");
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest don"), "and the tiered orders achievement (#111)");
             Tray.Add(runner.State, 0, false);
             Assert.IsTrue(runner.DeliverOrder(out _, out _));
             screen.Refresh();
@@ -6006,7 +6050,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("album.milestone.title", 40), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
             screen.OpenSheet(2);
             screen.Refresh();
-            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest loai-40"), "the milestone is a quest row");
+            Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest loai"), "the milestone is a tier of the kinds row (#111)");
 
             foreach (RabbitKind k in RabbitKinds.All) if (k.Season == Season.None && !k.NewMoonOnly) Rabbits.See(runner.State, k.Id);
             runner.AutoAssignRabbits();
