@@ -729,7 +729,7 @@ namespace VuonTra.Core.Tests
             Assert.Greater(refused, 0, "and the ones next to a station do not");
         }
 
-        static readonly string[] OffGridProps = { "Jar", "Jar/Plate", "Basket", "Basket/Plate", "Mortar", "Mortar/Plate", "PondTap", "PondTap/Plate" };
+        static readonly string[] OffGridProps = { "Jar", "Jar/Plate", "Basket", "Basket/Plate", "Mortar", "Mortar/Plate", "PondTap", "PondTap/Plate", "Tank" };
 
         static Rect GardenRect(RectTransform rt, RectTransform street)
         {

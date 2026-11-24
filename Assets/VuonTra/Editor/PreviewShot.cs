@@ -659,6 +659,7 @@ namespace VuonTra.EditorTools
             RenderLayout(runner, screen);
             RenderPond(runner, screen);
             RenderRecipes(runner, screen);
+            RenderAquarium(runner, screen);
             RenderNewcomer(runner, screen);
             RenderOffers(runner, screen);
             RenderQuestChests(runner, screen);
@@ -1847,6 +1848,128 @@ namespace VuonTra.EditorTools
             rt.GetWorldCorners(c);
             Vector3 a = street.InverseTransformPoint(c[0]), b = street.InverseTransformPoint(c[2]);
             return Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
+        }
+
+        static void RenderAquarium(GameRunner runner, GardenScreen screen)
+        {
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(6);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Newcomer.Closed = true;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            s.FreshKinds.Clear();
+            s.Fish[0] = 24; s.Fish[1] = 6; s.Fish[3] = 1;
+            for (int n = 0; n < 22; n++) Aquarium.Release(s, 0);
+            for (int n = 0; n < 5; n++) Aquarium.Release(s, 1);
+            Aquarium.Release(s, 3);
+            Aquarium.SeeFresh(s);
+            s.Fish[2] = 3;
+            const long now = 1_800_000_000L;
+            s.Baits = 4;
+            s.BaitAt = now - 300;
+            runner.Init(s);
+            runner.FishingClock = () => now;
+            screen.Raining = () => false;
+            screen.RebuildUi();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.SelectStation(-1);
+            screen.Refresh();
+            screen.LookAt(GardenScreen.TankSpot + new Vector2(-60f, -120f));
+            Step(screen, 3f);
+            Capture(screen, "114-be-ca-vuon-truoc");
+            runner.ReleaseFish(2);
+            screen.Refresh();
+            Step(screen, 0.4f);
+            Capture(screen, "114-be-ca-vuon");
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(locale);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                Step(screen, 0.4f);
+                screen.OpenFishing();
+                Step(screen, 0.6f);
+                Press(screen, "Canvas/Pond/Card/Basket/Fish 0");
+                Press(screen, "Canvas/Pond/Card/Release");
+                Step(screen, 0.4f);
+                Capture(screen, "114-gio-ca-tha-" + locale);
+                screen.FishingCard.Close();
+                Step(screen, 0.5f);
+                screen.OpenTank();
+                Step(screen, 0.6f);
+                Capture(screen, "114-be-ca-3-loai-" + locale);
+                screen.TankSheet.Close();
+                Step(screen, 0.5f);
+                UiKit.SetLargeText(true);
+                screen.RebuildUi();
+                screen.SelectStation(-1);
+                screen.Refresh();
+                Step(screen, 0.3f);
+                screen.OpenTank();
+                Step(screen, 0.6f);
+                Capture(screen, "114-be-ca-chu-to-" + locale);
+                screen.TankSheet.Close();
+                Step(screen, 0.5f);
+                UiKit.SetLargeText(false);
+            }
+
+            GameState full = GameState.NewGame(defs);
+            for (int i = 0; i < levels.Length; i++) full.Levels[i] = levels[i];
+            full.GardenXp = Garden.XpForLevel(6);
+            full.HintSeen = true;
+            full.TutorialStep = Tutorial.Steps;
+            full.Newcomer.Closed = true;
+            full.Coins = new BigNum(84000);
+            full.MoonJars = 2;
+            Rabbits.Assign(full, Rabbits.ArriveKind(full, "tho-bong", "Bông").Id, 0);
+            full.FreshKinds.Clear();
+            int[] tank = { 31, 12, 7, 5, 2, 0 };
+            for (int k = 0; k < tank.Length; k++)
+            {
+                full.Fish[k] = tank[k];
+                for (int n = 0; n < tank[k]; n++) Aquarium.Release(full, k);
+            }
+            full.Fish[5] = 1;
+            runner.Init(full);
+            runner.FishingClock = () => now;
+            foreach (string locale in new[] { "vi", "en" })
+            {
+                L10n.SetLocale(locale);
+                screen.RebuildUi();
+                if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                screen.SelectStation(-1);
+                screen.LookAt(GardenScreen.TankSpot + new Vector2(-60f, -120f));
+                screen.Refresh();
+                Step(screen, 0.4f);
+                if (full.Fish[5] > 0)
+                {
+                    screen.OpenFishing();
+                    Step(screen, 0.6f);
+                    Press(screen, "Canvas/Pond/Card/Basket/Fish 5");
+                    Press(screen, "Canvas/Pond/Card/Release");
+                    Step(screen, 0.4f);
+                    Capture(screen, "114-tha-loai-thu-6-" + locale);
+                    screen.FishingCard.Close();
+                    Step(screen, 0.5f);
+                    screen.Refresh();
+                }
+                else screen.TankCard.Open(full);
+                Step(screen, 0.6f);
+                Capture(screen, "114-the-du-bo-" + locale);
+                screen.TankCard.Close();
+                Step(screen, 0.3f);
+            }
+            L10n.SetLocale("vi");
+            screen.Raining = null;
+            screen.RebuildUi();
+            screen.SelectStation(-1);
+            Step(screen, 0.4f);
         }
 
         static void RenderRecipes(GameRunner runner, GardenScreen screen)

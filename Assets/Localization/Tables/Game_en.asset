@@ -4363,6 +4363,86 @@ MonoBehaviour:
     m_Localized: The lanterns have a new colour
     m_Metadata:
       m_Items: []
+  - m_Id: 905693140869120
+    m_Localized: Fish tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840640
+    m_Localized: "{0}/{1} kinds \xB7 +{2}% garden income (up to +{3}%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840641
+    m_Localized: "Next: {0} fish \xB7 +{1}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840642
+    m_Localized: Every milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840643
+    m_Localized: None released yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840644
+    m_Localized: New
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840645
+    m_Localized: 'Each kind, at {0} fish: +{1}% garden income for good'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840646
+    m_Localized: Released fish stay in the tank for good
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840647
+    m_Localized: 'All {0} kinds: +{1} golden carrots, +{2} moon jar'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840648
+    m_Localized: All {0} kinds in, full-set gift claimed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840649
+    m_Localized: Release to tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840650
+    m_Localized: Basket empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840651
+    m_Localized: "Tank: {0}/{1} kinds \xB7 +{2}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840652
+    m_Localized: "{0} into the tank \xB7 {1} in all"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840653
+    m_Localized: New milestone! +{0}% garden income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840654
+    m_Localized: The fish tank is complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840655
+    m_Localized: All {0} fish kinds are in the tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840656
+    m_Localized: "Full-set gift \xB7 already yours"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840657
+    m_Localized: Lovely!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840658
+    m_Localized: Fish tank ({0}/{1} kinds) +{2}%
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

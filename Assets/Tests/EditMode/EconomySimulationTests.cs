@@ -37,6 +37,10 @@ namespace VuonTra.Core.Tests
         bool goFishing;
         const double FishCatchRate = 0.8;
         int casts, fishCaught, fishPoints, goldenHearts;
+        enum Tank { Off, KeepFish, ReleaseFish }
+        Tank tank;
+        long fishedOn;
+        int released, goldenTank, cloversTank;
         System.Random fishRng;
         int cloversQuests, cloversGames, cloversOrders, goldenGift, goldenPhoto, goldenQuests, goldenGames, goldenTray, goldenSpent;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
@@ -99,6 +103,9 @@ namespace VuonTra.Core.Tests
             frogRng = new System.Random(unchecked(seed * 31 + 62));
             goFishing = false;
             casts = fishCaught = fishPoints = goldenHearts = 0;
+            tank = Tank.Off;
+            fishedOn = -1;
+            released = goldenTank = cloversTank = 0;
             fishRng = new System.Random(unchecked(seed * 31 + 58));
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
@@ -207,6 +214,11 @@ namespace VuonTra.Core.Tests
         void GoFishing()
         {
             if (!goFishing) return;
+            if (tank != Tank.Off)
+            {
+                FiveBaitsADay();
+                return;
+            }
             long now = (long)clock;
             FishingCast cast;
             while ((cast = Fishing.Cast(s, now, fishRng.NextDouble)) != null)
@@ -222,6 +234,32 @@ namespace VuonTra.Core.Tests
             for (int k = Fishing.Kinds - 1; k >= 0; k--)
                 for (FeedResult fed; s.Fish[k] > 0 && (fed = Fishing.Feed(s, r, k)).Fed;) fishPoints += fed.Points;
             goldenHearts += s.GoldenCarrots - golden;
+        }
+
+        void FiveBaitsADay()
+        {
+            if (fishedOn == Today) return;
+            fishedOn = Today;
+            long now = (long)clock;
+            FishingCast cast;
+            for (int n = 0; n < Fishing.BaitCap && (cast = Fishing.Cast(s, now, fishRng.NextDouble)) != null; n++)
+            {
+                casts++;
+                cast.Advance(cast.BobSeconds + (fishRng.NextDouble() < FishCatchRate ? 0.25 : 1d));
+                if (cast.Tap() == CastTap.Caught && Fishing.Land(s, cast)) fishCaught++;
+            }
+            if (tank != Tank.ReleaseFish) return;
+            for (int k = 0; k < Fishing.Kinds; k++)
+                while (s.Fish[k] > 0)
+                {
+                    ReleaseResult r = Aquarium.Release(s, k);
+                    if (!r.Released) break;
+                    released++;
+                    goldenTank += r.Golden;
+                    cloversTank += r.Clovers;
+                    jarsHeld += r.Jars;
+                }
+            mods = Modifiers.From(ups, s);
         }
 
         int MostHearts()
@@ -700,14 +738,18 @@ namespace VuonTra.Core.Tests
             public int[] NewcomerDayAt;
             public string NewcomerMissing;
             public double Income7, Earned7;
+            public int Released, TankMilestones, GoldenTank;
+            public double TankBonus;
             public int DishesRaised, TopDish, LeavesLeft;
             public string Table, Report, Fingerprint;
             public int Golden => GoldenCalls + Visitors;
         }
 
-        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true, bool dishes = true)
+        Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true, bool dishes = true, Tank fiveBaits = Tank.Off)
         {
             Reset(false, seed);
+            tank = fiveBaits;
+            if (fiveBaits != Tank.Off) fishing = true;
             raiseDishes = dishes;
             openChests = chests;
             claimPass = pass;
@@ -756,6 +798,7 @@ namespace VuonTra.Core.Tests
             w.MostFreeJars = MostFreeJarsInADay(); w.JarsOpened = jarsOpened; w.FrogsMet = frogsMet;
             w.Income7 = Income.ToDouble();
             w.Earned7 = TotalEarned.ToDouble();
+            w.Released = released; w.TankMilestones = Aquarium.Reached(s); w.TankBonus = Aquarium.Bonus(s); w.GoldenTank = goldenTank;
             w.DishesRaised = dishesRaised; w.TopDish = TopDish(); w.LeavesLeft = s.RecipeLeaves;
             w.NewcomerClaimed = 0;
             var missing = new List<string>();
@@ -1004,6 +1047,101 @@ namespace VuonTra.Core.Tests
             Holds(after, w => w.Golden <= 6, "golden calls stay a few a week, at most six", report.ToString());
             Always(after, w => w.FishCaught > 0, "the casual player does catch fish", report.ToString());
             Assert.GreaterOrEqual(tirelessTenAfter, 0.7 * tirelessTenBefore, "nor for the tireless player\n" + report);
+        }
+
+        [Test]
+        public void Releasing_Five_Baits_Of_Fish_A_Day_Changes_Week_One_s_Income_By_At_Most_Three_Percent()
+        {
+            var keep = new Week[Seeds.Length];
+            var fill = new Week[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                keep[i] = CasualWeek(false, false, seed: Seeds[i], fiveBaits: Tank.KeepFish);
+                fill[i] = CasualWeek(false, false, seed: Seeds[i], fiveBaits: Tank.ReleaseFish);
+            }
+
+            var report = new StringBuilder();
+            report.AppendLine("# Bể cá cạnh ao, tuần 1 (#114)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả như trên, trên " + Seeds.Length + " hạt, câu đúng " + Fishing.BaitCap + " mồi mỗi ngày ở buổi đầu ngày (" + (int)(FishCatchRate * 100)
+                + " % lần chạm đúng lúc). Giữ cá: cá nằm trong giỏ. Thả hết: mọi con câu được thả ngay vào bể, không cho thỏ ăn (cách nhanh nhất để lên mốc). Mốc mỗi loài "
+                + string.Join("/", Aquarium.Milestones) + " con, cộng " + string.Join("/", System.Array.ConvertAll(Aquarium.MilestoneBonus, b => (b * 100d).ToString())) + " % vào Modifiers.IncomeMultiplier; đủ " + Aquarium.Kinds + " loài +" + Aquarium.SetGolden + " cà rốt vàng và " + Aquarium.SetJars + " hũ.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Cá thả | Mốc | Bể +% hết ngày 7 | Cà rốt kiếm cả tuần: giữ → thả | Đổi % | Thu nhập/giây ngày 7: giữ → thả | Đổi % | Vàng từ bể | Gọi vàng + thỏ ghé | Cấp hết ngày 7 |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
+            var earnedRise = new double[Seeds.Length];
+            var incomeRise = new double[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                Week k = keep[i], f = fill[i];
+                earnedRise[i] = (f.Earned7 / k.Earned7 - 1d) * 100d;
+                incomeRise[i] = (f.Income7 / k.Income7 - 1d) * 100d;
+                report.AppendLine("| " + Seeds[i] + " | " + f.Released + " | " + f.TankMilestones + " | " + Math.Round(f.TankBonus * 100d, 1) + " | " + new BigNum(k.Earned7).ToShortString() + " → " + new BigNum(f.Earned7).ToShortString()
+                    + " | " + Math.Round(earnedRise[i], 2) + " | " + new BigNum(k.Income7).ToShortString() + " → " + new BigNum(f.Income7).ToShortString() + " | " + Math.Round(incomeRise[i], 2)
+                    + " | " + f.GoldenTank + " | " + k.Golden + " → " + f.Golden + " | " + k.LevelEnd + " → " + f.LevelEnd + " |");
+            }
+            double earnedMedian = Median(earnedRise), incomeMedian = Median(incomeRise);
+            report.AppendLine("| **trung vị** | " + Median(fill, w => w.Released) + " | " + Median(fill, w => w.TankMilestones) + " | " + Math.Round(Median(fill, w => w.TankBonus) * 100d, 1) + " | | " + Math.Round(earnedMedian, 2)
+                + " | | " + Math.Round(incomeMedian, 2) + " | " + Median(fill, w => w.GoldenTank) + " | " + Median(keep, w => w.Golden) + " → " + Median(fill, w => w.Golden) + " | " + Median(keep, w => w.LevelEnd) + " → " + Median(fill, w => w.LevelEnd) + " |");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-aquarium-week.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            HardRules(fill, text);
+            Assert.LessOrEqual(Math.Abs(earnedMedian), 3d, "the carrots earned over week one change by at most 3 %, on the median\n" + text);
+            Holds(fill, w => w.Golden <= 6, "golden calls stay a few a week, at most six", text);
+            Always(fill, w => w.TankBonus < Aquarium.MaxBonus, "nobody fills the tank in a week", text);
+        }
+
+        [Test]
+        public void Five_Baits_A_Day_Into_The_Tank_Reach_Twelve_Percent_Only_After_Thirty_Days()
+        {
+            const int lastDay = 10 * 365;
+            var fullOn = new int[Seeds.Length];
+            var at = new double[Seeds.Length][];
+            int[] days = { 7, 30, 90, 365 };
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                GameState g = GameState.NewGame(defs, ups.Count);
+                var roll = new System.Random(unchecked(Seeds[i] * 31 + 114));
+                at[i] = new double[days.Length];
+                fullOn[i] = -1;
+                for (int day = 1; day <= lastDay && fullOn[i] < 0; day++)
+                {
+                    long now = (long)(day * Day);
+                    FishingCast cast;
+                    for (int n = 0; n < Fishing.BaitCap && (cast = Fishing.Cast(g, now, roll.NextDouble)) != null; n++)
+                    {
+                        cast.Advance(cast.BobSeconds + (roll.NextDouble() < FishCatchRate ? 0.25 : 1d));
+                        if (cast.Tap() == CastTap.Caught) Fishing.Land(g, cast);
+                    }
+                    for (int k = 0; k < Fishing.Kinds; k++)
+                        for (int n = g.Fish[k]; n > 0; n--) Aquarium.Release(g, k);
+                    for (int d = 0; d < days.Length; d++) if (days[d] == day) at[i][d] = Aquarium.Bonus(g);
+                    if (Aquarium.Bonus(g) >= Aquarium.MaxBonus - 1e-12) fullOn[i] = day;
+                }
+                for (int d = 0; d < days.Length; d++) if (fullOn[i] > 0 && fullOn[i] < days[d]) at[i][d] = Aquarium.MaxBonus;
+            }
+
+            var report = new StringBuilder();
+            report.AppendLine("# Bể cá cạnh ao, đường lên +12 % (#114)");
+            report.AppendLine();
+            report.AppendLine("Câu " + Fishing.BaitCap + " mồi mỗi ngày, " + (int)(FishCatchRate * 100) + " % lần chạm đúng lúc, thả mọi con vào bể. Tỉ lệ cá " + string.Join("/", Fishing.Odds) + "; loài hiếm nhất cần " + Aquarium.Milestones[Aquarium.Milestones.Length - 1] + " con cho mốc cuối.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Ngày 7 | Ngày 30 | Ngày 90 | Ngày 365 | Ngày đạt +12 % |");
+            report.AppendLine("|---|---|---|---|---|---|");
+            for (int i = 0; i < Seeds.Length; i++)
+                report.AppendLine("| " + Seeds[i] + " | " + string.Join(" | ", at[i].Select(b => "+" + Math.Round(b * 100d, 1) + " %")) + " | " + (fullOn[i] > 0 ? fullOn[i].ToString() : "> " + lastDay) + " |");
+            report.AppendLine("| **trung vị** | " + string.Join(" | ", Enumerable(days.Length, d => "+" + Math.Round(Median(Seeds.Length, i => at[i][d]) * 100d, 1) + " %")) + " | " + Median(Seeds.Length, i => fullOn[i] > 0 ? fullOn[i] : double.MaxValue) + " |");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-aquarium-days.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Always(System.Linq.Enumerable.Range(0, Seeds.Length).ToList(), i => fullOn[i] < 0 || fullOn[i] >= 30, "+12 % never before day thirty", text);
+            Always(System.Linq.Enumerable.Range(0, Seeds.Length).ToList(), i => at[i][1] < Aquarium.MaxBonus, "and not on day thirty either", text);
+            Always(System.Linq.Enumerable.Range(0, Seeds.Length).ToList(), i => fullOn[i] > 0, "every seed does fill the tank in the end, within ten years", text);
         }
 
         [Test]

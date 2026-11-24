@@ -498,6 +498,26 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Fish_Tank_Stands_On_A_Reserved_Tile_At_The_Pond_s_Bank_So_Arranging_Never_Reaches_It()
+        {
+            Hex tank = GardenGrid.TankTile;
+            Assert.IsTrue(GardenGrid.IsReserved(tank));
+            Assert.AreEqual(0, GardenGrid.SegmentOf(tank), "on the first lawn, open from the start");
+            CollectionAssert.Contains(GardenGrid.Neighbours(tank), new Hex(-1, -2), "beside the pond's water");
+            var big = new List<StationDef>();
+            for (int i = 0; i < 24; i++) big.Add(new StationDef { Id = "s" + i });
+            GameState s = GameState.NewGame(big);
+            s.Plots = big.Count;
+            GardenGrid.Settle(big, s);
+            Assert.IsNull(s.Grid.OccupantAt(tank.Q, tank.R), "the tank is not an occupant: nothing moves, swaps or drops onto it");
+            Assert.IsFalse(s.Grid.Place(GardenGrid.DecorId(0), tank.Q, tank.R));
+            Assert.IsTrue(s.Grid.NearestEmpty(new Hex(0, 0), out Hex empty));
+            Assert.AreNotEqual(tank, empty);
+            Hex station = s.Grid.TileOf(GardenGrid.StationId(big[1])).Value;
+            Assert.IsFalse(s.Grid.Move(station, tank));
+        }
+
+        [Test]
         public void The_Tiles_Of_The_Jar_The_Basket_And_The_Mortar_s_Plate_Are_Reserved_And_No_Home_Tile_Is()
         {
             var expected = new[]

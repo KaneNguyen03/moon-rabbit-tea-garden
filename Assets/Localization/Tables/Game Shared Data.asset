@@ -4351,6 +4351,86 @@ MonoBehaviour:
     m_Key: trunk.float.lantern
     m_Metadata:
       m_Items: []
+  - m_Id: 905693140869120
+    m_Key: tank.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840640
+    m_Key: tank.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840641
+    m_Key: tank.next
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840642
+    m_Key: tank.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840643
+    m_Key: tank.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840644
+    m_Key: tank.new
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840645
+    m_Key: tank.rule
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840646
+    m_Key: tank.keep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840647
+    m_Key: tank.set.todo
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840648
+    m_Key: tank.set.got
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840649
+    m_Key: tank.release
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840650
+    m_Key: tank.release.none
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840651
+    m_Key: tank.basket
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840652
+    m_Key: tank.released
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840653
+    m_Key: tank.milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840654
+    m_Key: tank.full.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840655
+    m_Key: tank.full.sub
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840656
+    m_Key: tank.full.gifts
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840657
+    m_Key: tank.full.ok
+    m_Metadata:
+      m_Items: []
+  - m_Id: 905693161840658
+    m_Key: income.tank
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

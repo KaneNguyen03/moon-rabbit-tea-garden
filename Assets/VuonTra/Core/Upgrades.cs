@@ -38,13 +38,14 @@ namespace VuonTra.Core
             AwayIncomeMultiplier = 1d
         };
 
+        public static double GardenMultiplier(GameState s) => s == null ? 1d : NewMoon.Bonus(s) * RestSpots.Multiplier(s) * Aquarium.Multiplier(s);
+
         public static Modifiers From(IReadOnlyList<UpgradeDef> upgrades, GameState s)
         {
             Modifiers m = None;
             m.SpeedMultiplier += Items.GardenBonus(s, ItemEffect.GardenSpeed);
             m.AwayIncomeMultiplier += Items.GardenBonus(s, ItemEffect.AwayIncome);
-            if (s != null) m.IncomeMultiplier *= NewMoon.Bonus(s);
-            if (s != null) m.IncomeMultiplier *= RestSpots.Multiplier(s);
+            m.IncomeMultiplier *= GardenMultiplier(s);
             if (upgrades == null || s.UpgradeLevels == null) return m;
             for (int i = 0; i < upgrades.Count && i < s.UpgradeLevels.Length; i++)
             {

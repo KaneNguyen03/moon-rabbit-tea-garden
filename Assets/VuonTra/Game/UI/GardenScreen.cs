@@ -1293,6 +1293,7 @@ namespace VuonTra.Game.UI
             BuildAdSeams(catalog); // the three rewarded-ad places and the no-ads pass (#66)
             BuildOffers(catalog);
             ReviewCard = new ReviewView(_canvas, catalog, Tweens, OnReviewLiked, OnReviewFeedback);
+            BuildTankPanels(catalog);
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
             Sfx.Attach(gameObject);
@@ -1583,6 +1584,7 @@ namespace VuonTra.Game.UI
                 _jarProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(jarAt.y, _jarProp));
             }
+            BuildTankProp(catalog, standing);
             BuildDecorSpots(catalog, standing);
             for (int n = 1; n <= _mist.Count; n++)
                 if (GardenGrid.SideOf(n) == GardenSide.Up) standing.Add(new KeyValuePair<float, Transform>(LawnEdgeY(n - 1, GardenSide.Up) + 0.1f, _mist[n - 1].transform));
@@ -3085,6 +3087,7 @@ namespace VuonTra.Game.UI
             {
                 if (x < 70f + halfWidth || x > WorldW - 70f - halfWidth || y < 160f || y > WorldH - 220f) return false;
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 250f) return false;
+                if (Vector2.Distance(new Vector2(x, y), TankSpot) < 160f) return false;
                 if (Vector2.Distance(new Vector2(x, y), MortarSpot) < 170f || Vector2.Distance(new Vector2(x, y), ShopSpot) < 220f) return false;
                 if (OnDecorSpot(x, y)) return false; // the player's own spots stay clear for what they buy (#11)
                 for (int k = 0; k < RestSpots.Max; k++)
@@ -3143,6 +3146,7 @@ namespace VuonTra.Game.UI
                 float pick = Hash(n * 9.3f);
                 if (!Free(x, y, 230f, 220f, 240f)) continue; // nothing may cover a level plate or a name
                 if (Vector2.Distance(new Vector2(x, y), pondAt) < 240f) continue;
+                if (Vector2.Distance(new Vector2(x, y), TankSpot) < 160f) continue;
                 if (OnDecorSpot(x, y)) continue;
                 // Keep the places to rest in the open: nothing grows on a seat or in front of the tea table.
                 bool onSeat = false;
@@ -3993,6 +3997,7 @@ namespace VuonTra.Game.UI
                 _jarPlate.text = left > 0 ? L10n.T("jar.plays", left) : L10n.T("jar.tomorrow");
             }
             RefreshPond(); // #58b
+            RefreshTank();
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
 
@@ -4839,7 +4844,7 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || TrunkCard.IsOpen;
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || TrunkCard.IsOpen || TankPanelsOpen;
 
         void AskForReview()
         {
@@ -8077,7 +8082,7 @@ namespace VuonTra.Game.UI
         public void OpenFishing()
         {
             if (Shell.State != ShellState.Playing || PhotoMode || LayoutMode || !Runner.PondOpen) return;
-            if (FishingCard.IsOpen || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
+            if (FishingCard.IsOpen || TankPanelsOpen || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen) return;
             if (SheetOpen) CloseSheet();
             SelectStation(-1);
             Sfx.Click();
