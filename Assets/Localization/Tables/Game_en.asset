@@ -4855,6 +4855,286 @@ MonoBehaviour:
     m_Localized: 'Moon pass: {0} day left'
     m_Metadata:
       m_Items: []
+  - m_Id: 986281369657344
+    m_Localized: Lotus Dew Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045952
+    m_Localized: Full Moon Dew Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045953
+    m_Localized: Roasted Tea Leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045954
+    m_Localized: Silver Tea Buds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045955
+    m_Localized: Mulberry Jam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045956
+    m_Localized: Rose Berry Jam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045957
+    m_Localized: Chrysanthemum Powder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045958
+    m_Localized: Jasmine Powder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045959
+    m_Localized: Honey Chestnut Bun
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045960
+    m_Localized: Charcoal Chestnut Cake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045961
+    m_Localized: Longan Blossom Honey
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045962
+    m_Localized: Golden Honeycomb
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045963
+    m_Localized: Taro Milk Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045964
+    m_Localized: Cloud Milk Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045965
+    m_Localized: Sparkling Star Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045966
+    m_Localized: Silver Star Nectar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045967
+    m_Localized: Moon Raisins
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045968
+    m_Localized: Silver Grape Juice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045969
+    m_Localized: Snow Skin Mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045970
+    m_Localized: Five Nut Mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045971
+    m_Localized: Mint Spring Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045972
+    m_Localized: Peach Blossom Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045973
+    m_Localized: Shooting Star Candy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045974
+    m_Localized: Milky Way Cake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045975
+    m_Localized: Lotus Seed Soup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045976
+    m_Localized: Lotus Heart Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045977
+    m_Localized: Peanut Brittle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045978
+    m_Localized: Ginger Candy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045979
+    m_Localized: Purple Sticky Rice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045980
+    m_Localized: Sticky Rice Cake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045981
+    m_Localized: Night Cactus Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045982
+    m_Localized: Moonlight Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045983
+    m_Localized: New dish!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045984
+    m_Localized: '{0} now sells this dish'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045985
+    m_Localized: "Each new dish: station income \xD71.25 \xB7 improve it with leaves"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045986
+    m_Localized: +{0} more new dishes in the book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045987
+    m_Localized: Lovely!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045988
+    m_Localized: Open book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045989
+    m_Localized: Recipe book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045990
+    m_Localized: 'Three dishes a station: the second at level {0}, the third at {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045991
+    m_Localized: Open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045992
+    m_Localized: "Recipe leaves: {0} \xB7 a station sells its highest dish"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045993
+    m_Localized: "On sale \xB7 level {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045994
+    m_Localized: Level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045995
+    m_Localized: Not yet open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045996
+    m_Localized: Opens at station level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045997
+    m_Localized: "Improve \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045998
+    m_Localized: Top level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378045999
+    m_Localized: Fish tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046000
+    m_Localized: "{0}/{1} kinds \xB7 +{2}% garden income (up to +{3}%)"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046001
+    m_Localized: "Next: {0} fish \xB7 +{1}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046002
+    m_Localized: Every milestone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046003
+    m_Localized: None released yet
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046004
+    m_Localized: New
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046005
+    m_Localized: 'Each kind, at {0} fish: +{1}% garden income for good'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046006
+    m_Localized: Released fish stay in the tank for good
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046007
+    m_Localized: 'All {0} kinds: +{1} golden carrots, +{2} moon jar'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046008
+    m_Localized: All {0} kinds in, full-set gift claimed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046009
+    m_Localized: Release to tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046010
+    m_Localized: Basket empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046011
+    m_Localized: "Tank: {0}/{1} kinds \xB7 +{2}%"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046012
+    m_Localized: "{0} into the tank \xB7 {1} in all"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046013
+    m_Localized: New milestone! +{0}% garden income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046014
+    m_Localized: The fish tank is complete
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046015
+    m_Localized: All {0} fish kinds are in the tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046016
+    m_Localized: "Full-set gift \xB7 already yours"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046017
+    m_Localized: Lovely!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281378046018
+    m_Localized: Fish tank ({0}/{1} kinds) +{2}%
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281390628864
+    m_Localized: +{0} more new dish in the book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 986281390628865
+    m_Localized: "Recipe leaf: {0} \xB7 a station sells its highest dish"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
