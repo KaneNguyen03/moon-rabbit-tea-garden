@@ -94,9 +94,9 @@ namespace VuonTra.Core.Tests
             Tray.Add(s, 2, false);
             BigNum teaPerSecond = Economy.IncomePerCycle(defs, s, 0) / defs[0].CycleSeconds;
             BigNum before = s.Coins;
-            BigNum paid = Tray.Sell(defs, s, 0, Modifiers.None, out int clovers);
+            BigNum paid = Tray.Sell(defs, s, 0, Modifiers.None, out int golden);
             Assert.AreEqual((teaPerSecond * (Tray.ProductSeconds * 2d)).ToDouble(), paid.ToDouble(), 1e-9, "two tea products");
-            Assert.AreEqual(0, clovers);
+            Assert.AreEqual(0, golden);
             Assert.AreEqual((before + paid).ToDouble(), s.Coins.ToDouble(), 1e-9);
             Assert.AreEqual(paid.ToDouble(), s.TotalEarned.ToDouble(), 1e-9, "sales count towards the daily carrot goal");
             Assert.AreEqual(1, s.Tray.Count, "the jam is still there");
@@ -143,7 +143,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Golden_Batches_Are_Rare_Capped_Per_Day_And_Pay_Clovers()
+        public void Golden_Batches_Are_Rare_Capped_Per_Day_And_Pay_Golden_Carrots()
         {
             s.Levels = new[] { 5, 0, 0 };
             int rolls = 0;
@@ -151,8 +151,8 @@ namespace VuonTra.Core.Tests
             for (int k = 0; k < 4; k++)
             {
                 Tray.Advance(s, 0, Tray.ProductEvery, Always);
-                Tray.SellAll(defs, s, Modifiers.None, out int clovers);
-                Assert.AreEqual(k < Tray.GoldenPerDay ? Tray.GoldenCarrotsEach : 0, clovers, "batch " + k);
+                Tray.SellAll(defs, s, Modifiers.None, out int golden);
+                Assert.AreEqual(k < Tray.GoldenPerDay ? Tray.GoldenCarrotsEach : 0, golden, "batch " + k);
             }
             Assert.AreEqual(Tray.GoldenPerDay, s.GoldenToday);
             Assert.AreEqual(Tray.GoldenPerDay, rolls, "past the day's cap the dice are not even rolled");

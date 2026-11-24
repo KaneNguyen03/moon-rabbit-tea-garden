@@ -24,6 +24,15 @@ namespace VuonTra.Core.Tests
 
         public static List<StationDef> Defs() => new List<StationDef> { Tea(), Leaf(), Jam() };
 
+        public static List<StationDef> TradeDefs()
+        {
+            List<StationDef> defs = Defs();
+            defs[0].Trade = RabbitTrade.Brewer;
+            defs[1].Trade = RabbitTrade.Gatherer;
+            defs[2].Trade = RabbitTrade.Baker;
+            return defs;
+        }
+
         public static string CodeFor(int seed)
         {
             var rng = new System.Random(seed ^ 0x5eed);

@@ -43,6 +43,18 @@ run_unity() { # name, logfile, args...
   return 0
 }
 
+player_save() {
+  local company product
+  company=$(sed -n 's/^  companyName: //p' ProjectSettings/ProjectSettings.asset)
+  product=$(sed -n 's/^  productName: //p' ProjectSettings/ProjectSettings.asset)
+  printf '%s\n' "$HOME/Library/Application Support/$company/$product/save.json"
+}
+save_stamp() {
+  local f; f=$(player_save)
+  if [ -f "$f" ]; then printf '%s %s\n' "$(stat -f %m "$f")" "$(shasum "$f" | cut -d' ' -f1)"; else echo "none"; fi
+}
+SAVE_BEFORE=$(save_stamp)
+
 echo "== 0/4 project rules"
 if python3 -I tools/conventions.py >Logs/conventions.log 2>&1; then note "rules" "ok"; else cat Logs/conventions.log >&2; note "rules" "FAIL (see Logs/conventions.log)"; fi
 
@@ -55,7 +67,11 @@ else
 rm -rf Logs/preview
 if run_unity "preview" Logs/preview.log -executeMethod VuonTra.EditorTools.PreviewShot.Render -quit; then
   n=$(ls Logs/preview/*.png 2>/dev/null | wc -l | tr -d ' ')
-  if [ "$n" -ge 50 ]; then note "preview" "ok ($n frames)"; else note "preview" "FAIL ($n frames, expected 50 or more)"; fi
+  english=Logs/preview/english-in-vi.txt
+  if [ "$n" -lt 50 ]; then note "preview" "FAIL ($n frames, expected 50 or more)"
+  elif [ ! -f "$english" ]; then note "preview" "FAIL (no language check, $english missing)"
+  elif [ -s "$english" ]; then head -10 "$english" >&2; note "preview" "FAIL ($(wc -l <"$english" | tr -d ' ') English labels in vi frames, see $english)"
+  else note "preview" "ok ($n frames, vi frames all from the vi table)"; fi
 fi
 fi
 
@@ -77,6 +93,10 @@ else
     fi
   else note "tests" "FAIL (no TestResults.xml, see Logs/test.log)"; fi
 fi
+
+SAVE_AFTER=$(save_stamp)
+if [ "$SAVE_BEFORE" = "$SAVE_AFTER" ]; then note "save" "ok (player save.json untouched: $SAVE_AFTER)"
+else note "save" "FAIL (player save.json changed during the run: $SAVE_BEFORE -> $SAVE_AFTER; was the game open?)"; fi
 
 if [ $BUILD -eq 1 ]; then
   echo "== 4/4 Mac build"

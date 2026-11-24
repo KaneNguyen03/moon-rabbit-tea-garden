@@ -165,7 +165,7 @@ namespace VuonTra.Core.Tests
         [Test]
         public void Season_Quests_Show_Only_In_Season_And_Read_The_Season_Rabbit()
         {
-            IReadOnlyList<StationDef> defs = Fixture.Defs();
+            IReadOnlyList<StationDef> defs = Fixture.TradeDefs();
             GameState s = GameState.NewGame(defs);
             var met = new QuestDef { Id = "mua-gap-tet", Metric = QuestMetric.SeasonKindMet, Target = 1, Season = Season.Tet, RewardGolden = 3 };
             var any = new QuestDef { Id = "x", Metric = QuestMetric.Taps, Target = 1 };
@@ -184,7 +184,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, Quests.Progress(trade, defs, s));
             Rabbit mai = Rabbits.Find(s, s.Rabbits[s.Rabbits.Count - 1].Id);
             int brew = -1; for (int i = 0; i < defs.Count; i++) if (defs[i].Trade == RabbitTrade.Brewer) { brew = i; break; }
-            Assume.That(brew, Is.GreaterThanOrEqualTo(0));
+            Assert.GreaterOrEqual(brew, 0, "the fixture has a brewing station for the Tet rabbit");
             s.Levels[brew] = Math.Max(1, s.Levels[brew]);
             mai.Station = brew;
             Assert.AreEqual(1, Quests.Progress(trade, defs, s));

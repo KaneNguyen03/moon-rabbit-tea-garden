@@ -15,6 +15,8 @@ namespace VuonTra.EditorTools
         public const string Folder = "Logs/preview";
         const int Width = 1080, Height = 1920;
 
+        static PreviewLanguageCheck _language;
+
         static Vector2 At(float x, float y) => GardenScreen.CellToWorld(new Hex(0, 0)) + new Vector2(x, y);
 
         [MenuItem("VuonTra/Render Preview")]
@@ -22,6 +24,7 @@ namespace VuonTra.EditorTools
         {
             EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
             L10n.SetLocale("vi");
+            _language = new PreviewLanguageCheck(L10nStrings.All, L10nStrings.EnglishOne);
             var runner = Object.FindAnyObjectByType<GameRunner>();
             var screen = Object.FindAnyObjectByType<GardenScreen>();
 
@@ -680,6 +683,8 @@ namespace VuonTra.EditorTools
             foreach (string locale in new[] { "vi", "en" }) RenderBasketFollows(locale);
             RenderViewEdges();
 
+            _language.Write(Folder);
+            _language = null;
             Debug.Log("[VuonTra] Previews written to " + Folder);
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
@@ -1144,6 +1149,7 @@ namespace VuonTra.EditorTools
             File.WriteAllBytes(Path.Combine(Folder, name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             rt.Release();
+            if (_language != null && L10n.Code == "vi") _language.Look(name, screen.transform);
         }
 
         static void RenderGiftCodes(GameRunner runner, GardenScreen screen)

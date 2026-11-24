@@ -2539,7 +2539,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void A_Sweep_Across_The_Tray_Sells_Everything_And_A_Golden_Batch_Pays_A_Clover()
+        public void A_Sweep_Across_The_Tray_Sells_Everything_And_A_Golden_Batch_Pays_A_Golden_Carrot()
         {
             screen.Shell.StartGame();
             Tray.Add(runner.State, 0, false);
