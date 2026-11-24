@@ -4363,6 +4363,206 @@ MonoBehaviour:
     m_Localized: The lanterns have a new colour
     m_Metadata:
       m_Items: []
+  - m_Id: 931304680972288
+    m_Localized: Lotus Dew Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138112
+    m_Localized: Full Moon Dew Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138113
+    m_Localized: Roasted Tea Leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138114
+    m_Localized: Silver Tea Buds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138115
+    m_Localized: Mulberry Jam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138116
+    m_Localized: Rose Berry Jam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138117
+    m_Localized: Chrysanthemum Powder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138118
+    m_Localized: Jasmine Powder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138119
+    m_Localized: Honey Chestnut Bun
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138120
+    m_Localized: Charcoal Chestnut Cake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138121
+    m_Localized: Longan Blossom Honey
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138122
+    m_Localized: Golden Honeycomb
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138123
+    m_Localized: Taro Milk Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138124
+    m_Localized: Cloud Milk Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138125
+    m_Localized: Sparkling Star Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138126
+    m_Localized: Silver Star Nectar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138127
+    m_Localized: Moon Raisins
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138128
+    m_Localized: Silver Grape Juice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138129
+    m_Localized: Snow Skin Mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138130
+    m_Localized: Five Nut Mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138131
+    m_Localized: Mint Spring Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138132
+    m_Localized: Peach Blossom Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138133
+    m_Localized: Shooting Star Candy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138134
+    m_Localized: Milky Way Cake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138135
+    m_Localized: Lotus Seed Soup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138136
+    m_Localized: Lotus Heart Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138137
+    m_Localized: Peanut Brittle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138138
+    m_Localized: Ginger Candy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138139
+    m_Localized: Purple Sticky Rice
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138140
+    m_Localized: Sticky Rice Cake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138141
+    m_Localized: Night Cactus Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138142
+    m_Localized: Moonlight Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138143
+    m_Localized: New dish!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138144
+    m_Localized: '{0} now sells this dish'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138145
+    m_Localized: "Each new dish: station income \xD71.25 \xB7 improve it with leaves"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138146
+    m_Localized: +{0} more new dishes in the book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138147
+    m_Localized: Lovely!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138148
+    m_Localized: Open book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138149
+    m_Localized: Recipe book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138150
+    m_Localized: 'Three dishes a station: the second at level {0}, the third at {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138151
+    m_Localized: Open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138152
+    m_Localized: "Recipe leaves: {0} \xB7 a station sells its highest dish"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138153
+    m_Localized: "On sale \xB7 level {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138154
+    m_Localized: Level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138155
+    m_Localized: Not yet open
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138156
+    m_Localized: Opens at station level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138157
+    m_Localized: "Improve \xB7 {0}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304706138158
+    m_Localized: Top level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304727109632
+    m_Localized: +{0} more new dish in the book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 931304727109633
+    m_Localized: "Recipe leaf: {0} \xB7 a station sells its highest dish"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

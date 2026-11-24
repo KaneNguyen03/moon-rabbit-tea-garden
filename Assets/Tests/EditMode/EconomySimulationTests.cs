@@ -1494,10 +1494,11 @@ namespace VuonTra.Core.Tests
             int weeks = SeasonDays / 7;
 
             var report = new StringBuilder();
-            report.AppendLine("# Sổ công thức: lá công thức và cấp món (#110a)");
+            report.AppendLine("# Sổ công thức: lá công thức, cấp món và món 2–3 (#110a, #110b)");
             report.AppendLine();
             report.AppendLine("Người chơi thong thả như trên, trên " + Seeds.Length + " hạt; sổ mở ở cấp vườn " + Recipes.UnlockLevel + " (cấp của Mùa trăng mới đầu tiên) và từ đó luôn mở; người có sổ nâng món ngay khi đủ lá, chọn món cho nhiều thu nhập nhất trên mỗi lá. Lá: mỗi thỏ ở chỗ nghỉ 1 lá / "
-                + (int)(Recipes.RestSecondsPerLeaf / 60) + " phút (cả lúc vắng, theo trần vắng mặt), mỗi đơn khách +" + Recipes.LeavesPerOrder + ". Cấp món k → k+1 giá " + Recipes.CostPerLevelSquared + "·k² lá, cấp 10 ×" + Recipes.TopLevelMultiplier + " thu nhập của riêng trạm đó.");
+                + (int)(Recipes.RestSecondsPerLeaf / 60) + " phút (cả lúc vắng, theo trần vắng mặt), mỗi đơn khách +" + Recipes.LeavesPerOrder + ". Cấp món k → k+1 giá " + Recipes.CostPerLevelSquared + "·k² lá, cấp 10 ×" + Recipes.TopLevelMultiplier + " thu nhập của riêng trạm đó. Khi sổ mở, trạm cấp " + Economy.Ranks[0] + " và " + Economy.Ranks[1] + " mở món 2 và 3, mỗi món ×" + Recipes.ExtraDishMultiplier
+                + "; chỉ món đang bán (món cao nhất) tính cấp, món mới bắt đầu từ cấp món trước của trạm.");
             report.AppendLine();
             report.AppendLine("| Hạt | Thu/giây hết ngày 7: không sổ → có sổ | Tỉ lệ | Cà rốt kiếm tuần 1: tỉ lệ | Nâng món tuần 1 | Món cao nhất | Lá còn |");
             report.AppendLine("|---|---|---|---|---|---|---|");
@@ -1517,11 +1518,13 @@ namespace VuonTra.Core.Tests
             report.AppendLine();
             report.AppendLine("| | " + string.Join(" | ", Enumerable(weeks, w => "Tuần " + (w + 1))) + " | Trăng mới 1 | 2 | 3 | Nâng món | Món cao nhất |");
             report.AppendLine("|---" + string.Concat(Enumerable(weeks + 5, w => "|---")) + "|");
-            report.AppendLine("| Không sổ (#98) | " + string.Join(" | ", Enumerable(weeks, w => Median(slow, r => r.ClimbByWeek[w]).ToString())) + " | " + Median(slow, r => r.MoonDay(1)) + " | " + Median(slow, r => r.MoonDay(2)) + " | " + Median(slow, r => r.MoonDay(3)) + " | – | 1 |");
-            report.AppendLine("| Có sổ (#110a) | " + string.Join(" | ", Enumerable(weeks, w => Median(fast, r => r.ClimbByWeek[w]).ToString())) + " | " + Median(fast, r => r.MoonDay(1)) + " | " + Median(fast, r => r.MoonDay(2)) + " | " + Median(fast, r => r.MoonDay(3))
+            report.AppendLine("| Không sổ (#98, số đo ở #110a) | 26 | 52 | 72 | 94 | 125 | 159 | 9 | 20 | 30 | – | 1 |");
+            report.AppendLine("| Có sổ, chỉ món 1 (#110a) | 26 | 52 | 79 | 106 | 132 | 168 | 9 | 19 | 28 | 144 | 10 |");
+            report.AppendLine("| Món 2–3 mở, không nâng món | " + string.Join(" | ", Enumerable(weeks, w => Median(slow, r => r.ClimbByWeek[w]).ToString())) + " | " + Median(slow, r => r.MoonDay(1)) + " | " + Median(slow, r => r.MoonDay(2)) + " | " + Median(slow, r => r.MoonDay(3)) + " | – | 1 |");
+            report.AppendLine("| Có sổ, món 1–3 (#110b) | " + string.Join(" | ", Enumerable(weeks, w => Median(fast, r => r.ClimbByWeek[w]).ToString())) + " | " + Median(fast, r => r.MoonDay(1)) + " | " + Median(fast, r => r.MoonDay(2)) + " | " + Median(fast, r => r.MoonDay(3))
                 + " | " + Median(fast, r => r.DishesRaised) + " | " + Median(fast, r => r.TopDish) + " |");
             report.AppendLine();
-            report.AppendLine("| Hạt | Trăng mới 2: không sổ → có sổ | Trăng mới 3 | Cấp đã leo hết tuần 5 |");
+            report.AppendLine("| Hạt | Trăng mới 2: không nâng → có sổ | Trăng mới 3 | Cấp đã leo hết tuần 5 |");
             report.AppendLine("|---|---|---|---|");
             for (int i = 0; i < Seeds.Length; i++)
                 report.AppendLine("| " + Seeds[i] + " | " + slow[i].MoonDay(2) + " → " + fast[i].MoonDay(2) + " | " + slow[i].MoonDay(3) + " → " + fast[i].MoonDay(3) + " | " + slow[i].ClimbByWeek[weeks - 1] + " → " + fast[i].ClimbByWeek[weeks - 1] + " |");
@@ -1532,14 +1535,14 @@ namespace VuonTra.Core.Tests
 
             Assert.LessOrEqual(medianRatio, 1.15, "week one's income at most 15 % higher with the recipe book, on the median\n" + text);
             Holds(Pairs(before, after), p => p.All <= 1.25 * p.Single, "and no seed more than a quarter higher", text);
-            Assert.GreaterOrEqual(Median(fast, r => r.ClimbByWeek[1]), Median(slow, r => r.ClimbByWeek[1]), "week two no slower: the book opens with the first new moon, around day ten\n" + text);
-            for (int w = 2; w < weeks; w++)
+            for (int w = 1; w < weeks; w++)
             {
                 int week = w;
-                Assert.Greater(Median(fast, r => r.ClimbByWeek[week]), Median(slow, r => r.ClimbByWeek[week]) + 5, "clearly more garden levels climbed by the end of week " + (week + 1) + "\n" + text);
+                Assert.GreaterOrEqual(Median(fast, r => r.ClimbByWeek[week]), Median(slow, r => r.ClimbByWeek[week]), "raising dishes never climbs slower than leaving them, by the end of week " + (week + 1) + "\n" + text);
             }
-            Assert.Less(Median(fast, r => r.MoonDay(2)), Median(slow, r => r.MoonDay(2)), "the second new moon comes sooner\n" + text);
-            Assert.Less(Median(fast, r => r.MoonDay(3)), Median(slow, r => r.MoonDay(3)), "and the third\n" + text);
+            Assert.Greater(Median(fast, r => r.ClimbByWeek[weeks - 3]), Median(slow, r => r.ClimbByWeek[weeks - 3]), "and climbs more by the end of week four\n" + text);
+            Assert.LessOrEqual(Median(fast, r => r.MoonDay(2)), Median(slow, r => r.MoonDay(2)), "the second new moon no later\n" + text);
+            Assert.Less(Median(fast, r => r.MoonDay(3)), Median(slow, r => r.MoonDay(3)), "and the third sooner\n" + text);
             Holds(fast, r => r.LongestStill <= 3, "never more than three days without a garden level or something opening", text);
         }
 

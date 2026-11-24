@@ -1243,6 +1243,7 @@ namespace VuonTra.Game.UI
             FirstWeek = new NewcomerView(_canvas, _hud, Runner, Tweens, OnClaimNewcomer);
             BuildWelcomeBack();
             BuildTrunk();
+            BuildRecipeBook(catalog);
             Prizes = new QuestPrizeView(_canvas, catalog, Tweens);
             KindChooser = new MonthKindChooser(_canvas, catalog, Tweens);
             // Two copies of the garden that differ: the choice card, over everything, raised by the runner.
@@ -3550,6 +3551,7 @@ namespace VuonTra.Game.UI
             }
             BuildPlotRow(stations, catalog);
             BuildStoredRows(stations, catalog);
+            BuildBookRow(stations, catalog);
 
             RectTransform upgrades = AddList("Upgrades", 1);
             AddNote(upgrades, L10n.T("upgrades.note"));
@@ -4026,6 +4028,7 @@ namespace VuonTra.Game.UI
             RefreshWelcomeBack();
             RefreshTrunk();
             RefreshOffers();
+            RefreshRecipeBook(s);
             RefreshDecor(s);
             RefreshOrders(s);
             FirstWeek?.RefreshPill(_orderBadge.activeSelf);
@@ -4839,7 +4842,8 @@ namespace VuonTra.Game.UI
 
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
-            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || TrunkCard.IsOpen;
+            || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || TrunkCard.IsOpen
+            || NewDishCard.IsOpen || Book.IsOpen;
 
         void AskForReview()
         {

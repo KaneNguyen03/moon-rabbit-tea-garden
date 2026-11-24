@@ -49,13 +49,116 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Part_A_Opens_One_Dish_And_The_Station_Cap_Is_Two_Times_A_Quarter_Squared()
+        public void A_Station_Under_Level_25_Sells_One_Dish_And_The_Station_Cap_Is_Two_Times_A_Quarter_Squared()
         {
             Assert.AreEqual(3, Recipes.Dishes);
             Assert.AreEqual(1, Recipes.DishesOpen(s, 0));
             Assert.AreEqual(0, Recipes.CurrentDish(s, 0));
             Assert.AreEqual(2d * 1.25d * 1.25d, Recipes.MaxStationMultiplier, 1e-12);
             Assert.AreEqual(1d, Recipes.StationMultiplier(s, 0), 1e-12);
+        }
+
+        [Test]
+        public void Dishes_Two_And_Three_Open_At_Station_Levels_25_And_100_Once_The_Book_Is_Open()
+        {
+            s.Levels = new[] { 24, 25, 99 };
+            Assert.AreEqual(new[] { 1, 2, 2 }, new[] { Recipes.DishesOpen(s, 0), Recipes.DishesOpen(s, 1), Recipes.DishesOpen(s, 2) });
+            s.Levels = new[] { 100, 300, 0 };
+            Assert.AreEqual(new[] { 3, 3, 1 }, new[] { Recipes.DishesOpen(s, 0), Recipes.DishesOpen(s, 1), Recipes.DishesOpen(s, 2) }, "three at most, and a closed station sells nothing new");
+            Assert.AreEqual(2, Recipes.CurrentDish(s, 0), "the station sells its highest dish");
+            Assert.AreEqual(1, Recipes.DishesOpen(s, -1));
+            Assert.AreEqual(1, Recipes.DishesOpen(s, 7));
+
+            s.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel - 1);
+            Assert.AreEqual(1, Recipes.DishesOpen(s, 0), "week one: stations pass 25 and 100 before the book opens, and nothing changes");
+            Assert.AreEqual(1d, Recipes.StationMultiplier(s, 0), 1e-12);
+            s.Season = 1;
+            Assert.AreEqual(3, Recipes.DishesOpen(s, 0), "after a new moon the book stays open");
+        }
+
+        [Test]
+        public void Each_Extra_Dish_Multiplies_Its_Own_Station_By_A_Quarter_And_The_Cap_Holds()
+        {
+            s.Levels = new[] { 100, 2, 25 };
+            s.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel - 1);
+            BigNum tea = Economy.IncomePerCycle(defs, s, 0), jam = Economy.IncomePerCycle(defs, s, 2);
+            s.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel);
+            Assert.AreEqual(1.25d * 1.25d, Recipes.StationMultiplier(s, 0), 1e-12);
+            Assert.AreEqual(1.25d, Recipes.StationMultiplier(s, 2), 1e-12);
+            Assert.AreEqual(1d, Recipes.StationMultiplier(s, 1), 1e-12);
+            Assert.AreEqual((tea * 1.5625d).ToDouble(), Economy.IncomePerCycle(defs, s, 0).ToDouble(), 1e-6);
+            Assert.AreEqual((jam * 1.25d).ToDouble(), Economy.IncomePerCycle(defs, s, 2).ToDouble(), 1e-6);
+
+            for (int d = 0; d < Recipes.Dishes; d++) Recipes.SetLevel(s, 0, d, Recipes.MaxLevel);
+            Assert.AreEqual(Recipes.MaxStationMultiplier, Recipes.StationMultiplier(s, 0), 1e-12, "three dishes at level ten still stop at ×2 × 1.25²");
+        }
+
+        [Test]
+        public void Only_The_Sold_Dish_Counts_And_A_New_Dish_Starts_From_The_Level_Its_Station_Reached()
+        {
+            s.Levels = new[] { 24, 2, 1 };
+            s.RecipeLeaves = 10_000;
+            for (int k = 0; k < 4; k++) Assert.IsTrue(Recipes.Raise(s, 0));
+            Assert.AreEqual(5, Recipes.Level(s, 0));
+            double before = Recipes.StationMultiplier(s, 0);
+
+            s.Levels[0] = 25;
+            Assert.AreEqual(1, Recipes.CurrentDish(s, 0));
+            Assert.AreEqual(5, Recipes.Level(s, 0), "the new dish picks up where the old one stopped");
+            Assert.AreEqual(5, Recipes.KnownLevel(s, 0, 1));
+            Assert.AreEqual(before * 1.25d, Recipes.StationMultiplier(s, 0), 1e-12, "so a new dish never lowers the income");
+            Assert.AreEqual(Recipes.CostOfNext(5), Recipes.RaiseCost(s, 0));
+
+            int leaves = s.RecipeLeaves;
+            Assert.IsFalse(Recipes.CanRaise(s, 0, 0), "an older dish is no longer sold");
+            Assert.IsFalse(Recipes.Raise(s, 0, 0));
+            Assert.IsFalse(Recipes.Raise(s, 0, 2), "nor a dish not open yet");
+            Assert.IsFalse(Recipes.Raise(s, 0, 3));
+            Assert.AreEqual(leaves, s.RecipeLeaves);
+            Assert.IsTrue(Recipes.CanRaise(s, 0, 1));
+            Assert.IsTrue(Recipes.Raise(s, 0, 1));
+            Assert.AreEqual(leaves - Recipes.CostOfNext(5), s.RecipeLeaves);
+            Assert.AreEqual(6, Recipes.Level(s, 0));
+            Assert.AreEqual(5, Recipes.KnownLevel(s, 0, 0), "the old dish keeps its own level in the book");
+            Assert.AreEqual(6, Recipes.KnownLevel(s, 0, 1));
+            Assert.AreEqual(6, Recipes.KnownLevel(s, 0, 2), "and the third will start from the second");
+            Assert.AreEqual(Recipes.LevelMultiplier(6) * 1.25d, Recipes.StationMultiplier(s, 0), 1e-12);
+
+            s.Levels[0] = 1;
+            Assert.AreEqual(0, Recipes.CurrentDish(s, 0), "after a new moon the station sells its first dish again");
+            Assert.AreEqual(5, Recipes.Level(s, 0));
+            s.Levels[0] = 25;
+            Assert.AreEqual(6, Recipes.Level(s, 0), "and the second comes back at its own level");
+        }
+
+        [Test]
+        public void A_Newly_Opened_Dish_Waits_To_Be_Shown_Once()
+        {
+            Assert.AreEqual(0, Recipes.NewDishes(s));
+            Assert.AreEqual(-1, Recipes.NewestDish(s));
+            s.Levels = new[] { 25, 100, 3 };
+            Assert.AreEqual(3, Recipes.NewDishes(s), "the tea's second dish, the leaf basket's second and third");
+            Assert.AreEqual(1, Recipes.NewestDish(s), "the card shows the newest dish first");
+            Recipes.SeeDishes(s);
+            Assert.AreEqual(0, Recipes.NewDishes(s));
+            Assert.AreEqual(-1, Recipes.NewestDish(s));
+            Assert.AreEqual(2, Recipes.Seen(s, 0));
+            Assert.AreEqual(3, Recipes.Seen(s, 1));
+            Assert.AreEqual(1, Recipes.Seen(s, 2));
+
+            s.Levels[0] = 100;
+            Assert.AreEqual(1, Recipes.NewDishes(s));
+            Assert.AreEqual(0, Recipes.NewestDish(s));
+            Recipes.SeeDishes(s);
+
+            s.Levels = new[] { 1, 1, 1 };
+            Assert.AreEqual(0, Recipes.NewDishes(s), "after a new moon");
+            s.Levels = new[] { 100, 100, 1 };
+            Assert.AreEqual(0, Recipes.NewDishes(s), "a dish met before is not new again");
+
+            s.Levels[2] = 25;
+            s.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel - 1);
+            Assert.AreEqual(0, Recipes.NewDishes(s), "nothing is new while the book is closed");
         }
 
         [Test]
@@ -263,6 +366,33 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, Recipes.Level(r, 1));
             Assert.AreEqual(2, Recipes.Level(r, 2));
             Assert.AreEqual(SaveCodec.Encode(defs, s), SaveCodec.Encode(defs, r));
+        }
+
+        [Test]
+        public void The_Dishes_Shown_Round_Trip_In_The_Save_And_An_Older_Recipe_Block_Has_Shown_Only_The_First()
+        {
+            s.Levels = new[] { 100, 25, 1 };
+            Recipes.SeeDishes(s);
+            GameState r = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.AreEqual(3, Recipes.Seen(r, 0));
+            Assert.AreEqual(2, Recipes.Seen(r, 1));
+            Assert.AreEqual(1, Recipes.Seen(r, 2));
+            Assert.AreEqual(0, Recipes.NewDishes(r));
+            Assert.AreEqual(SaveCodec.Encode(defs, s), SaveCodec.Encode(defs, r));
+
+            const string older = "{\"version\":14,\"stations\":[{\"id\":\"tea\",\"level\":100},{\"id\":\"leaf\",\"level\":2}],\"recipes\":{\"leaves\":12,\"rest\":0,\"dishes\":[{\"id\":\"tea\",\"levels\":[4,1,1]}]}}";
+            GameState old = SaveCodec.Decode(defs, older).State;
+            old.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel);
+            Assert.AreEqual(12, old.RecipeLeaves);
+            Assert.AreEqual(4, Recipes.Level(old, 0));
+            Assert.AreEqual(1, Recipes.Seen(old, 0));
+            Assert.AreEqual(2, Recipes.NewDishes(old), "a part-A save meets the tea's second and third dish once");
+
+            const string broken = "{\"version\":14,\"stations\":[],\"recipes\":{\"dishes\":[{\"id\":\"tea\",\"levels\":[1,1,1],\"seen\":99},{\"id\":\"jam\",\"levels\":[1,1,1],\"seen\":-4},{\"id\":\"leaf\",\"seen\":\"x\"}]}}";
+            GameState b = SaveCodec.Decode(defs, broken).State;
+            Assert.AreEqual(Recipes.Dishes, Recipes.Seen(b, 0));
+            Assert.AreEqual(1, Recipes.Seen(b, 2));
+            Assert.AreEqual(1, Recipes.Seen(b, 1));
         }
 
         [Test]

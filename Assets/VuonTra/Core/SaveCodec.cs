@@ -400,7 +400,8 @@ namespace VuonTra.Core
                     if (d > 0) sb.Append(',');
                     sb.Append(Recipes.DishLevel(s, i, d).ToString(CultureInfo.InvariantCulture));
                 }
-                sb.Append("]}");
+                sb.Append("],\"seen\":").Append(Recipes.Seen(s, i).ToString(CultureInfo.InvariantCulture));
+                sb.Append('}');
             }
             sb.Append("]}");
             sb.Append(",\"tally\":{\"pets\":").Append(s.Pets.ToString(CultureInfo.InvariantCulture));
@@ -955,6 +956,7 @@ namespace VuonTra.Core
                     {
                         if (!(item is Dictionary<string, object> entry) || !(entry.TryGetValue("id", out object idObj) && idObj is string id)) continue;
                         int index = IndexOf(defs, id);
+                        if (index >= 0 && TryNumber(entry, "seen", out double dishesSeen)) Recipes.SetSeen(s, index, (int)Math.Max(1d, Math.Min(dishesSeen, Recipes.Dishes)));
                         if (index < 0 || !(entry.TryGetValue("levels", out object levelsObj) && levelsObj is List<object> levels)) continue;
                         for (int d = 0; d < Recipes.Dishes && d < levels.Count; d++)
                             if (levels[d] is double level) Recipes.SetLevel(s, index, d, (int)Math.Max(1d, Math.Min(level, Recipes.MaxLevel)));
