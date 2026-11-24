@@ -39,8 +39,6 @@ namespace VuonTra.EditorTools
         static readonly double[] TierSeconds = { 12, 30, 60, 90, 180, 300, 600, 900 };
         static readonly double[] TierCarrots = { 100, 300, 1000, 3000, 1e4, 3e4, 1e5, 3e5 };
         static readonly int[] TierGolden = { 0, 0, 1, 0, 1, 0, 2, 3 };
-        static readonly int[] TierClovers = { 0, 2, 0, 2, 0, 3, 0, 0 };
-        static readonly int[] TierJarClovers = { 0, 0, 0, 0, 2, 3, 3, 4 };
         const int JarTierFrom = 4;
 
         static QuestTier[] TiersOf(C chain, Q[] mergedRows)
@@ -63,7 +61,7 @@ namespace VuonTra.EditorTools
                 tiers[i] = new QuestTier
                 {
                     Target = chain.Targets[i], RewardSeconds = TierSeconds[i], RewardCarrots = TierCarrots[i],
-                    RewardGolden = jar ? 0 : TierGolden[i], RewardJars = jar ? 1 : 0, RewardClovers = jar ? TierJarClovers[i] : TierClovers[i]
+                    RewardGolden = jar ? 0 : TierGolden[i], RewardJars = jar ? 1 : 0
                 };
             }
             return tiers;

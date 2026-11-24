@@ -95,9 +95,14 @@ namespace VuonTra.Core
                 var other = defs[i];
                 if (other.Kind != StationKind.Ingredient || s.Levels[i] <= 0 || Layout.IsStored(defs, s, i)) continue;
                 if (other.Boosts(d.Id))
-                    income *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * album.At(defs, i);
+                    income *= BoostOf(defs, s, i, album);
             }
-            return income * Rabbits.StationMultiplier(defs, s, index) * album.At(defs, index);
+            return income * Rabbits.StationMultiplier(defs, s, index) * album.At(defs, index) * Recipes.StationMultiplier(s, index);
+        }
+
+        static double BoostOf(IReadOnlyList<StationDef> defs, GameState s, int i, in AlbumFactors album)
+        {
+            return 1d + (IngredientBoost(defs[i], s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * album.At(defs, i) * Recipes.StationMultiplier(s, i);
         }
 
         public static BigNum StationIncomePerSecond(IReadOnlyList<StationDef> defs, GameState s, int index, out double rabbit, out double ingredients)
@@ -112,7 +117,7 @@ namespace VuonTra.Core
             {
                 var other = defs[i];
                 if (other.Kind == StationKind.Ingredient && s.Levels[i] > 0 && other.Boosts(d.Id) && !Layout.IsStored(defs, s, i))
-                    ingredients *= 1d + (IngredientBoost(other, s.Levels[i]) - 1d) * Rabbits.StationMultiplier(defs, s, i) * album.At(defs, i);
+                    ingredients *= BoostOf(defs, s, i, album);
             }
             return IncomePerCycle(defs, s, index, album) / d.CycleSeconds;
         }

@@ -4119,131 +4119,239 @@ MonoBehaviour:
     m_Localized: The pass gift of the {0} tier passed is yours
     m_Metadata:
       m_Items: []
-  - m_Id: 866028723625984
+  - m_Id: 863401810059264
+    m_Localized: "Dish: {0} \xB7 level {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836480
+    m_Localized: Improve dish ({0} leaves)
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836481
+    m_Localized: Dish at top level
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836482
+    m_Localized: Open the station to cook it
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836483
+    m_Localized: Opens at garden level {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836484
+    m_Localized: Dish level {0}!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836485
+    m_Localized: "Recipe leaves: {0} \xB7 improve dishes on a station card"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836486
+    m_Localized: "Big fish \u2192 +1 leaf"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836487
+    m_Localized: +{0} recipe leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836488
+    m_Localized: Dew Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836489
+    m_Localized: Young Tea Leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836490
+    m_Localized: Strawberry Jam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836491
+    m_Localized: Pounded Petal Powder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836492
+    m_Localized: Chestnut Bun
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836493
+    m_Localized: Wild Honey
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836494
+    m_Localized: Moon Milk Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836495
+    m_Localized: Star Syrup
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836496
+    m_Localized: Moon Grapes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836497
+    m_Localized: Mooncake
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836498
+    m_Localized: Flower Spring Water
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836499
+    m_Localized: Jar of Falling Stars
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836500
+    m_Localized: Lotus Seeds
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836501
+    m_Localized: Malt Candy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836502
+    m_Localized: Young Rice Flakes
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401826836503
+    m_Localized: Night Blossom Tea
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401835225088
+    m_Localized: "Recipe leaf: {0} \xB7 improve dishes on a station card"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 863401835225089
+    m_Localized: +{0} recipe leaf
+    m_Metadata:
+      m_Items: []
+  - m_Id: 874257604141056
     m_Localized: '{0} tiers reached in all'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208896
+  - m_Id: 874257612529664
     m_Localized: "{0} \xB7 tier {1}/{2}"
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208897
+  - m_Id: 874257612529665
     m_Localized: Complete
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208898
+  - m_Id: 874257612529666
     m_Localized: Taps
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208899
+  - m_Id: 874257612529667
     m_Localized: '{0}/{1} taps'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208900
+  - m_Id: 874257612529668
     m_Localized: Upgrades
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208901
+  - m_Id: 874257612529669
     m_Localized: '{0}/{1} levels'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208902
+  - m_Id: 874257612529670
     m_Localized: Carrots earned
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208903
+  - m_Id: 874257612529671
     m_Localized: '{0}/{1} carrots'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208904
+  - m_Id: 874257612529672
     m_Localized: Guest orders
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208905
+  - m_Id: 874257612529673
     m_Localized: '{0}/{1} orders'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208906
+  - m_Id: 874257612529674
     m_Localized: Fishing
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208907
+  - m_Id: 874257612529675
     m_Localized: '{0}/{1} fish'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208908
+  - m_Id: 874257612529676
     m_Localized: Photos
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208909
+  - m_Id: 874257612529677
     m_Localized: '{0}/{1} photos'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208910
+  - m_Id: 874257612529678
     m_Localized: Games played
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208911
+  - m_Id: 874257612529679
     m_Localized: '{0}/{1} rounds'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208912
+  - m_Id: 874257612529680
     m_Localized: Kinds met
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208913
+  - m_Id: 874257612529681
     m_Localized: '{0}/{1} kinds'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208914
+  - m_Id: 874257612529682
     m_Localized: Rabbits at level cap
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208915
+  - m_Id: 874257612529683
     m_Localized: '{0}/{1} rabbits'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208916
+  - m_Id: 874257612529684
     m_Localized: Full hearts
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208917
+  - m_Id: 874257612529685
     m_Localized: '{0}/{1} rabbits'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208918
+  - m_Id: 874257612529686
     m_Localized: Garden level
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208919
+  - m_Id: 874257612529687
     m_Localized: level {0}/{1}
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208920
+  - m_Id: 874257612529688
     m_Localized: New moons
     m_Metadata:
       m_Items: []
-  - m_Id: 866028736208921
+  - m_Id: 874257612529689
     m_Localized: '{0}/{1} moons'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028744597504
+  - m_Id: 874257625112576
     m_Localized: '{0} tier reached in all'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028744597505
+  - m_Id: 874257625112577
     m_Localized: '{0}/{1} photo'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028744597506
+  - m_Id: 874257625112578
     m_Localized: '{0}/{1} rabbit'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028744597507
+  - m_Id: 874257625112579
     m_Localized: '{0}/{1} rabbit'
     m_Metadata:
       m_Items: []
-  - m_Id: 866028744597508
+  - m_Id: 874257625112580
     m_Localized: '{0}/{1} moon'
     m_Metadata:
       m_Items: []

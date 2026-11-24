@@ -221,6 +221,10 @@ namespace VuonTra.Game.UI
         Text _cardName, _cardLevel, _cardInfo, _cardBuyTop, _cardBuyCost;
         ChunkyButton _cardBuy;
         GameObject _cardBuyCarrot;
+        RectTransform _cardDish;
+        Text _cardDishLine, _cardDishRaise;
+        Image _cardDishLeaf;
+        ChunkyButton _cardDishButton;
         // Small events: a golden firefly to catch, and rabbits that nod off.
         RectTransform _gold;
         float _goldTimer = 25f, _goldAge, _dozeTimer = 18f;
@@ -288,6 +292,7 @@ namespace VuonTra.Game.UI
         bool _hintFading;
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
+        Text _recipeLeaves;
         Text _coins, _perSecond, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements, _achievementTiers;
         RectTransform _questReady, _cardModes;
         ChunkyButton _claimAll;
@@ -439,7 +444,7 @@ namespace VuonTra.Game.UI
         /// <summary>The strip at the top of the sheet: the page name, the buy modes, the close button.</summary>
         const float HeaderHeight = 148f;
         /// <summary>The station card stands right on the tab bar: the bar's gap and height, plus a thin seam.</summary>
-        const float HudCover = 160f, TabCover = TabBarGap + TabBarHeight + 10f, CardHeight = 340f;
+        const float HudCover = 160f, TabCover = TabBarGap + TabBarHeight + 10f, CardHeight = 440f;
 
         public enum ZoomLevel { Far, Default, Near }
 
@@ -1716,8 +1721,58 @@ namespace VuonTra.Game.UI
             var carrot = UiKit.Rect("Carrot", _cardBuy.FaceRect).Place(1f, 0.5f, -36, 0, 42, 42);
             carrot.AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _cardBuyCarrot = carrot.gameObject;
+            BuildCardDish(catalog);
 
             _card.gameObject.SetActive(false);
+        }
+
+        public static Color LeafGold => Palette.Mix(Palette.Lantern, Palette.Carrot, 0.25f);
+
+        static Sprite LeafIcon(GameCatalog catalog) => catalog.TradeIcon(RabbitTrade.Gatherer) ?? catalog.Round;
+
+        void BuildCardDish(GameCatalog catalog)
+        {
+            _cardDish = UiKit.Rect("Dish", _card).Stretch(0, 0, 1, 0, 32, 136, 32, -224);
+            _cardDishLine = UiKit.Rect("Line", _cardDish).Stretch(0, 0, 1, 1, 0, 0, 500, 0)
+                .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _cardDishLine.resizeTextForBestFit = true;
+            _cardDishLine.resizeTextMinSize = 16;
+            _cardDishLine.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            var raise = UiKit.Rect("Raise", _cardDish).Place(1f, 0.5f, -240, 0, 480, UiKit.MinTouch);
+            _cardDishButton = UiKit.Chunky(raise, catalog.Panel, () => OnRaiseDish(Selected));
+            _cardDishButton.Dip.Denied = () => Deny(_cardDishButton, false);
+            _cardDishRaise = UiKit.Rect("Text", _cardDishButton.FaceRect).Stretch(0, 0, 1, 1, 24, 0, 72, 0)
+                .AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _cardDishRaise.resizeTextForBestFit = true;
+            _cardDishRaise.resizeTextMinSize = 16;
+            _cardDishRaise.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            _cardDishLeaf = UiKit.Rect("Leaf", _cardDishButton.FaceRect).Place(1f, 0.5f, -38, 0, 40, 40).AddImage(LeafIcon(catalog), LeafGold);
+            _cardDishLeaf.preserveAspect = true;
+        }
+
+        void RefreshCardDish(IReadOnlyList<StationDef> defs, GameState s, int i, bool open)
+        {
+            int dish = Recipes.CurrentDish(s, i), level = Recipes.Level(s, i), cost = Recipes.RaiseCost(s, i);
+            _cardDishLine.text = L10n.T("dish.line", L10n.Dish(defs[i].Id, dish), level);
+            bool can = open && Recipes.CanRaise(s, i);
+            _cardDishRaise.text = !Recipes.Unlocked(s) ? L10n.T("dish.locked", Recipes.UnlockLevel) : !open ? L10n.T("dish.closed") : cost <= 0 ? L10n.T("dish.max") : L10n.T("dish.raise", cost);
+            _cardDishRaise.color = ChunkyButton.InkFor(can);
+            _cardDishButton.SetEnabled(can);
+            if (can) _cardDishButton.Face.color = LeafGold;
+            _cardDishLeaf.color = can ? Palette.Mix(LeafGold, Palette.Ink, 0.5f) : LeafGold;
+        }
+
+        void OnRaiseDish(int station)
+        {
+            if (station < 0 || !Runner.RaiseDish(station)) return;
+            Sfx.Milestone();
+            Haptics.Light();
+            Vector2 at = Feel.PointOf(_cardDishLine.rectTransform);
+            Feel.FloatText(at + new Vector2(0f, 60f), L10n.T("dish.raised", Recipes.Level(Runner.State, station)), LeafGold, 40);
+            RectTransform line = _cardDishLine.rectTransform;
+            Tweens.Add(Motion.Tap, t => { if (line != null) line.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                () => { if (line != null) line.localScale = Vector3.one; });
+            Refresh(-1f);
         }
 
         /// <summary>Brings a station to the middle of the screen and opens its card.</summary>
@@ -1809,6 +1864,8 @@ namespace VuonTra.Game.UI
                     _cardWorkerSub.color = inTrade ? Palette.Mix(Palette.Moss, Palette.Ink, 0.45f) : Palette.InkSoft;
                 }
             }
+
+            RefreshCardDish(defs, s, i, open);
 
             BigNum cost;
             bool can, capped = false;
@@ -3165,6 +3222,7 @@ namespace VuonTra.Game.UI
             _goldenText = UiKit.Rect("Text", _goldenChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _goldenChip.gameObject.SetActive(false);
             BuildJarChip(catalog); // the moon jars on the shelf, beside the golden carrots (#64)
+            BuildLeafChip(catalog);
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
             UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
@@ -3514,6 +3572,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Text", _claimAll.FaceRect).Stretch(0, 0, 1, 1).AddText(L10n.T("quests.claimall"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _questReady.gameObject.SetActive(false);
             _clovers = AddNote(quests, "");
+            _recipeLeaves = AddNote(quests, L10n.T("recipes.leaves", 0));
             _questToday = AddNote(quests, L10n.T("quests.today"), true);
             for (int pass = 0; pass < 2; pass++)
             {
@@ -3975,6 +4034,7 @@ namespace VuonTra.Game.UI
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
             _goldenText.text = s.GoldenCarrots.ToString();
             RefreshJarChip(s);
+            RefreshLeafChip(s);
             bool shopNews = Runner.GiftWaiting || Runner.VisitorUnseen; // a gift to take, or a visitor not yet looked at
             if (_shopBadge != null && _shopBadge.activeSelf != shopNews) _shopBadge.SetActive(shopNews);
             ProductTray.Refresh(s);
@@ -5130,6 +5190,7 @@ namespace VuonTra.Game.UI
             foreach (QuestRowView row in _questRows) if (row.CanClaim) order.Add(row.Root);
             order.Add(_monthPass.Root);
             order.Add(_clovers.rectTransform);
+            order.Add(_recipeLeaves.rectTransform);
             order.Add(_questToday.rectTransform);
             foreach (QuestRowView row in _questRows) if (row.Daily && !row.CanClaim) order.Add(row.Root);
             order.Add(_questAchievements.rectTransform);
@@ -5593,6 +5654,7 @@ namespace VuonTra.Game.UI
                 Feel.Fly(from, Feel.PointOf(tab), catalog.Clover != null ? catalog.Clover : catalog.Round, catalog.Clover != null ? Color.white : Palette.Moss, clovers, 38f,
                     () => { if (tab != null) Feel.FloatText(Feel.PointOf(tab, new Vector2(0, 90)), "+" + clovers, Palette.Moss, 40); });
             }
+            Feel.Fly(from, Feel.PointOf(_leafChip), LeafIcon(catalog), LeafGold, Recipes.LeavesPerOrder, 34f);
             Feel.Moment(L10n.T("order.done.title"), clovers > 0 ? L10n.T("order.done.clover", paid.Short()) : L10n.T("order.done.sub", paid.Short()));
             // A bow from the feet, then the walk home.
             _bubble.gameObject.SetActive(false);
@@ -6300,6 +6362,36 @@ namespace VuonTra.Game.UI
             IncomeView.JarIcon(_jarChip, catalog, "Icon", 42f, 0f, 0.5f, 30, 2);
             _jarText = UiKit.Rect("Text", _jarChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _jarChip.gameObject.SetActive(false);
+        }
+
+        RectTransform _leafChip;
+        Text _leafText;
+        int _leavesShown = -1;
+
+        void BuildLeafChip(GameCatalog catalog)
+        {
+            _leafChip = UiKit.Rect("RecipeLeaves", _hud).Place(0f, 1f, 535, -154, 150, 52);
+            _leafChip.AddShadow(10f, 6f, 0.25f);
+            _leafChip.AddImage(catalog.Panel, Palette.Paper, true);
+            UiKit.Rect("Icon", _leafChip).Place(0f, 0.5f, 30, 0, 38, 38).AddImage(LeafIcon(catalog), LeafGold).preserveAspect = true;
+            _leafText = UiKit.Rect("Text", _leafChip).Stretch(0, 0, 1, 1, 56, 0, 10, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _leafChip.gameObject.SetActive(false);
+            _leavesShown = -1;
+        }
+
+        void RefreshLeafChip(GameState s)
+        {
+            bool show = s.RecipeLeaves > 0 || Recipes.AnyRaised(s);
+            if (_leafChip.gameObject.activeSelf != show) _leafChip.gameObject.SetActive(show);
+            if (s.RecipeLeaves == _leavesShown) return;
+            bool more = _leavesShown >= 0 && s.RecipeLeaves > _leavesShown;
+            _leavesShown = s.RecipeLeaves;
+            _leafText.text = s.RecipeLeaves.ToString();
+            if (_recipeLeaves != null) _recipeLeaves.text = L10n.T("recipes.leaves", s.RecipeLeaves);
+            if (!more || !show) return;
+            RectTransform chip = _leafChip;
+            Tweens.Add(Motion.Tap, t => { if (chip != null) chip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f,
+                () => { if (chip != null) chip.localScale = Vector3.one; });
         }
 
         void RefreshJarChip(GameState s)
@@ -8023,7 +8115,12 @@ namespace VuonTra.Game.UI
                 Tweens.Add(Motion.Tap, t => { if (chip != null) chip.localScale = Vector3.one * (1f + 0.15f * Ease.Pop(t)); }, Ease.Linear, 0f,
                     () => { if (chip != null) chip.localScale = Vector3.one; });
             });
-            if (!fed.Bond.TenHearts) // the banner says it all at ten
+            if (fed.Leaves > 0)
+            {
+                Feel.FloatText(to + new Vector2(0f, 30f), L10n.T("fish.leaf", fed.Leaves), LeafGold, 34);
+                Feel.Fly(to, Feel.PointOf(_leafChip), LeafIcon(catalog), LeafGold, fed.Leaves, 40f);
+            }
+            else if (!fed.Bond.TenHearts) // the banner says it all at ten
             {
                 Feel.FloatText(to + new Vector2(0f, 30f), L10n.T("fish.points", fed.Points), Palette.CarrotLip, 34);
                 if (fed.HeartsAfter > fed.HeartsBefore) Feel.FloatText(to + new Vector2(130f, 10f), "♥", Palette.Blush, 54);

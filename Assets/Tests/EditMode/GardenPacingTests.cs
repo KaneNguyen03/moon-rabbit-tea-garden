@@ -156,7 +156,7 @@ namespace VuonTra.Core.Tests
             if (r == null) return;
             Rabbits.Pet(s, r, today);
             for (int k = Fishing.Kinds - 1; k >= 0; k--)
-                while (s.Fish[k] > 0 && Fishing.Feed(s, r, k).Fed) fishPoints += Fishing.Points[k];
+                for (FeedResult fed; s.Fish[k] > 0 && (fed = Fishing.Feed(s, r, k)).Fed;) fishPoints += fed.Points;
         }
 
         int MostHearts()

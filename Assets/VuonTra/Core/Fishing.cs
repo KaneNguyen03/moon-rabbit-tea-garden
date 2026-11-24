@@ -58,6 +58,7 @@ namespace VuonTra.Core
         public bool Fed;
         public int Points;
         public int HeartsBefore, HeartsAfter;
+        public int Leaves;
         public BondStep Bond;
     }
 
@@ -147,15 +148,32 @@ namespace VuonTra.Core
         public static FeedResult Feed(GameState s, Rabbit r, int fish)
         {
             var result = new FeedResult();
-            if (r == null || fish < 0 || fish >= Kinds || s.Fish[fish] <= 0 || r.Affection >= Rabbits.AffectionMax) return result;
+            if (r == null || fish < 0 || fish >= Kinds || s.Fish[fish] <= 0) return result;
+            bool full = r.Affection >= Rabbits.AffectionMax;
+            if (full && !(MakesLeaf(fish) && Recipes.Unlocked(s))) return result;
             s.Fish[fish]--;
             s.FishFed++;
             result.Fed = true;
             result.HeartsBefore = Rabbits.HeartsOf(r);
+            if (full)
+            {
+                result.Leaves = Recipes.LeavesPerFish;
+                result.HeartsAfter = result.HeartsBefore;
+                Recipes.Earn(s, result.Leaves);
+                return result;
+            }
             result.Bond = Rabbits.AddBond(s, r, Points[fish]);
             result.Points = Points[fish];
             result.HeartsAfter = Rabbits.HeartsOf(r);
             return result;
+        }
+
+        public static bool MakesLeaf(int fish) => fish >= Recipes.LeafFishFrom && fish < Kinds;
+
+        public static bool CanFeed(GameState s, Rabbit r, int fish)
+        {
+            if (r == null || fish < 0 || fish >= Kinds || s.Fish[fish] <= 0) return false;
+            return r.Affection < Rabbits.AffectionMax || (MakesLeaf(fish) && Recipes.Unlocked(s));
         }
 
         public static int BestInBasket(GameState s)

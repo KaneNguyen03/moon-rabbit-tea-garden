@@ -112,6 +112,8 @@ namespace VuonTra.Game
 
         public static string Station(string id) => T("station." + id);
 
+        public static string Dish(string stationId, int dish) => T("dish." + stationId + "." + (dish + 1));
+
         public static string Season(VuonTra.Core.Season season)
         {
             switch (season)

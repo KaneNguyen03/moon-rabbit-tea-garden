@@ -15,6 +15,7 @@ namespace VuonTra.Core
             if (!(dt > 0d)) return;
             Modifiers m = mods ?? Modifiers.None;
             double work = Energy.Advance(s, dt);
+            Recipes.Rest(s, dt);
             for (int i = 0; i < defs.Count; i++)
             {
                 var d = defs[i];
@@ -106,6 +107,7 @@ namespace VuonTra.Core
 
             countedSeconds = Math.Min(elapsed, m.AwayCapSeconds);
             Energy.PassAway(s, elapsed);
+            Recipes.Rest(s, countedSeconds);
             Tray.FillAway(defs, s, countedSeconds);
             double awayBonus = m.AwayIncomeMultiplier > 0d ? m.AwayIncomeMultiplier : 1d;
             BigNum paid = Economy.IncomePerSecond(defs, s) * (countedSeconds * m.IncomeMultiplier * m.SpeedMultiplier * awayBonus);

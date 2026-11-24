@@ -35,7 +35,7 @@ MonoBehaviour:
   - Target: 2
     RewardSeconds: 30
     RewardCarrots: 300
-    RewardClovers: 2
+    RewardClovers: 0
     RewardGolden: 0
     RewardJars: 0
     Merged: 0
@@ -49,28 +49,28 @@ MonoBehaviour:
   - Target: 4
     RewardSeconds: 90
     RewardCarrots: 3000
-    RewardClovers: 2
+    RewardClovers: 0
     RewardGolden: 0
     RewardJars: 0
     Merged: 0
   - Target: 5
     RewardSeconds: 180
     RewardCarrots: 10000
-    RewardClovers: 2
+    RewardClovers: 0
     RewardGolden: 0
     RewardJars: 1
     Merged: 0
   - Target: 6
     RewardSeconds: 300
     RewardCarrots: 30000
-    RewardClovers: 3
+    RewardClovers: 0
     RewardGolden: 0
     RewardJars: 1
     Merged: 0
   - Target: 7
     RewardSeconds: 600
     RewardCarrots: 100000
-    RewardClovers: 3
+    RewardClovers: 0
     RewardGolden: 0
     RewardJars: 1
     Merged: 0
