@@ -293,7 +293,7 @@ namespace VuonTra.Game.UI
         readonly List<Image> _fireflyImages = new List<Image>();
         CanvasGroup _sheetGroup;
         Text _recipeLeaves;
-        Text _coins, _perSecond, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements;
+        Text _coins, _perSecond, _barBadgeText, _clovers, _energyLabel, _energyAction, _questToday, _questAchievements, _achievementTiers;
         RectTransform _questReady, _cardModes;
         ChunkyButton _claimAll;
         Text _plotTitle, _plotSub, _plotCost;
@@ -3577,7 +3577,11 @@ namespace VuonTra.Game.UI
             _questToday = AddNote(quests, L10n.T("quests.today"), true);
             for (int pass = 0; pass < 2; pass++)
             {
-                if (pass == 1) _questAchievements = AddNote(quests, L10n.T("quests.achievements"), true);
+                if (pass == 1)
+                {
+                    _questAchievements = AddNote(quests, L10n.T("quests.achievements"), true);
+                    _achievementTiers = AddNote(quests, "");
+                }
                 for (int i = 0; i < catalog.Quests.Length; i++)
                 {
                     if (catalog.Quests[i].Daily != (pass == 0)) continue;
@@ -3960,6 +3964,7 @@ namespace VuonTra.Game.UI
             _questChests.Refresh(Runner.QuestDefs, s, Runner.TodayNumber, dt);
             _monthPass.Refresh(s, Runner.TodayNumber, Runner.Store.PriceOf(MonthPass.ProductId));
             _questToday.text = L10n.T("quests.today.refresh", Span(SecondsToNextDay(System.DateTimeOffset.Now)));
+            _achievementTiers.text = L10n.T("quests.tiers.total", Quests.TiersDone(Runner.QuestDefs, s));
             OrderQuestRows();
             RefreshPlotRow(defs, s);
             _rabbitList.Refresh(defs, s);
@@ -5191,6 +5196,7 @@ namespace VuonTra.Game.UI
             order.Add(_questToday.rectTransform);
             foreach (QuestRowView row in _questRows) if (row.Daily && !row.CanClaim) order.Add(row.Root);
             order.Add(_questAchievements.rectTransform);
+            order.Add(_achievementTiers.rectTransform);
             foreach (QuestRowView row in _questRows) if (!row.Daily && !row.CanClaim) order.Add(row.Root);
             for (int k = 0; k < order.Count; k++)
                 if (order[k].GetSiblingIndex() != k) order[k].SetSiblingIndex(k);

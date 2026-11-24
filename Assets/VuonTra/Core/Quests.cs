@@ -45,7 +45,23 @@ namespace VuonTra.Core
         MergesOrGoldenCalls,
         SegmentsOpened,
         BestFish,
-        DailyQuestsToday
+        DailyQuestsToday,
+        MiniGames,
+        RabbitsFullHearts,
+        GardenLevelReached,
+        NewMoons
+    }
+
+    [Serializable]
+    public sealed class QuestTier
+    {
+        public double Target;
+        public double RewardSeconds;
+        public double RewardCarrots;
+        public int RewardClovers;
+        public int RewardGolden;
+        public int RewardJars;
+        public bool Merged;
     }
 
     public sealed class QuestDef
@@ -62,6 +78,22 @@ namespace VuonTra.Core
         public int RewardGolden;
         public int RewardJars;
         public Season Season;
+        public QuestTier[] Tiers;
+        public string[] Merged;
+
+        public bool Chained => Tiers != null && Tiers.Length > 0;
+
+        string[] _tierIds;
+
+        public string TierId(int tier)
+        {
+            if (_tierIds == null || _tierIds.Length != Tiers.Length)
+            {
+                _tierIds = new string[Tiers.Length];
+                for (int i = 0; i < _tierIds.Length; i++) _tierIds[i] = Id + "." + (i + 1);
+            }
+            return _tierIds[tier];
+        }
     }
 
     public static class Quests
@@ -69,8 +101,44 @@ namespace VuonTra.Core
         public const double DailyCarrotSeconds = 600d;
         public const double DailyCarrotMinimum = 100d;
 
+        public static int TiersOf(QuestDef q) => q.Chained ? q.Tiers.Length : 1;
+
+        public static string TierId(QuestDef q, int tier) => q.TierId(tier);
+
+        public static int TiersClaimed(QuestDef q, GameState s)
+        {
+            if (!q.Chained) return s.Claimed.Contains(q.Id) ? 1 : 0;
+            int oldClaimed = 0;
+            if (q.Merged != null)
+                foreach (string id in q.Merged)
+                    if (s.Claimed.Contains(id)) oldClaimed++;
+            int n = 0, oldSeen = 0;
+            while (n < q.Tiers.Length)
+            {
+                bool old = q.Tiers[n].Merged && oldSeen++ < oldClaimed;
+                if (!old && !s.Claimed.Contains(TierId(q, n))) break;
+                n++;
+            }
+            return n;
+        }
+
+        public static QuestTier CurrentTier(QuestDef q, GameState s)
+        {
+            if (!q.Chained) return null;
+            return q.Tiers[Math.Min(TiersClaimed(q, s), q.Tiers.Length - 1)];
+        }
+
+        public static int TiersDone(IReadOnlyList<QuestDef> quests, GameState s)
+        {
+            int n = 0;
+            for (int i = 0; i < quests.Count; i++)
+                if (quests[i].Chained) n += TiersClaimed(quests[i], s);
+            return n;
+        }
+
         public static double TargetOf(QuestDef q, GameState s)
         {
+            if (q.Chained) return CurrentTier(q, s).Target;
             if (q.Daily && q.Metric == QuestMetric.CarrotsEarned && q.Target <= 0d) return s.DailyCarrotTarget.ToDouble();
             return q.Target;
         }
@@ -188,12 +256,24 @@ namespace VuonTra.Core
                     return s.BestFish;
                 case QuestMetric.DailyQuestsToday:
                     return s.DailyQuestsToday;
+                case QuestMetric.MiniGames:
+                    return s.PoundingGames + s.Leaves.Games + s.Fireflies.Games;
+                case QuestMetric.RabbitsFullHearts:
+                {
+                    int full = 0;
+                    foreach (Rabbit r in s.Rabbits) if (Rabbits.FullHearts(r)) full++;
+                    return full;
+                }
+                case QuestMetric.GardenLevelReached:
+                    return Math.Max(Garden.Level(s), NewMoon.LevelPassed(s));
+                case QuestMetric.NewMoons:
+                    return s.Season;
                 default:
                     return 0;
             }
         }
 
-        public static bool IsClaimed(QuestDef q, GameState s) => s.Claimed.Contains(q.Id);
+        public static bool IsClaimed(QuestDef q, GameState s) => q.Chained ? TiersClaimed(q, s) >= q.Tiers.Length : s.Claimed.Contains(q.Id);
 
         public static bool IsAvailable(QuestDef q, long day) => q.Season == Season.None || Seasons.SeasonOf(day) == q.Season;
 
@@ -210,16 +290,30 @@ namespace VuonTra.Core
 
         public static BigNum RewardOf(QuestDef q, IReadOnlyList<StationDef> defs, GameState s, Modifiers m)
         {
-            BigNum bySeconds = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * q.RewardSeconds);
-            var flat = new BigNum(q.RewardCarrots);
+            QuestTier tier = CurrentTier(q, s);
+            double seconds = tier != null ? tier.RewardSeconds : q.RewardSeconds, carrots = tier != null ? tier.RewardCarrots : q.RewardCarrots;
+            BigNum bySeconds = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * seconds);
+            var flat = new BigNum(carrots);
             return (bySeconds > flat ? bySeconds : flat) * WelcomeBack.QuestTimesFor(q, s);
         }
 
-        public static int JarsNow(QuestDef q, GameState s) => q.RewardJars > 0 && MoonJars.DailyWaiting(s, s.DailyDay) ? 1 : 0;
+        public static int JarsNow(QuestDef q, GameState s)
+        {
+            if (q.Chained) return CurrentTier(q, s).RewardJars > 0 && MoonJars.FreeWaiting(s, s.DailyDay) ? 1 : 0;
+            return q.RewardJars > 0 && MoonJars.DailyWaiting(s, s.DailyDay) ? 1 : 0;
+        }
 
-        public static int CloversNow(QuestDef q, GameState s) => (q.RewardClovers + q.RewardJars - JarsNow(q, s)) * WelcomeBack.QuestTimesFor(q, s);
+        public static int CloversNow(QuestDef q, GameState s)
+        {
+            if (q.Chained)
+            {
+                QuestTier tier = CurrentTier(q, s);
+                return (tier.RewardClovers + tier.RewardJars - JarsNow(q, s)) * WelcomeBack.QuestTimesFor(q, s);
+            }
+            return (q.RewardClovers + q.RewardJars - JarsNow(q, s)) * WelcomeBack.QuestTimesFor(q, s);
+        }
 
-        public static int GoldenNow(QuestDef q, GameState s) => q.RewardGolden * WelcomeBack.QuestTimesFor(q, s);
+        public static int GoldenNow(QuestDef q, GameState s) => (q.Chained ? CurrentTier(q, s).RewardGolden : q.RewardGolden) * WelcomeBack.QuestTimesFor(q, s);
 
         public static bool TryClaim(QuestDef q, IReadOnlyList<StationDef> defs, GameState s, Modifiers m, out BigNum paid)
         {
@@ -227,11 +321,11 @@ namespace VuonTra.Core
             if (!CanClaim(q, defs, s)) return false;
             paid = RewardOf(q, defs, s, m);
             s.Coins += paid;
-            int clovers = CloversNow(q, s);
-            if (JarsNow(q, s) > 0) MoonJars.GiveFree(s, s.DailyDay);
+            int clovers = CloversNow(q, s), jars = JarsNow(q, s), golden = GoldenNow(q, s);
+            if (jars > 0) MoonJars.GiveFree(s, s.DailyDay);
             s.Clovers += clovers;
-            s.GoldenCarrots += GoldenNow(q, s);
-            s.Claimed.Add(q.Id);
+            s.GoldenCarrots += golden;
+            s.Claimed.Add(q.Chained ? TierId(q, TiersClaimed(q, s)) : q.Id);
             if (q.Daily)
             {
                 s.DailyQuestsToday++;

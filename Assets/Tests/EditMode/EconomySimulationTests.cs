@@ -39,6 +39,7 @@ namespace VuonTra.Core.Tests
         int casts, fishCaught, fishPoints, goldenHearts;
         System.Random fishRng;
         int cloversQuests, cloversGames, cloversOrders, goldenGift, goldenPhoto, goldenQuests, goldenGames, goldenTray, goldenSpent;
+        int goldenNewTiers;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
         bool takeFreeDouble, everyAd;
         bool upgradeAll;
@@ -101,6 +102,7 @@ namespace VuonTra.Core.Tests
             casts = fishCaught = fishPoints = goldenHearts = 0;
             fishRng = new System.Random(unchecked(seed * 31 + 58));
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
+            goldenNewTiers = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             takeFreeDouble = everyAd = upgradeAll = false;
             raiseDishes = true;
@@ -414,10 +416,12 @@ namespace VuonTra.Core.Tests
             foreach (QuestDef quest in quests)
             {
                 int clovers = s.Clovers, golden = s.GoldenCarrots;
+                int tierGolden = quest.Chained && !Quests.CurrentTier(quest, s).Merged ? Quests.GoldenNow(quest, s) : 0;
                 if (!Quests.TryClaim(quest, defs, s, mods, out BigNum paid)) continue;
                 earnedQuests += paid;
                 cloversQuests += s.Clovers - clovers;
                 goldenQuests += s.GoldenCarrots - golden;
+                goldenNewTiers += tierGolden;
             }
             OpenQuestChests();
             ClaimMonthPass();
@@ -1392,9 +1396,12 @@ namespace VuonTra.Core.Tests
             public int Seed;
             public readonly List<long> MoonDays = new List<long>();
             public readonly List<int> GoldenByWeek = new List<int>();
+            public readonly List<int> TiersByWeek = new List<int>();
+            public readonly List<int> AchievementGoldenByWeek = new List<int>();
             public readonly List<int> ClimbByWeek = new List<int>();
             public int DishesRaised, TopDish;
-            public int LongestStill;
+            public readonly List<int> NewTierGoldenByWeek = new List<int>();
+            public int LongestStill, Tiers;
             public long MoonDay(int n) => MoonDays.Count >= n ? MoonDays[n - 1] : 99;
         }
 
@@ -1434,7 +1441,7 @@ namespace VuonTra.Core.Tests
             Reset(false, seed);
             raiseDishes = dishes;
             var run = new Seasons { Seed = seed };
-            int callsBefore = 0, levelBefore = 0, openBefore = 0, segmentsBefore = 0, seasonBefore = 0, still = 0;
+            int callsBefore = 0, levelBefore = 0, openBefore = 0, segmentsBefore = 0, seasonBefore = 0, still = 0, tiersBefore = 0, achievementGoldenBefore = 0, newTierGoldenBefore = 0;
             for (int day = 1; day <= days; day++)
             {
                 PlayTakingNewMoons(20 * 60, run);
@@ -1446,6 +1453,13 @@ namespace VuonTra.Core.Tests
                     run.GoldenByWeek.Add(goldenCalls + visitorsBought - callsBefore);
                     run.ClimbByWeek.Add(LevelsClimbed());
                     callsBefore = goldenCalls + visitorsBought;
+                    int tiers = Quests.TiersDone(quests, s);
+                    run.TiersByWeek.Add(tiers - tiersBefore);
+                    tiersBefore = run.Tiers = tiers;
+                    run.AchievementGoldenByWeek.Add(goldenQuests - achievementGoldenBefore);
+                    achievementGoldenBefore = goldenQuests;
+                    run.NewTierGoldenByWeek.Add(goldenNewTiers - newTierGoldenBefore);
+                    newTierGoldenBefore = goldenNewTiers;
                 }
                 int open = 0;
                 for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0) open++;
@@ -1579,6 +1593,48 @@ namespace VuonTra.Core.Tests
             {
                 int week = w;
                 Holds(runs, r => r.GoldenByWeek[week] <= 6, "golden calls at most six in week " + (week + 1), text);
+            }
+        }
+
+        [Test, Category("Slow"), Timeout(1800000)]
+        public void Tiered_Achievements_Add_At_Most_Twenty_Golden_Carrots_In_Week_One_And_Three_Tiers_A_Week_After()
+        {
+            const int days = 42;
+            var runs = new Seasons[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++) runs[i] = CasualSeasons(Seeds[i], days);
+
+            var report = new StringBuilder();
+            report.AppendLine("# Thành tựu nhiều nấc (#111)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả như trên, chơi tới ngày " + days + ", bắt đầu Mùa trăng mới ngay khi được. Thành tựu một lần cũ là các nấc giữ đúng mốc và quà cũ, nên phần vàng thêm so với trước #111 là vàng từ các nấc mới. Mỗi tuần: nấc mới nhận, vàng từ các nấc mới, vàng từ mọi nhiệm vụ (cả thành tựu cũ và nhiệm vụ mùa), gọi vàng + thỏ ghé tiệm.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Nấc nhận mỗi tuần | Vàng từ nấc mới mỗi tuần | Vàng từ mọi nhiệm vụ mỗi tuần | Gọi vàng + thỏ ghé tiệm mỗi tuần | Tổng nấc ngày " + days + " |");
+            report.AppendLine("|---|---|---|---|---|---|");
+            foreach (Seasons r in runs)
+                report.AppendLine("| " + r.Seed + " | " + string.Join(" / ", r.TiersByWeek) + " | " + string.Join(" / ", r.NewTierGoldenByWeek) + " | " + string.Join(" / ", r.AchievementGoldenByWeek)
+                    + " | " + string.Join(" / ", r.GoldenByWeek) + " | " + r.Tiers + " |");
+            var tierMedians = new List<string>();
+            var newMedians = new List<string>();
+            var goldenMedians = new List<string>();
+            for (int w = 0; w < days / 7; w++)
+            {
+                int week = w;
+                tierMedians.Add(Median(runs, r => r.TiersByWeek[week]).ToString());
+                newMedians.Add(Median(runs, r => r.NewTierGoldenByWeek[week]).ToString());
+                goldenMedians.Add(Median(runs, r => r.AchievementGoldenByWeek[week]).ToString());
+            }
+            report.AppendLine("| **trung vị** | " + string.Join(" / ", tierMedians) + " | " + string.Join(" / ", newMedians) + " | " + string.Join(" / ", goldenMedians)
+                + " | " + string.Join(" / ", WeeklyMedians(runs, days / 7)) + " | " + Median(runs, r => r.Tiers) + " |");
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-achievements.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Always(runs, r => r.NewTierGoldenByWeek[0] <= 20, "golden carrots from achievements in week one rise by at most twenty", text);
+            for (int w = 1; w < days / 7; w++)
+            {
+                int week = w;
+                Holds(runs, r => r.TiersByWeek[week] >= 3, "at least three new tiers in week " + (week + 1), text);
             }
         }
     }

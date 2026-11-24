@@ -34,6 +34,39 @@ namespace VuonTra.EditorTools
 
         struct Q { public string Id, Title, Station; public QuestMetric Metric; public double Target, Seconds, Carrots; public int Clovers, Golden; public bool Daily; public Season Season; public int Jars; }
 
+        struct C { public string Id, Title; public QuestMetric Metric; public double[] Targets; public string[] Merged; public int[] MergedAt; public bool JarTiers; }
+
+        static readonly double[] TierSeconds = { 12, 30, 60, 90, 180, 300, 600, 900 };
+        static readonly double[] TierCarrots = { 100, 300, 1000, 3000, 1e4, 3e4, 1e5, 3e5 };
+        static readonly int[] TierGolden = { 0, 0, 1, 0, 1, 0, 2, 3 };
+        const int JarTierFrom = 4;
+
+        static QuestTier[] TiersOf(C chain, Q[] mergedRows)
+        {
+            var tiers = new QuestTier[chain.Targets.Length];
+            for (int i = 0; i < tiers.Length; i++)
+            {
+                int merged = System.Array.IndexOf(chain.MergedAt, i);
+                if (merged >= 0)
+                {
+                    Q old = System.Array.Find(mergedRows, row => row.Id == chain.Merged[merged]);
+                    tiers[i] = new QuestTier
+                    {
+                        Target = chain.Targets[i], RewardSeconds = old.Seconds, RewardCarrots = old.Carrots,
+                        RewardGolden = old.Golden, RewardClovers = old.Clovers, Merged = true
+                    };
+                    continue;
+                }
+                bool jar = chain.JarTiers && i >= JarTierFrom;
+                tiers[i] = new QuestTier
+                {
+                    Target = chain.Targets[i], RewardSeconds = TierSeconds[i], RewardCarrots = TierCarrots[i],
+                    RewardGolden = jar ? 0 : TierGolden[i], RewardJars = jar ? 1 : 0
+                };
+            }
+            return tiers;
+        }
+
         public static void Seed(GameCatalog catalog)
         {
             Directory.CreateDirectory(UpgradeFolder);
@@ -84,17 +117,9 @@ namespace VuonTra.EditorTools
                 new Q { Id = "tra-10",    Title = "Ấm trà sương đạt cấp 10",        Metric = QuestMetric.StationLevel,  Station = "am-tra", Target = 10, Seconds = 18, Carrots = 100 },
                 new Q { Id = "tra-25",    Title = "Ấm trà sương đạt cấp 25",        Metric = QuestMetric.StationLevel,  Station = "am-tra", Target = 25, Seconds = 60, Carrots = 500, Clovers = 1 },
                 new Q { Id = "tra-50",    Title = "Ấm trà sương đạt cấp 50",        Metric = QuestMetric.StationLevel,  Station = "am-tra", Target = 50, Seconds = 180, Carrots = 5000, Clovers = 2 },
-                new Q { Id = "cham-100",  Title = "Chạm tổng cộng 100 lần",         Metric = QuestMetric.Taps,          Target = 100,  Seconds = 24,  Carrots = 100 },
-                new Q { Id = "cham-1000", Title = "Chạm tổng cộng 1.000 lần",       Metric = QuestMetric.Taps,          Target = 1000, Seconds = 180, Carrots = 2000, Clovers = 2 },
                 new Q { Id = "bua-1",     Title = "Học bùa đầu tiên",               Metric = QuestMetric.UpgradesOwned, Target = 1,  Seconds = 12,  Carrots = 80 },
                 new Q { Id = "bua-10",    Title = "Học tổng cộng 10 cấp bùa",       Metric = QuestMetric.UpgradesOwned, Target = 10, Seconds = 180, Carrots = 3000, Clovers = 2 },
-                new Q { Id = "thu-1k",    Title = "Thu tổng cộng 1.000 cà rốt",     Metric = QuestMetric.CarrotsEarned, Target = 1e3, Seconds = 12,  Carrots = 150 },
-                new Q { Id = "thu-1m",    Title = "Thu tổng cộng 1 triệu cà rốt",   Metric = QuestMetric.CarrotsEarned, Target = 1e6, Seconds = 90,  Carrots = 1e5, Clovers = 1 },
-                new Q { Id = "thu-1b",    Title = "Thu tổng cộng 1 tỉ cà rốt",      Metric = QuestMetric.CarrotsEarned, Target = 1e9, Seconds = 180, Carrots = 1e8, Clovers = 3 },
-                // Pictures of the garden (#18).
-                new Q { Id = "anh-1",     Title = "Chụp tấm ảnh đầu tiên",          Metric = QuestMetric.PhotosTaken,         Target = 1, Seconds = 12, Carrots = 100 },
                 new Q { Id = "gia-3sao",  Title = "Giã bánh 3 sao lần đầu",         Metric = QuestMetric.PoundingThreeStar,   Target = 1,  Seconds = 60,  Carrots = 1000, Clovers = 2 },
-                new Q { Id = "gia-30",    Title = "Giã 30 ván",                      Metric = QuestMetric.PoundingGames,       Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
                 // The seasons' quests (#8): one set each, shown only in season, paid in golden carrots.
                 new Q { Id = "mua-gap-trung-thu",  Title = "Gặp Thỏ Đèn Ông Sao",             Metric = QuestMetric.SeasonKindMet,          Target = 1, Seconds = 6,  Carrots = 100, Golden = 3,  Season = Season.MidAutumn },
                 new Q { Id = "mua-nghe-trung-thu", Title = "Xếp Thỏ Đèn Ông Sao vào đúng nghề", Metric = QuestMetric.SeasonKindInTrade,    Target = 1, Seconds = 6,  Carrots = 100, Golden = 5,  Season = Season.MidAutumn },
@@ -113,41 +138,65 @@ namespace VuonTra.EditorTools
                 new Q { Id = "loai-vang", Title = "Gặp loài thỏ bậc Vàng đầu tiên",  Metric = QuestMetric.RarestKindMet, Target = 5,  Seconds = 90,  Carrots = 3000, Golden = 3 },
                 new Q { Id = "loai-do",   Title = "Gặp loài thỏ bậc Đỏ đầu tiên",    Metric = QuestMetric.RarestKindMet, Target = 6,  Seconds = 180, Carrots = 9000, Golden = 3 },
                 new Q { Id = "dat-12",    Title = "Mở đủ 12 ô đất",                  Metric = QuestMetric.PlotsOwned,    Target = 12, Seconds = 180, Carrots = 9000, Golden = 3 },
-                new Q { Id = "tho-max",   Title = "Một bé thỏ đạt cấp tối đa",       Metric = QuestMetric.RabbitsAtCap,  Target = 1,  Seconds = 90,  Carrots = 3000, Golden = 3 },
                 // The leaf-catching game (#10).
                 new Q { Id = "la-3sao",   Title = "Hứng lá 3 sao lần đầu",           Metric = QuestMetric.LeavesThreeStar, Target = 1,  Seconds = 60,  Carrots = 1000, Clovers = 2 },
-                new Q { Id = "la-30",     Title = "Hứng lá 30 ván",                  Metric = QuestMetric.LeavesGames,     Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
                 // The firefly night (#10).
                 new Q { Id = "dom-3sao",  Title = "Bắt đom đóm 3 sao lần đầu",       Metric = QuestMetric.FirefliesThreeStar, Target = 1,  Seconds = 60,  Carrots = 1000, Clovers = 2 },
+                // The Frog Rabbit in the rain (#62): five met, two clovers.
+                new Q { Id = "ech-5",     Title = "Gặp Thỏ Ếch 5 lần",               Metric = QuestMetric.FrogsMet, Target = 5, Seconds = 60, Carrots = 1000, Clovers = 2 },
+            };
+            var mergedRows = new[]
+            {
+                new Q { Id = "cham-100",  Title = "Chạm tổng cộng 100 lần",         Metric = QuestMetric.Taps,          Target = 100,  Seconds = 24,  Carrots = 100 },
+                new Q { Id = "cham-1000", Title = "Chạm tổng cộng 1.000 lần",       Metric = QuestMetric.Taps,          Target = 1000, Seconds = 180, Carrots = 2000, Clovers = 2 },
+                new Q { Id = "thu-1k",    Title = "Thu tổng cộng 1.000 cà rốt",     Metric = QuestMetric.CarrotsEarned, Target = 1e3, Seconds = 12,  Carrots = 150 },
+                new Q { Id = "thu-1m",    Title = "Thu tổng cộng 1 triệu cà rốt",   Metric = QuestMetric.CarrotsEarned, Target = 1e6, Seconds = 90,  Carrots = 1e5, Clovers = 1 },
+                new Q { Id = "thu-1b",    Title = "Thu tổng cộng 1 tỉ cà rốt",      Metric = QuestMetric.CarrotsEarned, Target = 1e9, Seconds = 180, Carrots = 1e8, Clovers = 3 },
+                new Q { Id = "anh-1",     Title = "Chụp tấm ảnh đầu tiên",          Metric = QuestMetric.PhotosTaken,         Target = 1, Seconds = 12, Carrots = 100 },
+                new Q { Id = "gia-30",    Title = "Giã 30 ván",                      Metric = QuestMetric.PoundingGames,       Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
+                new Q { Id = "tho-max",   Title = "Một bé thỏ đạt cấp tối đa",       Metric = QuestMetric.RabbitsAtCap,  Target = 1,  Seconds = 90,  Carrots = 3000, Golden = 3 },
+                new Q { Id = "la-30",     Title = "Hứng lá 30 ván",                  Metric = QuestMetric.LeavesGames,     Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
                 new Q { Id = "dom-30",    Title = "Bắt đom đóm 30 đêm",              Metric = QuestMetric.FirefliesGames,     Target = 30, Seconds = 180, Carrots = 3000, Clovers = 3 },
-                // Guests' tea orders (#20).
                 new Q { Id = "don-20",    Title = "Giao 20 đơn trà",                 Metric = QuestMetric.OrdersDelivered, Target = 20, Seconds = 90, Carrots = 2000, Clovers = 2 },
-                // The album's milestones (#61): the quests pay the golden carrots and the clover; the hat (40) and the
-                // gold frame (72) are given by the album itself the moment the kinds are met (AlbumSets.ClaimMilestones).
-                // 10 and 20 kinds come in everyone's first hour, so they pay 1 and 2 golden carrots, not the 3 and 5 first
-                // proposed: those bought a casual player a second golden call on day one, a Gold rabbit on day two and all
-                // twelve plots a day early (EconomySimulationTests).
                 new Q { Id = "loai-10",   Title = "Gặp 10 loài thỏ",                 Metric = QuestMetric.KindsMet, Target = 10, Seconds = 30,  Carrots = 300,   Golden = 1 },
                 new Q { Id = "loai-20",   Title = "Gặp 20 loài thỏ",                 Metric = QuestMetric.KindsMet, Target = 20, Seconds = 60,  Carrots = 1000,  Golden = 2, Clovers = 1 },
                 new Q { Id = "loai-40",   Title = "Gặp 40 loài thỏ · tặng Mũ sao",   Metric = QuestMetric.KindsMet, Target = 40, Seconds = 120, Carrots = 5000,  Golden = 10 },
                 new Q { Id = "loai-72",   Title = "Gặp đủ 72 loài · khung Đủ bộ",    Metric = QuestMetric.KindsMet, Target = 72, Seconds = 300, Carrots = 20000, Golden = 20 },
-                // The Frog Rabbit in the rain (#62): five met, two clovers.
-                new Q { Id = "ech-5",     Title = "Gặp Thỏ Ếch 5 lần",               Metric = QuestMetric.FrogsMet, Target = 5, Seconds = 60, Carrots = 1000, Clovers = 2 },
-                // The moon pond and the bond in points (#58): fifty fish caught, and one rabbit with all ten hearts.
                 new Q { Id = "ca-50",     Title = "Câu 50 con cá",                   Metric = QuestMetric.FishCaught, Target = 50, Seconds = 60, Carrots = 1000, Clovers = 2 },
                 new Q { Id = "tim-10",    Title = "Một bé thỏ đạt 10 tim",           Metric = QuestMetric.MostHearts, Target = 10, Seconds = 180, Carrots = 9000, Golden = 3 },
             };
+            var chainRows = new[]
+            {
+                new C { Id = "cham",  Title = "Chạm",            Metric = QuestMetric.Taps,              Targets = new[] { 100d, 1000d, 20000d, 30000d, 45000d, 58000d, 70000d, 100000d }, Merged = new[] { "cham-100", "cham-1000" }, MergedAt = new[] { 0, 1 } },
+                new C { Id = "nang",  Title = "Nâng cấp",        Metric = QuestMetric.LevelsBought,      Targets = new[] { 100d, 5000d, 6000d, 8000d, 12000d, 20000d, 35000d, 50000d }, Merged = new string[0], MergedAt = new int[0], JarTiers = true },
+                new C { Id = "thu",   Title = "Thu cà rốt",      Metric = QuestMetric.CarrotsEarned,     Targets = new[] { 1e3, 1e6, 1e9, 1e30, 1e31, 1e32, 1e34, 1e36 }, Merged = new[] { "thu-1k", "thu-1m", "thu-1b" }, MergedAt = new[] { 0, 1, 2 } },
+                new C { Id = "don",   Title = "Đơn khách",       Metric = QuestMetric.OrdersDelivered,   Targets = new[] { 5d, 20d, 70d, 110d, 150d, 195d, 240d, 2000d }, Merged = new[] { "don-20" }, MergedAt = new[] { 1 }, JarTiers = true },
+                new C { Id = "ca",    Title = "Câu cá",          Metric = QuestMetric.FishCaught,        Targets = new[] { 5d, 20d, 50d, 120d, 250d, 500d, 1000d, 2000d }, Merged = new[] { "ca-50" }, MergedAt = new[] { 2 } },
+                new C { Id = "anh",   Title = "Ảnh",             Metric = QuestMetric.PhotosTaken,       Targets = new[] { 1d, 20d, 35d, 50d, 65d, 80d, 200d, 500d }, Merged = new[] { "anh-1" }, MergedAt = new[] { 0 }, JarTiers = true },
+                new C { Id = "van",   Title = "Ván chơi",        Metric = QuestMetric.MiniGames,         Targets = new[] { 5d, 30d, 60d, 90d, 150d, 250d, 500d, 1000d }, Merged = new[] { "gia-30", "la-30", "dom-30" }, MergedAt = new[] { 1, 2, 3 } },
+                new C { Id = "loai",  Title = "Loài đã gặp",     Metric = QuestMetric.KindsMet,          Targets = new[] { 10d, 20d, 40d, 50d, 55d, 60d, 66d, 72d }, Merged = new[] { "loai-10", "loai-20", "loai-40", "loai-72" }, MergedAt = new[] { 0, 1, 2, 7 }, JarTiers = true },
+                new C { Id = "tho",   Title = "Thỏ cấp tối đa",  Metric = QuestMetric.RabbitsAtCap,      Targets = new[] { 1d, 20d, 24d, 28d, 32d, 36d, 38d, 40d }, Merged = new[] { "tho-max" }, MergedAt = new[] { 0 } },
+                new C { Id = "tim",   Title = "Tim đầy",         Metric = QuestMetric.RabbitsFullHearts, Targets = new[] { 1d, 2d, 4d, 6d, 10d, 15d, 22d, 30d }, Merged = new[] { "tim-10" }, MergedAt = new[] { 0 }, JarTiers = true },
+                new C { Id = "cap",   Title = "Cấp vườn",        Metric = QuestMetric.GardenLevelReached, Targets = new[] { 5d, 32d, 34d, 36d, 40d, 60d, 80d, 99d }, Merged = new string[0], MergedAt = new int[0] },
+                new C { Id = "trang", Title = "Mùa trăng mới",   Metric = QuestMetric.NewMoons,          Targets = new[] { 1d, 2d, 3d, 4d, 5d, 6d, 7d }, Merged = new string[0], MergedAt = new int[0], JarTiers = true },
+            };
             var quests = new List<QuestData>();
             foreach (Q row in questRows)
+                if (row.Daily) quests.Add(SeedQuest(row, stations));
+            foreach (C row in chainRows)
             {
                 QuestData data = LoadOrCreate<QuestData>(QuestFolder + "/" + row.Id + ".asset");
-                data.Id = row.Id; data.Title = row.Title; data.Metric = row.Metric;
-                data.Station = row.Station != null ? stations[row.Station] : null;
-                data.Target = row.Target; data.Daily = row.Daily; data.RewardSeconds = row.Seconds;
-                data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden; data.Season = row.Season; data.RewardJars = row.Jars;
+                data.Id = row.Id; data.Title = row.Title; data.Metric = row.Metric; data.Station = null;
+                data.Target = row.Targets[row.Targets.Length - 1]; data.Daily = false; data.RewardSeconds = 0; data.RewardCarrots = 0;
+                data.RewardClovers = 0; data.RewardGolden = 0; data.Season = Season.None; data.RewardJars = 0;
+                data.Tiers = TiersOf(row, mergedRows); data.Merged = row.Merged;
                 EditorUtility.SetDirty(data);
                 quests.Add(data);
             }
+            foreach (Q row in questRows)
+                if (!row.Daily) quests.Add(SeedQuest(row, stations));
+            foreach (Q gone in mergedRows)
+                AssetDatabase.DeleteAsset(QuestFolder + "/" + gone.Id + ".asset");
 
             catalog.RabbitNames = new[]
             {
@@ -273,6 +322,18 @@ namespace VuonTra.EditorTools
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
             Debug.Log("[VuonTra] Seeded " + upgrades.Count + " upgrades and " + quests.Count + " quests.");
+        }
+
+        static QuestData SeedQuest(Q row, Dictionary<string, StationData> stations)
+        {
+            QuestData data = LoadOrCreate<QuestData>(QuestFolder + "/" + row.Id + ".asset");
+            data.Id = row.Id; data.Title = row.Title; data.Metric = row.Metric;
+            data.Station = row.Station != null ? stations[row.Station] : null;
+            data.Target = row.Target; data.Daily = row.Daily; data.RewardSeconds = row.Seconds;
+            data.RewardCarrots = row.Carrots; data.RewardClovers = row.Clovers; data.RewardGolden = row.Golden; data.Season = row.Season; data.RewardJars = row.Jars;
+            data.Tiers = new QuestTier[0]; data.Merged = new string[0];
+            EditorUtility.SetDirty(data);
+            return data;
         }
 
         static T LoadOrCreate<T>(string path) where T : ScriptableObject
