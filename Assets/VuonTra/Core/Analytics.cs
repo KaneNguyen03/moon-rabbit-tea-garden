@@ -115,6 +115,8 @@ namespace VuonTra.Core
         public const string ReviewAsked = "review_asked";
         public const string ReviewLiked = "review_liked";
         public const string ReviewFeedback = "review_feedback";
+        public const string MonthPassTier = "monthpass_tier";
+        public const string MonthPassBought = "monthpass_bought";
         public const string PassBought = "pass_bought";
         public const string PassDayClaimed = "pass_day_claimed";
 
@@ -125,6 +127,7 @@ namespace VuonTra.Core
             OfferShown, OfferBought, OfferExpired,
             ReviewAsked, ReviewLiked, ReviewFeedback,
             NewcomerTask, NewcomerDay,
+            MonthPassTier, MonthPassBought,
             PassBought, PassDayClaimed,
         };
 
@@ -156,6 +159,8 @@ namespace VuonTra.Core
         public const string Asks = "asks";
         public const string Sent = "sent";
         public const string Chars = "chars";
+        public const string Premium = "premium";
+        public const string Month = "month";
         public const string Days = "days";
 
         public const string ViaClover = "clover", ViaGolden = "golden";
@@ -253,6 +258,12 @@ namespace VuonTra.Core
         public static void LogReviewFeedback(this IAnalytics a, ReviewMoment moment, bool sent, int chars) =>
             a.Log(AnalyticsEvents.ReviewFeedback, new AnalyticsParam(AnalyticsEvents.Moment, ReviewAsk.NameOf(moment)),
                 new AnalyticsParam(AnalyticsEvents.Sent, sent), new AnalyticsParam(AnalyticsEvents.Chars, chars));
+
+        public static void LogMonthPassTier(this IAnalytics a, int tier, bool premium, int month) =>
+            a.Log(AnalyticsEvents.MonthPassTier, new AnalyticsParam(AnalyticsEvents.Tier, tier), new AnalyticsParam(AnalyticsEvents.Premium, premium), new AnalyticsParam(AnalyticsEvents.Month, month));
+
+        public static void LogMonthPassBought(this IAnalytics a, int month, int tier) =>
+            a.Log(AnalyticsEvents.MonthPassBought, new AnalyticsParam(AnalyticsEvents.Month, month), new AnalyticsParam(AnalyticsEvents.Tier, tier));
 
         public static void LogLetterClaimed(this IAnalytics a, Letter letter)
         {

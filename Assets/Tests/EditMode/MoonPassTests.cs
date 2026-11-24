@@ -228,6 +228,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(1, (int)LetterKind.Season);
             Assert.AreEqual(2, (int)LetterKind.WeekChest);
             Assert.AreEqual(3, (int)LetterKind.Newcomer);
+            Assert.AreEqual(4, (int)LetterKind.MonthPass);
             Assert.AreEqual(5, (int)LetterKind.MoonPassDay, "4 is the month pass's (#107)");
             Assert.AreEqual(6, (int)LetterKind.MoonPassRenew);
             string json = "{\"version\":14,\"stations\":[],\"mail\":{\"day\":5,\"letters\":[{\"id\":\"a\",\"kind\":5,\"season\":0,\"day\":5,\"n\":2,\"of\":30},{\"id\":\"b\",\"kind\":6,\"season\":0,\"day\":5,\"n\":3,\"of\":30},{\"id\":\"c\",\"kind\":9,\"season\":0,\"day\":5}]}}";
