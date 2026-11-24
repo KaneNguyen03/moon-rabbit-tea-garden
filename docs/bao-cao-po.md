@@ -2228,6 +2228,27 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Thẻ đang hiện mà người chơi mở bảng thì tự thành "Để sau".
 - Chưa có analytics; danh sách "Đã mở" chỉ để đọc; mới có ảnh 4/10 thẻ.
 
+## #112 — Lễ hội nhỏ mỗi tháng không có mùa lễ (agent-112)
+
+**Test:** `tools/verify.sh` đầy đủ RESULT GREEN, tests ok (1543/1544), rules ok, preview 346 khung; Core 874/874.
+
+**Commit:** 2067e8f, 0824b16, bf462f9, 15c0158, a3ef211 (main fast-forward tới a3ef211).
+
+**Đã làm:**
+- `Core/Fairs.cs`: 8 hội tháng 3–8, 10, 11, bắt đầu ngày 10, dài 10 ngày, tính theo ngày đã kẹp.
+- Tiền hội rơi từ đơn khách 3, trò nhỏ 1/3/5, cá 1–4, ảnh xin chụp 2; cuối tuần ×2.
+- Chip tiền cạnh ví, thẻ hội có băng rôn tô màu, nút "Quầy hội" trong Tiệm.
+- Quầy có trần mua: hũ, cỏ, 5 cà rốt vàng, màu đèn hội, khung ảnh hội, thỏ Tím nhuộm màu hội.
+- Hết hội tiền thừa đổi cà rốt một lần kèm thư `LetterKind.FairEnd = 7`.
+- Lưu thêm khối `fair`, bản lưu cũ vẫn đọc được.
+
+
+### Chưa đạt / cần PO quyết
+- Thỏ hội cần người chơi câu cá và trả lời thỏ xin ảnh mới kịp trong 8/10 ngày. Nếu muốn không cần, phải tăng tiền rơi.
+- Duyệt tên, màu và thỏ của 8 hội; tiền cá {1,2,2,3,3,4}.
+- Thẻ hội tự mở một lần mỗi hội; tắm thỏ hội thì mất màu hội.
+- Hình riêng từng hội vẽ sau; rương #113 có thể bán màu đèn hội cũ.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
