@@ -1306,7 +1306,7 @@ namespace VuonTra.Game.UI
             BuildTankPanels(catalog);
             Rename.Root.SetAsLastSibling();
             Shell.Changed += OnShellChanged;
-            Sfx.Attach(gameObject);
+            Sfx.Attach(gameObject, Runner.SeasonNow);
 
             // Title state: the street runs behind it, the HUD and tab bar wait off screen.
             _hud.gameObject.SetActive(false);
@@ -6584,7 +6584,8 @@ namespace VuonTra.Game.UI
         /// <summary>The tune follows the clock; up close the station in view plays its loop, a tenth faster while the boost runs.</summary>
         void UpdateSounds(bool boosting, float dt)
         {
-            Sfx.UpdateTune(ClockHours());
+            Sfx.UpdateTune(ClockHours(), Runner.SeasonNow, dt);
+            Sfx.SetFair(Runner.FairNow != null);
             StationSound.Update(Zoom == ZoomLevel.Near ? HeardStation() : null, boosting, dt);
         }
 

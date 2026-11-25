@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using Season = VuonTra.Core.Season;
 
 namespace VuonTra.Game
 {
@@ -15,6 +16,9 @@ namespace VuonTra.Game
         public const float MelodyLevel = 0.5f;
         public const float DefaultMusicGain = 0.6f;
         public const float DefaultStationGain = 0.5f;
+        public const float TuneFadeSeconds = 1f;
+        public const float MarketLevel = 0.25f;
+        public const int TuneChoices = 4;
 
         static bool _loaded;
         static float _musicGain = DefaultMusicGain, _sfxGain = 0.8f, _stationGain = DefaultStationGain;
@@ -31,19 +35,20 @@ namespace VuonTra.Game
             _musicGain = PlayerPrefs.GetFloat(MusicKey, DefaultMusicGain);
             _sfxGain = PlayerPrefs.GetFloat(SfxKey, 0.8f);
             _stationGain = PlayerPrefs.GetFloat(StationKey, DefaultStationGain);
-            _tune = (Tune)Mathf.Clamp(PlayerPrefs.GetInt(TuneKey, 0), 0, 3);
+            _tune = (Tune)Mathf.Clamp(PlayerPrefs.GetInt(TuneKey, 0), 0, TuneChoices - 1);
         }
 
-        static AudioSource _oneShots, _bed, _music;
+        static AudioSource _oneShots, _bed, _music, _market;
         static AudioClip _blip, _click, _sting, _tick, _ambient, _melody, _pet, _milestone, _reward, _sheetUp, _sheetDown, _deny;
         static readonly AudioClip[] _summon = new AudioClip[6];
 
         public static string Last { get; private set; } = "";
         static float _lastTick;
 
-        public static void Attach(GameObject host)
+        public static void Attach(GameObject host, Season season = Season.None)
         {
             Load(true);
+            _season = season;
             if (_oneShots != null && _oneShots.gameObject == host) return;
 
             _oneShots = host.AddComponent<AudioSource>();
@@ -63,10 +68,19 @@ namespace VuonTra.Game
             _music.spatialBlend = 0f;
             _music.loop = true;
             if (_lastHour < 0d) _lastHour = DateTime.Now.TimeOfDay.TotalHours;
-            PlayingTune = TuneAt(CurrentTune, _lastHour);
+            PlayingTune = TuneAt(CurrentTune, _lastHour, _season);
             _music.clip = TuneClip(PlayingTune);
-            _music.volume = MelodyLevel * MusicGain;
+            _tuneLevel = 1f;
+            _music.volume = MelodyGain;
             if (Application.isPlaying) _music.Play();
+
+            _market = host.AddComponent<AudioSource>();
+            _market.playOnAwake = false;
+            _market.spatialBlend = 0f;
+            _market.loop = true;
+            _market.volume = MarketGain;
+            if (Market) _market.clip = MarketClip;
+            if (Market && Application.isPlaying) _market.Play();
         }
 
         public static void SetMusic(float gain)
@@ -75,7 +89,7 @@ namespace VuonTra.Game
             _musicGain = Mathf.Clamp01(gain);
             PlayerPrefs.SetFloat(MusicKey, _musicGain);
             if (_bed != null) _bed.volume = BedGain;
-            if (_music != null) _music.volume = MelodyLevel * MusicGain;
+            if (_music != null) _music.volume = MelodyGain;
         }
 
         public static void SetSfx(float gain)
@@ -84,6 +98,7 @@ namespace VuonTra.Game
             _sfxGain = Mathf.Clamp01(gain);
             PlayerPrefs.SetFloat(SfxKey, _sfxGain);
             if (_bed != null) _bed.volume = BedGain;
+            if (_market != null) _market.volume = MarketGain;
         }
 
         public static void SetStation(float gain)
@@ -93,17 +108,28 @@ namespace VuonTra.Game
             PlayerPrefs.SetFloat(StationKey, _stationGain);
         }
 
-        public enum Tune { Auto, Moon, Dawn, Rain }
+        public enum Tune { Auto, Moon, Dawn, Rain, MidAutumn, Tet, Christmas }
 
         public static Tune CurrentTune { get { Load(); return _tune; } }
         public static Tune PlayingTune { get; private set; } = Tune.Moon;
         public static AudioClip MusicClip => _music != null ? _music.clip : null;
+        public static float MusicVolume => _music != null ? _music.volume : 0f;
         static double _lastHour = -1d;
-        static AudioClip _dawn, _rain;
+        static Season _season;
+        static float _tuneLevel = 1f;
+        static AudioClip _dawn, _rain, _midAutumn, _tet, _christmas;
 
-        public static Tune TuneAt(Tune choice, double hour)
+        static float MelodyGain => MelodyLevel * MusicGain * _tuneLevel;
+
+        public static Tune TuneAt(Tune choice, double hour, Season season = Season.None)
         {
             if (choice != Tune.Auto) return choice;
+            switch (season)
+            {
+                case Season.MidAutumn: return Tune.MidAutumn;
+                case Season.Tet: return Tune.Tet;
+                case Season.Christmas: return Tune.Christmas;
+            }
             hour = ((hour % 24d) + 24d) % 24d;
             return hour >= VuonTra.Core.Daylight.DawnStart && hour < VuonTra.Core.Daylight.DuskStart ? Tune.Dawn : Tune.Moon;
         }
@@ -116,20 +142,53 @@ namespace VuonTra.Game
             Retune();
         }
 
-        public static void UpdateTune(double hour)
+        public static void UpdateTune(double hour, Season season, float dt)
         {
             _lastHour = hour;
-            if (TuneAt(CurrentTune, hour) != PlayingTune) Retune();
+            _season = season;
+            if (TuneAt(CurrentTune, hour, season) != PlayingTune) Retune();
+            FadeTune(dt);
         }
 
         static void Retune()
         {
-            PlayingTune = TuneAt(CurrentTune, _lastHour < 0d ? DateTime.Now.TimeOfDay.TotalHours : _lastHour);
+            PlayingTune = TuneAt(CurrentTune, _lastHour < 0d ? DateTime.Now.TimeOfDay.TotalHours : _lastHour, _season);
+        }
+
+        static void FadeTune(float dt)
+        {
             if (_music == null) return;
-            AudioClip clip = TuneClip(PlayingTune);
-            if (_music.clip == clip) return;
-            _music.clip = clip;
-            if (Application.isPlaying) _music.Play();
+            AudioClip wanted = TuneClip(PlayingTune);
+            bool changing = _music.clip != wanted;
+            _tuneLevel = Mathf.MoveTowards(_tuneLevel, changing ? 0f : 1f, dt / TuneFadeSeconds);
+            if (changing && _tuneLevel <= 0f)
+            {
+                _music.clip = wanted;
+                if (Application.isPlaying) _music.Play();
+            }
+            _music.volume = MelodyGain;
+        }
+
+        public static bool Market { get; private set; }
+        public static AudioClip MarketClip => _marketClip != null ? _marketClip : (_marketClip = MakeMarket());
+        public static AudioClip MarketSourceClip => _market != null ? _market.clip : null;
+        public static float MarketVolume => _market != null ? _market.volume : 0f;
+        static float MarketGain => Market ? MarketLevel * SfxGain : 0f;
+        static AudioClip _marketClip;
+
+        public static void SetFair(bool open)
+        {
+            if (open == Market) return;
+            Market = open;
+            if (_market == null) return;
+            _market.volume = MarketGain;
+            if (!open)
+            {
+                _market.Stop();
+                return;
+            }
+            _market.clip = MarketClip;
+            if (Application.isPlaying) _market.Play();
         }
 
         public static AudioClip TuneClipOf(Tune tune) => TuneClip(tune);
@@ -140,6 +199,9 @@ namespace VuonTra.Game
             {
                 case Tune.Dawn: return _dawn ?? (_dawn = Daybreak());
                 case Tune.Rain: return _rain ?? (_rain = Rain());
+                case Tune.MidAutumn: return _midAutumn ?? (_midAutumn = MidAutumn());
+                case Tune.Tet: return _tet ?? (_tet = Tet());
+                case Tune.Christmas: return _christmas ?? (_christmas = Christmas());
                 default: return Melody();
             }
         }
@@ -544,6 +606,163 @@ namespace VuonTra.Game
                 float[] bed = Patter(data.Length, new System.Random(23));
                 for (int i = 0; i < data.Length; i++) data[i] += bed[i];
             });
+        }
+
+        const float SeasonTuneRms = 0.072f;
+        const int StepsPerBar = 8;
+
+        static AudioClip MidAutumn()
+        {
+            const float bpm = 80f, root = 293.66f;
+            int[] lead =
+            {
+                 9, -99,  7, -99,  4, -99,  7,  9,   12, -99, -99, -99,  9, -99, -99, -99,
+                 7, -99,  9,  7,  4, -99,  2, -99,    4, -99, -99, -99, -99, -99, -99, -99,
+                 4, -99,  7, -99,  9, -99, 12, -99,   14, -99, 12,  9,  7, -99, -99, -99,
+                 9, -99,  7,  4,  2, -99,  4, -99,    0, -99, -99, -99, -99, -99, -99, -99,
+            };
+            int[] bass = { -12, -5, -10, -5, -12, -7, -12, -5, -12, -5, -7, -3, -10, -5, -12, -12 };
+            float step = StepOf(bpm);
+            return Compose("mid-autumn", bpm, root, lead, bass, new Voice(0.17f, 1.3f, 0.05f), new Voice(0.12f, 1.0f, 0.03f), data =>
+            {
+                for (int bar = 0; bar * StepsPerBar < lead.Length; bar++)
+                {
+                    float at = bar * StepsPerBar * step;
+                    Drum(data, at, 0.1f);
+                    Drum(data, at + 3f * step, 0.055f);
+                    Knock(data, at + 4f * step, 1250f, 0.09f);
+                    Knock(data, at + 6f * step, 1100f, 0.06f);
+                    if (bar % 2 == 1) Drum(data, at + 7f * step, 0.04f);
+                }
+                Level(data, SeasonTuneRms);
+            });
+        }
+
+        static AudioClip Tet()
+        {
+            const float bpm = 108f, root = 349.23f;
+            int[] lead =
+            {
+                 0,  4,  7, -99,  9,  7,  4, -99,    7, -99, 12, -99,  9, -99, -99, -99,
+                 7,  9, 12, -99, 14, 12,  9, -99,   12, -99,  9,  7,  4, -99, -99, -99,
+                 9, -99,  9, 12,  7, -99,  7,  9,    4, -99,  2,  4,  7, -99, -99, -99,
+                 9,  7,  4,  2,  4, -99,  7, -99,    0, -99, -99, -99, -99, -99, -99, -99,
+            };
+            int[] bass = { -12, -5, -12, -5, -7, -3, -12, -5, -3, -7, -12, -5, -10, -5, -12, -12 };
+            float step = StepOf(bpm);
+            return Compose("tet", bpm, root, lead, bass, new Voice(0.15f, 3.4f, 0.4f), new Voice(0.12f, 1.6f, 0.05f), data =>
+            {
+                var r = new System.Random(2028);
+                for (int bar = 0; bar * StepsPerBar < lead.Length; bar++)
+                {
+                    float at = bar * StepsPerBar * step;
+                    Drum(data, at, 0.09f);
+                    Drum(data, at + 4f * step, 0.07f);
+                    Drum(data, at + 6f * step, 0.04f);
+                    Knock(data, at + 2f * step, 1400f, 0.05f);
+                    Knock(data, at + 5f * step, 1400f, 0.04f);
+                }
+                Firecrackers(data, 12f * step, r);
+                Firecrackers(data, 44f * step, r);
+                Level(data, SeasonTuneRms);
+            });
+        }
+
+        static AudioClip Christmas()
+        {
+            const float bpm = 92f, root = 392f;
+            int[] lead =
+            {
+                 7, -99,  7, -99,  4, -99, -99, -99,    5, -99,  4, -99,  2, -99, -99, -99,
+                 0, -99,  2,  4,  5, -99,  7, -99,    9, -99,  7, -99, -99, -99, -99, -99,
+                12, -99, 11, -99,  9, -99,  7, -99,    9, -99, 11, -99, 12, -99, -99, -99,
+                 7, -99,  5,  4,  2, -99,  4, -99,    0, -99, -99, -99, -99, -99, -99, -99,
+            };
+            int[] bass = { -12, -5, -7, -12, -12, -5, -10, -5, -7, -12, -10, -3, -12, -5, -12, -12 };
+            float step = StepOf(bpm);
+            return Compose("christmas", bpm, root, lead, bass, new Voice(0.09f, 2.4f, 0.12f), new Voice(0.11f, 1.2f, 0.03f), data =>
+            {
+                var r = new System.Random(1225);
+                for (int i = 0; i < lead.Length; i++)
+                    if (lead[i] > -99) Bell(data, i * step, root * Mathf.Pow(2f, (lead[i] + 12) / 12f), 0.09f);
+                for (int beat = 1; beat * 2 < lead.Length; beat += 2)
+                    SleighBells(data, beat * 2 * step, r);
+                Level(data, SeasonTuneRms);
+            });
+        }
+
+        static float StepOf(float bpm) => 60f / bpm / 2f;
+
+        static void Drum(float[] data, float at, float gain) =>
+            Glide(data, Samples(at), 150f, 85f, 0.08f, 14f, gain, 0.004f, ThunkVoice);
+
+        static void Knock(float[] data, float at, float freq, float gain) =>
+            Ping(data, Samples(at), freq, gain, 70f, 0.08f);
+
+        static void Bell(float[] data, float at, float freq, float gain)
+        {
+            int from = Samples(at);
+            Ping(data, from, freq, gain, 3f, 1.6f);
+            Ping(data, from, freq * 2.76f, gain * 0.3f, 8f, 0.6f);
+            Ping(data, from, freq * 5.4f, gain * 0.08f, 14f, 0.3f);
+        }
+
+        static void SleighBells(float[] data, float at, System.Random r)
+        {
+            for (int k = 0; k < 6; k++)
+            {
+                int from = Samples(at + (float)(r.NextDouble() * r.NextDouble()) * 0.1f);
+                if (from >= data.Length) continue;
+                Ping(data, from, 2600f + (float)r.NextDouble() * 1200f, 0.018f, 90f, 0.05f);
+                Burst(data, from, 0.006f, 0.02f, 0.7f, r);
+            }
+        }
+
+        static void Firecrackers(float[] data, float at, System.Random r)
+        {
+            var volley = new float[Samples(1.4f)];
+            float t = 0f;
+            while (t < 1.1f)
+            {
+                Burst(volley, Samples(t), 0.004f + (float)r.NextDouble() * 0.01f, 0.5f + (float)r.NextDouble() * 0.5f, 0.85f, r);
+                t += 0.02f + (float)r.NextDouble() * 0.06f;
+            }
+            LowPass(volley, 1800f);
+            int from = Samples(at);
+            for (int i = 0; i < volley.Length && from + i < data.Length; i++) data[from + i] += volley[i] * 0.3f;
+        }
+
+        const float MarketRms = 0.035f, MarketTop = 3000f;
+
+        static AudioClip MakeMarket()
+        {
+            float[] data = Seamless(Samples(8f), DrawMarket, new System.Random(112));
+            Level(data, MarketRms);
+            AudioClip clip = AudioClip.Create("fair-market", data.Length, 1, Rate, false);
+            clip.SetData(data, 0);
+            return clip;
+        }
+
+        static void DrawMarket(float[] buf, System.Random r)
+        {
+            float seconds = buf.Length / (float)Rate;
+            Noise(buf, 0.3f, 0.08f, 0.01f, r);
+            int voices = (int)(seconds * 9f);
+            for (int k = 0; k < voices; k++)
+            {
+                float from = 160f + (float)r.NextDouble() * 140f, to = 130f + (float)r.NextDouble() * 160f;
+                Glide(buf, r.Next(buf.Length), from, to, 0.12f, 7f + (float)r.NextDouble() * 5f, 0.04f + (float)r.NextDouble() * 0.03f, 0.03f, AwVoice);
+            }
+            int knocks = (int)(seconds * 1.6f);
+            for (int k = 0; k < knocks; k++)
+                Ping(buf, r.Next(buf.Length), 900f + (float)r.NextDouble() * 700f, 0.05f, 70f, 0.06f);
+            float[] chimes = { 1318.51f, 1567.98f, 1760f, 2093f };
+            int bells = (int)(seconds * 0.5f);
+            for (int k = 0; k < bells; k++)
+                Bell(buf, (float)r.NextDouble() * seconds, chimes[r.Next(chimes.Length)], 0.05f);
+            for (float at = 0.3f; at < seconds; at += 2f)
+                Drum(buf, at, 0.035f);
+            LowPass(buf, MarketTop);
         }
 
         static float[] Patter(int n, System.Random rng)
