@@ -2399,6 +2399,14 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt cách đếm chậm dần và hai đợt bay 10 cà rốt khi ×2.
 - Nhãn nút ×2 xuống hai dòng ở chữ to tiếng Việt (có sẵn từ #89, thuộc phiên thiết kế).
 
+## #121 — Chữ to, kích thước chạm và Giảm chuyển động phủ mọi thẻ vòng 2 (agent-121)
+**Test:** `rules ok · seed ok · preview ok (444 frames) · compile ok · tests ok (1718/1718) · save ok · RESULT GREEN`
+**Commit:** 2b60f1a
+**Đã làm:** `AccessibilityTests.RoundTwo.cs` mở mọi thẻ/tấm vòng 2 và chạy test chữ tràn (đo cả chữ co tự động ở cỡ thật), chạm, tương phản theo nền thật, ở vi/en × thường/chữ to, cùng một test chung Giảm chuyển động (3 giây, không `RectTransform` nào đổi sau khung đầu). Sửa: quà hộp ngày/rương tuần hiện ngửa ngay khi Giảm chuyển động; viên Tuần đầu và Mừng bạn về tự co lại khi chữ không còn vừa (lỗi tràn 1 px khi khung vẽ đổi tỉ lệ). 11 ảnh chữ to en trong `docs/anh/po-121/`.
+### Chưa đạt / cần PO quyết
+- 15 loại nhãn dưới AA do màu, nằm trong danh sách `ColoursAwaitingTheDesignSession` của test (chỉ được giảm); chờ phiên Độ nét đồ họa.
+- Nút lún khi chạm vẫn chạy dù bật Giảm chuyển động; giữ hay tắt?
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
