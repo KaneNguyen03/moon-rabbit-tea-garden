@@ -676,6 +676,7 @@ namespace VuonTra.EditorTools
             RenderJuice(runner, screen);
             RenderIntros(runner, screen);
             RenderFirstSession(runner, screen);
+            RenderRoundTwoLargeText(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -2005,6 +2006,97 @@ namespace VuonTra.EditorTools
             runner.DayClock = clockBefore;
             runner.LocalClock = localBefore;
             L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
+        }
+
+        [MenuItem("VuonTra/Render Round Two Large Text")]
+        public static void RenderRoundTwoLargeTextOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderRoundTwoLargeText(runner, screen);
+        }
+
+        static void RenderRoundTwoLargeText(GameRunner runner, GardenScreen screen)
+        {
+            long today = FairSaturday();
+            System.Func<long> dayBefore = runner.DayClock, localBefore = runner.LocalClock;
+            bool cardsBefore = runner.OfferCardsOn;
+            runner.OfferCardsOn = false;
+            runner.DayClock = () => today;
+            runner.LocalClock = () => today * 86400L + 19 * 3600L + 600L;
+            runner.Store = new FakeStorefront();
+            GameState s = WelcomeBackGarden(runner, today, 0);
+            s.Newcomer.Closed = false;
+            s.FirstDaySeen = today - 6;
+            s.WelcomeBack.SeenDay = today;
+            s.MailDay = today;
+            s.GoldenCarrots = 500;
+            s.GardenXp = Garden.XpForLevel(Recipes.UnlockLevel + 2);
+            s.RecipeLeaves = 86;
+            runner.Init(s);
+            s = runner.State;
+            s.IntrosSeen.UnionWith(Intros.All);
+            s.IntrosTried.UnionWith(Intros.All);
+            s.PassMonth = MonthPass.MonthOf(today);
+            s.PassPoints = 12 * MonthPass.PointsPerTier;
+            s.Fair.Coins = 265;
+            runner.SeeNewDishes();
+            L10n.SetLocale("en");
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            screen.CloseSheet();
+            screen.SelectStation(-1);
+            screen.LookAt(screen.StationSpot(0));
+            screen.Refresh();
+            Step(screen, 0.4f);
+
+            var cards = new (string name, System.Action open, System.Action close)[]
+            {
+                ("tuan-dau", () => screen.FirstWeek.Open(), () => screen.FirstWeek.Close()),
+                ("ve-thang", () => ShowMonthPass(screen), () => screen.CloseSheet()),
+                ("hoi", () => screen.FairCard.Open(), () => screen.FairCard.Close()),
+                ("ruong-xe-day", () => screen.OpenTrunk(), () => screen.TrunkCard.Close()),
+                ("so-cong-thuc", () => screen.Book.Open(runner.Defs, s), () => screen.Book.Close()),
+                ("the-gioi-thieu", () => screen.IntroList.Open(s), () => screen.IntroList.Close()),
+                ("goi-vang", () => screen.GoldenPacks.Open(runner.Store), () => screen.GoldenPacks.Close()),
+                ("goi-khoi-dau", () => screen.OpenOffer(Offers.Find(Offers.Starter)), () => screen.OfferCard.Close()),
+                ("be-ca", () => screen.OpenTank(), () => screen.TankSheet.Close()),
+                ("xin-gop-y", () => { screen.ReviewCard.Open(s.Profile.Code); screen.ReviewCard.ShowFeedback(); }, () => screen.ReviewCard.Close()),
+            };
+            foreach ((string name, System.Action open, System.Action close) in cards)
+            {
+                open();
+                Step(screen, 0.6f);
+                Capture(screen, "121-chu-to-en-" + name);
+                close();
+                Step(screen, 0.4f);
+            }
+
+            s.Newcomer.Closed = true;
+            s.WelcomeBack.StartDay = today;
+            s.WelcomeBack.AwayDays = 15;
+            s.WelcomeBack.CardSeen = true;
+            screen.Refresh();
+            screen.WelcomeCard.Open();
+            Step(screen, 0.6f);
+            Capture(screen, "121-chu-to-en-mung-ban-ve");
+            screen.WelcomeCard.Close();
+
+            UiKit.SetLargeText(false);
+            L10n.SetLocale("vi");
+            runner.OfferCardsOn = cardsBefore;
+            runner.DayClock = dayBefore;
+            runner.LocalClock = localBefore;
             screen.RebuildUi();
             Step(screen, 0.3f);
         }
