@@ -1,15 +1,9 @@
 namespace VuonTra.EditorTools
 {
-    /// <summary>
-    /// Every player-facing string in both languages: key, Vietnamese, English. L10nSeeder writes
-    /// these into the Localization package's string tables; the game only ever reads the tables.
-    /// {0}, {1} are filled in by the game.
-    /// </summary>
     public static class L10nStrings
     {
         public static readonly string[,] All =
         {
-            // ----- title, pause -----
             { "title.name", "Vườn Trà\nThỏ Trăng", "Moon Rabbit\nTea Garden" },
             { "title.tagline", "Tiệm trà nhỏ của những bé thỏ dưới trăng", "A little tea shop run by rabbits under the moon" },
             { "title.prompt", "C H Ạ M   Đ Ể   B Ắ T   Đ Ầ U", "T A P   T O   S T A R T" },
@@ -23,9 +17,7 @@ namespace VuonTra.EditorTools
             { "pause.motion", "Giảm chuyển động", "Reduce motion" },
             { "pause.haptics", "Rung khi chạm", "Vibration" },
             { "pause.text", "Chữ to", "Large text" },
-            { "pause.profile", "Hồ sơ người chơi", "Player profile" },
 
-            // ----- profile and backup -----
             { "profile.title", "Hồ sơ", "Profile" },
             { "profile.unnamed", "Vườn chưa đặt tên", "An unnamed garden" },
             { "profile.rename", "Đặt tên cho vườn", "Name your garden" },
@@ -34,7 +26,6 @@ namespace VuonTra.EditorTools
             { "profile.copied", "Đã chép", "Copied" },
             { "profile.stats", "Cấp vườn {0} · {1} bé thỏ · {2} trạm", "Garden level {0} · Rabbits: {1} · Stations: {2}" },
             { "profile.avatar.hint", "Chạm hình để đổi thỏ đại diện", "Tap the picture to change your rabbit" },
-            { "profile.close", "Đóng", "Close" },
             { "backup.title", "Sao lưu", "Backup" },
             { "backup.local", "Chỉ trên máy này", "Only on this device" },
             { "backup.linked", "Đã liên kết · {0}", "Linked · {0}" },
@@ -48,12 +39,8 @@ namespace VuonTra.EditorTools
             { "provider.playgames", "Google Play Games", "Google Play Games" },
             { "provider.apple", "Apple", "Apple" },
             { "provider.google", "Google", "Google" },
-            // ----- Google Play Games (#40) -----
-            { "playgames.name", "Google Play Games", "Google Play Games" },
-            { "playgames.saved", "Saved Games của Google Play", "Google Play Saved Games" },
             { "playgames.description", "Cấp vườn {0} · {1} thỏ", "Garden level {0} · Rabbits: {1}" },
             { "playgames.toolarge", "Bản lưu quá 3 MB nên Saved Games không nhận; vườn vẫn còn trên máy", "The save is over 3 MB, too big for Saved Games; your garden stays on this device" },
-            // ----- cloud save -----
             { "cloud.status.off", "Chưa có nơi lưu mây trên bản này", "No cloud to save to on this build" },
             { "cloud.status.never", "Chưa lưu lên mây", "Not saved to the cloud yet" },
             { "cloud.status.at", "Đã lưu lên mây lúc {0}", "Saved to the cloud at {0}" },
@@ -82,7 +69,6 @@ namespace VuonTra.EditorTools
             { "cloud.suggested", "Gợi ý", "Suggested" },
             { "cloud.keep.local", "Giữ bản trên máy", "Keep this device's copy" },
             { "cloud.keep.remote", "Lấy bản trên mây", "Use the cloud copy" },
-            // ----- privacy, support, delete my data (#42) -----
             { "privacy.title", "Quyền riêng tư", "Privacy" },
             { "privacy.open", "Đọc chính sách quyền riêng tư", "Read the privacy policy" },
             { "privacy.support", "Cần giúp? Gửi mã người chơi tới {0}", "Need help? Send your player code to {0}" },
@@ -108,7 +94,6 @@ namespace VuonTra.EditorTools
             { "lang.vi", "Tiếng Việt", "Tiếng Việt" },
             { "lang.en", "English", "English" },
 
-            // ----- street and HUD -----
             { "tab.0", "Trạm", "Stations" },
             { "tab.1", "Bùa", "Charms" },
             { "tab.2", "Nhiệm vụ", "Quests" },
@@ -170,16 +155,10 @@ namespace VuonTra.EditorTools
             { "income.boost", "Đang tăng tốc: ×{0}", "Boosting: ×{0}" },
             { "income.total", "Tổng cộng +{0}/giây", "Total +{0}/s" },
             { "purse.full", "{0} cà rốt", "{0} carrots" },
-            { "quick.plot", "Mua đất · {0}", "Land · {0}" },
-            { "quick.open", "Mở · {0}", "Open · {0}" },
-            { "quick.upgrade", "Nâng +{0} · {1}", "Up +{0} · {1}" },
-            { "quick.plot.short", "Mua đất", "Land" },
-            { "quick.open.short", "Mở", "Open" },
             { "station.level", "Cấp {0}", "Lv {0}" },
             { "station.empty", "Đất trống", "Empty plot" },
             { "plot.build", "Xây · {0}", "Build · {0}" },
             { "plot.short", "Còn thiếu {0}", "Still need {0}" },
-            { "land.expand", "Mở rộng vườn", "Widen the garden" },
             { "pad.hint", "Xếp thỏ", "Add a rabbit" },
             { "worker.title", "Chọn bé thỏ cho {0}", "A rabbit for {0}" },
             { "worker.empty", "Chưa có bé thỏ nào. Làm nhiệm vụ để lấy cỏ bốn lá rồi gọi bé mới ở tab Thỏ.", "No rabbits yet. Do quests for clovers, then call one in the Rabbits tab." },
@@ -187,7 +166,6 @@ namespace VuonTra.EditorTools
             { "worker.here", "Đang ở đây", "Here now" },
             { "worker.resting", "Đang nghỉ", "Resting" },
             { "doze.reward", "+{0} trà lực", "+{0} tea power" },
-            // ----- touching and stroking rabbits (#19) -----
             { "bond.line.None", "Hôm nay vườn thơm quá, bạn nhỉ?", "The garden smells lovely today, doesn't it?" },
             { "bond.line.Brewer", "Pha cho bạn một ấm trà thật ngon nhé!", "Let me brew you a really good pot!" },
             { "bond.line.Baker", "Mẻ bánh này dành riêng cho bạn đó!", "This batch is just for you!" },
@@ -198,7 +176,6 @@ namespace VuonTra.EditorTools
             { "gold.title", "Đom đóm vàng!", "Golden firefly!" },
             { "gold.sub", "+{0} cà rốt", "+{0} carrots" },
 
-            // ----- moments -----
             { "moment.boost.title", "Tăng tốc!", "Boost!" },
             { "moment.boost.sub", "Cả khu vườn làm nhanh gấp đôi trong {0} giây", "The whole garden works twice as fast for {0} seconds" },
             { "moment.unlock", "Trạm mới thức dậy!", "A new station wakes up!" },
@@ -206,12 +183,7 @@ namespace VuonTra.EditorTools
             { "moment.milestone.sub", "{0} giờ thu gấp đôi", "{0} now earns double" },
             { "moment.rank.title", "Trạm lên bậc {0}!", "Station rank {0}!" },
             { "moment.rank.sub", "{0} · cấp {1}, giờ thu gấp đôi", "{0} · level {1}, now earns double" },
-            { "moment.plot.title", "Khu vườn rộng thêm!", "The garden grows!" },
             { "moment.plot.sub", "Có chỗ cho {0}", "Room for {0}" },
-            { "moment.summon.title", "Bé {0} đã tới!", "{0} has arrived!" },
-            { "moment.summon.sub", "Bậc {0} · ×{1} cho trạm bé làm", "{0} tier · ×{1} for its station" },
-            { "moment.merge.title", "{0} lên bậc {1}!", "{0} is now {1} tier!" },
-            { "moment.merge.sub", "×{0} cho trạm bé làm", "×{0} for its station" },
             { "moment.upgrade.title", "{0} cấp {1}", "{0} level {1}" },
             { "moment.gift.title", "Quà: {0}", "Gift: {0}" },
             { "moment.gift.sub", "Bậc {0} · {1} · gắn ở tab Thỏ", "{0} tier · {1} · equip it in the Rabbits tab" },
@@ -219,9 +191,7 @@ namespace VuonTra.EditorTools
             { "moment.star.title", "Bé {0} được sao thứ {1}!", "{0} earns star {1}!" },
             { "moment.star.sub", "Cấp {0} · mỗi 10 cấp một sao", "Level {0} · a star every 10 levels" },
 
-            // ----- away popup -----
             { "away.title", "Mừng bạn quay lại", "Welcome back" },
-            { "away.body", "Lúc bạn đi vắng, các bé thỏ vẫn chăm chỉ pha trà và gom được", "While you were away, the rabbits kept brewing and gathered" },
             { "away.ok", "Nhận cà rốt", "Collect" },
             { "away.minutes", "{0} phút", "{0} min" },
             { "away.hours", "{0} giờ {1} phút", "{0} h {1} min" },
@@ -239,7 +209,6 @@ namespace VuonTra.EditorTools
             { "away.double.short", "Còn thiếu {0} cà rốt vàng", "{0} more golden carrots" },
             { "away.double.done", "Đã nhận ×2", "Collected ×2" },
 
-            // ----- station list -----
             { "row.locked", "Chưa mở", "Locked" },
             { "row.needplot", "Cần mua thêm ô đất", "Buy more land first" },
             { "row.needprev", "Mở trạm phía trên trước", "Open the station above first" },
@@ -255,7 +224,6 @@ namespace VuonTra.EditorTools
             { "row.feeds", "Tiếp sức cho", "Boosts" },
             { "row.boost", "Tăng giá ×{0} cho {1}", "Raises prices ×{0} for {1}" },
             { "plot.buy", "Mở rộng", "Widen" },
-            { "plot.title", "Mở rộng vườn · đợt {0}", "Widen the garden · wave {0}" },
             { "expand.level", "Cấp vườn {0}", "Garden level {0}" },
             { "expand.rabbits", "{0} bé thỏ", "{0} rabbits" },
             { "expand.kinds", "gặp {0} loài thỏ", "{0} kinds met" },
@@ -265,11 +233,8 @@ namespace VuonTra.EditorTools
             { "moment.garden.sub", "Tặng {0} cỏ bốn lá", "+{0} clovers" },
             { "garden.info.title", "Cấp vườn {0}", "Garden level {0}" },
             { "garden.info.sub", "Còn {0} điểm nữa lên cấp", "{0} more points to the next level" },
-            { "plot.sub", "Mở chỗ cho {0}", "Makes room for {0}" },
 
-            // ----- charms -----
             { "upgrades.note", "Bùa có tác dụng với cả khu vườn.", "Charms affect the whole garden." },
-            { "upgrade.level", "Cấp {0}/{1}", "Lv {0}/{1}" },
             { "upgrade.maxed", "Đã đầy", "Maxed" },
             { "upgrade.learn", "Học bùa", "Learn" },
             { "upgrade.effect.tap", "+{0} giây mỗi chạm", "+{0} s per tap" },
@@ -279,7 +244,6 @@ namespace VuonTra.EditorTools
             { "upgrade.next", "{0} → {1}", "{0} → {1}" },
             { "upgrade.full", "{0} · đã đầy", "{0} · maxed" },
 
-            // ----- quests -----
             { "quests.today", "Hôm nay", "Today" },
             { "quests.today.refresh", "Hôm nay · làm mới sau {0}", "Today · resets in {0}" },
             { "quests.ready", "Nhận được", "Ready to claim" },
@@ -287,7 +251,6 @@ namespace VuonTra.EditorTools
             { "quests.achievements", "Thành tựu", "Achievements" },
             { "quests.clovers", "Cỏ bốn lá: {0} · dùng để gọi thỏ ở tab Thỏ", "Clovers: {0} · spend them in the Rabbits tab" },
             { "quest.done", "Xong", "Done" },
-            { "quest.reward.clovers", " · {0} cỏ bốn lá", " · clovers ×{0}" },
             { "quest.claimed", "Đã nhận", "Claimed" },
             { "quest.claim", "Nhận", "Claim" },
             { "quests.box.title", "Hôm nay {0}/{1}", "Today {0}/{1}" },
@@ -385,19 +348,12 @@ namespace VuonTra.EditorTools
             { "mail.frame", "+khung ảnh", "+photo frame" },
             { "quest.notyet", "Chưa xong", "Not yet" },
 
-            // ----- rabbits -----
-            { "rabbits.summon.title", "Gọi bé thỏ mới", "Call a new rabbit" },
-            { "rabbits.clovers", "Bạn có {0} cỏ bốn lá. Nhiệm vụ cho thêm cỏ.", "You have {0} clovers. Quests give more." },
             { "rabbits.summon.button", "Gọi · {0} cỏ", "Call · {0}" },
             { "rabbits.maxlevel", "Cấp tối đa", "Max level" },
             { "rabbits.levelup", "Lên cấp", "Level up" },
             { "rabbits.empty", "Chưa có bé thỏ nào. Làm nhiệm vụ để lấy cỏ bốn lá rồi gọi bé đầu tiên nhé.", "No rabbits yet. Do quests to earn clovers, then call your first one." },
             { "rabbits.merge", "Ghép 3 bé {0} thành 1 bé {1} (đang có {2})", "Merge 3 {0} into 1 {1} (you have {2})" },
             { "rabbits.merge.button", "Ghép", "Merge" },
-            { "rabbits.auto", "Xếp tự động: bé giỏi nhất vào trạm lời nhất", "Auto-assign: best rabbits to the best stations" },
-            { "rabbits.tier", "{0} ×{1}", "{0} ×{1}" },
-            { "rabbits.where.working", "Cấp {0}/{1} · {2}", "Lv {0}/{1} · {2}" },
-            { "rabbits.where.resting", "Cấp {0}/{1} · đang nghỉ", "Lv {0}/{1} · resting" },
             { "rabbits.count", "{0} thỏ · đã gặp {1}/{2} loài", "{0} rabbits · {1}/{2} kinds met" },
             { "rabbits.tab.mine", "Thỏ của tôi", "My rabbits" },
             { "rabbits.tab.album", "Sổ thỏ", "Rabbit book" },
@@ -427,10 +383,7 @@ namespace VuonTra.EditorTools
             { "card.noworker", "Chưa có thỏ làm ở đây", "No rabbit works here yet" },
             { "card.noworker.sub", "Hợp nghề: {0}", "Suits: {0}" },
             { "rabbits.rest", "Cho nghỉ", "Rest" },
-            { "rabbits.work", "Vào làm", "Work" },
-            { "rabbits.full", "Hết chỗ", "No room" },
             { "rabbit.default", "Thỏ", "Bunny" },
-            // Kind names ("kind.<id>") are not listed here: L10nSeeder takes them from RabbitKinds.
             { "trade.Brewer", "Pha chế", "Brewing" },
             { "trade.Baker", "Bếp bánh", "Baking" },
             { "trade.Gatherer", "Hái lượm", "Gathering" },
@@ -443,15 +396,12 @@ namespace VuonTra.EditorTools
             { "tier.3", "Tím", "Purple" },
             { "tier.4", "Vàng", "Gold" },
             { "tier.5", "Đỏ", "Red" },
-            // Resting rabbits lend a hand (#60): each one seated adds a share of the whole garden's income.
             { "detail.resting.share", "Đang nghỉ · +{0}% vườn", "Resting · +{0}% garden" },
             { "rest.share.short", "+{0}% vườn", "+{0}% garden" },
             { "rest.row.share", "Chỗ nghỉ trong vườn: {0}/{1} bé đang ngồi · +{2}% thu nhập vườn", "Rest spots: {0}/{1} taken · garden income +{2}%" },
             { "income.resting", "Thỏ đang nghỉ ({0}) +{1}%", "Resting rabbits ({0}) +{1}%" },
 
-            // ----- items -----
             { "rename.title", "Đặt tên cho bé", "Name your rabbit" },
-            { "rename.button", "Đổi tên", "Rename" },
             { "rename.hint", "Tối đa {0} ký tự", "Up to {0} characters" },
             { "rename.save", "Lưu", "Save" },
             { "rename.cancel", "Thôi", "Cancel" },
@@ -481,7 +431,6 @@ namespace VuonTra.EditorTools
             { "item.co-may", "Cỏ may mắn", "Lucky Clover" },
             { "item.long-den", "Lồng đèn nhỏ", "Little Lantern" },
 
-            // ----- stations -----
             { "station.am-tra", "Ấm trà sương", "Dew Teapot" },
             { "station.gio-la", "Giỏ lá trà", "Tea Leaf Basket" },
             { "station.noi-mut", "Nồi mứt dâu", "Berry Jam Pot" },
@@ -495,7 +444,6 @@ namespace VuonTra.EditorTools
             { "station.suoi-hoa", "Suối khoáng hoa", "Flower Spring" },
             { "station.dai-sao", "Đài ngắm sao", "Stargazing Deck" },
 
-            // ----- charm names and descriptions -----
             { "upgrade.tay-am.name", "Bàn tay ấm", "Warm Hands" },
             { "upgrade.tay-am.desc", "Mỗi lần chạm làm nhanh thêm 0,2 giây", "Each tap adds 0.2 s of work" },
             { "upgrade.gio-dem.name", "Gió đêm", "Night Breeze" },
@@ -505,7 +453,6 @@ namespace VuonTra.EditorTools
             { "upgrade.giac-ngu.name", "Giấc ngủ dài", "Long Sleep" },
             { "upgrade.giac-ngu.desc", "Vắng mặt vẫn thu thêm 2 giờ", "Earn for 2 more hours while away" },
 
-            // ----- quest titles -----
             { "quest.ngay-cham", "Chạm bé thỏ 50 lần", "Tap rabbits 50 times" },
             { "quest.ngay-nang", "Nâng cấp trạm 20 lần", "Upgrade stations 20 times" },
             { "quest.ngay-thu", "Thu hoạch đủ cà rốt hôm nay", "Harvest today's carrot goal" },
@@ -528,17 +475,14 @@ namespace VuonTra.EditorTools
             { "quest.mua-nghe-noel", "Xếp Thỏ Noel vào đúng nghề", "Put the Noel Rabbit to work in its trade" },
             { "quest.mua-anh-noel", "Chụp ảnh có Thỏ Noel", "Take a photo with the Noel Rabbit" },
             { "quest.nghi-6", "Đủ 6 bé thỏ cùng nghỉ", "Six rabbits resting together" },
-            // ----- seasons (#8) -----
             { "season.midautumn", "Trung thu", "Mid-Autumn" },
             { "season.tet", "Tết", "Tết" },
             { "season.christmas", "Giáng sinh", "Christmas" },
             { "album.season", "Thỏ dịp đặc biệt · {0}/{1}", "Special rabbits · {0}/{1}" },
             { "album.season.only", "Chỉ có trong {0}", "Only during {0}" },
-            { "quest.season.note", "Chỉ trong mùa; hết mùa thì mất", "Only this season; gone when it ends" },
             { "season.began.title", "Mùa {0} đã về!", "{0} is here!" },
             { "season.began.sub", "{0} ghé tiệm, có thể ra từ Gọi vàng và đến làm quà ngày cuối mùa", "{0} visits the shop, can come from golden calls, and arrives as the season's last-day gift" },
 
-            // ----- the mooncake game -----
             { "pound.title", "Giã bánh trăng", "Pound the mooncake" },
             { "pound.hint", "Chạm đúng lúc vòng chạm bánh", "Tap when the ring meets the cake" },
             { "pound.perfect", "Chuẩn!", "Perfect!" },
@@ -558,7 +502,6 @@ namespace VuonTra.EditorTools
             { "mortar.plays", "Giã bánh · còn {0} lượt", "Pound · {0} left" },
             { "mortar.tomorrow", "Mai giã tiếp", "More tomorrow" },
 
-            // ----- the leaf-catching game (#10) -----
             { "leaves.title", "Hứng lá trà", "Catch the tea leaves" },
             { "leaves.hint", "Kéo giỏ hứng lá, né quả thông", "Drag the basket under the leaves, dodge the pine cones" },
             { "leaves.score", "{0} điểm", "{0} points" },
@@ -616,8 +559,7 @@ namespace VuonTra.EditorTools
             { "shop.odds.clover", "Gọi bằng cỏ: {0}", "Clover call: {0}" },
             { "shop.odds.golden", "Gọi vàng: {0}", "Golden call: {0}" },
             { "shop.have", "Bạn có {0} cà rốt vàng", "You have {0} golden carrots" },
-            { "shop.earn", "Kiếm ở: quà mỗi ngày, món vàng ở khay, ảnh đầu ngày, mỗi 5 cấp vườn, thành tựu", "Earned from: the daily gift, golden batches, the day's first photo, every 5th garden level, achievements" },
-            { "moment.golden.title", "+{0} cà rốt vàng", "+{0} golden carrots" },
+            { "shop.earn", "Kiếm ở: quà mỗi ngày, món vàng ở khay, ảnh đầu ngày, lần đầu mỗi 5 cấp vườn, thành tựu", "Earned from: the daily gift, golden batches, the day's first photo, the first time you reach every 5th garden level, achievements" },
             { "shop.visitor.title", "Thỏ ghé tiệm hôm nay", "Today's visitor" },
             { "shop.visitor.sub", "{0} · {1} · còn {2}", "{0} · {1} · {2} left" },
             { "shop.visitor.new", "Loài chưa gặp!", "A new kind!" },
@@ -626,7 +568,6 @@ namespace VuonTra.EditorTools
             { "shop.visitor.bought", "Đã về vườn", "Already home" },
             { "shop.visitor.hours", "{0} giờ", "{0} h" },
             { "shop.visitor.minutes", "{0} phút", "{0} min" },
-            // Things for rabbits (#44 round 3).
             { "shop.hats.title", "Đồ cho thỏ", "Rabbit wear" },
             { "shop.hats.sub", "Mũ chỉ để đẹp, đội giữa hai tai · mỗi loại một chiếc · nhuộm lông ở tấm của từng bé", "Hats are just for looks · one of each · dye fur from a rabbit's card" },
             { "shop.hats.owned", "Đã có", "Owned" },
@@ -645,7 +586,6 @@ namespace VuonTra.EditorTools
             { "dye.kem", "kem", "cream" },
             { "dye.than", "than", "charcoal" },
 
-            // ----- decorating the garden (#11) -----
             { "shop.decor.title", "Trang trí vườn", "Garden decor" },
             { "shop.decor.owned", "Đã có ×{0}", "Owned ×{0}" },
             { "shop.decor.full", "Hết chỗ", "No room" },
@@ -669,9 +609,7 @@ namespace VuonTra.EditorTools
             { "decor.store", "Cất vào kho", "Put away" },
             { "float.decor", "{0} đã về kho · chạm chỗ + trong vườn", "{0} is in storage · tap a + in the garden" },
             { "float.lantern", "Đèn lồng màu {0}", "Lanterns in {0}" },
-            { "moment.golden.sub", "Vườn lên cấp {0}", "Garden level {0}" },
 
-            // ----- guests and their tea orders (#20) -----
             { "order.title", "Khách đặt trà", "A tea order" },
             { "order.badge", "Khách!", "Guest!" },
             { "order.guest", "{0} ghé quầy", "{0} is at the counter" },
@@ -687,7 +625,6 @@ namespace VuonTra.EditorTools
             { "order.gone", "Khách đã đi", "Guest left" },
             { "quest.ngay-don", "Giao 2 đơn trà cho khách", "Deliver 2 tea orders" },
             { "quest.ngay-anh", "Chụp 3 tấm thỏ xin ảnh", "Take 3 photos rabbits ask for" },
-            // The new moon (#1).
             { "pause.newmoon", "Mùa trăng mới", "New moon" },
             { "pause.newmoon.ready", "Đủ cấp", "Ready" },
             { "pause.newmoon.locked", "Mùa trăng mới mở ở cấp vườn {0}", "The new moon opens at garden level {0}" },
@@ -712,7 +649,6 @@ namespace VuonTra.EditorTools
             { "hud.season", "Trăng {0}", "Moon {0}" },
             { "profile.stats.season", "Cấp vườn {0} · {1} bé thỏ · {2} trạm · Trăng {3}, thu nhập +{4}%", "Garden level {0} · Rabbits: {1} · Stations: {2} · Moon {3}, income +{4}%" },
             { "album.newmoon.only", "Chỉ đến cùng Mùa trăng mới", "Only with a new moon" },
-            // Golden carrots for money (#9).
             { "shop.buymore", "Mua thêm", "Buy more" },
             { "packs.title", "Mua cà rốt vàng", "Buy golden carrots" },
             { "packs.sub", "Cà rốt vàng dùng ở Tiệm: gọi vàng, thỏ ghé, mũ, trang trí. Tỉ lệ gọi ghi ngay ở Tiệm; không có gì khác mua bằng tiền.", "Golden carrots are spent at the shop: golden calls, the visitor, hats, decorations. The call odds are printed at the shop; nothing else is sold for money." },
@@ -749,8 +685,6 @@ namespace VuonTra.EditorTools
             { "offer.later", "Để sau", "Maybe later" },
             { "offer.paid", "Đã nhận gói. Cảm ơn bạn đã ủng hộ vườn trà!", "Pack received. Thank you for supporting the tea garden!" },
             { "offer.pending", "Cửa hàng đang chờ xác nhận; gói sẽ tự đến khi xong", "The store is waiting to confirm; the pack arrives by itself once it does" },
-            { "offer.jars.float", "+{0} hũ trăng", "+{0} moon jars" },
-            // ----- rabbits talk to themselves when idle (#59) -----
             { "chatter.trade.Brewer.0", "Nước vừa sôi, trà sắp thơm rồi!", "The water's boiling. Tea's nearly ready!" },
             { "chatter.trade.Brewer.1", "Thêm một nhúm lá nữa là vừa.", "One more pinch of leaves should do it." },
             { "chatter.trade.Brewer.2", "Ấm này pha cho cả vườn uống đó.", "This pot is for the whole garden." },
@@ -784,7 +718,6 @@ namespace VuonTra.EditorTools
             { "chatter.season.Christmas", "Giáng sinh an lành nha bạn!", "Merry Christmas to you!" },
             { "chatter.boost", "Nhờ {0} tiếp sức, mẻ này thơm hơn hẳn!", "Thanks to the {0}, this batch smells even better!" },
             { "chatter.dressed", "Hôm nay mình diện đẹp không nè?", "Don't I look nice today?" },
-            // The album pays (#61): sets by trade within a tier, and the kinds-met milestones.
             { "album.set", "Bộ {0} {1}/{2} · +{3}% khi đủ", "{0} set {1}/{2} · +{3}% when complete" },
             { "album.set.done", "Đủ bộ {0} · trạm {0} +{1}%", "{0} set complete · {0} stations +{1}%" },
             { "album.set.banner", "Đủ bộ {0} bậc {1}!", "{1} {0} set complete!" },
@@ -794,7 +727,6 @@ namespace VuonTra.EditorTools
             { "album.milestone.hat.golden", "Đã có Mũ sao, nhận {0} cà rốt vàng", "You have the Starry Hat: {0} golden carrots instead" },
             { "album.milestone.frame", "Sổ thỏ được viền vàng Đủ bộ", "The rabbit book earns its gold Complete frame" },
             { "album.frame", "Đủ bộ · đã gặp cả {0} loài thỏ", "Complete · all {0} kinds met" },
-            // ----- device reminders, "Nhắc tôi" on the pause card (#65) -----
             { "pause.remind", "Nhắc tôi", "Remind me" },
             { "remind.app", "Vườn Trà Thỏ Trăng", "Moon Rabbit Tea Garden" },
             { "remind.tray", "Khay đã đầy và các bé thỏ đã nghỉ đủ, ghé vườn bán bánh nhé!", "The tray is full and the rabbits are rested. Come sell the treats!" },
@@ -803,7 +735,6 @@ namespace VuonTra.EditorTools
             { "remind.missyou", "Đã lâu không thấy bạn, các bé thỏ nhớ bạn lắm.", "We haven't seen you for a while. The rabbits miss you." },
             { "remind.channel", "Nhắc nhở", "Reminders" },
             { "remind.channel.sub", "Khay đầy, quà ngày, mùa mới", "Full tray, daily gift, new season" },
-            // Moon jars (#64): an hour of income in a jar, opened from the purse, sold at the shop.
             { "income.jar", "Mở hũ trăng ({0})", "Open a moon jar ({0})" },
             { "income.jar.none", "Chưa có hũ trăng", "No moon jars yet" },
             { "income.jar.sub", "1 hũ = 1 giờ thu nhập: +{0} · trên kệ {1}/{2}", "1 jar = an hour of income: +{0} · shelf {1}/{2}" },
@@ -813,14 +744,12 @@ namespace VuonTra.EditorTools
             { "shop.jar.soldout", "Mai mua tiếp", "Back tomorrow" },
             { "float.jar.bought", "+1 hũ trăng · mở ở ví cà rốt", "+1 moon jar · open it from the purse" },
             { "fireflies.jar", "+1 hũ trăng (3 sao)", "+1 moon jar (three stars)" },
-            // ----- station sounds up close and the choice of tune, on the pause card (#63) -----
             { "pause.station", "Tiếng trạm", "Ambience" },
             { "pause.tune", "Nhạc", "Tune" },
             { "tune.auto", "Tự động · Theo mùa", "Auto · Seasonal" },
             { "tune.moon", "Đêm trăng", "Moonlit night" },
             { "tune.dawn", "Rạng sáng", "Daybreak" },
             { "tune.rain", "Mưa", "Rain" },
-            // ----- gift codes and mailbox (#68) -----
             { "gift.hint", "Nhập mã quà", "Enter a gift code" },
             { "gift.redeem", "Nhận quà", "Redeem" },
             { "gift.invalid", "Mã này không đúng, bạn xem lại nhé", "That code isn't right. Check it and try again." },
@@ -838,7 +767,6 @@ namespace VuonTra.EditorTools
             { "mail.lastday", "hôm nay là ngày cuối", "last day today" },
             { "mail.claim", "Nhận", "Claim" },
             { "mail.claimed", "Đã nhận {0}", "Claimed {0}" },
-            // ----- four stations after the star observatory (#67a) -----
             { "station.ho-sen", "Vườn hoa sen", "Lotus Garden" },
             { "station.lo-keo", "Lò kẹo mạch nha", "Malt Candy Kiln" },
             { "station.ruong-nep", "Ruộng lúa nếp", "Sticky Rice Paddy" },
@@ -846,7 +774,6 @@ namespace VuonTra.EditorTools
             { "quest.mo-12", "Có 12 trạm đang hoạt động", "Have 12 stations running" },
             { "quest.mo-16", "Có 16 trạm", "Have 16 stations" },
             { "row.needlevel", "Cần vườn cấp {0}", "Needs garden level {0}" },
-            // ----- rewarded ad seams and the no-ads pass (#66) -----
             { "ad.away", "Xem 30 giây · nhận ×2", "Watch 30 s · collect ×2" },
             { "ad.away.now", "Nhận ngay ×2", "Collect ×2 now" },
             { "ad.round", "Xem 30 giây · thêm 1 lượt", "Watch 30 s · one more round" },
@@ -860,17 +787,11 @@ namespace VuonTra.EditorTools
             { "noads.active", "Bỏ quảng cáo · còn {0} ngày", "No ads · {0} days left" },
             { "noads.paid", "Đã bỏ quảng cáo, còn {0} ngày: mọi nút xem thành Nhận ngay.", "No ads for {0} days: every watch button now pays at once." },
             { "noads.float", "Bỏ quảng cáo {0} ngày", "No ads for {0} days" },
-            // ----- rain and the Frog Rabbit (#62) -----
             { "frog.name", "Thỏ Ếch", "Frog Rabbit" },
             { "frog.title", "Thỏ Ếch ghé chơi!", "The Frog Rabbit says hello!" },
             { "frog.sub", "Quà mưa: {0} cà rốt", "A rainy-day gift: {0} carrots" },
             { "frog.sub.clover", "Quà mưa: {0} cà rốt và 1 cỏ bốn lá", "A rainy-day gift: {0} carrots and a clover" },
             { "quest.ech-5", "Gặp Thỏ Ếch 5 lần", "Meet the Frog Rabbit 5 times" },
-            // ----- ring expansion of the forest (#53) -----
-            { "forest.expand", "Mở rộng rừng", "Widen the forest" },
-            { "forest.title", "Mở rộng rừng · vòng {0}", "Widen the forest · ring {0}" },
-            { "moment.forest.title", "Rừng lùi ra một vòng!", "The forest steps back!" },
-            // ----- layout mode (#54) -----
             { "layout.button", "Bố trí", "Arrange" },
             { "layout.done", "Xong", "Done" },
             { "layout.hint", "Giữ để nhấc lên · thả vào ô trống, lên thứ khác để đổi chỗ, hoặc vào kho", "Hold to pick up · drop on an empty tile, on something to swap, or in storage" },
@@ -881,7 +802,6 @@ namespace VuonTra.EditorTools
             { "layout.stored.row", "{0} · cấp {1} · trong kho", "{0} · level {1} · in storage" },
             { "layout.takeout", "Lấy ra", "Take out" },
             { "layout.full", "Vườn đã hết ô trống", "The garden has no empty tile" },
-            // ----- fishing and feeding (#58a) -----
             { "fish.0", "Cá bạc nhỏ", "Silverfish" },
             { "fish.1", "Cá vàng cam", "Orange goldfish" },
             { "fish.2", "Cá koi hồng", "Pink koi" },
@@ -894,7 +814,6 @@ namespace VuonTra.EditorTools
             { "fish.nobait", "Hết mồi rồi, chờ chút nhé", "Out of bait, back soon" },
             { "bond.ten.title", "Bé {0} thân thiết đủ 10 tim!", "{0} has all 10 hearts!" },
             { "bond.ten.sub", "Bạn thân nhất · +{0} cà rốt vàng", "Best of friends · +{0} golden carrots" },
-            // ----- the pond card and feeding (#58b) -----
             { "pond.plate", "Câu cá {0}/{1}", "Fishing {0}/{1}" },
             { "pond.title", "Câu cá ở ao trăng", "Fishing at the moon pond" },
             { "pond.cast", "Thả câu", "Cast" },
@@ -911,7 +830,6 @@ namespace VuonTra.EditorTools
             { "feed.points", "+{0} điểm", "+{0} pts" },
             { "feed.empty", "Giỏ trống · câu ở ao", "Basket empty · fish at the pond" },
             { "feed.full", "Đã đủ 10 tim", "All 10 hearts" },
-            // ----- horizontal garden (vườn ngang) -----
             { "garden.expand", "Mở rộng vườn", "Widen the garden" },
             { "garden.segment", "Mở rộng vườn · đoạn {0}", "Widen the garden · section {0}" },
             { "moment.segment.title", "Sương tan, vườn rộng thêm!", "The mist clears: more garden!" },
@@ -1090,8 +1008,6 @@ namespace VuonTra.EditorTools
             { "fair.framed", "Khung ảnh {0} đã gắn", "The {0} frame is on" },
             { "fair.short", "Thiếu {0} {1}", "{0} more {1} needed" },
             { "fair.earned", "+{0} {1}", "+{0} {1}" },
-            { "fair.began.title", "{0} đã mở!", "The {0} is open!" },
-            { "fair.began.sub", "Mười ngày nhặt {0} từ đơn khách, trò nhỏ, câu cá và ảnh xin chụp, đổi quà ở quầy hội", "Ten days to gather {0} from guest orders, mini games, fishing and photo asks, and trade them at the fair stall" },
             { "mail.fair", "{0} đã khép lại: {1} còn lại đổi ra cà rốt", "The {0} is over: leftover {1} became carrots" },
 
             { "trunk.title", "Rương xe đẩy", "Little trunk" },
@@ -1189,10 +1105,6 @@ namespace VuonTra.EditorTools
             { "income.tank", "Bể cá ({0}/{1} loài) +{2}%", "Fish tank ({0}/{1} kinds) +{2}%" },
         };
 
-        /// <summary>
-        /// English lines for a count of one: L10n.T reads "key.one" instead of "key" when the language is
-        /// English and the first number it is given is 1. Only the English table gets these.
-        /// </summary>
         public static readonly string[,] EnglishOne =
         {
             { "shop.gift.amount.one", "+{0} golden carrot" },
@@ -1211,7 +1123,6 @@ namespace VuonTra.EditorTools
             { "shop.visitor.need.one", "{0} more golden carrot" },
             { "fireflies.clovers.one", "+{0} clover" },
             { "mail.clovers.one", "+{0} clover" },
-            { "offer.jars.float.one", "+{0} moon jar" },
             { "moment.garden.sub.one", "+{0} clover" },
             { "rabbits.clovers.short.one", "Call a new rabbit · {0} clover" },
             { "rabbits.count.one", "{0} rabbit · {1}/{2} kinds met" },

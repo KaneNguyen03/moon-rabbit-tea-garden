@@ -7,10 +7,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// One rabbit's own sheet, sliding up from the bottom: its portrait dressed as it is, its name, kind and
-    /// worth, levelling, its trade, what it wears, and where it works. Also shows a kind from the album.
-    /// </summary>
     public sealed class RabbitDetailView
     {
         readonly GameObject _root;
@@ -24,12 +20,9 @@ namespace VuonTra.Game.UI
         string _kindId, _signature;
 
         public bool IsOpen => Sheet.IsOpen;
-        /// <summary>The sliding card this view lives on.</summary>
         public BottomSheet Sheet { get; private set; }
         public long RabbitId => _rabbitId;
-        /// <summary>The "Cho ăn" button was pressed for this rabbit (#58b): set by the screen, which feeds it the best fish in the basket.</summary>
         public Action<long> OnFeed;
-        /// <summary>The feed button and the bond chip of the rabbit shown now (#58b), where a fed fish flies from and to; null on an album page.</summary>
         public RectTransform FeedButton { get; private set; }
         public RectTransform BondChip { get; private set; }
 
@@ -71,7 +64,6 @@ namespace VuonTra.Game.UI
             Show(defs, s);
         }
 
-        /// <summary>A page of the album: what this kind is and where it does best.</summary>
         public void OpenKind(IReadOnlyList<StationDef> defs, GameState s, string kindId)
         {
             if (RabbitKinds.Find(kindId) == null) return;
@@ -101,9 +93,10 @@ namespace VuonTra.Game.UI
         {
             if (!IsOpen) return;
             Rabbit r = _kindId == null ? Rabbits.Find(s, _rabbitId) : null;
-            if (_kindId == null && r == null)
+            bool mergedAwayWhileOpen = _kindId == null && r == null;
+            if (mergedAwayWhileOpen)
             {
-                Close(); // merged away while its sheet was open
+                Close();
                 return;
             }
 
@@ -126,13 +119,12 @@ namespace VuonTra.Game.UI
         {
             var sb = new StringBuilder();
             sb.Append(r.Id).Append(r.Tier).Append(r.Kind).Append(':').Append(r.Level).Append(':').Append(r.Station).Append(':').Append(r.Name).Append(':').Append(r.Affection).Append(L10n.Code);
-            sb.Append(':').Append(Rabbits.LevelsAffordable(r, Simulation.Budget(s), out _)); // the max button's count
+            sb.Append(':').Append(Rabbits.LevelsAffordable(r, Simulation.Budget(s), out _));
             sb.Append(s.Coins >= Rabbits.LevelCost(r) ? '+' : '-');
-            sb.Append(':').Append(r.Dye).Append(s.GoldenCarrots >= Shop.DyeCost ? '+' : '-'); // the dye row
+            sb.Append(':').Append(r.Dye).Append(s.GoldenCarrots >= Shop.DyeCost ? '+' : '-');
             int best = Fishing.BestInBasket(s);
-            sb.Append(":f").Append(best).Append('x').Append(best >= 0 ? s.Fish[best] : 0); // the feed button (#58b)
+            sb.Append(":f").Append(best).Append('x').Append(best >= 0 ? s.Fish[best] : 0);
             foreach (Item item in s.Items) sb.Append(item.Id).Append('>').Append(item.WornBy).Append(';');
-            // Who stands where, and which stations are open, decide the list of places.
             for (int i = 0; i < defs.Count; i++)
             {
                 Rabbit there = Rabbits.AtStation(s, i);
@@ -158,11 +150,9 @@ namespace VuonTra.Game.UI
             bool inTrade = Rabbits.InTrade(defs, r);
             RabbitTrade trade = Rabbits.TradeOf(r);
 
-            // Left: the rabbit itself, large, wearing what it wears.
             var holder = UiKit.Rect("Portrait", _body).Place(0f, 1f, 216, -236, 360, 360);
             RabbitGridView.Portrait(holder, _catalog, s, r, 0, 0, 360);
 
-            // Right: who it is.
             Line("Name", 56, 60, r.Name, 46, Palette.Ink, FontStyle.Bold, 420, 200);
             var pencil = UiKit.Rect("Rename", _body).Place(1f, 1f, -156, -86, 64, 64);
             UiKit.Touchable(pencil, 64, 64);
@@ -181,7 +171,6 @@ namespace VuonTra.Game.UI
 
             var plate = UiKit.Rect("Kind", _body).Place(0f, 1f, 420 + 210, -150, 420, 46);
             plate.AddImage(_catalog.Panel, tier, true);
-            // A long kind with its tier and stars ("Thỏ Đèn Lồng · bậc Vàng ★★★★★") shrinks to stay on one line in the pill (#81).
             UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 12, 0, 12, 0)
                 .AddText(L10n.T("detail.kind", L10n.Kind(r), L10n.Rarity(r.Tier)), 24, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)
                 .FitOneLine(420 - 24, 14);
@@ -195,7 +184,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 52, 0, 10, 0)
                 .AddText(L10n.Trade(trade) + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : ""), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            // The bond (#19): full hearts for the bond so far, hollow for the ones still to come; ten since #58, so in the small size to fit on one line.
             var bond = UiKit.Rect("Bond", _body).Place(0f, 1f, 420 + 300 + 20 + 110, -272, 220, 44);
             bond.AddImage(_catalog.Panel, Palette.Alpha(Palette.Paper, 0.92f), true);
             UiKit.Rect("Text", bond).Stretch(0, 0, 1, 1, 6, 8, 6, 0)
@@ -211,12 +199,10 @@ namespace VuonTra.Game.UI
                 Line("Suits", 304, 34, L10n.T("rabbits.suits", names.ToString()), 22, RabbitGridView.Quiet, FontStyle.Normal, 420, 40);
             }
 
-            // What it wears.
             AddSlot(s, r, ItemSlot.Hat, 420 + 50);
             AddSlot(s, r, ItemSlot.Charm, 420 + 180);
             AddFeed(s, r);
 
-            // Levelling, the full width of the sheet.
             bool maxed = Rabbits.IsMaxLevel(r);
             int cap = Rabbits.LevelCaps[r.Tier];
             Line("Level", 492, 40, L10n.T("detail.level", r.Level, cap) + L10n.LevelStars(r), 30, Palette.Ink, FontStyle.Bold, 44, 520);
@@ -234,7 +220,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Cost", upButton.FaceRect).Stretch(0.4f, 0, 1, 1, 0, 0, 18, 0)
                 .AddText(maxed ? "" : (afford ? cost.Short() : (cost - s.Coins).Short()), UiKit.TextBody, ink, TextAnchor.MiddleRight, FontStyle.Bold);
 
-            // As many levels as the purse (its spendable share) allows, stopping at the tier's cap.
             BigNum manyCost = BigNum.Zero;
             int many = maxed ? 0 : Rabbits.LevelsAffordable(r, Simulation.Budget(s), out manyCost);
             var max = UiKit.Rect("LevelMax", _body).Place(1f, 1f, -120, -530, 160, 96);
@@ -249,9 +234,7 @@ namespace VuonTra.Game.UI
             maxSub.resizeTextMinSize = 12;
             maxSub.resizeTextMaxSize = 18;
 
-            // Where it works: every open station, its own trade first, and a way to rest.
             bool working = r.Station >= 0 && r.Station < defs.Count;
-            // A rabbit seated at a place to rest says what it adds to the whole garden (#60).
             string where = working ? L10n.T("detail.working", L10n.Station(defs[r.Station].Id))
                 : RestSpots.IsSeated(s, r) ? L10n.T("detail.resting.share", RabbitGridView.Percent(RestSpots.BonusOf(r)))
                 : L10n.T("detail.resting");
@@ -262,7 +245,6 @@ namespace VuonTra.Game.UI
                 UiKit.Secondary(rest, _catalog.Panel, L10n.T("rabbits.rest"), () => _onRest(id));
             }
 
-            // Fur dye (#44): the palette as a row of dots, each a tap for golden carrots; washing it out is free.
             bool canDye = s.GoldenCarrots >= Shop.DyeCost;
             var dyeRow = UiKit.Rect("Dye", _body).Stretch(0, 1, 1, 1, 44, -800, 44, 694);
             Text dyeLabel = UiKit.Rect("Label", dyeRow).Stretch(0, 0.62f, 0.72f, 1)
@@ -307,8 +289,7 @@ namespace VuonTra.Game.UI
             scroll.viewport = scrollRt;
 
             var open = new List<int>();
-            for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0 && !Layout.IsStored(defs, s, i)) open.Add(i); // not a stored station (#54)
-            // Its own trade first; within each group, the order the stations open in.
+            for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0 && !Layout.IsStored(defs, s, i)) open.Add(i);
             open.Sort((a, b) =>
             {
                 bool sa = Rabbits.Suits(defs, r, a), sb = Rabbits.Suits(defs, r, b);
@@ -349,7 +330,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>The way to the next heart (#58b): a thin bar along the bond chip's foot, full once all ten are there.</summary>
         void BondBar(RectTransform bond, Rabbit r)
         {
             int hearts = Rabbits.HeartsOf(r);
@@ -364,10 +344,6 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Fill", track).Stretch(0, 0, share, 1).AddImage(_catalog.Panel, Palette.Blush, true);
         }
 
-        /// <summary>
-        /// "Cho ăn" (#58b): feeds the best fish in the basket, with the points it gives beside the word and the fish and how many
-        /// are left under it. Flat with the reason when the basket is empty or the hearts are all there.
-        /// </summary>
         void AddFeed(GameState s, Rabbit r)
         {
             long id = r.Id;
@@ -387,13 +363,12 @@ namespace VuonTra.Game.UI
                 UiKit.Rect("Fish", button.FaceRect).Place(0f, 0.5f, 46, 0, 68, 56).AddImage(fish, Color.white).preserveAspect = true;
                 textLeft = 84f;
             }
-            // The top line: the word, and what the fish gives at its right; under it, which fish and how many, on one line.
             Text label = UiKit.Rect("Top", button.FaceRect).Stretch(0, 1, 1, 1, textLeft, -50, can ? 122 : 12, 8)
                 .AddText(L10n.T("feed.button"), UiKit.TextBody, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             label.resizeTextForBestFit = true;
             label.resizeTextMinSize = 16;
             label.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
-            Text points = UiKit.Rect("Points", button.FaceRect).Stretch(1, 1, 1, 1, -116, -42, 12, 16) // one line tall
+            Text points = UiKit.Rect("Points", button.FaceRect).Stretch(1, 1, 1, 1, -116, -42, 12, 16)
                 .AddText(can && !leaf ? L10n.T("feed.points", Fishing.Points[best]) : "", UiKit.TextSmall, ink, TextAnchor.MiddleRight, FontStyle.Bold);
             points.resizeTextForBestFit = true;
             points.resizeTextMinSize = 13;
@@ -401,7 +376,7 @@ namespace VuonTra.Game.UI
             string sub = leaf ? L10n.T("feed.leaf") : full ? L10n.T("feed.full") : best < 0 ? L10n.T("feed.empty") : L10n.T("feed.with", L10n.T("fish." + best), s.Fish[best]);
             Text subText = UiKit.Rect("Sub", button.FaceRect).Stretch(0, 0, 1, 0, textLeft, 10, 12, -36)
                 .AddText(sub, 18, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            subText.resizeTextForBestFit = true; // a box one line tall: a long name shrinks rather than wraps
+            subText.resizeTextForBestFit = true;
             subText.resizeTextMinSize = 13;
             subText.resizeTextMaxSize = UiKit.Scaled(18);
         }
@@ -448,7 +423,6 @@ namespace VuonTra.Game.UI
             tradeIcon.preserveAspect = true;
             UiKit.Rect("Text", tradeChip).Stretch(0, 0, 1, 1, 60, 0, 12, 0).AddText(L10n.Trade(kind.Trade), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
 
-            // Its short description: where a rabbit of this kind earns its bonus.
             var names = new StringBuilder();
             for (int i = 0; i < defs.Count; i++)
                 if (defs[i].Trade == kind.Trade) names.Append(names.Length > 0 ? ", " : "").Append(L10n.Station(defs[i].Id));

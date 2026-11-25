@@ -1,12 +1,4 @@
-comment	Assets/VuonTra/Editor/L10nStrings.cs	50
-comment	Assets/VuonTra/Editor/MetaSeeder.cs	22
-comment	Assets/VuonTra/Game/Data/GameCatalog.cs	22
-comment	Assets/VuonTra/Game/Data/ItemData.cs	1
-comment	Assets/VuonTra/Game/Text/L10n.cs	23
 comment	Assets/VuonTra/Game/UI/GardenScreen.cs	955
-comment	Assets/VuonTra/Game/UI/RabbitDetailView.cs	34
-comment	Assets/VuonTra/Game/UI/RabbitGridView.cs	58
-comment	Assets/VuonTra/Game/UI/StationActorView.cs	101
 per-frame-update	Assets/VuonTra/Game/GameRunner.cs	1
 per-frame-update	Assets/VuonTra/Game/UI/GardenScreen.cs	1
 per-frame-update	Assets/VuonTra/Game/UI/PressDip.cs	1

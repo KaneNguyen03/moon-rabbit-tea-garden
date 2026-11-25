@@ -3,7 +3,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game
 {
-    /// <summary>A kind of wearable item as an asset.</summary>
     [CreateAssetMenu(menuName = "VuonTra/Item", fileName = "Item")]
     public sealed class ItemData : ScriptableObject
     {

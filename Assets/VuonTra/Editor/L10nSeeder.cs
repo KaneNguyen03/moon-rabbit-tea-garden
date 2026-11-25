@@ -69,12 +69,23 @@ namespace VuonTra.EditorTools
                 LocalizationEditorSettings.SetPreloadTableFlag(table, true);
                 EditorUtility.SetDirty(table);
             }
+            RemoveKeysNoLongerListed(collection);
             EditorUtility.SetDirty(collection);
             EditorUtility.SetDirty(collection.SharedData);
             LocalizationEditorSettings.EditorEvents.RaiseCollectionModified(null, collection);
             AssetDatabase.SaveAssets();
 
             Debug.Log("[VuonTra] Localization: " + Check());
+        }
+
+        static void RemoveKeysNoLongerListed(StringTableCollection collection)
+        {
+            var listed = new HashSet<string>();
+            for (int r = 0; r < L10nStrings.All.GetLength(0); r++) listed.Add(L10nStrings.All[r, 0]);
+            for (int r = 0; r < L10nStrings.EnglishOne.GetLength(0); r++) listed.Add(L10nStrings.EnglishOne[r, 0]);
+            foreach (VuonTra.Core.RabbitKind kind in VuonTra.Core.RabbitKinds.All) listed.Add("kind." + kind.Id);
+            foreach (SharedTableData.SharedTableEntry entry in new List<SharedTableData.SharedTableEntry>(collection.SharedData.Entries))
+                if (!listed.Contains(entry.Key)) collection.RemoveEntry(entry.Key);
         }
 
         public static string Check()

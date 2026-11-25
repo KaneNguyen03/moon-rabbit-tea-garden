@@ -4,7 +4,6 @@ using VuonTra.Core;
 
 namespace VuonTra.Game
 {
-    /// <summary>Everything the game ships with: the stations in unlock order and the shared art.</summary>
     [CreateAssetMenu(menuName = "VuonTra/Game Catalog", fileName = "GameCatalog")]
     public sealed class GameCatalog : ScriptableObject
     {
@@ -38,16 +37,15 @@ namespace VuonTra.Game
         public Sprite TrayWood;
         [Tooltip("The golden carrot, the gift box and the tea shop by the pond.")]
         public Sprite GoldenCarrot, GiftBox, ShopProp;
-        /// <summary>The moon jar (#64), drawn by hand; the jar is drawn in code while this is empty.</summary>
+        [Tooltip("The moon jar (#64), drawn by hand; the jar is drawn in code while this is empty.")]
         public Sprite MoonJar;
-        /// <summary>The six fish of the moon pond (#58), commonest first, drawn by hand; each is a tinted circle while its picture is missing.</summary>
+        [Tooltip("The six fish of the moon pond (#58), commonest first; each is a tinted circle while its picture is missing.")]
         public Sprite[] Fish = new Sprite[0];
-        /// <summary>The basket the caught fish go into (#58).</summary>
+        [Tooltip("The basket the caught fish go into (#58).")]
         public Sprite FishBasket;
-        /// <summary>The pond card's float afloat and pulled under, its water, and three rings growing outward (#58), drawn by hand; drawn in code while missing.</summary>
+        [Tooltip("The pond card's float afloat and pulled under, and its water (#58); drawn in code while missing.")]
         public Sprite FloatUp, FloatDown, PondWater;
         public Sprite[] Ripples = new Sprite[0];
-        /// <summary>Fish <paramref name="i"/>'s picture, or null.</summary>
         public Sprite FishSprite(int i) => Fish != null && i >= 0 && i < Fish.Length ? Fish[i] : null;
         public Sprite Gear;
         public Sprite Shadow;
@@ -104,7 +102,6 @@ namespace VuonTra.Game
         [Tooltip("Painted ground a working station stands on (earth, a deck, flagstones, flowers), taken in turn by station index.")]
         public Sprite[] StationPads = new Sprite[0];
 
-        /// <summary>The painted ground under station <paramref name="index"/>, or null when there is none.</summary>
         public Sprite StationPad(int index) => StationPads == null || StationPads.Length == 0 ? null : StationPads[index % StationPads.Length];
 
         [Tooltip("Furniture for the places to rest, indexed by seat; null where the seat is a stump that is already in the garden.")]
@@ -119,23 +116,13 @@ namespace VuonTra.Game
             return TradeIcons != null && i >= 0 && i < TradeIcons.Length ? TradeIcons[i] : null;
         }
 
-        /// <summary>
-        /// Where the top of the head is in every kind drawing, as a share of the picture's height from the feet,
-        /// and where its middle is across. Ears rise above this; hats sit on it.
-        /// </summary>
         public const float KindHeadTop = 0.755f, KindHeadX = 150.5f / 320f;
-        /// <summary>
-        /// Where worn things go, in shares of the drawing's height: how far above the head top the middle of a
-        /// hat sits and how big it is, and the same for a charm at the neck. One set of numbers for every view.
-        /// </summary>
         public const float HatLift = 0.117f, HatSize = 0.44f, CharmHeight = 0.37f, CharmSize = 0.19f;
-        /// <summary>The kind drawings are this much wider than tall.</summary>
         public const float KindAspect = 320f / 343f;
 
         [Tooltip("One drawing per rabbit kind, in the order of RabbitKinds.All.")]
         public Sprite[] KindArt = new Sprite[0];
 
-        /// <summary>The drawing of a kind of rabbit; the tier's drawing, then the shared rabbit, when it has none yet.</summary>
         public Sprite KindSprite(string kindId)
         {
             int index = RabbitKinds.IndexOf(kindId);
@@ -144,18 +131,14 @@ namespace VuonTra.Game
             return RabbitFor(kind != null ? kind.Tier : 0);
         }
 
-        /// <summary>The drawing for this rabbit.</summary>
         public Sprite RabbitArt(Rabbit rabbit) => KindSprite(Rabbits.KindOf(rabbit));
 
-        /// <summary>The drawing for a tier, falling back to the shared rabbit.</summary>
         public Sprite RabbitFor(int tier)
         {
             if (TierRabbits != null && tier >= 0 && tier < TierRabbits.Length && TierRabbits[tier] != null) return TierRabbits[tier];
             return Rabbit;
         }
 
-        /// <summary>The picture for an item kind, or null when it has none.</summary>
-        /// <summary>The drawing of a decoration the shop sells (#11): the same art the garden already dresses with.</summary>
         public Sprite DecorArt(string kindId)
         {
             switch (kindId)
@@ -175,7 +158,6 @@ namespace VuonTra.Game
             return null;
         }
 
-        /// <summary>How much higher than the usual line a hat of this kind sits when worn; 0 for any other item.</summary>
         public float ItemHatLift(string defId)
         {
             foreach (ItemData item in Items)

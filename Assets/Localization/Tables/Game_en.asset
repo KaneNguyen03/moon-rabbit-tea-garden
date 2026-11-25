@@ -112,18 +112,6 @@ MonoBehaviour:
     m_Localized: need {0}
     m_Metadata:
       m_Items: []
-  - m_Id: 372236310
-    m_Localized: "Land \xB7 {0}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236311
-    m_Localized: "Open \xB7 {0}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236312
-    m_Localized: "Up +{0} \xB7 {1}"
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236313
     m_Localized: Lv {0}
     m_Metadata:
@@ -152,28 +140,8 @@ MonoBehaviour:
     m_Localized: '{0} now earns double'
     m_Metadata:
       m_Items: []
-  - m_Id: 372236320
-    m_Localized: The garden grows!
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236321
     m_Localized: Room for {0}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236322
-    m_Localized: '{0} has arrived!'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236323
-    m_Localized: "{0} tier \xB7 \xD7{1} for its station"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236324
-    m_Localized: '{0} is now {1} tier!'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236325
-    m_Localized: "\xD7{0} for its station"
     m_Metadata:
       m_Items: []
   - m_Id: 372236326
@@ -194,10 +162,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 372236330
     m_Localized: Welcome back
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236331
-    m_Localized: While you were away, the rabbits kept brewing and gathered
     m_Metadata:
       m_Items: []
   - m_Id: 372236332
@@ -256,20 +220,8 @@ MonoBehaviour:
     m_Localized: Widen
     m_Metadata:
       m_Items: []
-  - m_Id: 372236346
-    m_Localized: "Widen the garden \xB7 wave {0}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236347
-    m_Localized: Makes room for {0}
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236348
     m_Localized: Charms affect the whole garden.
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236349
-    m_Localized: Lv {0}/{1}
     m_Metadata:
       m_Items: []
   - m_Id: 372236350
@@ -296,10 +248,6 @@ MonoBehaviour:
     m_Localized: Done
     m_Metadata:
       m_Items: []
-  - m_Id: 372236356
-    m_Localized: " \xB7 clovers \xD7{0}"
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236357
     m_Localized: Claimed
     m_Metadata:
@@ -310,14 +258,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 372236359
     m_Localized: Not yet
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236360
-    m_Localized: Call a new rabbit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236361
-    m_Localized: You have {0} clovers. Quests give more.
     m_Metadata:
       m_Items: []
   - m_Id: 372236362
@@ -344,32 +284,8 @@ MonoBehaviour:
     m_Localized: Merge
     m_Metadata:
       m_Items: []
-  - m_Id: 372236368
-    m_Localized: 'Auto-assign: best rabbits to the best stations'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236369
-    m_Localized: "{0} \xD7{1}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236370
-    m_Localized: "Lv {0}/{1} \xB7 {2}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236371
-    m_Localized: "Lv {0}/{1} \xB7 resting"
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236372
     m_Localized: Rest
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236373
-    m_Localized: Work
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236374
-    m_Localized: No room
     m_Metadata:
       m_Items: []
   - m_Id: 372236375
@@ -588,40 +504,12 @@ MonoBehaviour:
     m_Localized: Dew Teapot reaches level 50
     m_Metadata:
       m_Items: []
-  - m_Id: 372236429
-    m_Localized: Tap 100 times in total
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236430
-    m_Localized: Tap 1,000 times in total
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236431
     m_Localized: Learn your first charm
     m_Metadata:
       m_Items: []
   - m_Id: 372236432
     m_Localized: Learn 10 charm levels in total
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236433
-    m_Localized: Earn 1,000 carrots in total
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236434
-    m_Localized: Earn 1 million carrots in total
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236435
-    m_Localized: Earn 1 billion carrots in total
-    m_Metadata:
-      m_Items: []
-  - m_Id: 9605726855168
-    m_Localized: Land
-    m_Metadata:
-      m_Items: []
-  - m_Id: 9605739438080
-    m_Localized: Open
     m_Metadata:
       m_Items: []
   - m_Id: 12222754447360
@@ -638,10 +526,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 13359226281984
     m_Localized: Name your rabbit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13359234670592
-    m_Localized: Rename
     m_Metadata:
       m_Items: []
   - m_Id: 13359234670593
@@ -1068,14 +952,6 @@ MonoBehaviour:
     m_Localized: "Rest spots: {0}/{1} taken \xB7 widen the garden for more"
     m_Metadata:
       m_Items: []
-  - m_Id: 46031956860928
-    m_Localized: "One more \xB7 {0}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 46031956860929
-    m_Localized: All open
-    m_Metadata:
-      m_Items: []
   - m_Id: 48129947721728
     m_Localized: New!
     m_Metadata:
@@ -1154,10 +1030,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 68780293087232
     m_Localized: Still need {0}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 68780293087233
-    m_Localized: Widen the garden
     m_Metadata:
       m_Items: []
   - m_Id: 68780293087234
@@ -1292,10 +1164,6 @@ MonoBehaviour:
     m_Localized: Drag and zoom to frame it
     m_Metadata:
       m_Items: []
-  - m_Id: 84286723055616
-    m_Localized: Player profile
-    m_Metadata:
-      m_Items: []
   - m_Id: 84286731444224
     m_Localized: Profile
     m_Metadata:
@@ -1326,10 +1194,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 84286731444231
     m_Localized: Tap the picture to change your rabbit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 84286731444232
-    m_Localized: Close
     m_Metadata:
       m_Items: []
   - m_Id: 84286731444233
@@ -1460,10 +1324,6 @@ MonoBehaviour:
     m_Localized: Moon Rabbit Tea Garden
     m_Metadata:
       m_Items: []
-  - m_Id: 180083640754182
-    m_Localized: Take your first photo
-    m_Metadata:
-      m_Items: []
   - m_Id: 180083640754183
     m_Localized: Take a photo with a Gold rabbit
     m_Metadata:
@@ -1536,10 +1396,6 @@ MonoBehaviour:
     m_Localized: Own all 12 plots
     m_Metadata:
       m_Items: []
-  - m_Id: 192545505140739
-    m_Localized: A rabbit reaches its level cap
-    m_Metadata:
-      m_Items: []
   - m_Id: 192545505140740
     m_Localized: Tea Shop
     m_Metadata:
@@ -1593,23 +1449,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 192545505140753
-    m_Localized: 'Earned from: the daily gift, golden batches, the day''s first photo, every 5th garden level, achievements'
-    m_Metadata:
-      m_Items: []
-  - m_Id: 192545505140754
-    m_Localized: +{0} golden carrots
-    m_Metadata:
-      m_Items: []
-  - m_Id: 192545505140755
-    m_Localized: Garden level {0}
+    m_Localized: 'Earned from: the daily gift, golden batches, the day''s first photo, the first time you reach every 5th garden level, achievements'
     m_Metadata:
       m_Items: []
   - m_Id: 195730802204672
     m_Localized: First three-star mooncake
-    m_Metadata:
-      m_Items: []
-  - m_Id: 195730810593280
-    m_Localized: Pound 30 mooncakes
     m_Metadata:
       m_Items: []
   - m_Id: 195730810593281
@@ -1812,10 +1656,6 @@ MonoBehaviour:
     m_Localized: First three-star leaf catch
     m_Metadata:
       m_Items: []
-  - m_Id: 211753022513167
-    m_Localized: Play Catch the Tea Leaves 30 times
-    m_Metadata:
-      m_Items: []
   - m_Id: 212921664659456
     m_Localized: No cloud to save to on this build
     m_Metadata:
@@ -1988,10 +1828,6 @@ MonoBehaviour:
     m_Localized: First three-star firefly night
     m_Metadata:
       m_Items: []
-  - m_Id: 216545157439504
-    m_Localized: Catch fireflies on 30 nights
-    m_Metadata:
-      m_Items: []
   - m_Id: 218048119169024
     m_Localized: A tea order
     m_Metadata:
@@ -2046,10 +1882,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 218048131751948
     m_Localized: Deliver 2 tea orders
-    m_Metadata:
-      m_Items: []
-  - m_Id: 218048131751949
-    m_Localized: Deliver 20 tea orders
     m_Metadata:
       m_Items: []
   - m_Id: 219281773027328
@@ -2254,10 +2086,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 252465747320844
     m_Localized: Only during {0}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 252465747320845
-    m_Localized: Only this season; gone when it ends
     m_Metadata:
       m_Items: []
   - m_Id: 256349303726080
@@ -2492,14 +2320,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 270018427215872
     m_Localized: New Moon Rabbit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 272084788830208
-    m_Localized: Google Play Games
-    m_Metadata:
-      m_Items: []
-  - m_Id: 272084809801728
-    m_Localized: Google Play Saved Games
     m_Metadata:
       m_Items: []
   - m_Id: 272084809801729
@@ -2838,22 +2658,6 @@ MonoBehaviour:
     m_Localized: "Complete \xB7 all {0} kinds met"
     m_Metadata:
       m_Items: []
-  - m_Id: 375703399817224
-    m_Localized: Meet 10 kinds of rabbit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 375703399817225
-    m_Localized: Meet 20 kinds of rabbit
-    m_Metadata:
-      m_Items: []
-  - m_Id: 375703399817226
-    m_Localized: "Meet 40 kinds \xB7 a Starry Hat"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 375703399817227
-    m_Localized: "Meet all 72 kinds \xB7 Complete frame"
-    m_Metadata:
-      m_Items: []
   - m_Id: 378373560852480
     m_Localized: Remind me
     m_Metadata:
@@ -3088,18 +2892,6 @@ MonoBehaviour:
     m_Localized: Meet the Frog Rabbit 5 times
     m_Metadata:
       m_Items: []
-  - m_Id: 406865048494080
-    m_Localized: Widen the forest
-    m_Metadata:
-      m_Items: []
-  - m_Id: 406865056882688
-    m_Localized: "Widen the forest \xB7 ring {0}"
-    m_Metadata:
-      m_Items: []
-  - m_Id: 406865056882689
-    m_Localized: The forest steps back!
-    m_Metadata:
-      m_Items: []
   - m_Id: 408026325442560
     m_Localized: Arrange
     m_Metadata:
@@ -3138,14 +2930,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 408026333831176
     m_Localized: The garden has no empty tile
-    m_Metadata:
-      m_Items: []
-  - m_Id: 412723350331392
-    m_Localized: Catch 50 fish
-    m_Metadata:
-      m_Items: []
-  - m_Id: 412723358720000
-    m_Localized: A rabbit with all 10 hearts
     m_Metadata:
       m_Items: []
   - m_Id: 412723358720001
@@ -3472,10 +3256,6 @@ MonoBehaviour:
     m_Localized: '{0} left'
     m_Metadata:
       m_Items: []
-  - m_Id: 799467484733445
-    m_Localized: "{0} \xB7 {1} left"
-    m_Metadata:
-      m_Items: []
   - m_Id: 799467484733446
     m_Localized: This pack has ended
     m_Metadata:
@@ -3518,14 +3298,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 799467484733456
     m_Localized: The store is waiting to confirm; the pack arrives by itself once it does
-    m_Metadata:
-      m_Items: []
-  - m_Id: 799467484733457
-    m_Localized: +{0} moon jars
-    m_Metadata:
-      m_Items: []
-  - m_Id: 799467497316352
-    m_Localized: +{0} moon jar
     m_Metadata:
       m_Items: []
   - m_Id: 806681230434304
@@ -4785,14 +4557,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 934052956725284
     m_Localized: +{0} {1}
-    m_Metadata:
-      m_Items: []
-  - m_Id: 934052956725285
-    m_Localized: The {0} is open!
-    m_Metadata:
-      m_Items: []
-  - m_Id: 934052956725286
-    m_Localized: Ten days to gather {0} from guest orders, mini games, fishing and photo asks, and trade them at the fair stall
     m_Metadata:
       m_Items: []
   - m_Id: 934052956725287

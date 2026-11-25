@@ -1,6 +1,15 @@
+using System.Collections.Generic;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
+using UnityEditor;
+using UnityEngine;
+using UnityEngine.UI;
 using VuonTra.EditorTools;
 using VuonTra.Game;
+using VuonTra.Game.UI;
+using L10n = VuonTra.Game.L10n;
 
 namespace VuonTra.Core.Tests
 {
@@ -28,9 +37,9 @@ namespace VuonTra.Core.Tests
         public void Fills_In_Arguments()
         {
             L10n.SetLocale("vi");
-            Assert.AreEqual("Nâng +10 · 3,88K", L10n.T("quick.upgrade", 10, "3,88K"));
+            Assert.AreEqual("3,88K cà rốt / 10 giây", L10n.T("row.income", "3,88K", 10));
             L10n.SetLocale("en");
-            Assert.AreEqual("Up +10 · 3.88K", L10n.T("quick.upgrade", 10, L10n.Number("3,88K")));
+            Assert.AreEqual("3.88K carrots / 10 s", L10n.T("row.income", L10n.Number("3,88K"), 10));
         }
 
         [Test]
@@ -111,6 +120,132 @@ namespace VuonTra.Core.Tests
                 Assert.IsTrue(plural.ContainsKey(of), key + " has no plural line");
                 CollectionAssert.AreEquivalent(Blanks(plural[of]), Blanks(L10nStrings.EnglishOne[i, 1]), key);
                 Assert.AreNotEqual(plural[of], L10nStrings.EnglishOne[i, 1], key + " says the same as its plural");
+            }
+        }
+
+        [Test]
+        public void Every_Key_In_The_Table_Has_A_Caller()
+        {
+            var literals = new HashSet<string>();
+            var families = new List<Regex>();
+            foreach (string folder in new[] { "VuonTra/Game", "VuonTra/Core" })
+                foreach (string file in Directory.GetFiles(Path.Combine(Application.dataPath, folder), "*.cs", SearchOption.AllDirectories))
+                    foreach (string line in File.ReadAllLines(file))
+                        CollectKeysAskedFor(line, literals, families);
+            Assert.Greater(families.Count, 20, "keys built from a prefix, like \"quest.\" + id, were read too");
+            var uncalled = new List<string>();
+            for (int i = 0; i < L10nStrings.All.GetLength(0); i++)
+            {
+                string key = L10nStrings.All[i, 0];
+                if (!literals.Contains(key) && !families.Exists(family => family.IsMatch(key))) uncalled.Add(key);
+            }
+            Assert.IsEmpty(uncalled, uncalled.Count + " keys nothing in Game or Core asks for:\n" + string.Join("\n", uncalled));
+        }
+
+        static readonly Regex StringOrLineComment = new Regex(@"""(?:[^""\\]|\\.)*""|//.*");
+        static readonly Regex JoinedSuffix = new Regex(@"\G\s*\+\s*[\w.()\[\]\s+-]*?\+\s*""(\.[^""\\]*)""");
+        static readonly Regex KeyPrefix = new Regex(@"^[a-z][\w.-]*\.$");
+        const string OneSegment = "[^.]+";
+
+        static void CollectKeysAskedFor(string line, HashSet<string> literals, List<Regex> families)
+        {
+            foreach (Match token in StringOrLineComment.Matches(line))
+            {
+                if (token.Value.StartsWith("//")) return;
+                string literal = token.Value.Substring(1, token.Value.Length - 2);
+                literals.Add(literal);
+                if (!KeyPrefix.IsMatch(literal)) continue;
+                var pattern = new StringBuilder("^").Append(Regex.Escape(literal)).Append(OneSegment);
+                int at = token.Index + token.Length;
+                for (Match piece = JoinedSuffix.Match(line, at); piece.Success; piece = JoinedSuffix.Match(line, at))
+                {
+                    string suffix = piece.Groups[1].Value;
+                    pattern.Append(Regex.Escape(suffix));
+                    at = piece.Index + piece.Length;
+                    if (!suffix.EndsWith(".")) break;
+                    pattern.Append(OneSegment);
+                }
+                families.Add(new Regex(pattern.Append('$').ToString()));
+            }
+        }
+
+        static readonly string[] DeletedKeys =
+        {
+            "pause.profile", "profile.close", "playgames.name", "playgames.saved", "quick.plot", "quick.open", "quick.upgrade",
+            "quick.plot.short", "quick.open.short", "land.expand", "moment.plot.title", "moment.summon.title", "moment.summon.sub",
+            "moment.merge.title", "moment.merge.sub", "away.body", "plot.title", "plot.sub", "upgrade.level", "quest.reward.clovers",
+            "rabbits.summon.title", "rabbits.clovers", "rabbits.auto", "rabbits.tier", "rabbits.where.working", "rabbits.where.resting",
+            "rabbits.work", "rabbits.full", "rename.button", "quest.season.note", "moment.golden.title", "moment.golden.sub",
+            "offer.jars.float", "forest.expand", "forest.title", "moment.forest.title", "fair.began.title", "fair.began.sub",
+            "quest.cham-100", "quest.cham-1000", "quest.thu-1k", "quest.thu-1m", "quest.thu-1b", "rest.buy", "rest.full", "quest.anh-1",
+            "quest.tho-max", "quest.gia-30", "quest.la-30", "quest.dom-30", "quest.don-20", "quest.loai-10", "quest.loai-20",
+            "quest.loai-40", "quest.loai-72", "quest.ca-50", "quest.tim-10", "offer.shop", "offer.jars.float.one"
+        };
+
+        [Test]
+        public void No_Deleted_Key_Is_Used_Anywhere_In_Assets()
+        {
+            var alternatives = new List<string>();
+            foreach (string key in DeletedKeys) alternatives.Add(Regex.Escape(key));
+            var anyDeletedKey = new Regex(@"(?<![\w.-])(" + string.Join("|", alternatives) + @")(?![\w-]|\.\w)");
+            string tests = Path.Combine(Application.dataPath, "Tests");
+            var used = new List<string>();
+            int searched = 0;
+            foreach (string file in Directory.GetFiles(Application.dataPath, "*", SearchOption.AllDirectories))
+            {
+                if (file.StartsWith(tests) || !SearchedForKeys(file)) continue;
+                searched++;
+                foreach (Match hit in anyDeletedKey.Matches(File.ReadAllText(file)))
+                    used.Add(hit.Value + " in " + file.Substring(Application.dataPath.Length - "Assets".Length));
+            }
+            Assert.Greater(searched, 100, "code, prefabs, scenes and assets were all searched");
+            Assert.IsEmpty(used, string.Join("\n", used));
+        }
+
+        static bool SearchedForKeys(string file)
+        {
+            foreach (string kind in new[] { ".cs", ".prefab", ".unity", ".asset", ".json", ".txt" })
+                if (file.EndsWith(kind)) return true;
+            return false;
+        }
+
+        [TestCase("vi", "lần đầu mỗi 5 cấp vườn")]
+        [TestCase("en", "the first time you reach every 5th garden level")]
+        public void The_Shop_Says_Garden_Level_Gold_Comes_The_First_Time_Only_And_Fits_In_Large_Text(string code, string says)
+        {
+            L10n.SetLocale(code);
+            UiKit.SetLargeText(true);
+            var root = new GameObject("Game");
+            try
+            {
+                var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
+                var cam = new GameObject("Cam", typeof(Camera));
+                cam.transform.SetParent(root.transform);
+                var runner = root.AddComponent<GameRunner>();
+                runner.Catalog = catalog;
+                runner.Init(GameState.NewGame(catalog.BuildDefs()));
+                var screen = root.AddComponent<GardenScreen>();
+                screen.Runner = runner;
+                screen.Cam = cam.GetComponent<Camera>();
+                screen.Raining = () => false;
+                screen.Build();
+                screen.Shell.StartGame();
+                screen.OpenShop();
+                screen.Refresh();
+                LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)root.transform.Find("Canvas"));
+                Canvas.ForceUpdateCanvases();
+                Text earn = null;
+                foreach (Text text in root.transform.Find("Canvas/Shop").GetComponentsInChildren<Text>(true))
+                    if (text.name == "Earn") earn = text;
+                Assert.IsNotNull(earn, "the shop has its \"Kiếm ở\" line");
+                StringAssert.Contains(says, earn.text);
+                Assert.LessOrEqual(earn.preferredHeight, earn.rectTransform.rect.height + 1f, "\"" + earn.text + "\" at " + earn.fontSize + "px in a box " + Mathf.RoundToInt(earn.rectTransform.rect.width) + " wide");
+            }
+            finally
+            {
+                Object.DestroyImmediate(root);
+                UiKit.SetLargeText(false);
+                PlayerPrefs.DeleteKey("text.large");
             }
         }
 

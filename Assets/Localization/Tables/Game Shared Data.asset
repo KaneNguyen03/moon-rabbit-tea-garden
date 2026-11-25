@@ -107,18 +107,6 @@ MonoBehaviour:
     m_Key: energy.need
     m_Metadata:
       m_Items: []
-  - m_Id: 372236310
-    m_Key: quick.plot
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236311
-    m_Key: quick.open
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236312
-    m_Key: quick.upgrade
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236313
     m_Key: station.level
     m_Metadata:
@@ -147,28 +135,8 @@ MonoBehaviour:
     m_Key: moment.milestone.sub
     m_Metadata:
       m_Items: []
-  - m_Id: 372236320
-    m_Key: moment.plot.title
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236321
     m_Key: moment.plot.sub
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236322
-    m_Key: moment.summon.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236323
-    m_Key: moment.summon.sub
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236324
-    m_Key: moment.merge.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236325
-    m_Key: moment.merge.sub
     m_Metadata:
       m_Items: []
   - m_Id: 372236326
@@ -189,10 +157,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 372236330
     m_Key: away.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236331
-    m_Key: away.body
     m_Metadata:
       m_Items: []
   - m_Id: 372236332
@@ -251,20 +215,8 @@ MonoBehaviour:
     m_Key: plot.buy
     m_Metadata:
       m_Items: []
-  - m_Id: 372236346
-    m_Key: plot.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236347
-    m_Key: plot.sub
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236348
     m_Key: upgrades.note
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236349
-    m_Key: upgrade.level
     m_Metadata:
       m_Items: []
   - m_Id: 372236350
@@ -291,10 +243,6 @@ MonoBehaviour:
     m_Key: quest.done
     m_Metadata:
       m_Items: []
-  - m_Id: 372236356
-    m_Key: quest.reward.clovers
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236357
     m_Key: quest.claimed
     m_Metadata:
@@ -305,14 +253,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 372236359
     m_Key: quest.notyet
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236360
-    m_Key: rabbits.summon.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236361
-    m_Key: rabbits.clovers
     m_Metadata:
       m_Items: []
   - m_Id: 372236362
@@ -339,32 +279,8 @@ MonoBehaviour:
     m_Key: rabbits.merge.button
     m_Metadata:
       m_Items: []
-  - m_Id: 372236368
-    m_Key: rabbits.auto
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236369
-    m_Key: rabbits.tier
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236370
-    m_Key: rabbits.where.working
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236371
-    m_Key: rabbits.where.resting
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236372
     m_Key: rabbits.rest
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236373
-    m_Key: rabbits.work
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236374
-    m_Key: rabbits.full
     m_Metadata:
       m_Items: []
   - m_Id: 372236375
@@ -583,40 +499,12 @@ MonoBehaviour:
     m_Key: quest.tra-50
     m_Metadata:
       m_Items: []
-  - m_Id: 372236429
-    m_Key: quest.cham-100
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236430
-    m_Key: quest.cham-1000
-    m_Metadata:
-      m_Items: []
   - m_Id: 372236431
     m_Key: quest.bua-1
     m_Metadata:
       m_Items: []
   - m_Id: 372236432
     m_Key: quest.bua-10
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236433
-    m_Key: quest.thu-1k
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236434
-    m_Key: quest.thu-1m
-    m_Metadata:
-      m_Items: []
-  - m_Id: 372236435
-    m_Key: quest.thu-1b
-    m_Metadata:
-      m_Items: []
-  - m_Id: 9605726855168
-    m_Key: quick.plot.short
-    m_Metadata:
-      m_Items: []
-  - m_Id: 9605739438080
-    m_Key: quick.open.short
     m_Metadata:
       m_Items: []
   - m_Id: 12222754447360
@@ -633,10 +521,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 13359226281984
     m_Key: rename.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 13359234670592
-    m_Key: rename.button
     m_Metadata:
       m_Items: []
   - m_Id: 13359234670593
@@ -1063,14 +947,6 @@ MonoBehaviour:
     m_Key: rest.row
     m_Metadata:
       m_Items: []
-  - m_Id: 46031956860928
-    m_Key: rest.buy
-    m_Metadata:
-      m_Items: []
-  - m_Id: 46031956860929
-    m_Key: rest.full
-    m_Metadata:
-      m_Items: []
   - m_Id: 48129947721728
     m_Key: summon.new
     m_Metadata:
@@ -1149,10 +1025,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 68780293087232
     m_Key: plot.short
-    m_Metadata:
-      m_Items: []
-  - m_Id: 68780293087233
-    m_Key: land.expand
     m_Metadata:
       m_Items: []
   - m_Id: 68780293087234
@@ -1287,10 +1159,6 @@ MonoBehaviour:
     m_Key: photo.hint
     m_Metadata:
       m_Items: []
-  - m_Id: 84286723055616
-    m_Key: pause.profile
-    m_Metadata:
-      m_Items: []
   - m_Id: 84286731444224
     m_Key: profile.title
     m_Metadata:
@@ -1321,10 +1189,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 84286731444231
     m_Key: profile.avatar.hint
-    m_Metadata:
-      m_Items: []
-  - m_Id: 84286731444232
-    m_Key: profile.close
     m_Metadata:
       m_Items: []
   - m_Id: 84286731444233
@@ -1455,10 +1319,6 @@ MonoBehaviour:
     m_Key: photo.logo
     m_Metadata:
       m_Items: []
-  - m_Id: 180083640754182
-    m_Key: quest.anh-1
-    m_Metadata:
-      m_Items: []
   - m_Id: 180083640754183
     m_Key: quest.anh-vang
     m_Metadata:
@@ -1531,10 +1391,6 @@ MonoBehaviour:
     m_Key: quest.dat-12
     m_Metadata:
       m_Items: []
-  - m_Id: 192545505140739
-    m_Key: quest.tho-max
-    m_Metadata:
-      m_Items: []
   - m_Id: 192545505140740
     m_Key: shop.title
     m_Metadata:
@@ -1591,20 +1447,8 @@ MonoBehaviour:
     m_Key: shop.earn
     m_Metadata:
       m_Items: []
-  - m_Id: 192545505140754
-    m_Key: moment.golden.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 192545505140755
-    m_Key: moment.golden.sub
-    m_Metadata:
-      m_Items: []
   - m_Id: 195730802204672
     m_Key: quest.gia-3sao
-    m_Metadata:
-      m_Items: []
-  - m_Id: 195730810593280
-    m_Key: quest.gia-30
     m_Metadata:
       m_Items: []
   - m_Id: 195730810593281
@@ -1807,10 +1651,6 @@ MonoBehaviour:
     m_Key: quest.la-3sao
     m_Metadata:
       m_Items: []
-  - m_Id: 211753022513167
-    m_Key: quest.la-30
-    m_Metadata:
-      m_Items: []
   - m_Id: 212921664659456
     m_Key: cloud.status.off
     m_Metadata:
@@ -1983,10 +1823,6 @@ MonoBehaviour:
     m_Key: quest.dom-3sao
     m_Metadata:
       m_Items: []
-  - m_Id: 216545157439504
-    m_Key: quest.dom-30
-    m_Metadata:
-      m_Items: []
   - m_Id: 218048119169024
     m_Key: order.title
     m_Metadata:
@@ -2041,10 +1877,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 218048131751948
     m_Key: quest.ngay-don
-    m_Metadata:
-      m_Items: []
-  - m_Id: 218048131751949
-    m_Key: quest.don-20
     m_Metadata:
       m_Items: []
   - m_Id: 219281773027328
@@ -2249,10 +2081,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 252465747320844
     m_Key: album.season.only
-    m_Metadata:
-      m_Items: []
-  - m_Id: 252465747320845
-    m_Key: quest.season.note
     m_Metadata:
       m_Items: []
   - m_Id: 256349303726080
@@ -2485,14 +2313,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 270018427215872
     m_Key: kind.tho-trang-non
-    m_Metadata:
-      m_Items: []
-  - m_Id: 272084788830208
-    m_Key: playgames.name
-    m_Metadata:
-      m_Items: []
-  - m_Id: 272084809801728
-    m_Key: playgames.saved
     m_Metadata:
       m_Items: []
   - m_Id: 272084809801729
@@ -2831,22 +2651,6 @@ MonoBehaviour:
     m_Key: album.frame
     m_Metadata:
       m_Items: []
-  - m_Id: 375703399817224
-    m_Key: quest.loai-10
-    m_Metadata:
-      m_Items: []
-  - m_Id: 375703399817225
-    m_Key: quest.loai-20
-    m_Metadata:
-      m_Items: []
-  - m_Id: 375703399817226
-    m_Key: quest.loai-40
-    m_Metadata:
-      m_Items: []
-  - m_Id: 375703399817227
-    m_Key: quest.loai-72
-    m_Metadata:
-      m_Items: []
   - m_Id: 378373560852480
     m_Key: pause.remind
     m_Metadata:
@@ -3079,18 +2883,6 @@ MonoBehaviour:
     m_Key: quest.ech-5
     m_Metadata:
       m_Items: []
-  - m_Id: 406865048494080
-    m_Key: forest.expand
-    m_Metadata:
-      m_Items: []
-  - m_Id: 406865056882688
-    m_Key: forest.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 406865056882689
-    m_Key: moment.forest.title
-    m_Metadata:
-      m_Items: []
   - m_Id: 408026325442560
     m_Key: layout.button
     m_Metadata:
@@ -3129,14 +2921,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 408026333831176
     m_Key: layout.full
-    m_Metadata:
-      m_Items: []
-  - m_Id: 412723350331392
-    m_Key: quest.ca-50
-    m_Metadata:
-      m_Items: []
-  - m_Id: 412723358720000
-    m_Key: quest.tim-10
     m_Metadata:
       m_Items: []
   - m_Id: 412723358720001
@@ -3463,10 +3247,6 @@ MonoBehaviour:
     m_Key: offer.left
     m_Metadata:
       m_Items: []
-  - m_Id: 799467484733445
-    m_Key: offer.shop
-    m_Metadata:
-      m_Items: []
   - m_Id: 799467484733446
     m_Key: offer.ended
     m_Metadata:
@@ -3509,14 +3289,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 799467484733456
     m_Key: offer.pending
-    m_Metadata:
-      m_Items: []
-  - m_Id: 799467484733457
-    m_Key: offer.jars.float
-    m_Metadata:
-      m_Items: []
-  - m_Id: 799467497316352
-    m_Key: offer.jars.float.one
     m_Metadata:
       m_Items: []
   - m_Id: 806681230434304
@@ -4753,14 +4525,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 934052956725284
     m_Key: fair.earned
-    m_Metadata:
-      m_Items: []
-  - m_Id: 934052956725285
-    m_Key: fair.began.title
-    m_Metadata:
-      m_Items: []
-  - m_Id: 934052956725286
-    m_Key: fair.began.sub
     m_Metadata:
       m_Items: []
   - m_Id: 934052956725287

@@ -8,10 +8,6 @@ using VuonTra.Game.UI;
 
 namespace VuonTra.EditorTools
 {
-    /// <summary>
-    /// Creates the garden-wide upgrades and the quests as assets and lists them on the catalog.
-    /// Numbers are a first pass; they get tuned through playtests.
-    /// </summary>
     public static class MetaSeeder
     {
         public const string UpgradeFolder = "Assets/VuonTra/Content/Upgrades";
@@ -19,7 +15,6 @@ namespace VuonTra.EditorTools
         public const string ItemFolder = "Assets/VuonTra/Content/Items";
 
         struct U { public string Id, Name, Desc, Glyph; public UpgradeEffect Effect; public double Amount, Cost, Growth; public int Max; public Color Accent; }
-        /// <summary>The picture file for a charm, by its id.</summary>
         static string CharmArt(string id)
         {
             switch (id)
@@ -99,19 +94,14 @@ namespace VuonTra.EditorTools
 
             var questRows = new[]
             {
-                // Daily: come back tomorrow.
                 new Q { Id = "ngay-cham", Title = "Chạm bé thỏ 50 lần",             Metric = QuestMetric.Taps,          Target = 50, Seconds = 30, Carrots = 30,  Clovers = 1, Daily = true },
                 new Q { Id = "ngay-nang", Title = "Nâng cấp trạm 20 lần",           Metric = QuestMetric.LevelsBought,  Target = 20, Seconds = 30, Carrots = 30,  Clovers = 1, Daily = true },
-                // The harvest pays a moon jar in place of its clover (#64), the clover again when the day's free jar has come.
                 new Q { Id = "ngay-thu",  Title = "Thu hoạch đủ cà rốt hôm nay",    Metric = QuestMetric.CarrotsEarned, Target = 0,  Seconds = 60, Carrots = 60,  Jars = 1, Daily = true },
                 new Q { Id = "ngay-don",  Title = "Giao 2 đơn trà cho khách",      Metric = QuestMetric.OrdersDelivered, Target = 2, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
                 new Q { Id = "ngay-anh",  Title = "Chụp 3 tấm thỏ xin ảnh",        Metric = QuestMetric.PhotoAsksAnswered, Target = 3, Seconds = 30, Carrots = 30, Clovers = 1, Daily = true },
-                // Achievements: once.
                 new Q { Id = "mo-2",      Title = "Đánh thức bé thỏ thứ hai",       Metric = QuestMetric.StationsOpen,  Target = 2,  Seconds = 12,  Carrots = 60 },
                 new Q { Id = "mo-4",      Title = "Có 4 trạm đang hoạt động",       Metric = QuestMetric.StationsOpen,  Target = 4,  Seconds = 90,  Carrots = 500,  Clovers = 2 },
                 new Q { Id = "mo-8",      Title = "Cả 8 bé thỏ đều thức",           Metric = QuestMetric.StationsOpen,  Target = 8,  Seconds = 360, Carrots = 5000, Clovers = 5 },
-                // The four stations after the star observatory (#67). Clovers only: with five golden carrots each as well, the
-                // casual player of EconomySimulationTests called with golden carrots seven or eight times a week (the rule is six).
                 new Q { Id = "mo-12",     Title = "Cả 12 bé thỏ đều thức",          Metric = QuestMetric.StationsOpen,  Target = 12, Seconds = 600, Carrots = 5e4, Clovers = 5 },
                 new Q { Id = "mo-16",     Title = "Có 16 trạm",                     Metric = QuestMetric.StationsOpen,  Target = 16, Seconds = 900, Carrots = 1e5, Clovers = 5 },
                 new Q { Id = "tra-10",    Title = "Ấm trà sương đạt cấp 10",        Metric = QuestMetric.StationLevel,  Station = "am-tra", Target = 10, Seconds = 18, Carrots = 100 },
@@ -120,7 +110,6 @@ namespace VuonTra.EditorTools
                 new Q { Id = "bua-1",     Title = "Học bùa đầu tiên",               Metric = QuestMetric.UpgradesOwned, Target = 1,  Seconds = 12,  Carrots = 80 },
                 new Q { Id = "bua-10",    Title = "Học tổng cộng 10 cấp bùa",       Metric = QuestMetric.UpgradesOwned, Target = 10, Seconds = 180, Carrots = 3000, Clovers = 2 },
                 new Q { Id = "gia-3sao",  Title = "Giã bánh 3 sao lần đầu",         Metric = QuestMetric.PoundingThreeStar,   Target = 1,  Seconds = 60,  Carrots = 1000, Clovers = 2 },
-                // The seasons' quests (#8): one set each, shown only in season, paid in golden carrots.
                 new Q { Id = "mua-gap-trung-thu",  Title = "Gặp Thỏ Đèn Ông Sao",             Metric = QuestMetric.SeasonKindMet,          Target = 1, Seconds = 6,  Carrots = 100, Golden = 3,  Season = Season.MidAutumn },
                 new Q { Id = "mua-nghe-trung-thu", Title = "Xếp Thỏ Đèn Ông Sao vào đúng nghề", Metric = QuestMetric.SeasonKindInTrade,    Target = 1, Seconds = 6,  Carrots = 100, Golden = 5,  Season = Season.MidAutumn },
                 new Q { Id = "mua-anh-trung-thu",  Title = "Chụp ảnh có Thỏ Đèn Ông Sao",       Metric = QuestMetric.PhotosWithSeasonRabbit, Target = 1, Seconds = 6,  Carrots = 100, Golden = 10, Season = Season.MidAutumn },
@@ -133,16 +122,12 @@ namespace VuonTra.EditorTools
                 new Q { Id = "anh-vang",  Title = "Chụp ảnh có một thỏ bậc Vàng",   Metric = QuestMetric.PhotosWithGoldRabbit, Target = 1, Seconds = 60, Carrots = 1000, Clovers = 2 },
                 new Q { Id = "anh-nghi",  Title = "Chụp ảnh khi đủ 6 chỗ nghỉ",     Metric = QuestMetric.PhotosWithFullRest,   Target = 1, Seconds = 90, Carrots = 2000, Clovers = 2 },
                 new Q { Id = "nghi-6",    Title = "Đủ 6 bé thỏ cùng nghỉ",          Metric = QuestMetric.RabbitsResting,       Target = 6, Seconds = 90, Carrots = 2000, Clovers = 2 },
-                // Golden carrots, once each (#44).
                 new Q { Id = "loai-tim",  Title = "Gặp loài thỏ bậc Tím đầu tiên",   Metric = QuestMetric.RarestKindMet, Target = 4,  Seconds = 60,  Carrots = 1000, Golden = 3 },
                 new Q { Id = "loai-vang", Title = "Gặp loài thỏ bậc Vàng đầu tiên",  Metric = QuestMetric.RarestKindMet, Target = 5,  Seconds = 90,  Carrots = 3000, Golden = 3 },
                 new Q { Id = "loai-do",   Title = "Gặp loài thỏ bậc Đỏ đầu tiên",    Metric = QuestMetric.RarestKindMet, Target = 6,  Seconds = 180, Carrots = 9000, Golden = 3 },
                 new Q { Id = "dat-12",    Title = "Mở đủ 12 ô đất",                  Metric = QuestMetric.PlotsOwned,    Target = 12, Seconds = 180, Carrots = 9000, Golden = 3 },
-                // The leaf-catching game (#10).
                 new Q { Id = "la-3sao",   Title = "Hứng lá 3 sao lần đầu",           Metric = QuestMetric.LeavesThreeStar, Target = 1,  Seconds = 60,  Carrots = 1000, Clovers = 2 },
-                // The firefly night (#10).
                 new Q { Id = "dom-3sao",  Title = "Bắt đom đóm 3 sao lần đầu",       Metric = QuestMetric.FirefliesThreeStar, Target = 1,  Seconds = 60,  Carrots = 1000, Clovers = 2 },
-                // The Frog Rabbit in the rain (#62): five met, two clovers.
                 new Q { Id = "ech-5",     Title = "Gặp Thỏ Ếch 5 lần",               Metric = QuestMetric.FrogsMet, Target = 5, Seconds = 60, Carrots = 1000, Clovers = 2 },
             };
             var mergedRows = new[]
@@ -203,19 +188,15 @@ namespace VuonTra.EditorTools
                 "Bông", "Mây", "Sữa", "Mochi", "Đậu", "Bánh Trôi", "Kem", "Nếp", "Mật", "Gạo", "Sương", "Trăng",
                 "Mít", "Na", "Bơ", "Cốm", "Chè", "Bưởi", "Sen", "Mận", "Tuyết", "Nắng", "Su Su", "Khoai"
             };
-            // Tier drawings are optional: Art/Final/rabbit_tier_0.png … rabbit_tier_5.png when they exist.
             var tierSprites = new Sprite[Rabbits.TierCount];
             for (int t = 0; t < tierSprites.Length; t++)
                 tierSprites[t] = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/rabbit_tier_" + t + ".png");
             catalog.TierRabbits = tierSprites;
-            // One drawing per kind: Art/Final/kind_<id>.png. A missing one falls back at run time.
             var kindSprites = new Sprite[RabbitKinds.All.Count];
             for (int k = 0; k < kindSprites.Length; k++)
                 kindSprites[k] = FinalArt.Kind(RabbitKinds.All[k].Id);
             catalog.KindArt = kindSprites;
 
-            // Quest items carry a bonus; the hats the shop sells (#44, "hat-…", Art/Final/hat_<name>.png) are for looks,
-            // priced in golden carrots, sold at a fixed tier, with a lift of their own so each sits right on the head.
             var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount, int Price, int Tier, float Lift)[]
             {
                 ("mu-rom",    "Mũ rơm",        ItemSlot.Hat,   ItemEffect.StationIncome, 0.10, 0, 0, 0f),
@@ -245,7 +226,6 @@ namespace VuonTra.EditorTools
             }
             catalog.Items = itemAssets.ToArray();
 
-            // Work-loop frames: Art/Final/rabbit_<station>_f0.png, _f1.png, … when they exist.
             foreach (StationData station in catalog.Stations)
             {
                 var frames = new List<Sprite>();
@@ -295,7 +275,7 @@ namespace VuonTra.EditorTools
             catalog.GoldenCarrot = FinalArt.Find("icon_ca-rot-vang");
             catalog.GiftBox = FinalArt.Find("icon_hop-qua");
             catalog.MoonJar = FinalArt.Find("icon_hu-trang");
-            catalog.Fish = new[] { FinalArt.Find("fish_1"), FinalArt.Find("fish_2"), FinalArt.Find("fish_3"), FinalArt.Find("fish_4"), FinalArt.Find("fish_5"), FinalArt.Find("fish_6") }; // #58b
+            catalog.Fish = new[] { FinalArt.Find("fish_1"), FinalArt.Find("fish_2"), FinalArt.Find("fish_3"), FinalArt.Find("fish_4"), FinalArt.Find("fish_5"), FinalArt.Find("fish_6") };
             catalog.FishBasket = FinalArt.Find("item_gio-ca");
             catalog.FloatUp = FinalArt.Find("float_up");
             catalog.FloatDown = FinalArt.Find("float_down");
@@ -304,8 +284,8 @@ namespace VuonTra.EditorTools
             catalog.ShopProp = FinalArt.Find("prop_tiem");
             catalog.Pad = FinalArt.Load("pad");
             catalog.StationPads = System.Array.FindAll(new[] { FinalArt.Find("pad_dat"), FinalArt.Find("pad_san-go"), FinalArt.Find("pad_vong-da"), FinalArt.Find("pad_hoa") }, s => s != null);
-            // Seats 0 and 1 are the stumps; the rest bring a rug, stools, a hammock and a swing.
-            catalog.RestProps = new[] { null, null, FinalArt.Find("decor_tham-picnic"), FinalArt.Find("decor_ghe-nam"), FinalArt.Find("decor_vong"), FinalArt.Find("decor_xich-du") };
+            Sprite stumpSeat = null;
+            catalog.RestProps = new[] { stumpSeat, stumpSeat, FinalArt.Find("decor_tham-picnic"), FinalArt.Find("decor_ghe-nam"), FinalArt.Find("decor_vong"), FinalArt.Find("decor_xich-du") };
             catalog.IconCharm = PlaceholderArt.Load("icon_charm");
             catalog.IconQuest = PlaceholderArt.Load("icon_quest");
 

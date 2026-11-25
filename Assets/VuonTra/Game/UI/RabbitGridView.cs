@@ -7,18 +7,12 @@ using VuonTra.Core;
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The rabbit tab: a count, a low strip to call a rabbit, and either the player's rabbits as a grid of
-    /// portraits or the album of every kind. A cell carries no buttons; tapping it opens the rabbit's own sheet.
-    /// </summary>
     public sealed class RabbitGridView
     {
         public const int Columns = 3;
         const float CellW = 318f, CellGap = 15f, CellH = 322f, AlbumH = 290f;
-        /// <summary>A set of the album (#61): its line on top, then its kinds; how far the gold outline reaches past the cells.</summary>
         const float SetLineH = 56f, SetPad = 10f, SetOutline = 8f;
 
-        /// <summary>Secondary text: never paler than this, so it stays readable on cream.</summary>
         public static readonly Color Quiet = Palette.Mix(Palette.Ink, Palette.Paper, 0.34f);
 
         readonly RectTransform _content;
@@ -35,7 +29,6 @@ namespace VuonTra.Game.UI
         string _signature;
 
         public ChunkyButton Summon { get; private set; }
-        /// <summary>False shows the player's rabbits, true the album of kinds.</summary>
         public bool Album { get; private set; }
 
         public RabbitGridView(RectTransform content, GameCatalog catalog, Action onSummon, Action onAuto, Action<int> onMerge,
@@ -54,7 +47,6 @@ namespace VuonTra.Game.UI
 
         void BuildHeader()
         {
-            // How many rabbits, how much of the album, and one small button that puts everyone to work.
             var top = UiKit.Rect("Count", _content);
             top.gameObject.AddComponent<LayoutElement>().preferredHeight = 64;
             _count = UiKit.Rect("Text", top).Stretch(0, 0, 1, 1, 8, 0, 90, 0)
@@ -67,17 +59,15 @@ namespace VuonTra.Game.UI
             autoButton.transition = Selectable.Transition.None;
             autoButton.targetGraphic = autoImage;
             autoButton.onClick.AddListener(() => _onAuto());
-            // Three small rabbits-to-stations bars stand in for "sort everyone out".
             for (int i = 0; i < 3; i++)
                 UiKit.Rect("Bar", auto).Place(0.5f, 0.5f, -6 + i * 3, 12 - i * 12, 30 - i * 6, 7).AddImage(_catalog.Panel, Palette.Ink, true);
 
             var tabs = UiKit.Rect("SubTabs", _content);
-            tabs.gameObject.AddComponent<LayoutElement>().preferredHeight = UiKit.MinTouch + 12f; // each tab a full touch target
+            tabs.gameObject.AddComponent<LayoutElement>().preferredHeight = UiKit.MinTouch + 12f;
             UiKit.Rect("Track", tabs).Stretch(0, 0, 1, 1, 0, 2, 0, 2).AddImage(_catalog.Panel, Palette.Track, true);
             _mineTab = AddSubTab(tabs, "Mine", 0f, L10n.T("rabbits.tab.mine"), false, out _mineLabel);
             _albumTab = AddSubTab(tabs, "Album", 0.5f, L10n.T("rabbits.tab.album"), true, out _albumLabel);
 
-            // Calling a rabbit: a low strip, so the rabbits themselves start high on the page.
             var root = UiKit.Rect("Summon", _content);
             root.AddImage(_catalog.Panel, Palette.CardLip, true);
             root.gameObject.AddComponent<LayoutElement>().preferredHeight = 124;
@@ -92,7 +82,6 @@ namespace VuonTra.Game.UI
             _clovers.resizeTextMaxSize = 26;
             var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -164, 4, 290, 92);
             Summon = UiKit.Chunky(button, _catalog.Panel, () => _onSummon());
-            // The odds, for both ways of calling, right where a rabbit is called.
             var odds = UiKit.Rect("Odds", _content);
             odds.gameObject.AddComponent<LayoutElement>().preferredHeight = 60;
             Text oddsText = odds.AddText(L10n.T("shop.odds.clover", ShopView.Odds(Rabbits.Odds)) + "\n" + L10n.T("shop.odds.golden", ShopView.Odds(Shop.GoldenOdds)), UiKit.TextSmall, Quiet, TextAnchor.MiddleLeft);
@@ -120,7 +109,7 @@ namespace VuonTra.Game.UI
         {
             if (Album == album) return;
             Album = album;
-            _signature = null; // the next refresh draws the other page
+            _signature = null;
         }
 
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s)
@@ -160,7 +149,7 @@ namespace VuonTra.Game.UI
             foreach (GameObject go in _dynamic)
             {
                 if (go == null) continue;
-                go.SetActive(false); // out of the layout now; destroyed at end of frame in play
+                go.SetActive(false);
                 if (Application.isPlaying) UnityEngine.Object.Destroy(go);
                 else UnityEngine.Object.DestroyImmediate(go);
             }
@@ -172,7 +161,6 @@ namespace VuonTra.Game.UI
                 return;
             }
 
-            // Merging is offered only when it is possible, as a slim strip under the call strip.
             for (int tier = 0; tier < Rabbits.TierCount - 1; tier++)
                 if (Rabbits.CanMerge(s, tier)) AddMerge(tier, Rabbits.CountOfTier(s, tier));
 
@@ -187,7 +175,6 @@ namespace VuonTra.Game.UI
                 return;
             }
 
-            // Best first: tier, then level, then the order they arrived in.
             var sorted = new List<Rabbit>(s.Rabbits);
             sorted.Sort((a, b) => b.Tier != a.Tier ? b.Tier.CompareTo(a.Tier) : (b.Level != a.Level ? b.Level.CompareTo(a.Level) : a.Id.CompareTo(b.Id)));
             RectTransform row = null;
@@ -219,12 +206,10 @@ namespace VuonTra.Game.UI
             text.resizeTextMinSize = 16;
             text.resizeTextMaxSize = 24;
             var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -108, 2, 190, 60);
-            // Merging is a second thing you can do here; calling a rabbit is the first.
             UiKit.Secondary(button, _catalog.Panel, L10n.T("rabbits.merge.button"), () => _onMerge(tier));
             _dynamic.Add(root.gameObject);
         }
 
-        /// <summary>How many resting rabbits sit out in the garden and what they add to its income. More places come with widening the garden.</summary>
         void AddRest(GameState s)
         {
             var root = UiKit.Rect("Rest", _content);
@@ -242,7 +227,6 @@ namespace VuonTra.Game.UI
             _dynamic.Add(root.gameObject);
         }
 
-        /// <summary>One rabbit: a big portrait framed in its tier's colour, its name, its level, its trade and whether it is at work.</summary>
         void AddCell(RectTransform row, int column, IReadOnlyList<StationDef> defs, GameState s, Rabbit r)
         {
             long id = r.Id;
@@ -255,7 +239,7 @@ namespace VuonTra.Game.UI
             button.onClick.AddListener(() => _onOpen(id));
 
             RectTransform tile = Portrait(cell, _catalog, s, r, 0, 40, 214);
-            if (Rabbits.FullHearts(r)) TenHeartBadge(tile, _catalog); // #58b
+            if (Rabbits.FullHearts(r)) TenHeartBadge(tile, _catalog);
 
             bool inTrade = Rabbits.InTrade(defs, r);
             var trade = UiKit.Rect("Trade", cell).Place(0f, 1f, 34, -34, 50, 50);
@@ -263,8 +247,6 @@ namespace VuonTra.Game.UI
             Image tradeIcon = UiKit.Rect("Icon", trade).Stretch(0, 0, 1, 1, 10, 10, 10, 10).AddImage(_catalog.TradeIcon(Rabbits.TradeOf(r)), inTrade ? Palette.Ink : Palette.Paper);
             tradeIcon.preserveAspect = true;
 
-            // Working shows the station's own thing; a rabbit seated at a place to rest shows its share of the
-            // garden's income (#60); one resting without a place shows a nap.
             bool working = r.Station >= 0 && r.Station < defs.Count;
             bool seated = !working && RestSpots.IsSeated(s, r);
             var status = seated
@@ -294,7 +276,6 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("station.level", r.Level) + L10n.LevelStars(r) + L10n.Hearts(r), UiKit.TextSmall, Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
         }
 
-        /// <summary>The heart badge a rabbit wears on its tile for good once its bond has all ten hearts (#58b), in the portrait's top-left corner.</summary>
         public static RectTransform TenHeartBadge(RectTransform tile, GameCatalog catalog)
         {
             var badge = UiKit.Rect("TenHearts", tile).Place(0f, 1f, 40, -34, 68, 42);
@@ -306,10 +287,6 @@ namespace VuonTra.Game.UI
             return badge;
         }
 
-        /// <summary>
-        /// A rabbit's portrait: a square framed in its tier's colour, cream inside, with what it wears set on
-        /// the top of its head and at its neck. Shared by the grid and by the rabbit's own sheet.
-        /// </summary>
         public static RectTransform Portrait(RectTransform parent, GameCatalog catalog, GameState s, Rabbit r, float x, float y, float size)
         {
             var tile = UiKit.Rect("Tile", parent).Place(0.5f, 0.5f, x, y, size, size);
@@ -336,32 +313,17 @@ namespace VuonTra.Game.UI
             return tile;
         }
 
-        /// <summary>A share as a percentage without its sign, in the language's own decimal mark: 0.025 is "2,5" in Vietnamese, "2.5" in English.</summary>
         public static string Percent(double share)
         {
             return L10n.Number((share * 100d).ToString("0.#", System.Globalization.CultureInfo.InvariantCulture).Replace('.', ','));
         }
 
-        /// <summary>
-        /// The colour a rabbit's drawing is tinted with: white for its own coat, else its dye mixed six parts in ten
-        /// over white, so the drawing's shading shows through (#44).
-        /// </summary>
         public static Color Fur(Rabbit r)
         {
             string hex = r == null ? null : Fairs.DyeHex(r.Dye);
             return hex == null ? Color.white : Palette.Mix(Color.white, Palette.Hex(hex), 0.6f);
         }
 
-        /// <summary>
-        /// Sizes and places a worn hat from the shape of its picture: a wide hat is HatSize of the drawing across and
-        /// as tall as its picture makes it, a tall one HatSize high; its foot stands on the line hats sit on, raised by
-        /// the hat's own lift. So a wreath or a bow sits on the head while a tall hat rises above it. A square picture
-        /// lands exactly where hats always did.
-        /// </summary>
-        /// <param name="art">The height of the rabbit drawing's box.</param>
-        /// <param name="across">Where the middle of the head is, from the box's middle.</param>
-        /// <param name="headLine">Where the top of the head is, from the parent's bottom edge.</param>
-        /// <param name="lift">The hat kind's own lift, in shares of <paramref name="art"/>.</param>
         public static void PlaceHat(RectTransform rt, Sprite icon, float art, float across, float headLine, float lift)
         {
             float w = art * GameCatalog.HatSize, h = w;
@@ -377,7 +339,6 @@ namespace VuonTra.Game.UI
             rt.anchoredPosition = new Vector2(across, headLine + (GameCatalog.HatLift - GameCatalog.HatSize / 2f + lift) * art);
         }
 
-        /// <summary>Every kind, tier by tier. A kind you have met shows itself; one you have not is a shadow with a question.</summary>
         void BuildAlbum(GameState s)
         {
             if (AlbumSets.HasFullFrame(s)) AddFullFrame();
@@ -394,11 +355,9 @@ namespace VuonTra.Game.UI
                     .AddText(L10n.T("album.tier", L10n.Rarity(tier), met, kinds.Count), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
                 _dynamic.Add(head.gameObject);
 
-                // The tier's kinds, one group per trade: each group is a set (#61).
                 foreach (AlbumSet set in AlbumSets.OfTier(tier)) AddSet(s, set);
             }
 
-            // The seasons' kinds (#8), after the tiers: met ones kept for good, the others marked with their season.
             IReadOnlyList<RabbitKind> seasonal = RabbitKinds.Special();
             if (seasonal.Count > 0)
             {
@@ -427,10 +386,6 @@ namespace VuonTra.Game.UI
             }
         }
 
-        /// <summary>
-        /// One set of the album (#61): a line with how much of it has been met and what it pays, then its kinds.
-        /// A complete set is drawn inside a gold outline and its line says what it now adds.
-        /// </summary>
         void AddSet(GameState s, AlbumSet set)
         {
             int met = AlbumSets.Met(s, set);
@@ -459,10 +414,8 @@ namespace VuonTra.Game.UI
                 AddKind(group, i % Columns, set.Kinds[i], s.SeenKinds.Contains(set.Kinds[i].Id), 1f, -(SetLineH + (i / Columns) * AlbumH + AlbumH / 2f));
         }
 
-        /// <summary>A set line's ink: full once any of it is met, quieter while none is.</summary>
         static Color InkFor(int met) => met > 0 ? Palette.Ink : Quiet;
 
-        /// <summary>The album's last milestone (#61, every kind met): a gold "complete" frame at the top of the album.</summary>
         void AddFullFrame()
         {
             var frame = UiKit.Rect("FullFrame", _content);
@@ -490,7 +443,6 @@ namespace VuonTra.Game.UI
             var tile = UiKit.Rect("Tile", cell).Place(0.5f, 0.5f, 0, 28, 196, 196);
             tile.AddImage(_catalog.Panel, met ? Palette.Tiers[kind.Tier] : Palette.Mix(Palette.Ink, Palette.Paper, 0.6f), true);
             UiKit.Rect("Back", tile).Stretch(0, 0, 1, 1, 6, 6, 6, 6).AddImage(_catalog.Panel, met ? Palette.Mix(Palette.Paper, Color.white, 0.35f) : Palette.Mix(Palette.Paper, Palette.Ink, 0.2f), true);
-            // Unmet: the same drawing with every colour pulled to ink, so only the outline of the rabbit shows.
             Image art = UiKit.Rect("Art", tile).Stretch(0, 0, 1, 1, 12, 10, 12, 10).AddImage(_catalog.KindSprite(kind.Id), met ? Color.white : Palette.Alpha(Color.black, 0.78f));
             art.preserveAspect = true;
             UiKit.Stars(tile, kind.Tier, 0.5f, 0f, 0, 18, 16);
@@ -500,7 +452,6 @@ namespace VuonTra.Game.UI
             name.resizeTextMinSize = 15;
             name.resizeTextMaxSize = 24;
 
-            // A kind just met for the first time is lit until its page has been opened.
             if (met && _isFresh != null && _isFresh(kind.Id))
             {
                 tile.GetComponent<Image>().color = Palette.Lantern;
@@ -515,10 +466,6 @@ namespace VuonTra.Game.UI
 
 namespace VuonTra.Game.UI
 {
-    /// <summary>
-    /// The album's banners (#61): a set just completed, or a milestone with a gift of its own, raises the milestone
-    /// moment with its sound. Attached once per built screen; attaching again lets go of the screen before.
-    /// </summary>
     public static class AlbumBanner
     {
         static GameRunner _runner;
@@ -552,7 +499,6 @@ namespace VuonTra.Game.UI
             _runner.AlbumMilestoneReached += _onMilestone;
         }
 
-        /// <summary>"Đủ bộ Pha chế bậc Tím!"</summary>
         public static string SetTitle(AlbumSet set) => L10n.T("album.set.banner", L10n.Trade(set.Trade), L10n.Tier(set.Tier));
     }
 }
