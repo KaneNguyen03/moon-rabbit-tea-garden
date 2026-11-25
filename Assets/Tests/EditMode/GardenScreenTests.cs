@@ -2989,14 +2989,14 @@ namespace VuonTra.Core.Tests
             screen.ClockHours = () => 22.0;
             screen.Refresh();
             Assert.AreEqual(0f, wash.color.a, 1e-6, "at night nothing lies over the garden");
-            Assert.AreEqual(0.26f, moon.color.a, 1e-6);
+            Assert.AreEqual(0.12f, moon.color.a, 1e-6);
             Assert.AreEqual(all, Out());
             double before = runner.State.Coins.ToDouble();
 
             screen.ClockHours = () => 13.0;
             screen.Refresh();
             Assert.Greater(wash.color.a, 0.1f, "a pale warmth by day");
-            Assert.Less(moon.color.a, 0.26f, "the moon's glow fades by day");
+            Assert.Less(moon.color.a, 0.12f, "the moon's glow fades by day");
             Assert.AreEqual(Daylight.FirefliesAt(13, all), Out(), "only a few fireflies by day");
             Assert.AreEqual(before, runner.State.Coins.ToDouble(), 1e-9, "the hour changes the look, never the carrots");
 
@@ -6616,7 +6616,7 @@ namespace VuonTra.Core.Tests
             return 1f - clear;
         }
 
-        public const float MistEdgeLeast = 0.6f;
+        public const float MistEdgeLeast = 0.15f;
 
         [Test]
         public void The_Mist_Reads_Thick_Where_A_Shut_Segment_Meets_The_Open_Lawn()

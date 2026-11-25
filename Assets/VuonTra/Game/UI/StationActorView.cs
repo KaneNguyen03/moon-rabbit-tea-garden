@@ -55,7 +55,7 @@ namespace VuonTra.Game.UI
         public float BaseScale = 1f;
         StationLook _look = StationLook.Open;
         Vector2 _rabbitHome, _chipHome;
-        GameObject _upArrow, _dozeBubble, _halo;
+        GameObject _upArrow, _dozeBubble, _halo, _rabbitShade;
         /// <summary>What a station of rank 1, 2 and 3 wears (#49): bunting, two stone lanterns, a breathing halo.</summary>
         GameObject _bunting, _rankLanterns, _rankHalo;
         RectTransform _rankHaloRect;
@@ -170,14 +170,18 @@ namespace VuonTra.Game.UI
             padButton.targetGraphic = padImage;
             padButton.onClick.AddListener(() => onPad(_index));
             var tag = UiKit.Rect("Tag", _pad).Place(0.5f, 1f, 0, -14, 150 * UiKit.TextScale, 42 * UiKit.TextScale);
-            tag.AddImage(catalog.Panel, Palette.Paper, true);
-            Text tagText = UiKit.Rect("Text", tag).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("pad.hint") + " +", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            tag.AddImage(catalog.Panel, Palette.Mix(Palette.Ink, Palette.Night, 0.35f), true);
+            Text tagText = UiKit.Rect("Text", tag).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("pad.hint") + " +", UiKit.TextSmall, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             tagText.resizeTextForBestFit = true; // one line on the small plate in either language
             tagText.resizeTextMinSize = 16;
             tagText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
             _pad.gameObject.SetActive(false);
 
             // The player's rabbit, when one works here. Dressed rabbits are taller than wide (ears, hats).
+            Image rabbitShade = UiKit.Rect("RabbitShade", Root).Place(0.5f, 0.5f, -72, -106, GuestBox * 0.6f, GuestBox * 0.16f).AddImage(catalog.Glow, Palette.Alpha(Palette.Ink, 0.3f));
+            rabbitShade.raycastTarget = false;
+            _rabbitShade = rabbitShade.gameObject;
+            _rabbitShade.SetActive(false);
             _rabbit = UiKit.Rect("Rabbit", Root).Place(0.5f, 0.5f, -72, -112, GuestBox, GuestBox);
             _rabbit.pivot = new Vector2(0.5f, 0f); // squash from the feet
             _rabbitHome = _rabbit.anchoredPosition;
@@ -221,12 +225,12 @@ namespace VuonTra.Game.UI
             _chipRect = UiKit.Rect("Level", Front).Place(0.5f, 0.5f, PlateX, -152, PlateW, 58);
             _chipHome = _chipRect.anchoredPosition;
             _chip = _chipRect.AddImage(catalog.Panel, Palette.Paper, true);
-            var barBg = UiKit.Rect("Bar", _chipRect).Band(18, 18, 9, 10);
-            barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.28f), true);
+            var barBg = UiKit.Rect("Bar", _chipRect).Band(16, 16, 7, 14);
+            barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.42f), true);
             _bar = barBg.gameObject;
             _fill = UiKit.Rect("Fill", barBg).Stretch(0, 0, 0, 1);
             _fill.AddImage(catalog.Panel, Palette.Carrot, true);
-            _label = UiKit.Rect("Text", _chipRect).Stretch(0, 0, 1, 1, 0, 14, 0, 0)
+            _label = UiKit.Rect("Text", _chipRect).Stretch(0, 0, 1, 1, 0, 19, 0, 0)
                 .AddText("", 27, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             // "Widen the garden" is longer than "Mở rộng vườn": the plate's words shrink to fit on one line.
             _label.resizeTextForBestFit = true;
@@ -407,6 +411,7 @@ namespace VuonTra.Game.UI
             bool open = _look == StationLook.Open;
             bool rabbit = open && _guest && !_away, pad = open && !_guest, lit = rabbit && _haloWanted;
             if (_rabbit.gameObject.activeSelf != rabbit) _rabbit.gameObject.SetActive(rabbit);
+            if (_rabbitShade.activeSelf != rabbit) _rabbitShade.SetActive(rabbit);
             if (_pad.gameObject.activeSelf != pad) _pad.gameObject.SetActive(pad);
             if (_halo.activeSelf != lit) _halo.SetActive(lit);
             if (!rabbit) SetDozing(false);

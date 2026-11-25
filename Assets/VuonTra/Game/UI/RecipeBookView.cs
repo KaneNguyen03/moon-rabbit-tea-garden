@@ -172,7 +172,7 @@ namespace VuonTra.Game.UI
         {
             c.Icon.SetHidden(!known);
             c.Name.text = known ? L10n.Dish(def.Id, dish) : L10n.T("recipes.book.hidden");
-            c.Name.color = known ? Palette.Ink : Palette.OffInk;
+            c.Name.color = known ? Palette.Ink : Palette.InkSoft;
             int level = Recipes.KnownLevel(s, station, dish);
             if (!known) c.Level.text = dish == 0 ? L10n.T("dish.closed") : L10n.T("recipes.book.opens", Economy.Ranks[dish - 1]);
             else c.Level.text = sold ? L10n.T("recipes.book.selling", level) : L10n.T("recipes.book.level", level);
