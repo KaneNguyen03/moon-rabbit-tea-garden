@@ -1,0 +1,482 @@
+{
+"tho-bong": {
+"shape": "master",
+"fur": [
+254,
+247,
+222
+],
+"agy": false
+},
+"tho-me": {
+"shape": "master",
+"fur": [
+228,
+213,
+202
+],
+"agy": false
+},
+"tho-cup": {
+"shape": "lop",
+"fur": [
+244,
+193,
+134
+],
+"agy": false
+},
+"tho-matcha": {
+"shape": "master",
+"fur": [
+241,
+236,
+198
+],
+"agy": false
+},
+"tho-suong": {
+"shape": "master",
+"fur": [
+244,
+245,
+241
+],
+"agy": false
+},
+"tho-o-long": {
+"shape": "master",
+"fur": [
+254,
+241,
+216
+],
+"agy": false
+},
+"tho-oai-huong": {
+"shape": "master",
+"fur": [
+240,
+218,
+230
+],
+"agy": false
+},
+"tho-khoai-mon": {
+"shape": "lop",
+"fur": [
+253,
+230,
+215
+],
+"agy": false
+},
+"tho-mat-ong": {
+"shape": "master",
+"fur": [
+253,
+204,
+115
+],
+"agy": false
+},
+"tho-sao": {
+"shape": "master",
+"fur": [
+79,
+75,
+115
+],
+"agy": false
+},
+"tho-hong-tra": {
+"shape": "master",
+"fur": [
+233,
+153,
+121
+],
+"agy": false
+},
+"tho-trang": {
+"shape": "master",
+"fur": [
+254,
+251,
+240
+],
+"agy": false
+},
+"tho-dau-do": {
+"shape": "master",
+"fur": [
+229,
+153,
+134
+],
+"agy": false
+},
+"tho-ca-phe": {
+"shape": "master",
+"fur": [
+188,
+141,
+100
+],
+"agy": false
+},
+"tho-tro": {
+"shape": "master",
+"fur": [
+150,
+141,
+133
+],
+"agy": false
+},
+"tho-cat": {
+"shape": "master",
+"fur": [
+239,
+201,
+148
+],
+"agy": false
+},
+"tho-bap": {
+"shape": "master",
+"fur": [
+254,
+227,
+129
+],
+"agy": false
+},
+"tho-khoi": {
+"shape": "master",
+"fur": [
+198,
+205,
+206
+],
+"agy": false
+},
+"tho-hong-phan": {
+"shape": "master",
+"fur": [
+254,
+207,
+195
+],
+"agy": false
+},
+"tho-ca-cao": {
+"shape": "master",
+"fur": [
+160,
+107,
+81
+],
+"agy": false
+},
+"tho-cup-kem": {
+"shape": "lop",
+"fur": [
+255,
+239,
+221
+],
+"agy": false
+},
+"tho-cup-socola": {
+"shape": "lop",
+"fur": [
+142,
+112,
+78
+],
+"agy": false
+},
+"tho-bac-ha": {
+"shape": "master",
+"fur": [
+183,
+235,
+192
+],
+"agy": false
+},
+"tho-chanh": {
+"shape": "master",
+"fur": [
+253,
+248,
+167
+],
+"agy": false
+},
+"tho-cup-suong": {
+"shape": "lop",
+"fur": [
+211,
+218,
+255
+],
+"agy": false
+},
+"tho-la-phong": {
+"shape": "master",
+"fur": [
+241,
+180,
+142
+],
+"agy": false
+},
+"tho-dao": {
+"shape": "lop",
+"fur": [
+255,
+212,
+184
+],
+"agy": false
+},
+"tho-tuyet-hong": {
+"shape": "master",
+"fur": [
+244,
+206,
+217
+],
+"agy": false
+},
+"tho-bao": {
+"shape": "master",
+"fur": [
+146,
+162,
+198
+],
+"agy": false
+},
+"tho-tra-sua": {
+"shape": "master",
+"fur": [
+255,
+248,
+234
+],
+"agy": false
+},
+"tho-muc": {
+"shape": "master",
+"fur": [
+132,
+131,
+130
+],
+"agy": false
+},
+"tho-cam": {
+"shape": "master",
+"fur": [
+255,
+231,
+190
+],
+"agy": false
+},
+"tho-bang": {
+"shape": "master",
+"fur": [
+176,
+228,
+241
+],
+"agy": false
+},
+"tho-anh-dao": {
+"shape": "master",
+"fur": [
+240,
+212,
+218
+],
+"agy": false
+},
+"tho-luu-ly": {
+"shape": "master",
+"fur": [
+208,
+216,
+240
+],
+"agy": false
+},
+"tho-viet-quat": {
+"shape": "lop",
+"fur": [
+253,
+230,
+215
+],
+"agy": false
+},
+"tho-dau-tay": {
+"shape": "lop",
+"fur": [
+253,
+230,
+215
+],
+"agy": false
+},
+"tho-hoa-nhai": {
+"shape": "master",
+"fur": [
+255,
+255,
+244
+],
+"agy": false
+},
+"tho-ho-phach": {
+"shape": "master",
+"fur": [
+233,
+154,
+74
+],
+"agy": false
+},
+"tho-ngan-ha": {
+"shape": "master",
+"fur": [
+108,
+77,
+129
+],
+"agy": false
+},
+"tho-bach-kim": {
+"shape": "master",
+"fur": [
+241,
+246,
+255
+],
+"agy": false
+},
+"tho-nguyet-thuc": {
+"shape": "master",
+"fur": [
+132,
+60,
+82
+],
+"agy": false
+},
+"tho-lun": {
+"shape": "own"
+},
+"tho-con": {
+"shape": "own"
+},
+"tho-va": {
+"shape": "own"
+},
+"tho-dong": {
+"shape": "own"
+},
+"tho-long-xoan": {
+"shape": "own"
+},
+"tho-banh-day": {
+"shape": "own"
+},
+"tho-dom": {
+"shape": "own"
+},
+"tho-kem-chay": {
+"shape": "own"
+},
+"tho-tai-dai": {
+"shape": "own"
+},
+"tho-angora": {
+"shape": "own"
+},
+"tho-latte": {
+"shape": "own"
+},
+"tho-dau": {
+"shape": "own"
+},
+"tho-flan": {
+"shape": "own"
+},
+"tho-su-tu": {
+"shape": "own"
+},
+"tho-hoa-dao": {
+"shape": "own"
+},
+"tho-sim": {
+"shape": "own"
+},
+"tho-may": {
+"shape": "own"
+},
+"tho-reu": {
+"shape": "own"
+},
+"tho-gac": {
+"shape": "own"
+},
+"tho-den-long": {
+"shape": "own"
+},
+"tho-tien": {
+"shape": "own"
+},
+"tho-dom-dom": {
+"shape": "own"
+},
+"tho-pha-le": {
+"shape": "own"
+},
+"tho-ba-duoi": {
+"shape": "own"
+},
+"tho-hang-nga": {
+"shape": "own"
+},
+"tho-mat-troi": {
+"shape": "own"
+},
+"tho-cuc-quang": {
+"shape": "own"
+},
+"tho-ngoc": {
+"shape": "own"
+},
+"tho-rong": {
+"shape": "own"
+},
+"tho-chom-sao": {
+"shape": "own"
+},
+"tho-den-ong-sao": {
+"shape": "own"
+},
+"tho-ao-dai": {
+"shape": "own"
+},
+"tho-noel": {
+"shape": "own"
+},
+"tho-trang-non": {
+"shape": "own"
+}
+}
