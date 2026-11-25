@@ -2483,6 +2483,14 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Người chăm và không nghỉ tay sau trần 7 mùa: 3 ngày liền không có gì mới (không tính lên cấp).
 - Thẻ vé tháng chỉ mở khi cờ kiếm tiền #144 bật (đã làm); chờ chủ project bật lại.
 
+## Rig thỏ 2.5D (nhánh `rig-25d`, session "Rig thỏ 2D cho vườn 2.5D")
+**Test:** cherry-pick riêng lên main; verify đầy đủ GREEN 1811/1811, preview 485 khung, save không đổi. QA hình APPROVED: `docs/anh/qa/rig-25d/`.
+**Commit:** `47e6642` (cherry-pick của `68ef863`; không kèm `a9d3988` kế hoạch 3D cũ)
+**Đã làm:** thỏ Cream dựng cho vườn 2.5D: hai rig PSB (trước và 3/4) trong một prefab `Assets/VuonTra/Art/Rabbit25D/Cream/RabbitCream.prefab`, các clip Idle, pha trà sữa, hái trà, ủ trà, Animator có tham số `Work`. `RabbitActor.cs` chỉ đặt tham số Animator và hướng nhìn. Công cụ dựng trong Editor có asmdef riêng. Thêm gói `com.unity.2d.psdimporter` 15.0.1.
+### Chưa đạt / cần PO quyết
+- Chưa gắn vào vườn: phần đó thuộc #146 (trạm, đồ, thỏ dựng đứng).
+- Gói mới `com.unity.2d.psdimporter` cần chủ project biết.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
