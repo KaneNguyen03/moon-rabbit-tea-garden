@@ -186,7 +186,7 @@ namespace VuonTra.Game.UI
         public const float CanopyDrift = 0.9f;
         RawImage _moonbeam;
         Image _moonPool;
-        const float MoonbeamAlpha = 0.9f, MoonPoolAlpha = 0.4f;
+        const float MoonbeamAlpha = 0.35f, MoonPoolAlpha = 0.22f;
 
         /// <summary>
         /// Where resting rabbits sit: each place has a tile of the grid (#52). The two stumps by the tea table come with the
@@ -897,8 +897,8 @@ namespace VuonTra.Game.UI
                 float flicker = still ? 1f : 0.86f + 0.14f * Mathf.Sin(_clock * 9f + i * 3.1f) * Mathf.Sin(_clock * 2.3f + i);
                 if (i < _lanternGlows.Count) _lanternGlows[i].color = Palette.Alpha(_lanternGlowColor, LanternGlowAlpha * flicker);
             }
-            if (_moonbeam != null && _moonbeam.texture != null) _moonbeam.color = new Color(0.82f, 0.9f, 1f, MoonbeamAlpha + (still ? 0f : 0.1f * Mathf.Sin(_clock * 0.7f)));
-            if (_moonPool != null) _moonPool.color = new Color(0.82f, 0.9f, 1f, MoonPoolAlpha + (still ? 0f : 0.05f * Mathf.Sin(_clock * 0.7f + 1f)));
+            if (_moonbeam != null && _moonbeam.texture != null) _moonbeam.color = new Color(0.82f, 0.9f, 1f, MoonbeamAlpha + (still ? 0f : 0.04f * Mathf.Sin(_clock * 0.7f)));
+            if (_moonPool != null) _moonPool.color = new Color(0.82f, 0.9f, 1f, MoonPoolAlpha + (still ? 0f : 0.02f * Mathf.Sin(_clock * 0.7f + 1f)));
             if (_pondGlow != null)
                 _pondGlow.localScale = still ? Vector3.one : new Vector3(1f + 0.03f * Mathf.Sin(_clock * 0.9f), 1f + 0.02f * Mathf.Sin(_clock * 1.3f + 1f), 1f);
             for (int i = 0; i < _ripples.Count; i++)
@@ -1360,7 +1360,7 @@ namespace VuonTra.Game.UI
             BuildGroundLayers(catalog, count);
 
             // A few worn paths lead out from the teapot; they lie flat on the grass, under everything.
-            Color stone = Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Grass, 0.5f), 0.6f);
+            Color stone = Palette.Mix(Palette.Mix(Palette.Paper, Palette.Ink, 0.5f), Palette.Grass, 0.35f);
             foreach (Vector2Int path in Paths)
             {
                 if (path.x >= count || path.y >= count) continue;
@@ -1524,8 +1524,8 @@ namespace VuonTra.Game.UI
                 mortarButton.targetGraphic = mortarImage;
                 mortarButton.onClick.AddListener(OpenPounding);
                 var plate = UiKit.Rect("Plate", _mortarProp).Place(0.5f, 1f, -80, 26, 250, 44); // a little to the left: the "▲ N" pill at the top edge stays clear of it (#71)
-                plate.AddImage(catalog.Panel, Palette.Paper, true);
-                _mortarPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                plate.AddImage(catalog.Panel, ActivityPlate, true);
+                _mortarPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _mortarPlate.resizeTextForBestFit = true;
                 _mortarPlate.resizeTextMinSize = 14;
                 _mortarPlate.resizeTextMaxSize = 20;
@@ -1556,8 +1556,8 @@ namespace VuonTra.Game.UI
                 basketButton.targetGraphic = basketImage;
                 basketButton.onClick.AddListener(OpenLeaves);
                 var basketPlate = UiKit.Rect("Plate", _basketProp).Place(0f, 0.5f, -120, 0, 240, 40); // wide enough for "Hứng lá · còn 3 lượt" on one line
-                basketPlate.AddImage(catalog.Panel, Palette.Paper, true);
-                _basketPlate = UiKit.Rect("Text", basketPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                basketPlate.AddImage(catalog.Panel, ActivityPlate, true);
+                _basketPlate = UiKit.Rect("Text", basketPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _basketPlate.resizeTextForBestFit = true;
                 _basketPlate.resizeTextMinSize = 14;
                 _basketPlate.resizeTextMaxSize = 20;
@@ -1587,8 +1587,8 @@ namespace VuonTra.Game.UI
                 jarButton.targetGraphic = jarImage;
                 jarButton.onClick.AddListener(OpenFireflies);
                 var jarPlate = UiKit.Rect("Plate", _jarProp).Place(0.5f, 0f, 0, -26, 270, 44);
-                jarPlate.AddImage(catalog.Panel, Palette.Paper, true);
-                _jarPlate = UiKit.Rect("Text", jarPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                jarPlate.AddImage(catalog.Panel, ActivityPlate, true);
+                _jarPlate = UiKit.Rect("Text", jarPlate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
                 _jarPlate.resizeTextForBestFit = true;
                 _jarPlate.resizeTextMinSize = 14;
                 _jarPlate.resizeTextMaxSize = 20;
@@ -2294,7 +2294,7 @@ namespace VuonTra.Game.UI
         GameObject _boostEdge;
         readonly List<Image> _boostEdges = new List<Image>();
         float _boostGlow;
-        static readonly Color MoonGlowColor = new Color(0.80f, 0.90f, 1f, 0.26f);
+        static readonly Color MoonGlowColor = new Color(0.80f, 0.90f, 1f, 0.12f);
 
         void BuildAtmosphere(GameCatalog catalog)
         {
@@ -2360,7 +2360,11 @@ namespace VuonTra.Game.UI
                 case DayPhase.Day: wash = Palette.Alpha(Palette.Mix(Palette.Lantern, Color.white, 0.55f), 0.2f); break;
                 default: wash = new Color(0, 0, 0, 0); break;
             }
-            if (_daylight != null) _daylight.color = wash;
+            if (_daylight != null)
+            {
+                _daylight.color = wash;
+                _daylight.enabled = wash.a > 0.002f;
+            }
             if (_moonGlow != null) _moonGlow.color = Palette.Alpha(MoonGlowColor, MoonGlowColor.a * Mathf.Lerp(0.3f, 1f, night));
             int awake = Daylight.FirefliesAt(hour, _fireflies.Count);
             for (int i = 0; i < _fireflies.Count; i++)
@@ -2579,7 +2583,7 @@ namespace VuonTra.Game.UI
         /// </summary>
         void BuildGroundLayers(GameCatalog catalog, int count)
         {
-            Color earth = Palette.Alpha(Palette.Mix(Palette.Mix(Palette.Grass, Palette.Carrot, 0.35f), Palette.Ink, 0.25f), 0.32f);
+            Color earth = Palette.Mix(Palette.Mix(Palette.Grass, Palette.Ink, 0.15f), Palette.Mix(Palette.Mix(Palette.Grass, Palette.Carrot, 0.35f), Palette.Ink, 0.25f), 0.45f);
             foreach (Vector2Int path in Paths)
             {
                 if (path.x >= count || path.y >= count) continue;
@@ -2593,7 +2597,7 @@ namespace VuonTra.Game.UI
             }
 
             // Flagstones in a ring around the teapot, a few more inside it.
-            Color stone = Palette.Alpha(Palette.Mix(Palette.Paper, Palette.Ink, 0.38f), 0.5f);
+            Color stone = Palette.Mix(Palette.Grass, Palette.Mix(Palette.Paper, Palette.Ink, 0.38f), 0.55f);
             Vector2 ring = Heart + new Vector2(0, -70f);
             for (int k = 0; k < 14; k++)
             {
@@ -2725,7 +2729,7 @@ namespace VuonTra.Game.UI
             var ring = UiKit.Rect("Ring " + i, _street).Place(0f, 0f, at.center.x, at.center.y, at.width, at.height);
             CanvasGroup group = ring.gameObject.AddComponent<CanvasGroup>();
             group.blocksRaycasts = false;
-            Color dash = Palette.Alpha(Palette.Paper, 0.42f);
+            Color dash = Palette.Mix(Palette.Grass, Palette.Night, 0.4f);
             const int Dashes = 22;
             for (int k = 0; k < Dashes; k++)
             {
@@ -2851,7 +2855,7 @@ namespace VuonTra.Game.UI
             {
                 float w = Mathf.Clamp(height * 0.55f, 50f, 260f);
                 var rt = UiKit.Rect("Shade", parent).Place(0f, 0f, x + 6f, y + 4f, w, w * 0.34f);
-                rt.AddImage(catalog.Glow, Palette.Alpha(Palette.Night, 0.28f));
+                rt.AddImage(catalog.Glow, Palette.Alpha(Palette.Ink, 0.3f));
                 into.Add(new KeyValuePair<float, Transform>(y + 0.25f, rt));
             }
             // One piece of scenery standing on the ground, on the street or on the canopy.
@@ -3302,7 +3306,7 @@ namespace VuonTra.Game.UI
             _energyFill.AddImage(catalog.Panel, Palette.Moss, true);
 
             // The three round buttons in the corner stand on one plate, so they read as one cluster and a fourth has a place to go.
-            UiKit.Rect("Corner", _hud).Place(1f, 1f, -184, -76, 340, 112).AddImage(catalog.Panel, Palette.Alpha(Palette.Paper, 0.55f), true);
+            UiKit.Rect("Corner", _hud).Place(1f, 1f, -184, -76, 340, 112).AddImage(catalog.Panel, Palette.Card, true);
             // A visible way to zoom, for players who would never guess at pinching or double-tapping.
             var camera = UiKit.Rect("Camera", _hud).Place(1f, 1f, -292, -76, 96, 96);
             camera.AddShadow(14f, 10f, 0.3f);
@@ -7367,24 +7371,24 @@ namespace VuonTra.Game.UI
             CanvasGroup group = mist.gameObject.AddComponent<CanvasGroup>();
             group.blocksRaycasts = false;
             group.interactable = false;
-            Color[] washes = { Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.9f), Palette.Alpha(Palette.Mix(Color.white, Palette.Moss, 0.14f), 0.8f), Palette.Alpha(Palette.Mix(Palette.Paper, Color.white, 0.6f), 0.85f) };
+            Color[] washes = { Palette.Alpha(MistTone, 0.15f) };
             // A broad veil first, so the land reads as hidden; the washes over it make the cloud bank's soft shapes.
             UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (low + high) / 2f, span.y - span.x + 320f, high - low + 300f)
-                .AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.18f), 0.75f)).raycastTarget = false;
+                .AddImage(catalog.Glow, Palette.Alpha(MistTone, 0.35f)).raycastTarget = false;
             // The bank at the edge it shares with the open lawn (#16): thick, with a wandering edge like a wash that dried, so the
             // land still to open reads as such on the dark grass. The washes over it keep it soft.
             bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
             float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
             if (aside)
                 UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (low + high) / 2f, MistEdgeWidth, high - low + 200f)
-                    .AddImage(MistEdgeSprite(right), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
+                    .AddImage(MistEdgeSprite(right), Palette.Alpha(MistTone, 0.5f)).raycastTarget = false;
             else
             {
                 bool up = GardenGrid.SideOf(segment) == GardenSide.Up;
                 float lawn = LawnEdgeY(segment - 1, up ? GardenSide.Up : GardenSide.Down), outward = up ? 1f : -1f;
                 RectTransform bank = UiKit.Rect("Edge", mist).Place(0f, 0f, (span.x + span.y) / 2f, lawn + outward * (MistEdgeWidth / 2f - MistEdgeOut), MistEdgeWidth, span.y - span.x + 400f);
                 bank.localRotation = Quaternion.Euler(0f, 0f, up ? 90f : -90f);
-                bank.AddImage(MistEdgeSprite(true), Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.12f), 0.88f)).raycastTarget = false;
+                bank.AddImage(MistEdgeSprite(true), Palette.Alpha(MistTone, 0.5f)).raycastTarget = false;
             }
             int Across = aside ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9;
             for (int a = 0; a < Across; a++)
@@ -7402,6 +7406,7 @@ namespace VuonTra.Game.UI
 
         /// <summary>The mist's bank at a shut segment's edge: how wide it is, and how far it reaches over the open lawn at most.</summary>
         const float MistEdgeWidth = 330f, MistEdgeOut = 40f;
+        static readonly Color MistTone = Palette.Mix(Palette.Night, Palette.Grass, 0.25f);
         static Sprite _mistEdgeRight, _mistEdgeLeft;
 
         /// <summary>
@@ -7424,7 +7429,7 @@ namespace VuonTra.Game.UI
                 for (int x = 0; x < W; x++)
                 {
                     float u = (x + 0.5f) / W, from = right ? u : 1f - u;
-                    float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((from - edge) / 0.12f));
+                    float rise = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((from - edge) / 0.28f));
                     float fade = 1f - Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((from - 0.55f) / 0.45f));
                     float grain = 0.92f + 0.08f * Mathf.Sin(u * 31f + v * 53f) * Mathf.Sin(v * 23f - u * 11f);
                     pixels[y * W + x] = new Color32(255, 255, 255, (byte)Mathf.RoundToInt(255f * rise * fade * ends * grain));
@@ -8225,6 +8230,7 @@ namespace VuonTra.Game.UI
         public FishingView FishingCard { get; private set; }
         RectTransform _pondTap;
         Text _pondPlate;
+        static readonly Color ActivityPlate = Palette.Mix(Palette.Ink, Palette.Night, 0.35f);
         /// <summary>How many times the ten-heart moment has played (a banner and three golden carrots flying to their chip).</summary>
         public int TenHeartMoments { get; private set; }
 
@@ -8248,8 +8254,8 @@ namespace VuonTra.Game.UI
             // the counter, which grows to the right from over the guest's head (#84). Far enough right that it keeps 24 from the
             // screen's left edge when the view stands as far right as the lawn lets it, at the sign of the first segment (#16).
             var plate = UiKit.Rect("Plate", _pondTap).Place(0.5f, 0.5f, PondPlateX, -150f, 180f, 44f);
-            plate.AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
-            _pondPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            plate.AddImage(catalog.Panel, ActivityPlate, true).raycastTarget = true;
+            _pondPlate = UiKit.Rect("Text", plate).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText("", 20, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             _pondPlate.resizeTextForBestFit = true;
             _pondPlate.resizeTextMinSize = 14;
             _pondPlate.resizeTextMaxSize = 20;
