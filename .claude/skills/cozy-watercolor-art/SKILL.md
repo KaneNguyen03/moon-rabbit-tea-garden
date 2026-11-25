@@ -16,14 +16,15 @@ The colours come from `docs/art-bible.md` and `Assets/VuonTra/Game/UI/Palette.cs
   - Sky and dark overlays: `Night #1B1E45`.
   - UI cards: `Palette.Card` (paper mixed toward white) with a `CardLip` edge — cream paper cards with a thick candy-button lip.
   - Lantern / furnace glow: `Lantern #FFC866` into `Carrot #FF9B4A`.
-  - Fog / locked-area clouds: `Paper #FFF4E0` with feathered alpha edges and **no outline**.
+  - Locked land: **no fog** (owner, 25 Nov: it hurt the eyes). The land just lies in night shade: one even, soft layer of `Night #1B1E45` mixed a quarter toward `Grass #3D8369`, feathered edges, no cloud shapes, no light patches, no outline. Never white, cream or light grey.
   - Accent: `Blush #F6A5B8`; anything tappable: `Carrot #FF9B4A`.
 
 ## 2. Grounding in the garden scene (URP 2D renderer)
 
 - Every station (mortar, teapot, furnace, pot), tree and lamp post gets a soft elliptical contact shadow at its base: `Ink` at 25–30% opacity, blurred edges.
 - Each interactive station sits on its own painted pad (dirt patch, wooden deck or wildflower tuft) so it separates from the grass.
-- A seamless watercolor paper-grain overlay across the camera at 10–15% (Multiply or Overlay) to break up flat gradients.
+- A seamless paper-grain overlay in `Ink` only, at 6–8%. uGUI has no Multiply blend, so a cream branch lays milk over the whole scene.
+- At most two full-screen overlays (vignette, grain). Disable any overlay whose alpha is 0. Solid things (stones, paths, locked props) use pre-mixed solid colours, never alpha.
 - Warm 2D point lights on lanterns and the furnace; light particles only (steam over teapot/pots, a few fireflies).
 
 ## 3. HUD

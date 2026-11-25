@@ -6,7 +6,7 @@ namespace VuonTra.Game.UI
     public static class PaperGrain
     {
         public const int Size = 256;
-        public const float Strength = 0.14f;
+        public const float Strength = 0.07f;
         public const float TileWidth = 360f;
 
         static Texture2D _texture;
@@ -40,7 +40,7 @@ namespace VuonTra.Game.UI
                 hideFlags = HideFlags.DontSave
             };
             var px = new Color32[Size * Size];
-            Color paper = Palette.Paper, ink = Palette.Ink;
+            Color ink = Palette.Ink;
             const float Tau = Mathf.PI * 2f;
             for (int y = 0; y < Size; y++)
                 for (int x = 0; x < Size; x++)
@@ -51,7 +51,7 @@ namespace VuonTra.Game.UI
                     float tooth = Hash(x, y) * 2f - 1f;
                     float fibre = Hash(x / 6, y) > 0.985f ? 1f : 0f;
                     float n = Mathf.Clamp(0.55f * tooth + 0.35f * blotch + 0.6f * fibre, -1f, 1f);
-                    Color c = n >= 0f ? paper : ink;
+                    Color c = ink;
                     c.a = Mathf.Abs(n) * Strength;
                     px[y * Size + x] = c;
                 }
