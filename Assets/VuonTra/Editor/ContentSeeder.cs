@@ -64,6 +64,7 @@ namespace VuonTra.EditorTools
             L10nSeeder.Seed();
             PlaceholderArt.Generate();
             FinalArt.Import();
+            StreetArt.ImportGround();
             Directory.CreateDirectory(StationFolder);
             Directory.CreateDirectory(Path.GetDirectoryName(ScenePath));
             AssetDatabase.Refresh();
