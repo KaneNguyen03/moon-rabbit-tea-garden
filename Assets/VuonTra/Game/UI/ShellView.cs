@@ -245,7 +245,7 @@ namespace VuonTra.Game.UI
             button.onClick.AddListener(() =>
             {
                 Sfx.Click();
-                Sfx.SetTune((Sfx.Tune)(((int)Sfx.CurrentTune + 1) % 4));
+                Sfx.SetTune((Sfx.Tune)(((int)Sfx.CurrentTune + 1) % Sfx.TuneChoices));
                 text.text = TuneName(Sfx.CurrentTune);
             });
         }
