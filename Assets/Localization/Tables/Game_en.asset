@@ -5143,6 +5143,64 @@ MonoBehaviour:
     m_Localized: a full {0} h (moon pass), the most while away.
     m_Metadata:
       m_Items: []
+  - m_Id: 1368638702477312
+    m_Localized: The recipe book
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448832
+    m_Localized: 'Resting rabbits and guest orders give recipe leaves.
+
+      Open the book to improve dishes: a better dish, a richer station.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448833
+    m_Localized: The fish tank
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448834
+    m_Localized: 'Tap the tank by the pond to release spare fish; they stay for good.
+
+      Each kind that reaches a milestone adds garden income for good.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448835
+    m_Localized: The little trunk
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448836
+    m_Localized: "The trunk by the shop opens 11:00\u201313:00 and 19:00\u201322:00.\nFour new things each time, one of them on sale."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448837
+    m_Localized: The little fair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448838
+    m_Localized: 'For the fair''s ten days, orders, mini games and fish earn fair coins.
+
+      Spend them at the stalls on jars, clovers, lanterns and the fair rabbit.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448839
+    m_Localized: The month pass
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448840
+    m_Localized: 'Daily quest points move the month pass up a tier, a gift a tier.
+
+      The top row is free; unlock the pass for the lower row too.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448841
+    m_Localized: Week chests
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448842
+    m_Localized: 'Each daily quest and the daily gift box add week points.
+
+      At 100, 250 and 400 points a chest opens in the Quests tab.'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

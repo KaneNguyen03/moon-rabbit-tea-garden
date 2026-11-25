@@ -4826,6 +4826,54 @@ MonoBehaviour:
     m_Localized: "\u0111\u1EE7 {0} gi\u1EDD (v\xE9 tr\u0103ng), m\u1EE9c t\u1ED1i \u0111a khi v\u1EAFng."
     m_Metadata:
       m_Items: []
+  - m_Id: 1368638702477312
+    m_Localized: "S\u1ED5 c\xF4ng th\u1EE9c"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448832
+    m_Localized: "Th\u1ECF \u1EDF ch\u1ED7 ngh\u1EC9 v\xE0 \u0111\u01A1n kh\xE1ch cho l\xE1 c\xF4ng th\u1EE9c.\nM\u1EDF s\u1ED5 \u0111\u1EC3 n\xE2ng m\xF3n: m\xF3n c\u1EA5p cao, tr\u1EA1m thu nhi\u1EC1u h\u01A1n."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448833
+    m_Localized: "B\u1EC3 c\xE1"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448834
+    m_Localized: "Ch\u1EA1m b\u1EC3 c\u1EA1nh ao \u0111\u1EC3 th\u1EA3 c\xE1 th\u1EEBa v\xE0o b\u1EC3, c\xE1 \u1EDF l\u1EA1i m\xE3i.\nM\u1ED7i lo\xE0i \u0111\u1EE7 m\u1ED1c l\xE0 v\u01B0\u1EDDn th\xEAm thu nh\u1EADp m\xE3i m\xE3i."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448835
+    m_Localized: "R\u01B0\u01A1ng xe \u0111\u1EA9y"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448836
+    m_Localized: "R\u01B0\u01A1ng c\u1EA1nh ti\u1EC7m m\u1EDF 11:00\u201313:00 v\xE0 19:00\u201322:00.\nM\u1ED7i l\u1EA7n 4 m\xF3n m\u1EDBi, trong \u0111\xF3 m\u1ED9t m\xF3n gi\u1EA3m gi\xE1."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448837
+    m_Localized: "L\u1EC5 h\u1ED9i nh\u1ECF"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448838
+    m_Localized: "M\u01B0\u1EDDi ng\xE0y h\u1ED9i: \u0111\u01A1n kh\xE1ch, tr\xF2 nh\u1ECF v\xE0 c\xE1 cho xu h\u1ED9i.\n\u0110\u1ED5i xu \u1EDF qu\u1EA7y h\u1ED9i l\u1EA5y h\u0169 tr\u0103ng, c\u1ECF, \u0111\xE8n l\u1ED3ng v\xE0 b\xE9 th\u1ECF h\u1ED9i."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448839
+    m_Localized: "V\xE9 th\xE1ng"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448840
+    m_Localized: "\u0110i\u1EC3m nhi\u1EC7m v\u1EE5 ng\xE0y \u0111\u01B0a V\xE9 th\xE1ng l\xEAn n\u1EA5c, m\u1ED7i n\u1EA5c m\u1ED9t qu\xE0.\nH\xE0ng tr\xEAn mi\u1EC5n ph\xED; m\u1EDF V\xE9 th\xE1ng \u0111\u1EC3 nh\u1EADn th\xEAm h\xE0ng d\u01B0\u1EDBi."
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448841
+    m_Localized: "R\u01B0\u01A1ng tu\u1EA7n"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448842
+    m_Localized: "M\u1ED7i nhi\u1EC7m v\u1EE5 ng\xE0y v\xE0 h\u1ED9p qu\xE0 ng\xE0y cho \u0111i\u1EC3m tu\u1EA7n.\n\u0110\u1EE7 100, 250, 400 \u0111i\u1EC3m l\xE0 m\u1EDF m\u1ED9t r\u01B0\u01A1ng \u1EDF tab Nhi\u1EC7m v\u1EE5."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

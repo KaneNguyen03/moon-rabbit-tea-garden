@@ -224,6 +224,7 @@ namespace VuonTra.Core
         public const string FromOrder = "order", FromFish = "fish", FromAway = "away", FromPhotoAsk = "photo_ask",
             FromPounding = "pounding", FromLeaves = "leaves", FromFireflies = "fireflies", FromWeek = "week", FromMail = "mail";
         public const string FeatureFishing = "fishing", FeaturePounding = "pounding", FeatureMiniGame = "minigame", FeatureLayout = "layout", FeaturePhoto = "photo";
+        public const string FeatureRecipeBook = "recipe_book", FeatureTank = "tank", FeatureTrunk = "trunk", FeatureFair = "fair", FeatureMonthPass = "month_pass", FeatureWeekChest = "week_chest";
 
         public static string FeatureOf(string intro)
         {
@@ -234,6 +235,12 @@ namespace VuonTra.Core
                 case Intros.Leaves:
                 case Intros.Fireflies: return FeatureMiniGame;
                 case Intros.Layout: return FeatureLayout;
+                case Intros.RecipeBook: return FeatureRecipeBook;
+                case Intros.Aquarium: return FeatureTank;
+                case Intros.Trunk: return FeatureTrunk;
+                case Intros.Fair: return FeatureFair;
+                case Intros.MonthPass: return FeatureMonthPass;
+                case Intros.WeekChest: return FeatureWeekChest;
                 default: return null;
             }
         }

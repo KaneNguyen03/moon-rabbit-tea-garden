@@ -5111,6 +5111,54 @@ MonoBehaviour:
     m_Key: away.time.capped.moon
     m_Metadata:
       m_Items: []
+  - m_Id: 1368638702477312
+    m_Key: intro.recipebook.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448832
+    m_Key: intro.recipebook.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448833
+    m_Key: intro.aquarium.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448834
+    m_Key: intro.aquarium.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448835
+    m_Key: intro.trunk.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448836
+    m_Key: intro.trunk.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448837
+    m_Key: intro.fair.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448838
+    m_Key: intro.fair.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448839
+    m_Key: intro.monthpass.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448840
+    m_Key: intro.monthpass.body
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448841
+    m_Key: intro.weekchest.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1368638723448842
+    m_Key: intro.weekchest.body
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

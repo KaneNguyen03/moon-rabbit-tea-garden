@@ -127,16 +127,19 @@ namespace VuonTra.Game.UI
 
     public sealed class IntroListView
     {
-        public const float RowHeight = 136f;
+        public const float RowHeight = 136f, MaxHeight = 1560f;
 
         readonly GameObject _root;
         readonly RectTransform _card, _rows;
+        readonly ScrollRect _scroll;
         readonly Tweens _tweens;
         readonly Text _empty;
         readonly Dictionary<string, RectTransform> _byId = new Dictionary<string, RectTransform>();
 
         public bool IsOpen => _root.activeSelf;
         public int RowCount { get; private set; }
+        public RectTransform Card => _card;
+        public ScrollRect Scroll => _scroll;
 
         public IntroListView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<string, Sprite> icon, Func<string, Color> tint)
         {
@@ -148,7 +151,7 @@ namespace VuonTra.Game.UI
             scrim.transition = Selectable.Transition.None;
             scrim.onClick.AddListener(Close);
 
-            float height = 200f + RowHeight * Intros.All.Length;
+            float height = Mathf.Min(MaxHeight, 200f + RowHeight * Intros.All.Length);
             _card = UiKit.Rect("Card", overlay).Place(0.5f, 0.5f, 0, 0, 900, height);
             _card.AddShadow(26f, 16f, 0.45f);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
@@ -164,7 +167,16 @@ namespace VuonTra.Game.UI
             closeButton.onClick.AddListener(() => { Sfx.Click(); Close(); });
             UiKit.Rect("Text", close).Stretch(0, 0, 1, 1).AddText("×", 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
-            _rows = UiKit.Rect("Rows", _card).Stretch(0, 0, 1, 1, 40, 40, 40, 150);
+            var view = UiKit.Rect("Rows", _card).Stretch(0, 0, 1, 1, 40, 40, 40, 150);
+            view.AddImage(null, new Color(0, 0, 0, 0)).raycastTarget = true;
+            view.gameObject.AddComponent<RectMask2D>();
+            _rows = UiKit.Rect("Content", view).Stretch(0, 1, 1, 1);
+            _rows.pivot = new Vector2(0.5f, 1f);
+            _scroll = view.gameObject.AddComponent<ScrollRect>();
+            _scroll.horizontal = false;
+            _scroll.scrollSensitivity = 40f;
+            _scroll.viewport = view;
+            _scroll.content = _rows;
             _empty = UiKit.Rect("Empty", _rows).Stretch(0, 1, 1, 1, 0, -RowHeight, 0, 0)
                 .AddText(L10n.T("intros.empty"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter);
             foreach (string id in Intros.All) _byId[id] = BuildRow(catalog, id, icon(id), tint(id));
@@ -208,6 +220,8 @@ namespace VuonTra.Game.UI
                 row.gameObject.SetActive(true);
             }
             RowCount = opened.Count;
+            _rows.sizeDelta = new Vector2(_rows.sizeDelta.x, RowHeight * Mathf.Max(1, opened.Count));
+            _rows.anchoredPosition = Vector2.zero;
             _empty.gameObject.SetActive(opened.Count == 0);
             _root.SetActive(true);
             _root.transform.SetAsLastSibling();

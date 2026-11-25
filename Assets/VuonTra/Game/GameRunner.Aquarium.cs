@@ -12,7 +12,9 @@ namespace VuonTra.Game
         {
             ReleaseResult result = Aquarium.Release(State, fish);
             Analytics.LogTankRelease(State, result);
-            if (result.Released) Changed();
+            if (!result.Released) return result;
+            TryIntro(Intros.Aquarium);
+            Changed();
             return result;
         }
 

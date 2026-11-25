@@ -245,6 +245,24 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void The_Round_Two_Features_Log_Their_First_Use_By_Name()
+        {
+            var expected = new Dictionary<string, string>
+            {
+                { Intros.RecipeBook, "recipe_book" }, { Intros.Aquarium, "tank" }, { Intros.Trunk, "trunk" },
+                { Intros.Fair, "fair" }, { Intros.MonthPass, "month_pass" }, { Intros.WeekChest, "week_chest" },
+            };
+            foreach (KeyValuePair<string, string> pair in expected)
+            {
+                mem.Clear();
+                mem.LogIntroFirstUse(pair.Key);
+                MemoryAnalytics.Event used = Only(AnalyticsEvents.FeatureFirstUse);
+                Assert.AreEqual(pair.Value, used[AnalyticsEvents.Feature].Text, pair.Key);
+                Assert.IsFalse(used.Has(AnalyticsEvents.Game), pair.Key);
+            }
+        }
+
+        [Test]
         public void A_Feature_First_Used_Logs_Its_Name_And_Mini_Games_Their_Game()
         {
             mem.LogIntroFirstUse(Intros.Fishing);

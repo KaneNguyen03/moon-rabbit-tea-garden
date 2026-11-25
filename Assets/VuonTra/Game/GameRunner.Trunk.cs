@@ -24,6 +24,7 @@ namespace VuonTra.Game
         {
             TrunkShelf shelf = TrunkShelf;
             Analytics.LogTrunkOpen(shelf);
+            OpenedFeature(Intros.Trunk);
             return shelf;
         }
 
