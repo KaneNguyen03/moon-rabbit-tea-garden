@@ -222,7 +222,11 @@ namespace VuonTra.Game.UI
             }
             tweens.Fade(_wordsGroup, words ? 1f : 0f);
             tweens.Fade(_plateGroup, plate ? 1f : 0f);
-            float from = _chipRect.sizeDelta.y;
+            ResizePlate(tweens, _chipRect.sizeDelta.y, height);
+        }
+
+        void ResizePlate(Tweens tweens, float from, float height)
+        {
             tweens.Add(Motion.Quick, t => { if (_chipRect != null) _chipRect.sizeDelta = new Vector2(PlateW, from + (height - from) * t); });
         }
 

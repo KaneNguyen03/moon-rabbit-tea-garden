@@ -10,6 +10,7 @@ namespace VuonTra.Game.UI
         public readonly RectTransform Root;
         readonly Button _button;
         readonly Text _label;
+        readonly ShownText _labelShown = new ShownText();
         readonly string _watchKey, _nowKey;
         readonly Func<AdOffer> _offer;
         readonly Func<bool> _busy;
@@ -47,7 +48,7 @@ namespace VuonTra.Game.UI
             if (Root.gameObject.activeSelf != show) Root.gameObject.SetActive(show);
             if (!show) return;
             bool busy = _busy != null && _busy();
-            _label.text = busy ? L10n.T("ad.busy") : L10n.T(offer == AdOffer.Instant ? _nowKey : _watchKey);
+            _labelShown.Line(_label, busy ? "ad.busy" : offer == AdOffer.Instant ? _nowKey : _watchKey);
             _button.interactable = !busy;
         }
     }

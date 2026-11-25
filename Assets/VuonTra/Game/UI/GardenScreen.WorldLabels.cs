@@ -11,6 +11,7 @@ namespace VuonTra.Game.UI
             public CanvasGroup Sentence, Chip;
             public Text Count;
             public int Plays;
+            public readonly ShownText Shown = new ShownText();
             public bool Always;
         }
 
@@ -50,8 +51,7 @@ namespace VuonTra.Game.UI
         void SetPlays(WorldLabel label, int plays)
         {
             label.Plays = plays;
-            string count = plays.ToString();
-            if (label.Count.text != count) label.Count.text = count;
+            label.Shown.Number(label.Count, plays);
             ShowLabel(label);
         }
 
