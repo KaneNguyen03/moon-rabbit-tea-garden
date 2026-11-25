@@ -8,6 +8,7 @@ namespace VuonTra.EditorTools
     public static class StreetArt
     {
         public const string Folder = "Assets/VuonTra/Art/Placeholder";
+        public const string Ground = "Assets/VuonTra/Art/Ground";
 
         static Color Hex(string rgb) => PlaceholderArt.Hex(rgb);
 
@@ -152,8 +153,34 @@ namespace VuonTra.EditorTools
             }
         }
 
+        public static void ImportGround()
+        {
+            if (!Directory.Exists(Ground)) return;
+            foreach (string file in Directory.GetFiles(Ground, "*.png"))
+            {
+                var importer = AssetImporter.GetAtPath(file.Replace('\\', '/')) as TextureImporter;
+                if (importer == null) continue;
+                bool ok = importer.textureType == TextureImporterType.Default
+                    && importer.wrapMode == TextureWrapMode.Repeat
+                    && !importer.mipmapEnabled
+                    && importer.npotScale == TextureImporterNPOTScale.None
+                    && importer.textureCompression == TextureImporterCompression.Uncompressed;
+                if (ok) continue;
+                importer.textureType = TextureImporterType.Default;
+                importer.alphaIsTransparency = false;
+                importer.wrapMode = TextureWrapMode.Repeat;
+                importer.mipmapEnabled = false;
+                importer.npotScale = TextureImporterNPOTScale.None;
+                importer.filterMode = FilterMode.Bilinear;
+                importer.textureCompression = TextureImporterCompression.Uncompressed;
+                importer.SaveAndReimport();
+            }
+        }
+
         public static Texture2D Load(string name)
         {
+            var ground = AssetDatabase.LoadAssetAtPath<Texture2D>(Ground + "/" + name + ".png");
+            if (ground != null) return ground;
             var drawn = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/VuonTra/Art/Final/" + name + ".png");
             return drawn != null ? drawn : AssetDatabase.LoadAssetAtPath<Texture2D>(Folder + "/" + name + ".png");
         }
