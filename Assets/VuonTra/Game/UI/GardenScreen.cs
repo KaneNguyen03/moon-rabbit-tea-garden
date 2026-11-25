@@ -313,6 +313,7 @@ namespace VuonTra.Game.UI
             _cardNameShown = new ShownText(), _cardLevelShown = new ShownText(), _cardWorkerShown = new ShownText(), _cardDishLineShown = new ShownText(),
             _cardDishRaiseShown = new ShownText(), _cardInfoShown = new ShownText(), _cardBuyTopShown = new ShownText(), _cardBuyCostShown = new ShownText();
         Sprite _profileArt;
+        string _profileCode;
         readonly List<ShownText> _tierShown = new List<ShownText>();
         int _shownStations = -1;
         bool _built;
@@ -1947,6 +1948,7 @@ namespace VuonTra.Game.UI
 
             BigNum cost;
             bool can, capped = false;
+            int count = 0;
             if (needsPlot)
             {
                 cost = Plots.CostOfNext(defs, s);
@@ -1968,7 +1970,7 @@ namespace VuonTra.Game.UI
             }
             else
             {
-                int count = Simulation.BuyCount(defs, s, i);
+                count = Simulation.BuyCount(defs, s, i);
                 cost = Economy.CostOfNext(defs[i], level, count);
                 capped = count <= 0; // level 500: nothing left to buy
                 can = !capped && s.Coins >= cost;
@@ -1981,7 +1983,6 @@ namespace VuonTra.Game.UI
             bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Missing(defs, s) == ExpandNeed.Carrots : (level > 0 || Economy.CanUnlock(defs, s, i)));
             if (!needsPlot && level > 0)
             {
-                int count = Simulation.BuyCount(defs, s, i);
                 if (shortOnly) _cardBuyTopShown.Line(_cardBuyTop, "need.more");
                 else if (capped) _cardBuyTopShown.Line(_cardBuyTop, "row.maxlevel");
                 else _cardBuyTopShown.Line(_cardBuyTop, "row.upgrade", count);
@@ -4136,9 +4137,10 @@ namespace VuonTra.Game.UI
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
             Sprite avatarArt = avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit;
             string gardenCode = s.Profile.Code;
-            if (_profileShown.Changes(Shell, gardenCode != null ? gardenCode.GetHashCode() : 0, 0L, s.Profile.GardenName) | avatarArt != _profileArt)
+            if (_profileShown.Changes(Shell, 0L, 0L, s.Profile.GardenName) | avatarArt != _profileArt | !string.Equals(gardenCode, _profileCode))
             {
                 _profileArt = avatarArt;
+                _profileCode = gardenCode;
                 Shell.SetProfile(ProfileView.NameOf(s), gardenCode, avatarArt);
             }
 
