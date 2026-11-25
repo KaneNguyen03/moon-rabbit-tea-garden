@@ -879,9 +879,8 @@ namespace VuonTra.Game.UI
                 if (c.T >= 1f)
                 {
                     if (c.Target < _actors.Count) _actors[c.Target].PopProp();
-                    c.Rect.gameObject.SetActive(false);
                     _couriers.RemoveAt(i);
-                    _idleCouriers.Add(c);
+                    ParkCourier(c);
                     continue;
                 }
                 // Little hops along the way.
@@ -986,7 +985,7 @@ namespace VuonTra.Game.UI
         /// <summary>One ingredient sets off from its station to a station that uses it, when both are open.</summary>
         void SendCourier()
         {
-            if (_supplyRoutes.Count == 0 || _couriers.Count >= 8) return;
+            if (_supplyRoutes.Count == 0 || _couriers.Count >= MaxCouriers) return;
             GameState s = Runner.State;
             for (int tries = 0; tries < _supplyRoutes.Count; tries++)
             {
@@ -1009,18 +1008,32 @@ namespace VuonTra.Game.UI
             }
         }
 
+        const int MaxCouriers = 8;
+
         Courier TakeCourier(GameCatalog catalog)
         {
             int last = _idleCouriers.Count - 1;
-            if (last >= 0)
-            {
-                Courier idle = _idleCouriers[last];
-                _idleCouriers.RemoveAt(last);
-                idle.Rect.SetAsLastSibling();
-                idle.Rect.gameObject.SetActive(true);
-                return idle;
-            }
-            var rt = UiKit.Rect("Courier", _street).Place(0f, 0f, 0f, 0f, 46, 46);
+            if (last < 0) return NewCourier(catalog);
+            Courier idle = _idleCouriers[last];
+            _idleCouriers.RemoveAt(last);
+            idle.Rect.name = CourierName;
+            idle.Rect.SetAsLastSibling();
+            idle.Rect.gameObject.SetActive(true);
+            return idle;
+        }
+
+        const string CourierName = "Courier", IdleCourierName = "Courier (idle)";
+
+        void ParkCourier(Courier courier)
+        {
+            courier.Rect.name = IdleCourierName;
+            courier.Rect.gameObject.SetActive(false);
+            _idleCouriers.Add(courier);
+        }
+
+        Courier NewCourier(GameCatalog catalog)
+        {
+            var rt = UiKit.Rect(CourierName, _street).Place(0f, 0f, 0f, 0f, 46, 46);
             UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, -2, 40, 12).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
             Image item = UiKit.Rect("Item", rt).Stretch(0, 0, 1, 1).AddImage(null, Color.white);
             item.preserveAspect = true;
@@ -1461,6 +1474,7 @@ namespace VuonTra.Game.UI
                     if (to >= 0) _supplyRoutes.Add(new Vector2Int(i, to));
                 }
             }
+            while (_idleCouriers.Count < MaxCouriers) ParkCourier(NewCourier(catalog));
 
             // Resting rabbits sit about the garden. Each seat is a place a rabbit can be tapped.
             Color shade = Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f);

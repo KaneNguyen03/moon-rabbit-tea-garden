@@ -244,8 +244,8 @@ namespace VuonTra.Core.Tests
         {
             GardenScreen screen = RoundTwoGarden();
             Action second = () => { for (int f = 0; f < 60; f++) screen.Advance(1f / 60f); };
-            TestContext.WriteLine("one second standing still: " + AllocationsIn(second) + " allocations, " + HeapBytesPerCall(second, 3) + " B");
             Assert.That(() => second(), AllocIs.Not.AllocatingGCMemory(), "sixty frames of GardenScreen.Advance on a full garden with every round-2 feature on");
+            TestContext.WriteLine("one second standing still: " + AllocationsIn(second) + " allocations, " + HeapBytesPerCall(second, 3) + " B");
         }
 
         UnityEngine.UI.Text TextAt(string path)
