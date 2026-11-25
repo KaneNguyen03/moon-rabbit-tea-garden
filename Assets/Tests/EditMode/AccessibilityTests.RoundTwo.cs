@@ -292,21 +292,6 @@ namespace VuonTra.Core.Tests
 
         static readonly string[] ColoursAwaitingTheDesignSession =
         {
-            "Aquarium/Card/Slot #/Count",
-            "Aquarium/Card/Slot #/Next",
-            "AquariumSetCard/Card/Bonus",
-            "GoldenPacks/Card/Pack #/Best/Text",
-            "Hud/Fair/Double/Text",
-            "Intros/Card/Rows/Row */Body",
-            "NewcomerSheet/Card/Task #/Sub",
-            "Offer/Card/Once/Text",
-            "RecipeBook/Card/Scroll/Content/*/Dish #/Icon/Numeral",
-            "Review/Card/Feedback/Input/Hint",
-            "Sheet/Panel/Quests/Content/MonthPassRow/Bought",
-            "Sheet/Panel/Quests/Content/QuestBoxRow/Sub",
-            "TrunkCard/Card/Goods/Item #/Sale/Text",
-            "WelcomeBackCard/Card/Quests",
-            "WelcomeBackCard/Card/Rabbit/Hearts",
         };
 
         static string KindOf(string path)

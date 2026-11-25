@@ -44,7 +44,7 @@ namespace VuonTra.Game.UI
 
             var once = UiKit.Rect("Once", _card).Place(0.5f, 1f, 0, 0, 260 * UiKit.TextScale, 56);
             once.AddImage(catalog.Panel, Palette.Carrot, true);
-            Text onceText = UiKit.Rect("Text", once).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText(L10n.T("offer.once"), UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            Text onceText = UiKit.Rect("Text", once).Stretch(0, 0, 1, 1, 10, 0, 10, 0).AddText(L10n.T("offer.once"), UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             onceText.resizeTextForBestFit = true;
             onceText.verticalOverflow = VerticalWrapMode.Truncate;
             onceText.resizeTextMinSize = 14;

@@ -87,7 +87,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("dish.new.title"), T("Canvas/NewDish/Card/Title").text);
             Assert.AreEqual(L10n.Dish("am-tra", 1), T("Canvas/NewDish/Card/Name").text);
             Assert.AreEqual(L10n.T("dish.new.sub", L10n.Station("am-tra")), T("Canvas/NewDish/Card/Sub").text);
-            Assert.AreEqual("II", T("Canvas/NewDish/Card/Icon/Numeral").text);
+            Assert.AreEqual("II", T("Canvas/NewDish/Card/Icon/Tag/Numeral").text);
             Assert.IsFalse(root.transform.Find("Canvas/NewDish/Card/More").gameObject.activeSelf);
             Assert.AreEqual(2, Recipes.Seen(s, 0), "seen as it opens");
             Assert.IsFalse(screen.OfferCardFree, "no offer over it");
@@ -122,7 +122,7 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.IsTrue(screen.NewDishCard.IsOpen, "the first clear moment");
             Assert.AreEqual(L10n.Dish("am-tra", 2), T("Canvas/NewDish/Card/Name").text, "the highest dish first");
-            Assert.AreEqual("III", T("Canvas/NewDish/Card/Icon/Numeral").text);
+            Assert.AreEqual("III", T("Canvas/NewDish/Card/Icon/Tag/Numeral").text);
             Assert.IsTrue(root.transform.Find("Canvas/NewDish/Card/More").gameObject.activeSelf);
             Assert.AreEqual(L10n.T("dish.new.more", 2), T("Canvas/NewDish/Card/More").text, "the tea's second and the leaf basket's second wait in the book");
             Assert.AreEqual(0, Recipes.NewDishes(s), "all of them seen with one card");
@@ -156,8 +156,8 @@ namespace VuonTra.Core.Tests
             }
             Assert.AreEqual(L10n.T("recipes.book.selling", 1), T(tea + "Dish 2/Level").text);
             Assert.AreEqual(L10n.T("recipes.book.level", 1), T(tea + "Dish 0/Level").text);
-            Assert.AreEqual("II", T(tea + "Dish 1/Icon/Numeral").text);
-            Assert.AreEqual("", T(tea + "Dish 0/Icon/Numeral").text);
+            Assert.AreEqual("II", T(tea + "Dish 1/Icon/Tag/Numeral").text);
+            Assert.AreEqual("", T(tea + "Dish 0/Icon/Tag/Numeral").text);
 
             string leaf = "Canvas/RecipeBook/Card/Scroll/Content/gio-la/";
             Assert.IsFalse(root.transform.Find(leaf + "Dish 1/Icon/Shadow").gameObject.activeSelf);

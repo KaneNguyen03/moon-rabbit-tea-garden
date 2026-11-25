@@ -81,7 +81,7 @@ namespace VuonTra.Game.UI
             _chipText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
             var twice = UiKit.Rect("Double", _chip).Place(1f, 1f, -4, 2, 44, 30);
             twice.AddImage(catalog.Panel, Palette.Carrot, true);
-            UiKit.Rect("Text", twice).Stretch(0, 0, 1, 1).AddText("×" + Fairs.WeekendTimes, 18, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            UiKit.Rect("Text", twice).Stretch(0, 0, 1, 1).AddText("×" + Fairs.WeekendTimes, 18, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _chipDouble = twice.gameObject;
             _chip.gameObject.SetActive(false);
 

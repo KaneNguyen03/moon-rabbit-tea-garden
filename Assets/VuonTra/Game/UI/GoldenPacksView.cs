@@ -75,7 +75,7 @@ namespace VuonTra.Game.UI
                 {
                     var best = UiKit.Rect("Best", rt).Place(0f, 1f, 90, 10, 150, 40);
                     best.AddImage(catalog.Panel, Palette.Carrot, true);
-                    Text bestText = UiKit.Rect("Text", best).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("packs.best"), UiKit.TextSmall, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    Text bestText = UiKit.Rect("Text", best).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("packs.best"), UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
                     bestText.resizeTextForBestFit = true;
                     bestText.resizeTextMinSize = 12;
                     bestText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);

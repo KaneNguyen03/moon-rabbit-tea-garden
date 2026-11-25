@@ -559,6 +559,8 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Palette.Ink, Palette.OnCarrot);
             Assert.GreaterOrEqual(Contrast(Palette.OnCarrot, Palette.Carrot), 4.5, "words on a primary button");
             Assert.AreEqual(Palette.OnCarrot, ChunkyButton.InkFor(true), "every raised button writes in it");
+            Assert.GreaterOrEqual(Contrast(Palette.CarrotInk, Palette.Card), 4.5, "carrot-coloured words on a card");
+            Assert.GreaterOrEqual(Contrast(Palette.MossInk, Palette.Card), 4.5, "moss-coloured words on a card");
         }
 
         static Rect WorldRect(RectTransform rt)

@@ -177,7 +177,7 @@ namespace VuonTra.Game.UI
             name.resizeTextMinSize = 16;
             name.resizeTextMaxSize = UiKit.TextBody;
             UiKit.Rect("Levels", root).Stretch(0.5f, 0, 0.75f, 1, 0, 0, 0, 0)
-                .AddText(L10n.T("upgradeall.levels", step.Levels), UiKit.TextBody, Palette.Mix(Palette.Moss, Palette.Ink, 0.45f), TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText(L10n.T("upgradeall.levels", step.Levels), UiKit.TextBody, Palette.MossInk, TextAnchor.MiddleRight, FontStyle.Bold);
             UiKit.Rect("Cost", root).Stretch(0.75f, 0, 1, 1, 0, 0, 24, 0)
                 .AddText(step.Cost.Short(), UiKit.TextBody, Palette.CarrotLip, TextAnchor.MiddleRight, FontStyle.Bold);
             _rows.Add(root.gameObject);
