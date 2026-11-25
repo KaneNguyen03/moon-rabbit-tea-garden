@@ -1,0 +1,116 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bf7c34a0dc4e6348bea04faa70406ee, type: 3}
+  m_Name: RabbitCream_Library
+  m_EditorClassIdentifier: Unity.2D.Animation.Runtime::UnityEngine.U2D.Animation.SpriteLibraryAsset
+  m_Labels:
+  - m_Name: FrontEars
+    m_Hash: 394059277
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: 5092058271998010133, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+  - m_Name: FrontBody
+    m_Hash: 1014536055
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: -585671040638894506, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+  - m_Name: FrontHead
+    m_Hash: 2320985
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: -200397227002224142, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+  - m_Name: FrontArmL
+    m_Hash: 1027766224
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: 3637128107531923341, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+  - m_Name: FrontArmR
+    m_Hash: 122505907
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: 5354798634786780669, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+  - m_Name: SideBody
+    m_Hash: 952954011
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: -8169258302747631804, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
+  - m_Name: SideEars
+    m_Hash: 331916769
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: 6296335686816314174, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
+  - m_Name: SideHead
+    m_Hash: 77009333
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: 3513955515037650002, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
+  - m_Name: SideArm
+    m_Hash: 531776796
+    m_CategoryList:
+    - m_Name: Cream
+      m_Hash: 431944539
+      m_Sprite: {fileID: 29040766493158060, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
+  - m_Name: Tool
+    m_Hash: 12685807
+    m_CategoryList:
+    - m_Name: SpoonLeaves
+      m_Hash: 102911297
+      m_Sprite: {fileID: 21300000, guid: 0ea7d0b55c732416e97300c4844cda2d, type: 3}
+    - m_Name: Kettle
+      m_Hash: 112911626
+      m_Sprite: {fileID: 21300000, guid: 1e99b88a7297d478889955706a2f8bd0, type: 3}
+    - m_Name: Teapot
+      m_Hash: 359213316
+      m_Sprite: {fileID: 21300000, guid: 3be7dce6ce5e54f9d81bcdc2e5bf9354, type: 3}
+    - m_Name: Cup
+      m_Hash: 265295364
+      m_Sprite: {fileID: 21300000, guid: 3b3dedb17a3e942eaa76123c44fb52b9, type: 3}
+    - m_Name: MilkBottle
+      m_Hash: 742159282
+      m_Sprite: {fileID: 21300000, guid: 1b3e8e2239515407eb85ac24429066fd, type: 3}
+    - m_Name: ShakerOpen
+      m_Hash: 1036980347
+      m_Sprite: {fileID: 21300000, guid: 28f29435f51d84fecbdf5ee3565f1897, type: 3}
+    - m_Name: ShakerClosed
+      m_Hash: 727830389
+      m_Sprite: {fileID: 21300000, guid: b06aaabcad68a4b2982f5c4fcc9d066d, type: 3}
+    - m_Name: BubbleTea
+      m_Hash: 846759547
+      m_Sprite: {fileID: 21300000, guid: d8b98f3c5609a4aacae866f07d42f17b, type: 3}
+    - m_Name: LeafBunch
+      m_Hash: 82480599
+      m_Sprite: {fileID: 21300000, guid: 04ba5ebc7f8974e87a38e4eb1be51e99, type: 3}
+    - m_Name: BasketEmpty
+      m_Hash: 959509561
+      m_Sprite: {fileID: 21300000, guid: 270f15f7cab644dab876beaeb79510dd, type: 3}
+    - m_Name: BasketHalf
+      m_Hash: 938757509
+      m_Sprite: {fileID: 21300000, guid: 2f2018bb94fdc419480fe6ca196e60af, type: 3}
+    - m_Name: BasketFull
+      m_Hash: 751949828
+      m_Sprite: {fileID: 21300000, guid: 9fca03fa0811944faada931b6e83f889, type: 3}
+  - m_Name: Shadow
+    m_Hash: 853182235
+    m_CategoryList:
+    - m_Name: Soft
+      m_Hash: 532187721
+      m_Sprite: {fileID: 21300000, guid: df80b8fad672744719dcdb4fd4caf518, type: 3}
+  m_ModificationHash: 0
+  m_Version: 1
