@@ -10,6 +10,7 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public class AwaySheetFeelTests
     {
         GameObject root;

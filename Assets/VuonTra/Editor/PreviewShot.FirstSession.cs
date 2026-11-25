@@ -18,6 +18,7 @@ namespace VuonTra.EditorTools
         {
             EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
             L10n.SetLocale("vi");
+            Features.Monetization = true;
             var runner = Object.FindAnyObjectByType<GameRunner>();
             var screen = Object.FindAnyObjectByType<GardenScreen>();
             runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));

@@ -9,6 +9,7 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public class MoonPassScreenTests
     {
         GameObject root;

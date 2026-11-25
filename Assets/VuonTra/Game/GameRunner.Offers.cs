@@ -30,21 +30,22 @@ namespace VuonTra.Game
 
         public bool OfferCardsOn { get; set; }
 
-        public List<OfferDef> ActiveOffers => Offers.Active(State, OfferNow);
+        public List<OfferDef> ActiveOffers => Features.Monetization ? Offers.Active(State, OfferNow) : new List<OfferDef>();
 
-        public OfferDef LeadingOffer => Offers.Leading(State, OfferNow);
+        public OfferDef LeadingOffer => Features.Monetization ? Offers.Leading(State, OfferNow) : null;
 
         public long OfferSecondsLeft(string id) => Offers.SecondsLeft(State, id, OfferNow);
 
         public OfferDef TakeOfferToShow()
         {
+            if (!Features.Monetization) return null;
             OfferDef offer = Offers.ToShow(State, OfferNow);
             return offer != null && SeeOffer(offer.Id) ? offer : null;
         }
 
         public bool SeeOffer(string id)
         {
-            if (!Offers.MarkShown(State, id)) return false;
+            if (!Features.Monetization || !Offers.MarkShown(State, id)) return false;
             Analytics.LogOffer(AnalyticsEvents.OfferShown, Offers.Find(id));
             Save();
             return true;
@@ -52,7 +53,7 @@ namespace VuonTra.Game
 
         bool NoteOffers()
         {
-            if (State == null) return false;
+            if (State == null || !Features.Monetization) return false;
             OfferNews news = Offers.Tick(State, OfferNow);
             foreach (string id in news.Expired) Analytics.LogOffer(AnalyticsEvents.OfferExpired, Offers.Find(id));
             return news.Started.Count > 0 || news.Expired.Count > 0;

@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public class AnalyticsTests
     {
         static GameState NewGarden() => GameState.NewGame(Fixture.Defs());

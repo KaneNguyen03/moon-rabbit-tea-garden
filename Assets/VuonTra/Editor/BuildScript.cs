@@ -41,12 +41,18 @@ namespace VuonTra.EditorTools
                 scenes = new[] { ContentSeeder.ScenePath },
                 locationPathName = path,
                 target = target,
-                options = BuildOptions.None
+                options = BuildOptions.None,
+                extraScriptingDefines = ExtraDefines()
             };
             BuildReport report = BuildPipeline.BuildPlayer(options);
             Debug.Log("[VuonTra] Build " + target + " " + report.summary.result + ", " + report.summary.totalSize + " bytes");
             if (Application.isBatchMode && report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
         }
+
+        public const string MonetizationDefine = "VUONTRA_MONETIZATION";
+
+        public static string[] ExtraDefines() =>
+            System.Environment.GetEnvironmentVariable(MonetizationDefine) == "1" ? new[] { MonetizationDefine } : new string[0];
 
         public const string IOSEntitlements = "Unity-iPhone/VuonTraTho.entitlements";
     }

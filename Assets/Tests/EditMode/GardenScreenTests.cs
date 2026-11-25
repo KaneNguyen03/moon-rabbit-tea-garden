@@ -175,7 +175,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(screen.Arrival.IsOpen);
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void The_Shop_Sells_Golden_Packs_Through_The_Store_And_Pays_Out_Once()
         {
             screen.Shell.StartGame();
@@ -213,7 +213,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("packs.restored"), screen.GoldenPacks.Status);
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void Without_A_Store_The_Packs_Are_Greyed_And_The_Card_Says_So()
         {
             screen.Shell.StartGame();

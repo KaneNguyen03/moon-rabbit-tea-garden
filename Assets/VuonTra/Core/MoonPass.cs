@@ -44,6 +44,11 @@ namespace VuonTra.Core
                 var letter = new Letter { Id = "moonpass-" + today, Kind = LetterKind.MoonPassDay, Day = today, PassDay = (int)(today - s.MoonPassFromDay + 1), PassDays = RunDays(s) };
                 if (Mailbox.Add(s, letter)) added++;
             }
+            if (!Features.Monetization)
+            {
+                s.Letters.RemoveAll(l => l.Kind == LetterKind.MoonPassRenew);
+                return added;
+            }
             int left = DaysLeft(s, today);
             if (left > 0 && left <= RemindAtDaysLeft && s.MoonPassRemindedUntil != s.MoonPassUntilDay)
             {

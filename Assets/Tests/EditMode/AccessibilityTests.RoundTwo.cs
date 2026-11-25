@@ -10,6 +10,7 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public partial class AccessibilityTests
     {
         long roundTwoClock;

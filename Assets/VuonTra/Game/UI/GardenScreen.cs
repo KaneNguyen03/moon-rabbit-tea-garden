@@ -4023,7 +4023,7 @@ namespace VuonTra.Game.UI
             for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
             for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
             _questChests.Refresh(Runner.QuestDefs, s, Runner.TodayNumber, dt);
-            _monthPass.Refresh(s, Runner.TodayNumber, Runner.Store.PriceOf(MonthPass.ProductId));
+            _monthPass.Refresh(s, Runner.TodayNumber, Runner.PriceOf(MonthPass.ProductId));
             _questToday.text = L10n.T("quests.today.refresh", Span(SecondsToNextDay(System.DateTimeOffset.Now)));
             _achievementTiers.text = L10n.T("quests.tiers.total", Quests.TiersDone(Runner.QuestDefs, s));
             OrderQuestRows();

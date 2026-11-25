@@ -66,7 +66,7 @@ namespace VuonTra.Game
         void Awake()
         {
 #if UNITY_PURCHASING && (UNITY_IOS || UNITY_ANDROID) && !UNITY_EDITOR
-            Store = new VuonTra.Game.Store.UnityStorefront();
+            if (Features.Monetization) Store = new VuonTra.Game.Store.UnityStorefront();
 #endif
 #if !UNITY_EDITOR
             Application.logMessageReceived += OnLogMessage;
@@ -501,6 +501,10 @@ namespace VuonTra.Game
 
         IStorefront _storefront;
         readonly List<PurchaseResult> _deliveriesWaiting = new List<PurchaseResult>();
+        public bool StoreMade => _storefront != null;
+
+        public string PriceOf(string productId) => Features.Monetization ? Store.PriceOf(productId) : null;
+
         public IStorefront Store
         {
             get { if (_storefront == null) Store = new FakeStorefront(); return _storefront; }
@@ -523,6 +527,11 @@ namespace VuonTra.Game
 
         public void BuyGolden(string packId, Action<PurchaseResult> done)
         {
+            if (!Features.Monetization)
+            {
+                done?.Invoke(PurchaseResult.Of(PurchaseOutcome.Unavailable, packId));
+                return;
+            }
             if (Offers.Find(packId) != null && !Offers.CanBuy(State, packId, OfferNow))
             {
                 PurchaseResult gone = PurchaseResult.Of(PurchaseOutcome.Unavailable, packId);
@@ -543,7 +552,11 @@ namespace VuonTra.Game
             });
         }
 
-        public void RestorePurchases(Action<bool> done) => Store.Restore(done);
+        public void RestorePurchases(Action<bool> done)
+        {
+            if (Features.Monetization) Store.Restore(done);
+            else done?.Invoke(false);
+        }
 
         public IAccountService Account { get; set; } = new LocalOnlyAccount();
         ICloudSave _cloud = new LocalOnlyCloudSave();
@@ -948,6 +961,8 @@ namespace VuonTra.Game
         public static bool AdsInPlayerBuilds = false;
 
         IRewardedAds _adProvider;
+        public bool AdsMade => _adProvider != null;
+
         public IRewardedAds AdProvider
         {
             get { if (_adProvider == null) _adProvider = DefaultAds(); return _adProvider; }
@@ -956,6 +971,7 @@ namespace VuonTra.Game
 
         static IRewardedAds DefaultAds()
         {
+            if (!Features.Monetization) return new NoAds();
 #if UNITY_EDITOR
             return new FakeRewardedAds();
 #else
@@ -963,13 +979,13 @@ namespace VuonTra.Game
 #endif
         }
 
-        public bool AdsOn => !(AdProvider is NoAds);
+        public bool AdsOn => Features.Monetization && !(AdProvider is NoAds);
         public bool AdShowing { get; private set; }
 
         public AdOffer AdOfferFor(string placement, string game = null)
         {
             if (placement == Ads.AwayDouble && (LastAwayDoubled || LastAway.Paid < BigNum.One)) return AdOffer.None;
-            return Ads.Offer(State, TodayNumber, AdProvider, placement, game);
+            return Ads.Offer(State, TodayNumber, Features.Monetization ? AdProvider : null, placement, game);
         }
 
         public void WatchAd(string placement, string game, Action<bool> done)
@@ -1351,6 +1367,7 @@ namespace VuonTra.Game
 
         public void BuyMonthPass(Action<PurchaseResult> done)
         {
+            if (!Features.Monetization) { BuyGolden(MonthPass.ProductId, done); return; }
             if (!MonthPass.CanBuy(State, TodayNumber))
             {
                 PurchaseResult refused = PurchaseResult.Of(PurchaseOutcome.Duplicate, MonthPass.ProductId);

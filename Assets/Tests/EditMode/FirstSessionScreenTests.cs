@@ -12,6 +12,7 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public class FirstSessionScreenTests
     {
         const int HalfHour = 30 * 60;

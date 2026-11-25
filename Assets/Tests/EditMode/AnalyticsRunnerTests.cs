@@ -11,6 +11,7 @@ using Object = UnityEngine.Object;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public class AnalyticsRunnerTests
     {
         GameObject root;
@@ -286,6 +287,7 @@ namespace VuonTra.Core.Tests
         }
     }
 
+    [MonetizationOn]
     public class AnalyticsScreenTests
     {
         GameObject root;

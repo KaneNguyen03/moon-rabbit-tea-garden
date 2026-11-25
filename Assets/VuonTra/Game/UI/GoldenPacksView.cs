@@ -111,6 +111,7 @@ namespace VuonTra.Game.UI
 
         public void Open(IStorefront store)
         {
+            if (!Features.Monetization) return;
             _store = store;
             _busy = false;
             _status.text = store != null && store.Ready ? "" : L10n.T("packs.notready");
