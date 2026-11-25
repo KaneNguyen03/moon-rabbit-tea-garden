@@ -51,7 +51,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             OneLine(_todayLabel, UiKit.TextTitle);
             _todaySub = UiKit.Rect("Sub", TodayRow).Stretch(0, 0, 1, 0.5f, 36, 14, 200, 4)
-                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.UpperLeft);
             _todaySub.resizeTextForBestFit = true;
             _todaySub.resizeTextMinSize = 12;
             _todaySub.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);

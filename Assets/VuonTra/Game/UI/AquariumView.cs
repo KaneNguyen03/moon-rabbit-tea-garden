@@ -86,9 +86,9 @@ namespace VuonTra.Game.UI
             Fit(UiKit.Rect("Name", slot.Root).Place(0.5f, 1f, 0, -140, SlotWidth - 24, 40)
                 .AddText(L10n.T("fish." + fish), UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextSmall, 12);
             slot.Count = Fit(UiKit.Rect("Count", slot.Root).Place(0.5f, 1f, 0, -188, SlotWidth - 24, 52)
-                .AddText("×0", UiKit.TextTitle, Palette.CarrotLip, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextTitle, 16);
+                .AddText("×0", UiKit.TextTitle, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextTitle, 16);
             slot.Next = Fit(UiKit.Rect("Next", slot.Root).Place(0.5f, 1f, 0, -232, SlotWidth - 24, 36)
-                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter), UiKit.TextSmall, 11);
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleCenter), UiKit.TextSmall, 11);
             int marks = Aquarium.Milestones.Length;
             slot.Pips = new Image[marks];
             for (int i = 0; i < marks; i++)

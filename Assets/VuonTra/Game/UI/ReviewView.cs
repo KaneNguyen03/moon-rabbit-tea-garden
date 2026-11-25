@@ -63,7 +63,7 @@ namespace VuonTra.Game.UI
             text.supportRichText = false;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             Text hint = UiKit.Rect("Hint", field).Stretch(0, 0, 1, 1, 32, 0, 32, 0)
-                .AddText(L10n.T("review.feedback.hint"), UiKit.TextBody, Palette.OffInk, TextAnchor.MiddleLeft);
+                .AddText(L10n.T("review.feedback.hint"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
             hint.FitOneLine(696, 14);
             _input = field.gameObject.AddComponent<InputField>();
             _input.targetGraphic = fieldImage;

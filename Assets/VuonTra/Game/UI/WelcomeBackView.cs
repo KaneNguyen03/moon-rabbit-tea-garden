@@ -93,7 +93,7 @@ namespace VuonTra.Game.UI
             _name = Fit(UiKit.Rect("Name", rabbit).Stretch(0, 1, 1, 1, 250, -64, 30, 16)
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold), UiKit.TextTitle, 16);
             _hearts = Fit(UiKit.Rect("Hearts", rabbit).Stretch(0, 1, 1, 1, 250, -104, 30, 64)
-                .AddText("", UiKit.TextBody, Palette.CarrotLip, TextAnchor.MiddleLeft), UiKit.TextBody, 12);
+                .AddText("", UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleLeft), UiKit.TextBody, 12);
             _line = Fit(UiKit.Rect("Line", rabbit).Stretch(0, 0, 1, 1, 250, 18, 30, 110)
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.UpperLeft, FontStyle.Italic), UiKit.TextBody, 14);
             _line.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -110,7 +110,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold), UiKit.TextTitle, 16);
             for (int d = 0; d < WelcomeBack.Days; d++) _days[d] = BuildDay(d + 1);
             Fit(UiKit.Rect("Quests", _card).Place(0.5f, 1f, 0, -1010, 900, 50)
-                .AddText(L10n.T("welcome.quests"), UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextBody, 14);
+                .AddText(L10n.T("welcome.quests"), UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextBody, 14);
 
             var claim = UiKit.Rect("Claim", _card).Place(0.5f, 0f, 0, 180, 640, 120);
             _claim = UiKit.Chunky(claim, catalog.Panel, () => { _claim.Press(_tweens); _onCheckIn?.Invoke(); });

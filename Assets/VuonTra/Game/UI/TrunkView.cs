@@ -78,7 +78,7 @@ namespace VuonTra.Game.UI
             _have = Fit(UiKit.Rect("Text", purse).Stretch(0, 0, 0.5f, 1, 58, 0, 0, 0)
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold), UiKit.TextBody, 14);
             _note = Fit(UiKit.Rect("Note", purse).Stretch(0.5f, 0, 1, 1, 10, 0, 0, 0)
-                .AddText("", UiKit.TextBody, Palette.Mix(Palette.Moss, Palette.Ink, 0.45f), TextAnchor.MiddleRight, FontStyle.Bold), UiKit.TextBody, 12);
+                .AddText("", UiKit.TextBody, Palette.MossInk, TextAnchor.MiddleRight, FontStyle.Bold), UiKit.TextBody, 12);
 
             var grid = UiKit.Rect("Goods", _card).Stretch(0, 0, 1, 1, 0, 40, 0, 260);
             _grid = grid.gameObject;
@@ -136,8 +136,8 @@ namespace VuonTra.Game.UI
             tile.Sub = Fit(UiKit.Rect("Sub", tile.Root).Place(0.5f, 1f, 0, -270, TileWidth - 36f, 38)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter), UiKit.TextSmall, 12);
 
-            tile.Old = Badge(tile.Root, "Old", 0f, L10n.T("trunk.old"), Palette.Mix(Palette.Tiers[4], Palette.Ink, 0.45f));
-            tile.Sale = Badge(tile.Root, "Sale", 1f, L10n.T("trunk.sale", Trunk.SalePercent), Palette.Carrot);
+            tile.Old = Badge(tile.Root, "Old", 0f, L10n.T("trunk.old"), Palette.Mix(Palette.Tiers[4], Palette.Ink, 0.45f), Palette.Card);
+            tile.Sale = Badge(tile.Root, "Sale", 1f, L10n.T("trunk.sale", Trunk.SalePercent), Palette.Carrot, Palette.OnCarrot);
 
             int slot = i;
             var buy = UiKit.Rect("Buy", tile.Root).Place(0.5f, 0f, 0, 62, TileWidth - 80f, 100);
@@ -155,12 +155,12 @@ namespace VuonTra.Game.UI
             return tile;
         }
 
-        GameObject Badge(RectTransform parent, string name, float side, string text, Color color)
+        GameObject Badge(RectTransform parent, string name, float side, string text, Color color, Color ink)
         {
             float width = (TileWidth - 36f) / 2f;
             var badge = UiKit.Rect(name, parent).Place(side, 1f, side < 0.5f ? 14f + width / 2f : -14f - width / 2f, -30, width, 40);
             badge.AddImage(_catalog.Panel, color, true);
-            Fit(UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(text, UiKit.TextSmall, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextSmall, 10);
+            Fit(UiKit.Rect("Text", badge).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(text, UiKit.TextSmall, ink, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextSmall, 10);
             badge.gameObject.SetActive(false);
             return badge.gameObject;
         }
