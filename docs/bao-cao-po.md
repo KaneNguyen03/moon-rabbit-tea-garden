@@ -2456,6 +2456,24 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Hoãn theo hướng 2.5D: nối vào cảnh, test màn hình, Animator/clip đi bộ (dự án chưa có clip nào), GIF.
 - Cảnh 2.5D cần khoảng cách theo cỡ thân thỏ, không chỉ 200 từ tâm trạm.
 
+## #144 — Cờ tắt/bật luồng kiếm tiền, mặc định tắt (agent-144)
+**Test:** `tools/verify.sh` đầy đủ GREEN: 1764/1764, rules ok, 470 khung preview, save người chơi không đổi; Core 938/938.
+**Commit:** `457d960` (cherry-pick riêng của `8ac9d13` lên main `a2f5c08`; verify lượt gộp GREEN 1781/1781).
+**Đã làm:** Một cờ `Features.Monetization` (Core), mặc định tắt, bật bằng define `VUONTRA_MONETIZATION` (`VUONTRA_MONETIZATION=1 tools/build.sh …`). Khi tắt: Tiệm mất nút "Mua thêm" (gói, Vé trăng, Vé Bỏ quảng cáo, Khôi phục giao dịch), không có gói người mới/mốc cấp, không nút xem quảng cáo, Vé tháng chỉ còn hàng miễn phí, không giá tiền ở đâu; không tạo storefront hay nhà cung cấp video; 10 sự kiện analytics về mua/gói/quảng cáo/vé không ghi. Người đã mua Vé trăng, Vé tháng, Vé Bỏ quảng cáo giữ nguyên quyền lợi, chỉ mất thư nhắc mua lại. Cờ đứng trước luật nhịp thẻ của #115. Test mua hàng cũ tự bật cờ bằng `[MonetizationOn]`. Tài liệu trong `LO-TRINH-KIEM-TIEN.md` và `PHEU-SU-KIEN.md`; khung hình ở `docs/anh/po-144/`.
+### Chưa đạt / cần PO quyết
+- Nút "Nhận ngay" cho save còn hạn Vé Bỏ quảng cáo vẫn giữ khi cờ tắt.
+- Đồng hồ gói ưu đãi đứng yên khi tắt; bật lại thì gói tính giờ từ lúc bật.
+- Chưa có mục bật cờ trong Cài đặt bản Development (dùng define).
+- `LO-TRINH-KIEM-TIEN.md` giờ đã có trong git; checkout chính còn bản untracked cũ của chủ project, cần dời trước khi cập nhật checkout đó.
+- Khung po-144 mới tự chấm theo danh sách visual-critic-gate, chưa chạy bước chấm bằng mô hình thị giác riêng.
+
+## #135 bước 2 — Nhãn vườn theo ba bậc và zoom (nhánh design `nhan-vuon`, session Độ nét đồ họa)
+**Test:** gộp vào main `a2f5c08`; verify đầy đủ của lượt gộp GREEN 1763/1763, preview 460 khung, save không đổi. `WorldLabelTiersTests` mới (6 test, đỏ 5/6 trước khi sửa). visual-critic-gate APPROVED: `docs/anh/po-135/VERDICT.md`.
+**Commit:** 0d1e9ed
+**Đã làm:** Ở zoom mặc định còn 4 nhãn chữ ("Bông" và ba "Xếp thỏ +"); trò nhỏ thành chấm tối có số lượt; bảng trạm chỉ còn thanh tiến độ. Câu đầy đủ, "Cấp N" và giờ mở chỉ hiện khi zoom gần (ngưỡng `DetailZoom` ≈ 1,165, dùng hook `ShowZoomDetail` có sẵn, không thêm code mỗi khung). Thêm `Tweens.Fade`.
+### Chưa đạt / cần PO quyết
+- Duyệt ngưỡng zoom hiện chữ đầy đủ.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
