@@ -80,7 +80,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Intros.IsOpen(s, Intros.NewMoon));
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void Every_Card_Shows_Exactly_Once()
         {
             OpenEverything();
@@ -237,7 +237,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Intros.GapSeconds, queue.Wait, 1e-9);
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void The_Week_Chest_Opens_On_Day_Two_The_Trunk_On_Day_Three_And_The_Month_Pass_On_Day_Four()
         {
             s.TutorialStep = Tutorial.Steps;
@@ -258,7 +258,26 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(4, Intros.MonthPassDay);
         }
 
-        [Test]
+        [Test, MonetizationOn(false)]
+        public void With_Monetization_Off_The_Month_Pass_Card_Never_Opens_On_Any_Day()
+        {
+            OpenEverything();
+            for (int day = 1; day <= 60; day++)
+            {
+                PlayDay(day);
+                Assert.IsFalse(Intros.IsOpen(s, Intros.MonthPass), "day " + day);
+                Assert.IsFalse(Intros.Show(s, Intros.MonthPass), "day " + day);
+                Assert.IsFalse(Intros.Use(defs, s, Modifiers.None, Intros.MonthPass, out _, out _), "day " + day);
+            }
+            for (string id = Intros.Next(s); id != null; id = Intros.Next(s))
+            {
+                Assert.AreNotEqual(Intros.MonthPass, id);
+                Intros.Show(s, id);
+            }
+            Assert.IsFalse(s.IntrosSeen.Contains(Intros.MonthPass));
+        }
+
+        [Test, MonetizationOn]
         public void A_Clock_Turned_Back_Does_Not_Close_A_Day_Card_Again()
         {
             PlayDay(Intros.MonthPassDay);
@@ -328,7 +347,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Intros.Use(defs, s, Modifiers.None, Intros.Aquarium, out _, out _));
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void Each_Round_Two_Card_Shows_Once_And_Pays_Its_First_Try_Gift_Once()
         {
             OpenEverything();
@@ -415,7 +434,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(Intros.Aquarium, Intros.Next(o));
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void A_Save_From_Before_Any_Card_Marks_Every_Open_Round_Two_Card_Seen()
         {
             Used();

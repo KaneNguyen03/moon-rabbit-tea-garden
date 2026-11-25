@@ -42,7 +42,7 @@ namespace VuonTra.Core
                 case Aquarium: return VuonTra.Core.Fishing.Unlocked(s) && (VuonTra.Core.Fishing.InBasket(s) >= TankFish || Used(s, id));
                 case Trunk: return OnDay(s, TrunkDay);
                 case Fair: return Fairs.Open(s, s.MaxDaySeen) != null;
-                case MonthPass: return OnDay(s, MonthPassDay);
+                case MonthPass: return Features.Monetization && OnDay(s, MonthPassDay);
                 case WeekChest: return OnDay(s, WeekChestDay);
                 default: return false;
             }

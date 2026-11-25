@@ -391,9 +391,25 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(clovers + Intros.RewardClovers, S.Clovers, "once only");
         }
 
-        [TestCase(Intros.MonthPass)]
-        [TestCase(Intros.WeekChest)]
-        public void Try_Now_On_The_Month_Pass_Or_Week_Chest_Card_Opens_Quests_At_Its_Row_And_Lights_It(string id)
+        [Test, MonetizationOn]
+        public void Try_Now_On_The_Month_Pass_Card_Opens_Quests_At_Its_Row_And_Lights_It() => TryQuestRow(Intros.MonthPass);
+
+        [Test]
+        public void Try_Now_On_The_Week_Chest_Card_Opens_Quests_At_Its_Row_And_Lights_It() => TryQuestRow(Intros.WeekChest);
+
+        [Test, MonetizationOn(false)]
+        public void With_Monetization_Off_No_Month_Pass_Card_Comes_On_Day_Four()
+        {
+            OnlyDue(Intros.WeekChest);
+            S.IntrosSeen.Add(Intros.WeekChest);
+            S.IntrosSeen.Remove(Intros.MonthPass);
+            screen.IntroQueue.Reset();
+            Wait((int)Intros.GapSeconds + 1);
+            Assert.IsFalse(screen.IntroCard.IsOpen, "no card for a pass the garden does not sell");
+            Assert.IsFalse(S.IntrosSeen.Contains(Intros.MonthPass));
+        }
+
+        void TryQuestRow(string id)
         {
             ShowCard(id);
             Find("Canvas/Intro/Try").onClick.Invoke();
@@ -411,7 +427,7 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(screen.IntroGlow);
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void The_First_Week_Chest_And_Month_Tier_Claimed_Pay_Their_First_Try_Gift()
         {
             OnlyDue(Intros.WeekChest);

@@ -193,7 +193,7 @@ namespace VuonTra.Core.Tests
             return "| " + day + " | " + text + " |";
         }
 
-        [Test, Category("Slow"), Timeout(3600000)]
+        [Test, Category("Slow"), Timeout(3600000), MonetizationOn(false)]
         public void Weeks_Two_To_Four_Bring_Something_New_At_Least_Every_Two_To_Three_Days_And_The_Round_Two_Cards_Spread_Over_Days_Two_To_Four()
         {
             Cadence[] runs = CadenceOverSeeds();
@@ -204,7 +204,7 @@ namespace VuonTra.Core.Tests
             report.AppendLine();
             report.AppendLine("Ba kiểu người chơi như báo cáo 23/11 (thong thả 30 phút/ngày, chăm 4 × 15 phút, không nghỉ tay 2 giờ/ngày) × hai cách mua (từng cấp, Nâng tất cả đầu/cuối buổi và mỗi " +
                 "60 giây với người chăm, 10 giây với người không nghỉ tay) × " + Seeds.Length + " hạt, ngày 1–" + CadenceDays + ", bắt đầu Mùa trăng mới ngay khi được, câu " + Fishing.BaitCap + " mồi mỗi ngày và giữ cá, nhận nhiệm vụ mỗi " + CadenceQuestEvery + " giây (đo theo ngày nên chậm vài giây không đổi gì; người không nghỉ tay của test 2 giờ nhận mỗi giây). " +
-                "Lịch bắt đầu ngày 2/1/1970, không có hội trong 28 ngày ấy (hội chạy ngày 10–19 của tháng 3, 4, 5, 6, 7, 8, 10, 11), nên số đo là trường hợp không có hội.");
+                "Chạy với kiếm tiền tắt (#144, mặc định): thẻ vé tháng không hiện. Lịch bắt đầu ngày 2/1/1970, không có hội trong 28 ngày ấy (hội chạy ngày 10–19 của tháng 3, 4, 5, 6, 7, 8, 10, 11), nên số đo là trường hợp không có hội.");
             report.AppendLine();
             report.AppendLine("Thứ mới trong ngày: trạm mở (cả mở lại sau trăng mới), đoạn đất, Mùa trăng mới, thẻ giới thiệu tới lượt (tính năng mới), món mới trong sổ công thức, nấc thành tựu mới, hội. Lên cấp vườn không tính; cột cuối tính thêm để so với báo cáo 23/11.");
             report.AppendLine("\"Chuỗi không có gì mới\" là số ngày liền nhau trong ngày " + CadenceFrom + "–" + CadenceDays + " không có thứ mới nào; mỗi ô là trung vị [p10–p90] trên " + Seeds.Length + " hạt.");
@@ -276,7 +276,7 @@ namespace VuonTra.Core.Tests
                 {
                     Assert.AreEqual(Intros.WeekChestDay, run.CardDay[Intros.WeekChest], group.Key + ", seed " + run.Seed + ": the week chest card on day two\n" + text);
                     Assert.AreEqual(Intros.TrunkDay, run.CardDay[Intros.Trunk], "the trunk card on day three\n" + text);
-                    Assert.AreEqual(Intros.MonthPassDay, run.CardDay[Intros.MonthPass], "the month pass card on day four\n" + text);
+                    Assert.IsFalse(run.CardDay.ContainsKey(Intros.MonthPass), "with monetization off (#144) the month pass card never comes\n" + text);
                     Assert.IsFalse(run.CardDay.ContainsKey(Intros.Fair), "no fair in these 28 days\n" + text);
                 }
             }
