@@ -2474,6 +2474,15 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 ### Chưa đạt / cần PO quyết
 - Duyệt ngưỡng zoom hiện chữ đầy đủ.
 
+## #122 — Thẻ giới thiệu tuần 2–4 cho sổ công thức, bể cá, rương xe đẩy, hội, vé tháng, rương tuần (agent-122)
+**Test:** `tools/verify.sh` đầy đủ: tests 1784/1784, rules ok, RESULT GREEN. Mô phỏng `Weeks_Two_To_Four_…` (Slow) 1113 s, in `Logs/unlock-cadence.txt`.
+**Commit:** cfbd353, d492772 (main fast-forward tới f1a42bb; verify 1811/1811).
+**Đã làm:** thêm 6 thẻ vào `Intros` với thưởng thử lần đầu như 10 thẻ cũ; cổng rương tuần ngày 2, rương xe đẩy ngày 3, vé tháng ngày 4, bể cá đủ 10 cá thừa, sổ công thức cấp 30/trăng mới, hội khi đang chạy. "Thử ngay" mở đúng tấm hoặc tab Nhiệm vụ tại dòng có viền vàng. Lần dùng thật đầu tiên trả thưởng. Save cũ đã dùng tính năng không hiện thẻ (chuyển một lần bằng cờ `late`, save vẫn v14). Danh sách "Đã mở" cuộn được cho 16 thẻ. Thêm mô phỏng 3 kiểu × 2 cách mua × 17 hạt × 28 ngày. Không số nhịp kinh tế nào đổi. `feature_first_use` (#117) cho 6 thẻ mới.
+### Chưa đạt / cần PO quyết
+- Duyệt cổng thẻ ngày 2/3/4 và 10 cá.
+- Người chăm và không nghỉ tay sau trần 7 mùa: 3 ngày liền không có gì mới (không tính lên cấp).
+- Thẻ vé tháng chỉ mở khi cờ kiếm tiền #144 bật (đã làm); chờ chủ project bật lại.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
