@@ -197,7 +197,7 @@ namespace VuonTra.Game.UI
             row.Title = Fit(UiKit.Rect("Title", plate).Stretch(0, 0.6f, 1, 1, 30, 0, 280, 10)
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold), UiKit.TextBody, 14);
             row.Sub = Fit(UiKit.Rect("Sub", plate).Stretch(0, 0.36f, 1, 0.6f, 30, 0, 280, 0)
-                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft), UiKit.TextSmall, 12);
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.MiddleLeft), UiKit.TextSmall, 12);
             var track = UiKit.Rect("Track", plate).Band(30, 420, 26, 16);
             track.AddImage(_catalog.Panel, Palette.Track, true);
             row.Track = track.gameObject;

@@ -47,7 +47,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter);
             _sub.FitOneLine(780, 16);
             Text bonus = UiKit.Rect("Bonus", _card).Place(0.5f, 1f, 0, -514, 780, 44)
-                .AddText(L10n.T("dish.new.bonus"), UiKit.TextSmall, Palette.Mix(Palette.Moss, Palette.Ink, 0.45f), TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText(L10n.T("dish.new.bonus"), UiKit.TextSmall, Palette.MossInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             bonus.FitOneLine(780, 14);
             _more = UiKit.Rect("More", _card).Place(0.5f, 1f, 0, -560, 780, 40)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);

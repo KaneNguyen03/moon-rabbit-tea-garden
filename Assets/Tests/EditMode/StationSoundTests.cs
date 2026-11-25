@@ -33,6 +33,7 @@ namespace VuonTra.Core.Tests
             cam.transform.SetParent(root.transform);
             runner = root.AddComponent<GameRunner>();
             runner.Catalog = catalog;
+            runner.DayClock = () => GiftCodes.Day(2027, 10, 2);
             runner.Init(GameState.NewGame(catalog.BuildDefs()));
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;
@@ -278,13 +279,17 @@ namespace VuonTra.Core.Tests
             screen.ClockHours = () => 10d;
             screen.Advance(Frame);
             Assert.AreEqual(Sfx.Tune.Dawn, Sfx.PlayingTune);
+            screen.Advance(Sfx.TuneFadeSeconds);
             string day = Sfx.MusicClip.name;
             screen.ClockHours = () => 22d;
             screen.Advance(Frame);
             Assert.AreEqual(Sfx.Tune.Moon, Sfx.PlayingTune);
+            screen.Advance(Sfx.TuneFadeSeconds);
             string night = Sfx.MusicClip.name;
             Sfx.SetTune(Sfx.Tune.Rain);
-            Assert.AreEqual(Sfx.Tune.Rain, Sfx.PlayingTune, "a choice is heard at once");
+            Assert.AreEqual(Sfx.Tune.Rain, Sfx.PlayingTune, "a choice is taken at once");
+            screen.Advance(Sfx.TuneFadeSeconds);
+            Assert.AreEqual(Sfx.Tune.Rain, Sfx.PlayingTune, "and heard after the fade");
             string rain = Sfx.MusicClip.name;
             CollectionAssert.AllItemsAreUnique(new[] { day, night, rain });
             Assert.Greater(Sfx.MusicClip.length, 10f, "a tune, not a jingle");
@@ -300,9 +305,9 @@ namespace VuonTra.Core.Tests
             Transform pill = root.transform.Find("Canvas/Pause/Card/Tune");
             Assert.IsNotNull(pill);
             Text label = pill.Find("Text").GetComponent<Text>();
-            Assert.AreEqual("Tự động", label.text);
+            Assert.AreEqual("Tự động · Theo mùa", label.text);
             Assert.AreEqual("Nhạc", root.transform.Find("Canvas/Pause/Card/Tune Label").GetComponent<Text>().text);
-            string[] next = { "Đêm trăng", "Rạng sáng", "Mưa", "Tự động" };
+            string[] next = { "Đêm trăng", "Rạng sáng", "Mưa", "Tự động · Theo mùa" };
             for (int i = 0; i < next.Length; i++)
             {
                 pill.GetComponent<Button>().onClick.Invoke();

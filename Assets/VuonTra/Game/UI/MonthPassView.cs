@@ -98,7 +98,7 @@ namespace VuonTra.Game.UI
             QuestChestsView.OneLine(_buyLabel, UiKit.TextBody);
             _buyRoot = buy.gameObject;
             _bought = UiKit.Rect("Bought", Root).Place(0.5f, 0f, 0, 66, 900, 60)
-                .AddText("", UiKit.TextBody, Palette.Moss, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.MossInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             QuestChestsView.OneLine(_bought, UiKit.TextBody);
         }
 

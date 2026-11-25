@@ -24,6 +24,8 @@ namespace VuonTra.Game.UI
         public static readonly Color InkSoft = Mix(Ink, Paper, 0.30f);
         public static readonly Color CarrotLip = Mix(Carrot, Ink, 0.3f);
         public static readonly Color OnCarrot = Ink;
+        public static readonly Color CarrotInk = Mix(Carrot, Ink, 0.55f);
+        public static readonly Color MossInk = Mix(Moss, Ink, 0.45f);
         public static readonly Color Off = Mix(Paper, Ink, 0.2f);
         public static readonly Color OffLip = Mix(Paper, Ink, 0.36f);
         public static readonly Color OffInk = Mix(Ink, Paper, 0.5f);

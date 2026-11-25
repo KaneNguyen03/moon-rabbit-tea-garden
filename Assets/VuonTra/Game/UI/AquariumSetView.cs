@@ -46,7 +46,7 @@ namespace VuonTra.Game.UI
                 AquariumView.FishArt(UiKit.Rect("Fish " + k, water).Place(0.5f, 0.5f, -295f + 118f * k, k % 2 == 0 ? 24f : -28f, 96, 72), catalog, k);
 
             _bonus = Fit(UiKit.Rect("Bonus", _card).Place(0.5f, 1f, 0, -500, 820, 50)
-                .AddText("", UiKit.TextTitle, Palette.CarrotLip, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextTitle, 16);
+                .AddText("", UiKit.TextTitle, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextTitle, 16);
 
             Fit(UiKit.Rect("GiftsHead", _card).Place(0.5f, 1f, 0, -580, 820, 50)
                 .AddText(L10n.T("tank.full.gifts"), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextTitle, 16);

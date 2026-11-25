@@ -10,6 +10,7 @@ namespace VuonTra.Game.UI
         public RectTransform Root;
         public Image Plate, Art, Silhouette;
         public Text Numeral;
+        public GameObject Tag;
         Color _plate;
 
         public GameObject Shadow => Silhouette.gameObject;
@@ -28,11 +29,11 @@ namespace VuonTra.Game.UI
             icon.Art.preserveAspect = true;
             icon.Silhouette = UiKit.Rect("Shadow", icon.Root).Stretch(0, 0, 1, 1, pad, pad, pad, pad).AddImage(null, Palette.Alpha(Palette.Ink, 0.5f));
             icon.Silhouette.preserveAspect = true;
-            icon.Numeral = UiKit.Rect("Numeral", icon.Root).Place(1f, 0f, -size * 0.18f, size * 0.16f, size * 0.6f, size * 0.36f)
+            var tag = UiKit.Rect("Tag", icon.Root).Place(1f, 0f, -size * 0.18f, size * 0.16f, size * 0.6f, size * 0.36f);
+            tag.AddImage(catalog.Panel, Palette.Card, true);
+            icon.Tag = tag.gameObject;
+            icon.Numeral = UiKit.Rect("Numeral", tag).Stretch(0, 0, 1, 1)
                 .AddText("", Mathf.RoundToInt(size * 0.26f), Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
-            var outline = icon.Numeral.gameObject.AddComponent<Outline>();
-            outline.effectColor = Palette.Paper;
-            outline.effectDistance = new Vector2(2f, -2f);
             return icon;
         }
 
@@ -44,6 +45,7 @@ namespace VuonTra.Game.UI
             Silhouette.sprite = art;
             _plate = dish == 0 ? Palette.Mix(data.Accent, Palette.Paper, 0.62f) : Palette.Mix(Tint(dish), Palette.Paper, 0.35f);
             Numeral.text = NumeralOf(dish);
+            Tag.SetActive(Numeral.text.Length > 0);
             SetHidden(false);
         }
 
@@ -52,7 +54,7 @@ namespace VuonTra.Game.UI
             Silhouette.gameObject.SetActive(hidden);
             Art.enabled = !hidden;
             Plate.color = hidden ? Palette.Track : _plate;
-            Numeral.color = hidden ? Palette.OffInk : Palette.Ink;
+            Numeral.color = hidden ? Palette.InkSoft : Palette.Ink;
         }
     }
 }
