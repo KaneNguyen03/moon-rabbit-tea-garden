@@ -25,3 +25,68 @@ framework:
 # here. `/project-settings --local <key>=<value>` writes there; `/project-settings <key>=<value>`
 # edits this file. See `.claude/docs/config-resolution.md` for the full
 # precedence order.
+
+project:
+  stage: Production
+  name: "Vườn Trà Thỏ Trăng"
+  name_en: "Moon Rabbit Tea Garden"
+  genre: "Idle / cozy management"
+  version: "0.1.0"
+  kind: game
+  goal: mobile
+  languages: [vi, en]
+  orientation: portrait
+
+modes:
+  rigor: standard
+  automation: guided
+
+platform:
+  multiplayer: false
+  online: true
+  targets: [Mobile]
+  primary_input: "Touch"
+  gamepad_support: "None"
+  touch_support: "Full"
+
+engine:
+  name: "Unity"
+  version: "6000.6.10f1"
+  language: "C#"
+  rendering: "URP 17.6 Renderer2D; UniversalRenderer Forward+ planned for the 2.5D garden"
+  physics: "PhysX"
+  path: "/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity"
+  code_root: "Assets/VuonTra"
+  test_root: "Assets/Tests"
+
+specialists:
+  code: "unity-specialist"
+  shader: "unity-shader-specialist"
+  ui: "unity-ui-specialist"
+  additional: ["unity-addressables-specialist"]
+
+naming:
+  classes: PascalCase
+  variables: camelCase
+  constants: PascalCase
+  signals: on_event_name
+  files: PascalCase
+  scenes: PascalCase
+
+testing:
+  framework: nunit
+
+cadence:
+  sprint_length: "1w"
+  milestone_length: "4w"
+
+performance:
+  target_framerate: 60
+  frame_budget_ms: 16.67
+  enforce: warn
+
+commands:
+  build: "tools/verify.sh --build"
+  test: "tools/ci/core-tests.sh"
+  run: "tools/verify.sh --fast"
+  smoke: "python3 -I tools/conventions.py && tools/ci/core-tests.sh"
