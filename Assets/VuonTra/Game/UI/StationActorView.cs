@@ -38,6 +38,9 @@ namespace VuonTra.Game.UI
         RectTransform _rabbit, _fill, _prop, _pad, _chipRect;
         Image _rabbitImage, _propImage, _chip, _groundImage;
         Text _label;
+        CanvasGroup _plateGroup, _wordsGroup;
+        bool _near;
+        int _wordsState = -1;
         GameObject _bar, _glow, _shadow, _ground, _floor;
         /// <summary>The painted ground's centre and box, under the prop and the pad together.</summary>
         public static readonly Vector2 FloorAt = new Vector2(20f, -128f), FloorSize = new Vector2(460f, 230f);
@@ -222,9 +225,10 @@ namespace VuonTra.Game.UI
 
             // Level and cycle progress share one plate, centred under the station. Before the station is
             // built the same plate is the price sign.
-            _chipRect = UiKit.Rect("Level", Front).Place(0.5f, 0.5f, PlateX, -152, PlateW, 58);
+            _chipRect = UiKit.Rect("Level", Front).Place(0.5f, 0.5f, PlateX, -152, PlateW, PlateH);
             _chipHome = _chipRect.anchoredPosition;
             _chip = _chipRect.AddImage(catalog.Panel, Palette.Paper, true);
+            _plateGroup = _chipRect.gameObject.AddComponent<CanvasGroup>();
             var barBg = UiKit.Rect("Bar", _chipRect).Band(16, 16, 7, 14);
             barBg.AddImage(catalog.Panel, Palette.Alpha(Palette.Ink, 0.42f), true);
             _bar = barBg.gameObject;
@@ -237,10 +241,37 @@ namespace VuonTra.Game.UI
             _label.resizeTextMinSize = 16;
             _label.resizeTextMaxSize = 27;
             _label.verticalOverflow = VerticalWrapMode.Truncate;
+            _wordsGroup = _label.gameObject.AddComponent<CanvasGroup>();
         }
 
         /// <summary>How far right of the station's middle its level plate stands, and how wide it is, in the station's own units.</summary>
-        public const float PlateX = 16f, PlateW = 236f;
+        public const float PlateX = 16f, PlateW = 236f, PlateH = 58f, BarPlateH = 28f;
+
+        public void ShowWords(bool near, Tweens tweens)
+        {
+            _near = near;
+            ApplyWords(tweens);
+        }
+
+        void ApplyWords(Tweens tweens)
+        {
+            bool words = _near || _look != StationLook.Open, plate = words || _bar.activeSelf;
+            int state = (words ? 1 : 0) | (plate ? 2 : 0);
+            if (state == _wordsState) return;
+            _wordsState = state;
+            float height = words ? PlateH : BarPlateH;
+            if (tweens == null || Motion.Reduced)
+            {
+                _wordsGroup.alpha = words ? 1f : 0f;
+                _plateGroup.alpha = plate ? 1f : 0f;
+                _chipRect.sizeDelta = new Vector2(PlateW, height);
+                return;
+            }
+            tweens.Fade(_wordsGroup, words ? 1f : 0f);
+            tweens.Fade(_plateGroup, plate ? 1f : 0f);
+            float from = _chipRect.sizeDelta.y;
+            tweens.Add(Motion.Quick, t => { if (_chipRect != null) _chipRect.sizeDelta = new Vector2(PlateW, from + (height - from) * t); });
+        }
 
         /// <summary>Puts the front where the root is, at its size and scale, shown when the root is.</summary>
         public void SyncFront()
@@ -294,6 +325,7 @@ namespace VuonTra.Game.UI
                 _signBob = false;
             }
             else _level = -1;
+            ApplyWords(null);
             ShowWho();
         }
 
