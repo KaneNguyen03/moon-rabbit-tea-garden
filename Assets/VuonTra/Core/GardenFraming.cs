@@ -1,0 +1,140 @@
+using System;
+
+namespace VuonTra.Core
+{
+    public readonly struct GroundPoint
+    {
+        public readonly double X, Z;
+        public GroundPoint(double x, double z) { X = x; Z = z; }
+        public override string ToString() => "(" + X + ", " + Z + ")";
+    }
+
+    public readonly struct GroundRect
+    {
+        public readonly double MinX, MaxX, MinZ, MaxZ;
+        public GroundRect(double minX, double maxX, double minZ, double maxZ) { MinX = minX; MaxX = maxX; MinZ = minZ; MaxZ = maxZ; }
+        public double Width => MaxX - MinX;
+        public double Depth => MaxZ - MinZ;
+        public GroundPoint Centre => new GroundPoint((MinX + MaxX) / 2d, (MinZ + MaxZ) / 2d);
+        public bool Contains(GroundPoint p) => p.X >= MinX && p.X <= MaxX && p.Z >= MinZ && p.Z <= MaxZ;
+    }
+
+    public readonly struct CameraPose
+    {
+        public readonly double X, Y, Z, PitchDegrees;
+        public CameraPose(double x, double y, double z, double pitchDegrees) { X = x; Y = y; Z = z; PitchDegrees = pitchDegrees; }
+    }
+
+    public readonly struct MapFrame
+    {
+        public readonly GroundPoint Centre;
+        public readonly double HalfHeight;
+        public MapFrame(GroundPoint centre, double halfHeight) { Centre = centre; HalfHeight = halfHeight; }
+    }
+
+    public sealed class CameraSpec
+    {
+        public const double ZoomFar = 1920d / 2970d, ZoomDefault = 0.83d, ZoomNear = 1.5d;
+        public const double DetailZoom = (ZoomDefault + ZoomNear) / 2d;
+
+        public double FovDegrees = 25d;
+        public double TiltDegrees = 40d;
+        public double TileWidth = 1d;
+        public double RowDepth = GardenGrid.PitchY / GardenGrid.PitchX;
+        public double DefaultDistance = 35d;
+        public double EdgeGive = 0.6d;
+        public double GlideFadeSeconds = 0.35d;
+        public double GlideLeftAtFade = 0.05d;
+        public double StopSpeed = 0.05d;
+
+        public double NearDistance => DefaultDistance * ZoomDefault / ZoomNear;
+        public double FarDistance => DefaultDistance * ZoomDefault / ZoomFar;
+    }
+
+    public static class GardenFraming
+    {
+        const double Degrees = Math.PI / 180d;
+
+        public static GroundPoint Ground(Hex h, CameraSpec spec) => new GroundPoint(GardenGrid.Column(h) * spec.TileWidth / 2d, -h.R * spec.RowDepth);
+
+        public static GroundRect Island(int segments, CameraSpec spec)
+        {
+            double halfX = spec.TileWidth / 2d, halfZ = spec.RowDepth / 2d;
+            return new GroundRect(
+                -GardenGrid.Reach(segments, GardenSide.Left) * spec.TileWidth / 2d - halfX,
+                GardenGrid.Reach(segments, GardenSide.Right) * spec.TileWidth / 2d + halfX,
+                -GardenGrid.Reach(segments, GardenSide.Down) * spec.RowDepth - halfZ,
+                GardenGrid.Reach(segments, GardenSide.Up) * spec.RowDepth + halfZ);
+        }
+
+        public static Hex TileAt(GroundPoint p, CameraSpec spec)
+        {
+            int row = (int)Math.Round(-p.Z / spec.RowDepth);
+            double column = p.X * 2d / spec.TileWidth;
+            Hex best = default;
+            double bestGap = double.MaxValue;
+            for (int r = row - 1; r <= row + 1; r++)
+            {
+                int c = r + 2 * (int)Math.Round((column - r) / 2d);
+                for (int cc = c - 2; cc <= c + 2; cc += 2)
+                {
+                    var h = new Hex((cc - r) / 2, r);
+                    GroundPoint at = Ground(h, spec);
+                    double dx = at.X - p.X, dz = at.Z - p.Z, gap = dx * dx + dz * dz;
+                    if (gap < bestGap) { bestGap = gap; best = h; }
+                }
+            }
+            return best;
+        }
+
+        public static CameraPose Pose(GroundPoint focus, double distance, CameraSpec spec)
+        {
+            double tilt = spec.TiltDegrees * Degrees;
+            return new CameraPose(focus.X, distance * Math.Sin(tilt), focus.Z - distance * Math.Cos(tilt), spec.TiltDegrees);
+        }
+
+        public static double HalfWidthAt(double distance, double aspect, CameraSpec spec) => distance * Math.Tan(spec.FovDegrees * Degrees / 2d) * aspect;
+
+        public static double DistanceOf(double zoom, CameraSpec spec) => spec.DefaultDistance * CameraSpec.ZoomDefault / zoom;
+        public static double ZoomOf(double distance, CameraSpec spec) => spec.DefaultDistance * CameraSpec.ZoomDefault / distance;
+        public static bool ShowsDetail(double distance, CameraSpec spec) => ZoomOf(distance, spec) > CameraSpec.DetailZoom;
+
+        public static double Pinch(double distance, double startSpan, double span, CameraSpec spec)
+        {
+            if (startSpan <= 0d || span <= 0d) return distance;
+            return Math.Max(spec.NearDistance, Math.Min(spec.FarDistance, distance * startSpan / span));
+        }
+
+        public static GroundPoint ZoomAbout(GroundPoint focus, GroundPoint anchor, double fromDistance, double toDistance)
+        {
+            double k = toDistance / fromDistance;
+            return new GroundPoint(anchor.X + (focus.X - anchor.X) * k, anchor.Z + (focus.Z - anchor.Z) * k);
+        }
+
+        public static GroundPoint Drag(GroundPoint wanted, GroundRect island, CameraSpec spec) =>
+            new GroundPoint(Give(wanted.X, island.MinX, island.MaxX, spec.EdgeGive), Give(wanted.Z, island.MinZ, island.MaxZ, spec.EdgeGive));
+
+        public static GroundPoint Settle(GroundPoint held, GroundRect island) =>
+            new GroundPoint(Math.Max(island.MinX, Math.Min(island.MaxX, held.X)), Math.Max(island.MinZ, Math.Min(island.MaxZ, held.Z)));
+
+        static double Give(double v, double min, double max, double give)
+        {
+            if (v > max) return max + Soft(v - max, give);
+            if (v < min) return min - Soft(min - v, give);
+            return v;
+        }
+
+        static double Soft(double over, double give) => give * over / (over + give);
+
+        public static double Glide(double speed, double seconds, CameraSpec spec, bool reducedMotion)
+        {
+            if (reducedMotion) return 0d;
+            double rate = -Math.Log(spec.GlideLeftAtFade) / spec.GlideFadeSeconds;
+            double next = speed * Math.Exp(-rate * seconds);
+            return Math.Abs(next) < spec.StopSpeed ? 0d : next;
+        }
+
+        public static MapFrame Map(GroundRect island, double aspect) =>
+            new MapFrame(island.Centre, Math.Max(island.Depth / 2d, island.Width / 2d / aspect));
+    }
+}

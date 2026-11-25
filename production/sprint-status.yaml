@@ -21,7 +21,7 @@ stories:
     name: "Đất và camera"
     file: "production/epics/vuon-2-5d/story-145-dat-va-camera.md"
     priority: must-have
-    status: ready-for-dev
+    status: in-progress
     owner: "B"
     estimate_days: 4
     blocker: ""
