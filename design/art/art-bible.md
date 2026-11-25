@@ -3,14 +3,14 @@
 > **Status**: Approved (26/11/2026, chủ project duyệt qua session điều phối: "Approve")
 > **Owned By**: art-director (session design)
 > **Last Updated**: 2026-11-26
-> **Art Director Sign-Off (AD-ART-BIBLE)**: CONCERNS, ba việc tiếp theo ở cuối tệp
+> **Art Director Sign-Off (AD-ART-BIBLE)**: CONCERNS, hai việc tiếp theo ở cuối tệp
 
 Tài liệu này theo mẫu studio (`.claude/docs/templates/art-bible.md`). Nó gác cổng trước `/asset-spec`. Chi tiết đã chốt không chép lại ở đây mà dẫn chiếu:
 - [`docs/art-bible.md`](../../docs/art-bible.md): bảng màu và luật hình ảnh chi tiết (nguồn gốc của mọi hex).
 - [`docs/de-xuat-2-5d.md`](../../docs/de-xuat-2-5d.md): hướng 2.5D chủ project duyệt 26/11.
 - [`docs/nghien-cuu-thiet-ke-do-hoa.md`](../../docs/nghien-cuu-thiet-ke-do-hoa.md) §4: định hướng thẩm mỹ và nguồn nghiên cứu.
 
-**Trụ trải nghiệm (tạm).** Chưa có `design/game-brief.md`; dùng tạm bốn trụ của skill `game-designer-thinking`, đối chiếu lại khi brief có:
+**Trụ trải nghiệm** (nguồn: [`design/gdd/game-concept.md`](../gdd/game-concept.md) mục Game Pillars; câu Visual Identity Anchor ở đó dẫn nguyên văn mục 1 dưới đây):
 - **P1 Yên:** không gì làm chói mắt hay giục giã.
 - **P2 Của mình:** vườn và thỏ là của người chơi.
 - **P3 Thấy tiến bộ:** mỗi lần ghé thấy điều mới.
@@ -104,8 +104,7 @@ Hex và tên màu ở [`docs/art-bible.md`](../../docs/art-bible.md) §2 và `As
 
 ## Ký duyệt AD-ART-BIBLE (tự chấm theo `.claude/docs/director-gates/ad-art-bible.md`)
 
-**CONCERNS**, giữ làm việc tiếp theo sau khi duyệt:
-- Trụ trải nghiệm là tạm: cập nhật §1 khi session studio-adopt có `design/game-brief.md`.
+**CONCERNS**, giữ làm việc tiếp theo sau khi duyệt (trụ trải nghiệm đã khớp `design/gdd/game-concept.md`, gỡ khỏi danh sách):
 - Ngân sách hiệu năng theo #149, máy yếu nhất là iPhone 11 và Android Snapdragon 665: §8 thêm số draw call và bộ nhớ khi #149 đo xong.
 - Phông chữ riêng (#142) chưa có; §7 dựa trên phông hệ điều hành.
 - Phần còn lại nhất quán: màu (§4) phục vụ không khí đêm yên (§2); hình khối (§3) theo câu nhận diện (§1); tiêu chuẩn (§8) khớp hướng 2.5D đã duyệt.
