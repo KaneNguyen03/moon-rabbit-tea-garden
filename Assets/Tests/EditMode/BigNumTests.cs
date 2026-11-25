@@ -133,5 +133,26 @@ namespace VuonTra.Core.Tests
             var huge = new BigNum(1e30);
             Assert.AreEqual(huge.ToShortString(), huge.ToFullString('.'));
         }
+        [Test]
+        public void The_Short_Key_Changes_Exactly_When_The_Short_Form_Does()
+        {
+            var rng = new System.Random(123);
+            var seen = new System.Collections.Generic.Dictionary<long, string>();
+            var keys = new System.Collections.Generic.Dictionary<string, long>();
+            for (int n = 0; n < 200000; n++)
+            {
+                BigNum value = n < 3000 ? new BigNum(n * 0.37) : BigNum.FromParts(1d + 9d * rng.NextDouble(), rng.Next(-2, 120));
+                if (n % 7 == 0) value = BigNum.FromParts(System.Math.Round(value.Mantissa, 2), value.Exponent);
+                string text = value.ToShortString();
+                long key = value.ShortKey();
+                if (seen.TryGetValue(key, out string before)) Assert.AreEqual(before, text, "one key, one text: " + key);
+                else seen[key] = text;
+                if (keys.TryGetValue(text, out long had)) Assert.AreEqual(had, key, "one text, one key: " + text);
+                else keys[text] = key;
+            }
+            Assert.AreEqual(BigNum.Zero.ShortKey(), new BigNum(0.4).ShortKey(), "both read 0");
+            Assert.AreNotEqual(new BigNum(100d).ShortKey(), new BigNum(10d).ShortKey());
+            Assert.AreNotEqual(BigNum.FromParts(1d, 5).ShortKey(), BigNum.FromParts(1d, 4).ShortKey(), "100K and 10,0K");
+        }
     }
 }

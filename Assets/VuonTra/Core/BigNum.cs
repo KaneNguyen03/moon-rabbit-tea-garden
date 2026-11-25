@@ -127,20 +127,31 @@ namespace VuonTra.Core
         public string ToShortString()
         {
             if (IsZero || Exponent < 0) return "0";
-            if (Exponent < 3)
-            {
-                double small = Math.Floor(Mantissa * Math.Pow(10d, Exponent) + 1e-9);
-                return small.ToString("0", CultureInfo.InvariantCulture);
-            }
+            if (Exponent < 3) return SmallValue().ToString("0", CultureInfo.InvariantCulture);
+            ShortDigits(out long group, out int places, out double digits);
+            string text = places == 0 ? digits.ToString("0", CultureInfo.InvariantCulture)
+                : places == 1 ? (digits / 10d).ToString("0.0", CultureInfo.InvariantCulture)
+                : (digits / 100d).ToString("0.00", CultureInfo.InvariantCulture);
+            return text.Replace('.', ',') + Suffix(group);
+        }
 
-            long group = Exponent / 3;
-            int rem = (int)(Exponent % 3);
-            double v = Mantissa * Math.Pow(10d, rem);
-            string digits;
-            if (v >= 100d) digits = Math.Floor(v + 1e-9).ToString("0", CultureInfo.InvariantCulture);
-            else if (v >= 10d) digits = (Math.Floor(v * 10d + 1e-9) / 10d).ToString("0.0", CultureInfo.InvariantCulture);
-            else digits = (Math.Floor(v * 100d + 1e-9) / 100d).ToString("0.00", CultureInfo.InvariantCulture);
-            return digits.Replace('.', ',') + Suffix(group);
+        public long ShortKey()
+        {
+            if (IsZero || Exponent < 0) return 0L;
+            if (Exponent < 3) return 1L + (long)SmallValue();
+            ShortDigits(out long group, out int places, out double digits);
+            return unchecked((group * 3L + places + 1L) * 1000L + (long)digits);
+        }
+
+        double SmallValue() => Math.Floor(Mantissa * Math.Pow(10d, Exponent) + 1e-9);
+
+        void ShortDigits(out long group, out int places, out double digits)
+        {
+            group = Exponent / 3;
+            double v = Mantissa * Math.Pow(10d, (int)(Exponent % 3));
+            if (v >= 100d) { places = 0; digits = Math.Floor(v + 1e-9); }
+            else if (v >= 10d) { places = 1; digits = Math.Floor(v * 10d + 1e-9); }
+            else { places = 2; digits = Math.Floor(v * 100d + 1e-9); }
         }
 
         public string ToFullString(char group)

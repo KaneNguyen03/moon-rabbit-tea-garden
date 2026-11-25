@@ -209,9 +209,9 @@ namespace VuonTra.Game.UI
         readonly List<GameObject> _seatCushions = new List<GameObject>();
         readonly long[] _seatIds = new long[RestSpots.Max];
         int _seated;
-        sealed class Courier { public RectTransform Rect; public Vector2 From, To; public float T, Duration; public int Target; }
+        sealed class Courier { public RectTransform Rect; public Image Item; public Vector2 From, To; public float T, Duration; public int Target; }
         readonly List<Walker> _walkers = new List<Walker>();
-        readonly List<Courier> _couriers = new List<Courier>();
+        readonly List<Courier> _couriers = new List<Courier>(), _idleCouriers = new List<Courier>();
         readonly List<Vector2Int> _supplyRoutes = new List<Vector2Int>(); // ingredient station → brew station
         float _courierTimer;
         int _nextRoute;
@@ -303,6 +303,17 @@ namespace VuonTra.Game.UI
         Text _sheetTitle;
         float _sinceRefresh, _clock;
         double _shownCoins;
+        readonly ShownText _walletShown = new ShownText(), _perSecondShown = new ShownText(), _questTodayShown = new ShownText(), _tiersShown = new ShownText(),
+            _mortarShown = new ShownText(), _basketShown = new ShownText(), _jarPlateShown = new ShownText(), _barBadgeShown = new ShownText(),
+            _rabbitBadgeShown = new ShownText(), _stationBadgeShown = new ShownText(), _cloversShown = new ShownText(), _goldenShown = new ShownText(),
+            _levelShown = new ShownText(), _seasonShown = new ShownText(), _energyLabelShown = new ShownText(), _energyActionShown = new ShownText(),
+            _jarShown = new ShownText(), _pondShown = new ShownText(), _moonPillShown = new ShownText(),
+            _edgeLeftShown = new ShownText(), _edgeRightShown = new ShownText(), _edgeUpShown = new ShownText(), _edgeDownShown = new ShownText(),
+            _storeCountShown = new ShownText(), _profileShown = new ShownText(),
+            _cardNameShown = new ShownText(), _cardLevelShown = new ShownText(), _cardWorkerShown = new ShownText(), _cardDishLineShown = new ShownText(),
+            _cardDishRaiseShown = new ShownText(), _cardInfoShown = new ShownText(), _cardBuyTopShown = new ShownText(), _cardBuyCostShown = new ShownText();
+        Sprite _profileArt;
+        readonly List<ShownText> _tierShown = new List<ShownText>();
         int _shownStations = -1;
         bool _built;
 
@@ -395,7 +406,7 @@ namespace VuonTra.Game.UI
             _shownCoins = System.Math.Abs(target - _shownCoins) < 0.5 || target > 1e15
                 ? target
                 : _shownCoins + (target - _shownCoins) * Mathf.Clamp01(dt * 10f);
-            _coins.text = target > 1e15 ? s.Coins.Short() : new BigNum(_shownCoins).Short();
+            _walletShown.Short(_coins, target > 1e15 ? s.Coins : new BigNum(_shownCoins));
 
             _sinceRefresh += dt;
             if (_sinceRefresh >= RefreshInterval) Refresh(_sinceRefresh);
@@ -870,8 +881,8 @@ namespace VuonTra.Game.UI
                 if (c.T >= 1f)
                 {
                     if (c.Target < _actors.Count) _actors[c.Target].PopProp();
-                    Discard(c.Rect.gameObject);
                     _couriers.RemoveAt(i);
+                    ParkCourier(c);
                     continue;
                 }
                 // Little hops along the way.
@@ -976,7 +987,7 @@ namespace VuonTra.Game.UI
         /// <summary>One ingredient sets off from its station to a station that uses it, when both are open.</summary>
         void SendCourier()
         {
-            if (_supplyRoutes.Count == 0 || _couriers.Count >= 8) return;
+            if (_supplyRoutes.Count == 0 || _couriers.Count >= MaxCouriers) return;
             GameState s = Runner.State;
             for (int tries = 0; tries < _supplyRoutes.Count; tries++)
             {
@@ -986,12 +997,49 @@ namespace VuonTra.Game.UI
 
                 GameCatalog catalog = Runner.Catalog;
                 Vector2 from = StationSpot(route.x) + new Vector2(112, -70) * StationSize(route.x), to = StationSpot(route.y) + new Vector2(112, -70) * StationSize(route.y);
-                var rt = UiKit.Rect("Courier", _street).Place(0f, 0f, from.x, from.y, 46, 46);
-                UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, -2, 40, 12).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
-                UiKit.Rect("Item", rt).Stretch(0, 0, 1, 1).AddImage(catalog.Stations[route.x].Prop, Color.white).preserveAspect = true;
-                _couriers.Add(new Courier { Rect = rt, From = from, To = to, Target = route.y, Duration = Mathf.Max(1.2f, Vector2.Distance(from, to) / 260f) });
+                Courier courier = TakeCourier(catalog);
+                courier.Item.sprite = catalog.Stations[route.x].Prop;
+                courier.Rect.anchoredPosition = from;
+                courier.From = from;
+                courier.To = to;
+                courier.T = 0f;
+                courier.Target = route.y;
+                courier.Duration = Mathf.Max(1.2f, Vector2.Distance(from, to) / 260f);
+                _couriers.Add(courier);
                 return;
             }
+        }
+
+        const int MaxCouriers = 8;
+
+        Courier TakeCourier(GameCatalog catalog)
+        {
+            int last = _idleCouriers.Count - 1;
+            if (last < 0) return NewCourier(catalog);
+            Courier idle = _idleCouriers[last];
+            _idleCouriers.RemoveAt(last);
+            idle.Rect.name = CourierName;
+            idle.Rect.SetAsLastSibling();
+            idle.Rect.gameObject.SetActive(true);
+            return idle;
+        }
+
+        const string CourierName = "Courier", IdleCourierName = "Courier (idle)";
+
+        void ParkCourier(Courier courier)
+        {
+            courier.Rect.name = IdleCourierName;
+            courier.Rect.gameObject.SetActive(false);
+            _idleCouriers.Add(courier);
+        }
+
+        Courier NewCourier(GameCatalog catalog)
+        {
+            var rt = UiKit.Rect(CourierName, _street).Place(0f, 0f, 0f, 0f, 46, 46);
+            UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, -2, 40, 12).AddImage(catalog.Round, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f));
+            Image item = UiKit.Rect("Item", rt).Stretch(0, 0, 1, 1).AddImage(null, Color.white);
+            item.preserveAspect = true;
+            return new Courier { Rect = rt, Item = item };
         }
 
         /// <summary>Now and then a golden firefly crosses the screen, and a working rabbit nods off.</summary>
@@ -1118,7 +1166,7 @@ namespace VuonTra.Game.UI
             _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
             _seatHats.Clear(); _seatNames.Clear();
             _worldLabels.Clear(); _labelsNear = false;
-            _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
+            _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _idleCouriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
             // The old helpers belong to the destroyed canvas; Build makes new ones.
@@ -1429,6 +1477,7 @@ namespace VuonTra.Game.UI
                     if (to >= 0) _supplyRoutes.Add(new Vector2Int(i, to));
                 }
             }
+            while (_idleCouriers.Count < MaxCouriers) ParkCourier(NewCourier(catalog));
 
             // Resting rabbits sit about the garden. Each seat is a place a rabbit can be tapped.
             Color shade = Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.5f), 0.35f);
@@ -1775,9 +1824,11 @@ namespace VuonTra.Game.UI
         void RefreshCardDish(IReadOnlyList<StationDef> defs, GameState s, int i, bool open)
         {
             int dish = Recipes.CurrentDish(s, i), level = Recipes.Level(s, i), cost = Recipes.RaiseCost(s, i);
-            _cardDishLine.text = L10n.T("dish.line", L10n.Dish(defs[i].Id, dish), level);
+            if (_cardDishLineShown.Changes(_cardDishLine, dish, level, defs[i].Id)) _cardDishLine.text = L10n.T("dish.line", L10n.Dish(defs[i].Id, dish), level);
             bool can = open && Recipes.CanRaise(s, i);
-            _cardDishRaise.text = !Recipes.Unlocked(s) ? L10n.T("dish.locked", Recipes.UnlockLevel) : !open ? L10n.T("dish.closed") : cost <= 0 ? L10n.T("dish.max") : L10n.T("dish.raise", cost);
+            long raiseState = !Recipes.Unlocked(s) ? 0L : !open ? 1L : cost <= 0 ? 2L : 3L;
+            if (_cardDishRaiseShown.Changes(_cardDishRaise, raiseState, cost))
+                _cardDishRaise.text = !Recipes.Unlocked(s) ? L10n.T("dish.locked", Recipes.UnlockLevel) : !open ? L10n.T("dish.closed") : cost <= 0 ? L10n.T("dish.max") : L10n.T("dish.raise", cost);
             _cardDishRaise.color = ChunkyButton.InkFor(can);
             _cardDishButton.SetEnabled(can);
             if (can) _cardDishButton.Face.color = LeafGold;
@@ -1855,8 +1906,9 @@ namespace VuonTra.Game.UI
             if (Selected < 0) return;
             int i = Selected, level = s.Levels[i];
             bool needsPlot = i >= s.Plots;
-            _cardName.text = L10n.Station(defs[i].Id);
-            _cardLevel.text = needsPlot ? L10n.T("station.empty") : (level <= 0 ? L10n.T("row.locked") : L10n.StationLevel(level));
+            if (_cardNameShown.Changes(_cardName, i, 0L, defs[i].Id)) _cardName.text = L10n.Station(defs[i].Id);
+            if (_cardLevelShown.Changes(_cardLevel, needsPlot ? -2L : level <= 0 ? -1L : level))
+                _cardLevel.text = needsPlot ? L10n.T("station.empty") : (level <= 0 ? L10n.T("row.locked") : L10n.StationLevel(level));
             // Green would read as "all good"; a station that is not open yet is a quiet grey-purple.
             _cardLevelChip.color = level <= 0 || needsPlot ? Palette.Mix(Palette.Night, Palette.Paper, 0.45f) : Palette.Moss;
 
@@ -1870,9 +1922,12 @@ namespace VuonTra.Game.UI
                 _cardWorkerFrame.gameObject.SetActive(worker != null);
                 if (worker == null)
                 {
-                    _cardWorkerName.text = L10n.T("card.noworker");
+                    if (_cardWorkerShown.Changes(_cardWorkerSub, -1L, (long)defs[i].Trade))
+                    {
+                        _cardWorkerName.text = L10n.T("card.noworker");
+                        _cardWorkerSub.text = L10n.T("card.noworker.sub", L10n.Trade(defs[i].Trade));
+                    }
                     _cardWorkerSub.color = Palette.InkSoft;
-                    _cardWorkerSub.text = L10n.T("card.noworker.sub", L10n.Trade(defs[i].Trade));
                 }
                 else
                 {
@@ -1881,8 +1936,9 @@ namespace VuonTra.Game.UI
                     _cardWorkerArt.color = RabbitGridView.Fur(worker);
                     _cardWorkerFrame.color = Palette.Tiers[worker.Tier];
                     _cardWorkerName.text = worker.Name;
-                    _cardWorkerSub.text = L10n.T("card.worker", L10n.Kind(worker), L10n.Trade(Rabbits.TradeOf(worker)))
-                        + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "");
+                    if (_cardWorkerShown.Changes(_cardWorkerSub, worker.Id, inTrade ? 1L : 0L, Rabbits.KindOf(worker), (long)Rabbits.TradeOf(worker)))
+                        _cardWorkerSub.text = L10n.T("card.worker", L10n.Kind(worker), L10n.Trade(Rabbits.TradeOf(worker)))
+                            + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "");
                     _cardWorkerSub.color = inTrade ? Palette.Mix(Palette.Moss, Palette.Ink, 0.45f) : Palette.InkSoft;
                 }
             }
@@ -1895,6 +1951,8 @@ namespace VuonTra.Game.UI
             {
                 cost = Plots.CostOfNext(defs, s);
                 can = Expansion.CanExpand(defs, s);
+                _cardInfoShown.Forget();
+                _cardBuyTopShown.Forget();
                 _cardInfo.text = ExpansionNeeds(defs, s);
                 _cardBuyTop.text = L10n.T("plot.buy");
             }
@@ -1903,6 +1961,8 @@ namespace VuonTra.Game.UI
                 cost = Economy.CostOfNext(defs[i], 0, 1);
                 bool previousOpen = Economy.CanUnlock(defs, s, i);
                 can = previousOpen && s.Coins >= cost;
+                _cardInfoShown.Forget();
+                _cardBuyTopShown.Forget();
                 _cardInfo.text = previousOpen ? StationRowView.Describe(defs, s, i, 1, m) : StationRowView.LockedReason(defs, s, i);
                 _cardBuyTop.text = L10n.T("row.open");
             }
@@ -1913,13 +1973,23 @@ namespace VuonTra.Game.UI
                 capped = count <= 0; // level 500: nothing left to buy
                 can = !capped && s.Coins >= cost;
                 int next = Economy.NextMilestone(level);
-                _cardInfo.text = StationRowView.Describe(defs, s, i, level, m) + (next > 0 ? L10n.T("row.milestone", next) : "");
-                _cardBuyTop.text = capped ? L10n.T("row.maxlevel") : L10n.T("row.upgrade", count);
+                StationRowView.DescribeKey(defs, s, i, level, m, out long infoFirst, out long infoSecond);
+                if (_cardInfoShown.Changes(_cardInfo, infoFirst, infoSecond, defs[i].Id, next))
+                    _cardInfo.text = StationRowView.Describe(defs, s, i, level, m) + (next > 0 ? L10n.T("row.milestone", next) : "");
             }
             // Short of carrots and nothing else: the plate says how many are missing.
             bool shortOnly = !capped && !can && s.Coins < cost && (needsPlot ? Expansion.Missing(defs, s) == ExpandNeed.Carrots : (level > 0 || Economy.CanUnlock(defs, s, i)));
-            if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
-            _cardBuyCost.text = capped ? "" : (shortOnly ? (cost - s.Coins).Short() : cost.Short());
+            if (!needsPlot && level > 0)
+            {
+                int count = Simulation.BuyCount(defs, s, i);
+                if (shortOnly) _cardBuyTopShown.Line(_cardBuyTop, "need.more");
+                else if (capped) _cardBuyTopShown.Line(_cardBuyTop, "row.maxlevel");
+                else _cardBuyTopShown.Line(_cardBuyTop, "row.upgrade", count);
+            }
+            else if (shortOnly) _cardBuyTop.text = L10n.T("need.more");
+            BigNum shownCost = shortOnly ? cost - s.Coins : cost;
+            if (_cardBuyCostShown.Changes(_cardBuyCost, capped ? -1L : shownCost.ShortKey(), shortOnly ? 1L : 0L, "cost"))
+                _cardBuyCost.text = capped ? "" : shownCost.Short();
             if (_cardBuyCarrot.activeSelf == capped) _cardBuyCarrot.SetActive(!capped); // at the cap nothing is paid, so no carrot (#74)
             Color ink = ChunkyButton.InkFor(can);
             _cardBuyTop.color = ink;
@@ -4010,7 +4080,9 @@ namespace VuonTra.Game.UI
             bool boosting = s.BoostSecondsLeft > 0d;
 
             BigNum perSecond = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));
-            _perSecond.text = L10n.T("persec", perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
+            bool slow = perSecond < new BigNum(10);
+            if (_perSecondShown.Changes(_perSecond, slow ? System.BitConverter.DoubleToInt64Bits(perSecond.ToDouble()) : perSecond.ShortKey(), slow ? 1L : 0L, "persec"))
+                _perSecond.text = L10n.T("persec", slow ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
             // The one-line hint is for gardens from before the guidance; a new garden gets the guidance instead.
             if (!_hintFading) _hint.SetActive(!s.HintSeen && Tutorial.IsDone(s) && Shell.State == ShellState.Playing && !SheetOpen);
             if (dt < 0f) _shownCoins = s.Coins.ToDouble();
@@ -4019,16 +4091,12 @@ namespace VuonTra.Game.UI
             UpdateDaylight();
             RefreshStreet(defs, s);
 
-            for (int i = 0; i < _rows.Count; i++) _rows[i].Refresh(defs, s, m, dt);
-            for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
-            for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
-            _questChests.Refresh(Runner.QuestDefs, s, Runner.TodayNumber, dt);
-            _monthPass.Refresh(s, Runner.TodayNumber, Runner.PriceOf(MonthPass.ProductId));
-            _questToday.text = L10n.T("quests.today.refresh", Span(SecondsToNextDay(System.DateTimeOffset.Now)));
-            _achievementTiers.text = L10n.T("quests.tiers.total", Quests.TiersDone(Runner.QuestDefs, s));
-            OrderQuestRows();
-            RefreshPlotRow(defs, s);
-            _rabbitList.Refresh(defs, s);
+            bool every = dt < 0f;
+            if (every || ListShown(0)) for (int i = 0; i < _rows.Count; i++) _rows[i].Refresh(defs, s, m, dt);
+            if (every || ListShown(1)) for (int i = 0; i < _upgradeRows.Count; i++) _upgradeRows[i].Refresh(Runner.UpgradeDefs, s);
+            if (every || ListShown(2)) RefreshQuestList(defs, s, m, dt);
+            if (every || ListShown(0)) RefreshPlotRow(defs, s);
+            if (every || ListShown(3)) _rabbitList.Refresh(defs, s);
             Detail.Refresh(defs, s);
             Picker.Refresh(s);
             Workers.Refresh(defs, s);
@@ -4040,7 +4108,8 @@ namespace VuonTra.Game.UI
             if (mortar)
             {
                 int left = Pounding.PlaysLeft(s, Runner.TodayNumber);
-                _mortarPlate.text = left > 0 ? L10n.T("mortar.plays", left) : L10n.T("mortar.tomorrow");
+                if (left > 0) _mortarShown.Line(_mortarPlate, "mortar.plays", left);
+                else _mortarShown.Line(_mortarPlate, "mortar.tomorrow");
                 SetPlays(_mortarLabel, left);
             }
             bool basket = Leaves.Unlocked(s);
@@ -4048,7 +4117,8 @@ namespace VuonTra.Game.UI
             if (basket)
             {
                 int left = Leaves.PlaysLeft(s, Runner.TodayNumber);
-                _basketPlate.text = left > 0 ? L10n.T("basket.plays", left) : L10n.T("basket.tomorrow");
+                if (left > 0) _basketShown.Line(_basketPlate, "basket.plays", left);
+                else _basketShown.Line(_basketPlate, "basket.tomorrow");
                 SetPlays(_basketLabel, left);
             }
             bool jar = Fireflies.Unlocked(s);
@@ -4056,17 +4126,24 @@ namespace VuonTra.Game.UI
             if (jar)
             {
                 int left = Fireflies.PlaysLeft(s, Runner.TodayNumber);
-                _jarPlate.text = left > 0 ? L10n.T("jar.plays", left) : L10n.T("jar.tomorrow");
+                if (left > 0) _jarPlateShown.Line(_jarPlate, "jar.plays", left);
+                else _jarPlateShown.Line(_jarPlate, "jar.tomorrow");
                 SetPlays(_jarLabel, left);
             }
             RefreshPond(); // #58b
             RefreshTank();
             Rabbit avatar = VuonTra.Core.Profile.Avatar(s);
-            Shell.SetProfile(ProfileView.NameOf(s), s.Profile.Code, avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit);
+            Sprite avatarArt = avatar != null ? Runner.Catalog.RabbitArt(avatar) : Runner.Catalog.Rabbit;
+            string gardenCode = s.Profile.Code;
+            if (_profileShown.Changes(Shell, gardenCode != null ? gardenCode.GetHashCode() : 0, 0L, s.Profile.GardenName) | avatarArt != _profileArt)
+            {
+                _profileArt = avatarArt;
+                Shell.SetProfile(ProfileView.NameOf(s), gardenCode, avatarArt);
+            }
 
-            int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s) + (_questChests.BoxReady ? 1 : 0) + QuestChests.ReadyCount(s, Runner.TodayNumber) + MonthPass.ReadyCount(s, Runner.TodayNumber);
+            int claimable = Quests.ClaimableCount(Runner.QuestDefs, defs, s) + (QuestChests.BoxReady(Runner.QuestDefs, s) ? 1 : 0) + QuestChests.ReadyCount(s, Runner.TodayNumber) + MonthPass.ReadyCount(s, Runner.TodayNumber);
             _barBadge.SetActive(claimable > 0);
-            _barBadgeText.text = claimable.ToString();
+            _barBadgeShown.Number(_barBadgeText, claimable);
             if (_shownClaimable >= 0 && claimable > _shownClaimable)
                 Tweens.Add(0.32f, t => _badgePop = 0.4f * Ease.Pop(t), Ease.Linear, 0f, () => _badgePop = 0f); // one more to collect
             _shownClaimable = claimable;
@@ -4074,14 +4151,14 @@ namespace VuonTra.Game.UI
             int waiting = Rabbits.StationsWithoutWorker(defs, s) + s.FreshKinds.Count;
             for (int tier = 0; tier < Rabbits.TierCount; tier++) if (Rabbits.CanMerge(s, tier)) waiting++;
             if (_rabbitBadgeRect.gameObject.activeSelf != (waiting > 0)) _rabbitBadgeRect.gameObject.SetActive(waiting > 0);
-            _rabbitBadgeText.text = waiting.ToString();
+            _rabbitBadgeShown.Number(_rabbitBadgeText, waiting);
             // The stations tab counts the stations that could be opened for what is in the purse.
             int openable = 0;
             for (int i = 0; i < defs.Count; i++)
                 if (s.Levels[i] <= 0 && Economy.CanUnlock(defs, s, i) && s.Coins >= Economy.CostOfNext(defs[i], 0, 1)) openable++;
             if (_stationBadgeRect.gameObject.activeSelf != (openable > 0)) _stationBadgeRect.gameObject.SetActive(openable > 0);
-            _stationBadgeText.text = openable.ToString();
-            _clovers.text = L10n.T("quests.clovers", s.Clovers);
+            _stationBadgeShown.Number(_stationBadgeText, openable);
+            _cloversShown.Line(_clovers, "quests.clovers", s.Clovers);
 
             for (int i = 0; i < _modeButtons.Count; i++)
             {
@@ -4102,7 +4179,7 @@ namespace VuonTra.Game.UI
             FirstWeek?.Refresh();
             bool anyGolden = s.GoldenCarrots > 0;
             if (_goldenChip.gameObject.activeSelf != anyGolden) _goldenChip.gameObject.SetActive(anyGolden);
-            _goldenText.text = s.GoldenCarrots.ToString();
+            _goldenShown.Number(_goldenText, s.GoldenCarrots);
             RefreshJarChip(s);
             RefreshLeafChip(s);
             RefreshMoonPassPill();
@@ -4118,6 +4195,20 @@ namespace VuonTra.Game.UI
             SyncFronts();
         }
 
+        bool ListShown(int tab) => SheetOpen && Tab == tab;
+
+        void RefreshQuestList(IReadOnlyList<StationDef> defs, GameState s, Modifiers m, float dt)
+        {
+            for (int i = 0; i < _questRows.Count; i++) _questRows[i].Refresh(Runner.QuestDefs, defs, s, m, dt);
+            _questChests.Refresh(Runner.QuestDefs, s, Runner.TodayNumber, dt);
+            _monthPass.Refresh(s, Runner.TodayNumber, Runner.PriceOf(MonthPass.ProductId));
+            double toNextDay = SecondsToNextDay(System.DateTimeOffset.Now);
+            if (_questTodayShown.Changes(_questToday, SpanMinutes(toNextDay), 0L, "quests.today.refresh"))
+                _questToday.text = L10n.T("quests.today.refresh", Span(toNextDay));
+            _tiersShown.Line(_achievementTiers, "quests.tiers.total", Quests.TiersDone(Runner.QuestDefs, s));
+            OrderQuestRows();
+        }
+
         /// <summary>Each station's front follows its station: place, size and whether it is shown (#82).</summary>
         void SyncFronts()
         {
@@ -4128,11 +4219,11 @@ namespace VuonTra.Game.UI
         {
             bool can = Energy.CanBoost(s);
             int gardenLevel = Garden.Level(s);
-            _levelText.text = gardenLevel.ToString();
+            _levelShown.Number(_levelText, gardenLevel);
             if (_seasonChip != null)
             {
                 _seasonChip.gameObject.SetActive(s.Season > 0);
-                if (s.Season > 0) _seasonText.text = L10n.T("hud.season", s.Season);
+                if (s.Season > 0) _seasonShown.Line(_seasonText, "hud.season", s.Season);
             }
             _levelRing.fillAmount = Mathf.Max(0.02f, (float)Garden.Progress(s));
             if (_shownGardenLevel > 0 && gardenLevel > _shownGardenLevel && Shell.State != ShellState.Title)
@@ -4148,10 +4239,10 @@ namespace VuonTra.Game.UI
             RefreshForestRing(Runner.Defs, s); // #53
 
             _energyFill.anchorMax = new Vector2(Mathf.Clamp01((float)(s.Energy / Energy.Max)), 1f);
-            _energyLabel.text = L10n.T("energy.label", Mathf.FloorToInt((float)s.Energy));
-            _energyAction.text = boosting
-                ? L10n.T("energy.boosting", Mathf.CeilToInt((float)s.BoostSecondsLeft))
-                : (can ? L10n.T("energy.ready") : L10n.T("energy.need", (int)Energy.BoostCost));
+            _energyLabelShown.Line(_energyLabel, "energy.label", Mathf.FloorToInt((float)s.Energy));
+            if (boosting) _energyActionShown.Line(_energyAction, "energy.boosting", Mathf.CeilToInt((float)s.BoostSecondsLeft));
+            else if (can) _energyActionShown.Line(_energyAction, "energy.ready");
+            else _energyActionShown.Line(_energyAction, "energy.need", (int)Energy.BoostCost);
             _energyButton.Button.interactable = can;
             _energyReady = can && !boosting;
             // Cream like the purse, so it never outshines the garden; only the word lights up when it is ready.
@@ -4221,7 +4312,8 @@ namespace VuonTra.Game.UI
                 if (chip.activeSelf != named) chip.SetActive(named);
                 if (!named) continue;
                 _tierChips[i].color = Palette.Tiers[worker.Tier];
-                _tierLabels[i].text = worker.Name + L10n.LevelStars(worker);
+                while (_tierShown.Count <= i) _tierShown.Add(new ShownText());
+                if (_tierShown[i].Changes(_tierLabels[i], worker.Id, Rabbits.Stars(worker), worker.Name)) _tierLabels[i].text = worker.Name + L10n.LevelStars(worker);
                 bool inTrade = Rabbits.InTrade(defs, worker);
                 _tierTradeIcons[i].sprite = catalog.TradeIcon(Rabbits.TradeOf(worker));
                 _tierTradeBadges[i].color = inTrade ? Palette.Lantern : Palette.Mix(Palette.Ink, Palette.Paper, 0.6f);
@@ -4332,10 +4424,13 @@ namespace VuonTra.Game.UI
             if (p.Shade != null) p.Shade.gameObject.SetActive(on);
         }
 
+        readonly List<Rabbit> _seatedNow = new List<Rabbit>();
+
         /// <summary>Resting rabbits that have a place sit in the garden as themselves; the rest are not out.</summary>
         void RefreshSeats(GameState s)
         {
-            List<Rabbit> seated = RestSpots.Seated(s);
+            List<Rabbit> seated = _seatedNow;
+            RestSpots.Seated(s, seated);
             _seated = Mathf.Min(seated.Count, _seats.Count);
             GameCatalog catalog = Runner.Catalog;
             for (int k = 0; k < _seats.Count; k++)
@@ -4577,12 +4672,12 @@ namespace VuonTra.Game.UI
             }
             if (_edgeLeft != null && _edgeLeft.gameObject.activeSelf != (left > 0)) _edgeLeft.gameObject.SetActive(left > 0);
             if (_edgeRight != null && _edgeRight.gameObject.activeSelf != (right > 0)) _edgeRight.gameObject.SetActive(right > 0);
-            if (left > 0) _edgeLeftText.text = "◀ " + left;
-            if (right > 0) _edgeRightText.text = right + " ▶";
+            if (left > 0 && _edgeLeftShown.Changes(_edgeLeftText, left)) _edgeLeftText.text = "◀ " + left;
+            if (right > 0 && _edgeRightShown.Changes(_edgeRightText, right)) _edgeRightText.text = right + " ▶";
             if (_edgeUp.gameObject.activeSelf != (up > 0)) _edgeUp.gameObject.SetActive(up > 0);
             if (_edgeDown.gameObject.activeSelf != (down > 0)) _edgeDown.gameObject.SetActive(down > 0);
-            if (up > 0) _edgeUpText.text = "▲ " + up;
-            if (down > 0) _edgeDownText.text = "▼ " + down;
+            if (up > 0 && _edgeUpShown.Changes(_edgeUpText, up)) _edgeUpText.text = "▲ " + up;
+            if (down > 0 && _edgeDownShown.Changes(_edgeDownText, down)) _edgeDownText.text = "▼ " + down;
             _edgeDown.anchoredPosition = new Vector2(DownPillShift(), _edgeDown.anchoredPosition.y);
             // The way home shows once the teapot is out of view above, below or, on the strip, to either side.
             Vector2 pot = _actors.Count > 0 ? ViewPointOf(0) : default;
@@ -5348,9 +5443,11 @@ namespace VuonTra.Game.UI
         /// <summary>A stretch of time in minutes, or hours and minutes, as the player reads it.</summary>
         public static string Span(double seconds)
         {
-            int minutes = Mathf.Max(1, Mathf.CeilToInt((float)(seconds / 60d)));
+            int minutes = SpanMinutes(seconds);
             return minutes >= 60 ? L10n.T("away.hours", minutes / 60, minutes % 60) : L10n.T("away.minutes", minutes);
         }
+
+        static int SpanMinutes(double seconds) => Mathf.Max(1, Mathf.CeilToInt((float)(seconds / 60d)));
 
         QuestRowView RowOfQuest(int questIndex)
         {
@@ -6179,7 +6276,11 @@ namespace VuonTra.Game.UI
             if (_askBubble.GetSiblingIndex() != _askBubble.parent.childCount - 1) _askBubble.SetAsLastSibling();
             if (_askShownId == r.Id) return;
             _askShownId = r.Id;
-            RectTransform bubble = _askBubble;
+            SpringAskBubble(_askBubble);
+        }
+
+        void SpringAskBubble(RectTransform bubble)
+        {
             bubble.localScale = Vector3.zero;
             Tweens.Add(Motion.Time(Motion.Panel), t => { if (bubble != null) bubble.localScale = Vector3.one * t; }, Motion.Curve(Ease.OutBack));
         }
@@ -6543,7 +6644,11 @@ namespace VuonTra.Game.UI
             _leafText.text = s.RecipeLeaves.ToString();
             if (_recipeLeaves != null) _recipeLeaves.text = L10n.T("recipes.leaves", s.RecipeLeaves);
             if (!more || !show) return;
-            RectTransform chip = _leafChip;
+            PopLeafChip(_leafChip);
+        }
+
+        void PopLeafChip(RectTransform chip)
+        {
             Tweens.Add(Motion.Tap, t => { if (chip != null) chip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f,
                 () => { if (chip != null) chip.localScale = Vector3.one; });
         }
@@ -6552,7 +6657,7 @@ namespace VuonTra.Game.UI
         {
             bool show = MoonJars.Shown(s) && s.MoonJars > 0;
             if (_jarChip.gameObject.activeSelf != show) _jarChip.gameObject.SetActive(show);
-            _jarText.text = s.MoonJars.ToString();
+            _jarShown.Number(_jarText, s.MoonJars);
         }
 
         /// <summary>"Mở hũ trăng" on the purse's card: an hour of income flies from the button to the purse, like a sale from the tray.</summary>
@@ -6833,11 +6938,10 @@ namespace VuonTra.Game.UI
             bool show = days > 0;
             if (_moonPill.gameObject.activeSelf != show) _moonPill.gameObject.SetActive(show);
             if (!show) return;
-            string pill = L10n.T("moonpass.active", days);
-            if (_moonPillText.text != pill)
+            if (_moonPillShown.Changes(_moonPillText, days, 0L, "moonpass.active"))
             {
                 _moonPillText.fontSize = UiKit.Scaled(UiKit.TextSmall);
-                _moonPillText.text = pill;
+                _moonPillText.text = L10n.T("moonpass.active", days);
                 _moonPillText.FitOneLine(MoonPillWidth - 54f, 12);
             }
             RectTransform after = _jarChip.gameObject.activeSelf ? _jarChip : _goldenChip.gameObject.activeSelf ? _goldenChip : null;
@@ -7534,10 +7638,13 @@ namespace VuonTra.Game.UI
             _forestSign.gameObject.SetActive(can);
             if (can) _forestSign.SetAsLastSibling();
             if (_forestSignText != null) _forestSignText.text = L10n.T("garden.expand");
-            RectTransform sign = _forestSign;
-            if (can && !Motion.Reduced)
-                Tweens.Add(Motion.Panel, t => { if (sign != null) sign.localScale = Vector3.one * Mathf.Max(0f, t); }, Ease.OutBack, 0f, () => { if (sign != null) sign.localScale = Vector3.one; });
-            else sign.localScale = Vector3.one;
+            if (can && !Motion.Reduced) GrowForestSign(_forestSign);
+            else _forestSign.localScale = Vector3.one;
+        }
+
+        void GrowForestSign(RectTransform sign)
+        {
+            Tweens.Add(Motion.Panel, t => { if (sign != null) sign.localScale = Vector3.one * Mathf.Max(0f, t); }, Ease.OutBack, 0f, () => { if (sign != null) sign.localScale = Vector3.one; });
         }
 
         /// <summary>Shows a segment's mist while it is shut; when it opens the mist thins and drifts out, or simply goes under reduced motion.</summary>
@@ -7833,7 +7940,7 @@ namespace VuonTra.Game.UI
                 string text = L10n.T("layout.stored.row", L10n.Station(defs[row.Index].Id), s.Levels[row.Index]);
                 if (row.Shown != text) { row.Shown = text; row.Name.text = text; }
             }
-            _layoutStoreCount.text = L10n.T("layout.store.count", s.Grid != null ? s.Grid.StoredCount : 0);
+            _storeCountShown.Line(_layoutStoreCount, "layout.store.count", s.Grid != null ? s.Grid.StoredCount : 0);
             if (!LayoutMode) return;
             if (ProductTray.Root.gameObject.activeSelf) ProductTray.Root.gameObject.SetActive(false);
             if (_hint.activeSelf) _hint.SetActive(false);
@@ -8283,9 +8390,8 @@ namespace VuonTra.Game.UI
             bool open = Runner.PondOpen;
             if (_pondTap.gameObject.activeSelf != open) _pondTap.gameObject.SetActive(open);
             if (!open) return;
-            int baits = Runner.Baits;
-            _pondPlate.text = L10n.T("pond.plate", baits, Fishing.BaitCap);
-            SetPlays(_pondLabel, baits);
+            _pondShown.Line(_pondPlate, "pond.plate", Runner.Baits, Fishing.BaitCap);
+            SetPlays(_pondLabel, Runner.Baits);
         }
 
         /// <summary>The pond was touched: its card slides up. Not while arranging the garden, nor over another game.</summary>

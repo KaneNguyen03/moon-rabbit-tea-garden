@@ -14,6 +14,7 @@ namespace VuonTra.Game.UI
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
         readonly Text _title, _sub, _left, _status, _buyLabel, _closeLabel;
+        readonly ShownText _leftShown = new ShownText();
         readonly ChunkyButton _buy;
         readonly Action<string, Action<PurchaseResult>> _onBuy;
         IStorefront _store;
@@ -137,7 +138,9 @@ namespace VuonTra.Game.UI
                 _ended = true;
                 _status.text = L10n.T("offer.ended");
             }
-            _left.text = _bought ? L10n.T("offer.bought.short") : _ended ? L10n.T("offer.ended.short") : L10n.T("offer.left", Countdown(secondsLeft));
+            long shown = _bought ? -1L : _ended ? -2L : secondsLeft;
+            if (_leftShown.Changes(_left, shown, 0L, Offer.Id))
+                _left.text = _bought ? L10n.T("offer.bought.short") : _ended ? L10n.T("offer.ended.short") : L10n.T("offer.left", Countdown(secondsLeft));
             ShowBuy();
         }
 

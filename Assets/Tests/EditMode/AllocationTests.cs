@@ -4,6 +4,7 @@ using NUnit.Framework;
 using UnityEditor;
 using VuonTra.Game;
 using VuonTra.Game.UI;
+using L10n = VuonTra.Game.L10n;
 using UnityEngine.TestTools.Constraints;
 using AllocIs = UnityEngine.TestTools.Constraints.Is;
 
@@ -16,6 +17,11 @@ namespace VuonTra.Core.Tests
         static object sink;
         static UnityEngine.Vector2 spot;
         static int count;
+        UnityEngine.GameObject root;
+        GameRunner runner;
+        long clock;
+
+        static FairRun Fair => Fairs.RunOn(GiftCodes.Day(2027, 5, Fairs.StartDay)).Value;
 
         [SetUp]
         public void SetUp()
@@ -24,6 +30,14 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(catalog, "Run VuonTra > Seed Content first.");
             defs = catalog.BuildDefs();
             ups = catalog.BuildUpgrades();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            if (root != null) UnityEngine.Object.DestroyImmediate(root);
+            root = null;
+            L10n.SetLocale("vi");
         }
 
         GameState FullGarden(bool storeOne)
@@ -46,6 +60,21 @@ namespace VuonTra.Core.Tests
             long before = GC.GetAllocatedBytesForCurrentThread();
             for (int k = 0; k < calls; k++) call();
             return (GC.GetAllocatedBytesForCurrentThread() - before) / calls;
+        }
+
+        static long HeapBytesPerCall(Action call, int calls)
+        {
+            for (int k = 0; k < 3; k++) call();
+            long bytes = 0L;
+            for (int attempt = 0; attempt < 5; attempt++)
+            {
+                int collections = GC.CollectionCount(0);
+                long before = GC.GetTotalMemory(false);
+                for (int k = 0; k < calls; k++) call();
+                bytes = Math.Max(0L, GC.GetTotalMemory(false) - before);
+                if (GC.CollectionCount(0) == collections) break;
+            }
+            return bytes / calls;
         }
 
         static int AllocationsIn(Action call)
@@ -86,6 +115,7 @@ namespace VuonTra.Core.Tests
             s.Claimed.Add("old");
             Action tiers = () => { count = Quests.TiersClaimed(chain, s); sink = Quests.CurrentTier(chain, s); };
             tiers();
+            progress();
 
             TestContext.WriteLine("IncomePerSecond: " + BytesPerCall(income, 1000) + " B a call; 16 StationIncomePerSecond: " + BytesPerCall(shares, 200)
                 + " B; 600 ticks: " + BytesPerCall(tenSeconds, 5) + " B (stored " + s.Grid.StoredCount + ")");
@@ -137,6 +167,166 @@ namespace VuonTra.Core.Tests
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+        }
+
+        GardenScreen RoundTwoGarden()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
+            L10n.SetLocale("vi");
+            long today = Fair.Start + 2;
+            clock = today * 86400L + 19 * 3600L + 600L;
+            GameState s = FullGarden(false);
+            s.RestSpots = RestSpots.Max;
+            s.TutorialStep = Tutorial.Steps;
+            s.HintSeen = true;
+            s.Newcomer.Closed = true;
+            s.GardenXp = Garden.XpForLevel(40);
+            s.FirstDaySeen = today - 40;
+            s.MaxDaySeen = today;
+            s.WelcomeBack.SeenDay = today;
+            s.MailDay = today;
+            s.GiftDay = today;
+            s.Coins = BigNum.FromParts(4.56, 33);
+            s.GoldenCarrots = 480;
+            s.MoonJars = 3;
+            s.RecipeLeaves = 7;
+            s.Clovers = 12;
+            for (int k = 0; k < Aquarium.Kinds; k++)
+            {
+                s.Fish[k] = 2;
+                Aquarium.Release(s, k);
+            }
+            s.Aquarium.CardSeen = true;
+            MoonPass.Grant(s, today);
+            Assert.IsTrue(MonthPass.Buy(s, today), "the month pass is bought");
+            s.Fair.Start = Fair.Start;
+            s.Fair.Seen = Fair.Start;
+            s.Fair.Coins = 14;
+
+            root = new UnityEngine.GameObject("Game");
+            var cam = new UnityEngine.GameObject("Cam", typeof(UnityEngine.Camera));
+            cam.transform.SetParent(root.transform);
+            runner = root.AddComponent<GameRunner>();
+            runner.Catalog = catalog;
+            runner.Analytics = new MemoryAnalytics();
+            runner.DayClock = () => today;
+            runner.LocalClock = () => clock;
+            runner.OfferWallClock = () => clock;
+            runner.Init(s);
+            runner.State.IntrosSeen.UnionWith(Intros.All);
+            runner.State.IntrosTried.UnionWith(Intros.All);
+            foreach (OfferRecord record in runner.State.OfferRecords) record.Shown = true;
+            var screen = root.AddComponent<GardenScreen>();
+            screen.Runner = runner;
+            screen.Cam = cam.GetComponent<UnityEngine.Camera>();
+            screen.Raining = () => false;
+            screen.Build();
+            screen.Refresh();
+            screen.Shell.StartGame();
+            for (int i = 0; i < 120; i++) screen.Advance(1f / 30f);
+
+            Assert.AreEqual(16, runner.Defs.Count);
+            Assert.AreEqual(160, runner.State.Rabbits.Count);
+            Assert.IsTrue(screen.TankProp.gameObject.activeSelf, "the aquarium stands in the garden");
+            Assert.AreEqual(Aquarium.Kinds, Aquarium.KindsIn(runner.State), "every fish swims in it");
+            Assert.IsTrue(screen.FairCard.ChipShown, "a fair runs");
+            Assert.IsTrue(screen.MoonPassPill.gameObject.activeSelf, "the moon pass is bought");
+            Assert.IsTrue(MonthPass.Premium(runner.State, today), "the month pass is bought");
+            Assert.IsTrue(runner.TrunkOpenNow, "the cart chest is open");
+            Assert.IsNotNull(runner.LeadingOffer, "a pack counts down");
+            Assert.IsTrue(screen.Shop.OfferShown, "the shop's pack pill counts down");
+            Assert.IsTrue(root.transform.Find("Canvas/Hud/Golden").gameObject.activeSelf, "golden carrots in the purse");
+            return screen;
+        }
+
+        [Test]
+        public void A_Full_Garden_With_Every_Round_Two_Feature_Stands_Still_Without_Allocating()
+        {
+            GardenScreen screen = RoundTwoGarden();
+            Action second = () => { for (int f = 0; f < 60; f++) screen.Advance(1f / 60f); };
+            Assert.That(() => second(), AllocIs.Not.AllocatingGCMemory(), "sixty frames of GardenScreen.Advance on a full garden with every round-2 feature on");
+            TestContext.WriteLine("one second standing still: " + AllocationsIn(second) + " allocations, " + HeapBytesPerCall(second, 3) + " B");
+        }
+
+        UnityEngine.UI.Text TextAt(string path)
+        {
+            UnityEngine.Transform t = root.transform.Find(path);
+            Assert.IsNotNull(t, "Missing UI object: " + path);
+            return t.GetComponent<UnityEngine.UI.Text>();
+        }
+
+        UnityEngine.UI.Text TextEndingWith(string tail)
+        {
+            UnityEngine.UI.Text found = null;
+            foreach (UnityEngine.UI.Text text in root.GetComponentsInChildren<UnityEngine.UI.Text>(true))
+            {
+                string path = text.name;
+                for (UnityEngine.Transform p = text.transform.parent; p != null; p = p.parent) path = p.name + "/" + path;
+                if (!path.EndsWith(tail, StringComparison.Ordinal) || path.Contains("(old)")) continue;
+                Assert.IsNull(found, "two labels end with " + tail);
+                found = text;
+            }
+            Assert.IsNotNull(found, "Missing label ending with " + tail);
+            return found;
+        }
+
+        [Test]
+        public void The_Wallet_And_The_Countdown_Pills_Leave_Their_Text_Alone_Until_The_Shown_String_Changes()
+        {
+            GardenScreen screen = RoundTwoGarden();
+            var labels = new Dictionary<string, UnityEngine.UI.Text>
+            {
+                { "wallet", TextAt("Canvas/Hud/Purse/Coins") },
+                { "golden", TextAt("Canvas/Hud/Golden/Text") },
+                { "moon pass", TextAt("Canvas/Hud/MoonPass/Text") },
+                { "fair", TextAt("Canvas/Hud/Fair/Text") },
+                { "cart chest", screen.TrunkProp.Find("Tag/Text").GetComponent<UnityEngine.UI.Text>() },
+            };
+            var dirtied = new Dictionary<string, int>();
+            var shown = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, UnityEngine.UI.Text> label in labels)
+            {
+                string name = label.Key;
+                dirtied[name] = 0;
+                shown[name] = label.Value.text;
+                label.Value.RegisterDirtyVerticesCallback(() => dirtied[name]++);
+            }
+            StringAssert.StartsWith("4,56", shown["wallet"]);
+
+            BigNum crumb = BigNum.FromParts(1d, 28);
+            Action half = () =>
+            {
+                for (int f = 0; f < 30; f++)
+                {
+                    runner.State.Coins += crumb;
+                    screen.Advance(1f / 60f);
+                }
+            };
+            Assert.That(() => half(), AllocIs.Not.AllocatingGCMemory(), "the purse grows by less than the digit it shows and the clock stays in one second");
+            foreach (KeyValuePair<string, UnityEngine.UI.Text> label in labels)
+            {
+                Assert.AreEqual(0, dirtied[label.Key], label.Key + " was not written");
+                Assert.AreEqual(shown[label.Key], label.Value.text, label.Key);
+            }
+
+            runner.State.Coins = BigNum.FromParts(4.57d, 33);
+            for (int f = 0; f < 60; f++) screen.Advance(1f / 60f);
+            StringAssert.StartsWith("4,57", labels["wallet"].text, "the wallet shows the next digit");
+            Assert.AreEqual(1, dirtied["wallet"], "written once for the new digit, not once a frame");
+
+            screen.OpenShop();
+            for (int f = 0; f < 30; f++) screen.Advance(1f / 60f);
+            UnityEngine.UI.Text pack = TextEndingWith("Offer/Face/Left");
+            string before = pack.text;
+            int packDirtied = 0;
+            pack.RegisterDirtyVerticesCallback(() => packDirtied++);
+            for (int f = 0; f < 50; f++) screen.Advance(1f / 60f);
+            Assert.AreEqual(before, pack.text);
+            Assert.AreEqual(0, packDirtied, "the pack pill waits for the next second");
+            clock += 1L;
+            for (int f = 0; f < 60; f++) screen.Advance(1f / 60f);
+            Assert.AreNotEqual(before, pack.text, "a second later it counts down");
+            Assert.AreEqual(1, packDirtied, "once for that second, not once a frame");
         }
 
         [Test]

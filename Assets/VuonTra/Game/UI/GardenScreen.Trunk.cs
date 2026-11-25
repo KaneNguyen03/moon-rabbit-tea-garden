@@ -12,6 +12,7 @@ namespace VuonTra.Game.UI
         public TrunkView TrunkCard { get; private set; }
         RectTransform _trunkProp;
         Text _trunkTag;
+        readonly ShownText _trunkShown = new ShownText();
         Image _trunkTagPlate;
         WorldLabel _trunkLabel;
 
@@ -47,8 +48,8 @@ namespace VuonTra.Game.UI
             {
                 long clock = Runner.LocalClock();
                 bool open = Trunk.IsOpen(Runner.State, clock);
-                string text = open ? L10n.T("trunk.tag.open") : L10n.T("trunk.closed", Trunk.NextHour(Runner.State, clock));
-                if (_trunkTag.text != text) _trunkTag.text = text;
+                if (open) _trunkShown.Line(_trunkTag, "trunk.tag.open");
+                else _trunkShown.Line(_trunkTag, "trunk.closed", Trunk.NextHour(Runner.State, clock));
                 _trunkTagPlate.color = open ? Palette.Mix(Palette.Lantern, Palette.Paper, 0.45f) : Palette.Paper;
                 _trunkLabel.Always = open;
                 ShowLabel(_trunkLabel);
