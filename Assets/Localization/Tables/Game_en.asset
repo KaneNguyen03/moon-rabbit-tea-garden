@@ -217,7 +217,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236336
-    m_Localized: in {0} (away limit reached).
+    m_Localized: a full {0} h, the most while away.
     m_Metadata:
       m_Items: []
   - m_Id: 372236337
@@ -5137,6 +5137,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1093024263168000
     m_Localized: +{0}% income
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1204388692484096
+    m_Localized: a full {0} h (moon pass), the most while away.
     m_Metadata:
       m_Items: []
   references:

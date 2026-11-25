@@ -5107,6 +5107,10 @@ MonoBehaviour:
     m_Key: tank.float
     m_Metadata:
       m_Items: []
+  - m_Id: 1204388692484096
+    m_Key: away.time.capped.moon
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

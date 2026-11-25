@@ -683,6 +683,7 @@ namespace VuonTra.EditorTools
             foreach (string locale in new[] { "vi", "en" }) RenderEmptySpotHold(locale);
             foreach (string locale in new[] { "vi", "en" }) RenderBasketFollows(locale);
             RenderViewEdges();
+            foreach (string locale in new[] { "vi", "en" }) RenderAwayCount(locale);
 
             _language.Write(Folder);
             _language = null;
@@ -3155,6 +3156,60 @@ namespace VuonTra.EditorTools
             Step(screen, 0.5f);
             Capture(screen, "119-gio-xong-" + locale);
             PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+        }
+
+        static void RenderAwayCount(string locale)
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale(locale);
+            bool reduced = VuonTra.Game.UI.Motion.Reduced;
+            VuonTra.Game.UI.Motion.Reduced = false;
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            var defs = runner.Catalog.BuildDefs();
+            GameState s = GameState.NewGame(defs);
+            int[] levels = { 27, 12, 9, 4 };
+            for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+            s.GardenXp = Garden.XpForLevel(5);
+            s.HintSeen = true;
+            s.TutorialStep = Tutorial.Steps;
+            s.Coins = new BigNum(84000);
+            Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+            Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+            s.FreshKinds.Clear();
+            runner.Init(s);
+            screen.Build();
+            screen.ClockHours = () => 13.0;
+            screen.Raining = () => false;
+            screen.Refresh();
+            screen.Shell.StartGame();
+            screen.SelectStation(-1);
+            Step(screen, 1.4f);
+
+            MoonPass.Grant(s, runner.TodayNumber);
+            long now = System.DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            s.LastSeenUnixSeconds = now - 10 * 3600;
+            AwayReport away = Away.Claim(defs, s, now, Modifiers.From(runner.UpgradeDefs, s), runner.TodayNumber);
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 0.15f);
+            Capture(screen, "118-dang-dem-" + locale);
+            Step(screen, 1f);
+            Capture(screen, "118-so-cuoi-" + locale);
+            Press(screen, "Canvas/Away/Card/Double");
+            Step(screen, 0.35f);
+            Capture(screen, "118-sau-x2-" + locale);
+            Step(screen, 2.5f);
+
+            UiKit.SetLargeText(true);
+            screen.RebuildUi();
+            runner.ShowAwayForTest(away);
+            screen.ShowAway(away);
+            Step(screen, 1.2f);
+            Capture(screen, "118-chu-to-" + locale);
+            screen.AwayCard.Close();
+            UiKit.SetLargeText(false);
+            VuonTra.Game.UI.Motion.Reduced = reduced;
         }
 
         static void RenderStationSpacing()

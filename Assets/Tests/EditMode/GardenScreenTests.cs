@@ -3371,6 +3371,7 @@ namespace VuonTra.Core.Tests
             screen.ShowAway(away);
             Transform card = root.transform.Find("Canvas/Away/Card");
             Assert.IsTrue(screen.AwayCard.IsOpen);
+            for (int i = 0; i < 30; i++) screen.Advance(1f / 30f);
             Assert.AreEqual("+" + new BigNum(5000).Short(), card.Find("Carrots/Amount").GetComponent<Text>().text);
             Assert.AreEqual(L10n.T("away.tray", 7) + L10n.T("away.tray.full"), card.Find("Tray/Text").GetComponent<Text>().text);
             Assert.AreEqual(L10n.T("away.guests", 3), card.Find("Guests/Text").GetComponent<Text>().text);
@@ -3436,6 +3437,7 @@ namespace VuonTra.Core.Tests
             runner.ShowAwayForTest(minute);
             screen.ShowAway(minute);
             Assert.IsTrue(screen.AwayCard.IsOpen, "the minute away leaves the sheet up");
+            for (int i = 0; i < 30; i++) screen.Advance(1f / 30f);
             Assert.AreEqual("+" + new BigNum(8000).Short(), root.transform.Find("Canvas/Away/Card/Carrots/Amount").GetComponent<Text>().text);
             return twoHours;
         }
@@ -3491,6 +3493,7 @@ namespace VuonTra.Core.Tests
             runner.ShowAwayForTest(night);
             screen.ShowAway(night);
             Assert.IsTrue(screen.AwayCard.IsOpen);
+            for (int i = 0; i < 30; i++) screen.Advance(1f / 30f);
             Assert.AreEqual("+" + new BigNum(12000).Short(), root.transform.Find("Canvas/Away/Card/Carrots/Amount").GetComponent<Text>().text);
             Assert.IsFalse(runner.LastAwayDoubled, "a fresh report, a fresh ×2");
             Assert.AreEqual(L10n.T("away.double.cost", Away.DoubleCost), screen.AwayCard.DoubleLabel, "the day's free one stays spent");
