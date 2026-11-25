@@ -2381,6 +2381,15 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Lá công thức nhận dần lúc đang chơi không ghi (theo thời gian, không theo hành động).
 - Vườn cũ đã được `Intros.Settle` đánh dấu không gửi `feature_first_use` cho tính năng đó.
 
+## #116 — Phản hồi khi nhận quà ở mọi tính năng vòng 2 (agent-116)
+**Test:** verify đầy đủ GREEN, 1681/1681, rules ok, save ok; JuiceTests mới (17 chỗ × 2 + 6).
+**Commit:** 988cab6 (gộp `5276bd2`, verify lượt gộp GREEN 1696/1696)
+**Đã làm:** seam rung `IHapticMotor` (giả trên Mac/Editor, Android chuyển vào `NativeHaptics`); `Rewarded()` chung cho tiếng, rung, đồ bay về đúng chip và rương bung ở mọi chỗ nhận quà, mua và thả cá vòng 2; mua hỏng thì `Deny`, không rung; Giảm chuyển động thì không bay mà vẫn có tiếng và rung; khung xem trước `116-*` và bảng 3 khung trong `docs/anh/po-116/`.
+### Chưa đạt / cần PO quyết
+- Rung iOS chưa có (cần plugin `.mm`, làm cùng #41).
+- Duyệt số hạt (8/14/8), cách chia rung nhẹ/vừa, mua bị huỷ thì im.
+- Cá bay vào dòng "Bể" trên thẻ ao, không ra con bể ngoài vườn.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

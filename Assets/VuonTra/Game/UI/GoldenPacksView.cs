@@ -266,6 +266,7 @@ namespace VuonTra.Game.UI
         public string MoonPassLabel => _moonLabel != null ? _moonLabel.text : null;
         public string MoonPassSub => _moonSub != null ? _moonSub.text : null;
         public RectTransform MoonPassRow => _moonRow;
+        public RectTransform PassRow => _passRow;
 
         public void AttachMoonPass(GameCatalog catalog, Func<int> daysLeft, Action<Action<PurchaseResult>> onBuy)
         {

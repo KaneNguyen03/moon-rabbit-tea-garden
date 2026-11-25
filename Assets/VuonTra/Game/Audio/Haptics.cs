@@ -1,18 +1,28 @@
 using UnityEngine;
+using VuonTra.Core;
+using VuonTra.Game.Platform;
 
 namespace VuonTra.Game
 {
     public static class Haptics
     {
         const string Key = "haptics.on";
+        public const int LightMilliseconds = 12, MediumMilliseconds = 28;
 
         public static bool On { get; private set; } = true;
         public static int Count { get; private set; }
         public static int LastMilliseconds { get; private set; }
 
-#if UNITY_ANDROID && !UNITY_EDITOR
-        static bool _deviceCannotVibrate;
-#endif
+        static IHapticMotor _motor;
+        public static IHapticMotor Motor
+        {
+            get { if (_motor == null) _motor = MotorFor(NativeHaptics.Create()); return _motor; }
+            set => _motor = value ?? MotorFor(null);
+        }
+
+        public static IHapticMotor MotorFor(IHapticMotor native) => native ?? new FakeHapticMotor();
+
+        public static int MillisecondsOf(HapticStrength strength) => strength == HapticStrength.Medium ? MediumMilliseconds : LightMilliseconds;
 
         public static void Load() => On = PlayerPrefs.GetInt(Key, 1) == 1;
 
@@ -22,31 +32,15 @@ namespace VuonTra.Game
             PlayerPrefs.SetInt(Key, on ? 1 : 0);
         }
 
-        public static void Light() => Buzz(12);
-        public static void Medium() => Buzz(28);
+        public static void Light() => Pulse(HapticStrength.Light);
+        public static void Medium() => Pulse(HapticStrength.Medium);
 
-        static void Buzz(int milliseconds)
+        static void Pulse(HapticStrength strength)
         {
             if (!On) return;
             Count++;
-            LastMilliseconds = milliseconds;
-#if UNITY_ANDROID && !UNITY_EDITOR
-            if (_deviceCannotVibrate) return;
-            try
-            {
-                using (var player = new AndroidJavaClass("com.unity3d.player.UnityPlayer"))
-                using (var activity = player.GetStatic<AndroidJavaObject>("currentActivity"))
-                using (var vibrator = activity.Call<AndroidJavaObject>("getSystemService", "vibrator"))
-                {
-                    if (vibrator != null) vibrator.Call("vibrate", (long)milliseconds);
-                }
-            }
-            catch (System.Exception e)
-            {
-                _deviceCannotVibrate = true;
-                Debug.LogWarning("[VuonTra] Haptics are off for this run, the device cannot vibrate: " + e.Message);
-            }
-#endif
+            LastMilliseconds = MillisecondsOf(strength);
+            Motor.Pulse(strength);
         }
     }
 }

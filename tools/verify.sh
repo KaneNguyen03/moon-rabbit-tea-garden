@@ -95,6 +95,8 @@ else
 fi
 
 SAVE_AFTER=$(save_stamp)
+player_dir=$(dirname "$(player_save)")
+rm -f "$player_dir/TestResults.xml" "$player_dir/PerformanceTestResults.json"
 if [ "$SAVE_BEFORE" = "$SAVE_AFTER" ]; then note "save" "ok (player save.json untouched: $SAVE_AFTER)"
 else note "save" "FAIL (player save.json changed during the run: $SAVE_BEFORE -> $SAVE_AFTER; was the game open?)"; fi
 

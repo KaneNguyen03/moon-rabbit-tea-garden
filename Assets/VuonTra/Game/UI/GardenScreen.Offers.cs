@@ -11,7 +11,11 @@ namespace VuonTra.Game.UI
 
         void BuildOffers(GameCatalog catalog)
         {
-            OfferCard = new OfferView(_canvas, catalog, Tweens, (id, done) => Runner.BuyGolden(id, done));
+            OfferCard = new OfferView(_canvas, catalog, Tweens, (id, done) => Runner.BuyGolden(id, result =>
+            {
+                PurchaseRefused(result.Outcome);
+                done?.Invoke(result);
+            }));
             Shop.AttachOffer(OpenLeadingOffer);
             if (_onOfferDelivered != null) Runner.OfferDelivered -= _onOfferDelivered;
             _onOfferDelivered = OfferArrived;
@@ -58,10 +62,7 @@ namespace VuonTra.Game.UI
             bool here = OfferCard.IsOpen && OfferCard.Offer != null && OfferCard.Offer.Id == gift.Id;
             if (here) OfferCard.ShowPaid();
             Vector2 from = here ? Feel.PointOf(OfferCard.Card) : new Vector2(0, 200);
-            GiftArrived(from, gift.Golden, 0, gift.Hat);
-            Vector2 below = Feel.PointOf(_goldenChip, new Vector2(0, -130));
-            if (gift.Clovers > 0) Feel.FloatText(below, L10n.T("mail.clovers", gift.Clovers), Palette.Lantern, 34);
-            if (gift.Jars > 0) Feel.FloatText(below + new Vector2(0, gift.Clovers > 0 ? -60 : 0), L10n.T("offer.jars.float", gift.Jars), Palette.Lantern, 34);
+            GiftArrived(from, new Haul { Golden = gift.Golden, Jars = gift.Jars, Clovers = gift.Clovers }, gift.Hat, Fanfare.Purchase);
             if (gift.Rabbit != null)
             {
                 OfferCard.Close();

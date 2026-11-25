@@ -70,8 +70,7 @@ namespace VuonTra.Game.UI
                 FairCard.Refresh();
                 return;
             }
-            Sfx.Reward();
-            Haptics.Light();
+            Rewarded(at, HaulOf(ware, bought), Fanfare.Gift);
             string name = ware.Ware == FairWare.Rabbit ? bought.Rabbit.Name : FairView.WareName(ware.Ware);
             Feel.FloatText(at, L10n.T("fair.bought", name), Palette.Hex(run.Def.Hex), 34);
             Refresh(-1f);
@@ -79,6 +78,17 @@ namespace VuonTra.Game.UI
             FairCard.Close();
             Sfx.Summon(bought.Rabbit.Tier);
             Welcome(bought.Rabbit);
+        }
+
+        static Haul HaulOf(FairStall ware, FairBuy bought)
+        {
+            switch (ware.Ware)
+            {
+                case FairWare.Jars: return new Haul { Jars = bought.Jars, Clovers = bought.JarClovers };
+                case FairWare.Clovers: return new Haul { Clovers = ware.Amount };
+                case FairWare.Golden: return new Haul { Golden = ware.Amount };
+                default: return new Haul();
+            }
         }
 
         void DecorateGate()

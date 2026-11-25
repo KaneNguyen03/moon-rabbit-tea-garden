@@ -80,11 +80,11 @@ namespace VuonTra.Game.UI
                 Sfx.Deny();
                 return;
             }
-            Sfx.Reward();
-            Haptics.Light();
             TrunkCard.ShowNote(NoteOf(buy));
-            if (buy.Jars > 0) JarArrived(Feel.PointOf(TrunkCard.Card));
             Refresh(-1f);
+            RectTransform tile = TrunkCard.TileOf(slot);
+            PopChip(tile, 0.08f);
+            Rewarded(Feel.PointOf(tile), new Haul { Jars = buy.Jars, Clovers = buy.Offer.Kind == TrunkKind.Clovers ? buy.Offer.Amount : buy.JarClovers }, Fanfare.Chest);
             if (buy.Rabbit == null) return;
             TrunkCard.Close();
             Rabbit shown = buy.Second != null && buy.Second.Tier > buy.Rabbit.Tier ? buy.Second : buy.Rabbit;
