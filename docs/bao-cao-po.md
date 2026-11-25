@@ -2416,6 +2416,37 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt danh sách thẻ tính vào luật 20 giây và cách tính từ lúc thẻ đóng.
 - Thẻ gói người mới sẽ bị ẩn khi cờ kiếm tiền #144 tắt (mặc định); phần giờ hiện thẻ vẫn giữ cho khi bật lại.
 
+## #124 — Nhạc nền theo mùa lễ và tiếng chợ hội (agent-124)
+**Test:** `tools/verify.sh` đầy đủ GREEN, 1737/1737 test, rules ok, preview 444 khung, save người chơi không bị chạm.
+**Commit:** `e61ca22`
+**Đã làm:**
+- Auto chơi bài riêng của mùa lễ: Trung thu (trống, sáo), Tết (nhịp vui, pháo xa), Noel (chuông). Hết mùa thì về bài theo giờ; người chọn bài cố định vẫn nghe bài ấy.
+- Ba bài dựng từ bảng nốt và nhịp trên bộ tổng hợp có sẵn, không thêm `Mathf.Sin`.
+- Đổi bài tắt dần 1 s rồi bật dần 1 s.
+- Khi có hội #112, lớp tiếng chợ hội phát trên tiếng vườn ở 0,25 × thanh Hiệu ứng; hết hội thì tắt.
+- Nhãn bảng Âm thanh: "Tự động · Theo mùa" / "Auto · Seasonal".
+- Menu Editor ghi WAV 20 giây vào `docs/am-thanh/`.
+- `StationSoundTests` được ghim vào một ngày ngoài mùa để không hỏng vào tháng 12.
+
+### Chưa đạt / cần PO quyết
+- PO nghe và duyệt ba bài mùa và tiếng chợ (`docs/am-thanh/`).
+- Trong mùa lễ, Auto chơi bài mùa cả ngày đêm: PO xác nhận.
+- Nhạc mùa thu hoặc mua thật để sau, do PO chọn.
+- Chưa có khung xem trước cho Chữ to với nhãn mới.
+
+## #129, #134, #135 (bước 1), tương phản #121 — nhánh design `do-net-do-hoa` và `tuong-phan` (session Độ nét đồ họa)
+**Test:** gộp cùng #124 vào main `9144812`; verify đầy đủ của lượt gộp GREEN 1746/1746, preview 460 khung, save không đổi. visual-critic-gate APPROVED: `docs/anh/qa/do-net-do-hoa/VERDICT.md`, `docs/anh/po-129/VERDICT.md`, `docs/anh/qa/tuong-phan/VERDICT.md`.
+**Commit:** ac268f8 (#134/#135), e26a577 và 4de0210 (#129), 986bf61 (tương phản)
+**Đã làm:**
+- #134: vùng chưa mở là bóng đêm đều thay sương (chủ project bỏ sương 25/11), vân giấy chỉ làm tối 7 %, ánh trăng nhẹ hơn, đá và lối đi màu đặc, bóng Ink 30 % dưới mọi vật trên cỏ, HUD góc phải nền đặc. Test đổi theo quyết định bỏ sương: `MistEdgeLeast` 0,6 → 0,15, quầng trăng 0,26 → 0,12.
+- #135 bước 1: bốn nhãn trò nhỏ và "Xếp thỏ +" nền mực tối chữ kem.
+- #129: ô cỏ màu nước 1024² lặp liền (đang dùng) và 2 biến thể, bộ lối mòn, 6 sprite rải; nạp qua `Assets/VuonTra/Art/Ground`.
+- Tương phản: 15 nhãn #121 để lại đạt AA, `ColoursAwaitingTheDesignSession` rỗng; `Palette` thêm `CarrotInk`, `MossInk`.
+### Chưa đạt / cần PO quyết
+- #134: bảng tỉ lệ đồ vật và vũng sáng đèn, chuyển sang hướng 3D.
+- #135 bước 2 (nhãn theo zoom) đang trên nhánh `nhan-vuon`.
+- #129: phần code rải theo chùm và mạng lối đi hoãn theo hướng 3D.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
