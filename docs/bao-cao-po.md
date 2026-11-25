@@ -2447,6 +2447,15 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - #135 bước 2 (nhãn theo zoom) đang trên nhánh `nhan-vuon`.
 - #129: phần code rải theo chùm và mạng lối đi hoãn theo hướng 3D.
 
+## #127 — Thỏ đang làm thỉnh thoảng nghỉ tay, trạm vẫn chạy (agent-127)
+**Test:** `tools/verify.sh` đầy đủ GREEN, 1729/1729, rules ok, save không đổi; Core không cần Unity 939/939.
+**Commit:** dc54b15
+**Đã làm:** Thêm lịch nghỉ tay trong `Core/Strolls.cs` (`Breaks`, `Break`, `BreakPost`, `BreakLeg`). Mỗi trạm một lượt mỗi 180 s, giờ bắt đầu lấy từ `Strolls.Roll`; đi 3 s, nán theo `LingerFor`, về 3 s. Chỗ dạo trong tầm 300 qua `PickSpot`, giữ `Clearance` và `PathClearance`. Tối đa 2 thỏ cả vườn, cộng thêm ngoài `MaxAtOnce`; luôn còn ≥ 1 thỏ làm việc; giảm chuyển động thì không nghỉ. `Break.From/To` và `LegAt` là dữ liệu đường đi cho cảnh 2.5D. Thêm 12 test Core, có test 17 hạt so từng byte. Kinh tế không đổi.
+### Chưa đạt / cần PO quyết
+- Cách hiểu "trạm ≥ 2 thỏ" thành "vườn ≥ 2 thỏ đang làm, luôn còn 1" cần PO duyệt.
+- Hoãn theo hướng 2.5D: nối vào cảnh, test màn hình, Animator/clip đi bộ (dự án chưa có clip nào), GIF.
+- Cảnh 2.5D cần khoảng cách theo cỡ thân thỏ, không chỉ 200 từ tâm trạm.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
