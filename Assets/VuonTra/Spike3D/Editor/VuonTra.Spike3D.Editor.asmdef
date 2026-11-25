@@ -1,0 +1,20 @@
+{
+    "name": "VuonTra.Spike3D.Editor",
+    "rootNamespace": "VuonTra.Spike3D",
+    "references": [
+        "VuonTra.Game",
+        "Unity.RenderPipelines.Core.Runtime",
+        "Unity.RenderPipelines.Universal.Runtime"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
