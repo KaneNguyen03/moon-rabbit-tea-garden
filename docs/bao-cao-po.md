@@ -2407,6 +2407,15 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - 15 loại nhãn dưới AA do màu, nằm trong danh sách `ColoursAwaitingTheDesignSession` của test (chỉ được giảm); chờ phiên Độ nét đồ họa.
 - Nút lún khi chạm vẫn chạy dù bật Giảm chuyển động; giữ hay tắt?
 
+## #115 — Ngày đầu không có quãng trống (agent-115)
+**Test:** full verify GREEN, 1727/1727, rules ok, save ok, preview 460 khung.
+**Commit:** 42fa274, 5421edd, 7134888 (merge main: d89fdf0, 410d761).
+**Đã làm:** `CardPacer` (thẻ tự hiện chờ 20 giây sau thẻ trước), gói người mới chờ xong hướng dẫn và phút 3, thẻ giới thiệu cách nhau 200 giây; test mô phỏng 30 phút trên 17 hạt (`Logs/first-session.txt`), test màn hình 30 phút, test Core; 16 khung ảnh; sửa `Hash` để `DozeSomeone` không còn chỉ số −1.
+### Chưa đạt / cần PO quyết
+- Duyệt thẻ giới thiệu cách nhau 200 giây (đổi số #104).
+- Duyệt danh sách thẻ tính vào luật 20 giây và cách tính từ lúc thẻ đóng.
+- Thẻ gói người mới sẽ bị ẩn khi cờ kiếm tiền #144 tắt (mặc định); phần giờ hiện thẻ vẫn giữ cho khi bật lại.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
