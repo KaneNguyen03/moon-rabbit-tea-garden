@@ -6,7 +6,7 @@
 
 | Total | Needed | In Progress | Done | Approved |
 |-------|--------|-------------|------|----------|
-| 18 | 10 | 0 | 8 | 0 |
+| 18 | 1 | 0 | 17 | 0 |
 
 ## Assets by Context
 
@@ -25,17 +25,17 @@
 ### System: Ánh sáng và bóng (#147)
 | Asset ID | Name | Category | Status | Spec File |
 |----------|------|----------|--------|-----------|
-| ASSET-009 | Đèn lồng cột | Sprite | Needed | design/assets/specs/anh-sang-25d-assets.md |
-| ASSET-010 | Quầng sáng đèn | VFX | Needed | design/assets/specs/anh-sang-25d-assets.md |
-| ASSET-011 | Vũng sáng đèn trên cỏ | VFX | Needed | design/assets/specs/anh-sang-25d-assets.md |
-| ASSET-012 | Bóng elip dưới chân | Sprite | Needed | design/assets/specs/anh-sang-25d-assets.md |
-| ASSET-013 | Đèn đá | Sprite | Needed (kiểm bản có) | design/assets/specs/anh-sang-25d-assets.md |
+| ASSET-009 | Đèn lồng cột (tắt + lớp giấy sáng) | Sprite | Done (docs/anh/po-147) | design/assets/specs/anh-sang-25d-assets.md |
+| ASSET-010 | Quầng sáng đèn | VFX | Done (docs/anh/po-147) | design/assets/specs/anh-sang-25d-assets.md |
+| ASSET-011 | Vũng sáng đèn trên cỏ | VFX | Done (docs/anh/po-147) | design/assets/specs/anh-sang-25d-assets.md |
+| ASSET-012 | Bóng elip dưới chân | Sprite | Done (docs/anh/po-147) | design/assets/specs/anh-sang-25d-assets.md |
+| ASSET-013 | Đèn đá | Sprite | Done (đã có Art/Final/decor_den-da.png) | design/assets/specs/anh-sang-25d-assets.md |
 
 ### System: Trời, viền xa và HUD (#148)
 | Asset ID | Name | Category | Status | Spec File |
 |----------|------|----------|--------|-----------|
-| ASSET-014 | Bầu trời đêm (ba lớp) | Environment | Needed | design/assets/specs/troi-hud-25d-assets.md |
-| ASSET-015 | Dải rừng và đồi xa | Environment | Needed | design/assets/specs/troi-hud-25d-assets.md |
+| ASSET-014 | Bầu trời đêm (ba lớp) | Environment | Done (docs/anh/po-148) | design/assets/specs/troi-hud-25d-assets.md |
+| ASSET-015 | Dải rừng và đồi xa | Environment | Done (docs/anh/po-148) | design/assets/specs/troi-hud-25d-assets.md |
 | ASSET-016 | Cây cụm viền đảo (dùng chung #137, #146) | Sprite | Needed | design/assets/specs/troi-hud-25d-assets.md |
-| ASSET-017 | Vân giấy (Multiply) | VFX | Needed | design/assets/specs/troi-hud-25d-assets.md |
-| ASSET-018 | Dải tối sau HUD | UI | Needed | design/assets/specs/troi-hud-25d-assets.md |
+| ASSET-017 | Vân giấy (Multiply) | VFX | Done (docs/anh/po-148) | design/assets/specs/troi-hud-25d-assets.md |
+| ASSET-018 | Dải tối sau HUD | UI | Done (docs/anh/po-148) | design/assets/specs/troi-hud-25d-assets.md |
