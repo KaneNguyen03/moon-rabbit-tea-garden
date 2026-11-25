@@ -8,6 +8,8 @@ namespace VuonTra.Game.UI
     public sealed class AwayView
     {
         public const float Height = 1180f;
+        public const float CountSeconds = 0.8f;
+        public const int MaxTicks = 12;
 
         readonly GameCatalog _catalog;
         readonly Tweens _tweens;
@@ -21,12 +23,15 @@ namespace VuonTra.Game.UI
         readonly RectTransform _portraitHolder;
         readonly ChunkyButton _double;
         GameObject _portrait;
+        int _countToken;
 
         public BottomSheet Sheet { get; }
         public AwayReport Report { get; private set; }
         public bool IsOpen => Sheet.IsOpen;
         public string DoubleLabel => _doubleLabel.text;
         public bool DoubleEnabled => _double.Button.interactable;
+        public RectTransform CarrotIcon { get; }
+        public int Ticks { get; private set; }
 
         public AwayView(RectTransform canvas, GameCatalog catalog, Tweens tweens, Func<int> doubleCost, Func<int> golden, Func<bool> doubled,
             Action onCollect, Action onDouble)
@@ -45,7 +50,8 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.T("away.title"), 54, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var carrots = Row(card, "Carrots", -310, 220);
-            UiKit.Rect("Icon", carrots).Place(0f, 0.5f, 90, 10, 110, 110).AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            CarrotIcon = UiKit.Rect("Icon", carrots).Place(0f, 0.5f, 90, 10, 110, 110);
+            CarrotIcon.AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _amount = UiKit.Rect("Amount", carrots).Stretch(0, 0.42f, 1, 1, 170, 0, 30, 10)
                 .AddText("+0", 72, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
             _amount.resizeTextForBestFit = true;
@@ -73,6 +79,7 @@ namespace VuonTra.Game.UI
             var ok = UiKit.Rect("Ok", card).Place(0f, 0f, 220, 150, 320, UiKit.MinTouch + 20);
             UiKit.Secondary(ok, catalog.Panel, L10n.T("away.ok"), () =>
             {
+                ShowAmount(Report.Paid);
                 Sfx.Reward();
                 _onCollect?.Invoke();
                 Close();
@@ -112,8 +119,8 @@ namespace VuonTra.Game.UI
         public void Open(AwayReport away, GameState s)
         {
             Report = away;
-            _amount.text = "+" + away.Paid.Short();
-            _time.text = L10n.T(away.Capped ? "away.time.capped" : "away.time", GardenScreen.Span(away.Seconds));
+            CountUp(away.Paid);
+            _time.text = TimeLine(away, s);
             _tray.text = away.TrayAdded > 0
                 ? L10n.T("away.tray", away.TrayAdded) + (away.TrayFull ? L10n.T("away.tray.full") : "")
                 : L10n.T("away.tray.none");
@@ -139,6 +146,38 @@ namespace VuonTra.Game.UI
             RefreshDouble();
             Sheet.Root.transform.SetAsLastSibling();
             Sheet.Open();
+        }
+
+        void CountUp(BigNum paid)
+        {
+            if (Motion.Reduced) { ShowAmount(paid); return; }
+            int token = ++_countToken, reached = 0;
+            Ticks = 0;
+            _amount.text = "+0";
+            _tweens.Add(CountSeconds, t =>
+            {
+                if (token != _countToken || _amount == null) return;
+                _amount.text = "+" + (t >= 1f ? paid : paid * t).Short();
+                int step = Mathf.Min(MaxTicks, Mathf.FloorToInt(t * MaxTicks));
+                if (step <= reached) return;
+                reached = step;
+                Ticks++;
+                Sfx.Tick();
+            }, Ease.OutCubic);
+        }
+
+        void ShowAmount(BigNum paid)
+        {
+            _countToken++;
+            _amount.text = "+" + paid.Short();
+        }
+
+        static string TimeLine(AwayReport away, GameState s)
+        {
+            if (!away.Capped) return L10n.T("away.time", GardenScreen.Span(away.Seconds));
+            int hours = (int)Math.Round(away.Seconds / 3600d);
+            bool moon = s != null && MoonPass.Active(s, s.MaxDaySeen);
+            return L10n.T(moon ? "away.time.capped.moon" : "away.time.capped", hours);
         }
 
         public void RefreshDouble()

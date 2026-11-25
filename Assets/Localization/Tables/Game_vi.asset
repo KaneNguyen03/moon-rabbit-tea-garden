@@ -215,7 +215,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 372236336
-    m_Localized: "trong {0} (\u0111\xE3 ch\u1EA1m gi\u1EDBi h\u1EA1n v\u1EAFng m\u1EB7t)."
+    m_Localized: "\u0111\u1EE7 {0} gi\u1EDD, m\u1EE9c t\u1ED1i \u0111a khi v\u1EAFng."
     m_Metadata:
       m_Items: []
   - m_Id: 372236337
@@ -4820,6 +4820,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1093024263168000
     m_Localized: "+{0}% thu nh\u1EADp"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1204388692484096
+    m_Localized: "\u0111\u1EE7 {0} gi\u1EDD (v\xE9 tr\u0103ng), m\u1EE9c t\u1ED1i \u0111a khi v\u1EAFng."
     m_Metadata:
       m_Items: []
   references:

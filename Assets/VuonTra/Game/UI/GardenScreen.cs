@@ -3899,25 +3899,53 @@ namespace VuonTra.Game.UI
         {
             // The welcome-back sheet (#69); the carrots are already in the purse, Collect only closes it, ×2 pays again.
             AwayCard = new AwayView(_canvas, catalog, Tweens, () => Runner.AwayDoubleCost, () => Runner.State.GoldenCarrots, () => Runner.LastAwayDoubled,
-                () => Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f),
-                OnDoubleAway);
+                CollectAway, OnDoubleAway);
+        }
+
+        public const int AwayFlyCount = 10;
+
+        void CollectAway()
+        {
+            Haptics.Light();
+            AwayCarrotsHome(Feel.PointOf(AwayCard.CarrotIcon), null);
+        }
+
+        void AwayCarrotsHome(Vector2 from, System.Action landed)
+        {
+            GameCatalog catalog = Runner.Catalog;
+            System.Action arrive = () =>
+            {
+                if (_purse == null) return;
+                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
+                PopChip(_purse, 0.08f);
+                landed?.Invoke();
+            };
+            if (!_purse.gameObject.activeInHierarchy) { arrive(); return; }
+            Feel.BringToFront();
+            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, AwayFlyCount, 46f, arrive);
+        }
+
+        void AwayDoubled()
+        {
+            Sfx.Reward();
+            Sfx.Milestone();
+            Haptics.Medium();
+            Vector2 from = Feel.PointOf(AwayCard.CarrotIcon);
+            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + Runner.LastAway.Paid.Short(), Palette.Carrot, 44);
+            AwayCarrotsHome(from, () => AwayCarrotsHome(from, null));
+            AwayCard.Close();
         }
 
         /// <summary>The ×2 on the welcome-back sheet: the time away it shows paid once more, then the sheet closes.</summary>
         void OnDoubleAway()
         {
-            BigNum paid = AwayCard.Report.Paid;
             if (!Runner.DoubleAway())
             {
                 AwayCard.RefreshDouble();
                 Sfx.Deny();
                 return;
             }
-            Sfx.Reward();
-            Haptics.Medium();
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + paid.Short(), Palette.Carrot, 44);
-            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 16, 520f, 46f);
-            AwayCard.Close();
+            AwayDoubled();
         }
 
         void OnShellChanged(ShellState state)
@@ -6724,15 +6752,10 @@ namespace VuonTra.Game.UI
         /// <summary>The welcome-back sheet's ad option: the time away it shows paid once more, as the ×2 button does.</summary>
         void OnAwayAd()
         {
-            BigNum paid = AwayCard.Report.Paid;
             WatchAd(Ads.AwayDouble, null, ok =>
             {
                 if (!ok) { AwayCard.RefreshDouble(); return; }
-                Sfx.Reward();
-                Haptics.Medium();
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + paid.Short(), Palette.Carrot, 44);
-                Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 16, 520f, 46f);
-                AwayCard.Close();
+                AwayDoubled();
             });
         }
 
