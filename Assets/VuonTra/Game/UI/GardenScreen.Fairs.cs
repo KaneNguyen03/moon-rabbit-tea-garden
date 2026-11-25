@@ -23,7 +23,7 @@ namespace VuonTra.Game.UI
             if (FairCard == null) return;
             FairCard.RefreshChip();
             FairRun? now = Runner.FairNow;
-            Shop.RefreshFair(now.HasValue ? L10n.T(now.Value.Def.NameKey) : null);
+            Shop.RefreshFair(now.HasValue ? now.Value.Def.NameKey : null);
             if (FairCard.IsOpen) FairCard.Refresh();
             else if (Runner.OfferCardsOn && Runner.FairCardWaiting && OfferCardFree)
             {

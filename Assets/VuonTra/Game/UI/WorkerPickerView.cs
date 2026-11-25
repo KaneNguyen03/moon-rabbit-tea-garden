@@ -82,7 +82,11 @@ namespace VuonTra.Game.UI
 
         public void Refresh(IReadOnlyList<StationDef> defs, GameState s)
         {
-            if (!IsOpen) return;
+            if (IsOpen) Redraw(defs, s);
+        }
+
+        void Redraw(IReadOnlyList<StationDef> defs, GameState s)
+        {
             if (_station >= defs.Count || s.Levels[_station] <= 0)
             {
                 Close();

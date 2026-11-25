@@ -48,6 +48,7 @@ namespace VuonTra.Game.UI
         public RectTransform Chip => _chip;
         public bool ChipShown => _chip.gameObject.activeSelf;
         public string ChipText => _chipText.text;
+        readonly ShownText _chipShown = new ShownText(), _chipPainted = new ShownText();
         public bool ChipDouble => _chipDouble.activeSelf;
         public string Title => _title.text;
         public string Days => _days.text;
@@ -246,8 +247,8 @@ namespace VuonTra.Game.UI
                 return;
             }
             FairRun run = now.Value;
-            Paint(run);
-            _chipText.text = CoinsOf(s, run).ToString();
+            if (_chipPainted.Changes(_chipText, run.Start, 0L, run.Def.Id)) Paint(run);
+            _chipShown.Number(_chipText, CoinsOf(s, run));
             bool twice = Fairs.Weekend(_runner.TodayNumber);
             if (_chipDouble.activeSelf != twice) _chipDouble.SetActive(twice);
         }

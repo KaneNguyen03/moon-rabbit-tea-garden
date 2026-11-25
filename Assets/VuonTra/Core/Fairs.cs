@@ -26,6 +26,7 @@ namespace VuonTra.Core
         public readonly string Hex;
         public readonly string RabbitKind;
         public readonly FairStall[] Stalls;
+        public readonly string NameKey, CoinKey;
 
         public FairDef(string id, int month, string hex, string rabbitKind, FairStall[] stalls = null, int startDay = Fairs.StartDay, int days = Fairs.Days)
         {
@@ -36,10 +37,9 @@ namespace VuonTra.Core
             Stalls = stalls ?? Fairs.Stall;
             StartDay = startDay;
             Days = days;
+            NameKey = "fair." + id;
+            CoinKey = "fair.coin." + id;
         }
-
-        public string NameKey => "fair." + Id;
-        public string CoinKey => "fair.coin." + Id;
     }
 
     public readonly struct FairRun

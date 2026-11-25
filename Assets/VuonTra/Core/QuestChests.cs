@@ -79,14 +79,14 @@ namespace VuonTra.Core
         public static int DailyTotal(IReadOnlyList<QuestDef> quests, GameState s)
         {
             int n = 0;
-            foreach (QuestDef q in quests) if (q.Daily && Quests.IsAvailable(q, s.MaxDaySeen)) n++;
+            for (int i = 0; i < quests.Count; i++) if (quests[i].Daily && Quests.IsAvailable(quests[i], s.MaxDaySeen)) n++;
             return n;
         }
 
         public static int DailyDone(IReadOnlyList<QuestDef> quests, GameState s)
         {
             int n = 0;
-            foreach (QuestDef q in quests) if (q.Daily && Quests.IsAvailable(q, s.MaxDaySeen) && Quests.IsClaimed(q, s)) n++;
+            for (int i = 0; i < quests.Count; i++) if (quests[i].Daily && Quests.IsAvailable(quests[i], s.MaxDaySeen) && Quests.IsClaimed(quests[i], s)) n++;
             return n;
         }
 

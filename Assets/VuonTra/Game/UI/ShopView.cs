@@ -558,17 +558,18 @@ namespace VuonTra.Game.UI
             _fairRow.gameObject.SetActive(false);
         }
 
-        public void RefreshFair(string fairName)
+        public void RefreshFair(string nameKey)
         {
             if (_fairRow == null) return;
-            bool on = fairName != null;
+            bool on = nameKey != null;
             if (_fairRow.gameObject.activeSelf != on) _fairRow.gameObject.SetActive(on);
-            if (on) _fairText.text = fairName;
+            if (on && _fairShown.Changes(_fairText, 0L, 0L, nameKey)) _fairText.text = L10n.T(nameKey);
         }
 
         public const float OfferWidth = 320f, OfferHeight = UiKit.MinTouch, OfferTop = 12f;
         RectTransform _offerRow;
         Text _offerTitle, _offerLeft;
+        readonly ShownText _offerTitleShown = new ShownText(), _offerLeftShown = new ShownText(), _fairShown = new ShownText();
 
         public bool OfferShown => _offerRow != null && _offerRow.gameObject.activeSelf;
         public string OfferText => _offerTitle != null ? _offerTitle.text : null;
@@ -608,8 +609,8 @@ namespace VuonTra.Game.UI
             bool on = offer != null && secondsLeft > 0L;
             if (_offerRow.gameObject.activeSelf != on) _offerRow.gameObject.SetActive(on);
             if (!on) return;
-            _offerTitle.text = OfferView.TitleOf(offer);
-            _offerLeft.text = L10n.T("offer.left", OfferView.Countdown(secondsLeft));
+            if (_offerTitleShown.Changes(_offerTitle, offer.Level, 0L, offer.Id)) _offerTitle.text = OfferView.TitleOf(offer);
+            if (_offerLeftShown.Changes(_offerLeft, secondsLeft, 0L, "offer.left")) _offerLeft.text = L10n.T("offer.left", OfferView.Countdown(secondsLeft));
         }
 
         RectTransform _purseRow;
