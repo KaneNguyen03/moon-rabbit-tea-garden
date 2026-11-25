@@ -239,7 +239,7 @@ namespace VuonTra.Core.Tests
             return screen;
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void A_Full_Garden_With_Every_Round_Two_Feature_Stands_Still_Without_Allocating()
         {
             GardenScreen screen = RoundTwoGarden();
@@ -270,7 +270,7 @@ namespace VuonTra.Core.Tests
             return found;
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void The_Wallet_And_The_Countdown_Pills_Leave_Their_Text_Alone_Until_The_Shown_String_Changes()
         {
             GardenScreen screen = RoundTwoGarden();
