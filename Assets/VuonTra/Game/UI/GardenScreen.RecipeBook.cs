@@ -46,6 +46,7 @@ namespace VuonTra.Game.UI
         {
             if (Book == null) return;
             Book.Open(Runner.Defs, Runner.State);
+            Runner.OpenedFeature(Intros.RecipeBook);
         }
 
         void RefreshRecipeBook(GameState s)

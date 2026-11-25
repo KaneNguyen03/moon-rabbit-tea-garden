@@ -73,7 +73,12 @@ namespace VuonTra.Game.UI
             var chipButton = _chip.gameObject.AddComponent<Button>();
             chipButton.transition = Selectable.Transition.None;
             chipButton.targetGraphic = _chipFace;
-            chipButton.onClick.AddListener(() => { Sfx.Click(); Open(); });
+            chipButton.onClick.AddListener(() =>
+            {
+                Sfx.Click();
+                Open();
+                if (IsOpen) _runner.OpenedFeature(Intros.Fair);
+            });
             CoinIcon(_chip, "Icon", 38f, 0f, 0.5f, 28f, 0f);
             _chipText = UiKit.Rect("Text", _chip).Stretch(0, 0, 1, 1, 52, 0, 8, 0).AddText("0", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _chipText.resizeTextForBestFit = true;

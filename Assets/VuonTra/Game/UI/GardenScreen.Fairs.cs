@@ -12,7 +12,7 @@ namespace VuonTra.Game.UI
         void BuildFair()
         {
             FairCard = new FairView(_canvas, _hud, Runner, Tweens, OnFairStall);
-            Shop.AttachFair(() => { Shop.Close(); FairCard.Open(); });
+            Shop.AttachFair(() => { Shop.Close(); OpenFair(); });
             if (_onFairCoins != null) Runner.FairCoinsEarned -= _onFairCoins;
             _onFairCoins = FairCoinsArrived;
             Runner.FairCoinsEarned += _onFairCoins;
@@ -31,6 +31,18 @@ namespace VuonTra.Game.UI
                 Sfx.Reward();
                 FairCard.Open();
             }
+        }
+
+        public void OpenFair()
+        {
+            FairCard.Open();
+            if (FairCard.IsOpen) Runner.OpenedFeature(Intros.Fair);
+        }
+
+        void OpenFairFromIntro()
+        {
+            if (Runner.FairCardWaiting) Runner.SeeFairCard();
+            OpenFair();
         }
 
         void FairCoinsArrived(int coins)

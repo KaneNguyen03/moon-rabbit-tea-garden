@@ -10,7 +10,7 @@ namespace VuonTra.Core.Tests
 {
     [Category("Slow")]
     [Timeout(600000)]
-    public class EconomySimulationTests
+    public partial class EconomySimulationTests
     {
         const double Day = 86400d;
         const double SellEvery = 120d;

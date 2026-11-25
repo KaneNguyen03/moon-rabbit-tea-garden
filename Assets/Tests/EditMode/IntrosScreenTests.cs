@@ -304,10 +304,202 @@ namespace VuonTra.Core.Tests
             Step(0.3f);
             Assert.IsTrue(screen.IntroList.IsOpen);
             Assert.AreEqual(1, screen.IntroList.RowCount);
-            Transform row = root.transform.Find("Canvas/Intros/Card/Rows/Row " + Intros.Fishing);
+            Transform row = root.transform.Find("Canvas/Intros/Card/Rows/Content/Row " + Intros.Fishing);
             Assert.IsTrue(row.gameObject.activeSelf);
             Assert.AreEqual(L10n.T("intro.fishing.title"), row.Find("Title").GetComponent<Text>().text);
-            Assert.IsFalse(root.transform.Find("Canvas/Intros/Card/Rows/Row " + Intros.Pounding).gameObject.activeSelf);
+            Assert.IsFalse(root.transform.Find("Canvas/Intros/Card/Rows/Content/Row " + Intros.Pounding).gameObject.activeSelf);
+        }
+
+        void OnlyDue(string id)
+        {
+            Forget();
+            S.IntrosSeen.UnionWith(Intros.All);
+            S.IntrosSeen.Remove(id);
+            switch (id)
+            {
+                case Intros.RecipeBook: S.Season = 1; break;
+                case Intros.Aquarium: S.Fish[0] = Intros.TankFish; break;
+                case Intros.Fair:
+                    long fair = Fairs.StartOf(Fairs.All[0], 2026);
+                    runner.DayClock = () => fair;
+                    S.MaxDaySeen = fair;
+                    S.FirstDaySeen = fair - 20;
+                    break;
+                default: S.FirstDaySeen = S.MaxDaySeen - Intros.MonthPassDay; break;
+            }
+            Assert.IsTrue(Intros.IsOpen(S, id), id);
+            screen.IntroQueue.Reset();
+        }
+
+        void ShowCard(string id)
+        {
+            OnlyDue(id);
+            Step(0.4f);
+            Assert.IsTrue(screen.IntroCard.IsOpen, id);
+            Assert.AreEqual(id, screen.IntroCard.Showing);
+            Assert.AreEqual(L10n.T("intro." + id + ".title"), screen.IntroCard.Title);
+            Assert.AreEqual(2, screen.IntroCard.Body.Split('\n').Length, id + ": two lines");
+            StringAssert.StartsWith("Thử lần đầu", screen.IntroCard.RewardLine, id + " carries the first-try gift");
+        }
+
+        static bool InView(RectTransform row)
+        {
+            var view = (RectTransform)row.parent.parent;
+            var rowCorners = new Vector3[4];
+            var viewCorners = new Vector3[4];
+            row.GetWorldCorners(rowCorners);
+            view.GetWorldCorners(viewCorners);
+            return rowCorners[1].y <= viewCorners[1].y + 1f && rowCorners[1].y > viewCorners[0].y;
+        }
+
+        [TestCase(Intros.RecipeBook)]
+        [TestCase(Intros.Trunk)]
+        [TestCase(Intros.Fair)]
+        public void Try_Now_On_A_Round_Two_Card_Opens_Its_Panel_And_Pays_The_First_Try(string id)
+        {
+            ShowCard(id);
+            int clovers = S.Clovers;
+            Find("Canvas/Intro/Try").onClick.Invoke();
+            Step(0.3f);
+            Assert.IsFalse(screen.IntroCard.IsOpen);
+            switch (id)
+            {
+                case Intros.RecipeBook: Assert.IsTrue(screen.Book.IsOpen, "the recipe book opens"); break;
+                case Intros.Trunk: Assert.IsTrue(screen.TrunkCard.IsOpen, "the trunk opens"); break;
+                case Intros.Fair: Assert.IsTrue(screen.FairCard.IsOpen, "the fair's card opens"); break;
+            }
+            Assert.IsTrue(S.IntrosTried.Contains(id), "opening it is the first try");
+            Assert.AreEqual(clovers + Intros.RewardClovers, S.Clovers);
+            Assert.IsFalse(screen.IntroCard.IsOpen, "and no card comes over the panel");
+            Wait((int)Intros.GapSeconds + 1);
+            Assert.IsFalse(screen.IntroCard.IsOpen);
+        }
+
+        [Test]
+        public void Try_Now_On_The_Tank_Card_Opens_The_Tank_And_The_First_Fish_Released_Pays()
+        {
+            ShowCard(Intros.Aquarium);
+            int clovers = S.Clovers;
+            Find("Canvas/Intro/Try").onClick.Invoke();
+            Step(0.3f);
+            Assert.IsTrue(screen.TankSheet.IsOpen, "the tank opens on its release list");
+            Assert.IsFalse(S.IntrosTried.Contains(Intros.Aquarium), "looking is not trying");
+            Assert.IsTrue(runner.ReleaseFish(0).Released);
+            Assert.IsTrue(S.IntrosTried.Contains(Intros.Aquarium));
+            Assert.AreEqual(clovers + Intros.RewardClovers, S.Clovers);
+            Assert.IsTrue(runner.ReleaseFish(0).Released);
+            Assert.AreEqual(clovers + Intros.RewardClovers, S.Clovers, "once only");
+        }
+
+        [TestCase(Intros.MonthPass)]
+        [TestCase(Intros.WeekChest)]
+        public void Try_Now_On_The_Month_Pass_Or_Week_Chest_Card_Opens_Quests_At_Its_Row_And_Lights_It(string id)
+        {
+            ShowCard(id);
+            Find("Canvas/Intro/Try").onClick.Invoke();
+            Step(0.3f);
+            RectTransform row = id == Intros.MonthPass ? screen.MonthPassRows.Root : screen.ChestRows.WeekRow;
+            Assert.IsTrue(screen.SheetOpen);
+            Assert.AreEqual(GardenScreen.QuestTab, screen.Tab, "the quests tab");
+            Assert.IsTrue(InView(row), "scrolled so its row is in view");
+            Assert.IsNotNull(screen.IntroGlow, "and the row lights up");
+            Assert.AreEqual(row.parent, screen.IntroGlow.parent);
+            Assert.IsTrue(screen.IntroGlow.GetComponent<LayoutElement>().ignoreLayout, "the glow does not push the rows apart");
+            Assert.IsFalse(screen.IntroGlow.Find("Frame").GetComponent<Image>().fillCenter, "a gold border round the row, never a plate over it");
+            Assert.IsFalse(S.IntrosTried.Contains(id), "the gift comes with the first claim");
+            Step(3.2f);
+            Assert.IsNull(screen.IntroGlow);
+        }
+
+        [Test]
+        public void The_First_Week_Chest_And_Month_Tier_Claimed_Pay_Their_First_Try_Gift()
+        {
+            OnlyDue(Intros.WeekChest);
+            Intros.Show(S, Intros.WeekChest);
+            S.IntrosSeen.Remove(Intros.MonthPass);
+            Intros.Show(S, Intros.MonthPass);
+            int clovers = S.Clovers;
+            QuestChests.AddPoints(S, runner.TodayNumber, QuestChests.Chests[0].Points);
+            Assert.IsTrue(runner.ClaimWeekChest(0, out _));
+            Assert.IsTrue(S.IntrosTried.Contains(Intros.WeekChest));
+            int afterChest = S.Clovers;
+            Assert.GreaterOrEqual(afterChest, clovers + Intros.RewardClovers);
+            Assert.GreaterOrEqual(MonthPass.Tier(S, runner.TodayNumber), 1, "the chest's points also move the month pass");
+            Assert.IsTrue(runner.ClaimMonthTier(MonthRow.Free, 1, null, out _));
+            Assert.IsTrue(S.IntrosTried.Contains(Intros.MonthPass));
+            Assert.GreaterOrEqual(S.Clovers, afterChest + Intros.RewardClovers);
+        }
+
+        [Test]
+        public void An_Intro_Card_Waits_While_The_Fair_Card_Is_Open_And_No_Fair_Card_Opens_Over_It()
+        {
+            OnlyDue(Intros.Fair);
+            screen.FairCard.Open();
+            Assert.IsTrue(screen.FairCard.IsOpen);
+            Assert.IsTrue(screen.IntroBlocked, "the fair's card counts as an open card");
+            Step(1f);
+            Assert.IsFalse(screen.IntroCard.IsOpen);
+            Assert.IsFalse(S.IntrosSeen.Contains(Intros.Fair));
+            screen.FairCard.Close();
+            Step(0.4f);
+            Assert.IsFalse(screen.IntroCard.IsOpen, "a card that comes by itself rests after the last one closed");
+            Wait((int)CardPacer.GapSeconds + 1);
+            Assert.IsTrue(screen.IntroCard.IsOpen);
+            Assert.IsFalse(screen.OfferCardFree, "while it is up no other card may open");
+            Assert.IsTrue(screen.ReviewBusy);
+        }
+
+        [TestCase(Intros.Trunk)]
+        [TestCase(Intros.Aquarium)]
+        [TestCase(Intros.RecipeBook)]
+        public void A_Round_Two_Panel_Opened_Over_Its_Card_Puts_The_Card_Away_With_A_Dot(string id)
+        {
+            ShowCard(id);
+            if (id == Intros.Trunk) screen.TrunkCard.Open(runner.TrunkShelf);
+            else if (id == Intros.Aquarium) screen.TankSheet.Open();
+            else screen.Book.Open(runner.Defs, S);
+            Step(0.4f);
+            Assert.IsFalse(screen.IntroCard.IsOpen, "only one card is ever open");
+            Assert.IsTrue(Intros.HasDot(S, id));
+        }
+
+        [Test]
+        public void Later_On_The_Trunk_Card_Leaves_A_Dot_On_The_Trunk_Until_It_Is_Opened()
+        {
+            ShowCard(Intros.Trunk);
+            Find("Canvas/Intro/Later").onClick.Invoke();
+            screen.Refresh();
+            RectTransform dot = screen.IntroDot(Intros.Trunk);
+            Assert.IsNotNull(dot);
+            Assert.AreEqual(screen.TrunkProp, dot.parent);
+            screen.OpenTrunk();
+            screen.Refresh();
+            Assert.IsNull(screen.IntroDot(Intros.Trunk));
+            Assert.IsTrue(S.IntrosTried.Contains(Intros.Trunk));
+        }
+
+        [Test]
+        public void Later_On_The_Week_Chest_Card_Leaves_A_Dot_On_Its_Row_Until_The_Quests_Open()
+        {
+            ShowCard(Intros.WeekChest);
+            Find("Canvas/Intro/Later").onClick.Invoke();
+            screen.Refresh();
+            Assert.IsTrue(Intros.HasDot(S, Intros.WeekChest));
+            screen.OpenSheet(GardenScreen.QuestTab);
+            screen.Refresh();
+            Assert.IsFalse(Intros.HasDot(S, Intros.WeekChest), "opening the quests takes the dot away");
+        }
+
+        [Test]
+        public void The_Read_Again_List_Scrolls_When_All_Sixteen_Cards_Are_Open()
+        {
+            S.IntrosSeen.UnionWith(Intros.All);
+            screen.IntroList.Open(S);
+            Step(0.3f);
+            Assert.AreEqual(Intros.All.Length, screen.IntroList.RowCount);
+            Assert.LessOrEqual(screen.IntroList.Card.rect.height, IntroListView.MaxHeight, "the card stays inside the screen");
+            Assert.Greater(screen.IntroList.Scroll.content.rect.height, screen.IntroList.Scroll.viewport.rect.height, "the rows scroll");
+            Assert.IsTrue(screen.IntroList.Scroll.vertical);
         }
     }
 }

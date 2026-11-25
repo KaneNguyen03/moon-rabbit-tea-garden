@@ -6,13 +6,19 @@ namespace VuonTra.Core
     public static class Intros
     {
         public const string Fishing = "fishing", Pounding = "pounding", Leaves = "leaves", Fireflies = "fireflies", Orders = "orders",
-            Shop = "shop", MoonJar = "moonjar", Layout = "layout", Rain = "rain", NewMoon = "newmoon";
+            Shop = "shop", MoonJar = "moonjar", Layout = "layout", Rain = "rain", NewMoon = "newmoon",
+            RecipeBook = "recipebook", Aquarium = "aquarium", Trunk = "trunk", Fair = "fair", MonthPass = "monthpass", WeekChest = "weekchest";
 
-        public static readonly string[] All = { Fishing, Pounding, Leaves, Fireflies, Orders, Shop, MoonJar, Layout, Rain, NewMoon };
+        public static readonly string[] All = { Fishing, Pounding, Leaves, Fireflies, Orders, Shop, MoonJar, Layout, Rain, NewMoon,
+            RecipeBook, Aquarium, Trunk, Fair, MonthPass, WeekChest };
+
+        public static readonly string[] Late = { RecipeBook, Aquarium, Trunk, Fair, MonthPass, WeekChest };
 
         public const double RewardSeconds = 60d;
         public const int RewardClovers = 1;
         public const double GapSeconds = 200d;
+
+        public const int WeekChestDay = 2, TrunkDay = 3, MonthPassDay = 4, TankFish = 10;
 
         public static bool Known(string id) => Array.IndexOf(All, id) >= 0;
 
@@ -32,9 +38,31 @@ namespace VuonTra.Core
                 case Layout: return Tutorial.IsDone(s) && s.Grid != null && s.Grid.Segments >= 1;
                 case Rain: return FrogRabbit.CanCome(s);
                 case NewMoon: return s.Season > 0 || VuonTra.Core.NewMoon.CanBegin(s);
+                case RecipeBook: return Recipes.Unlocked(s);
+                case Aquarium: return VuonTra.Core.Fishing.Unlocked(s) && (VuonTra.Core.Fishing.InBasket(s) >= TankFish || Used(s, id));
+                case Trunk: return OnDay(s, TrunkDay);
+                case Fair: return Fairs.Open(s, s.MaxDaySeen) != null;
+                case MonthPass: return OnDay(s, MonthPassDay);
+                case WeekChest: return OnDay(s, WeekChestDay);
                 default: return false;
             }
         }
+
+        public static bool Used(GameState s, string id)
+        {
+            switch (id)
+            {
+                case RecipeBook: return Recipes.AnyRaised(s);
+                case Aquarium: return VuonTra.Core.Aquarium.KindsIn(s) > 0;
+                case Trunk: return s.Trunk.Window >= 0 || s.Trunk.Bought != 0;
+                case Fair: return s.Fair.Done >= 0 || s.Fair.Coins > 0 || s.Fair.Lanterns != 0 || s.Fair.Frames != 0;
+                case MonthPass: return s.PassFreeClaimed != 0 || s.PassPremiumClaimed != 0 || s.PassBoughtMonth >= 0;
+                case WeekChest: return s.WeekChestsClaimed != 0;
+                default: return false;
+            }
+        }
+
+        static bool OnDay(GameState s, int day) => Seasons.DaysPlayed(s) >= day - 1;
 
         public static string Next(GameState s)
         {
@@ -88,14 +116,15 @@ namespace VuonTra.Core
 
         public static void Settle(GameState s)
         {
-            if (s.IntrosKnown) return;
-            s.IntrosKnown = true;
             foreach (string id in All)
             {
-                if (!IsOpen(s, id)) continue;
+                if (s.IntrosKnown ? s.IntrosLateKnown || !Used(s, id) : !IsOpen(s, id)) continue;
                 s.IntrosSeen.Add(id);
                 s.IntrosTried.Add(id);
+                s.IntrosLater.Remove(id);
             }
+            s.IntrosKnown = true;
+            s.IntrosLateKnown = true;
         }
     }
 

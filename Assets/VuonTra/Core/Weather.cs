@@ -12,15 +12,27 @@ namespace VuonTra.Core
 
         public static double[] ShowerStarts(long day) => (double[])Starts(day).Clone();
 
-        static long _day = long.MinValue;
-        static double[] _starts;
+        sealed class Drawn
+        {
+            public readonly long Day;
+            public readonly double[] Starts;
+
+            public Drawn(long day, double[] starts)
+            {
+                Day = day;
+                Starts = starts;
+            }
+        }
+
+        static Drawn _drawn;
 
         static double[] Starts(long day)
         {
-            if (_starts != null && day == _day) return _starts;
-            _starts = Draw(day);
-            _day = day;
-            return _starts;
+            Drawn drawn = _drawn;
+            if (drawn != null && drawn.Day == day) return drawn.Starts;
+            drawn = new Drawn(day, Draw(day));
+            _drawn = drawn;
+            return drawn.Starts;
         }
 
         static double[] Draw(long day)

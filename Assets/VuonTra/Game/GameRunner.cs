@@ -252,6 +252,7 @@ namespace VuonTra.Game
             if (!ok) return false;
             Analytics.LogWeekChest(chest, AnalyticsEvents.FromWeek);
             if (rabbit != null) Rabbits.AutoAssign(Defs, State);
+            TryIntro(Intros.WeekChest);
             Changed();
             return true;
         }
@@ -1299,6 +1300,11 @@ namespace VuonTra.Game
             return first;
         }
 
+        public void OpenedFeature(string id)
+        {
+            if (TryIntro(id)) Changed();
+        }
+
         public bool TouchIntro(string id)
         {
             if (!Intros.Touch(State, id)) return false;
@@ -1345,6 +1351,7 @@ namespace VuonTra.Game
         {
             if (!MonthPass.Claim(Defs, State, Mods, row, tier, TodayNumber, kindId, PickName(), out claim)) return false;
             if (claim.Rabbit != null) Rabbits.AutoAssign(Defs, State);
+            TryIntro(Intros.MonthPass);
             Changed();
             return true;
         }

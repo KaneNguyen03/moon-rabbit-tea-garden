@@ -2872,6 +2872,45 @@ namespace VuonTra.EditorTools
             Step(screen, 0.4f);
         }
 
+        static void RenderRoundTwoIntros(GameRunner runner, GardenScreen screen, string lang)
+        {
+            GameState s = runner.State;
+            s.Fish[0] = Intros.TankFish;
+            s.FirstDaySeen = s.MaxDaySeen - Intros.MonthPassDay;
+            ShowIntroFrame(runner, screen, s, Intros.Aquarium, "122-the-be-ca-" + lang);
+            Press(screen, "Canvas/Intro/Later");
+            Step(screen, 0.4f);
+            s.Season = 1;
+            Recipes.SeeDishes(s);
+            ShowIntroFrame(runner, screen, s, Intros.RecipeBook, "122-the-so-cong-thuc-" + lang);
+            Press(screen, "Canvas/Intro/Later");
+            Step(screen, 0.4f);
+            s.Season = 0;
+            ShowIntroFrame(runner, screen, s, Intros.MonthPass, "122-the-ve-thang-" + lang);
+            Press(screen, "Canvas/Intro/Try");
+            Step(screen, 0.6f);
+            Capture(screen, "122-thu-ngay-ve-thang-" + lang);
+            screen.CloseSheet();
+            Step(screen, 3f);
+            if (lang != "vi") return;
+            ShowIntroFrame(runner, screen, s, Intros.Trunk, "122-the-ruong-xe-day-vi");
+            Press(screen, "Canvas/Intro/Later");
+            Step(screen, 0.4f);
+            ShowIntroFrame(runner, screen, s, Intros.WeekChest, "122-the-ruong-tuan-vi");
+            Press(screen, "Canvas/Intro/Try");
+            Step(screen, 0.6f);
+            Capture(screen, "122-thu-ngay-ruong-tuan-vi");
+            screen.CloseSheet();
+            Step(screen, 3f);
+            screen.IntroList.Open(s);
+            Step(screen, 0.4f);
+            Capture(screen, "122-danh-sach-16-the");
+            screen.IntroList.Scroll.verticalNormalizedPosition = 0f;
+            Step(screen, 0.3f);
+            Capture(screen, "122-danh-sach-16-the-cuoi");
+            screen.IntroList.Close();
+        }
+
         static void RenderIntros(GameRunner runner, GardenScreen screen)
         {
             foreach (string lang in new[] { "vi", "en" })
@@ -2896,6 +2935,7 @@ namespace VuonTra.EditorTools
                 ShowIntroFrame(runner, screen, s, Intros.Layout, "104-the-bo-tri-" + lang);
                 Press(screen, "Canvas/Intro/Later");
                 Step(screen, 0.4f);
+                RenderRoundTwoIntros(runner, screen, lang);
                 if (lang == "vi")
                 {
                     screen.Profile.Open(runner.Defs, s, runner.Account, runner.CloudStatus);
@@ -2919,6 +2959,17 @@ namespace VuonTra.EditorTools
             screen.RebuildUi();
             ShowIntroFrame(runner, screen, big, Intros.Orders, "104-the-khach-chu-to-en");
             Press(screen, "Canvas/Intro/Later");
+            big = runner.State;
+            big.Fish[0] = Intros.TankFish;
+            ShowIntroFrame(runner, screen, big, Intros.Aquarium, "122-the-be-ca-chu-to-en");
+            Press(screen, "Canvas/Intro/Later");
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            big.Season = 1;
+            Recipes.SeeDishes(big);
+            ShowIntroFrame(runner, screen, big, Intros.RecipeBook, "122-the-so-cong-thuc-chu-to");
+            Press(screen, "Canvas/Intro/Later");
+            big.Season = 0;
             UiKit.SetLargeText(false);
             L10n.SetLocale("vi");
             screen.RebuildUi();

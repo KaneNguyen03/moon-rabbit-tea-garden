@@ -3764,6 +3764,7 @@ namespace VuonTra.Game.UI
         public void OpenSheet(int tab)
         {
             SetTab(tab);
+            if (tab == QuestTab) TouchQuestIntros();
             if (SheetOpen) return;
             SheetOpen = true;
             Sfx.SheetUp();
@@ -8404,7 +8405,7 @@ namespace VuonTra.Game.UI
             || Detail.IsOpen || Workers.IsOpen || Picker.IsOpen || DecorCard.IsOpen || UpgradeAll.IsOpen
             || GoldenPacks.IsOpen || CloudChoice.IsOpen || Mail.IsOpen || Rename.IsOpen || Profile.IsOpen
             || OfferCard.IsOpen || ReviewCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen
-            || WelcomeCard.IsOpen || TrunkCard.IsOpen || TankPanelsOpen
+            || WelcomeCard.IsOpen || TrunkCard.IsOpen || TankPanelsOpen || FairCard.IsOpen
             || NewDishCard.IsOpen || Book.IsOpen;
 
         public bool IntroShowing => IntroCard != null && IntroCard.IsOpen;
@@ -8451,6 +8452,12 @@ namespace VuonTra.Game.UI
                 case Intros.Layout: icon = catalog.PlotSign; break;
                 case Intros.Rain: icon = catalog.KindSprite(FrogKind); break;
                 case Intros.NewMoon: icon = catalog.MoonGate; break;
+                case Intros.RecipeBook: icon = LeafIcon(catalog); break;
+                case Intros.Aquarium: icon = catalog.FishSprite(2) ?? catalog.FishBasket; break;
+                case Intros.Trunk: icon = catalog.ShopProp; break;
+                case Intros.Fair: icon = catalog.GateMidAutumn; break;
+                case Intros.MonthPass: icon = catalog.IconQuest; break;
+                case Intros.WeekChest: icon = catalog.GiftBox; break;
             }
             return icon != null ? icon : catalog.Round;
         }
@@ -8458,7 +8465,15 @@ namespace VuonTra.Game.UI
         Color IntroTint(string id)
         {
             Sprite icon = IntroIcon(id);
-            return id == Intros.Fireflies || icon == Runner.Catalog.Round ? Palette.Lantern : Color.white;
+            if (icon == Runner.Catalog.Round) return Palette.Lantern;
+            switch (id)
+            {
+                case Intros.Fireflies: return Palette.Lantern;
+                case Intros.RecipeBook: return LeafGold;
+                case Intros.Trunk: return TrunkView.TrunkTint;
+                case Intros.WeekChest: return QuestChestsView.ChestTints[1];
+                default: return Color.white;
+            }
         }
 
         bool IntroPlace(string id, out Vector2 world, out bool inWorld, out RectTransform target)
@@ -8478,6 +8493,12 @@ namespace VuonTra.Game.UI
                 case Intros.MoonJar: inWorld = false; target = _purse; break;
                 case Intros.Layout: inWorld = false; target = _layoutTab; break;
                 case Intros.NewMoon: inWorld = false; target = _gear; break;
+                case Intros.Aquarium: world = TankSpot; target = _tankProp; break;
+                case Intros.Trunk: target = _trunkProp; world = _trunkProp != null ? _trunkProp.anchoredPosition : default; break;
+                case Intros.RecipeBook: inWorld = false; target = _leafChip; break;
+                case Intros.Fair: inWorld = false; target = FairCard != null ? FairCard.Chip : null; break;
+                case Intros.MonthPass: inWorld = false; target = _monthPass != null ? _monthPass.Root : null; break;
+                case Intros.WeekChest: inWorld = false; target = _questChests != null ? _questChests.WeekRow : null; break;
                 default: return false;
             }
             return target != null;
@@ -8508,7 +8529,34 @@ namespace VuonTra.Game.UI
             if (SheetOpen) CloseSheet();
             SelectStation(-1);
             Runner.ChooseIntroTry(id);
-            FlyToIntro(id);
+            switch (id)
+            {
+                case Intros.RecipeBook: OpenBook(); break;
+                case Intros.Aquarium: OpenTank(); break;
+                case Intros.Trunk: OpenTrunk(); break;
+                case Intros.Fair: OpenFairFromIntro(); break;
+                case Intros.MonthPass: ShowQuestRow(_monthPass.Root); break;
+                case Intros.WeekChest: ShowQuestRow(_questChests.WeekRow); break;
+                default: FlyToIntro(id); break;
+            }
+        }
+
+        public const int QuestTab = 2;
+
+        void ShowQuestRow(RectTransform row)
+        {
+            OpenSheet(QuestTab);
+            var content = (RectTransform)row.parent;
+            LayoutRebuilder.ForceRebuildLayoutImmediate(content);
+            float top = -row.anchoredPosition.y - row.rect.height * (1f - row.pivot.y);
+            content.anchoredPosition = new Vector2(content.anchoredPosition.x, Mathf.Max(0f, top - UiKit.CardGap));
+            HighlightIntro(row, null, true);
+        }
+
+        void TouchQuestIntros()
+        {
+            Runner.TouchIntro(Intros.WeekChest);
+            Runner.TouchIntro(Intros.MonthPass);
         }
 
         void OnIntroLater(string id)
@@ -8527,7 +8575,7 @@ namespace VuonTra.Game.UI
             HighlightIntro(target, pondArt);
         }
 
-        void HighlightIntro(RectTransform target, RectTransform rimOf)
+        void HighlightIntro(RectTransform target, RectTransform rimOf, bool framed = false)
         {
             if (_introGlow != null) Discard(_introGlow.gameObject);
             RectTransform parent = target.parent as RectTransform;
@@ -8535,6 +8583,7 @@ namespace VuonTra.Game.UI
             GameCatalog catalog = Runner.Catalog;
             RectTransform under = rimOf != null ? rimOf : target;
             var glow = UiKit.Rect("IntroGlow", parent);
+            glow.gameObject.AddComponent<LayoutElement>().ignoreLayout = true;
             glow.anchorMin = target.anchorMin;
             glow.anchorMax = target.anchorMax;
             glow.pivot = target.pivot;
@@ -8544,8 +8593,17 @@ namespace VuonTra.Game.UI
             var group = glow.gameObject.AddComponent<CanvasGroup>();
             group.blocksRaycasts = false;
             group.interactable = false;
-            UiKit.Rect("Halo", glow).Stretch(0, 0, 1, 1, -110, -110, -110, -110).AddImage(catalog.Glow, Palette.Lantern).raycastTarget = false;
-            UiKit.Rect("Core", glow).Stretch(0, 0, 1, 1, -40, -40, -40, -40).AddImage(catalog.Glow, Palette.Lantern).raycastTarget = false;
+            if (framed)
+            {
+                Image frame = UiKit.Rect("Frame", glow).Stretch(0, 0, 1, 1, -12, -12, -12, -12).AddImage(catalog.Panel, Palette.Lantern, true);
+                frame.raycastTarget = false;
+                frame.fillCenter = false;
+            }
+            else
+            {
+                UiKit.Rect("Halo", glow).Stretch(0, 0, 1, 1, -110, -110, -110, -110).AddImage(catalog.Glow, Palette.Lantern).raycastTarget = false;
+                UiKit.Rect("Core", glow).Stretch(0, 0, 1, 1, -40, -40, -40, -40).AddImage(catalog.Glow, Palette.Lantern).raycastTarget = false;
+            }
             if (rimOf != null)
             {
                 var rim = UiKit.Rect("Rim", glow);
@@ -8564,7 +8622,7 @@ namespace VuonTra.Game.UI
                 if (run != _introGlowRun || glow == null) return;
                 float pulse = still ? 1f : Ease.Pop(k * 3f % 1f);
                 group.alpha = 0.55f + 0.45f * pulse;
-                if (!still && target != null && rimOf == null) target.localScale = home * (1f + 0.06f * pulse);
+                if (!still && !framed && target != null && rimOf == null) target.localScale = home * (1f + 0.06f * pulse);
             }, Ease.Linear, 0f, () =>
             {
                 if (target != null) target.localScale = home;

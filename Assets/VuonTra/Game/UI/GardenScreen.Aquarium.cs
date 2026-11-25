@@ -88,6 +88,7 @@ namespace VuonTra.Game.UI
             SelectStation(-1);
             Sfx.Click();
             TankSheet.Open();
+            Runner.TouchIntro(Intros.Aquarium);
             Refresh(-1f);
         }
 

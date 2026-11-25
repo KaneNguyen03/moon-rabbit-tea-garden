@@ -153,6 +153,7 @@ namespace VuonTra.Core
         public AquariumRecord Aquarium = new AquariumRecord();
 
         public bool IntrosKnown;
+        public bool IntrosLateKnown = true;
         public HashSet<string> IntrosSeen = new HashSet<string>();
         public HashSet<string> IntrosTried = new HashSet<string>();
         public HashSet<string> IntrosLater = new HashSet<string>();

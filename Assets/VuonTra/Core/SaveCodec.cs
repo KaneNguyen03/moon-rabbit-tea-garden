@@ -501,6 +501,7 @@ namespace VuonTra.Core
             WriteIntroIds(sb, s.IntrosTried);
             sb.Append(",\"later\":");
             WriteIntroIds(sb, s.IntrosLater);
+            sb.Append(",\"late\":").Append(s.IntrosLateKnown ? "true" : "false");
             sb.Append("}}");
             return sb.ToString();
         }
@@ -1123,6 +1124,7 @@ namespace VuonTra.Core
             if (root.TryGetValue("intros", out object introsObj) && introsObj is Dictionary<string, object> intros)
             {
                 s.IntrosKnown = true;
+                s.IntrosLateKnown = intros.TryGetValue("late", out object lateObj) && lateObj is bool late && late;
                 ReadIntroIds(intros, "seen", s.IntrosSeen);
                 ReadIntroIds(intros, "tried", s.IntrosTried);
                 ReadIntroIds(intros, "later", s.IntrosLater);
@@ -1130,7 +1132,7 @@ namespace VuonTra.Core
                 s.IntrosLater.IntersectWith(s.IntrosSeen);
                 s.IntrosLater.ExceptWith(s.IntrosTried);
             }
-            else Intros.Settle(s);
+            Intros.Settle(s);
 
             result.Status = LoadStatus.Ok;
             return result;
