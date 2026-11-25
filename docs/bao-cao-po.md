@@ -2390,6 +2390,15 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt số hạt (8/14/8), cách chia rung nhẹ/vừa, mua bị huỷ thì im.
 - Cá bay vào dòng "Bể" trên thẻ ao, không ra con bể ngoài vườn.
 
+## #118 — Màn đi vắng: số đếm lên, cà rốt bay vào ví, dòng trần đúng khi có vé trăng, ×2 hiện đúng số (agent-118)
+**Test:** `tools/verify.sh` đầy đủ: RESULT GREEN, tests 1705/1705, rules ok, save ok, preview 433 khung. Thêm `AwaySheetFeelTests` (11 ca).
+**Commit:** a6daf70
+**Đã làm:** Số cà rốt đếm lên từ 0 trong 0,8 giây, tối đa 12 tiếng tích. Dòng trần ghi "đủ 3 giờ" hoặc "đủ 4 giờ (vé trăng)". Nhận làm 10 cà rốt bay từ tấm vào ví, rung nhẹ, ví phồng. ×2 (vàng hay video) có tiếng `milestone`, rung vừa và đợt bay thứ hai. Số nổi lên lấy từ `LastAway.Paid`, nên sửa được lỗi hiếm ở #89. Khi giảm chuyển động, số hiện ngay và không có gì bay, tiếng và rung vẫn giữ. Ảnh vi/en ở `docs/anh/po-118/`.
+### Chưa đạt / cần PO quyết
+- Duyệt câu dòng trần mới (vi/en).
+- Duyệt cách đếm chậm dần và hai đợt bay 10 cà rốt khi ×2.
+- Nhãn nút ×2 xuống hai dòng ở chữ to tiếng Việt (có sẵn từ #89, thuộc phiên thiết kế).
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
