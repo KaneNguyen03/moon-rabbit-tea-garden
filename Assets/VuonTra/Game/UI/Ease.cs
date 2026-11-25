@@ -105,7 +105,11 @@ namespace VuonTra.Game.UI
                 group.alpha = to;
                 return;
             }
-            float from = group.alpha;
+            FadeFrom(group, group.alpha, to);
+        }
+
+        void FadeFrom(CanvasGroup group, float from, float to)
+        {
             Add(Motion.Quick, t => { if (group != null) group.alpha = from + (to - from) * t; });
         }
 

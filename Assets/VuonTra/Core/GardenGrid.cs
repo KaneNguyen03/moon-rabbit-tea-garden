@@ -288,8 +288,10 @@ namespace VuonTra.Core
         }
 
         public static string StationId(StationDef def) => "station:" + def.Id;
-        public static string RestId(int n) => "rest:" + n;
-        public static string DecorId(int n) => "decor:" + n;
+        public static string RestId(int n) => n >= 0 && n < RestIds.Length ? RestIds[n] ?? (RestIds[n] = "rest:" + n) : "rest:" + n;
+        public static string DecorId(int n) => n >= 0 && n < DecorIds.Length ? DecorIds[n] ?? (DecorIds[n] = "decor:" + n) : "decor:" + n;
+
+        static readonly string[] RestIds = new string[32], DecorIds = new string[32];
 
         public static Hex DefaultStationTile(int index)
         {

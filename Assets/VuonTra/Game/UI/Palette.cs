@@ -1,9 +1,12 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace VuonTra.Game.UI
 {
     public static class Palette
     {
+        static readonly Dictionary<string, Color> Parsed = new Dictionary<string, Color>();
+
         public static readonly Color Night = Hex("1B1E45");
         public static readonly Color Grass = Hex("3D8369");
         public static readonly Color Paper = Hex("FFF4E0");
@@ -34,7 +37,9 @@ namespace VuonTra.Game.UI
 
         public static Color Hex(string rgb)
         {
+            if (rgb != null && Parsed.TryGetValue(rgb, out Color known)) return known;
             ColorUtility.TryParseHtmlString("#" + rgb, out Color c);
+            if (rgb != null) Parsed[rgb] = c;
             return c;
         }
 

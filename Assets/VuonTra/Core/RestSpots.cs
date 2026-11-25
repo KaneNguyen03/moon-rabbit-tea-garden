@@ -10,13 +10,27 @@ namespace VuonTra.Core
         public static List<Rabbit> Seated(GameState s)
         {
             var resting = new List<Rabbit>();
-            foreach (Rabbit r in s.Rabbits)
-                if (r.Station < 0) resting.Add(r);
-            resting.Sort((a, b) => b.Tier != a.Tier ? b.Tier.CompareTo(a.Tier) : a.Id.CompareTo(b.Id));
-            int places = Math.Max(0, Math.Min(Max, s.RestSpots));
-            if (resting.Count > places) resting.RemoveRange(places, resting.Count - places);
+            Seated(s, resting);
             return resting;
         }
+
+        public static void Seated(GameState s, List<Rabbit> into)
+        {
+            into.Clear();
+            int places = Math.Max(0, Math.Min(Max, s.RestSpots));
+            for (int i = 0; i < s.Rabbits.Count; i++)
+            {
+                Rabbit r = s.Rabbits[i];
+                if (r.Station >= 0) continue;
+                int at = into.Count;
+                while (at > 0 && SitsBefore(r, into[at - 1])) at--;
+                if (at >= places) continue;
+                if (into.Count == places) into.RemoveAt(places - 1);
+                into.Insert(at, r);
+            }
+        }
+
+        static bool SitsBefore(Rabbit a, Rabbit b) => a.Tier != b.Tier ? a.Tier > b.Tier : a.Id < b.Id;
 
         public static int SeatedCount(GameState s)
         {

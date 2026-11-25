@@ -2491,6 +2491,19 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Chưa gắn vào vườn: phần đó thuộc #146 (trạm, đồ, thỏ dựng đứng).
 - Gói mới `com.unity.2d.psdimporter` cần chủ project biết.
 
+## #123 — Vườn đầy vòng 2 không tạo rác mỗi khung, chữ số chỉ dựng khi đổi (agent-123)
+
+**Test:** `tools/verify.sh` đầy đủ GREEN: rules ok, preview 460 khung, tests 1760/1760, save không đổi. Mới: 2 test trong `AllocationTests` (vườn đầy vòng 2 đứng yên 0 lần cấp phát: trước 31 046/giây, đỏ; sau 0, xanh; và test chip ví cùng viên đếm ngược) và `BigNumTests.The_Short_Key_Changes_Exactly_When_The_Short_Form_Does`. Core 932/932.
+
+**Commit:** `6fadab9`, `bc34dcf`, `77200d0`, `edc36c3` (main fast-forward tới `ad966ee`; verify 1814/1814; studio code-review APPROVED WITH SUGGESTIONS).
+
+**Đã làm:** thêm `ShownText`, chỉ ghi `text` khi số, khoá hoặc ngôn ngữ đổi. Áp cho ví, giây/đồng, các chip, viên vé trăng, chip hội, nhãn rương xe đẩy, đếm ngược gói (đổi theo giây), bảng hoạt động, huy hiệu tab, viên mép màn, trà lực, tên thỏ ở trạm, hồ sơ, nút quảng cáo và thẻ trạm. Thêm `BigNum.ShortKey`. `RestSpots.Seated`, hộp ngày, id lưới, khoá tên hội và `Palette.Hex` không cấp phát nữa. Tab sheet đóng không làm mới mỗi 0,1 s. Người đưa nguyên liệu tạo một lần rồi dùng lại. Bản build Development: đứng yên 23,3 KB → 1,6 KB/khung (GC 11,8 → 0,8 lần/phút); chạm 23,7 → 4,8 KB/khung (GC 11 → 2 lần/phút). Save đo ở `docs/anh/po-123/vuon-day-vong-2.json`.
+
+### Chưa đạt / cần PO quyết
+- Chạm còn khoảng 4,8 KB/khung, chưa đạt ≤ 1 KB: cần dùng lại tim/cà rốt bay trong `FeelLayer`, hoãn theo hướng 2.5D.
+- Duyệt: tab sheet đóng không tự làm mới; 8 người đưa nguyên liệu dùng lại.
+- Bản build đo dùng tên và bundle riêng vì bản Mac không theo biến `HOME`; có thể xoá hai thư mục `~/Library/Application Support/com.vuontratho.perf123/` và `~/Library/Logs/VuonTraTho/Perf 123 Garden/`.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

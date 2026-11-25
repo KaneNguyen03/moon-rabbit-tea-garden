@@ -172,6 +172,19 @@ namespace VuonTra.Game.UI
             return L10n.T("persec", perSecond < new BigNum(10) ? UiKit.Seconds(perSecond.ToDouble()) : perSecond.Short());
         }
 
+        public static void DescribeKey(IReadOnlyList<StationDef> defs, GameState s, int index, int level, Modifiers m, out long first, out long second)
+        {
+            StationDef d = defs[index];
+            if (d.Kind == StationKind.Brew)
+            {
+                first = (PerCycle(defs, s, index, level) * m.IncomeMultiplier).ShortKey();
+                second = BitConverter.DoubleToInt64Bits(d.CycleSeconds / m.SpeedMultiplier);
+                return;
+            }
+            first = BitConverter.DoubleToInt64Bits(Economy.IngredientBoost(d, level));
+            second = -1L;
+        }
+
         public static string Describe(IReadOnlyList<StationDef> defs, GameState s, int index, int level, Modifiers m)
         {
             StationDef d = defs[index];
