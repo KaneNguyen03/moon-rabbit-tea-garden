@@ -1,9 +1,9 @@
 # Art Bible: Vườn Trà Thỏ Trăng (Moon Rabbit Tea Garden)
 
-> **Status**: Under Review
+> **Status**: Approved (26/11/2026, chủ project duyệt qua session điều phối: "Approve")
 > **Owned By**: art-director (session design)
 > **Last Updated**: 2026-11-26
-> **Art Director Sign-Off (AD-ART-BIBLE)**: CONCERNS, see the end of this file
+> **Art Director Sign-Off (AD-ART-BIBLE)**: CONCERNS, ba việc tiếp theo ở cuối tệp
 
 Tài liệu này theo mẫu studio (`.claude/docs/templates/art-bible.md`). Nó gác cổng trước `/asset-spec`. Chi tiết đã chốt không chép lại ở đây mà dẫn chiếu:
 - [`docs/art-bible.md`](../../docs/art-bible.md): bảng màu và luật hình ảnh chi tiết (nguồn gốc của mọi hex).
@@ -104,8 +104,8 @@ Hex và tên màu ở [`docs/art-bible.md`](../../docs/art-bible.md) §2 và `As
 
 ## Ký duyệt AD-ART-BIBLE (tự chấm theo `.claude/docs/director-gates/ad-art-bible.md`)
 
-**CONCERNS**
-- Trụ trải nghiệm là tạm: chưa có `design/game-brief.md`; đối chiếu §1 khi brief có.
-- Nền tảng và ngân sách hiệu năng chưa chốt (máy yếu nhất 60 fps, #149), nên §8 chưa có số draw call và bộ nhớ.
+**CONCERNS**, giữ làm việc tiếp theo sau khi duyệt:
+- Trụ trải nghiệm là tạm: cập nhật §1 khi session studio-adopt có `design/game-brief.md`.
+- Ngân sách hiệu năng theo #149, máy yếu nhất là iPhone 11 và Android Snapdragon 665: §8 thêm số draw call và bộ nhớ khi #149 đo xong.
 - Phông chữ riêng (#142) chưa có; §7 dựa trên phông hệ điều hành.
 - Phần còn lại nhất quán: màu (§4) phục vụ không khí đêm yên (§2); hình khối (§3) theo câu nhận diện (§1); tiêu chuẩn (§8) khớp hướng 2.5D đã duyệt.
