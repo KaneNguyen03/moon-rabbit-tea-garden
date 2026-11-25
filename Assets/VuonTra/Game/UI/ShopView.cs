@@ -65,6 +65,7 @@ namespace VuonTra.Game.UI
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", purse).Place(0f, 0.5f, 22, 0, 40, 40).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
             _have = UiKit.Rect("Text", purse).Stretch(0, 0, 1, 1, 56, 0, 300, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             var buyMore = UiKit.Rect("BuyMore", purse).Place(1f, 0.5f, -130, 0, 260, UiKit.MinTouch);
+            _buyMore = buyMore.gameObject;
             ChunkyButton buyMoreButton = null;
             buyMoreButton = UiKit.Chunky(buyMore, catalog.Panel, () => { buyMoreButton.Press(tweens); Sfx.Click(); onBuyMore?.Invoke(); });
             buyMoreButton.Face.color = Palette.Lantern;
@@ -613,6 +614,8 @@ namespace VuonTra.Game.UI
         }
 
         RectTransform _purseRow;
+        GameObject _buyMore;
+        public bool BuyMoreShown => _buyMore.activeSelf;
         public AdButton Ad { get; private set; }
         public const float AdWidth = 300f, AdGap = 14f;
         const float BuyMoreWidth = 260f, HaveRight = 300f;
@@ -630,9 +633,12 @@ namespace VuonTra.Game.UI
 
         public void RefreshAd()
         {
+            if (_buyMore.activeSelf != Features.Monetization) _buyMore.SetActive(Features.Monetization);
             if (Ad == null) return;
             Ad.Refresh();
-            float right = Ad.Shown ? BuyMoreWidth + AdGap + AdWidth + AdGap : HaveRight;
+            float buyMore = Features.Monetization ? BuyMoreWidth + AdGap : 0f;
+            Ad.Root.anchoredPosition = new Vector2(-buyMore - AdWidth / 2f, Ad.Root.anchoredPosition.y);
+            float right = Ad.Shown ? buyMore + AdWidth + AdGap : HaveRight;
             _have.rectTransform.offsetMax = new Vector2(-right, _have.rectTransform.offsetMax.y);
         }
     }

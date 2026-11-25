@@ -144,7 +144,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.IntroCard.IsOpen);
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void An_Intro_Card_Waits_While_The_Offer_Card_Or_The_First_Week_Panel_Is_Open()
         {
             Forget();

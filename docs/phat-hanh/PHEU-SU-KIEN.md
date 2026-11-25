@@ -2,6 +2,8 @@
 
 Mỗi sự kiện trong `Core/Analytics.cs` (`AnalyticsEvents.All`) và câu hỏi nó trả lời. Mọi bản build hiện nay vẫn không gửi gì: adapter Firebase chỉ bật với `VUONTRA_FIREBASE` trên mobile và `GameRunner.AnalyticsInPlayerBuilds` đang tắt (#100). Mỗi sự kiện ghi một lần cho một hành động, không ghi theo khung.
 
+Khi cờ bán hàng tắt (`Features.Monetization`, mặc định, #144), các sự kiện `golden_packs_opened`, `purchase_success`, `purchase_failed`, `rewarded_ad`, `offer_shown`, `offer_bought`, `offer_expired`, `monthpass_bought`, `pass_bought`, `pass_day_claimed` không được ghi (`AnalyticsEvents.Monetization`). `monthpass_tier` vẫn ghi vì hàng miễn phí vẫn chạy.
+
 ## Vòng 1 (#100 và các issue bán hàng)
 
 | Sự kiện | Tham số | Câu hỏi |

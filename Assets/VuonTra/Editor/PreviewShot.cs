@@ -24,6 +24,7 @@ namespace VuonTra.EditorTools
         {
             EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
             L10n.SetLocale("vi");
+            Features.Monetization = true;
             _language = new PreviewLanguageCheck(L10nStrings.All, L10nStrings.EnglishOne);
             var runner = Object.FindAnyObjectByType<GameRunner>();
             var screen = Object.FindAnyObjectByType<GardenScreen>();
@@ -686,6 +687,7 @@ namespace VuonTra.EditorTools
             foreach (string locale in new[] { "vi", "en" }) RenderBasketFollows(locale);
             RenderViewEdges();
             foreach (string locale in new[] { "vi", "en" }) RenderAwayCount(locale);
+            RenderMonetizationOffOnly();
 
             _language.Write(Folder);
             _language = null;
@@ -1154,6 +1156,92 @@ namespace VuonTra.EditorTools
             Object.DestroyImmediate(tex);
             rt.Release();
             if (_language != null && L10n.Code == "vi") _language.Look(name, screen.transform);
+        }
+
+        [MenuItem("VuonTra/Render Monetization Off")]
+        public static void RenderMonetizationOffOnly()
+        {
+            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
+            L10n.SetLocale("vi");
+            var runner = Object.FindAnyObjectByType<GameRunner>();
+            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            runner.Init(GameState.NewGame(runner.Catalog.BuildDefs()));
+            screen.Build();
+            screen.ClockHours = () => 22.0;
+            Directory.CreateDirectory(Folder);
+            RenderMonetizationOff(runner, screen);
+        }
+
+        static void RenderMonetizationOff(GameRunner runner, GardenScreen screen)
+        {
+            bool before = Features.Monetization;
+            System.Func<long> clock = runner.DayClock;
+            long day = GiftCodes.Day(2026, 11, 25);
+            runner.DayClock = () => day;
+            foreach (bool on in new[] { false, true })
+                foreach (string locale in new[] { "vi", "en" })
+                {
+                    if (on && locale == "en") continue;
+                    Features.Monetization = on;
+                    GameState s = GameState.NewGame(runner.Catalog.BuildDefs());
+                    int[] levels = { 60, 30, 18, 12 };
+                    for (int i = 0; i < levels.Length; i++) s.Levels[i] = levels[i];
+                    s.Plots = 8;
+                    s.GardenXp = Garden.XpForLevel(12);
+                    s.HintSeen = true;
+                    s.TutorialStep = Tutorial.Steps;
+                    s.Newcomer.Closed = true;
+                    s.Coins = new BigNum(3.6e6);
+                    s.GoldenCarrots = 12;
+                    s.Profile.Code = "VT-144PREV";
+                    Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
+                    Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
+                    s.FreshKinds.Clear();
+                    s.MaxDaySeen = day;
+                    s.FirstDaySeen = day - 20;
+                    s.WelcomeBack.SeenDay = day;
+                    s.MailDay = day;
+                    s.IntrosSeen.UnionWith(Intros.All);
+                    s.IntrosTried.UnionWith(Intros.All);
+                    s.PassMonth = MonthPass.MonthOf(day);
+                    s.PassPoints = 4 * MonthPass.PointsPerTier + 15;
+                    s.AwayDoubleDay = day;
+                    runner.Init(s);
+                    runner.AdProvider = new FakeRewardedAds();
+                    L10n.SetLocale(locale);
+                    screen.RebuildUi();
+                    screen.Shell.SkipTitle();
+                    if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+                    screen.SelectStation(-1);
+                    screen.Refresh();
+                    Step(screen, 0.4f);
+                    if (screen.OfferCard.IsOpen) screen.OfferCard.Close();
+                    string name = "144-" + locale + (on ? "-bat-" : "-tat-");
+                    screen.OpenShop();
+                    screen.Refresh();
+                    Step(screen, 0.6f);
+                    Capture(screen, name + "tiem");
+                    screen.Shop.Close();
+                    Step(screen, 0.3f);
+                    ShowMonthPass(screen);
+                    Capture(screen, name + "ve-thang");
+                    screen.CloseSheet();
+                    if (on) continue;
+                    screen.Shell.OpenPause();
+                    Step(screen, 0.6f);
+                    Capture(screen, name + "tam-nghi");
+                    Press(screen, "Canvas/Pause/Card/Profile");
+                    Step(screen, 0.4f);
+                    Capture(screen, name + "cai-dat");
+                    screen.Profile.Close();
+                    screen.Shell.Resume();
+                    Step(screen, 0.3f);
+                }
+            Features.Monetization = before;
+            runner.DayClock = clock;
+            L10n.SetLocale("vi");
+            screen.RebuildUi();
+            Step(screen, 0.3f);
         }
 
         static void RenderGiftCodes(GameRunner runner, GardenScreen screen)

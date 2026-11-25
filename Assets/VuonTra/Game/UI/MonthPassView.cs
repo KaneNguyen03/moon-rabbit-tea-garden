@@ -8,6 +8,7 @@ namespace VuonTra.Game.UI
     public sealed class MonthPassView
     {
         public const float Height = 576f;
+        public const float FreeOnlyHeight = FreeTop + RowHeight + 44f;
         public const int PerPage = 10;
         public const int Pages = MonthPass.Tiers / PerPage;
         const float LabelWidth = 156f, CellsRight = 24f;
@@ -28,7 +29,8 @@ namespace VuonTra.Game.UI
         readonly Text[] _numbers = new Text[PerPage];
         readonly Cell[] _free = new Cell[PerPage], _premium = new Cell[PerPage];
         readonly RectTransform _fill;
-        readonly GameObject _buyRoot, _lockShade;
+        readonly GameObject _buyRoot, _lockShade, _premiumLabel, _premiumRow;
+        readonly LayoutElement _layout;
         readonly Button _prev, _next;
         readonly Text _prevGlyph, _nextGlyph;
         long _iconsMonth = long.MinValue;
@@ -45,8 +47,8 @@ namespace VuonTra.Game.UI
             _tweens = tweens;
             Root = UiKit.Rect("MonthPassRow", list);
             Root.AddImage(catalog.Panel, Palette.CardLip, true);
-            var layout = Root.gameObject.AddComponent<LayoutElement>();
-            layout.preferredHeight = layout.minHeight = Height;
+            _layout = Root.gameObject.AddComponent<LayoutElement>();
+            _layout.preferredHeight = _layout.minHeight = Height;
             UiKit.Rect("Card", Root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Card, true);
 
             _title = UiKit.Rect("Title", Root).Stretch(0, 1, 1, 1, 36, -76, 236, 20)
@@ -77,9 +79,10 @@ namespace VuonTra.Game.UI
 
             float premiumTop = FreeTop + RowHeight + RowGap;
             RowLabel("FreeLabel", L10n.T("monthpass.free"), FreeTop);
-            RowLabel("PremiumLabel", L10n.T("monthpass.premium"), premiumTop);
+            _premiumLabel = RowLabel("PremiumLabel", L10n.T("monthpass.premium"), premiumTop).gameObject;
             var freeRow = UiKit.Rect("Free", Root).Stretch(0, 1, 1, 1, LabelWidth, -(FreeTop + RowHeight), CellsRight, FreeTop);
             var premiumRow = UiKit.Rect("Premium", Root).Stretch(0, 1, 1, 1, LabelWidth, -(premiumTop + RowHeight), CellsRight, premiumTop);
+            _premiumRow = premiumRow.gameObject;
             for (int i = 0; i < PerPage; i++)
             {
                 int column = i;
@@ -110,13 +113,14 @@ namespace VuonTra.Game.UI
             return button;
         }
 
-        void RowLabel(string name, string text, float top)
+        Text RowLabel(string name, string text, float top)
         {
             Text label = UiKit.Rect(name, Root).Stretch(0, 1, 0, 1, 28, -(top + RowHeight), -LabelWidth + 8, top)
                 .AddText(text, UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             label.resizeTextForBestFit = true;
             label.resizeTextMinSize = 12;
             label.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
+            return label;
         }
 
         Cell BuildCell(RectTransform row, int i, Action tap)
@@ -207,8 +211,15 @@ namespace VuonTra.Game.UI
                 State(_free[i], s, MonthRow.Free, first + i, day, true);
                 State(_premium[i], s, MonthRow.Premium, first + i, day, premium);
             }
+            bool sold = Features.Monetization;
+            bool lower = premium || sold;
+            if (_premiumRow.activeSelf != lower) _premiumRow.SetActive(lower);
+            if (_premiumLabel.activeSelf != lower) _premiumLabel.SetActive(lower);
+            float height = lower ? Height : FreeOnlyHeight;
+            if (_layout.preferredHeight != height) _layout.preferredHeight = _layout.minHeight = height;
             if (_lockShade.activeSelf == premium) _lockShade.SetActive(!premium);
-            if (_buyRoot.activeSelf == premium) _buyRoot.SetActive(!premium);
+            bool buy = sold && !premium;
+            if (_buyRoot.activeSelf != buy) _buyRoot.SetActive(buy);
             _bought.gameObject.SetActive(premium);
             _buyLabel.text = L10n.T("monthpass.buy", string.IsNullOrEmpty(price) ? MonthPass.ReferencePrice : price);
             _bought.text = L10n.T("monthpass.bought", name);

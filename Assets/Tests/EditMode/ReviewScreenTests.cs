@@ -162,7 +162,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0L, mem.Last(AnalyticsEvents.ReviewFeedback)[AnalyticsEvents.Sent].Number);
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void A_Crash_Or_A_Failed_Purchase_This_Session_Keeps_The_Card_Away()
         {
             runner.RecordException(new InvalidOperationException("boom"));

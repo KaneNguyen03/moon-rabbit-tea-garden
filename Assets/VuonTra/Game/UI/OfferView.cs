@@ -110,6 +110,7 @@ namespace VuonTra.Game.UI
 
         public void Open(OfferDef offer, long secondsLeft, IStorefront store)
         {
+            if (!Features.Monetization) return;
             Offer = offer;
             _store = store;
             _busy = false;

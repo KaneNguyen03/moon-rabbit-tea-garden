@@ -3,6 +3,7 @@ using NUnit.Framework;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public class MoonPassTests
     {
         List<StationDef> defs;

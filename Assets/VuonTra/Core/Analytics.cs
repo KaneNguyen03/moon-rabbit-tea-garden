@@ -160,6 +160,15 @@ namespace VuonTra.Core
             FeatureFirstUse,
         };
 
+        public static readonly string[] Monetization =
+        {
+            GoldenPacksOpened, PurchaseSuccess, PurchaseFailed, RewardedAd,
+            OfferShown, OfferBought, OfferExpired,
+            MonthPassBought, PassBought, PassDayClaimed,
+        };
+
+        public static bool Sends(string name) => Features.Monetization || Array.IndexOf(Monetization, name) < 0;
+
         public const string NewGarden = "new_garden";
         public const string Seconds = "seconds";
         public const string Step = "step";
@@ -254,6 +263,11 @@ namespace VuonTra.Core
 
     public static class AnalyticsLog
     {
+        static void Send(this IAnalytics a, string name, params AnalyticsParam[] parameters)
+        {
+            if (AnalyticsEvents.Sends(name)) a.Log(name, parameters);
+        }
+
         public static void LogGameOpen(this IAnalytics a, bool newGarden) =>
             a.Log(AnalyticsEvents.GameOpen, new AnalyticsParam(AnalyticsEvents.NewGarden, newGarden));
 
@@ -283,17 +297,17 @@ namespace VuonTra.Core
         }
 
         public static void LogGoldenPacksOpened(this IAnalytics a, string from) =>
-            a.Log(AnalyticsEvents.GoldenPacksOpened, new AnalyticsParam(AnalyticsEvents.From, from));
+            a.Send(AnalyticsEvents.GoldenPacksOpened, new AnalyticsParam(AnalyticsEvents.From, from));
 
         public static void LogPurchase(this IAnalytics a, PurchaseResult r, string price, bool late = false)
         {
             if (r.Outcome == PurchaseOutcome.Paid)
             {
-                a.Log(AnalyticsEvents.PurchaseSuccess, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
-                if (r.PackId == MoonPass.ProductId) a.Log(AnalyticsEvents.PassBought, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
+                a.Send(AnalyticsEvents.PurchaseSuccess, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
+                if (r.PackId == MoonPass.ProductId) a.Send(AnalyticsEvents.PassBought, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Price, price ?? ""), new AnalyticsParam(AnalyticsEvents.Late, late));
             }
             else
-                a.Log(AnalyticsEvents.PurchaseFailed, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Reason, AnalyticsEvents.ReasonOf(r.Outcome)));
+                a.Send(AnalyticsEvents.PurchaseFailed, new AnalyticsParam(AnalyticsEvents.ProductId, r.PackId), new AnalyticsParam(AnalyticsEvents.Reason, AnalyticsEvents.ReasonOf(r.Outcome)));
         }
 
         public static void LogNewcomer(this IAnalytics a, NewcomerClaim claim, bool fallback)
@@ -308,9 +322,9 @@ namespace VuonTra.Core
         {
             if (offer == null) return;
             if (name == AnalyticsEvents.OfferBought)
-                a.Log(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level), new AnalyticsParam(AnalyticsEvents.Late, late));
+                a.Send(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level), new AnalyticsParam(AnalyticsEvents.Late, late));
             else
-                a.Log(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level));
+                a.Send(name, new AnalyticsParam(AnalyticsEvents.ProductId, offer.Id), new AnalyticsParam(AnalyticsEvents.Level, offer.Level));
         }
 
         public static void LogReviewAsked(this IAnalytics a, ReviewMoment moment, int asks) =>
@@ -327,7 +341,7 @@ namespace VuonTra.Core
             a.Log(AnalyticsEvents.MonthPassTier, new AnalyticsParam(AnalyticsEvents.Tier, tier), new AnalyticsParam(AnalyticsEvents.Premium, premium), new AnalyticsParam(AnalyticsEvents.Month, month));
 
         public static void LogMonthPassBought(this IAnalytics a, int month, int tier) =>
-            a.Log(AnalyticsEvents.MonthPassBought, new AnalyticsParam(AnalyticsEvents.Month, month), new AnalyticsParam(AnalyticsEvents.Tier, tier));
+            a.Send(AnalyticsEvents.MonthPassBought, new AnalyticsParam(AnalyticsEvents.Month, month), new AnalyticsParam(AnalyticsEvents.Tier, tier));
 
         public static void LogWelcomeBack(this IAnalytics a, WelcomeBackGift gift)
         {
@@ -349,11 +363,11 @@ namespace VuonTra.Core
         public static void LogLetterClaimed(this IAnalytics a, Letter letter)
         {
             if (letter == null || letter.Kind != LetterKind.MoonPassDay) return;
-            a.Log(AnalyticsEvents.PassDayClaimed, new AnalyticsParam(AnalyticsEvents.Day, letter.PassDay), new AnalyticsParam(AnalyticsEvents.Days, letter.PassDays));
+            a.Send(AnalyticsEvents.PassDayClaimed, new AnalyticsParam(AnalyticsEvents.Day, letter.PassDay), new AnalyticsParam(AnalyticsEvents.Days, letter.PassDays));
         }
 
         public static void LogRewardedAd(this IAnalytics a, string placement, string game, string result) =>
-            a.Log(AnalyticsEvents.RewardedAd, new AnalyticsParam(AnalyticsEvents.Placement, placement), new AnalyticsParam(AnalyticsEvents.Game, game ?? ""), new AnalyticsParam(AnalyticsEvents.Result, result));
+            a.Send(AnalyticsEvents.RewardedAd, new AnalyticsParam(AnalyticsEvents.Placement, placement), new AnalyticsParam(AnalyticsEvents.Game, game ?? ""), new AnalyticsParam(AnalyticsEvents.Result, result));
     }
 
     public static class FunnelLog

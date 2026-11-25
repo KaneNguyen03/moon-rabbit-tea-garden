@@ -9,6 +9,7 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
+    [MonetizationOn]
     public class OfferScreenTests
     {
         const long Hour = 3600L;

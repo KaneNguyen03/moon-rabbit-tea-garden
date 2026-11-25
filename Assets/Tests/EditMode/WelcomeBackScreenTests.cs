@@ -122,7 +122,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.WelcomeCard.IsOpen, "once seen it does not come back by itself");
         }
 
-        [Test]
+        [Test, MonetizationOn]
         public void The_Card_Comes_Before_The_Starter_Offer_And_The_Offer_Waits_Its_Turn()
         {
             Open(5, Offers.StarterLevel);
