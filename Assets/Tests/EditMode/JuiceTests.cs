@@ -79,6 +79,7 @@ namespace VuonTra.Core.Tests
             GameState s = GameState.NewGame(catalog.BuildDefs());
             Rabbits.GiftFirst(s, "Bông");
             s.TutorialStep = Tutorial.Steps;
+            s.PlaySeconds = Offers.StarterQuietSeconds;
             s.HintSeen = true;
             s.GardenXp = Garden.XpForLevel(level);
             s.FirstDaySeen = today - 20;
