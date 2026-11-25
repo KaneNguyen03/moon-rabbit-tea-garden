@@ -579,8 +579,8 @@ namespace VuonTra.Core
                         Amount = Math.Max(0d, Math.Min(ReadNumber(entry, "amount"), 1000d)),
                     };
                     long wornBy = ToLong(ReadNumber(entry, "wornBy"));
-                    // Worn only by a rabbit that exists, one item per slot.
-                    if (wornBy > 0 && Rabbits.Find(s, wornBy) != null && slots.Add(wornBy + ":" + (int)item.Slot)) item.WornBy = wornBy;
+                    // Worn only by a rabbit that exists and can wear it (an old save may have put a hat on a kind with its own), one item per slot.
+                    if (wornBy > 0 && Items.CanWear(Rabbits.Find(s, wornBy), item.Slot) && slots.Add(wornBy + ":" + (int)item.Slot)) item.WornBy = wornBy;
                     s.Items.Add(item);
                     if (itemId > s.NextItemId) s.NextItemId = itemId;
                 }

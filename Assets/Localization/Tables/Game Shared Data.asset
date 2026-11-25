@@ -3295,6 +3295,10 @@ MonoBehaviour:
     m_Key: edge.home
     m_Metadata:
       m_Items: []
+  - m_Id: 704023538688000
+    m_Key: slot.own
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

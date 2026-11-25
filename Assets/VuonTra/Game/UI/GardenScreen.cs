@@ -875,7 +875,8 @@ namespace VuonTra.Game.UI
             var rt = UiKit.Rect("Traveler", _street).Place(0f, 0f, from.x, from.y, 104, 110);
             rt.pivot = new Vector2(0.5f, 0f);
             UiKit.Rect("Shadow", rt).Place(0.5f, 0f, 0, 2, 68, 16).AddImage(Runner.Catalog.Round, Palette.Alpha(Palette.Night, 0.35f));
-            Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(Runner.Catalog.RabbitArt(worker), RabbitGridView.Fur(worker));
+            Image art = UiKit.Rect("Art", rt).Stretch(0, 0, 1, 1).AddImage(Runner.Catalog.RabbitArt(worker), Color.white);
+            RabbitLook.Dye(art, worker, Runner.Catalog);
             art.preserveAspect = true;
             if (_standing != null && _standing.Count > 0 && _standing[0].Value != null) rt.SetSiblingIndex(_standing[0].Value.GetSiblingIndex()); // behind everything that stands, under every plate
             _actors[station].SetAway(true);
@@ -1724,7 +1725,7 @@ namespace VuonTra.Game.UI
                 {
                     bool inTrade = Rabbits.InTrade(defs, worker);
                     _cardWorkerArt.sprite = Runner.Catalog.RabbitArt(worker);
-                    _cardWorkerArt.color = RabbitGridView.Fur(worker);
+                    RabbitLook.Dye(_cardWorkerArt, worker, Runner.Catalog);
                     _cardWorkerFrame.color = Palette.Tiers[worker.Tier];
                     _cardWorkerName.text = worker.Name;
                     _cardWorkerSub.text = L10n.T("card.worker", L10n.Kind(worker), L10n.Trade(Rabbits.TradeOf(worker)))
@@ -3923,17 +3924,12 @@ namespace VuonTra.Game.UI
                     else CancelTravel(i);
                     _workerIds[i] = workerId;
                 }
-                if (worker == null) _actors[i].SetWorker(null, null, null, false);
+                if (worker == null) _actors[i].SetWorker(null, s, catalog, false);
                 else
                 {
                     // The collected rabbit itself stands at the station, wearing what it wears.
-                    Item hat = Items.Worn(s, worker.Id, ItemSlot.Hat), charm = Items.Worn(s, worker.Id, ItemSlot.Charm);
                     RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(worker));
-                    _actors[i].SetWorker(catalog.RabbitArt(worker),
-                        hat != null && !kind.NoHat ? catalog.ItemIcon(hat.DefId) : null, charm != null ? catalog.ItemIcon(charm.DefId) : null,
-                        worker.Tier >= 4 && !kind.OwnGlow, new Vector2(kind.HatX, kind.HatY),
-                        hat != null ? catalog.ItemHatLift(hat.DefId) : 0f, RabbitGridView.Fur(worker),
-                        catalog.TradeIcon(defs[i].Trade), defs[i].Trade);
+                    _actors[i].SetWorker(worker, s, catalog, worker.Tier >= 4 && !kind.OwnGlow, catalog.TradeIcon(defs[i].Trade), defs[i].Trade);
                 }
 
                 GameObject chip = _tierChips[i].gameObject;
@@ -4025,10 +4021,9 @@ namespace VuonTra.Game.UI
                 {
                     Rabbit r = seated[k];
                     Sprite art = catalog.RabbitArt(r);
-                    Color fur = RabbitGridView.Fur(r);
                     _seatArt[k].sprite = art;
-                    _seatArt[k].color = fur;
-                    if (k < _walkers.Count) { _walkers[k].ArtImage.sprite = art; _walkers[k].ArtImage.color = fur; }
+                    RabbitLook.Dye(_seatArt[k], r, catalog);
+                    if (k < _walkers.Count) { _walkers[k].ArtImage.sprite = art; RabbitLook.Dye(_walkers[k].ArtImage, r, catalog); }
                     PoseSeated(k, r, s, catalog);
                 }
                 bool sitting = taken && !Away(k);
@@ -4052,18 +4047,10 @@ namespace VuonTra.Game.UI
             art.localScale = lies ? new Vector3(0.92f, 0.92f, 1f) : new Vector3(1.06f, 0.86f, 1f);
             art.anchoredPosition = lies ? new Vector2(12f, 26f) : new Vector2(0f, -6f);
 
-            const float Box = 124f;
+            // The seat's picture fills its 124 by 132 place and the drawing fits its height; the hat hangs from its feet.
+            const float Box = 132f;
             RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(r));
-            Item hat = Items.Worn(s, r.Id, ItemSlot.Hat);
-            Sprite icon = hat != null && kind != null && !kind.NoHat ? catalog.ItemIcon(hat.DefId) : null;
-            Image hatImage = _seatHats[k];
-            if (icon != null)
-            {
-                float across = (GameCatalog.KindHeadX - 0.5f + kind.HatX) * Box * GameCatalog.KindAspect;
-                RabbitGridView.PlaceHat(hatImage.rectTransform, icon, Box, across, (GameCatalog.KindHeadTop + kind.HatY) * Box, catalog.ItemHatLift(hat.DefId));
-                hatImage.sprite = icon;
-            }
-            if (hatImage.gameObject.activeSelf != (icon != null)) hatImage.gameObject.SetActive(icon != null);
+            RabbitLook.WearHat(_seatHats[k], null, null, _seatArt[k], catalog, Items.Worn(s, r.Id, ItemSlot.Hat), kind, Box);
             _seatNames[k].text = r.Name;
         }
 
@@ -6211,8 +6198,8 @@ namespace VuonTra.Game.UI
                 var hatOn = UiKit.Rect("Hat", _frogArt);
                 Image hatImage = hatOn.AddImage(hat, FrogGreen);
                 hatImage.preserveAspect = true;
-                float across = (GameCatalog.KindHeadX - 0.5f + kind.HatX) * Box * GameCatalog.KindAspect;
-                RabbitGridView.PlaceHat(hatOn, hat, Box, across, (GameCatalog.KindHeadTop + kind.HatY) * Box, catalog.ItemHatLift(FrogHat));
+                // Seated like the wool hat, but over the ears: a frog's hood, not ears through a hat.
+                RabbitLook.PlaceHat(hatOn, hat, catalog.HatSeatOf(FrogHat), kind, Box);
                 for (int side = -1; side <= 1; side += 2)
                 {
                     var eye = UiKit.Rect(side < 0 ? "Eye L" : "Eye R", hatOn).Place(0.5f, 1f, side * hatOn.sizeDelta.x * 0.24f, -4f, 20f, 20f);

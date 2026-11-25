@@ -120,15 +120,10 @@ namespace VuonTra.Game
         }
 
         /// <summary>
-        /// Where the top of the head is in every kind drawing, as a share of the picture's height from the feet,
-        /// and where its middle is across. Ears rise above this; hats sit on it.
+        /// A charm hangs at the neck: this far below the top of the kind's skull, in shares of the drawing's height,
+        /// and this big. Hats are placed from each kind's own head (<see cref="RabbitKind.HeadTop"/>) and each hat's <see cref="HatSeat"/>.
         /// </summary>
-        public const float KindHeadTop = 0.755f, KindHeadX = 150.5f / 320f;
-        /// <summary>
-        /// Where worn things go, in shares of the drawing's height: how far above the head top the middle of a
-        /// hat sits and how big it is, and the same for a charm at the neck. One set of numbers for every view.
-        /// </summary>
-        public const float HatLift = 0.117f, HatSize = 0.44f, CharmHeight = 0.37f, CharmSize = 0.19f;
+        public const float CharmBelowHead = 0.385f, CharmSize = 0.19f;
         /// <summary>The kind drawings are this much wider than tall.</summary>
         public const float KindAspect = 320f / 343f;
 
@@ -147,12 +142,11 @@ namespace VuonTra.Game
         /// <summary>The drawing for this rabbit.</summary>
         public Sprite RabbitArt(Rabbit rabbit) => KindSprite(Rabbits.KindOf(rabbit));
 
-        /// <summary>The drawing for a tier, falling back to the shared rabbit.</summary>
-        public Sprite RabbitFor(int tier)
-        {
-            if (TierRabbits != null && tier >= 0 && tier < TierRabbits.Length && TierRabbits[tier] != null) return TierRabbits[tier];
-            return Rabbit;
-        }
+        [Tooltip("The layered paper-doll rabbit (VuonTra/Build Bunny Character): SortingGroup, Animator, SpriteLibrary and SpriteResolvers; every station's working rabbit is one of these.")]
+        public GameObject BunnyPrefab;
+
+        [Tooltip("The material a dyed figure's fur layers are drawn with (shader VuonTra/Sprite Dye Fur).")]
+        public Material DyeFurSprite;
 
         /// <summary>The picture for an item kind, or null when it has none.</summary>
         /// <summary>The drawing of a decoration the shop sells (#11): the same art the garden already dresses with.</summary>
@@ -175,13 +169,24 @@ namespace VuonTra.Game
             return null;
         }
 
-        /// <summary>How much higher than the usual line a hat of this kind sits when worn; 0 for any other item.</summary>
-        public float ItemHatLift(string defId)
+        /// <summary>The picture of a hat as it is worn (its chin strap left off, say); the shop picture when there is no other.</summary>
+        public Sprite WornHat(string defId)
         {
             foreach (ItemData item in Items)
-                if (item != null && item.Id == defId) return item.HatLift;
-            return 0f;
+                if (item != null && item.Id == defId) return item.Worn != null ? item.Worn : item.Icon;
+            return null;
         }
+
+        /// <summary>How a hat of this kind sits on a head; the default seat for anything else.</summary>
+        public HatSeat HatSeatOf(string defId)
+        {
+            foreach (ItemData item in Items)
+                if (item != null && item.Id == defId) return item.Seat;
+            return HatSeat.Default;
+        }
+
+        [Tooltip("The material a dyed rabbit is drawn with: the dye's hue at the fur's brightness, ink and eyes kept (shader VuonTra/UI Dye Fur).")]
+        public Material DyeFur;
 
         public List<ItemDef> BuildItems()
         {

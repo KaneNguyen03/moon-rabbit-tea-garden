@@ -9,7 +9,9 @@
         "Unity.Localization",
         "Unity.Localization.Editor",
         "Unity.Addressables",
-        "Unity.Addressables.Editor"
+        "Unity.Addressables.Editor",
+        "Unity.2D.Animation.Runtime",
+        "Unity.2D.Animation.Editor"
     ],
     "includePlatforms": [
         "Editor"

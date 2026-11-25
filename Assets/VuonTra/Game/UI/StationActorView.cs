@@ -2,6 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 using VuonTra.Core;
+using VuonTra.Game.Bunny;
 
 namespace VuonTra.Game.UI
 {
@@ -45,7 +46,7 @@ namespace VuonTra.Game.UI
         public const float ShadowAlpha = 0.3f;
         /// <summary>The floors are painted in daylight; under the moon they take on the night, like the scenery around them.</summary>
         public static readonly Color FloorTint = Palette.Alpha(Palette.Mix(Color.white, Palette.Night, 0.38f), 0.92f);
-        float _squish, _shownProgress, _propPop, _hop, _bump, _flash, _yawn;
+        float _shownProgress, _propPop, _bump, _flash, _yawn;
         RectTransform _glowRect;
 
         /// <summary>
@@ -60,9 +61,9 @@ namespace VuonTra.Game.UI
         GameObject _bunting, _rankLanterns, _rankHalo;
         RectTransform _rankHaloRect;
         int _rank;
-        Image _hatImage, _charmImage, _toolImage;
-        RectTransform _tool;
-        Vector2 _toolHome;
+        /// <summary>The paper-doll rabbit standing here (owner's review 23 Nov), drawn by the bunny stage into this station's slot.</summary>
+        BunnyFigure _figure;
+        RawImage _figureImage;
         RabbitTrade _trade;
         bool _guest, _haloWanted, _signBob;
         int _level = -1;
@@ -181,28 +182,21 @@ namespace VuonTra.Game.UI
             _rabbit = UiKit.Rect("Rabbit", Root).Place(0.5f, 0.5f, -72, -112, GuestBox, GuestBox);
             _rabbit.pivot = new Vector2(0.5f, 0f); // squash from the feet
             _rabbitHome = _rabbit.anchoredPosition;
-            _rabbitImage = _rabbit.AddImage(null, Color.white);
-            _rabbitImage.preserveAspect = true;
+            // Touch and stroke land on the rabbit's box; what is seen is its figure, a slot of the bunny stage's picture.
+            // The figure's 512 canvas holds the 411-pixel-high rabbit with 12 pixels under its feet, so it is drawn
+            // that much larger than the box and a little lower, to stand where the flat picture stood.
+            _rabbitImage = _rabbit.AddImage(null, new Color(1f, 1f, 1f, 0f));
+            _rabbitImage.raycastTarget = true;
             if (onStroke != null) UiKit.Strokable(_rabbit, scroll, () => onStroke(_index), () => onTap(_index));
             _rabbit.gameObject.SetActive(false);
-
-            // What a collected rabbit wears. Both hang from the rabbit, so they squash and hop with it;
-            // the hat sits on the top of the head, wherever the ears go.
-            _hatImage = UiKit.Rect("HatOn", _rabbit).Place(0.5f, 0f, 0, 0, GuestBox * GameCatalog.HatSize, GuestBox * GameCatalog.HatSize).AddImage(null, Color.white);
-            _hatImage.preserveAspect = true;
-            _hatImage.gameObject.SetActive(false);
-            _charmImage = UiKit.Rect("CharmOn", _rabbit).Place(0.5f, 0f, 0, 0, GuestBox * GameCatalog.CharmSize, GuestBox * GameCatalog.CharmSize).AddImage(null, Color.white);
-            _charmImage.preserveAspect = true;
-            _charmImage.gameObject.SetActive(false);
-
-            // What the station's trade is worked with (#2): the trade's icon held in the near paw, moved by the trade
-            // in Animate. Drawn with the rabbit, so it squashes, leans and hops along.
-            _toolHome = new Vector2(GuestBox * 0.30f, GuestBox * 0.30f);
-            _tool = UiKit.Rect("Tool", _rabbit).Place(0.5f, 0f, _toolHome.x, _toolHome.y, GuestBox * 0.26f, GuestBox * 0.26f);
-            _tool.pivot = new Vector2(0.5f, 0.15f); // held near the handle's end, so it turns about the paw
-            _toolImage = _tool.AddImage(null, Color.white);
-            _toolImage.preserveAspect = true;
-            _tool.gameObject.SetActive(false);
+            float canvas = GuestBox * 512f / 411f;
+            var figureRect = UiKit.Rect("Figure", _rabbit).Place(0.5f, 0f, 0f, canvas / 2f - GuestBox * 12f / 411f, canvas, canvas);
+            _figureImage = figureRect.gameObject.AddComponent<RawImage>();
+            _figureImage.raycastTarget = false;
+            BunnyStage stage = BunnyStage.Shared(catalog.BunnyPrefab);
+            _figure = stage != null ? stage.Figure(_index) : null;
+            if (stage != null) { _figureImage.texture = stage.Texture; _figureImage.uvRect = BunnyStage.SlotRect(_index); }
+            _rabbit.gameObject.AddComponent<FigureLink>().Figure = _figure;
 
             // Shown only while the station can be afforded: the one hint on the scene that says "tap me".
             _upArrowRect = UiKit.Rect("CanUp", Front).Place(0.5f, 0.5f, 150, -118, 56, 56);
@@ -308,64 +302,31 @@ namespace VuonTra.Game.UI
         const float GuestBox = 256f;
 
         /// <summary>
-        /// Puts one of the player's rabbits at this station, with what it wears, or with <paramref name="art"/>
-        /// null leaves the place empty, which shows as the pad.
+        /// Puts one of the player's rabbits at this station as its paper-doll figure (its kind's layers, hat, charm,
+        /// coat and the station's trade), or with <paramref name="worker"/> null leaves the place empty, which shows as the pad.
         /// </summary>
-        /// <param name="hatNudge">This kind's own nudge for the hat, in shares of the drawing's height.</param>
-        /// <param name="hatLift">The hat kind's own lift (#44), in shares of the drawing's height.</param>
-        /// <param name="fur">The tint of the rabbit's fur: white, or its dye (#44).</param>
-        public void SetWorker(Sprite art, Sprite hat, Sprite charm, bool halo, Vector2 hatNudge = default, float hatLift = 0f, Color? fur = null, Sprite tool = null, RabbitTrade trade = RabbitTrade.None)
+        public void SetWorker(Rabbit worker, GameState s, GameCatalog catalog, bool halo, Sprite tool = null, RabbitTrade trade = RabbitTrade.None)
         {
             _trade = trade;
-            Show(_toolImage, art != null ? tool : null);
-            // The same numbers the rabbit list uses, so a hat sits the same on a rabbit wherever it is drawn.
-            float across = (GameCatalog.KindHeadX - 0.5f + hatNudge.x) * GuestBox * GameCatalog.KindAspect;
-            RabbitGridView.PlaceHat((RectTransform)_hatImage.transform, hat, GuestBox, across, (GameCatalog.KindHeadTop + hatNudge.y) * GuestBox, hatLift);
-            ((RectTransform)_charmImage.transform).anchoredPosition = new Vector2(across, (GameCatalog.CharmHeight + hatNudge.y) * GuestBox);
-            _guest = art != null;
+            _guest = worker != null;
             _haloWanted = halo;
-            if (_guest) _rabbitImage.sprite = art;
-            _rabbitImage.color = fur ?? Color.white;
-            Show(_hatImage, _guest ? hat : null);
-            Show(_charmImage, _guest ? charm : null);
+            if (_guest && _figure != null)
+            {
+                RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(worker));
+                _figure.SetKind(kind.Id);
+                Item hat = Items.Worn(s, worker.Id, ItemSlot.Hat), charm = Items.Worn(s, worker.Id, ItemSlot.Charm);
+                _figure.SetHat(hat != null && Items.CanWear(worker, ItemSlot.Hat) ? hat.DefId : null, hat != null && catalog.HatSeatOf(hat.DefId).EarsOver);
+                _figure.SetCharm(charm != null && Items.CanWear(worker, ItemSlot.Charm) ? charm.DefId : null);
+                bool dyed = worker.Dye >= 0;
+                _figure.SetFur(RabbitLook.Fur(worker), dyed ? catalog.DyeFurSprite : null);
+                _figure.SetJob(trade);
+                _figure.SetDozing(Dozing);
+            }
             ShowWho();
         }
 
-        /// <summary>
-        /// The tool at work, between fixed bounds: a brewer stirs (the spoon turns about the paw), a baker kneads
-        /// (the tool presses down and up), a gatherer swings the basket, a stargazer tilts the glass slowly. A
-        /// dozing rabbit lets it rest, and under reduced motion it only sits in the paw.
-        /// </summary>
-        void MoveTool(float t)
-        {
-            float angle = 0f;
-            Vector2 shift = Vector2.zero;
-            if (!Dozing && !Motion.Reduced)
-            {
-                switch (_trade)
-                {
-                    case RabbitTrade.Brewer:
-                        angle = Mathf.Sin(t * 5f + _index) * 22f;
-                        shift = new Vector2(Mathf.Cos(t * 5f + _index), Mathf.Sin(t * 5f + _index)) * 4f;
-                        break;
-                    case RabbitTrade.Baker:
-                        angle = Mathf.Sin(t * 4.5f + _index) * 6f;
-                        shift = new Vector2(0f, -Mathf.Abs(Mathf.Sin(t * 4.5f + _index)) * 10f);
-                        break;
-                    case RabbitTrade.Gatherer:
-                        angle = Mathf.Sin(t * 2.4f + _index) * 12f;
-                        shift = new Vector2(0f, Mathf.Abs(Mathf.Sin(t * 2.4f + _index)) * 6f);
-                        break;
-                    default:
-                        angle = Mathf.Sin(t * 1.1f + _index) * 8f;
-                        shift = new Vector2(0f, 20f);
-                        break;
-                }
-            }
-            else if (Dozing) shift = new Vector2(0f, -12f);
-            _tool.localRotation = Quaternion.Euler(0, 0, angle);
-            _tool.anchoredPosition = _toolHome + shift;
-        }
+        /// <summary>The figure standing at this station, or null without a bunny stage.</summary>
+        public BunnyFigure Figure => _figure;
 
         /// <summary>The station's visible rank (#49): 0 plain, 1 bunting, 2 stone lanterns and a golden plate, 3 a halo too. Only an open station shows any.</summary>
         public void SetRank(int rank)
@@ -430,6 +391,7 @@ namespace VuonTra.Game.UI
             Dozing = dozing && _look == StationLook.Open && _guest;
             if (Dozing && !was) _yawn = 1f;
             if (_dozeBubble.activeSelf != Dozing) _dozeBubble.SetActive(Dozing);
+            if (_figure != null && was != Dozing) _figure.SetDozing(Dozing);
         }
 
         /// <summary>True while the rabbit is still stretching into its nap; the stretch is skipped under reduced motion.</summary>
@@ -447,10 +409,10 @@ namespace VuonTra.Game.UI
             _flash = 1f;
         }
 
-        /// <summary>A tap landed: squash the rabbit.</summary>
+        /// <summary>A tap landed: the rabbit squashes (its Squish clip).</summary>
         public void Squish()
         {
-            _squish = 1f;
+            if (_figure != null && _guest) _figure.Squish();
         }
 
         /// <summary>An ingredient arrived: the prop gives a little pop.</summary>
@@ -463,7 +425,7 @@ namespace VuonTra.Game.UI
         public void Hop()
         {
             _propPop = 1f;
-            _hop = 1f;
+            if (_figure != null && _guest) _figure.Hop();
         }
 
         /// <summary>Per-frame: cycle bar, idle breathing, tap squish, payout hop.</summary>
@@ -483,29 +445,11 @@ namespace VuonTra.Game.UI
             Root.localScale = Vector3.one * (BaseScale * (1f + 0.14f * Ease.Pop(1f - _bump) * (_bump > 0f ? 1f : 0f)));
             _flash = Mathf.Max(0f, _flash - deltaTime * 3f); // a third of a second
             _glowRect.localScale = Vector3.one * (1f + 0.45f * Ease.Pop(1f - _flash) * (_flash > 0f ? 1f : 0f));
-            _squish = Mathf.Max(0f, _squish - deltaTime * 5f);
             _propPop = Mathf.Max(0f, _propPop - deltaTime * 4f);
-            _hop = Mathf.Max(0f, _hop - deltaTime * 2.6f);
             _yawn = Mathf.Max(0f, _yawn - deltaTime / Motion.Time(Motion.Yawn));
-            float tempo = boosting ? 2f : 1f;
-
-            if (_rabbit.gameObject.activeSelf)
-            {
-                float breathe = Mathf.Sin(time * 3f * tempo + _index * 1.7f) * 0.03f;
-                // Landing squash at the end of a jump, stretch on the way up.
-                float air = Mathf.Sin((1f - _hop) * Mathf.PI) * (_hop > 0f ? 1f : 0f);
-                float land = _hop > 0f && _hop < 0.18f ? (0.18f - _hop) / 0.18f * 0.12f : 0f;
-                // The yawn: one slow stretch up from the feet, from fixed numbers, so it never adds up.
-                float yawn = Ease.Pop(1f - _yawn) * (_yawn > 0f ? 1f : 0f);
-                _rabbit.localScale = new Vector3(
-                    1f + _squish * 0.12f - breathe * 0.5f - air * 0.06f + land - yawn * 0.04f,
-                    1f - _squish * 0.18f + breathe + air * 0.10f - land + yawn * 0.09f, 1f);
-                _rabbit.anchoredPosition = _rabbitHome + new Vector2(0, air * 46f);
-                // A working rabbit sways as it works; a sleeping one nods slowly.
-                float lean = Dozing ? Mathf.Sin(time * 0.9f + _index) * 2.2f - 9f : Mathf.Sin(time * 2.1f * tempo + _index * 2.3f) * 3.2f;
-                _rabbit.localRotation = Quaternion.Euler(0, 0, lean * (1f - air));
-                if (_tool.gameObject.activeSelf) MoveTool(time * tempo);
-            }
+            // The rabbit itself moves only in its animation clips: here it is told how fast they play
+            // (twice in a speed burst, held still under reduced motion).
+            if (_figure != null && _rabbit.gameObject.activeSelf) _figure.SetTempo(Motion.Reduced ? 0f : (boosting ? 2f : 1f));
             if (open && _shownLevel < _level)
             {
                 _shownLevel = Mathf.Min(_level, _shownLevel + _levelRun * deltaTime);

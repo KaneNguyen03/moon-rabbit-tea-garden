@@ -3298,6 +3298,10 @@ MonoBehaviour:
     m_Localized: "V\u1EC1 ti\u1EC7m tr\xE0"
     m_Metadata:
       m_Items: []
+  - m_Id: 704023538688000
+    m_Localized: "c\xF3 s\u1EB5n"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

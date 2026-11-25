@@ -3306,6 +3306,10 @@ MonoBehaviour:
     m_Localized: Back to the tea shop
     m_Metadata:
       m_Items: []
+  - m_Id: 704023538688000
+    m_Localized: its own
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

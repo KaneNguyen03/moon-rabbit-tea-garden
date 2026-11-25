@@ -164,37 +164,56 @@ namespace VuonTra.EditorTools
             for (int k = 0; k < kindSprites.Length; k++)
                 kindSprites[k] = FinalArt.Kind(RabbitKinds.All[k].Id);
             catalog.KindArt = kindSprites;
+            // The layered paper-doll rabbit (owner's review 23 Nov): layers in Art/Bunny, built into a sprite library,
+            // animation clips, a controller and the BunnyCharacter prefab.
+            BunnyBuilder.Build();
+            catalog.BunnyPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(BunnyBuilder.PrefabPath);
+            catalog.DyeFurSprite = AssetDatabase.LoadAssetAtPath<Material>(BunnyBuilder.DyePath);
 
             // Quest items carry a bonus; the hats the shop sells (#44, "hat-…", Art/Final/hat_<name>.png) are for looks,
-            // priced in golden carrots, sold at a fixed tier, with a lift of their own so each sits right on the head.
-            var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount, int Price, int Tier, float Lift)[]
+            // priced in golden carrots, sold at a fixed tier. Each hat has its own seat on the head, measured in head
+            // widths (owner's review 23 Nov): small enough to sit on the crown with the ears standing behind it, leaning
+            // the way the rabbits look; the knitted hat lets the ears through. Art/Final/hat_<name>_worn.png, when there
+            // is one, is the hat as worn (the conical hat without the chin strap that hung over the face).
+            var itemRows = new (string Id, string Name, ItemSlot Slot, ItemEffect Effect, double Amount, int Price, int Tier, HatSeat Seat)[]
             {
-                ("mu-rom",    "Mũ rơm",        ItemSlot.Hat,   ItemEffect.StationIncome, 0.10, 0, 0, 0f),
-                ("mu-bep",    "Mũ đầu bếp",    ItemSlot.Hat,   ItemEffect.GardenSpeed,   0.03, 0, 0, 0f),
-                ("vong-hoa",  "Vòng hoa",      ItemSlot.Hat,   ItemEffect.AwayIncome,    0.10, 0, 0, 0f),
-                ("chuong",    "Chuông bạc",    ItemSlot.Charm, ItemEffect.StationIncome, 0.10, 0, 0, 0f),
-                ("co-may",    "Cỏ may mắn",    ItemSlot.Charm, ItemEffect.GardenSpeed,   0.03, 0, 0, 0f),
-                ("long-den",  "Lồng đèn nhỏ",  ItemSlot.Charm, ItemEffect.AwayIncome,    0.10, 0, 0, 0f),
-                ("hat-non-la",     "Nón lá",        ItemSlot.Hat, ItemEffect.None, 0, 20, 1, 0.00f),
-                ("hat-vong-hoa",   "Vòng hoa tươi", ItemSlot.Hat, ItemEffect.None, 0, 25, 1, 0.06f),
-                ("hat-mu-len",     "Mũ len",        ItemSlot.Hat, ItemEffect.None, 0, 30, 2, 0.00f),
-                ("hat-no-trang",   "Nơ trăng",      ItemSlot.Hat, ItemEffect.None, 0, 40, 2, 0.05f),
-                ("hat-mu-sao",     "Mũ sao",        ItemSlot.Hat, ItemEffect.None, 0, 50, 3, 0.02f),
-                ("hat-vuong-mien", "Vương miện",    ItemSlot.Hat, ItemEffect.None, 0, 60, 4, 0.04f),
+                ("mu-rom",    "Mũ rơm",        ItemSlot.Hat,   ItemEffect.StationIncome, 0.10, 0, 0, new HatSeat(1.05f, 0.20f, 0f, -8f)),
+                ("mu-bep",    "Mũ đầu bếp",    ItemSlot.Hat,   ItemEffect.GardenSpeed,   0.03, 0, 0, new HatSeat(0.80f, 0.22f, 0f, -6f)),
+                ("vong-hoa",  "Vòng hoa",      ItemSlot.Hat,   ItemEffect.AwayIncome,    0.10, 0, 0, new HatSeat(1.02f, 0.16f, 0f, -5f)),
+                ("chuong",    "Chuông bạc",    ItemSlot.Charm, ItemEffect.StationIncome, 0.10, 0, 0, default),
+                ("co-may",    "Cỏ may mắn",    ItemSlot.Charm, ItemEffect.GardenSpeed,   0.03, 0, 0, default),
+                ("long-den",  "Lồng đèn nhỏ",  ItemSlot.Charm, ItemEffect.AwayIncome,    0.10, 0, 0, default),
+                ("hat-non-la",     "Nón lá",        ItemSlot.Hat, ItemEffect.None, 0, 20, 1, new HatSeat(1.00f, 0.20f, 0f, -8f)),
+                ("hat-vong-hoa",   "Vòng hoa tươi", ItemSlot.Hat, ItemEffect.None, 0, 25, 1, new HatSeat(1.02f, 0.16f, 0f, -5f)),
+                ("hat-mu-len",     "Mũ len",        ItemSlot.Hat, ItemEffect.None, 0, 30, 2, new HatSeat(0.98f, 0.28f, 0f, -5f, earsOver: true)),
+                ("hat-no-trang",   "Nơ trăng",      ItemSlot.Hat, ItemEffect.None, 0, 40, 2, new HatSeat(0.56f, 0.10f, 0.24f, -14f)),
+                ("hat-mu-sao",     "Mũ sao",        ItemSlot.Hat, ItemEffect.None, 0, 50, 3, new HatSeat(0.90f, 0.18f, 0f, -10f)),
+                ("hat-vuong-mien", "Vương miện",    ItemSlot.Hat, ItemEffect.None, 0, 60, 4, new HatSeat(0.62f, 0.12f, 0f, -8f)),
             };
             var itemAssets = new List<ItemData>();
             foreach (var row in itemRows)
             {
                 ItemData data = LoadOrCreate<ItemData>(ItemFolder + "/" + row.Id + ".asset");
                 data.Id = row.Id; data.DisplayName = row.Name; data.Slot = row.Slot; data.Effect = row.Effect; data.BaseAmount = row.Amount;
-                data.Price = row.Price; data.Tier = row.Tier; data.HatLift = row.Lift;
+                data.Price = row.Price; data.Tier = row.Tier; data.Seat = row.Seat;
                 string artName = row.Id.StartsWith("hat-") ? "hat_" + row.Id.Substring("hat-".Length) : "item_" + row.Id;
                 var drawnIcon = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/" + artName + ".png");
                 data.Icon = drawnIcon != null ? drawnIcon : PlaceholderArt.Load("item_" + row.Id);
+                data.Worn = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/VuonTra/Art/Final/" + artName + "_worn.png");
                 EditorUtility.SetDirty(data);
                 itemAssets.Add(data);
             }
             catalog.Items = itemAssets.ToArray();
+
+            // Dyed fur keeps its ink and shading (owner's review 23 Nov): one material, the dye passed as the Image's colour.
+            const string DyePath = "Assets/VuonTra/Content/DyeFur.mat";
+            var dyeFur = AssetDatabase.LoadAssetAtPath<Material>(DyePath);
+            if (dyeFur == null)
+            {
+                dyeFur = new Material(Shader.Find("VuonTra/UI Dye Fur"));
+                AssetDatabase.CreateAsset(dyeFur, DyePath);
+            }
+            catalog.DyeFur = dyeFur;
 
             // Work-loop frames: Art/Final/rabbit_<station>_f0.png, _f1.png, … when they exist.
             foreach (StationData station in catalog.Stations)

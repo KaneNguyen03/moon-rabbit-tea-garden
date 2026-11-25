@@ -808,6 +808,8 @@ namespace VuonTra.EditorTools
             { "garden.segment", "Mở rộng vườn · đoạn {0}", "Widen the garden · part {0}" },
             { "moment.segment.title", "Sương tan, vườn rộng thêm!", "The mist clears: more garden!" },
             { "edge.home", "Về tiệm trà", "Back to the tea shop" },
+            // Owner's review 23 Nov: a kind that came with its own hat or scarf has nothing to put there.
+            { "slot.own", "có sẵn", "its own" },
         };
     }
 }

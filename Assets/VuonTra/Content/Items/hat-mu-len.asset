@@ -20,4 +20,10 @@ MonoBehaviour:
   Icon: {fileID: 21300000, guid: 8eeb948caf33d4705b48dd8b6aa4e8da, type: 3}
   Price: 30
   Tier: 2
-  HatLift: 0
+  Worn: {fileID: 0}
+  Seat:
+    Width: 0.98
+    Sink: 0.28
+    Shift: 0
+    Tilt: -5
+    EarsOver: 1

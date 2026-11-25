@@ -1617,26 +1617,55 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void A_Kind_With_Antlers_Wears_No_Hat_But_The_Hat_Still_Counts()
+        public void A_Kind_With_Antlers_Cannot_Put_A_Hat_On_But_Wears_A_Charm()
         {
             RabbitKind antlers = RabbitKinds.Find("tho-gac");
             Assert.IsTrue(antlers.NoHat);
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = antlers.Tier, Kind = antlers.Id, Name = "Gạc", Station = 0 });
             runner.State.NextRabbitId = 1;
-            double bare = Rabbits.Multiplier(runner.State, runner.State.Rabbits[0]);
-            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 2); // straw hat: a station bonus
+            Item hat = Items.Grant(runner.State, runner.ItemDefs[0], 2); // straw hat
             Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);
-            runner.EquipItem(hat.Id, 1);
-            runner.EquipItem(charm.Id, 1);
+            Assert.IsFalse(runner.EquipItem(hat.Id, 1), "antlers stand where a hat would go (owner's review 23 Nov)");
+            Assert.IsTrue(runner.EquipItem(charm.Id, 1));
+            Assert.AreEqual(0, hat.WornBy, "the hat stays in the bag");
             screen.Refresh();
-            Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
-            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf, "no hat drawn over the antlers");
-            Assert.IsTrue(rabbit.Find("CharmOn").gameObject.activeSelf, "the charm still shows");
-            Assert.Greater(Rabbits.Multiplier(runner.State, runner.State.Rabbits[0]), bare, "the hat's bonus is not lost");
+            BunnyFigure figure = Figure("am-tra");
+            Assert.AreEqual(BunnyFigure.NoneLabel, figure.Hat, "no hat over the antlers");
+            Assert.AreEqual(runner.ItemDefs[3].Id, figure.Charm, "the charm shows");
             screen.OpenSheet(3);
             screen.Refresh();
             Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/HatOn"));
             Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/CharmOn"));
+        }
+
+        [Test]
+        public void A_Working_Rabbit_Is_A_Paper_Doll_Of_Its_Kind_Wearing_Its_Hat_At_Its_Trade()
+        {
+            runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
+            runner.State.NextRabbitId = 1;
+            runner.State.GoldenCarrots = 100;
+            Item wool = Shop.BuyItem(runner.State, runner.ItemDefs, "hat-mu-len"), cone = Shop.BuyItem(runner.State, runner.ItemDefs, "hat-non-la");
+            Assert.IsTrue(runner.EquipItem(cone.Id, 1));
+            screen.Refresh();
+            BunnyFigure figure = Figure("am-tra");
+            Assert.IsNotNull(figure, "the station's rabbit is a BunnyCharacter on the bunny stage");
+            Assert.AreEqual("tho-bong", figure.Kind);
+            Assert.AreEqual("hat-non-la", figure.Hat);
+            Assert.AreEqual(runner.Defs[0].Trade, figure.Job, "at its station's trade");
+            Assert.AreEqual((int)runner.Defs[0].Trade, figure.Animator.GetInteger(BunnyFigure.JobParam), "the work state is chosen by the Animator");
+            var head = figure.transform.Find("BodyPivot/HeadPivot/Head").GetComponent<UnityEngine.U2D.Animation.SpriteResolver>();
+            Assert.AreEqual("tho-bong", head.GetLabel(), "its own head layer");
+            var ears = figure.transform.Find("BodyPivot/HeadPivot/EarPivot/Ears").GetComponent<SpriteRenderer>();
+            var hat = figure.transform.Find("BodyPivot/HeadPivot/Hat").GetComponent<SpriteRenderer>();
+            Assert.Less(ears.sortingOrder, hat.sortingOrder, "the ears stand behind a conical hat");
+            Assert.IsNotNull(figure.GetComponent<UnityEngine.Rendering.SortingGroup>(), "one sorting group per rabbit");
+
+            Assert.IsTrue(runner.EquipItem(wool.Id, 1));
+            screen.Refresh();
+            Assert.AreEqual("hat-mu-len", figure.Hat);
+            Assert.Greater(ears.sortingOrder, hat.sortingOrder, "the ears come through a knitted hat");
+            RawImage shown = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit/Figure").GetComponent<RawImage>();
+            Assert.AreSame(BunnyStage.Shared(runner.Catalog.BunnyPrefab).Texture, shown.texture, "shown from the stage's picture");
         }
 
         [Test]
@@ -1679,7 +1708,6 @@ namespace VuonTra.Core.Tests
         {
             Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
             Assert.IsFalse(rabbit.gameObject.activeSelf, "the station has no rabbit of its own");
-            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
 
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 4, Kind = "tho-sao", Name = "Sao", Station = 0 });
             runner.State.NextRabbitId = 1;
@@ -1688,16 +1716,15 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
             Assert.IsTrue(rabbit.gameObject.activeSelf);
-            Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the collected rabbit itself");
-            Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
+            Assert.AreEqual("tho-sao", Figure("am-tra").Kind, "the collected rabbit itself");
+            Assert.AreEqual(runner.ItemDefs[0].Id, Figure("am-tra").Hat);
             Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Station am-tra/Halo").gameObject.activeSelf, "gold and red rabbits get a warm light");
             for (int i = 0; i < 40; i++) screen.Advance(0.1f);
-            Assert.AreEqual("kind_tho-sao", rabbit.GetComponent<Image>().sprite.name, "the station's work frames do not take over");
+            Assert.AreEqual("tho-sao", Figure("am-tra").Kind, "the station's work frames do not take over");
 
             runner.ToggleRabbitWork(1); // off to rest
             screen.Refresh();
             Assert.IsFalse(rabbit.gameObject.activeSelf, "nobody stands there now: no rabbit is drawn");
-            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
         }
 
         [Test]
@@ -2044,15 +2071,15 @@ namespace VuonTra.Core.Tests
             Item charm = Items.Grant(runner.State, runner.ItemDefs[3], 0);  // silver bell
             screen.Refresh();
             Transform rabbit = root.transform.Find("Canvas/Garden/Content/Station am-tra/Rabbit");
-            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
+            Assert.IsFalse(rabbit.Find("HeadPivot/HatOn").gameObject.activeSelf);
             Assert.IsNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/HatOn"));
 
             runner.EquipItem(hat.Id, 1);
             runner.EquipItem(charm.Id, 1);
             screen.Refresh();
-            Assert.IsTrue(rabbit.Find("HatOn").gameObject.activeSelf);
+            Assert.IsTrue(rabbit.Find("HeadPivot/HatOn").gameObject.activeSelf);
             Assert.IsTrue(rabbit.Find("CharmOn").gameObject.activeSelf);
-            Assert.AreEqual("item_mu-rom", rabbit.Find("HatOn").GetComponent<Image>().sprite.name);
+            Assert.AreEqual("item_mu-rom", rabbit.Find("HeadPivot/HatOn").GetComponent<Image>().sprite.name);
             Assert.IsNotNull(root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/HatOn"));
             screen.Detail.Open(runner.Defs, runner.State, 1);
             Assert.IsNotNull(root.transform.Find("Canvas/RabbitSheet/Card/Body/Hat/Icon"), "the slot on the rabbit's sheet shows the item's picture");
@@ -2061,7 +2088,7 @@ namespace VuonTra.Core.Tests
 
             runner.UnequipItem(hat.Id);
             screen.Refresh();
-            Assert.IsFalse(rabbit.Find("HatOn").gameObject.activeSelf);
+            Assert.IsFalse(rabbit.Find("HeadPivot/HatOn").gameObject.activeSelf);
         }
 
         // ----- #43: a rabbit is drawn only where one of the player's rabbits really stands -----
@@ -3315,11 +3342,16 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(3, runner.State.Rabbits[0].Dye);
             Assert.AreEqual(0, runner.State.GoldenCarrots, "eight golden carrots paid");
             screen.Refresh();
-            Color fur = RabbitGridView.Fur(runner.State.Rabbits[0]);
+            Color fur = RabbitLook.Fur(runner.State.Rabbits[0]);
             Assert.AreNotEqual(Color.white, fur);
-            Assert.AreEqual(fur, root.transform.Find("Canvas/RabbitSheet/Card/Body/Portrait/Tile/Art").GetComponent<Image>().color, "the portrait on its sheet");
+            Image portrait = root.transform.Find("Canvas/RabbitSheet/Card/Body/Portrait/Tile/Art").GetComponent<Image>();
+            Image tile = root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/Art").GetComponent<Image>();
+            Assert.AreEqual(fur, portrait.color, "the portrait on its sheet");
             Assert.AreEqual(fur, actor.color, "the rabbit at its station");
-            Assert.AreEqual(fur, root.transform.Find("Canvas/Sheet/Panel/Rabbits/Content/Row 0/Rabbit 1/Tile/Art").GetComponent<Image>().color, "its tile in the list");
+            Assert.AreEqual(fur, tile.color, "its tile in the list");
+            // Dyed through the fur material, which keeps the ink and shading, not by tinting the whole picture.
+            Assert.IsNotNull(runner.Catalog.DyeFur);
+            foreach (Image dyed in new[] { portrait, actor, tile }) Assert.AreSame(runner.Catalog.DyeFur, dyed.material, dyed.name);
             Assert.IsTrue(root.transform.Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 3/Ring").gameObject.activeSelf, "the colour it wears is ringed");
             Assert.IsFalse(root.transform.Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 5/Ring").gameObject.activeSelf);
             Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/Dye/Dots/Dot 5").interactable, "another colour costs again");
@@ -3331,6 +3363,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, runner.State.GoldenCarrots, "washing is free");
             screen.Refresh();
             Assert.AreEqual(Color.white, actor.color);
+            Assert.AreNotSame(runner.Catalog.DyeFur, actor.material, "its own coat again");
             Assert.AreEqual(Color.white, root.transform.Find("Canvas/RabbitSheet/Card/Body/Portrait/Tile/Art").GetComponent<Image>().color);
             Assert.IsFalse(Find("Canvas/RabbitSheet/Card/Body/Dye/Wash").interactable);
         }
@@ -4349,7 +4382,7 @@ namespace VuonTra.Core.Tests
             screen.Refresh();
             Assert.IsNull(world.Find("Traveler"));
             Assert.IsTrue(station.Find("Rabbit").gameObject.activeSelf);
-            Assert.AreEqual("kind_tho-bong", station.Find("Rabbit").GetComponent<Image>().sprite.name);
+            Assert.AreEqual("tho-bong", Figure("am-tra").Kind);
         }
 
         [Test]
@@ -5211,32 +5244,60 @@ namespace VuonTra.Core.Tests
         {
             screen.Shell.StartGame();
             Transform station = root.transform.Find("Canvas/Garden/Content/Station am-tra");
-            Assert.IsFalse(station.Find("Rabbit/Tool").gameObject.activeSelf, "no tool without a rabbit");
+            Assert.IsFalse(station.Find("Rabbit/Arm/Tool").gameObject.activeSelf, "no tool without a rabbit");
             runner.State.Rabbits.Add(new Rabbit { Id = 1, Tier = 0, Kind = "tho-bong", Name = "Bông", Station = 0 });
             runner.State.NextRabbitId = 1;
             Motion.SetReduced(true);
             screen.Refresh();
             for (int k = 0; k < 8; k++) screen.Advance(0.5f); // the newcomer walks over first
-            var tool = (RectTransform)station.Find("Rabbit/Tool");
+            var tool = (RectTransform)station.Find("Rabbit/Arm/Tool");
+            var arm = (RectTransform)station.Find("Rabbit/Arm");
+            var head = (RectTransform)station.Find("Rabbit/HeadPivot");
             Assert.IsTrue(tool.gameObject.activeSelf, "a tool in the paw");
-            Assert.AreEqual(runner.Catalog.TradeIcon(runner.Defs[0].Trade), tool.GetComponent<Image>().sprite, "the station's trade, not the rabbit's");
-            Assert.AreEqual(Quaternion.identity, tool.localRotation, "held still under reduced motion");
+            Assert.AreEqual(runner.Catalog.TradeTool(runner.Defs[0].Trade), tool.GetComponent<Image>().sprite, "the station's trade's own tool, not the rabbit's");
+            Assert.AreEqual(RabbitRig.InBox(RabbitRig.Shoulder, 256f), arm.anchoredPosition, "hanging from the master's shoulder");
+            Quaternion still = arm.localRotation;
+            screen.Advance(0.3f);
+            Assert.AreEqual(still, arm.localRotation, "held still under reduced motion");
 
             Motion.SetReduced(false);
-            float maxAngle = 0f; bool moved = false; Vector2 home = tool.anchoredPosition;
+            float maxHead = 0f, minArm = 999f, maxArm = -999f;
             for (int k = 0; k < 40; k++)
             {
                 screen.Advance(0.05f);
-                float a = Mathf.Abs(Mathf.DeltaAngle(0f, tool.localRotation.eulerAngles.z));
-                maxAngle = Mathf.Max(maxAngle, a);
-                if (Vector2.Distance(tool.anchoredPosition, home) > 1f || a > 0.5f) moved = true;
+                maxHead = Mathf.Max(maxHead, Mathf.Abs(Mathf.DeltaAngle(0f, head.localEulerAngles.z)));
+                float a = Mathf.DeltaAngle(0f, arm.localEulerAngles.z);
+                minArm = Mathf.Min(minArm, a); maxArm = Mathf.Max(maxArm, a);
             }
-            Assert.IsTrue(moved, "the tool is worked");
-            Assert.LessOrEqual(maxAngle, 25f, "between fixed bounds");
+            Assert.Greater(maxArm - minArm, 10f, "the arm works the tool");
+            Assert.Greater(maxHead, 1f, "the head nods along on the master rabbit");
+            Assert.LessOrEqual(maxHead, 15f, "between fixed bounds");
+            Assert.IsNotNull(station.Find("Rabbit/HeadPivot/Head").GetComponent<Image>().sprite, "the head is its own part");
 
             runner.State.Rabbits[0].Station = -1;
             screen.Refresh();
             Assert.IsFalse(tool.gameObject.activeSelf, "and goes with the rabbit");
+        }
+
+        [TestCase(RabbitTrade.Brewer)]
+        [TestCase(RabbitTrade.Baker)]
+        [TestCase(RabbitTrade.Gatherer)]
+        [TestCase(RabbitTrade.Stargazer)]
+        public void Every_Trade_Has_A_Work_Loop_That_Moves_Within_Bounds_And_Comes_Back(RabbitTrade trade)
+        {
+            WorkPose a = RabbitRig.Work(trade, 0f), b = RabbitRig.Work(trade, 1f);
+            Assert.AreEqual(a.Arm, b.Arm, 1e-3f, "one loop a second, seamless");
+            float lo = 999f, hi = -999f, tlo = 999f, thi = -999f;
+            for (int i = 0; i < 32; i++)
+            {
+                WorkPose p = RabbitRig.Work(trade, i / 32f);
+                Assert.That(Mathf.Abs(p.Head), Is.LessThanOrEqualTo(15f), "head");
+                Assert.That(Mathf.Abs(p.SquashY), Is.LessThanOrEqualTo(0.08f), "squash");
+                Assert.That(p.Lift, Is.InRange(0f, 0.05f), "lift");
+                lo = Mathf.Min(lo, p.Arm); hi = Mathf.Max(hi, p.Arm);
+                tlo = Mathf.Min(tlo, p.Tool); thi = Mathf.Max(thi, p.Tool);
+            }
+            Assert.Greater((hi - lo) + (thi - tlo), 10f, "the arm and the tool visibly work");
         }
 
         [Test]

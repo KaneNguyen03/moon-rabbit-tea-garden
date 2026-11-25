@@ -410,6 +410,18 @@ namespace VuonTra.Game.UI
             long id = r.Id;
             Item worn = Items.Worn(s, r.Id, slot);
             var rt = UiKit.Rect(slot.ToString(), _body).Place(0f, 1f, x, -394, 92, 92);
+            // A kind that came with its own hat, antlers or scarf has nothing to put there: the slot says so and takes no tap.
+            if (!Items.CanWear(r, slot))
+            {
+                rt.AddImage(_catalog.Round, Palette.Alpha(Palette.Track, 0.5f));
+                UiKit.Rect("Own", rt).Stretch(0, 0, 1, 1).AddText("—", 40, RabbitGridView.Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+                Text own = UiKit.Rect("Label", rt).Place(0.5f, 0f, 0, -15, 150, 26)
+                    .AddText(ItemPickerView.SlotName(slot) + " · " + L10n.T("slot.own"), UiKit.TextSmall, RabbitGridView.Quiet, TextAnchor.MiddleCenter, FontStyle.Bold);
+                own.resizeTextForBestFit = true;
+                own.resizeTextMinSize = 12;
+                own.resizeTextMaxSize = UiKit.TextSmall;
+                return;
+            }
             Image img = rt.AddImage(_catalog.Round, worn != null ? Palette.Mix(Palette.Tiers[worn.Tier], Palette.Paper, 0.25f) : Palette.Track);
             img.raycastTarget = true;
             var b = rt.gameObject.AddComponent<Button>();

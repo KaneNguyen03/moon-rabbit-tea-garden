@@ -30,8 +30,6 @@ namespace VuonTra.Core
         public int Price;
         /// <summary>The tier a bought copy has. Quest items roll their own.</summary>
         public int Tier;
-        /// <summary>How much higher than the usual line a worn hat of this kind sits, in shares of the rabbit drawing's height.</summary>
-        public float HatLift;
     }
 
     /// <summary>One item the player owns. It carries its own numbers, so it survives content changes.</summary>
@@ -96,11 +94,24 @@ namespace VuonTra.Core
             return null;
         }
 
-        /// <summary>Puts an item on a rabbit. Whatever was in that slot comes off; the item leaves any previous wearer.</summary>
+        /// <summary>
+        /// False when the rabbit's kind already carries something in that place: antlers, horns, a flame or its own
+        /// hat on the head (<see cref="RabbitKind.NoHat"/>), a scarf, collar or pendant at the neck (<see cref="RabbitKind.NoCharm"/>).
+        /// </summary>
+        public static bool CanWear(Rabbit r, ItemSlot slot)
+        {
+            if (r == null) return false;
+            RabbitKind kind = RabbitKinds.Find(Rabbits.KindOf(r));
+            if (kind == null) return true;
+            return slot == ItemSlot.Hat ? !kind.NoHat : !kind.NoCharm;
+        }
+
+        /// <summary>Puts an item on a rabbit. Whatever was in that slot comes off; the item leaves any previous wearer. False when the rabbit cannot wear it (<see cref="CanWear"/>).</summary>
         public static bool Equip(GameState s, long itemId, long rabbitId)
         {
             Item item = Find(s, itemId);
-            if (item == null || Rabbits.Find(s, rabbitId) == null) return false;
+            Rabbit rabbit = Rabbits.Find(s, rabbitId);
+            if (item == null || !CanWear(rabbit, item.Slot)) return false;
             Item current = Worn(s, rabbitId, item.Slot);
             if (current != null && current != item) current.WornBy = 0;
             item.WornBy = rabbitId;

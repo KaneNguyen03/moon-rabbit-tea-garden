@@ -12,7 +12,8 @@
         "UnityEngine.Purchasing.Security",
         "Unity.Notifications.Unified",
         "Unity.Notifications.iOS",
-        "Unity.Notifications.Android"
+        "Unity.Notifications.Android",
+        "Unity.2D.Animation.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

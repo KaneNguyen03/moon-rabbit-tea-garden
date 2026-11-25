@@ -441,13 +441,14 @@ namespace VuonTra.Core
             merged.FirstOfKind = See(s, merged.Kind);
             s.Rabbits.Add(merged);
             if (merged.FirstOfKind) Garden.AddXp(s, Garden.XpNewKind);
-            // Items move to the new rabbit, first come first served per slot; the rest come off.
+            // Items move to the new rabbit, first come first served per slot; the rest come off, and so does
+            // whatever the new kind cannot wear (it came with its own hat, antlers or scarf).
             foreach (Rabbit r in used)
                 for (int i = 0; i < s.Items.Count; i++)
                 {
                     Item item = s.Items[i];
                     if (item.WornBy != r.Id) continue;
-                    item.WornBy = Items.Worn(s, merged.Id, item.Slot) == null ? merged.Id : 0;
+                    item.WornBy = Items.CanWear(merged, item.Slot) && Items.Worn(s, merged.Id, item.Slot) == null ? merged.Id : 0;
                 }
             return merged;
         }
