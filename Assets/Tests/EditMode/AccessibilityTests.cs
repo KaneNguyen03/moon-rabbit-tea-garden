@@ -11,7 +11,7 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
-    public class AccessibilityTests
+    public partial class AccessibilityTests
     {
         GameObject root;
         GameRunner runner;

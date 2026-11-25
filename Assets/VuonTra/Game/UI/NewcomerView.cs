@@ -280,7 +280,7 @@ namespace VuonTra.Game.UI
             }
             _pill.anchoredPosition = new Vector2(PillX, orderShown ? PillYUnderOrder : PillY);
             string pill = L10n.T("newcomer.pill", Newcomer.PillDay(_state));
-            if (_pillText.text != pill)
+            if (_pillText.text != pill || _pillText.preferredWidth > PillWidth - 64f - PillTextRight)
             {
                 _pillText.fontSize = UiKit.Scaled(UiKit.TextBody);
                 _pillText.text = pill;

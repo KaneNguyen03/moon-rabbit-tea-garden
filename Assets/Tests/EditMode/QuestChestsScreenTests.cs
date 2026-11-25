@@ -63,11 +63,6 @@ namespace VuonTra.Core.Tests
                 if (q.Daily && n < count) { s.Claimed.Add(q.Id); n++; }
         }
 
-        void Advance(float seconds)
-        {
-            for (float t = 0f; t < seconds; t += 1f / 30f) screen.Advance(1f / 30f);
-        }
-
         Text T(string path)
         {
             Transform t = root.transform.Find(path);
@@ -104,9 +99,7 @@ namespace VuonTra.Core.Tests
             int points = QuestChests.Points(s, runner.TodayNumber);
             root.transform.Find(Quests + "QuestBoxRow/Box").GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(screen.Prizes.IsOpen);
-            Assert.AreEqual(0, screen.Prizes.Flipped);
-            Advance(0.1f);
-            Assert.AreEqual(3, screen.Prizes.Flipped, "with reduced motion all three turn at once");
+            Assert.AreEqual(3, screen.Prizes.Flipped, "with reduced motion all three are face up as the card opens");
             Assert.AreEqual(points + QuestChests.BoxPoints, QuestChests.Points(s, runner.TodayNumber));
             Assert.IsTrue(QuestChests.BoxOpened(s));
             screen.Prizes.Close();

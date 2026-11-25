@@ -309,8 +309,19 @@ namespace VuonTra.Game.UI
                 _backs[i].localScale = Vector3.one;
                 _fronts[i].gameObject.SetActive(false);
                 _fronts[i].localScale = new Vector3(0f, 1f, 1f);
-                Flip(i, Motion.Time(FlipFirst + i * FlipEvery));
+                if (Motion.Reduced) ShowTurned(i);
+                else Flip(i, Motion.Time(FlipFirst + i * FlipEvery));
             }
+            if (!Motion.Reduced || _shown == 0) return;
+            Flipped = _shown;
+            Sfx.Blip();
+        }
+
+        void ShowTurned(int i)
+        {
+            _backs[i].gameObject.SetActive(false);
+            _fronts[i].gameObject.SetActive(true);
+            _fronts[i].localScale = Vector3.one;
         }
 
         void Flip(int i, float delay)

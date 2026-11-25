@@ -236,7 +236,7 @@ namespace VuonTra.Game.UI
             }
             _pill.anchoredPosition = new Vector2(NewcomerView.PillX, orderShown ? NewcomerView.PillYUnderOrder : NewcomerView.PillY);
             string text = L10n.T("welcome.pill", _runner.WelcomeBackPillDay, WelcomeBack.Days);
-            if (_pillText.text != text)
+            if (_pillText.text != text || _pillText.preferredWidth > NewcomerView.PillWidth - 64f - PillTextRight)
             {
                 _pillText.fontSize = UiKit.Scaled(UiKit.TextBody);
                 _pillText.text = text;
