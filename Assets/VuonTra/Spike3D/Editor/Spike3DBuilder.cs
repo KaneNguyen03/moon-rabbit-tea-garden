@@ -14,44 +14,41 @@ namespace VuonTra.Spike3D
     {
         const string Root = "Assets/VuonTra/Spike3D";
         const string Generated = Root + "/Generated";
-        const string ScenePath = Root + "/Garden3DSpike.unity";
-        const string ToonPath = Root + "/Spike3DToon.shader";
-        const string LitName = "Universal Render Pipeline/Lit";
-        const string GrassPath = "Assets/VuonTra/Art/Placeholder/bg_grass.png";
+        const string ScenePath = Root + "/Garden25DSpike.unity";
+        const string Final = "Assets/VuonTra/Art/Final/";
+        const string Placeholder = "Assets/VuonTra/Art/Placeholder/";
+        const string PathArt = Root + "/Path/";
+        const string GrassPath = "Assets/VuonTra/Art/Ground/bg_grass.png";
         const string ShotFolder = "Logs/spike3d";
         const int Width = 1080;
         const int Height = 1920;
         const float Pitch = 40f;
         const float Breath = 2.4f;
-        const float EarTilt = 12f;
-        const float EarSway = 5f;
-        const float GardenDistance = 36f;
-        const float StationDistance = 11f;
-        const float RabbitDistance = 4.5f;
+        const float IslandX = 3.3f;
+        const float IslandZ = 4.8f;
+        const int RimSteps = 96;
+        const float GrassTileMetres = 1.4f;
+        const int FlatQueue = 2460;
+
+        static readonly Vector3 GardenFocus = new Vector3(0f, 0.3f, 0.2f);
+        const float GardenDistance = 28f;
+        static readonly Vector3 StationFocus = new Vector3(-0.3f, 0.5f, 0.6f);
+        const float StationDistance = 8f;
 
         static readonly Color Earth = Palette.Hex("7A5238");
-        static readonly Color PathSand = Palette.Hex("E3CFA4");
-        static readonly Color Wood = Palette.Hex("A8714A");
-        static readonly Color Stone = Palette.Hex("A49FB8");
-        static readonly Color Teal = Palette.Hex("3F9C9A");
-        static readonly Color TeaBush = Palette.Mix(Palette.Moss, Palette.Grass, 0.45f);
-        static readonly Color Iron = Palette.Mix(Palette.Ink, Earth, 0.3f);
+        static readonly Color EarthDeep = Palette.Mix(Earth, Palette.Night, 0.45f);
         static readonly Color MoonLight = new Color(0.82f, 0.9f, 1f);
+        static readonly float CardStretch = 1f / Mathf.Cos(Pitch * Mathf.Deg2Rad);
+        static readonly float PaintedFlatStretch = 1f / Mathf.Sin(Pitch * Mathf.Deg2Rad);
 
-        enum Look { Lit, Toon }
-
-        sealed class Paint
-        {
-            public Material Material;
-            public Color Emission;
-            public float Outline;
-        }
-
-        static readonly List<Paint> Paints = new List<Paint>();
+        static Shader _sprite;
+        static Mesh _card;
+        static Mesh _flat;
+        static readonly Dictionary<string, Material> Materials = new Dictionary<string, Material>();
 
         public static void BuildAndShoot()
         {
-            Paints.Clear();
+            Materials.Clear();
             Directory.CreateDirectory(ShotFolder);
             AssetDatabase.DeleteAsset(Generated);
             AssetDatabase.CreateFolder(Root, "Generated");
@@ -59,6 +56,7 @@ namespace VuonTra.Spike3D
             var pipeline = CreatePipeline();
             var previousDefault = GraphicsSettings.defaultRenderPipeline;
             var previousQuality = QualitySettings.renderPipeline;
+            int previousMsaa = QualitySettings.antiAliasing;
             bool previousAsync = ShaderUtil.allowAsyncCompilation;
             GraphicsSettings.defaultRenderPipeline = pipeline;
             QualitySettings.renderPipeline = pipeline;
@@ -72,46 +70,52 @@ namespace VuonTra.Spike3D
                 ShaderUtil.allowAsyncCompilation = previousAsync;
                 QualitySettings.renderPipeline = previousQuality;
                 GraphicsSettings.defaultRenderPipeline = previousDefault;
+                QualitySettings.antiAliasing = previousMsaa;
             }
         }
 
         static void BuildSceneAndShoot()
         {
+            _sprite = AssetDatabase.LoadAssetAtPath<Shader>(Root + "/Spike3DSprite.shader");
+            foreach (var shader in new[] { _sprite, AssetDatabase.LoadAssetAtPath<Shader>(Root + "/Spike3DToon.shader"), AssetDatabase.LoadAssetAtPath<Shader>(Root + "/Spike3DHalo.shader") })
+                if (ShaderUtil.ShaderHasError(shader)) Debug.LogError("Spike3D: shader failed to compile: " + shader.name);
+            _card = Quad("Card", new Vector3(-0.5f, 0f, 0f), Vector3.right, Vector3.up);
+            _flat = Quad("Flat", new Vector3(-0.5f, 0f, -0.5f), Vector3.right, Vector3.forward);
+
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             SetUpEnvironment();
             var garden = new GameObject("Garden").transform;
             BuildIsland(garden);
-            Vector3 deckTop = BuildStation(garden, new Vector3(0.3f, 0f, 3f));
-            Animator rabbit = BuildRabbit(garden, deckTop + new Vector3(-0.45f, 0f, -0.2f));
-            AnimationClip idle = CreateIdle(rabbit);
+
+            Flat(garden, "Deck", Final + "pad_san-go.png", new Vector3(-0.3f, 0.03f, 0.6f), 2.7f, 0f, true, FlatQueue + 5);
+            Flat(garden, "Pond", Placeholder + "decor_pond.png", new Vector3(1.55f, 0.02f, -1.5f), 2.3f, 0f, true, FlatQueue);
+            Flat(garden, "PathEnd", PathArt + "loi_dau.png", new Vector3(-0.2f, 0.015f, -3.2f), 2.0f, 90f, false, FlatQueue);
+            Flat(garden, "PathMid", PathArt + "loi_thang.png", new Vector3(-0.2f, 0.016f, -1.25f), 2.0f, 90f, false, FlatQueue + 1);
+
+            Transform rabbit = Card(garden, "Rabbit", Final + "rabbit_am-tra.png", new Vector3(-0.7f, 0.03f, 0.55f), 0.85f);
+            Card(garden, "Teapot", Final + "prop_am-tra.png", new Vector3(0.15f, 0.03f, 0.8f), 0.8f);
+            Transform lantern = Card(garden, "LanternPost", Placeholder + "decor_lantern.png", new Vector3(-1.75f, 0f, 0.95f), 1.8f);
+            Card(garden, "Stall", Final + "prop_tiem.png", new Vector3(1.4f, 0f, 2.5f), 1.6f);
+            Card(garden, "StallRabbit", Final + "kind_tho-matcha.png", new Vector3(0.45f, 0f, 1.95f), 0.75f);
+            Card(garden, "FlowerBox", Final + "decor_bon-hoa.png", new Vector3(1.25f, 0f, 0.35f), 0.5f);
+            Card(garden, "StoneLantern", Final + "decor_den-da.png", new Vector3(-0.9f, 0f, 3.9f), 0.9f);
+            Card(garden, "TreeBack", Placeholder + "decor_tree.png", new Vector3(-2.2f, 0f, 2.9f), 2.4f);
+            Card(garden, "TreeFront", Placeholder + "decor_tree.png", new Vector3(-2.0f, 0f, -3.5f), 1.9f);
+            Card(garden, "BushLeft", Placeholder + "decor_bush.png", new Vector3(-2.5f, 0f, 1.0f), 0.6f);
+            Card(garden, "BushFront", Placeholder + "decor_bush.png", new Vector3(2.0f, 0f, -3.5f), 0.6f);
+            Card(garden, "BushRight", Placeholder + "decor_bush.png", new Vector3(2.6f, 0f, 0.9f), 0.55f);
+            Card(garden, "BushBack", Placeholder + "decor_bush.png", new Vector3(0.6f, 0f, 3.9f), 0.5f);
+            Card(garden, "StonesPath", Placeholder + "decor_stones.png", new Vector3(1.0f, 0f, -3.1f), 0.32f);
+            Card(garden, "StonesLeft", Placeholder + "decor_stones.png", new Vector3(-1.3f, 0f, -2.0f), 0.28f);
+            Card(garden, "Mushrooms", Placeholder + "decor_mushrooms.png", new Vector3(-2.2f, 0f, -0.9f), 0.45f);
+
+            CreateIdle(rabbit);
+            Transform halo = BuildLantern(lantern);
             BuildPostFx();
             Camera cam = BuildCamera();
 
-            var toon = AssetDatabase.LoadAssetAtPath<Shader>(ToonPath);
-            bool toonReady = toon != null && !ShaderUtil.ShaderHasError(toon);
-            if (!toonReady) Debug.LogError("Spike3D: toon shader is missing or failed to compile, shooting the Lit look only");
-
-            Vector3 gardenFocus = new Vector3(0f, -0.3f, -0.4f);
-            Vector3 stationFocus = deckTop + new Vector3(0f, 0.35f, 0f);
-            Vector3 rabbitFocus = rabbit.transform.position + new Vector3(0f, 0.38f, 0f);
-
-            ApplyLook(Look.Lit, toon);
-            string litSuffix = toonReady ? "-lit" : "";
-            Shoot(cam, stationFocus, StationDistance, "station3d" + litSuffix);
-            Shoot(cam, gardenFocus, GardenDistance, "garden3d" + litSuffix);
-
-            if (toonReady)
-            {
-                ApplyLook(Look.Toon, toon);
-                for (int frame = 0; frame < 3; frame++)
-                {
-                    idle.SampleAnimation(rabbit.gameObject, frame * Breath / 4f);
-                    Shoot(cam, rabbitFocus, RabbitDistance, "rabbit-idle-" + frame);
-                }
-                idle.SampleAnimation(rabbit.gameObject, 0f);
-                Shoot(cam, stationFocus, StationDistance, "station3d");
-                Shoot(cam, gardenFocus, GardenDistance, "garden3d");
-            }
+            Shoot(cam, halo, StationFocus, StationDistance, "station25d");
+            Shoot(cam, halo, GardenFocus, GardenDistance, "garden25d");
 
             EditorSceneManager.SaveScene(scene, ScenePath);
             AssetDatabase.SaveAssets();
@@ -127,9 +131,9 @@ namespace VuonTra.Spike3D
             AssetDatabase.CreateAsset(renderer, Generated + "/Spike3DRenderer.asset");
 
             var pipeline = UniversalRenderPipelineAsset.Create(renderer);
-            pipeline.shadowDistance = 60f;
+            pipeline.shadowDistance = 50f;
             pipeline.shadowCascadeCount = 1;
-            pipeline.mainLightShadowmapResolution = 2048;
+            pipeline.mainLightShadowmapResolution = 4096;
             pipeline.msaaSampleCount = 4;
             AssetDatabase.CreateAsset(pipeline, Generated + "/Spike3DPipeline.asset");
 
@@ -152,132 +156,234 @@ namespace VuonTra.Spike3D
             moon.color = MoonLight;
             moon.intensity = 1.2f;
             moon.shadows = LightShadows.Soft;
-            moon.shadowStrength = 0.85f;
-            moon.transform.rotation = Quaternion.Euler(50f, 60f, 0f);
+            moon.shadowStrength = 1f;
+            moon.transform.rotation = Quaternion.Euler(45f, 120f, 0f);
             RenderSettings.sun = moon;
         }
 
         static void BuildIsland(Transform garden)
         {
-            var grassMap = AssetDatabase.LoadAssetAtPath<Texture2D>(GrassPath);
-            Material grass = MakePaint("Grass", grassMap != null ? Color.white : Palette.Grass);
-            if (grassMap != null)
+            var toon = AssetDatabase.LoadAssetAtPath<Shader>(Root + "/Spike3DToon.shader");
+            var grass = new Material(toon) { name = "IslandGrass" };
+            grass.SetTexture("_BaseMap", Imported(GrassPath, TextureWrapMode.Repeat));
+            grass.SetTextureScale("_BaseMap", Vector2.one / GrassTileMetres);
+            grass.SetFloat("_Threshold", 0.1f);
+            Save(grass);
+            var earth = new Material(toon) { name = "IslandEarth" };
+            earth.SetFloat("_Threshold", 0.1f);
+            Save(earth);
+
+            Rim[] top =
             {
-                grass.SetTexture("_BaseMap", grassMap);
-                grass.SetTextureScale("_BaseMap", new Vector2(4f, 8f));
+                new Rim(0f, 0f, 0f, 0f),
+                new Rim(0.09f, -0.07f, 0f, 0f),
+                new Rim(0.06f, -0.12f, 0.07f, 0f),
+                new Rim(-0.05f, -0.12f, 0f, 0f),
+            };
+            Rim[] side =
+            {
+                new Rim(-0.05f, -0.1f, 0f, 0f),
+                new Rim(-0.15f, -0.55f, 0f, 0.3f),
+                new Rim(-0.3f, -1.2f, 0f, 1f),
+                new Rim(-0.9f, -1.75f, 0f, 1f),
+            };
+            Solid(garden, "IslandTop", top, 0f, grass, false);
+            Solid(garden, "IslandEarth", side, -1.85f, earth, true);
+        }
+
+        readonly struct Rim
+        {
+            public readonly float Grow;
+            public readonly float Height;
+            public readonly float Drip;
+            public readonly float Deep;
+
+            public Rim(float grow, float height, float drip, float deep)
+            {
+                Grow = grow;
+                Height = height;
+                Drip = drip;
+                Deep = deep;
+            }
+        }
+
+        static void Solid(Transform garden, string name, Rim[] rims, float capHeight, Material material, bool capBelow)
+        {
+            var vertices = new List<Vector3> { new Vector3(0f, capHeight, 0f) };
+            var colors = new List<Color> { capBelow ? EarthDeep.linear : Color.white };
+            var triangles = new List<int>();
+            foreach (var rim in rims)
+            {
+                for (int i = 0; i < RimSteps; i++)
+                {
+                    float angle = 2f * Mathf.PI * i / RimSteps;
+                    float wobble = 1f + 0.025f * Mathf.Sin(5f * angle) + 0.015f * Mathf.Sin(9f * angle + 1.3f);
+                    float drop = rim.Drip * Mathf.Abs(Mathf.Sin(7f * angle));
+                    vertices.Add(new Vector3((IslandX * wobble + rim.Grow) * Mathf.Cos(angle), rim.Height - drop, (IslandZ * wobble + rim.Grow) * Mathf.Sin(angle)));
+                    colors.Add(capBelow ? Palette.Mix(Earth, EarthDeep, rim.Deep).linear : Color.white);
+                }
             }
 
-            Part(PrimitiveType.Cylinder, "IslandEarth", garden, new Vector3(0f, -0.65f, 0f), new Vector3(7.4f, 0.6f, 16f), MakePaint("Earth", Earth));
-            Part(PrimitiveType.Cylinder, "IslandGrass", garden, new Vector3(0f, -0.05f, 0f), new Vector3(7.8f, 0.1f, 16.4f), grass);
-            Part(PrimitiveType.Capsule, "Path", garden, new Vector3(0f, 0.06f, -3f), new Vector3(1.1f, 4.2f, 0.04f), MakePaint("Path", PathSand, 1.5f), new Vector3(90f, 0f, 0f));
+            int ringStart(int ring) => 1 + ring * RimSteps;
+            int capRing = capBelow ? rims.Length - 1 : 0;
+            for (int i = 0; i < RimSteps; i++)
+            {
+                int a = ringStart(capRing) + i;
+                int b = ringStart(capRing) + (i + 1) % RimSteps;
+                triangles.AddRange(capBelow ? new[] { 0, a, b } : new[] { 0, b, a });
+            }
+            for (int ring = 0; ring + 1 < rims.Length; ring++)
+            {
+                for (int i = 0; i < RimSteps; i++)
+                {
+                    int upper = ringStart(ring) + i;
+                    int upperNext = ringStart(ring) + (i + 1) % RimSteps;
+                    int lower = ringStart(ring + 1) + i;
+                    int lowerNext = ringStart(ring + 1) + (i + 1) % RimSteps;
+                    triangles.AddRange(new[] { upper, upperNext, lowerNext, upper, lowerNext, lower });
+                }
+            }
 
-            Material stone = MakePaint("Stone", Stone, 1.5f);
-            Part(PrimitiveType.Cylinder, "StoneA", garden, new Vector3(-1.0f, 0.07f, -4.2f), new Vector3(0.5f, 0.03f, 0.4f), stone, new Vector3(0f, 15f, 0f));
-            Part(PrimitiveType.Cylinder, "StoneB", garden, new Vector3(-1.6f, 0.07f, -3.5f), new Vector3(0.46f, 0.03f, 0.38f), stone, new Vector3(0f, -20f, 0f));
-            Part(PrimitiveType.Cylinder, "StoneC", garden, new Vector3(-2.1f, 0.07f, -2.7f), new Vector3(0.5f, 0.03f, 0.42f), stone, new Vector3(0f, 30f, 0f));
+            var uvs = new List<Vector2>();
+            foreach (var v in vertices) uvs.Add(new Vector2(v.x, v.z));
+            var mesh = new Mesh { name = name };
+            mesh.SetVertices(vertices);
+            mesh.SetColors(colors);
+            mesh.SetUVs(0, uvs);
+            mesh.SetTriangles(triangles, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh, Generated + "/" + name + ".asset");
 
-            Material bush = MakePaint("TeaBush", TeaBush);
-            Part(PrimitiveType.Sphere, "BushA", garden, new Vector3(-2.2f, 0.3f, 1.5f), new Vector3(1.1f, 0.8f, 1.0f), bush);
-            Part(PrimitiveType.Sphere, "BushB", garden, new Vector3(-2.5f, 0.25f, -0.4f), new Vector3(0.9f, 0.65f, 0.85f), bush);
-            Part(PrimitiveType.Sphere, "BushC", garden, new Vector3(2.3f, 0.3f, -1.5f), new Vector3(1.0f, 0.75f, 0.95f), bush);
-            Part(PrimitiveType.Sphere, "BushD", garden, new Vector3(2.0f, 0.25f, -4.5f), new Vector3(0.8f, 0.6f, 0.8f), bush);
-            Part(PrimitiveType.Sphere, "BushE", garden, new Vector3(-1.8f, 0.25f, -6.0f), new Vector3(0.8f, 0.6f, 0.75f), bush);
+            var go = new GameObject(name);
+            go.transform.SetParent(garden, false);
+            go.AddComponent<MeshFilter>().sharedMesh = mesh;
+            go.AddComponent<MeshRenderer>().sharedMaterial = material;
         }
 
-        static Vector3 BuildStation(Transform garden, Vector3 centre)
+        static Transform Card(Transform garden, string name, string texturePath, Vector3 feet, float height)
         {
-            const float top = 0.23f;
-            Transform station = Node("TeaStation", garden, centre);
-            Material wood = MakePaint("Wood", Wood);
-            Material iron = MakePaint("Iron", Iron);
-            Material teapot = MakePaint("Teapot", Teal);
-            Part(PrimitiveType.Cylinder, "Deck", station, new Vector3(0f, 0.14f, 0f), new Vector3(2.4f, 0.09f, 2.4f), wood);
-
-            Transform brazier = Node("Brazier", station, new Vector3(0.45f, top, 0.15f));
-            Part(PrimitiveType.Cylinder, "Bowl", brazier, new Vector3(0f, 0.14f, 0f), new Vector3(0.46f, 0.14f, 0.46f), iron);
-            Part(PrimitiveType.Sphere, "Coals", brazier, new Vector3(0f, 0.28f, 0f), new Vector3(0.36f, 0.08f, 0.36f), MakePaint("Coals", Palette.Carrot, 1f, Palette.Carrot * 2.5f));
-
-            Transform pot = Node("Teapot", brazier, new Vector3(0f, 0.47f, 0f));
-            Part(PrimitiveType.Sphere, "Body", pot, Vector3.zero, new Vector3(0.44f, 0.38f, 0.44f), teapot);
-            Part(PrimitiveType.Cylinder, "Spout", pot, new Vector3(0.25f, 0.05f, 0f), new Vector3(0.07f, 0.12f, 0.07f), teapot, new Vector3(0f, 0f, -55f));
-            Part(PrimitiveType.Cylinder, "Lid", pot, new Vector3(0f, 0.18f, 0f), new Vector3(0.22f, 0.025f, 0.22f), teapot);
-            Part(PrimitiveType.Sphere, "Knob", pot, new Vector3(0f, 0.22f, 0f), new Vector3(0.08f, 0.08f, 0.08f), teapot);
-            Part(PrimitiveType.Capsule, "Handle", pot, new Vector3(-0.24f, 0.02f, 0f), new Vector3(0.06f, 0.1f, 0.06f), teapot, new Vector3(0f, 0f, 15f));
-
-            Transform post = Node("LanternPost", station, new Vector3(-0.85f, top, 0.75f));
-            Part(PrimitiveType.Cylinder, "Pole", post, new Vector3(0f, 0.6f, 0f), new Vector3(0.07f, 0.6f, 0.07f), wood);
-            Part(PrimitiveType.Cylinder, "Arm", post, new Vector3(0.15f, 1.18f, 0f), new Vector3(0.04f, 0.16f, 0.04f), wood, new Vector3(0f, 0f, 90f));
-            Part(PrimitiveType.Cylinder, "Cap", post, new Vector3(0.28f, 1.13f, 0f), new Vector3(0.14f, 0.02f, 0.14f), iron);
-            Part(PrimitiveType.Sphere, "Lantern", post, new Vector3(0.28f, 0.98f, 0f), new Vector3(0.22f, 0.28f, 0.22f), MakePaint("LanternPaper", Palette.Lantern, 1.5f, Palette.Lantern * 1.8f));
-
-            var glow = Node("LanternLight", post, new Vector3(0.28f, 0.98f, 0f)).gameObject.AddComponent<Light>();
-            glow.type = LightType.Point;
-            glow.color = Palette.Lantern;
-            glow.range = 3f;
-            glow.intensity = 2.5f;
-            glow.shadows = LightShadows.None;
-
-            return centre + new Vector3(0f, top, 0f);
+            Texture2D texture = Imported(texturePath, TextureWrapMode.Clamp);
+            var root = new GameObject(name).transform;
+            root.SetParent(garden, false);
+            root.localPosition = feet;
+            var breath = new GameObject("Breath").transform;
+            breath.SetParent(root, false);
+            var card = new GameObject("Card");
+            card.transform.SetParent(breath, false);
+            card.transform.localScale = new Vector3(height * texture.width / texture.height, height * CardStretch, 1f);
+            card.AddComponent<MeshFilter>().sharedMesh = _card;
+            var renderer = card.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = SpriteMaterial(texture, false);
+            renderer.shadowCastingMode = ShadowCastingMode.On;
+            return root;
         }
 
-        static Animator BuildRabbit(Transform garden, Vector3 feet)
+        static void Flat(Transform garden, string name, string texturePath, Vector3 centre, float width, float yaw, bool paintedInPerspective, int queue)
         {
-            Material fur = MakePaint("Fur", Palette.Paper);
-            Material innerEar = MakePaint("InnerEar", Palette.Blush, 0f);
-            Material eye = MakePaint("Eye", Palette.Ink, 0f);
-
-            Transform rabbit = Node("Rabbit", garden, feet, new Vector3(0f, -25f, 0f));
-            Transform body = Node("Body", rabbit, Vector3.zero);
-            Part(PrimitiveType.Capsule, "Torso", body, new Vector3(0f, 0.22f, 0f), new Vector3(0.38f, 0.22f, 0.34f), fur);
-            Part(PrimitiveType.Sphere, "FootL", body, new Vector3(-0.1f, 0.03f, -0.1f), new Vector3(0.12f, 0.06f, 0.16f), fur);
-            Part(PrimitiveType.Sphere, "FootR", body, new Vector3(0.1f, 0.03f, -0.1f), new Vector3(0.12f, 0.06f, 0.16f), fur);
-            Part(PrimitiveType.Sphere, "Tail", body, new Vector3(0f, 0.14f, 0.18f), new Vector3(0.13f, 0.13f, 0.13f), fur);
-
-            Transform head = Node("Head", body, new Vector3(0f, 0.55f, -0.02f));
-            Part(PrimitiveType.Sphere, "Skull", head, Vector3.zero, new Vector3(0.4f, 0.35f, 0.36f), fur);
-            Part(PrimitiveType.Sphere, "EyeL", head, new Vector3(-0.085f, 0.02f, -0.165f), new Vector3(0.05f, 0.06f, 0.03f), eye);
-            Part(PrimitiveType.Sphere, "EyeR", head, new Vector3(0.085f, 0.02f, -0.165f), new Vector3(0.05f, 0.06f, 0.03f), eye);
-            Part(PrimitiveType.Sphere, "Nose", head, new Vector3(0f, -0.035f, -0.178f), new Vector3(0.035f, 0.025f, 0.02f), innerEar);
-            Part(PrimitiveType.Sphere, "CheekL", head, new Vector3(-0.12f, -0.05f, -0.14f), new Vector3(0.07f, 0.04f, 0.02f), innerEar);
-            Part(PrimitiveType.Sphere, "CheekR", head, new Vector3(0.12f, -0.05f, -0.14f), new Vector3(0.07f, 0.04f, 0.02f), innerEar);
-            Ear(head, "EarL", -1f, fur, innerEar);
-            Ear(head, "EarR", 1f, fur, innerEar);
-
-            return rabbit.gameObject.AddComponent<Animator>();
+            Texture2D texture = Imported(texturePath, TextureWrapMode.Clamp);
+            float depth = width * texture.height / texture.width * (paintedInPerspective ? PaintedFlatStretch : 1f);
+            var flat = new GameObject(name);
+            flat.transform.SetParent(garden, false);
+            flat.transform.localPosition = centre;
+            flat.transform.localEulerAngles = new Vector3(0f, yaw, 0f);
+            flat.transform.localScale = new Vector3(width, 1f, depth);
+            flat.AddComponent<MeshFilter>().sharedMesh = _flat;
+            var renderer = flat.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = SpriteMaterial(texture, true);
+            renderer.sharedMaterial.renderQueue = queue;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
         }
 
-        static void Ear(Transform head, string name, float side, Material fur, Material inner)
+        static Material SpriteMaterial(Texture2D texture, bool flat)
         {
-            Transform ear = Node(name, head, new Vector3(0.08f * side, 0.12f, 0.02f), new Vector3(0f, 0f, -EarTilt * side));
-            Part(PrimitiveType.Capsule, "Outer", ear, new Vector3(0f, 0.17f, 0f), new Vector3(0.1f, 0.17f, 0.06f), fur);
-            Part(PrimitiveType.Capsule, "Inner", ear, new Vector3(0f, 0.17f, -0.022f), new Vector3(0.055f, 0.13f, 0.025f), inner);
+            string key = texture.name + (flat ? "_flat" : "_card");
+            if (Materials.TryGetValue(key, out var cached)) return cached;
+            var material = new Material(_sprite) { name = key };
+            material.SetTexture("_BaseMap", texture);
+            material.SetFloat("_ReceiveShadow", flat ? 1f : 0f);
+            material.SetColor("_ShadeColor", Palette.Night);
+            material.SetFloat("_LanternGain", 0.35f);
+            Save(material);
+            Materials[key] = material;
+            return material;
         }
 
-        static AnimationClip CreateIdle(Animator rabbit)
+        static Texture2D Imported(string path, TextureWrapMode wrap)
+        {
+            var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+            if (!importer.mipmapEnabled || importer.wrapMode != wrap)
+            {
+                importer.mipmapEnabled = true;
+                importer.wrapMode = wrap;
+                importer.anisoLevel = 4;
+                importer.SaveAndReimport();
+            }
+            return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        }
+
+        static Mesh Quad(string name, Vector3 corner, Vector3 across, Vector3 up)
+        {
+            var mesh = new Mesh { name = name };
+            mesh.SetVertices(new List<Vector3> { corner, corner + across, corner + up, corner + across + up });
+            mesh.SetUVs(0, new List<Vector2> { new Vector2(0f, 0f), new Vector2(1f, 0f), new Vector2(0f, 1f), new Vector2(1f, 1f) });
+            mesh.SetTriangles(new[] { 0, 2, 1, 1, 2, 3 }, 0);
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+            AssetDatabase.CreateAsset(mesh, Generated + "/" + name + "Quad.asset");
+            return mesh;
+        }
+
+        static void CreateIdle(Transform rabbit)
         {
             var clip = new AnimationClip { name = "Idle", frameRate = 30f };
-            Key(clip, "Body", "m_LocalScale.x", 1f, 1f);
-            Key(clip, "Body", "m_LocalScale.y", 1f, 1.03f);
-            Key(clip, "Body", "m_LocalScale.z", 1f, 1f);
-            foreach (var (path, side) in new[] { ("Body/Head/EarL", -1f), ("Body/Head/EarR", 1f) })
-            {
-                Key(clip, path, "localEulerAnglesRaw.x", 0f, 0f);
-                Key(clip, path, "localEulerAnglesRaw.y", 0f, 0f);
-                Key(clip, path, "localEulerAnglesRaw.z", -EarTilt * side, -(EarTilt + EarSway) * side);
-            }
-
+            Key(clip, "m_LocalScale.x", 1f, 1f);
+            Key(clip, "m_LocalScale.y", 1f, 1.03f);
+            Key(clip, "m_LocalScale.z", 1f, 1f);
             var settings = AnimationUtility.GetAnimationClipSettings(clip);
             settings.loopTime = true;
             AnimationUtility.SetAnimationClipSettings(clip, settings);
             AssetDatabase.CreateAsset(clip, Generated + "/RabbitIdle.anim");
-            rabbit.runtimeAnimatorController = AnimatorController.CreateAnimatorControllerAtPathWithClip(Generated + "/Rabbit.controller", clip);
-            return clip;
+            rabbit.gameObject.AddComponent<Animator>().runtimeAnimatorController =
+                AnimatorController.CreateAnimatorControllerAtPathWithClip(Generated + "/Rabbit.controller", clip);
         }
 
-        static void Key(AnimationClip clip, string path, string property, float rest, float peak)
+        static void Key(AnimationClip clip, string property, float rest, float peak)
         {
             var curve = new AnimationCurve(new Keyframe(0f, rest), new Keyframe(Breath / 2f, peak), new Keyframe(Breath, rest));
-            AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve(path, typeof(Transform), property), curve);
+            AnimationUtility.SetEditorCurve(clip, EditorCurveBinding.FloatCurve("Breath", typeof(Transform), property), curve);
+        }
+
+        static Transform BuildLantern(Transform post)
+        {
+            Transform card = post.Find("Breath/Card");
+            Vector3 head = post.position + new Vector3((0.71f - 0.5f) * card.localScale.x, 0.625f * card.localScale.y, -0.1f);
+
+            var glow = new GameObject("LanternLight").AddComponent<Light>();
+            glow.transform.SetParent(post, true);
+            glow.transform.position = head;
+            glow.type = LightType.Point;
+            glow.color = Palette.Lantern;
+            glow.range = 3.5f;
+            glow.intensity = 3f;
+            glow.shadows = LightShadows.None;
+
+            var halo = new Material(AssetDatabase.LoadAssetAtPath<Shader>(Root + "/Spike3DHalo.shader")) { name = "LanternHalo" };
+            halo.SetTexture("_BaseMap", Imported(Placeholder + "glow.png", TextureWrapMode.Clamp));
+            halo.SetColor("_BaseColor", Palette.Lantern);
+            halo.SetFloat("_Intensity", 0.6f);
+            Save(halo);
+
+            var quad = new GameObject("LanternHalo");
+            quad.transform.SetParent(post, true);
+            quad.transform.position = head;
+            quad.transform.localScale = new Vector3(1.6f, 1.6f, 1f);
+            var flat = Quad("Halo", new Vector3(-0.5f, -0.5f, 0f), Vector3.right, Vector3.up);
+            quad.AddComponent<MeshFilter>().sharedMesh = flat;
+            var renderer = quad.AddComponent<MeshRenderer>();
+            renderer.sharedMaterial = halo;
+            renderer.shadowCastingMode = ShadowCastingMode.Off;
+            return quad.transform;
         }
 
         static void BuildPostFx()
@@ -287,8 +393,8 @@ namespace VuonTra.Spike3D
             profile.Add<Tonemapping>(true).mode.value = TonemappingMode.Neutral;
             var bloom = profile.Add<Bloom>(true);
             bloom.threshold.value = 1f;
-            bloom.intensity.value = 0.8f;
-            bloom.scatter.value = 0.6f;
+            bloom.intensity.value = 1f;
+            bloom.scatter.value = 0.65f;
             var vignette = profile.Add<Vignette>(true);
             vignette.intensity.value = 0.2f;
             vignette.color.value = Palette.Night;
@@ -315,10 +421,11 @@ namespace VuonTra.Spike3D
             return cam;
         }
 
-        static void Shoot(Camera cam, Vector3 focus, float distance, string name)
+        static void Shoot(Camera cam, Transform halo, Vector3 focus, float distance, string name)
         {
-            Vector3 forward = Quaternion.Euler(Pitch, 0f, 0f) * Vector3.forward;
-            cam.transform.SetPositionAndRotation(focus - forward * distance, Quaternion.LookRotation(forward));
+            Quaternion look = Quaternion.Euler(Pitch, 0f, 0f);
+            cam.transform.SetPositionAndRotation(focus - look * Vector3.forward * distance, look);
+            halo.rotation = look;
 
             var rt = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
             cam.targetTexture = rt;
@@ -337,58 +444,9 @@ namespace VuonTra.Spike3D
             Object.DestroyImmediate(rt);
         }
 
-        static void ApplyLook(Look look, Shader toon)
+        static void Save(Material material)
         {
-            var lit = Shader.Find(LitName);
-            foreach (var paint in Paints)
-            {
-                Material m = paint.Material;
-                m.shader = look == Look.Toon ? toon : lit;
-                m.SetColor("_EmissionColor", paint.Emission);
-                if (look == Look.Toon)
-                {
-                    m.SetColor("_ShadeColor", Palette.Night);
-                    m.SetColor("_OutlineColor", Palette.Ink);
-                    m.SetFloat("_OutlineWidth", paint.Outline);
-                }
-                else
-                {
-                    m.SetFloat("_Smoothness", 0.1f);
-                    if (paint.Emission.maxColorComponent > 0f) m.EnableKeyword("_EMISSION");
-                }
-                EditorUtility.SetDirty(m);
-            }
-        }
-
-        static Material MakePaint(string name, Color color, float outline = 2f, Color emission = default)
-        {
-            var material = new Material(Shader.Find(LitName)) { name = name };
-            material.SetColor("_BaseColor", color);
-            AssetDatabase.CreateAsset(material, Generated + "/" + name + ".mat");
-            Paints.Add(new Paint { Material = material, Emission = emission, Outline = outline });
-            return material;
-        }
-
-        static Transform Node(string name, Transform parent, Vector3 position, Vector3 euler = default)
-        {
-            var node = new GameObject(name).transform;
-            node.SetParent(parent, false);
-            node.localPosition = position;
-            node.localEulerAngles = euler;
-            return node;
-        }
-
-        static Transform Part(PrimitiveType shape, string name, Transform parent, Vector3 position, Vector3 scale, Material material, Vector3 euler = default)
-        {
-            var part = GameObject.CreatePrimitive(shape);
-            part.name = name;
-            Transform t = part.transform;
-            t.SetParent(parent, false);
-            t.localPosition = position;
-            t.localEulerAngles = euler;
-            t.localScale = scale;
-            part.GetComponent<MeshRenderer>().sharedMaterial = material;
-            return t;
+            AssetDatabase.CreateAsset(material, Generated + "/" + material.name + ".mat");
         }
     }
 }

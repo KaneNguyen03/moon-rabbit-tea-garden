@@ -60,6 +60,7 @@ Shader "VuonTra/Spike3DToon"
                 float4 positionOS : POSITION;
                 float3 normalOS : NORMAL;
                 float2 uv : TEXCOORD0;
+                float4 color : COLOR;
             };
 
             struct Varyings
@@ -68,6 +69,7 @@ Shader "VuonTra/Spike3DToon"
                 float2 uv : TEXCOORD0;
                 float3 positionWS : TEXCOORD1;
                 float3 normalWS : TEXCOORD2;
+                float4 color : COLOR;
             };
 
             Varyings ToonVert(Attributes v)
@@ -78,6 +80,7 @@ Shader "VuonTra/Spike3DToon"
                 o.positionWS = p.positionWS;
                 o.normalWS = TransformObjectToWorldNormal(v.normalOS);
                 o.uv = TRANSFORM_TEX(v.uv, _BaseMap);
+                o.color = v.color;
                 return o;
             }
 
@@ -89,7 +92,7 @@ Shader "VuonTra/Spike3DToon"
                 inputData.normalizedScreenSpaceUV = GetNormalizedScreenSpaceUV(i.positionCS);
                 inputData.shadowCoord = TransformWorldToShadowCoord(i.positionWS);
 
-                half3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).rgb * _BaseColor.rgb;
+                half3 albedo = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, i.uv).rgb * _BaseColor.rgb * i.color.rgb;
                 half3 shade = lerp(albedo, _ShadeColor.rgb, _ShadeMix);
 
                 Light mainLight = GetMainLight(inputData.shadowCoord);
