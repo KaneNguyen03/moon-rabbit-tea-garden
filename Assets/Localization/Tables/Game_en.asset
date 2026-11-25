@@ -5201,6 +5201,10 @@ MonoBehaviour:
       At 100, 250 and 400 points a chest opens in the Quests tab.'
     m_Metadata:
       m_Items: []
+  - m_Id: 1507387750998016
+    m_Localized: "Top dish \xB7 station \xD7{0}!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

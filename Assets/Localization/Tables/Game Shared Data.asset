@@ -5159,6 +5159,10 @@ MonoBehaviour:
     m_Key: intro.weekchest.body
     m_Metadata:
       m_Items: []
+  - m_Id: 1507387750998016
+    m_Key: dish.top
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

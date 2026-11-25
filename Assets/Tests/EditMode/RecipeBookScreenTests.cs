@@ -170,6 +170,55 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(L10n.T("recipes.book.opens", Economy.Ranks[0]), T(jam + "Dish 1/Level").text);
         }
 
+        bool Floats(string text)
+        {
+            foreach (Text label in root.GetComponentsInChildren<Text>(false))
+                if (label.text == text && label.gameObject.name == "Gain") return true;
+            return false;
+        }
+
+        [Test]
+        public void Raising_A_Dish_To_The_Top_Level_In_The_Book_Plays_The_Reward_With_A_Firm_Buzz_And_A_Gold_Float()
+        {
+            GameState s = Open();
+            s.Levels[0] = 25;
+            Recipes.SeeDishes(s);
+            Recipes.SetLevel(s, 0, 1, Recipes.MaxLevel - 2);
+            s.RecipeLeaves = Recipes.CostOfNext(Recipes.MaxLevel - 2) + Recipes.CostOfNext(Recipes.MaxLevel - 1);
+            screen.Refresh();
+            screen.Book.Open(runner.Defs, s);
+            string raise = "Canvas/RecipeBook/Card/Scroll/Content/am-tra/Dish 1/Raise";
+            Press(raise);
+            Assert.AreEqual("milestone", Sfx.Last, "a plain level keeps the milestone chime");
+            Assert.IsFalse(Floats(L10n.T("dish.top", UiKit.Times(Recipes.StationMultiplier(s, 0)))));
+            int buzzes = Haptics.Count;
+            Press(raise);
+            Assert.IsTrue(Recipes.IsTop(s, 0, 1));
+            string top = L10n.T("dish.top", UiKit.Times(Recipes.StationMultiplier(s, 0)));
+            Assert.AreEqual(L10n.T("dish.top", "2,5"), top, "the second dish at the top: the station sells at ×2 × 1,25");
+            Assert.AreEqual("reward", Sfx.Last, "the top level plays the reward");
+            Assert.Greater(Haptics.Count, buzzes);
+            Assert.AreEqual(Haptics.MillisecondsOf(HapticStrength.Medium), Haptics.LastMilliseconds, "a firm buzz");
+            Assert.IsTrue(Floats(top), "the gold float names the top level");
+        }
+
+        [Test]
+        public void Raising_A_Dish_To_The_Top_Level_On_The_Station_Card_Plays_The_Same_Moment()
+        {
+            GameState s = Open();
+            Recipes.SetLevel(s, 0, 0, Recipes.MaxLevel - 1);
+            s.RecipeLeaves = Recipes.CostOfNext(Recipes.MaxLevel - 1);
+            screen.FocusStation(0);
+            screen.Refresh();
+            int buzzes = Haptics.Count;
+            Press("Canvas/Card/Dish/Raise");
+            Assert.IsTrue(Recipes.IsTop(s, 0, 0));
+            Assert.AreEqual("reward", Sfx.Last);
+            Assert.Greater(Haptics.Count, buzzes);
+            Assert.AreEqual(Haptics.MillisecondsOf(HapticStrength.Medium), Haptics.LastMilliseconds);
+            Assert.IsTrue(Floats(L10n.T("dish.top", UiKit.Times(Recipes.StationMultiplier(s, 0)))));
+        }
+
         [Test]
         public void The_Book_Raises_The_Sold_Dish_With_Leaves()
         {

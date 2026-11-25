@@ -929,6 +929,7 @@ namespace VuonTra.EditorTools
             { "dish.closed", "Mở trạm để nấu món", "Open the station to cook it" },
             { "dish.locked", "Mở sổ ở cấp vườn {0}", "Opens at garden level {0}" },
             { "dish.raised", "Món lên cấp {0}!", "Dish level {0}!" },
+            { "dish.top", "Món cấp tối đa · trạm ×{0}!", "Top dish · station ×{0}!" },
             { "recipes.leaves", "Lá công thức: {0} · nâng món ở tấm trạm", "Recipe leaves: {0} · improve dishes on a station card" },
             { "feed.leaf", "Cá to → +1 lá", "Big fish → +1 leaf" },
             { "fish.leaf", "+{0} lá công thức", "+{0} recipe leaves" },

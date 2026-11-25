@@ -69,9 +69,7 @@ namespace VuonTra.Game.UI
                 Sfx.Deny();
                 return;
             }
-            Sfx.Milestone();
-            Haptics.Light();
-            Feel.FloatText(Feel.PointOf(Book.Card, new Vector2(0f, 300f)), L10n.T("dish.raised", Recipes.Level(Runner.State, station)), LeafGold, 40);
+            DishRaised(station, dish, Feel.PointOf(Book.Card, new Vector2(0f, 300f)));
             Refresh(-1f);
         }
     }

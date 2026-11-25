@@ -25,6 +25,24 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Dish_Raised_To_The_Top_Level_Counts_As_A_Top_Dish_Once()
+        {
+            Assert.AreEqual(0, Recipes.TopDishes(s));
+            for (int level = 1; level < Recipes.MaxLevel - 1; level++) Recipes.SetLevel(s, 0, 0, level);
+            Recipes.SetLevel(s, 0, 0, Recipes.MaxLevel - 1);
+            Assert.IsFalse(Recipes.IsTop(s, 0, 0));
+            Assert.AreEqual(0, Recipes.TopDishes(s));
+            s.RecipeLeaves = Recipes.CostOfNext(Recipes.MaxLevel - 1);
+            Assert.IsTrue(Recipes.Raise(s, 0, 0));
+            Assert.IsTrue(Recipes.IsTop(s, 0, 0), "level ten is the top");
+            Assert.AreEqual(1, Recipes.TopDishes(s));
+            Assert.IsFalse(Recipes.Raise(s, 0, 0), "no level past the top");
+            Assert.AreEqual(1, Recipes.TopDishes(s));
+            Recipes.SetLevel(s, 1, 0, Recipes.MaxLevel);
+            Assert.AreEqual(2, Recipes.TopDishes(s), "counted over every station");
+        }
+
+        [Test]
         public void Raising_A_Dish_From_K_Costs_Five_K_Squared_Leaves_And_The_Whole_Way_Is_1425()
         {
             Assert.AreEqual(5, Recipes.CostOfNext(1));
