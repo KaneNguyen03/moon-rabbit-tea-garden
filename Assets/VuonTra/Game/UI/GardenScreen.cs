@@ -456,6 +456,7 @@ namespace VuonTra.Game.UI
         /// (#50): the screen spans 1300 garden units, so three station columns and five or more plots are in view at once.
         /// </summary>
         public const float ZoomFar = ScreenH / FarSpan, ZoomDefault = 0.83f, ZoomNear = 1.5f;
+        public const float DetailZoom = (ZoomDefault + ZoomNear) / 2f;
         /// <summary>
         /// How much garden height the far view spans: more than the strip is tall, so the whole strip sits in the middle, clear
         /// of the HUD and the tab bar, with as much of its width as the zoom allows. <see cref="ZoomFar"/> is that far.
@@ -494,7 +495,7 @@ namespace VuonTra.Game.UI
         public const float PinchGain = 1f;
 
         public float ZoomScale => _zoom;
-        public ZoomLevel Zoom => _zoom < (FarZoom + ZoomDefault) / 2f ? ZoomLevel.Far : (_zoom > (ZoomDefault + ZoomNear) / 2f ? ZoomLevel.Near : ZoomLevel.Default);
+        public ZoomLevel Zoom => _zoom < (FarZoom + ZoomDefault) / 2f ? ZoomLevel.Far : (_zoom > DetailZoom ? ZoomLevel.Near : ZoomLevel.Default);
 
         float ScaleOf(ZoomLevel level) => level == ZoomLevel.Far ? FarZoom : (level == ZoomLevel.Near ? ZoomNear : ZoomDefault);
 
@@ -627,6 +628,7 @@ namespace VuonTra.Game.UI
                 Transform plate = _actors[i].Plate;
                 if (plate != null) plate.gameObject.SetActive(_shownZoom != ZoomLevel.Far);
             }
+            ShowWorldLabels(_shownZoom == ZoomLevel.Near);
             if (Runner != null && Runner.State != null && _built) RefreshStreet(Runner.Defs, Runner.State);
         }
 
@@ -1114,6 +1116,7 @@ namespace VuonTra.Game.UI
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
             _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
             _seatHats.Clear(); _seatNames.Clear();
+            _worldLabels.Clear(); _labelsNear = false;
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
             Selected = -1;
             _shownStations = -1;
@@ -1527,6 +1530,7 @@ namespace VuonTra.Game.UI
                 _mortarPlate.resizeTextForBestFit = true;
                 _mortarPlate.resizeTextMinSize = 14;
                 _mortarPlate.resizeTextMaxSize = 20;
+                _mortarLabel = AddGameLabel(catalog, plate, new Vector2(0.5f, 1f), new Vector2(-55f, -30f));
                 _mortarProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(mortarAt.y, _mortarProp));
             }
@@ -1559,6 +1563,7 @@ namespace VuonTra.Game.UI
                 _basketPlate.resizeTextForBestFit = true;
                 _basketPlate.resizeTextMinSize = 14;
                 _basketPlate.resizeTextMaxSize = 20;
+                _basketLabel = AddGameLabel(catalog, basketPlate, new Vector2(0f, 0.5f), new Vector2(-34f, 0f));
                 _basketProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(basketAt.y, _basketProp));
             }
@@ -1590,6 +1595,7 @@ namespace VuonTra.Game.UI
                 _jarPlate.resizeTextForBestFit = true;
                 _jarPlate.resizeTextMinSize = 14;
                 _jarPlate.resizeTextMaxSize = 20;
+                _jarLabel = AddGameLabel(catalog, jarPlate, new Vector2(0.5f, 0f), new Vector2(0f, -26f));
                 _jarProp.gameObject.SetActive(false);
                 standing.Add(new KeyValuePair<float, Transform>(jarAt.y, _jarProp));
             }
@@ -4033,6 +4039,7 @@ namespace VuonTra.Game.UI
             {
                 int left = Pounding.PlaysLeft(s, Runner.TodayNumber);
                 _mortarPlate.text = left > 0 ? L10n.T("mortar.plays", left) : L10n.T("mortar.tomorrow");
+                SetPlays(_mortarLabel, left);
             }
             bool basket = Leaves.Unlocked(s);
             if (_basketProp.gameObject.activeSelf != basket) _basketProp.gameObject.SetActive(basket);
@@ -4040,6 +4047,7 @@ namespace VuonTra.Game.UI
             {
                 int left = Leaves.PlaysLeft(s, Runner.TodayNumber);
                 _basketPlate.text = left > 0 ? L10n.T("basket.plays", left) : L10n.T("basket.tomorrow");
+                SetPlays(_basketLabel, left);
             }
             bool jar = Fireflies.Unlocked(s);
             if (_jarProp.gameObject.activeSelf != jar) _jarProp.gameObject.SetActive(jar);
@@ -4047,6 +4055,7 @@ namespace VuonTra.Game.UI
             {
                 int left = Fireflies.PlaysLeft(s, Runner.TodayNumber);
                 _jarPlate.text = left > 0 ? L10n.T("jar.plays", left) : L10n.T("jar.tomorrow");
+                SetPlays(_jarLabel, left);
             }
             RefreshPond(); // #58b
             RefreshTank();
@@ -8256,6 +8265,7 @@ namespace VuonTra.Game.UI
             _pondPlate.resizeTextForBestFit = true;
             _pondPlate.resizeTextMinSize = 14;
             _pondPlate.resizeTextMaxSize = 20;
+            _pondLabel = AddGameLabel(catalog, plate, new Vector2(0.5f, 0.5f), new Vector2(120f, -55f));
             _pondTap.SetSiblingIndex(_pondGlow != null ? _pondGlow.GetSiblingIndex() : 0);
             RefreshPond();
         }
@@ -8269,7 +8279,10 @@ namespace VuonTra.Game.UI
             if (_pondTap == null) return;
             bool open = Runner.PondOpen;
             if (_pondTap.gameObject.activeSelf != open) _pondTap.gameObject.SetActive(open);
-            if (open) _pondPlate.text = L10n.T("pond.plate", Runner.Baits, Fishing.BaitCap);
+            if (!open) return;
+            int baits = Runner.Baits;
+            _pondPlate.text = L10n.T("pond.plate", baits, Fishing.BaitCap);
+            SetPlays(_pondLabel, baits);
         }
 
         /// <summary>The pond was touched: its card slides up. Not while arranging the garden, nor over another game.</summary>

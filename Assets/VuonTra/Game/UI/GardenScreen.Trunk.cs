@@ -13,6 +13,7 @@ namespace VuonTra.Game.UI
         RectTransform _trunkProp;
         Text _trunkTag;
         Image _trunkTagPlate;
+        WorldLabel _trunkLabel;
 
         public RectTransform TrunkProp => _trunkProp;
         public string TrunkTag => _trunkTag != null ? _trunkTag.text : null;
@@ -36,6 +37,7 @@ namespace VuonTra.Game.UI
             _trunkTag.resizeTextForBestFit = true;
             _trunkTag.resizeTextMinSize = 12;
             _trunkTag.resizeTextMaxSize = 18;
+            _trunkLabel = AddWorldLabel(tag);
             standing.Add(new KeyValuePair<float, Transform>(at.y, _trunkProp));
         }
 
@@ -48,6 +50,8 @@ namespace VuonTra.Game.UI
                 string text = open ? L10n.T("trunk.tag.open") : L10n.T("trunk.closed", Trunk.NextHour(Runner.State, clock));
                 if (_trunkTag.text != text) _trunkTag.text = text;
                 _trunkTagPlate.color = open ? Palette.Mix(Palette.Lantern, Palette.Paper, 0.45f) : Palette.Paper;
+                _trunkLabel.Always = open;
+                ShowLabel(_trunkLabel);
             }
             TrunkCard?.Refresh();
         }

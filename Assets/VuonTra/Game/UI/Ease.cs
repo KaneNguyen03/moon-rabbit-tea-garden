@@ -96,6 +96,19 @@ namespace VuonTra.Game.UI
             });
         }
 
+        public void Fade(CanvasGroup group, float to)
+        {
+            group.blocksRaycasts = to > 0f;
+            if (group.alpha == to) return;
+            if (Motion.Reduced)
+            {
+                group.alpha = to;
+                return;
+            }
+            float from = group.alpha;
+            Add(Motion.Quick, t => { if (group != null) group.alpha = from + (to - from) * t; });
+        }
+
         public void Grow(Transform target, float from, float seconds, Func<float, float> curve)
         {
             target.localScale = Vector3.one * from;
