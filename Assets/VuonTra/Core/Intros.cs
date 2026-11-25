@@ -12,7 +12,7 @@ namespace VuonTra.Core
 
         public const double RewardSeconds = 60d;
         public const int RewardClovers = 1;
-        public const double GapSeconds = 90d;
+        public const double GapSeconds = 200d;
 
         public static bool Known(string id) => Array.IndexOf(All, id) >= 0;
 

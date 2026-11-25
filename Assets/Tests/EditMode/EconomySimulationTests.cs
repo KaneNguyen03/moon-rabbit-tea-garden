@@ -1994,5 +1994,281 @@ namespace VuonTra.Core.Tests
                 Holds(runs, r => r.TiersByWeek[week] >= 3, "at least three new tiers in week " + (week + 1), text);
             }
         }
+
+        const double SittingEnd = 31.5d * 60d;
+        const double QuietFrom = 60d, QuietTo = 30d * 60d;
+        const double MostQuietMedian = 180d, MostQuietP90 = 240d;
+        const double MarkWindow = 90d;
+        static readonly double[] Marks = { 5d * 60d, 15d * 60d, 30d * 60d };
+        const double CardReadSeconds = 4d;
+        const int FiveMinutes = 6;
+
+        sealed class FirstMoment
+        {
+            public double At;
+            public string Kind, What;
+        }
+
+        sealed class ShownCard
+        {
+            public double Open, Close;
+            public string What;
+            public bool Purchase, GuidanceDone;
+            public double Played;
+        }
+
+        sealed class FirstSitting
+        {
+            public int Seed;
+            public readonly List<FirstMoment> Moments = new List<FirstMoment>();
+            public readonly List<ShownCard> Cards = new List<ShownCard>();
+            public readonly int[] PerFive = new int[FiveMinutes];
+            public readonly string[] AtMark = new string[Marks.Length];
+            public double LongestQuiet, QuietStart, TightestCards = double.PositiveInfinity, GuidanceDoneAt = -1, Level5 = -1;
+            public bool PurchaseTooEarly;
+            public string Timeline;
+
+            public bool MarkMet(int mark) => AtMark[mark] != null;
+        }
+
+        FirstSitting sitting;
+        CardPacer pacer;
+        IntroQueue introQueue;
+        bool[] watchedOpen;
+        int watchedSegments, watchedLevel, watchedNewcomer, watchedGolden;
+        long watchedRabbitId;
+        bool watchedGuest, watchedGame;
+        double watchedAt, cardUntil;
+        ShownCard cardUp;
+        FirstSitting[] sittingsOverSeeds;
+
+        FirstSitting PlayFirstSitting(int seed)
+        {
+            Reset(false, seed);
+            newcomer = true;
+            goFishing = true;
+            sitting = new FirstSitting { Seed = seed };
+            pacer = new CardPacer();
+            introQueue = new IntroQueue();
+            watchedOpen = new bool[defs.Count];
+            for (int i = 0; i < defs.Count; i++) watchedOpen[i] = s.Levels[i] > 0;
+            watchedSegments = Expansion.Segments(s);
+            watchedLevel = Garden.Level(s);
+            watchedNewcomer = NewcomerClaimed();
+            watchedGolden = s.GoldenToday;
+            watchedRabbitId = s.NextRabbitId;
+            watchedGuest = watchedGame = false;
+            watchedAt = cardUntil = 0d;
+            cardUp = null;
+
+            OpenSession();
+            Watch();
+            while (clock < SittingEnd)
+            {
+                ActiveSecond();
+                Watch();
+            }
+            if (cardUp != null) cardUp.Close = cardUntil;
+            Measure(sitting);
+            return sitting;
+        }
+
+        FirstSitting[] SittingsOverSeeds()
+        {
+            if (sittingsOverSeeds == null) sittingsOverSeeds = Seeds.Select(PlayFirstSitting).ToArray();
+            return sittingsOverSeeds;
+        }
+
+        int NewcomerClaimed()
+        {
+            int n = 0;
+            foreach (NewcomerTask task in VuonTra.Core.Newcomer.All) if (VuonTra.Core.Newcomer.IsClaimed(task, s)) n++;
+            return n;
+        }
+
+        void Moment(string kind, string what) => sitting.Moments.Add(new FirstMoment { At = clock, Kind = kind, What = what });
+
+        void Watch()
+        {
+            double dt = clock - watchedAt;
+            watchedAt = clock;
+            s.PlaySeconds = clock;
+            Tutorial.Advance(s);
+            if (sitting.GuidanceDoneAt < 0 && Tutorial.IsDone(s)) sitting.GuidanceDoneAt = clock;
+
+            for (int i = 0; i < defs.Count; i++)
+            {
+                if (s.Levels[i] <= 0 || watchedOpen[i]) continue;
+                watchedOpen[i] = true;
+                Moment(AnalyticsEvents.StationUnlocked, defs[i].Id);
+            }
+            for (int n = watchedSegments + 1; n <= Expansion.Segments(s); n++) Moment(AnalyticsEvents.SegmentOpened, "đoạn " + n);
+            watchedSegments = Math.Max(watchedSegments, Expansion.Segments(s));
+            for (int l = watchedLevel + 1; l <= Garden.Level(s); l++) Moment(AnalyticsEvents.GardenLevelUp, "cấp " + l);
+            watchedLevel = Math.Max(watchedLevel, Garden.Level(s));
+            for (long id = watchedRabbitId; id < s.NextRabbitId; id++) Moment(AnalyticsEvents.RabbitCalled, RabbitKindOf(id));
+            watchedRabbitId = Math.Max(watchedRabbitId, s.NextRabbitId);
+            int claimed = NewcomerClaimed();
+            for (int k = watchedNewcomer; k < claimed; k++) Moment(AnalyticsEvents.NewcomerTask, "việc " + (k + 1));
+            watchedNewcomer = Math.Max(watchedNewcomer, claimed);
+            for (int g = watchedGolden; g < s.GoldenToday; g++) Moment("golden_tray", "quà khay vàng");
+            watchedGolden = Math.Max(watchedGolden, s.GoldenToday);
+            if (!watchedGuest && s.NextOrderId > 0) { watchedGuest = true; Moment("first_guest", "khách đầu tiên"); }
+            if (!watchedGame && gamesPlayed > 0) { watchedGame = true; Moment("first_game", "trò nhỏ đầu tiên"); }
+
+            WatchCards(dt);
+        }
+
+        string RabbitKindOf(long id)
+        {
+            foreach (Rabbit r in s.Rabbits) if (r.Id == id) return r.Kind;
+            return "thỏ " + id;
+        }
+
+        void WatchCards(double dt)
+        {
+            if (cardUp != null && clock >= cardUntil)
+            {
+                cardUp.Close = cardUntil;
+                cardUp = null;
+            }
+            bool blocked = cardUp != null || !Tutorial.IsDone(s) || !pacer.Rested(clock);
+            string intro = introQueue.Tick(s, dt, blocked);
+            if (intro != null)
+            {
+                ShowCard("thẻ giới thiệu " + intro, false);
+                Moment("intro_card", intro);
+                return;
+            }
+            if (blocked) return;
+            long offerClock = Offers.Clock(s, (long)(firstDay * Offers.DaySeconds + clock));
+            Offers.Tick(s, offerClock);
+            OfferDef offer = Offers.ToShow(s, offerClock);
+            if (offer != null && Offers.MarkShown(s, offer.Id)) ShowCard("thẻ gói " + offer.Id, true);
+            else if (Recipes.NewDishes(s) > 0)
+            {
+                Recipes.SeeDishes(s);
+                ShowCard("thẻ Món mới", false);
+            }
+        }
+
+        void ShowCard(string what, bool purchase)
+        {
+            cardUp = new ShownCard { Open = clock, What = what, Purchase = purchase, GuidanceDone = Tutorial.IsDone(s), Played = s.PlaySeconds };
+            cardUntil = clock + CardReadSeconds;
+            pacer.Note(cardUntil, true);
+            sitting.Cards.Add(cardUp);
+        }
+
+        void Measure(FirstSitting run)
+        {
+            run.Level5 = At(levelAt, 5);
+            var points = new List<double> { QuietFrom };
+            foreach (FirstMoment m in run.Moments) if (m.At > QuietFrom && m.At < QuietTo) points.Add(m.At);
+            points.Add(QuietTo);
+            points.Sort();
+            for (int i = 1; i < points.Count; i++)
+                if (points[i] - points[i - 1] > run.LongestQuiet) { run.LongestQuiet = points[i] - points[i - 1]; run.QuietStart = points[i - 1]; }
+            foreach (FirstMoment m in run.Moments)
+            {
+                int bucket = (int)(m.At / 300d);
+                if (bucket >= 0 && bucket < FiveMinutes) run.PerFive[bucket]++;
+            }
+            for (int k = 0; k < Marks.Length; k++)
+            {
+                var near = run.Moments.Where(m => Math.Abs(m.At - Marks[k]) <= MarkWindow).Select(m => m.Kind + " " + m.What).ToList();
+                if (near.Count > 0) run.AtMark[k] = string.Join(", ", near);
+            }
+            for (int i = 1; i < run.Cards.Count; i++) run.TightestCards = Math.Min(run.TightestCards, run.Cards[i].Open - run.Cards[i - 1].Close);
+            run.PurchaseTooEarly = run.Cards.Any(c => c.Purchase && (!c.GuidanceDone || c.Played < Offers.StarterQuietSeconds));
+
+            var timeline = new StringBuilder();
+            var rows = run.Moments.Select(m => (m.At, Mmss(m.At) + "  " + m.Kind + "  " + m.What))
+                .Concat(run.Cards.Select(c => (c.Open, Mmss(c.Open) + "–" + Mmss(c.Close) + "  [thẻ] " + c.What)))
+                .OrderBy(r => r.Item1);
+            foreach (var row in rows) timeline.AppendLine("  " + row.Item2);
+            run.Timeline = timeline.ToString();
+        }
+
+        static string Mmss(double seconds)
+        {
+            int total = (int)Math.Round(seconds);
+            return (total / 60).ToString("00") + ":" + (total % 60).ToString("00");
+        }
+
+        static double P90(IEnumerable<double> values)
+        {
+            var sorted = values.OrderBy(v => v).ToList();
+            return sorted.Count == 0 ? double.NaN : sorted[(int)Math.Ceiling(0.9d * sorted.Count) - 1];
+        }
+
+        string FirstSessionReport(FirstSitting[] runs)
+        {
+            var report = new StringBuilder();
+            report.AppendLine("# 30 phút đầu (#115)");
+            report.AppendLine();
+            report.AppendLine("Người chơi thong thả của EconomySimulationTests với Tuần đầu (#102) và câu cá, chơi liền " + Mmss(SittingEnd) + ". Mỗi thẻ tự hiện được đọc " + CardReadSeconds
+                + " giây rồi đóng; thẻ sau chờ " + CardPacer.GapSeconds + " giây sau khi thẻ trước đóng; gói người mới chờ xong hướng dẫn và phút " + Offers.StarterQuietSeconds / 60d + ".");
+            report.AppendLine("Khoảnh khắc: mở trạm, mở đoạn đất, lên cấp vườn (có băng), thỏ mới tới, việc Tuần đầu xong, thẻ giới thiệu hiện, quà khay vàng, khách đầu tiên, trò nhỏ đầu tiên.");
+            report.AppendLine("Ngưỡng: khoảng trống lớn nhất phút 1–30 ≤ " + MostQuietMedian + " giây (trung vị), ≤ " + MostQuietP90 + " giây (p90); mỗi mốc 5/15/30 phút có khoảnh khắc trong ±" + MarkWindow + " giây ở ≥ " + Enough + "/" + Seeds.Length + " hạt.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Trống lớn nhất | Từ | Khoảnh khắc mỗi 5 phút | Xong hướng dẫn | Cấp 5 | Thẻ | Thẻ sát nhau nhất | Phút 5 | Phút 15 | Phút 30 |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
+            foreach (FirstSitting r in runs)
+                report.AppendLine("| " + r.Seed + " | " + r.LongestQuiet + " giây | " + Mmss(r.QuietStart) + " | " + string.Join(" / ", r.PerFive) + " | " + Mmss(r.GuidanceDoneAt) + " | " + Mmss(r.Level5) + " | " + r.Cards.Count
+                    + " | " + (double.IsInfinity(r.TightestCards) ? "–" : r.TightestCards + " giây") + " | " + (r.AtMark[0] ?? "không") + " | " + (r.AtMark[1] ?? "không") + " | " + (r.AtMark[2] ?? "không") + " |");
+            var perFive = System.Linq.Enumerable.Range(0, FiveMinutes).Select(k => Median(runs, r => r.PerFive[k]).ToString()).ToArray();
+            report.AppendLine("| **trung vị** | " + Median(runs, r => r.LongestQuiet) + " giây (p90 " + P90(runs.Select(r => r.LongestQuiet)) + ") | | " + string.Join(" / ", perFive) + " | " + Mmss(Median(runs, r => r.GuidanceDoneAt))
+                + " | " + Mmss(Median(runs, r => r.Level5)) + " | " + Median(runs, r => r.Cards.Count) + " | | " + Count(runs, r => r.MarkMet(0)) + "/" + runs.Length + " | " + Count(runs, r => r.MarkMet(1)) + "/" + runs.Length
+                + " | " + Count(runs, r => r.MarkMet(2)) + "/" + runs.Length + " |");
+            report.AppendLine();
+            foreach (FirstSitting r in runs)
+            {
+                report.AppendLine("## Hạt " + r.Seed);
+                report.Append(r.Timeline);
+                report.AppendLine();
+            }
+            return report.ToString();
+        }
+
+        string WriteFirstSession(FirstSitting[] runs)
+        {
+            string text = FirstSessionReport(runs);
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/first-session.txt", text);
+            TestContext.WriteLine(text);
+            return text;
+        }
+
+        [Test]
+        public void The_First_Half_Hour_Brings_Something_New_At_Least_Every_Three_Minutes()
+        {
+            FirstSitting[] runs = SittingsOverSeeds();
+            string text = WriteFirstSession(runs);
+            Assert.LessOrEqual(Median(runs, r => r.LongestQuiet), MostQuietMedian, "the longest quiet stretch of minutes 1–30, on the median\n" + text);
+            Assert.LessOrEqual(P90(runs.Select(r => r.LongestQuiet)), MostQuietP90, "and on the ninetieth percentile\n" + text);
+        }
+
+        [Test]
+        public void Minutes_Five_Fifteen_And_Thirty_Each_Bring_A_Moment_Within_Ninety_Seconds()
+        {
+            FirstSitting[] runs = SittingsOverSeeds();
+            string text = WriteFirstSession(runs);
+            for (int k = 0; k < Marks.Length; k++)
+            {
+                int mark = k;
+                Holds(runs, r => r.MarkMet(mark), "a moment within " + MarkWindow + " seconds of minute " + Marks[mark] / 60d, text);
+            }
+        }
+
+        [Test]
+        public void In_The_First_Half_Hour_Cards_Keep_Twenty_Seconds_Apart_And_No_Pack_Comes_Before_The_Guidance_And_Minute_Three()
+        {
+            FirstSitting[] runs = SittingsOverSeeds();
+            string text = WriteFirstSession(runs);
+            Always(runs, r => r.TightestCards >= CardPacer.GapSeconds, "two cards at least twenty seconds apart", text);
+            Always(runs, r => !r.PurchaseTooEarly, "no pack card before the guidance is done and minute three", text);
+            Always(runs, r => r.Cards.Count > 0, "the half hour does show cards", text);
+        }
     }
 }

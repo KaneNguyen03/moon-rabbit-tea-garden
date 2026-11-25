@@ -113,7 +113,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, mem.Count(AnalyticsEvents.IntroLater));
 
             Step(0.4f);
-            Wait(91);
+            Wait((int)Intros.GapSeconds + 1);
             Assert.AreEqual(Intros.Pounding, screen.IntroCard.Showing);
             Assert.AreEqual(2, mem.Count(AnalyticsEvents.IntroShown));
             Press("Canvas/Intro/Later");

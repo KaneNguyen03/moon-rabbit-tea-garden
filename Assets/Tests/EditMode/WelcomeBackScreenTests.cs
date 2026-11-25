@@ -56,6 +56,7 @@ namespace VuonTra.Core.Tests
             Rabbit loved = Rabbits.ArriveKind(s, "tho-me", "Mè");
             Rabbits.AddBond(s, loved, Rabbits.PointsFor(4));
             s.TutorialStep = Tutorial.Steps;
+            s.PlaySeconds = Offers.StarterQuietSeconds;
             s.HintSeen = true;
             s.GardenXp = Garden.XpForLevel(level);
             s.FirstDaySeen = today - awayDays - 5;

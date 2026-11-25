@@ -47,6 +47,7 @@ namespace VuonTra.Core
         public const int MilestoneRabbitTier = 3;
         public const long DaySeconds = 86400L;
         public const long StarterSeconds = 72L * 3600L, MilestoneSeconds = 48L * 3600L;
+        public const double StarterQuietSeconds = 180d;
 
         public static readonly OfferDef[] All =
         {
@@ -126,10 +127,13 @@ namespace VuonTra.Core
             return best;
         }
 
+        public static bool CardMayShow(GameState s, OfferDef def)
+            => Tutorial.IsDone(s) && (!def.IsStarter || s.PlaySeconds >= StarterQuietSeconds);
+
         public static OfferDef ToShow(GameState s, long clock)
         {
             foreach (OfferDef def in Active(s, clock))
-                if (!RecordOf(s, def.Id).Shown) return def;
+                if (!RecordOf(s, def.Id).Shown && CardMayShow(s, def)) return def;
             return null;
         }
 

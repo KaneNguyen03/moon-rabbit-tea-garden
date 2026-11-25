@@ -25,7 +25,7 @@ namespace VuonTra.Game.UI
             && !AwayCard.IsOpen && !Arrival.IsOpen && !NewMoonCard.IsOpen && !NewMoonMoment.IsOpen && !CloudChoice.IsOpen
             && !Mail.IsOpen && !Profile.IsOpen && !Rename.IsOpen && !Picker.IsOpen && !Workers.IsOpen && !Detail.IsOpen
             && !UpgradeAll.IsOpen && !Income.IsOpen && !DecorCard.IsOpen && !OrderCard.IsOpen && !ReviewCard.IsOpen && !FirstWeek.IsOpen && !Prizes.IsOpen && !KindChooser.IsOpen && !WelcomeCard.IsOpen && !FairCard.IsOpen && !TrunkCard.IsOpen && !IntroShowing && !TankPanelsOpen
-            && !NewDishCard.IsOpen && !Book.IsOpen;
+            && !NewDishCard.IsOpen && !Book.IsOpen && CardsRested;
 
         void RefreshOffers()
         {

@@ -212,14 +212,14 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Queue_Shows_One_Card_Every_Ninety_Seconds_And_Holds_While_Blocked()
+        public void The_Queue_Shows_One_Card_Every_Gap_And_Holds_While_Blocked()
         {
             OpenEverything();
             var queue = new IntroQueue();
             Assert.IsNull(queue.Tick(s, 0d, true), "nothing while blocked");
             Assert.AreEqual(Intros.Fishing, queue.Tick(s, 1d, false));
             Assert.IsTrue(s.IntrosSeen.Contains(Intros.Fishing), "a card handed out counts as shown");
-            for (int k = 0; k < 89; k++) Assert.IsNull(queue.Tick(s, 1d, false), "second " + k);
+            for (int k = 0; k < (int)Intros.GapSeconds - 1; k++) Assert.IsNull(queue.Tick(s, 1d, false), "second " + k);
             Assert.IsNull(queue.Tick(s, 1d, true), "the gap has run but the card still waits while blocked");
             Assert.AreEqual(Intros.Pounding, queue.Tick(s, 0d, false));
             Assert.AreEqual(Intros.GapSeconds, queue.Wait, 1e-9);

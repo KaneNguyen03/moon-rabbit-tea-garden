@@ -159,7 +159,9 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.IntroCard.IsOpen, "nor over the first-week panel");
             screen.FirstWeek.Close();
             Step(0.4f);
-            Assert.IsTrue(screen.IntroCard.IsOpen, "both gone: the card comes");
+            Assert.IsFalse(screen.IntroCard.IsOpen, "both gone, but the pack card closed moments ago");
+            Wait((int)CardPacer.GapSeconds);
+            Assert.IsTrue(screen.IntroCard.IsOpen, "twenty seconds of garden later the card comes");
             Assert.IsFalse(screen.OfferCardFree, "and while it is up no pack card may open");
             Assert.IsTrue(screen.ReviewBusy, "nor the review card");
         }
@@ -189,7 +191,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void Two_Features_Opened_At_Once_Show_One_Card_Then_The_Second_Ninety_Seconds_Later()
+        public void Two_Features_Opened_At_Once_Show_One_Card_Then_The_Second_One_Gap_Later()
         {
             Forget();
             Step(0.4f);
@@ -197,7 +199,7 @@ namespace VuonTra.Core.Tests
             Find("Canvas/Intro/Later").onClick.Invoke();
             Step(0.4f);
             Assert.IsFalse(screen.IntroCard.IsOpen);
-            Wait(80);
+            Wait((int)Intros.GapSeconds - 10);
             Assert.IsFalse(screen.IntroCard.IsOpen, "the second card waits");
             Assert.IsFalse(S.IntrosSeen.Contains(Intros.Pounding));
             Wait(11);

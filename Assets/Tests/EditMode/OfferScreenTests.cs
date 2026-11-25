@@ -54,6 +54,7 @@ namespace VuonTra.Core.Tests
             runner.Store = store;
             GameState s = GameState.NewGame(catalog.BuildDefs());
             s.TutorialStep = tutorialDone ? Tutorial.Steps : 0;
+            s.PlaySeconds = Offers.StarterQuietSeconds;
             s.HintSeen = true;
             s.GardenXp = Garden.XpForLevel(level);
             runner.Init(s);

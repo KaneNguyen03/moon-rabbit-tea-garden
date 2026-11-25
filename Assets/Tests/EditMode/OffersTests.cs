@@ -281,6 +281,8 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Offer_Card_Is_Shown_Once_Per_Offer()
         {
+            s.TutorialStep = Tutorial.Steps;
+            s.PlaySeconds = Offers.StarterQuietSeconds;
             ReachLevel(10);
             Tick(Start);
             OfferDef first = Offers.ToShow(s, Start);

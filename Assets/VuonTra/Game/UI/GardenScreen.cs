@@ -344,6 +344,7 @@ namespace VuonTra.Game.UI
         public void Advance(float dt)
         {
             _clock += dt;
+            NoteCards();
             GameState s = Runner.State;
             bool boosting = s.BoostSecondsLeft > 0d;
             for (int i = 0; i < _actors.Count; i++) _actors[i].Animate(s.Progress[i], _clock, dt, boosting);
@@ -1145,6 +1146,7 @@ namespace VuonTra.Game.UI
         public void Build()
         {
             _built = true;
+            _cardPacer.Reset();
             GameCatalog catalog = Runner.Catalog;
             UiKit.ShadowSprite = catalog.Shadow;
 
@@ -2409,7 +2411,7 @@ namespace VuonTra.Game.UI
         static float Hash(float n)
         {
             float v = Mathf.Sin(n * 12.9898f) * 43758.5453f;
-            return v - Mathf.Floor(v);
+            return Mathf.Clamp(v - Mathf.Floor(v), 0f, 0.99999994f);
         }
 
         Image AddDecor(Transform parent, Sprite sprite, float x, float y, float height, Color tint)
@@ -4906,7 +4908,7 @@ namespace VuonTra.Game.UI
         public bool ReviewBusy => Shell.State != ShellState.Playing || Pound.IsOpen || Basket.IsOpen || Jar.IsOpen || FishingCard.IsOpen
             || Arrival.IsOpen || Feel.BannerVisible || Profile.IsOpen || Rename.IsOpen || Shop.IsOpen || GoldenPacks.IsOpen || NewMoonCard.IsOpen
             || NewMoonMoment.IsOpen || CloudChoice.IsOpen || ReviewCard.IsOpen || OfferCard.IsOpen || FirstWeek.IsOpen || Prizes.IsOpen || KindChooser.IsOpen || WelcomeCard.IsOpen || FairCard.IsOpen || TrunkCard.IsOpen || IntroShowing || TankPanelsOpen
-            || NewDishCard.IsOpen || Book.IsOpen;
+            || NewDishCard.IsOpen || Book.IsOpen || !CardsRested;
 
         void AskForReview()
         {
@@ -8373,7 +8375,7 @@ namespace VuonTra.Game.UI
                 IntroCard.Close();
                 Runner.LeaveIntroForLater(id, AnalyticsEvents.FromCovered);
             }
-            string next = Runner.ShowNextIntro(_introQueue, dt, blocked || IntroCard.IsOpen || Feel.BannerVisible);
+            string next = Runner.ShowNextIntro(_introQueue, dt, blocked || IntroCard.IsOpen || Feel.BannerVisible || !CardsRested);
             if (next != null) ShowIntro(next);
         }
 

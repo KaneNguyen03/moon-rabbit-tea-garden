@@ -10,7 +10,7 @@ using L10n = VuonTra.Game.L10n;
 
 namespace VuonTra.EditorTools
 {
-    public static class PreviewShot
+    public static partial class PreviewShot
     {
         public const string Folder = "Logs/preview";
         const int Width = 1080, Height = 1920;
@@ -674,6 +674,7 @@ namespace VuonTra.EditorTools
             RenderFair(runner, screen);
             RenderTrunk(runner, screen);
             RenderIntros(runner, screen);
+            RenderFirstSession(runner, screen);
             RenderQaNits2();
             RenderReservedProps();
             RenderGuestByPond();
@@ -2544,6 +2545,7 @@ namespace VuonTra.EditorTools
             s.GardenXp = Garden.XpForLevel(Offers.StarterLevel) + 40;
             s.HintSeen = true;
             s.TutorialStep = Tutorial.Steps;
+            s.PlaySeconds = Offers.StarterQuietSeconds;
             s.Coins = new BigNum(64000);
             s.GoldenCarrots = 7;
             Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
@@ -2647,6 +2649,7 @@ namespace VuonTra.EditorTools
             s.IntrosSeen.UnionWith(Intros.All);
             s.IntrosSeen.Remove(id);
             screen.IntroQueue.Reset();
+            screen.RestCards();
             Step(screen, 0.8f);
             Capture(screen, name);
         }
