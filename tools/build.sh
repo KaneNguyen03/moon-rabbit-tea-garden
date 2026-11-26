@@ -9,7 +9,8 @@ case "${1:-mac}" in
   mac) METHOD=BuildMac ;;
   ios) METHOD=BuildIOS ;;
   android) METHOD=BuildAndroid ;;
-  *) echo "usage: tools/build.sh mac|ios|android" >&2; exit 64 ;;
+  android-apk) METHOD=BuildAndroidApk ;;
+  *) echo "usage: tools/build.sh mac|ios|android|android-apk" >&2; exit 64 ;;
 esac
 mkdir -p Logs
 "$UNITY" -batchmode -projectPath "$PWD" -logFile "$PWD/Logs/build-$1.log" -executeMethod VuonTra.EditorTools.BuildScript.$METHOD -quit

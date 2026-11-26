@@ -49,8 +49,25 @@ namespace VuonTra.Core.Tests
         {
             StringAssert.StartsWith("Build/", BuildScript.MacPath);
             StringAssert.StartsWith("Build/", BuildScript.IOSPath);
-            StringAssert.StartsWith("Build/", BuildScript.AndroidPath);
-            StringAssert.EndsWith(".apk", BuildScript.AndroidPath);
+            StringAssert.StartsWith("Build/", BuildScript.AndroidBundlePath);
+            StringAssert.StartsWith("Build/", BuildScript.AndroidApkPath);
+        }
+
+        [Test]
+        public void The_Store_Build_Is_An_App_Bundle_And_The_Device_Build_An_Apk()
+        {
+            StringAssert.EndsWith("/VuonTraTho.aab", BuildScript.AndroidBundlePath);
+            StringAssert.EndsWith("/VuonTraTho.apk", BuildScript.AndroidApkPath);
+        }
+
+        [Test]
+        public void The_Project_Settings_Hold_No_Keystore()
+        {
+            Assert.IsFalse(PlayerSettings.Android.useCustomKeystore);
+            Assert.IsEmpty(PlayerSettings.Android.keystoreName);
+            Assert.IsEmpty(PlayerSettings.Android.keyaliasName);
+            Assert.IsEmpty(PlayerSettings.Android.keystorePass);
+            Assert.IsEmpty(PlayerSettings.Android.keyaliasPass);
         }
     }
 }
