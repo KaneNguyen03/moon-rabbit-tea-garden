@@ -10,55 +10,55 @@
 #   blocked        ↔  Blocked
 
 sprint: 1
-goal: "Vườn mở ra là đảo cỏ 2.5D có mép đất, camera nghiêng, kéo, zoom, chạm và bản đồ chạy như bản 2D, với hình ba trạm mẫu sẵn sàng dựng đứng"
+goal: "Vertical slice 2.5D chơi được: đảo cỏ 3D, camera nghiêng, trạm/đồ/thỏ dựng đứng có bóng, ánh trăng và đèn lồng; kéo, zoom, chạm trạm, bản đồ như bản 2D"
 start: "2026-11-26"
-end: "2026-12-02"
+end: "2026-12-03"
 generated: "2026-11-26"
 updated: "2026-11-26"
 
 stories:
-  - id: "vuon-2-5d-145"
+  - id: "2.5d-145"
     name: "Đất và camera"
     file: "production/epics/vuon-2-5d/story-145-dat-va-camera.md"
     priority: must-have
-    status: ready-for-dev
-    owner: "B"
-    estimate_days: 4
+    status: in-progress
+    owner: "B/agent-145"
+    estimate_days: 2
     blocker: ""
     completed: ""
-  - id: "vuon-2-5d-149"
-    name: "Hiệu năng mobile (đo nền)"
-    file: "production/epics/vuon-2-5d/story-149-hieu-nang-mobile.md"
-    priority: should-have
-    status: backlog
-    owner: "B"
-    estimate_days: 0.5
-    blocker: ""
-    completed: ""
-  - id: "vuon-2-5d-146"
-    name: "Trạm, đồ và thỏ dựng đứng"
+  - id: "2.5d-146"
+    name: "Trạm, đồ và thỏ dựng đứng có bóng, bảng tỉ lệ, vòng làm việc ba trạm mẫu"
     file: "production/epics/vuon-2-5d/story-146-dung-dung-billboard.md"
-    priority: should-have
-    status: backlog
-    owner: "B"
-    estimate_days: 3
+    priority: must-have
+    status: ready-for-dev
+    owner: ""
+    estimate_days: 2
     blocker: ""
     completed: ""
-  - id: "vuon-2-5d-147"
+  - id: "2.5d-147"
     name: "Ánh sáng và bóng"
     file: "production/epics/vuon-2-5d/story-147-anh-sang-va-bong.md"
-    priority: nice-to-have
-    status: backlog
-    owner: "B"
-    estimate_days: 3
+    priority: must-have
+    status: ready-for-dev
+    owner: ""
+    estimate_days: 1
     blocker: ""
     completed: ""
-  - id: "vuon-2-5d-148"
-    name: "Hậu kỳ và HUD"
+  - id: "2.5d-148"
+    name: "Hậu kỳ, trời phía trên đảo, HUD trên cảnh 2.5D"
     file: "production/epics/vuon-2-5d/story-148-hau-ky-va-hud.md"
+    priority: should-have
+    status: backlog
+    owner: ""
+    estimate_days: 1.5
+    blocker: ""
+    completed: ""
+  - id: "2.5d-149"
+    name: "Hiệu năng mobile: draw call, bóng, cấp chất lượng, 60 fps"
+    file: "production/epics/vuon-2-5d/story-149-hieu-nang-mobile.md"
     priority: nice-to-have
     status: backlog
-    owner: "B"
-    estimate_days: 2
+    owner: ""
+    estimate_days: 1.5
     blocker: ""
     completed: ""

@@ -1,63 +1,60 @@
-# Sprint 001 — 2026-11-26 to 2026-12-02
+# Sprint 001 — 2026-11-26 đến 2026-12-03
 
-> Lập bởi `/sprint-plan new` trong vòng điều phối đêm 26/11 (chủ dự án giao điều phối tới 5h; PO management đang chờ một câu hỏi cho chủ dự án). PR-SPRINT skipped — Lean mode. Không có milestone file — lập từ backlog story; không có risk register — rủi ro đánh giá từ nội dung sprint.
-
-> ⚠️ **No QA Plan**: Sprint này bắt đầu khi chưa có QA plan. Session QA chạy `/qa-plan sprint` trước khi story cuối được làm. Gate Production → Polish cần QA sign-off, và sign-off cần QA plan.
+> Gate PR-SPRINT: bỏ qua (review mode `lean`). QA plan: `/qa-plan sprint` chạy trước khi bắt đầu story 146 (QA D được giao ngay khi plan này được ghi).
 
 ## Sprint Goal
-Vườn mở ra là đảo cỏ 2.5D có mép đất, camera nghiêng, kéo, zoom, chạm và bản đồ chạy như bản 2D (story-145), với hình ba trạm mẫu sẵn sàng dựng đứng (story-146).
+Vertical slice 2.5D chơi được trên Mac: đảo cỏ 3D với camera nghiêng cố định, trạm, đồ và thỏ dựng đứng có bóng thật, ánh trăng và đèn lồng; kéo, zoom, chạm trạm và bản đồ hoạt động như bản 2D (mốc M1 của epic Vườn 2.5D).
 
 ## Goal Prerequisites
 | Needed to show the goal | Status |
 |-------------------------|--------|
-| Scene vườn trong build | exists — `Assets/VuonTra/Scenes/Garden.unity` (EditorBuildSettings) |
-| `UniversalRendererData` Forward+ cho scene vườn | built by story-145 |
-| Hình đất, lối mòn, ba trạm mẫu, đèn, trời | exists — trên main (ve-25d `bcf606f`, `3e15530`), 17/18 asset Done |
-| ASSET-016 cây và bụi viền đảo | **missing** — Gemini hết hạn mức tới ~08:10 26/11; design vẽ sáng nay |
-| Engine reference 6000.6 (Forward+, bóng sprite) | **missing** — `/setup-engine refresh` (kế hoạch di trú 2.3) |
+| Scene vườn (`Assets/VuonTra/Scenes/Garden.unity`) | exists |
+| Cảnh 2.5D: đảo cỏ mesh, camera nghiêng, renderer URP 3D | built by story-145 |
+| Bản đồ #91 qua RenderTexture trên cảnh 2.5D | built by story-145 |
+| 18 asset vẽ theo `design/assets/asset-manifest.md` (#146–#148) | **missing** trong story — session thiết kế đang vẽ ngoài sprint (nhánh ve-25d); nếu trễ, story-146 dùng hình 2D hiện có làm billboard tạm |
+| Mốc hiệu năng iPhone 11 / Snapdragon 665 (#149) | chủ project chốt 26/11, dùng trong story-149 |
 
 ## Capacity
-- Total days: 5 (B code, design hình và UX, QA)
-- Buffer (20%): 1 ngày
-- Available: 4 ngày
-
-Backlog Ready có 5 story, ít hơn khoảng 6–10 của `balanced`, nên lập cả năm; chỉ story-145 là Must Have.
+- Total days: 7 (một agent cảnh của B tại một thời điểm, vì story 145–148 cùng sửa `GardenScreen` và scene; session thiết kế vẽ song song; QA D nghiệm thu từng story)
+- Buffer (20%): 1,5 ngày cho lỗi đường dẫn, pin, hàng đợi Unity
+- Available: 5,5 ngày
 
 ## Tasks
 
 ### Must Have (Critical Path)
 | ID | Task | Agent/Owner | Est. Days | Dependencies | Acceptance Criteria |
 |----|------|-------------|-----------|-------------|-------------------|
-| 145 | [Đất và camera](../epics/vuon-2-5d/story-145-dat-va-camera.md) (#145) | B; design mesh đảo và lối mòn | 4 | — | Story-145 AC 1–5; `visual-critic-gate` APPROVED; `verify.sh` xanh |
+| 2.5d-145 | Đất và camera (#145) | B / agent-145 + design | 2 | ADR-0005 | story-145: 5 tiêu chí; spike Forward+ và bóng sprite trước |
+| 2.5d-146 | Trạm, đồ, thỏ dựng đứng; bảng tỉ lệ; vòng làm việc ba trạm mẫu (#146) | B / agent-146 + design (asset) | 2 | 2.5d-145, asset #146 | story-146: 5 tiêu chí; APPROVED visual-critic-gate |
+| 2.5d-147 | Ánh sáng và bóng (#147) | B / agent-147 + design (asset) | 1 | 2.5d-146, asset #147 | story-147: 5 tiêu chí |
 
 ### Should Have
 | ID | Task | Agent/Owner | Est. Days | Dependencies | Acceptance Criteria |
 |----|------|-------------|-----------|-------------|-------------------|
-| 149 | [Hiệu năng mobile](../epics/vuon-2-5d/story-149-hieu-nang-mobile.md) (#149) — chỉ đo nền sau story-145 | B | 0.5 | 145 | Số đo khung vườn đầy ghi vào `docs/bao-cao-po.md` |
-| 146 | [Dựng đứng, bảng tỉ lệ, ba trạm mẫu](../epics/vuon-2-5d/story-146-dung-dung-billboard.md) (#146) | B; design bảng tỉ lệ | 3 | 145 | Story-146 AC 1–4 |
+| 2.5d-148 | Hậu kỳ, trời phía trên đảo, HUD trên cảnh 2.5D (#148) | B / agent-148 + design (ux-design HUD) | 1,5 | 2.5d-147, asset #148 | story-148: 4 tiêu chí |
 
 ### Nice to Have
 | ID | Task | Agent/Owner | Est. Days | Dependencies | Acceptance Criteria |
 |----|------|-------------|-----------|-------------|-------------------|
-| 147 | [Ánh sáng và bóng](../epics/vuon-2-5d/story-147-anh-sang-va-bong.md) (#147) | B; design chỉnh màu | 3 | 146 | Story-147 AC 1–4 |
-| 148 | [Hậu kỳ và HUD](../epics/vuon-2-5d/story-148-hau-ky-va-hud.md) (#148) | B; design `design/ux/hud.md` | 2 | 147 | Story-148 AC 1–3 |
+| 2.5d-149 | Hiệu năng mobile: draw call, bóng, cấp chất lượng, 60 fps (#149) | B / agent-149 | 1,5 | 2.5d-148 | story-149: 4 tiêu chí; đo theo iPhone 11 / SD665 hoặc profile quy đổi trong Editor |
 
 ## Carryover from Previous Sprint
 | Task | Reason | New Estimate |
 |------|--------|-------------|
-| — | Sprint đầu tiên | — |
+| (không có — sprint đầu tiên của studio) | | |
 
 ## Risks
 | Risk | Probability | Impact | Mitigation |
 |------|------------|--------|------------|
-| ASSET-016 chưa vẽ (hạn mức Gemini) | High | Low | Viền đảo tạm bằng cây hiện có; design vẽ sau 08:10 |
-| Forward+ và bóng sprite trên Unity 6000.6 chưa tra nguồn | Medium | Medium | `/setup-engine refresh` trước khi gộp story-145 |
-| Máy chỉ chạy tối đa 3 Unity batch; chỉ B chạy Unity | Medium | Medium | Design và QA không mở Unity; B xếp lượt |
-| Chưa có QA plan | High | Medium | QA chạy `/qa-plan sprint` sáng 26/11 |
+| Asset #146–#148 vẽ trễ (nằm ngoài story) | Cao | Trung bình | 145 không cần asset nên làm trước; 146 dùng hình 2D hiện có làm billboard tạm, thay asset khi có |
+| Forward+ và bóng sprite trên Unity 6000.6 mobile chưa tra nguồn (ADR-0005) | Trung bình | Cao | Spike nhỏ ngay trong story-145 trước khi dựng cảnh; nếu không được, dùng Forward thường + bóng blob |
+| Máy chỉ có một đường verify, hay hết pin, worktree bị dọn nhầm | Cao | Trung bình | Cổng chung của B (tối đa 3 batch, 1 khi pin < 50 %), luật "chỉ xoá worktree của mình", cắm sạc |
+| Story 145–148 cùng sửa `GardenScreen`/scene | Cao | Trung bình | Làm nối tiếp, mỗi story gộp xong mới bắt đầu story sau |
 
 ## Dependencies on External Factors
-- Chủ dự án: trả lời câu hỏi đang chờ ở PO management; chọn máy test đã chốt (iPhone 11, Snapdragon 665).
-- Hạn mức Gemini cho ASSET-016.
+- Sạc 68 W cắm liên tục (Unity bị chặn khi pin < 30 %).
+- Session thiết kế (ve-25d) giao asset theo `design/assets/*-25d-assets.md`.
+- Chủ project duyệt #91 (bản đồ 2D) và các mục cần-chủ-project nằm ngoài sprint.
 
 ## Definition of Done for this Sprint
 - [ ] All Must Have tasks completed
@@ -69,3 +66,5 @@ Backlog Ready có 5 story, ít hơn khoảng 6–10 của `balanced`, nên lập
 - [ ] No S1 or S2 bugs in delivered features
 - [ ] Design documents updated for any deviations
 - [ ] Code reviewed and merged
+
+> **Scope check:** sprint chỉ gồm năm story của epic Vườn 2.5D; chạy `/scope-check vuon-2-5d` nếu có story thêm ngoài epic.
