@@ -2511,6 +2511,14 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 ### Chưa đạt / cần PO quyết
 - Không có.
 
+## #128 — Dọn comment, xoá key thừa, sửa câu "mỗi 5 cấp vườn" (agent-128)
+**Test:** verify đầy đủ GREEN 1821/1821, preview 485 khung, save không đổi; studio code-review APPROVED WITH SUGGESTIONS.
+**Commit:** be3bd08 (main fast-forward tới 4f5c54a).
+**Đã làm:** xoá 311 comment ở 8 tệp, đổi tên cho rõ nghĩa ở chỗ comment mang nghĩa, hạ baseline. Xoá 59 key khỏi bảng chữ: 38 key không ai gọi kèm 1 bản số ít, cộng 20 key cũ còn sót. Seeder tự xoá key không còn liệt kê. Sửa `shop.earn` vi/en. Thêm 3 test `L10nTests`. Bước review code của studio: APPROVED WITH SUGGESTIONS.
+### Chưa đạt / cần PO quyết
+- Duyệt việc seeder xoá key không còn liệt kê.
+- `GardenScreen.cs`: chờ nhánh `dotween-gardenscreen`.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
@@ -2585,6 +2593,7 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 | #68 | Hạn mã công khai 31/3/2027, quà trong thư | |
 | #66 | Có quảng cáo hay không, ba chỗ đặt, giá vé Bỏ quảng cáo | |
 | #100 | Firebase (đã có adapter) hay GameAnalytics; có nút tắt hoặc hộp đồng ý EU không | |
+| #128 | Quyết định chờ chủ project: seed tự xoá key thừa (`L10nSeeder.RemoveKeysNoLongerListed` xoá key không còn trong `L10nStrings`/`EnglishOne`/`kind.*`; 59 key đã xoá) | Giữ seed chỉ thêm và sửa key, không xoá; key thêm tay trong cửa sổ Tables khi đó không bị mất |
 
 Lựa chọn không phải con số:
 - #86: tặng 1 ô cho save cũ mua từng ô, hay bán nốt ô còn thiếu.
