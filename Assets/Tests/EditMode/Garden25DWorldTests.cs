@@ -25,6 +25,8 @@ namespace VuonTra.Core.Tests
             _world = Garden25DWorld.Create(0, _settings, null, null);
             _screen = new RenderTexture(1080, 1920, 24);
             _world.Rig.View.targetTexture = _screen;
+            double clock = 0d;
+            _world.PanZoom.Clock = () => clock += 1d;
             Physics.SyncTransforms();
         }
 
@@ -84,7 +86,7 @@ namespace VuonTra.Core.Tests
                 _world.Ground.TileTapped += Heard;
                 GroundPoint g = GardenFraming.Ground(target, _world.Rig.Spec);
                 Vector3 screen = _world.Rig.View.WorldToScreenPoint(new Vector3((float)g.X, 0f, (float)g.Z));
-                var press = new PointerEventData(null) { position = screen };
+                var press = new PointerEventData(null) { position = screen, pressPosition = screen };
                 var hits = new List<RaycastResult>();
                 _world.Rig.View.GetComponent<PhysicsRaycaster>().Raycast(press, hits);
                 Assert.IsNotEmpty(hits, "tile " + target);
@@ -94,6 +96,147 @@ namespace VuonTra.Core.Tests
                 _world.Ground.TileTapped -= Heard;
                 Assert.AreEqual(target, tapped);
             }
+        }
+
+        [Test]
+        public void A_Pan_Or_A_Pinch_Ending_Where_It_Began_Names_No_Tile_And_A_Quick_Second_Tap_Zooms_Instead()
+        {
+            int heard = 0;
+            void Heard(Hex h) => heard++;
+            _world.Ground.TileTapped += Heard;
+            Vector2 at = _world.Rig.View.WorldToScreenPoint(Vector3.zero);
+            var hits = new List<RaycastResult>();
+            _world.Rig.View.GetComponent<PhysicsRaycaster>().Raycast(new PointerEventData(null) { position = at }, hits);
+            PointerEventData Finger(int id) => new PointerEventData(null) { pointerId = id, position = at, pressPosition = at, pointerCurrentRaycast = hits[0] };
+            void Click(PointerEventData e) => ExecuteEvents.Execute(_world.Ground.gameObject, e, ExecuteEvents.pointerClickHandler);
+
+            PointerEventData pan = Finger(0);
+            _world.PanZoom.OnPointerDown(pan);
+            pan.position = at + new Vector2(300f, 0f);
+            _world.PanZoom.OnDrag(pan);
+            pan.position = at;
+            _world.PanZoom.OnDrag(pan);
+            _world.PanZoom.OnPointerUp(pan);
+            Click(pan);
+            Assert.AreEqual(0, heard, "a drag never counts as a tap, even one that comes back");
+
+            PointerEventData still = Finger(0), spread = Finger(1);
+            spread.position = spread.pressPosition = at + new Vector2(80f, 0f);
+            _world.PanZoom.OnPointerDown(still);
+            _world.PanZoom.OnPointerDown(spread);
+            spread.position += new Vector2(60f, 0f);
+            _world.PanZoom.OnDrag(spread);
+            _world.PanZoom.OnPointerUp(spread);
+            _world.PanZoom.OnPointerUp(still);
+            Click(still);
+            Assert.AreEqual(0, heard, "lifting the still finger of a pinch is not a tap");
+
+            _world.PanZoom.Clock = () => 5d;
+            PointerEventData tap = Finger(0);
+            _world.PanZoom.OnPointerDown(tap);
+            _world.PanZoom.OnPointerUp(tap);
+            Click(tap);
+            Assert.AreEqual(1, heard);
+            _world.PanZoom.OnPointerDown(tap);
+            _world.PanZoom.OnPointerUp(tap);
+            Click(tap);
+            Assert.AreEqual(1, heard, "the second tap of a double tap zooms instead");
+            Assert.Greater(_world.PendingMotion, 0);
+            _world.Ground.TileTapped -= Heard;
+        }
+
+        [Test]
+        public void A_Finger_Resting_Within_The_Tap_Slop_Does_Not_Move_The_Garden()
+        {
+            double slop = GardenFraming.TapSlopPixels(Screen.width, Screen.height);
+            var finger = new PointerEventData(null) { pointerId = 0, position = new Vector2(540f, 960f) };
+            _world.PanZoom.OnPointerDown(finger);
+            finger.position += new Vector2((float)slop * 0.8f, 0f);
+            _world.PanZoom.OnDrag(finger);
+            Assert.AreEqual(0d, _world.Rig.Focus.X, 1e-9);
+            finger.position += new Vector2((float)slop + 40f, 0f);
+            _world.PanZoom.OnDrag(finger);
+            Assert.Less(_world.Rig.Focus.X, 0d, "past the slop the drag moves the garden");
+        }
+
+        void DoubleTap(Vector2 spot)
+        {
+            _world.PanZoom.Clock = () => 7d;
+            var tap = new PointerEventData(null) { position = spot, pressPosition = spot };
+            _world.PanZoom.OnPointerClick(tap);
+            _world.PanZoom.OnPointerClick(tap);
+        }
+
+        [Test]
+        public void A_Double_Tap_Glides_In_To_Near_Around_The_Spot_And_The_Next_Back_To_Default()
+        {
+            CameraSpec spec = _world.Rig.Spec;
+            Vector2 spot = _world.Rig.View.WorldToScreenPoint(new Vector3(1f, 0f, 1f));
+            DoubleTap(spot);
+            Assert.Greater(_world.PendingMotion, 0, "the zoom travels");
+            _world.Tick(Motion.Travel / 2f);
+            Assert.Less(_world.Rig.Distance, spec.DefaultDistance);
+            Assert.Greater(_world.Rig.Distance, spec.NearDistance);
+            _world.Tick(Motion.Travel);
+            Assert.AreEqual(spec.NearDistance, _world.Rig.Distance, 1e-6);
+            Vector2 stillThere = _world.Rig.View.WorldToScreenPoint(new Vector3(1f, 0f, 1f));
+            Assert.AreEqual(spot.x, stillThere.x, 1f, "the ground under the finger stays under it");
+            Assert.AreEqual(spot.y, stillThere.y, 1f);
+            DoubleTap(spot);
+            _world.Tick(Motion.Travel + 0.1f);
+            Assert.AreEqual(spec.DefaultDistance, _world.Rig.Distance, 1e-6);
+        }
+
+        [Test]
+        public void Two_Slow_Taps_Are_Two_Single_Taps_And_Do_Not_Zoom()
+        {
+            Vector2 middle = _world.Rig.View.WorldToScreenPoint(Vector3.zero);
+            var tap = new PointerEventData(null) { position = middle, pressPosition = middle };
+            _world.PanZoom.OnPointerClick(tap);
+            _world.PanZoom.OnPointerClick(tap);
+            Assert.AreEqual(0, _world.PendingMotion);
+            Assert.AreEqual(_world.Rig.Spec.DefaultDistance, _world.Rig.Distance, 1e-9);
+        }
+
+        [Test]
+        public void Under_Reduced_Motion_A_Double_Tap_Zooms_At_Once()
+        {
+            Motion.Reduced = true;
+            DoubleTap(_world.Rig.View.WorldToScreenPoint(Vector3.zero));
+            Assert.AreEqual(0, _world.PendingMotion);
+            Assert.AreEqual(_world.Rig.Spec.NearDistance, _world.Rig.Distance, 1e-6);
+        }
+
+        [Test]
+        public void The_Island_Wears_Design_Colours_Grass_Lip_Shadow_Gap_Lit_And_Shaded_Earth_And_Underside()
+        {
+            Garden25DWorld loaded = Garden25DWorld.Load(0);
+            try
+            {
+                Material[] paints = loaded.Ground.GetComponent<MeshRenderer>().sharedMaterials;
+                Assert.AreEqual(SlabMesh.PartCount, paints.Length);
+                Assert.AreEqual(SlabMesh.PartCount, loaded.Ground.GetComponent<MeshFilter>().sharedMesh.subMeshCount);
+                Assert.AreSame(Resources.Load<Material>(Garden25DWorld.LawnPath), paints[(int)SlabPart.Lawn], "the lawn keeps the #129 grass tile");
+                AssertHex("366F62", loaded.Paint(SlabPart.Lip));
+                AssertHex("453448", loaded.Paint(SlabPart.Gap));
+                AssertHex("85554C", loaded.Paint(SlabPart.Earth));
+                AssertHex("60424A", loaded.Paint(SlabPart.EarthShade));
+                AssertHex("362C47", loaded.Paint(SlabPart.Underside));
+                AssertHex("85554C", Resources.Load<Material>(Garden25DWorld.EarthPath));
+                Assert.AreEqual("Universal Render Pipeline/Unlit", Resources.Load<Material>(Garden25DWorld.EarthPath).shader.name, "flat toon steps, not lit by a light the scene does not have yet");
+                Assert.AreEqual("Universal Render Pipeline/Unlit", Resources.Load<Material>(Garden25DWorld.LawnPath).shader.name, "the grass reads as bright as the 2D garden until the moon light of #147");
+            }
+            finally
+            {
+                for (int part = 1; part < SlabMesh.PartCount; part++) Object.DestroyImmediate(loaded.Paint((SlabPart)part));
+                Object.DestroyImmediate(loaded.gameObject);
+            }
+        }
+
+        static void AssertHex(string hex, Material paint)
+        {
+            Assert.IsNotNull(paint);
+            Assert.AreEqual(hex, ColorUtility.ToHtmlStringRGB(paint.color), paint.name);
         }
 
         [Test]

@@ -8,7 +8,7 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Game
 {
-    public sealed class GardenPanZoom : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IScrollHandler
+    public sealed class GardenPanZoom : MonoBehaviour, IPointerDownHandler, IPointerUpHandler, IDragHandler, IScrollHandler, IPointerClickHandler
     {
         const float WheelStep = 0.1f;
         static readonly Plane Floor = new Plane(Vector3.up, Vector3.zero);
@@ -18,6 +18,12 @@ namespace VuonTra.Game
         Tweens _tweens;
         GroundRect _island;
         GroundPoint _wanted;
+        Vector2 _pressedAt, _lastTapAt;
+        double _lastTapTime = double.NegativeInfinity;
+        bool _panning, _pinched;
+
+        public event Action<PointerEventData> Tapped;
+        public Func<double> Clock = () => Time.realtimeSinceStartupAsDouble;
         double _speedX, _speedZ, _pinchSpan, _pinchDistance;
 
         public void Attach(GardenCameraRig rig, Tweens tweens, GroundRect island)
@@ -35,6 +41,11 @@ namespace VuonTra.Game
             _fingers[eventData.pointerId] = eventData.position;
             _wanted = _rig.Focus;
             _speedX = _speedZ = 0d;
+            if (_fingers.Count == 1)
+            {
+                _pressedAt = eventData.position;
+                _panning = _pinched = false;
+            }
             if (_fingers.Count == 2) StartPinch();
         }
 
@@ -46,6 +57,12 @@ namespace VuonTra.Game
             {
                 Pinch();
                 return;
+            }
+            if (!_panning)
+            {
+                Vector2 moved = eventData.position - _pressedAt;
+                if (GardenFraming.IsTap(moved.x, moved.y, Screen.width, Screen.height)) return;
+                _panning = true;
             }
             GroundPoint from = GroundUnder(before), to = GroundUnder(eventData.position);
             double dx = from.X - to.X, dz = from.Z - to.Z;
@@ -66,12 +83,62 @@ namespace VuonTra.Game
             if (_fingers.Count == 0) LetGo();
         }
 
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            Vector2 moved = eventData.position - eventData.pressPosition;
+            if (_panning || _pinched || !GardenFraming.IsTap(moved.x, moved.y, Screen.width, Screen.height)) return;
+            double now = Clock();
+            Vector2 apart = eventData.position - _lastTapAt;
+            if (GardenFraming.IsDoubleTap(now - _lastTapTime, apart.x, apart.y, Screen.width, Screen.height))
+            {
+                _lastTapTime = double.NegativeInfinity;
+                GlideZoom(GardenFraming.DoubleTapDistance(_rig.Distance, _rig.Spec), GroundUnder(eventData.position));
+                return;
+            }
+            _lastTapTime = now;
+            _lastTapAt = eventData.position;
+            Tapped?.Invoke(eventData);
+        }
+
         public void OnScroll(PointerEventData eventData)
         {
             double next = GardenFraming.Pinch(_rig.Distance, 1d, 1d + eventData.scrollDelta.y * WheelStep, _rig.Spec);
             ZoomTo(next, eventData.position);
             GroundPoint rest = GardenFraming.Settle(_rig.Focus, _island);
             _rig.Frame(rest, _rig.Distance);
+        }
+
+        public void StepZoom() => GlideZoom(GardenFraming.NextZoomStep(_rig.Distance, _rig.Spec), _rig.Focus);
+
+        public void TravelTo(GroundPoint spot)
+        {
+            _tweens.Clear();
+            GroundPoint from = _rig.Focus, to = GardenFraming.Settle(spot, _island);
+            double distance = _rig.Distance;
+            if (Motion.Reduced)
+            {
+                _rig.Frame(to, distance);
+                return;
+            }
+            _tweens.Add(Motion.Travel, t => _rig.Frame(new GroundPoint(from.X + (to.X - from.X) * t, from.Z + (to.Z - from.Z) * t), distance), Ease.InOutCubic);
+        }
+
+        void GlideZoom(double toDistance, GroundPoint anchor)
+        {
+            _tweens.Clear();
+            GroundPoint from = _rig.Focus;
+            double fromDistance = _rig.Distance;
+            GroundPoint Along(double distance) => GardenFraming.Settle(GardenFraming.ZoomAbout(from, anchor, fromDistance, distance), _island);
+            if (Motion.Reduced)
+            {
+                _rig.Frame(Along(toDistance), toDistance);
+                return;
+            }
+            _tweens.Add(Motion.Travel, t =>
+            {
+                double distance = fromDistance + (toDistance - fromDistance) * t;
+                _rig.Frame(Along(distance), distance);
+            }, Ease.InOutCubic);
         }
 
         void StartPinch()
@@ -82,6 +149,7 @@ namespace VuonTra.Game
             two.MoveNext();
             _pinchSpan = Vector2.Distance(a, two.Current);
             _pinchDistance = _rig.Distance;
+            _pinched = true;
         }
 
         void Pinch()

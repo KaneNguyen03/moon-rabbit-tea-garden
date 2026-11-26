@@ -4646,6 +4646,10 @@ MonoBehaviour:
     m_Localized: "M\xF3n c\u1EA5p t\u1ED1i \u0111a \xB7 tr\u1EA1m \xD7{0}!"
     m_Metadata:
       m_Items: []
+  - m_Id: 1607565912825856
+    m_Localized: "B\u1EA3n \u0111\u1ED3"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

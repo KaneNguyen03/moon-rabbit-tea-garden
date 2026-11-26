@@ -659,6 +659,11 @@ namespace VuonTra.Game.UI
         /// <summary>The zoom button: far, usual, near, and round again.</summary>
         public void CycleZoom()
         {
+            if (Runner.Garden25D != null)
+            {
+                Runner.Garden25D.PanZoom.StepZoom();
+                return;
+            }
             SelectStation(-1);
             SetZoom((ZoomLevel)(((int)Zoom + 1) % 3));
             DismissHint();
@@ -737,7 +742,7 @@ namespace VuonTra.Game.UI
         {
             // Drained every frame, even while the sheet is open, so nothing piles up and lands at once later.
             bool padPinched = TrackpadPinch.Read(out float padMagnification, out Vector2 padScreen, out bool smartMagnify);
-            if (_street == null || Shell == null || Shell.State != ShellState.Playing || SheetOpen) return;
+            if (_street == null || Shell == null || Shell.State != ShellState.Playing || SheetOpen || IslandMap != null) return;
             _wheelWait -= dt;
 
             var touch = UnityEngine.InputSystem.Touchscreen.current;
@@ -1211,8 +1216,10 @@ namespace VuonTra.Game.UI
             var canvasGo = new GameObject("Canvas", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster)) { layer = 5 };
             canvasGo.transform.SetParent(transform, false);
             var canvas = canvasGo.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceCamera;
-            canvas.worldCamera = Cam;
+            Garden25DWorld island = Runner.Garden25D;
+            canvas.renderMode = island != null ? RenderMode.ScreenSpaceOverlay : RenderMode.ScreenSpaceCamera;
+            canvas.worldCamera = island != null ? null : Cam;
+            if (island != null && Cam != null) Cam.enabled = false;
             canvas.planeDistance = 5f;
             var scaler = canvasGo.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
@@ -1236,6 +1243,7 @@ namespace VuonTra.Game.UI
             BuildPhotoAsk(catalog);
             ProductTray.Root.anchoredPosition = new Vector2(0f, SafeBottom() + TabBarGap + TabBarHeight + 10f); // just above the tab bar
             BuildEdges(catalog);
+            if (island != null) StandOnTheIsland(catalog, island);
             BuildSheet(catalog);
             BuildLayout(catalog);
             Feel = new FeelLayer(_canvas, catalog, Tweens);
@@ -2248,17 +2256,18 @@ namespace VuonTra.Game.UI
             _photoBar.SetActive(false);
             int width = Screen.width > 0 ? Screen.width : (int)ScreenW, height = Screen.height > 0 ? Screen.height : (int)ScreenH;
             var rt = new RenderTexture(width, height, 24, RenderTextureFormat.ARGB32);
-            RenderTexture was = Cam.targetTexture;
-            Cam.targetTexture = rt;
+            Camera lens = Runner.Garden25D != null ? Runner.Garden25D.Rig.View : Cam;
+            RenderTexture was = lens.targetTexture;
+            lens.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
-            Cam.Render();
+            lens.Render();
             RenderTexture.active = rt;
             if (_photoTexture != null) { if (Application.isPlaying) Destroy(_photoTexture); else DestroyImmediate(_photoTexture); }
             _photoTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
             _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             _photoTexture.Apply();
             RenderTexture.active = null;
-            Cam.targetTexture = was;
+            lens.targetTexture = was;
             rt.Release();
 
             string folder = string.IsNullOrEmpty(PhotoFolder)
@@ -4608,6 +4617,17 @@ namespace VuonTra.Game.UI
             _home.SetActive(false);
         }
 
+        public GardenMapView IslandMap { get; private set; }
+
+        void StandOnTheIsland(GameCatalog catalog, Garden25DWorld island)
+        {
+            _groundTile.gameObject.SetActive(false);
+            _street.parent.gameObject.SetActive(false);
+            var home = (RectTransform)_home.transform;
+            IslandMap = new GardenMapView(_canvas, catalog, island, HudCover + SafeInsets().y, TabCover + SafeBottom(), home.anchoredPosition, home.sizeDelta);
+            IslandMap.Root.SetSiblingIndex(_hud.GetSiblingIndex());
+        }
+
         RectTransform EdgePill(GameCatalog catalog, string name, float y, System.Action onTap, out Text text)
         {
             var pill = UiKit.Rect(name, _canvas).Place(0.5f, 0f, 0, y, 160, 56);
@@ -4657,6 +4677,8 @@ namespace VuonTra.Game.UI
         {
             GameState s = Runner.State;
             bool shown = Shell.State == ShellState.Playing && !SheetOpen;
+            IslandMap?.ShowPill(shown);
+            if (IslandMap != null) shown = false;
             int up = 0, down = 0, left = 0, right = 0;
             float upNear = float.MaxValue, downNear = float.MaxValue, leftNear = float.MaxValue, rightNear = float.MaxValue;
             _edgeUpTarget = -1;

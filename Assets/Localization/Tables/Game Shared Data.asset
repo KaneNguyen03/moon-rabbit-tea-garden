@@ -4927,6 +4927,10 @@ MonoBehaviour:
     m_Key: dish.top
     m_Metadata:
       m_Items: []
+  - m_Id: 1607565912825856
+    m_Key: map.open
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

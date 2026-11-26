@@ -2,7 +2,7 @@
 
 > **GitHub**: KaneNguyen03/moon-rabbit-tea-garden#145
 > **Epic**: Vườn 2.5D
-> **Status**: In Progress
+> **Status**: In Review
 > **Layer**: Presentation
 > **Type**: Integration
 > **Estimate**: L (6–9 ngày theo docs/de-xuat-2-5d.md §6)
@@ -60,7 +60,7 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 
 ## Files
 
-*Đã có (26/11):* Core `GardenFraming.cs`, `IslandShape.cs`, `Features.cs` (`Garden25D`); Game `Garden25D/` (`GardenCameraSettings`, `GardenCameraRig`, `GardenGround`, `GardenPanZoom`, `GardenMapCamera`, `Garden25DWorld`), `GameRunner.cs` (dựng khi bật cờ); `Assets/Settings/Garden25DRenderer.asset` + `UniversalRP.asset` (renderer chỉ số 1); `Assets/Resources/Garden25D/` (`GardenCameraSettings.asset`, `IslandLawn.mat`, `IslandEarth.mat`); test `GardenFramingTests`, `IslandShapeTests`, `GardenCameraRigTests`, `Garden25DWorldTests`; `docs/architecture/adr-0006-camera-va-renderer-vuon-2-5d.md`. *Còn dự kiến:*
+*Đã có (26/11):* Core `GardenFraming.cs`, `IslandShape.cs`, `Features.cs` (`Garden25D`); Game `Garden25D/` (`GardenCameraSettings`, `GardenCameraRig`, `GardenGround`, `GardenPanZoom`, `GardenMapCamera`, `Garden25DWorld`), `GameRunner.cs` (dựng khi bật cờ); `Assets/Settings/Garden25DRenderer.asset` + `UniversalRP.asset` (renderer chỉ số 1); `Assets/Resources/Garden25D/` (`GardenCameraSettings.asset`, `IslandLawn.mat`, `IslandEarth.mat`); test `GardenFramingTests`, `IslandShapeTests`, `GardenCameraRigTests`, `Garden25DWorldTests`; `docs/architecture/adr-0006-camera-va-renderer-vuon-2-5d.md`. *Lát 3:* `Game/UI/GardenMapView.cs`, `GardenScreen.cs` (lớp 2D lùi lại khi bật cờ), `Editor/PreviewShot.Garden25D.cs`, test `GardenTouchTests`, `Garden25DScreenTests`, ảnh `docs/anh/po-145/`. *Còn dự kiến (sau story này):*
 
 - Assets/VuonTra/Game/UI/GardenScreen.cs (tách phần dựng thế giới)
 - Assets/VuonTra/Game/Garden25D/ (scene, camera, mặt đất — tên thư mục do B chọn)
@@ -97,7 +97,7 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 **Required evidence**:
 - Integration: test EditMode trong `Assets/Tests/EditMode/` (tên do `/dev-story` chọn) và số đo/playtest ghi lại
 
-**Status**: [x] Một phần: `GardenFramingTests` (13, Core: AC-1 biên, chọn ô, khung bản đồ), `IslandShapeTests` (5, Core: mặt đảo, cờ tắt, quán tính), `GardenCameraRigTests` (2, Unity), `Garden25DWorldTests` (9, Unity: chạm ô qua `PhysicsRaycaster` AC-2, kéo/biên AC-1, chụm, Giảm chuyển động, `RenderTexture` bản đồ hai lần AC-3, renderer Forward+ chỉ số 1)
+**Status**: [x] `GardenFramingTests` (13, Core: AC-1 biên, chọn ô, khung bản đồ), `GardenTouchTests` (7, Core: ngưỡng chạm 12, chạm đúp, bước zoom, điểm trên bản đồ, biển quanh đảo), `IslandShapeTests` (10, Core: mặt đảo ba dải, phía trăng, cờ tắt, quán tính), `GardenCameraRigTests` (2, Unity), `Garden25DWorldTests` (15, Unity: chạm ô qua `PhysicsRaycaster` AC-2, kéo/chụm không thành chạm, chạm đúp, kéo/biên AC-1, chụm, Giảm chuyển động, `RenderTexture` bản đồ hai lần AC-3, renderer Forward+ chỉ số 1, màu đảo), `Garden25DScreenTests` (9, Unity: hai trạng thái cờ, màn bản đồ AC-3, vi/en). Ảnh: `docs/anh/po-145/`, `visual-critic-gate` APPROVED (`VERDICT.md`).
 
 ---
 
@@ -151,3 +151,25 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 4. Khung trước/sau 1080×1920 ở `docs/anh/po-145/`, `visual-critic-gate`; vi/en, Chữ to, Giảm chuyển động.
 5. `/setup-engine refresh` cho Forward+ mobile; đo ở #149.
 
+
+## Tiến độ 26/11 trưa (lát 3)
+
+**Đã làm** (mọi phần sau cờ `Features.Garden25D`, mặc định vẫn tắt)
+- Bật cờ thì lớp vườn 2D của `GardenScreen` lùi lại: canvas chuyển sang Screen Space Overlay, camera 2D tắt, lớp `Ground` và `Garden` (nền cỏ, nội dung, tán cây) ẩn, viên mép ▲▼◀▶ và nút "Về tiệm trà" không hiện; HUD, thanh tab, sheet vẫn chạy. Giữa màn không còn đồ họa nào nhận chạm, nên chạm đi tới `PhysicsRaycaster` của camera đảo. Nút kính lúp đổi khoảng cách camera đảo Xa → Mặc định → Gần (`GardenFraming.NextZoomStep`); nút chụp ảnh chụp qua camera đảo. Tắt cờ thì mọi thứ như cũ (test cả hai trạng thái).
+- Màn bản đồ #91 (`GardenMapView`): viên "Bản đồ"/"Map" đứng chỗ nút về tiệm, mở ảnh `GardenMapCamera.Shoot` nằm dưới HUD và trên vườn, chừa 1 m biển đêm quanh đảo (`GardenFraming.Pad`); chạm một chỗ trên bản đồ thì đóng bản đồ, trả texture và đưa camera tới đó `Motion.Travel` `InOutCubic` (Giảm chuyển động: tới ngay). Nút × và viên có vùng chạm 132 (44 pt). Camera bản đồ cũng dùng renderer chỉ số 1.
+- Chạm đúp: hai chạm trong 0,35 s, cách nhau ≤ 48 đơn vị canvas, thì chuyển Mặc định ↔ Gần quanh điểm chạm (`GardenFraming.IsDoubleTap`, `DoubleTapDistance`), `Motion.Travel` `InOutCubic`, tức thì dưới Giảm chuyển động. Tự đếm chạm thay cho `clickCount`, vì `InputSystemUIInputModule` bỏ trạng thái ngón chạm sau mỗi lần nhấc nên `clickCount` luôn là 1 trên điện thoại.
+- Ngưỡng kéo/chạm 12 đơn vị canvas (`GardenFraming.TapSlopPixels`, theo tỉ lệ `CanvasScaler` khớp 0,5): ngón chưa đi quá ngưỡng không kéo vườn; một lần kéo (kể cả kéo rồi quay về chỗ cũ) hoặc chụm không bao giờ thành chạm ô. Chạm ô đi qua `GardenPanZoom.Tapped` → `GardenGround.Tap`.
+- Màu mép đảo của design (art bible §4/§6) thay màu tạm `#89574C`: viền cỏ rủ `#366F62` (0,12 m), khe bóng dưới viền `#453448` (0,05 m), đất phía trăng `#85554C`, đất phía tối `#60424A`, đáy `#362C47`. `IslandShape.Slab` chia mỗi mép thành ba dải và thêm mặt đáy; phía sáng/tối theo hướng trăng `moonFrom` (−1, −1: trái và trước sáng, phải và sau tối, theo "trăng trên-trái" của art bible). Màu, độ dày dải và hướng trăng nằm trong `GardenCameraSettings.asset`, không ở C#. `IslandEarth.mat` và `IslandLawn.mat` đổi sang URP Unlit (bậc màu phẳng, cỏ sáng như bản 2D) cho tới khi #147 có ánh trăng; ô cỏ lặp mỗi 3,4 m cho cỡ ngọn cỏ bằng bản 2D ở zoom mặc định.
+- Khung trước/sau 1080×1920 ở zoom mặc định: `docs/anh/po-145/145-truoc.png`, `145-sau.png`, `145-sau-en-chu-to.png` (en + Chữ to), `145-sau-ban-do.png`, tấm ghép `145-truoc-sau.png` (kèm mép trước 200 %), dựng bằng `PreviewShot.RenderGarden25D` (menu "VuonTra/Render 2.5D Garden Before And After (#145)"), bật cờ chỉ trong công cụ và trả về mặc định sau đó. Khi chụp, canvas chuyển tạm sang Screen Space Camera trên camera đảo để HUD vào được ảnh; trong game canvas là Overlay.
+- Test: `GardenTouchTests` (7, Core), `IslandShapeTests` (10, Core), `Garden25DWorldTests` (15, Unity), `Garden25DScreenTests` (9, Unity: hai trạng thái cờ, không gì che giữa màn, viên mép ẩn, kính lúp và sheet, bản đồ mở hai lần, chạm bản đồ, Giảm chuyển động, tiếng Anh).
+
+**Quyết định**
+- Trăng trên-trái nên mép trước (phía camera) là đất sáng `#85554C`; mép phải là `#60424A`. Đổi hướng chỉ cần sửa `moonFrom` trong asset.
+- Nút đóng bản đồ ở góc trên-trái vì góc trên-phải dưới HUD là chỗ của chip sự kiện (vùng B).
+
+**Trạng thái: In Review.** Còn một tiêu chí chưa đạt, chờ design: AC-1 phần hình đảo và vùng chưa mở (mép bo, viền cỏ rủ có hình, lối mòn cong; vùng chưa mở cỏ tối một bậc, hàng rào thấp, biển gỗ). Đảo hiện là khối chữ nhật. Ghi chú cho người duyệt: AC-2 "chạm trúng trạm" chỉ làm được khi trạm đứng dậy ở #146 (ADR-0006 §5: collider trên billboard); phần ô đất đã có test. AC-1 "mở game thấy" chỉ đúng khi bật cờ, cờ vẫn mặc định tắt theo quyết định chủ project.
+
+**Tiếp theo (ngoài story này)**
+- Design: hình đảo và vùng chưa mở; lớp màu nước cho mặt đất; viền trên bản đồ; màu nền viên "Bản đồ".
+- #146: chạm trạm, nối `TileTapped`; #147: ánh trăng (đổi cỏ/đất về Lit hoặc toon); #148: HUD trên camera 2.5D (vùng B ẩn khi mở bản đồ, cảnh chụp ảnh có HUD); #149: Forward+ trên máy yếu, ảnh bản đồ mất khi app vào nền trên mobile (chụp lại khi quay lại).
+- Bản đồ: kéo và chụm trên bản đồ (mẫu "Bản đồ" của interaction-patterns) chưa làm; hiện chỉ chạm để tới.

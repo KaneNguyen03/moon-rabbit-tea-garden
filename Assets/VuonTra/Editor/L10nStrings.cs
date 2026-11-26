@@ -834,6 +834,7 @@ namespace VuonTra.EditorTools
             { "garden.segment", "Mở rộng vườn · đoạn {0}", "Widen the garden · section {0}" },
             { "moment.segment.title", "Sương tan, vườn rộng thêm!", "The mist clears: more garden!" },
             { "edge.home", "Về tiệm trà", "To the shop" },
+            { "map.open", "Bản đồ", "Map" },
             { "expand.sign.level", "Cần cấp vườn {0}", "Needs garden level {0}" },
             { "expand.sign.rabbits", "Còn {0} bé thỏ", "{0} more rabbits" },
             { "expand.sign.kinds", "Còn {0} loài thỏ", "{0} more kinds to meet" },
