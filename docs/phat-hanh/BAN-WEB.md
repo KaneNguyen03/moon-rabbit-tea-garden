@@ -9,7 +9,7 @@ tools/build-webgl.sh
 tools/publish-pages.sh
 ```
 
-- `tools/build-webgl.sh [ưu tiên]` dựng vào `Build/WebGL/` qua cổng Unity `/tmp/unity-gate.sh` (ưu tiên mặc định 4). Máy không có cổng thì chạy thẳng `tools/build.sh webgl`.
+- `tools/build-webgl.sh [ưu tiên]` dựng vào `Build/WebGL/` qua cổng Unity `/tmp/unity-gate.sh` (ưu tiên mặc định 4). Thiếu cổng thì script dừng với mã 2; phải khôi phục cổng trước, không chạy Unity ngoài cổng.
 - `tools/publish-pages.sh [remote]` đẩy nội dung `Build/WebGL/` cùng `.nojekyll` lên nhánh `gh-pages` của origin bằng tài khoản KaneNguyen03.
 
 Đóng Unity Editor trước khi build (batch mode không mở được project đang mở). Thư mục `Build/` không bao giờ commit.
@@ -20,7 +20,7 @@ tools/publish-pages.sh
 |---|---|---|
 | Nén | Brotli, **Decompression Fallback bật**: trình duyệt tự giải nén bằng JS nên GitHub Pages không cần header `Content-Encoding` | `BuildScript.ConfigureWebGL` |
 | Exception | `ExplicitlyThrownExceptionsOnly` (mức tối thiểu còn bắt được lỗi do code ném) | như trên |
-| Template | `Assets/WebGLTemplates/VuonTra`: trang nền tối, khung dọc 9:16 giữa màn trên máy tính, toàn màn trên điện thoại, thanh tải, không có viền/logo Unity | `PlayerSettings.WebGL.template = PROJECT:VuonTra` |
+| Template | `Assets/WebGLTemplates/VuonTra`: trang nền tối, khung dọc 9:16 giữa màn trên cả máy tính và điện thoại, có khoảng nền tối ngoài khung nếu màn khác tỉ lệ, thanh tải, không có viền/logo Unity | `PlayerSettings.WebGL.template = PROJECT:VuonTra` |
 | Độ nét | canvas theo cửa sổ, `devicePixelRatio` tối đa 2 | `index.html` của template |
 | Save | `persistentDataPath` trên web là `/idbfs/...` trong IndexedDB; template bật `autoSyncPersistentDataPath` nên mỗi lần `SaveStore` ghi tệp là Unity tự đẩy xuống IndexedDB, không cần `.jslib` | `index.html` của template |
 | Tiếng | trình duyệt chặn âm thanh trước lần chạm đầu; Unity tự mở lại `AudioContext` khi người chơi chạm/nhấn lần đầu | sẵn trong Unity |
@@ -59,13 +59,13 @@ Repo đang public nên Pages miễn phí. Nếu repo chuyển sang private thì 
 | Mục | Giá trị |
 |---|---|
 | Dung lượng tải | 43 MB trên đĩa, ~42 MB tải lần đầu: `WebGL.data.unityweb` 32,5 MB, `WebGL.wasm.unityweb` 9,3 MB, `framework.js` + `loader.js` 0,2 MB |
-| Tải lần đầu | 5,5–9,5 s từ `localhost` (Chrome headless, `python3 -m http.server`, không header `Content-Encoding`); mạng 20 Mbit/s cộng thêm khoảng 17 s, vẫn dưới 30 s |
+| Tải lần đầu | 5,5–9,5 s từ `localhost` (Chrome 158.0.8127.37 headless, `python3 -m http.server`, không header `Content-Encoding`); mạng thật ≤30 s: **NOT TESTED**, không suy ra từ localhost |
 | Mở lại | ~6 s, tải 0 MB (Unity cache tệp build trong IndexedDB) |
 | Console | không lỗi, không cảnh báo; chỉ có dòng gợi ý của Unity về header `Content-Encoding: br` |
 | Save | đóng hẳn trình duyệt rồi mở lại: `playSeconds` 15,1 → 30,2, vườn còn nguyên |
 | Đổi ngôn ngữ | Tiếng Việt ↔ English trong menu Tạm nghỉ đổi ngay, không hiện khoá thô |
 
-Ảnh: `docs/anh/po-150/web-desktop-*.png` (1440×900) và `web-mobile-*.png` (390×844, iPhone).
+Ảnh: `docs/anh/po-150/web-desktop-*.png` (1440×900) và `web-mobile-*.png` (viewport giả lập 390×844 trong Chrome desktop; không phải iPhone thật). **Safari desktop, Safari iOS, Chrome Android trên thiết bị thật: NOT TESTED.**
 
 ## Lưu ý
 
