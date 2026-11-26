@@ -216,7 +216,7 @@ namespace VuonTra.Game.UI
                 var ring = UiKit.Rect("Ring", dot).Stretch(0, 0, 1, 1, -7, -7, -7, -7);
                 ring.AddImage(catalog.Round, Palette.Ink);
                 UiKit.Rect("Rim", dot).Stretch(0, 0, 1, 1, -2, -2, -2, -2).AddImage(catalog.Round, Palette.Mix(Palette.Paper, Palette.Ink, 0.35f));
-                UiKit.Rect("Fill", dot).Stretch(0, 0, 1, 1).AddImage(catalog.Round, Palette.Hex(Decor.LanternColors[i]));
+                LanternSwatch.Add(UiKit.Rect("Fill", dot).Stretch(0, 0, 1, 1), catalog, Palette.Hex(Decor.LanternColors[i]));
                 _lanternDots.Add(dotButton);
                 _lanternRings.Add(ring.gameObject);
             }

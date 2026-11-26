@@ -54,6 +54,28 @@ namespace VuonTra.Game
         public Sprite IconQuest;
         public Sprite Background;
 
+        [Header("Painted 9-slice frames (#143); an empty slot is drawn with Panel in the palette's flat colours")]
+        public Sprite CardFrame;
+        public Sprite ButtonFrame;
+        public Sprite SlotFrame;
+        public Sprite BarFrame;
+        public Sprite HudFrame;
+        public Sprite TabFrame;
+
+        public Sprite FrameArt(FrameKind kind)
+        {
+            switch (kind)
+            {
+                case FrameKind.Card: return CardFrame;
+                case FrameKind.Button: return ButtonFrame;
+                case FrameKind.Slot: return SlotFrame;
+                case FrameKind.Bar: return BarFrame;
+                case FrameKind.Hud: return HudFrame;
+                case FrameKind.Tab: return TabFrame;
+                default: return null;
+            }
+        }
+
         [Header("Street backdrop layers (hills, trees and ground tile sideways)")]
         public Texture2D BgSky;
         public Texture2D BgHills;

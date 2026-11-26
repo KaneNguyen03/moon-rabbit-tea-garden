@@ -41,9 +41,7 @@ namespace VuonTra.Game.UI
             shade.sizeDelta = new Vector2(0, 240);
             shade.anchoredPosition = new Vector2(0, -30);
             shade.AddImage(catalog.Glow, Palette.Alpha(Palette.Mix(Palette.Night, Palette.Ink, 0.4f), 0.35f)).raycastTarget = false;
-            UiKit.Rect("Lip", Card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true).pixelsPerUnitMultiplier = lipScale;
-            Image face = UiKit.Rect("Face", Card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            face.pixelsPerUnitMultiplier = lipScale;
+            Image face = UiFrames.AddCard(Card, FrameKind.Card, catalog.Panel, 12f, "Face", lipScale);
             face.raycastTarget = true;
 
             var handle = UiKit.Rect("Handle", Card).Place(0.5f, 1f, 0, -24, 300, 48);
