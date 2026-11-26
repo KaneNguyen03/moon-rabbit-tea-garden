@@ -9,7 +9,7 @@ tools/build-webgl.sh
 tools/publish-pages.sh
 ```
 
-- `tools/build-webgl.sh [ưu tiên]` dựng vào `Build/WebGL/` qua cổng Unity `/tmp/unity-gate.sh` (ưu tiên mặc định 4). Thiếu cổng thì script dừng với mã 2; phải khôi phục cổng trước, không chạy Unity ngoài cổng.
+- `tools/build-webgl.sh [ưu tiên]` dựng vào `Build/WebGL/` qua `tools/build.sh webgl`, lệnh này tự xếp hàng ở cổng Unity của repo `tools/unity-gate.sh` (ưu tiên mặc định 4; xem `docs/save-va-test.md`).
 - `tools/publish-pages.sh [remote]` đẩy nội dung `Build/WebGL/` cùng `.nojekyll` lên nhánh `gh-pages` của origin bằng tài khoản KaneNguyen03.
 
 Đóng Unity Editor trước khi build (batch mode không mở được project đang mở). Thư mục `Build/` không bao giờ commit.

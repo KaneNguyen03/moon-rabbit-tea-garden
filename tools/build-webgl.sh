@@ -1,13 +1,7 @@
 #!/usr/bin/env bash
 set -u
 cd "$(dirname "$0")/.."
-GATE="${UNITY_GATE:-/tmp/unity-gate.sh}"
-PRIO="${1:-4}"
-if [ ! -x "$GATE" ]; then
-  echo "build-webgl: Unity gate is missing or not executable: $GATE" >&2
-  exit 2
-fi
-"$GATE" "$PRIO" tools/build.sh webgl
+UNITY_GATE_PRIORITY="${1:-${UNITY_GATE_PRIORITY:-4}}" tools/build.sh webgl
 code=$?
 if [ $code -eq 0 ] && [ -f Build/WebGL/index.html ]; then
   echo "Build/WebGL: $(du -sh Build/WebGL | cut -f1) on disk"
