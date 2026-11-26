@@ -23,7 +23,7 @@ Bản đồ đầy đủ: [design/gdd/systems-index.md](../../design/gdd/systems
 
 Gọi skill bằng `/tên-skill` (hoặc Skill tool). Mọi skill đọc `project.yaml`; ở `automation: guided` skill chỉ hỏi ở quyết định lớn và trước khi tạo file mới.
 
-### B — code (giữ checkout main, gộp nhánh, chạy Unity)
+### B — code (giữ checkout main, gộp nhánh)
 
 | Khi | Skill | Ra gì |
 |---|---|---|
@@ -35,7 +35,7 @@ Gọi skill bằng `/tên-skill` (hoặc Skill tool). Mọi skill đọc `projec
 | Đổi kỹ thuật lớn | `/architecture-decision` | ADR mới, `Status: Proposed` tới khi chủ dự án duyệt |
 | Đổi một con số trong GDD | `/propagate-design-change` | danh sách ADR/story bị ảnh hưởng |
 
-Kiểm trước commit vẫn là `tools/verify.sh --fast` (Unity) hoặc ít nhất `python3 -I tools/conventions.py && tools/ci/core-tests.sh` (không Unity).
+Kiểm trước commit vẫn là `tools/verify.sh --fast` (Unity) hoặc ít nhất `python3 -I tools/conventions.py && tools/ci/core-tests.sh` (không Unity). Khi đang làm, `tools/test.sh --changed` chỉ chạy các test Unity của vùng code vừa sửa, theo bảng `tools/test-areas.tsv`; thêm file mới vào `Game` hoặc `Editor` thì thêm nó vào bảng, `python3 -I tools/test_test_areas.py` sẽ báo nếu thiếu.
 
 Ảnh chứng cho một màn hình: `tools/shot.sh <tên khung>` (ví dụ `tools/shot.sh 113-ruong-mo`) vẽ đúng khung đó vào `Logs/shot/` và in đường dẫn, không cần chạy cả lượt preview của `tools/verify.sh`. `tools/shot.sh --list` và `--groups` liệt kê tên khung và nhóm mà không cần Unity. Tên khung trùng tên ảnh trong `docs/anh/po-<issue>/`; chép ảnh từ `Logs/shot/` sang đó khi issue cần ảnh chứng. Lệnh tự xếp hàng qua `tools/unity-gate.sh`.
 
@@ -113,8 +113,8 @@ Chi tiết thiếu gì để qua mốc: [production/gate-checks/2026-11-26-produ
 |---|---|---|
 | Skill viết code (`/dev-story`, `/test-helpers`, `/test-setup`) và mẫu C# của studio có `///` XML doc và comment | `CLAUDE.md`: **không comment** trong file nào; `tools/conventions.py` chặn | Sau mỗi `/dev-story` chạy `python3 -I tools/conventions.py`; control manifest (`/create-control-manifest`) phải ghi "Forbidden: comment" như luật đầu. Skill studio sinh comment thì xoá, không hạ baseline bằng tay |
 | Mẫu YAML/Markdown studio có `#` comment (`sprint-status.yaml`, `project.yaml`) | Luật không comment nói "mọi file bạn viết" | Comment có sẵn trong mẫu studio để nguyên (CLAUDE.md: "leave existing comments"); khi tự viết khối mới thì không thêm comment. `conventions.py` chỉ quét `.cs` |
-| `commands.test`/`smoke` mặc định gọi Unity batch | Chỉ B chạy Unity, tối đa 3 batch cùng lúc; `verify.sh` đòi đóng Editor | `commands.test` và `commands.smoke` dùng Core tests (dotnet, không Unity). `commands.build`/`run` gọi `tools/verify.sh` và chỉ B chạy |
-| Agent `unity-specialist` có thể đề nghị mở Editor, chạy PlayMode | Như trên; dự án trong `.claude/worktrees` thì Unity không build được | Session khác B không chạy Unity; cần chụp GameView thì nhờ B |
+| `commands.test`/`smoke` mặc định gọi Unity batch | Session nào cũng được chạy Unity, miễn là qua gate `tools/unity-gate.sh` (gate giới hạn số batch cùng lúc, tối đa 3); `verify.sh` đòi đóng Editor | `commands.test` và `commands.smoke` dùng Core tests (dotnet, không Unity). `commands.build`/`run` gọi `tools/verify.sh`, lệnh này tự xếp hàng qua gate. Luật khi chạy Unity: `docs/save-va-test.md` mục "Ai được chạy Unity". Riêng checkout main do B giữ: chạy Unity trên main và gộp nhánh vẫn là việc của B |
+| Agent `unity-specialist` có thể đề nghị mở Editor, chạy PlayMode | Như trên; dự án trong `.claude/worktrees` thì Unity không build được | Session tự chạy Unity batch trên checkout của mình qua gate; không mở Editor trên checkout mà session khác đang dùng. Cần chụp GameView trên main thì nhờ B |
 | Studio tìm CI ở `.github/workflows/tests.yml` | CI là `checks.yml` (conventions + Core tests) | Giữ `checks.yml`; gate ghi "test framework: có, khác tên file" |
 | Studio hooks (`validate-commit.sh`, session-start, statusline) | Hook Claude + `.githooks/pre-commit` của dự án | Không cài hook studio; chỉ `yaml-helper.sh` |
 | Commit message studio tự do | Một câu tiếng Anh nói điều thay đổi + dòng Co-Authored-By; commit theo đường dẫn | Giữ quy ước dự án |

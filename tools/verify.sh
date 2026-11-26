@@ -58,6 +58,7 @@ SAVE_BEFORE=$(save_stamp)
 
 echo "== 0/4 project rules"
 if python3 -I tools/conventions.py >Logs/conventions.log 2>&1; then note "rules" "ok"; else cat Logs/conventions.log >&2; note "rules" "FAIL (see Logs/conventions.log)"; fi
+if python3 -I tools/test_test_areas.py >Logs/test-areas.log 2>&1; then note "areas" "ok"; else tail -20 Logs/test-areas.log >&2; note "areas" "FAIL (tools/test-areas.tsv, see Logs/test-areas.log)"; fi
 
 echo "== 1/4 seed content and string tables"
 run_unity "seed" Logs/seed.log -executeMethod VuonTra.EditorTools.ContentSeeder.Seed -quit && note "seed" "ok"
