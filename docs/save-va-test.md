@@ -48,4 +48,15 @@ Gate bảo đảm:
 - Trước mỗi lần chạy, gate sao `save.json` của người chơi vào `/tmp/save-guard/`. Nếu save đổi trong lúc chạy, gate giữ cả bản trước lẫn bản sau, ghi một dòng vào `/tmp/save-guard/changed.log` và báo ra stderr. Gate **không** tự ghi đè save; muốn trả lại thì chép bản trước về bằng tay.
 - Lệnh chạy bên trong một lượt đang giữ (ví dụ `tools/unity-gate.sh 5 tools/verify.sh`) không xếp hàng lần hai.
 
+### Ai được chạy Unity, và gate không lo giúp điều gì
+
+Session nào cũng được chạy Unity trên checkout của mình, với điều kiện lần chạy đi qua gate. B vẫn giữ checkout main và là bên gộp nhánh; chạy Unity trên main là việc của B.
+
+Gate chỉ lo hai việc: không quá giới hạn số lần chạy cùng lúc, và giữ một bản sao save của người chơi từ trước lần chạy. Gate không trả lại save đã đổi, không giới hạn một lần chạy kéo dài bao lâu, không dọn checkout sau lần chạy, và không ngăn ai gõ thẳng đường dẫn Unity. Vì vậy:
+
+- Không bao giờ chạy Unity ngoài gate: chỉ dùng `tools/verify.sh`, `tools/test.sh`, `tools/build.sh`, hoặc `tools/unity-gate.sh <ưu tiên> <lệnh>` cho lệnh khác.
+- Không bao giờ đụng vào save của người chơi: không ghi, không xoá, không mở bản build hay Editor đang chơi trên save thật trong lúc test. Thấy dòng "player save changed" thì dừng và báo chủ project, kèm đường dẫn bản sao trong `/tmp/save-guard/`.
+- Đặt giới hạn chờ: `UNITY_GATE_MAX_WAIT=1800` (giây). Hết giờ mà chưa có lượt thì báo "chưa chạy Unity", không chờ vô hạn. Chọn lần chạy hẹp nhất đủ chứng minh thay đổi (`tools/test.sh <bộ lọc>` trước `tools/verify.sh --fast`), vì lượt đang giữ là lượt người khác phải chờ.
+- Trả lại tệp Unity tự ghi đè: sau lần chạy xem `git status`; tệp không thuộc thay đổi của mình (thường gặp `Assets/Settings/UniversalRenderPipelineGlobalSettings.asset`) thì `git checkout -- <tệp>`, không commit.
+
 Trạng thái hàng đợi nằm trong `/tmp` (`unity-wait`, `unity-running`, `unity-gate-info`, `unity-gate.lock`), dùng chung với script cũ `/tmp/unity-gate.sh`, nên lần chạy qua script cũ và qua `tools/unity-gate.sh` vẫn loại trừ nhau. Máy khởi động lại thì `/tmp` trống và hàng đợi bắt đầu lại từ đầu; gate nằm trong repo nên không mất. Gate cần thấy tiến trình khác và ghi được vào `/tmp`: trong sandbox của Claude Code nó dừng với mã thoát 73, hãy chạy lệnh ngoài sandbox. Tự kiểm của gate: `python3 -I tools/test_unity_gate.py` (không cần Unity).
