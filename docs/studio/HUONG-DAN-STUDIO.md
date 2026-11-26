@@ -35,7 +35,7 @@ Gọi skill bằng `/tên-skill` (hoặc Skill tool). Mọi skill đọc `projec
 | Đổi kỹ thuật lớn | `/architecture-decision` | ADR mới, `Status: Proposed` tới khi chủ dự án duyệt |
 | Đổi một con số trong GDD | `/propagate-design-change` | danh sách ADR/story bị ảnh hưởng |
 
-Kiểm trước commit vẫn là `tools/verify.sh --fast` (Unity) hoặc ít nhất `python3 -I tools/conventions.py && tools/ci/core-tests.sh` (không Unity).
+Kiểm trước commit vẫn là `tools/verify.sh --fast` (Unity) hoặc ít nhất `python3 -I tools/conventions.py && tools/ci/core-tests.sh` (không Unity). Khi đang làm, `tools/test.sh --changed` chỉ chạy các test Unity của vùng code vừa sửa, theo bảng `tools/test-areas.tsv`; thêm file mới vào `Game` hoặc `Editor` thì thêm nó vào bảng, `python3 -I tools/test_test_areas.py` sẽ báo nếu thiếu.
 
 ### Design — UX/UI, mỹ thuật, hoạt ảnh (worktree riêng)
 

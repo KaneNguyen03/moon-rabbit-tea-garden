@@ -14,11 +14,12 @@ Measured on this Mac on 26 Nov 2026, unless a row says otherwise.
 | Rules | `python3 -I tools/conventions.py` | The enforced rules, counted against the baseline | 2–5 s |
 | Checker self-tests | `python3 -I tools/test_conventions.py` | `tools/conventions.py` itself | 6–19 s |
 | Core tests | `tools/ci/core-tests.sh` | Test files in `Assets/Tests/EditMode` with no Unity reference: game rules, saves, economy. No Unity needed | 24–47 s with compile |
-| One test group | `tools/test.sh <filter>` | Unity EditMode tests whose full name matches, e.g. `tools/test.sh SaveStoreTests` | Not measured; needs a Unity start |
-| Fast verify | `tools/verify.sh --fast` | Rules, content seed, compile of every assembly, EditMode tests except `[Category("Slow")]`, player save untouched | Not measured |
-| Full verify | `tools/verify.sh` | Fast verify plus preview shots and the Slow tests; `--build` adds a Mac build that is opened | Test step alone took 31, 39 and 76 min in three recorded runs (24–26 Nov) |
+| Area tests | `tools/test.sh --changed` | The Unity tests `tools/test-areas.tsv` maps to the files changed since `main` (or to paths you name), without the Slow ones. It prints the area and the Unity seconds | Recorded test time 0–106 s for a narrow area, 309 s for `text`, 960 s for `ui`, on top of the Unity start below |
+| One test group | `tools/test.sh <filter>` | Unity EditMode tests whose full name matches the regular expression, e.g. `tools/test.sh SaveStoreTests`; `--fast` leaves the Slow ones out | Unity start plus the tests |
+| Fast verify | `tools/verify.sh --fast` | Rules, content seed, compile of every assembly, EditMode tests except `[Category("Slow")]`, player save untouched | Not measured. Its tests took 496 s and 986 s in two recorded full runs, plus two Unity starts |
+| Full verify | `tools/verify.sh` | Fast verify plus preview shots and the Slow tests; `--build` adds a Mac build that is opened | Test step alone took 31, 39, 71 and 76 min in four recorded runs (24–26 Nov). The 32 Slow tests are three quarters of it |
 
-The three Unity rows were not run for this table: they are cited from the scripts and from `TestResults.xml` files of other checkouts.
+Of the four Unity rows only the area tests ran for this table: `tools/test.sh --changed` on the `content` area took 316 s of Unity in a fresh worktree (275 s first import, 21 s for its 47 tests), after two earlier waits of 45 minutes without a slot. Test times are sums of per-test durations in the `TestResults.xml` of two full runs (24 and 26 Nov; the second shared the Mac with other runs). A Unity start took 6–12 s in a checkout that has a `Library` folder and 144–275 s for the first import in a fresh worktree (logs of three fresh worktrees and four warm starts, 26 Nov). Waiting for a slot is extra: `tools/unity-gate.sh status`.
 
 | Change | Run |
 |---|---|
@@ -26,7 +27,8 @@ The three Unity rows were not run for this table: they are cited from the script
 | `tools/conventions.py` or its baseline | Rules and checker self-tests |
 | `tools/unity-gate.sh` or a tool that starts Unity | Rules and `python3 -I tools/test_unity_gate.py` (24 s, no Unity, outside the sandbox) |
 | `Assets/VuonTra/Core` or a pure test | Rules and Core tests |
-| `Game`, `Editor`, a screen test, assets | Rules, Core tests, `tools/test.sh <filter>` for the area, then fast verify before merge |
+| `tools/test.sh` or `tools/test-areas.tsv` | Rules and `python3 -I tools/test_test_areas.py` (1 s) |
+| `Game`, `Editor`, a screen test, assets | Rules, Core tests, `tools/test.sh --changed`, then fast verify before merge |
 | A round of merges on `main`, or a release | Full verify |
 
 CI (`.github/workflows/checks.yml`) runs only the first three rows. Nothing in CI compiles `Game` or `Editor`.
