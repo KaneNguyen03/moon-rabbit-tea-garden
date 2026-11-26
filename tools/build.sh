@@ -5,7 +5,7 @@
 set -u
 UNITY="${UNITY:-/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity}"
 cd "$(dirname "$0")/.."
-case "${1:-mac}" in
+case "${1:-}" in
   mac) METHOD=BuildMac ;;
   ios) METHOD=BuildIOS ;;
   android) METHOD=BuildAndroid ;;

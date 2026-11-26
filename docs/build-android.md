@@ -75,6 +75,8 @@ Google Play chỉ nhận `.aab` cho app mới. Hai lệnh, cùng cần module An
 | `tools/build.sh android` | `Build/Android/VuonTraTho.aab` | khoá upload, đọc từ biến môi trường | tải lên Play Console |
 | `tools/build.sh android-apk` | `Build/Android/VuonTraTho.apk` | khoá debug của Unity | cài thẳng lên máy thử bằng `adb install` |
 
+Gọi `tools/build.sh` không kèm đích thì lệnh in cách dùng và dừng với mã thoát 64.
+
 Bản `.aab` đọc bốn biến môi trường lúc build:
 
 | Biến | Nội dung |
@@ -86,7 +88,9 @@ Bản `.aab` đọc bốn biến môi trường lúc build:
 
 - Thiếu một biến, hoặc đường dẫn không có tệp: lệnh dừng trước khi build với mã thoát 3 và dòng `[VuonTra] Thiếu …` kể tên từng biến còn thiếu. Bản phát hành không bao giờ lùi về khoá debug. Thiếu module Android thì vẫn là mã thoát 2 như trước, và được kiểm trước khoá ký.
 - Thông báo chỉ nêu tên biến, không in đường dẫn, alias hay mật khẩu.
-- Build xong (hoặc hỏng), đường dẫn keystore và alias được xoá khỏi Player Settings, nên `ProjectSettings/ProjectSettings.asset` không đổi; test `The_Project_Settings_Hold_No_Keystore` giữ điều đó. Mật khẩu thì Unity vốn không ghi ra đĩa.
+- Build xong (hoặc hỏng), đường dẫn keystore và alias được xoá khỏi Player Settings, nên `ProjectSettings/ProjectSettings.asset` không đổi; test `The_Project_Settings_Hold_No_Keystore` giữ điều đó.
+- Dự án Gradle mà Unity sinh ra lúc build (dưới `Library/`) có thể chứa mật khẩu keystore và mật khẩu khoá ở dạng chữ thường. `Library/` không được git theo dõi; không bao giờ chia sẻ, sao lưu hay nén gửi thư mục `Library/` từ máy đã ký bản phát hành. Điều này chưa kiểm được cho tới bản build thật đầu tiên.
+- `.gitignore` bỏ qua `*.keystore` và `*.jks`, để một keystore lỡ đặt trong repo không vào commit; vẫn nên để nó ngoài repo.
 - Đặt biến trong phiên shell hoặc trình quản lý bí mật, đừng ghi vào file trong repo.
 
 Tạo keystore upload một lần (chủ project làm, giữ bản sao ở nơi an toàn):
@@ -95,7 +99,7 @@ Tạo keystore upload một lần (chủ project làm, giữ bản sao ở nơi 
 keytool -genkeypair -v -keystore <nơi-an-toàn>/vuontratho-upload.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000
 ```
 
-Mỗi lần tải bản mới lên Play phải tăng `BuildScript.BuildNumber` (versionCode) rồi seed lại.
+Mã phiên bản Android (versionCode) tăng **bằng tay**: trước mỗi lần tải bản mới lên Play, sửa `BuildScript.BuildNumber` rồi seed lại (`tools/verify.sh`, cần Unity) để số đó vào Player Settings. Không có gì tự tăng hay kiểm số này; quên tăng thì Play từ chối bản tải lên.
 
 Chưa chạy: máy phát triển không có module Android, nên chưa có tệp `.aab` nào được build hay tải thử. Phần đọc biến và thông báo có test chạy không cần Unity (`AndroidSigningTests`).
 
