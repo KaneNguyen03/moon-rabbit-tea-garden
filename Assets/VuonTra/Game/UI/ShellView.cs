@@ -345,7 +345,7 @@ namespace VuonTra.Game.UI
             }
             _resetArmedAt = Time.unscaledTime;
             _resetLabel.text = L10n.T("pause.reset.confirm");
-            _resetLabel.color = Palette.CarrotLip;
+            _resetLabel.color = Palette.CarrotInk;
         }
 
         void SetState(ShellState next)

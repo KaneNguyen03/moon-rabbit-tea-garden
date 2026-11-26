@@ -239,7 +239,7 @@ namespace VuonTra.Core.Tests
                     if (text.name == "Earn") earn = text;
                 Assert.IsNotNull(earn, "the shop has its \"Kiếm ở\" line");
                 StringAssert.Contains(says, earn.text);
-                Assert.LessOrEqual(earn.preferredHeight, earn.rectTransform.rect.height + 1f, "\"" + earn.text + "\" at " + earn.fontSize + "px in a box " + Mathf.RoundToInt(earn.rectTransform.rect.width) + " wide");
+                Assert.LessOrEqual(TextFit.Height(earn), earn.rectTransform.rect.height + 1f, "\"" + earn.text + "\" at " + earn.fontSize + "px in a box " + Mathf.RoundToInt(earn.rectTransform.rect.width) + " wide");
             }
             finally
             {

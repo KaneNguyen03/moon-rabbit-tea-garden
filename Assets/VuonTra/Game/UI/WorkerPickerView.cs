@@ -155,7 +155,7 @@ namespace VuonTra.Game.UI
                 : (r.Station >= 0 && r.Station < defs.Count ? L10n.T("detail.working", L10n.Station(defs[r.Station].Id)) : L10n.T("worker.resting"));
             string worth = L10n.Trade(Rabbits.TradeOf(r)) + (suits ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "");
             Text sub = UiKit.Rect("Sub", root).Stretch(0, 0.12f, 1, 0.5f, 164, 0, 290, 4)
-                .AddText(worth + " · " + where, UiKit.TextBody, suits ? Palette.Mix(Palette.Moss, Palette.Ink, 0.45f) : Palette.InkSoft, TextAnchor.UpperLeft, suits ? FontStyle.Bold : FontStyle.Normal);
+                .AddText(worth + " · " + where, UiKit.TextBody, suits ? Palette.MossInk : Palette.InkSoft, TextAnchor.UpperLeft, suits ? FontStyle.Bold : FontStyle.Normal);
             sub.resizeTextForBestFit = true;
             sub.resizeTextMinSize = 14;
             sub.resizeTextMaxSize = UiKit.TextBody;

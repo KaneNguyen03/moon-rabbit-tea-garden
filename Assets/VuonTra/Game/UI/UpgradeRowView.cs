@@ -98,6 +98,7 @@ namespace VuonTra.Game.UI
             _buyTop.text = maxed ? L10n.T("upgrade.maxed") : (canBuy ? L10n.T("upgrade.learn") : L10n.T("need.more"));
             _buyCost.text = maxed ? "—" : (canBuy ? cost.Short() : (cost - s.Coins).Short());
             Buy.SetEnabled(canBuy);
+            Buy.SetShort(!maxed && !canBuy);
             Color ink = ChunkyButton.InkFor(canBuy);
             _buyTop.color = ink;
             _buyCost.color = ink;

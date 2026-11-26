@@ -520,11 +520,13 @@ namespace VuonTra.Game.UI
             _visitorLabel.text = v.Bought ? L10n.T("shop.visitor.bought") : (affordable ? L10n.T("shop.visitor.buy", v.Price) : L10n.T("shop.visitor.need", v.Price - s.GoldenCarrots));
             _visitorLabel.color = ChunkyButton.InkFor(!v.Bought && affordable);
             _buy.SetEnabled(!v.Bought && affordable);
+            _buy.SetShort(!v.Bought && !affordable);
 
             bool can = s.GoldenCarrots >= Shop.GoldenSummonCost;
             _goldenLabel.text = can ? L10n.T("shop.golden.button", Shop.GoldenSummonCost) : L10n.T("shop.golden.need", Shop.GoldenSummonCost - s.GoldenCarrots);
             _goldenLabel.color = ChunkyButton.InkFor(can);
             _golden.SetEnabled(can);
+            _golden.SetShort(!can);
             _odds.text = OddsText();
             RefreshHats(s);
             RefreshDecor(s);

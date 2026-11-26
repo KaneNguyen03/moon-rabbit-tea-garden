@@ -134,7 +134,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.UpperLeft), UiKit.TextBody, 14);
 
             _note = Fit(UiKit.Rect("Note", _card).Place(0.5f, 0f, 0, 62, 900, 50)
-                .AddText("", UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextBody, 14);
+                .AddText("", UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold), UiKit.TextBody, 14);
 
             var close = UiKit.Rect("Close", _card).Place(1f, 1f, -70, -70, UiKit.MinTouch, UiKit.MinTouch);
             Image closeImage = close.AddImage(catalog.Round, Palette.Track);

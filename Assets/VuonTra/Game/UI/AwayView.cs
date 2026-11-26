@@ -53,7 +53,7 @@ namespace VuonTra.Game.UI
             CarrotIcon = UiKit.Rect("Icon", carrots).Place(0f, 0.5f, 90, 10, 110, 110);
             CarrotIcon.AddImage(catalog.Currency, Color.white).preserveAspect = true;
             _amount = UiKit.Rect("Amount", carrots).Stretch(0, 0.42f, 1, 1, 170, 0, 30, 10)
-                .AddText("+0", 72, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("+0", 72, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _amount.resizeTextForBestFit = true;
             _amount.resizeTextMinSize = 30;
             _amount.resizeTextMaxSize = UiKit.Scaled(72);
@@ -191,6 +191,7 @@ namespace VuonTra.Game.UI
                 : golden >= cost ? L10n.T("away.double.cost", cost)
                 : L10n.T("away.double.short", cost - golden);
             _double.SetEnabled(can);
+            _double.SetShort(!done && golden < cost);
             _doubleLabel.color = ChunkyButton.InkFor(can);
             Ad?.Refresh();
         }

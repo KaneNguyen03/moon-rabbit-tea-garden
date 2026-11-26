@@ -23,6 +23,8 @@ namespace VuonTra.Game
         public Sprite Round;
         public Sprite Glow;
         public Sprite Currency;
+        [Tooltip("The bundled fonts (#142): body text, and titles and large numbers. Both carry every Vietnamese letter.")]
+        public Font BodyFont, TitleFont;
         [Tooltip("The four-leaf clover: the rare currency quests pay in.")]
         public Sprite Clover;
         [Tooltip("The pointing hand of the first minute's guidance.")]

@@ -42,7 +42,7 @@ namespace VuonTra.Game.UI
                 .AddText("", 44, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             text.supportRichText = false;
             Text hint = UiKit.Rect("Hint", field).Stretch(0, 0, 1, 1, 32, 0, 32, 0)
-                .AddText(L10n.T("rename.hint", Rabbits.MaxNameLength), UiKit.TextBody, Palette.OffInk, TextAnchor.MiddleLeft);
+                .AddText(L10n.T("rename.hint", Rabbits.MaxNameLength), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
             _input = field.gameObject.AddComponent<InputField>();
             _input.targetGraphic = fieldImage;
             _input.textComponent = text;

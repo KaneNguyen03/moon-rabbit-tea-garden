@@ -39,7 +39,7 @@ namespace VuonTra.Game.UI
             _plate = UiKit.Rect("Plate", Root).Place(0.5f, 1f, 0, -196, 1000, 88);
             _plate.AddShadow(14f, 8f, 0.28f);
             UiKit.Rect("Body", _plate).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.Paper, true);
-            _progress = UiKit.Rect("Progress", _plate).Place(0f, 0.5f, 56, 0, 80, 40).AddText("", UiKit.TextSmall, Palette.CarrotLip, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _progress = UiKit.Rect("Progress", _plate).Place(0f, 0.5f, 56, 0, 80, 40).AddText("", UiKit.TextSmall, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _text = UiKit.Rect("Text", _plate).Stretch(0, 0, 1, 1, 100, 0, 170, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _text.resizeTextForBestFit = true;
             _text.resizeTextMinSize = 16;

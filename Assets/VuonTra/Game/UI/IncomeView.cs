@@ -16,6 +16,7 @@ namespace VuonTra.Game.UI
         readonly ChunkyButton _openJar;
         readonly Text _jarLabel, _jarSub;
         public const float JarBarHeight = 170f, ListBottom = 28f;
+        const float AmountCarrot = 40f;
 
         public RectTransform JarButton => _openJar.Root;
 
@@ -133,8 +134,10 @@ namespace VuonTra.Game.UI
                 factors.resizeTextForBestFit = true;
                 factors.resizeTextMinSize = 14;
                 factors.resizeTextMaxSize = UiKit.TextSmall;
-                UiKit.Rect("Amount", row).Stretch(0.6f, 0, 1, 1, 0, 0, 28, 0)
-                    .AddText(L10n.T("income.row", perSecond.Short()), UiKit.TextTitle, Palette.CarrotLip, TextAnchor.MiddleRight, FontStyle.Bold);
+                UiKit.Rect("Amount", row).Stretch(0.6f, 0, 1, 1, 0, 0, 28 + AmountCarrot + 8, 0)
+                    .AddText(L10n.T("income.row", perSecond.Short()), UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleRight, FontStyle.Bold);
+                UiKit.Rect("Carrot", row).Place(1f, 0.5f, -28 - AmountCarrot / 2f, 0, AmountCarrot, AmountCarrot)
+                    .AddImage(_catalog.Currency, Color.white).preserveAspect = true;
                 _rows.Add(row.gameObject);
             }
             if (shown == 0) AddNote("Empty", L10n.T("income.empty"), Palette.InkSoft);
@@ -147,9 +150,9 @@ namespace VuonTra.Game.UI
             if (tank > 1d) AddNote("Tank", L10n.T("income.tank", Aquarium.KindsIn(s), Aquarium.Kinds, AquariumView.Percent(tank - 1d)), Palette.Ink);
             AddNote("Charms", L10n.T("income.charms", UiKit.Times(m.IncomeMultiplier / (rest * tank))), Palette.Ink);
             AddNote("Speed", L10n.T("income.speed", UiKit.Times(m.SpeedMultiplier)), Palette.Ink);
-            if (boosting) AddNote("Boost", L10n.T("income.boost", UiKit.Times(Energy.BoostSpeed)), Palette.Moss);
+            if (boosting) AddNote("Boost", L10n.T("income.boost", UiKit.Times(Energy.BoostSpeed)), Palette.MossInk);
             BigNum total = Economy.IncomePerSecond(defs, s) * (m.IncomeMultiplier * m.SpeedMultiplier * (boosting ? Energy.BoostSpeed : 1d));
-            AddNote("Total", L10n.T("income.total", total.Short()), Palette.CarrotLip, true);
+            AddNote("Total", L10n.T("income.total", total.Short()), Palette.Ink, true);
             RefreshJars(defs, s, m);
         }
 

@@ -53,7 +53,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             Fit(_body, 14, UiKit.TextBody);
             _reward = UiKit.Rect("Reward", _card).Stretch(0, 1, 1, 1, 250, -262, 36, 218)
-                .AddText("", UiKit.TextSmall, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextSmall, Palette.CarrotInk, TextAnchor.MiddleLeft, FontStyle.Bold);
             Fit(_reward, 12, UiKit.TextSmall);
 
             var tryRect = UiKit.Rect("Try", _card).Place(1f, 0f, -210, 80, 340, 104);

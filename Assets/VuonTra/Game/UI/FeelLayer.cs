@@ -43,7 +43,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Lip", _banner).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Card", _banner).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             _bannerTitle = UiKit.Rect("Title", _banner).Stretch(0, 0.45f, 1, 1, 30, 0, 30, 24)
-                .AddText("", 52, Palette.Carrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", 52, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _bannerSub = UiKit.Rect("Sub", _banner).Stretch(0, 0, 1, 0.5f, 30, 30, 30, 0)
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleCenter);
             _banner.gameObject.SetActive(false);

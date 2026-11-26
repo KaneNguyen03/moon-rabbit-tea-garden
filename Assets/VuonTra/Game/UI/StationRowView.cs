@@ -16,6 +16,8 @@ namespace VuonTra.Game.UI
         GameObject _milestone, _feeds;
         float _shownMilestone;
 
+        const float IncomeCarrot = 40f;
+
         public RectTransform Root { get; private set; }
         public ChunkyButton Buy { get; private set; }
 
@@ -51,8 +53,12 @@ namespace VuonTra.Game.UI
                 .AddText(L10n.Station(data.Id), UiKit.TextBody, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             name.horizontalOverflow = HorizontalWrapMode.Overflow;
 
-            _main = UiKit.Rect("PerSec", Root).Stretch(0, 0.44f, 1, 0.72f, left, 0, right, 0)
-                .AddText("", UiKit.TextTitle, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
+            bool earns = data.Kind == StationKind.Brew;
+            if (earns)
+                UiKit.Rect("Carrot", Root).Stretch(0, 0.44f, 0, 0.72f, left, 0, -left - IncomeCarrot, 0)
+                    .AddImage(catalog.Currency, Color.white).preserveAspect = true;
+            _main = UiKit.Rect("PerSec", Root).Stretch(0, 0.44f, 1, 0.72f, earns ? left + IncomeCarrot + 8f : left, 0, right, 0)
+                .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _main.horizontalOverflow = HorizontalWrapMode.Overflow;
 
             _sub = UiKit.Rect("Sub", Root).Stretch(0, 0.26f, 1, 0.46f, left, 0, right, 0)
@@ -74,7 +80,7 @@ namespace VuonTra.Game.UI
 
             var chip = UiKit.Rect("Level", Root).Place(1f, 1f, -392, -52, 152, 46);
             _levelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _level = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _level = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _level.resizeTextForBestFit = true;
             _level.resizeTextMinSize = 14;
             _level.resizeTextMaxSize = _level.fontSize;
@@ -101,7 +107,7 @@ namespace VuonTra.Game.UI
             StationDef d = defs[_index];
             int level = s.Levels[_index];
             bool locked = level <= 0;
-            bool canAfford, next = false;
+            bool canAfford, lacksCarrots, next = false;
             float milestone;
 
             _main.text = MainNumber(defs, s, _index, Math.Max(1, level), m);
@@ -118,6 +124,7 @@ namespace VuonTra.Game.UI
                 if (!next) _sub.text = LockedReason(defs, s, _index);
                 canAfford = next && s.Coins >= cost;
                 bool shortOnly = next && !canAfford;
+                lacksCarrots = shortOnly;
                 _buyTop.text = shortOnly ? L10n.T("need.more") : L10n.T("row.open");
                 _buyCost.text = shortOnly ? (cost - s.Coins).Short() : cost.Short();
                 milestone = 0f;
@@ -132,6 +139,7 @@ namespace VuonTra.Game.UI
                 _levelChip.color = Palette.Moss;
                 bool capped = count <= 0;
                 canAfford = !capped && s.Coins >= cost;
+                lacksCarrots = !capped && !canAfford;
                 _buyTop.text = capped ? L10n.T("row.maxlevel") : (canAfford ? L10n.T("row.upgrade", count) : L10n.T("need.more"));
                 _buyCost.text = capped ? "" : (canAfford ? cost.Short() : (cost - s.Coins).Short());
                 milestone = toNext > 0 ? (level - prev) / (float)(toNext - prev) : 1f;
@@ -142,10 +150,11 @@ namespace VuonTra.Game.UI
             if (_feeds != null && _feeds.activeSelf != feeds) _feeds.SetActive(feeds);
 
             Buy.SetEnabled(canAfford);
+            Buy.SetShort(lacksCarrots);
             Color ink = ChunkyButton.InkFor(canAfford);
             _buyTop.color = ink;
             _buyCost.color = ink;
-            _main.color = locked ? Palette.InkSoft : Palette.CarrotLip;
+            _main.color = locked ? Palette.InkSoft : Palette.Ink;
             _face.color = !locked ? Palette.Card : (next ? Palette.Mix(Palette.Lantern, Palette.Paper, 0.62f) : Palette.Mix(Palette.Card, Palette.CardLip, 0.45f));
 
             _shownMilestone = deltaTime < 0f ? milestone : Mathf.Lerp(_shownMilestone, milestone, Mathf.Clamp01(deltaTime * 8f));

@@ -195,7 +195,7 @@ namespace VuonTra.Core.Tests
             Rect r = text.rectTransform.rect;
             if (r.width <= 0f || r.height <= 0f) return null;
             bool wide = text.horizontalOverflow == HorizontalWrapMode.Overflow;
-            float w = text.preferredWidth, h = text.preferredHeight;
+            float w = text.preferredWidth, h = TextFit.Height(text);
             if (text.resizeTextForBestFit)
             {
                 var gen = new TextGenerator();
@@ -205,7 +205,7 @@ namespace VuonTra.Core.Tests
                 settings.resizeTextForBestFit = false;
                 settings.verticalOverflow = VerticalWrapMode.Overflow;
                 w = gen.GetPreferredWidth(text.text, settings) / text.pixelsPerUnit;
-                h = gen.GetPreferredHeight(text.text, settings) / text.pixelsPerUnit;
+                h = TextFit.Height(gen, text.text, settings) / text.pixelsPerUnit;
             }
             if (wide) return w > r.width + 1f ? Path(text.transform) + " wide " + Mathf.RoundToInt(w) + ">" + Mathf.RoundToInt(r.width) + " \"" + text.text + "\"" : null;
             return h > r.height + 1f ? Path(text.transform) + " tall " + Mathf.RoundToInt(h) + ">" + Mathf.RoundToInt(r.height) + " \"" + text.text + "\"" : null;

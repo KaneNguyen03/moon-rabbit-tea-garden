@@ -44,7 +44,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Title", _card).Place(0.5f, 1f, 0, -80, 600, 70)
                 .AddText(L10n.T("mail.title"), 52, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _note = UiKit.Rect("Note", _card).Place(0.5f, 1f, 0, -160, 740, 50)
-                .AddText("", UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _note.resizeTextForBestFit = true;
             _note.resizeTextMinSize = 14;
             _note.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);

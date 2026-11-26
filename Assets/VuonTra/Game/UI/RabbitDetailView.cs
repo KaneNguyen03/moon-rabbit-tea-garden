@@ -214,6 +214,7 @@ namespace VuonTra.Game.UI
             var up = UiKit.Rect("LevelUp", _body).Place(1f, 1f, -344, -530, 280, 96);
             ChunkyButton upButton = UiKit.Chunky(up, _catalog.Panel, () => _onLevelUp(id));
             upButton.SetEnabled(afford);
+            upButton.SetShort(!maxed && !afford);
             Color ink = ChunkyButton.InkFor(afford);
             UiKit.Rect("Top", upButton.FaceRect).Stretch(0, 0, 0.5f, 1, 18, 0, 0, 0)
                 .AddText(maxed ? L10n.T("rabbits.maxlevel") : (afford ? L10n.T("rabbits.levelup") : L10n.T("need.more")), UiKit.TextSmall, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
