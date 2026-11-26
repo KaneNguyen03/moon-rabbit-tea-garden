@@ -47,7 +47,7 @@ Nguyên tắc: **một nguồn cho mỗi sự thật**. Tài liệu studio dẫn
 | Asset audit | `docs/kiem-dinh-do-hoa.md` | đủ cho đợt 25/11 | lần sau dùng `/asset-audit` |
 | Analytics / phễu | `docs/phat-hanh/PHEU-SU-KIEN.md` | đủ | giữ |
 | Quyền riêng tư / khai báo dữ liệu | `docs/chinh-sach-quyen-rieng-tu.md`, `docs/khai-bao-du-lieu-cua-hang.md` | đủ | `/security-audit` đọc trước khi Polish |
-| CI test | `.github/workflows/checks.yml`, `tools/ci/core-tests.sh` (963 test, 1 s, không cần Unity) | có, khác tên file | Bước 2.4 |
+| CI test | `.github/workflows/checks.yml`, `tools/ci/core-tests.sh` (không cần Unity; số test là dòng `Total:` lệnh này in ra) | có, khác tên file | Bước 2.4 |
 | Coding standards / forbidden patterns | `CLAUDE.md`, `tools/conventions.py` + baseline | mạnh hơn mẫu studio | giữ; studio không ghi đè (xem HUONG-DAN-STUDIO §5) |
 
 ---
@@ -89,7 +89,7 @@ Chạy `/create-control-manifest` từ 5 ADR Accepted. Manifest phải lặp l�
 ### 3c. Create sprint tracking file
 Chạy `/sprint-plan new` với sprint 1 tuần (`cadence.sprint_length: 1w`) lấy issue mở trên GitHub, rồi `/sprint-plan update`.
 **Time**: 30 min
-- [ ] `production/sprints/sprint-01.md` và `production/sprint-status.yaml` created
+- [x] `production/sprints/sprint-001.md` và `production/sprint-status.yaml` created
 
 ### 3d. Set authoritative project stage
 Điều phối yêu cầu đặt thẳng `Production` (khớp heuristic) thay vì chờ gate vào Production, gate này hiện FAIL vì thiếu epics và sprint plan. Đã ghi bằng `bash .claude/scripts/set-stage.sh Production` (commit `ffb1ffa`). Gate vào Production vẫn nên chạy lại sau 3c và 3.3 để ghi bằng chứng.
@@ -121,9 +121,9 @@ Session QA chạy `/smoke-check` (lệnh `commands.smoke` = conventions + Core t
 
 ## Step 5: Optional Improvements
 
-- [ ] **5.1** `CLAUDE.md` ghi "701 tests"; Core tests nay là 963 (chạy 26/11). B sửa con số khi chạm `CLAUDE.md`.
+- [ ] **5.1** `CLAUDE.md` ghi "701 tests", con số đã cũ từ trước 26/11. Khi sửa `CLAUDE.md`, dẫn tới lệnh in ra con số (`tools/ci/core-tests.sh`, dòng `Total:`) thay vì chép số mới.
 - [ ] **5.2** Entity registry `design/registry/entities.yaml` còn trống: `/consistency-check` sau khi có 9 GDD.
-- [ ] **5.4** `project.local.yaml` (cấu hình riêng từng người của studio) chưa có trong `.gitignore`: B thêm `/project.local.yaml`.
+- [x] **5.4** `project.local.yaml` (cấu hình riêng từng người của studio) đã có trong `.gitignore` (dòng `/project.local.yaml`).
 - [ ] **5.3** `.claude/docs/technical-preferences.md` (bản phụ của `project.yaml`) chưa điền; studio nói `project.yaml` thắng khi khác nhau, nên không bắt buộc.
 
 ---
