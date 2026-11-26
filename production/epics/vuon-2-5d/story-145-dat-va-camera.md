@@ -16,7 +16,7 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 **GDD**: `design/gdd/mo-rong-vuon-va-ban-do.md` (cảnh vườn), chuẩn hình `design/art/art-bible.md`, lộ trình `docs/de-xuat-2-5d.md` §6 bước 1
 **Requirement**: (chưa cấp TR-ID — `docs/architecture/tr-registry.yaml` chưa dựng, kế hoạch di trú Bước 3a)
 
-**ADR Governing Implementation**: ADR-0005: Hướng 2.5D; ADR-0006: Camera và renderer vườn 2.5D (Proposed)
+**ADR Governing Implementation**: ADR-0005: Hướng 2.5D; ADR-0006: Camera và renderer vườn 2.5D (Accepted 26/11)
 **ADR Decision Summary**: Mặt đất 3D và camera phối cảnh nghiêng cố định; mọi hình 2D màu nước hiện có đứng thẳng làm billboard pivot ở chân; không 3D toàn phần, không AI 3D trả phí. Luật vườn vẫn ở Core (ADR-0001).
 **ADR Version**: 2026-11-26 (Last Verified của ADR-0005)
 
@@ -113,12 +113,12 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 **story-readiness** (lean, QL-STORY-READY bỏ qua): không có blocker. ADR-0005 Accepted, Dependencies None, `bg_grass.png` có. Gap nhỏ, không chặn: Context chưa trích một luật cụ thể của GDD (chỉ tên file); Engine Notes Forward+ mobile vẫn NOT SOURCEABLE (`/setup-engine refresh` chưa chạy); chưa có TR-ID.
 
 **Đã làm**
-- ADR-0006 `docs/architecture/adr-0006-camera-va-renderer-vuon-2-5d.md` (Proposed): khung hình tính ở Core, zoom là khoảng cách camera, renderer Forward+ thứ hai ở chỉ số 1, bản đồ là camera trực giao render theo yêu cầu, cờ `Features.Garden25D` mặc định tắt.
+- ADR-0006 `docs/architecture/adr-0006-camera-va-renderer-vuon-2-5d.md` (Accepted 26/11): khung hình tính ở Core, zoom là khoảng cách camera, renderer Forward+ thứ hai ở chỉ số 1, bản đồ là camera trực giao render theo yêu cầu, cờ `Features.Garden25D` mặc định tắt.
 - `Assets/VuonTra/Core/GardenFraming.cs`: `CameraSpec` (FOV 25°, nghiêng 40°, mặc định 35 m, co giãn mép 0,6 m, quán tính còn 5 % sau 0,35 s, dừng < 0,05 m/s) và hàm thuần `Ground`, `Island`, `TileAt`, `Pose`, `Drag`, `Settle`, `Glide` (tắt dưới Giảm chuyển động), `Pinch`, `ZoomAbout`, `DistanceOf`/`ZoomOf`/`ShowsDetail`, `Map`. Ba mức zoom 2D (Xa 1920/2970, Mặc định 0,83, Gần 1,5, chi tiết 1,165) đổi thành khoảng cách camera.
 - `Assets/VuonTra/Game/Garden25D/GardenCameraSettings.cs` (ScriptableObject cài đặt camera) và `GardenCameraRig.cs` (chỉ gán `CameraPose` cho camera, không `Update()`).
 - Test: 13 `GardenFramingTests` chạy ngoài Unity, 2 `GardenCameraRigTests` trong Unity.
 
-**Quyết định (cần chủ project duyệt qua ADR-0006)**
+**Quyết định (chủ project duyệt ADR-0006 và cờ `Features.Garden25D` ngày 26/11)**
 - Đơn vị: một bước lục giác theo q = 1 m, một hàng = 4/3 m (giữ tỉ lệ `PitchY/PitchX` của bản 2D); hàng phía trên màn 2D là hàng xa camera.
 - Biên kéo là hình chữ nhật bao đảo cho tâm nhìn (AC-1 "tâm nhìn trong hình bao của đảo"); mép đảo không vuông có thể lộ góc trống khi zoom xa, xem lại bằng ảnh trước/sau.
 - Khoảng cách mặc định 35 m cho bề ngang thấy ở 1080×1920 bằng bản 2D (±5 %).
@@ -141,7 +141,7 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 - Ảnh kiểm nhanh (không commit, render trong Unity batch): đảo nghiêng có mép đất ở zoom mặc định và xa, ảnh bản đồ nhìn thẳng xuống đúng khung. Chưa chấm `visual-critic-gate`.
 
 **Quyết định**
-- Theo đề xuất ADR-0006 mà coordinator chọn dùng: 1 bước lục giác = 1 m, camera 35 m. ADR-0006 vẫn Proposed tới khi chủ project duyệt.
+- Theo đề xuất ADR-0006 mà coordinator chọn dùng: 1 bước lục giác = 1 m, camera 35 m. ADR-0006 đã Accepted (chủ project duyệt 26/11).
 - Không có DOTween trong dự án; quán tính dùng `Tweens` sẵn có của `Ease.cs`.
 
 **Tiếp theo**

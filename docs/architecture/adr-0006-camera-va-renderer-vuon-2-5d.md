@@ -2,9 +2,9 @@
 
 ## Status
 
-Proposed
+Accepted
 
-> Chủ project, hoặc `technical-director` khi chủ project xác nhận, mới được chuyển sang `Accepted`.
+> Chủ project duyệt ngày 2026-11-26, nguyên văn: "Accept ADR-0006 and the Garden25D switch". Cờ `Features.Garden25D` giữ mặc định tắt tới khi vườn 2.5D thay vườn 2D.
 
 ## Date
 
@@ -16,7 +16,7 @@ Proposed
 
 ## Decision Makers
 
-agent-145 (đề xuất); chủ project duyệt.
+agent-145 (đề xuất); chủ project duyệt (2026-11-26).
 
 ## Summary
 
