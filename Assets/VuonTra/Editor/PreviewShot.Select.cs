@@ -27,6 +27,7 @@ namespace VuonTra.EditorTools
             public readonly Action Alone;
             public bool StartsOwnGame;
             public bool OnlyByName;
+            public string ContinuesGameOf;
 
             public Group(string name, SharedScene shared) { Name = name; Shared = shared; }
             public Group(string name, Action alone) { Name = name; Alone = alone; }
@@ -39,9 +40,9 @@ namespace VuonTra.EditorTools
             new Group("main", RenderMain) { StartsOwnGame = true },
             new Group("guidance", RenderGuidance),
             new Group("land-waves", RenderLandWaves),
-            new Group("photo-ask", RenderPhotoAsk),
+            new Group("photo-ask", RenderPhotoAsk) { ContinuesGameOf = "land-waves" },
             new Group("rest-share", RenderRestShare),
-            new Group("chatter", RenderChatter),
+            new Group("chatter", RenderChatter) { ContinuesGameOf = "rest-share" },
             new Group("album-sets", RenderAlbumSets),
             new Group("moon-jars", RenderMoonJars),
             new Group("gift-codes", RenderGiftCodes),
@@ -82,6 +83,7 @@ namespace VuonTra.EditorTools
 
         static string _shotFolder;
         static string _group;
+        static string _asked;
         static List<string> _seen;
         static HashSet<string> _only;
         static bool _namesOnly;
@@ -91,6 +93,7 @@ namespace VuonTra.EditorTools
         static bool Wanted(string name)
         {
             if (_seen == null) return true;
+            if (_group != _asked) return false;
             _seen.Add(_group + "\t" + name);
             return !_namesOnly && (_only == null || _only.Contains(name));
         }
@@ -140,9 +143,11 @@ namespace VuonTra.EditorTools
                 {
                     string[] pieces = part.Split(':');
                     string name = pieces[0];
-                    if (!Array.Exists(Groups, group => group.Name == name)) throw new ArgumentException("Preview: no group named " + name);
+                    Group asked = Array.Find(Groups, group => group.Name == name);
+                    if (asked == null) throw new ArgumentException("Preview: no group named " + name);
                     _only = pieces.Length > 1 ? new HashSet<string>(pieces[1].Split(',')) : null;
-                    RenderGroups(group => group.Name == name);
+                    _asked = name;
+                    RenderGroups(group => group.Name == name || group.Name == asked.ContinuesGameOf);
                 }
                 File.WriteAllLines(Path.Combine(ShotFolder, ShotNamesFile), _seen);
                 Debug.Log("[VuonTra] Shots written to " + ShotFolder);
@@ -151,6 +156,7 @@ namespace VuonTra.EditorTools
             {
                 _shotFolder = null;
                 _seen = null;
+                _asked = null;
                 _only = null;
                 _namesOnly = false;
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

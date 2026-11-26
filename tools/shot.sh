@@ -85,7 +85,7 @@ fi
 
 tools/unity-gate.sh held || exec tools/unity-gate.sh "${UNITY_GATE_PRIORITY:-50}" tools/shot.sh "$@"
 
-if [ -f Temp/UnityLockfile ] && pgrep -f "Unity.app/Contents/MacOS/Unity" >/dev/null; then
+if [ -f Temp/UnityLockfile ] && pgrep -f "Unity.app/Contents/MacOS/Unity .*-projectPath $PWD( |\$)" >/dev/null; then
   echo "shot: the Unity Editor holds this project (Temp/UnityLockfile). Close it first." >&2
   exit 2
 fi
