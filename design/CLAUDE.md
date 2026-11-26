@@ -20,10 +20,9 @@ Criteria, plus Formulas when the system has math); none at `minimal`, where
 `design/game-brief.md` is the design record instead of a GDD. Resolve the tier
 before flagging a section as missing — see `.claude/docs/workflow-modes.md`.
 
-> **Three other places already encode the tier rule** —
-> `.claude/docs/coding-standards.md`, `.claude/rules/design-docs.md` and
-> `.claude/hooks/validate-commit.sh`. This file is the copy a session working in
-> `design/` reads first, so it must agree with them: demanding all 8 at
+> **`.claude/docs/coding-standards.md` already encodes the tier rule.** This
+> file is the copy a session working in
+> `design/` reads first, so it must agree with it: demanding all 8 at
 > `minimal` warns a jam project about six sections its own configuration says it
 > does not need, which trains the user to ignore the warning.
 

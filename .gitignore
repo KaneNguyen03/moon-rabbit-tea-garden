@@ -24,8 +24,15 @@ crashlytics-build.properties
 .DS_Store
 # local tool config
 .claude/*
+!.claude/agents/
+!.claude/docs/
+!.claude/engines/
+!.claude/genres/
+!.claude/hooks/
+!.claude/scripts/
 !.claude/skills/
 !.claude/settings.json
+/project.local.yaml
 # Addressables writes and removes this at build time (#12)
 /Assets/AddressableAssetsData/link.xml
 /Assets/AddressableAssetsData/link.xml.meta

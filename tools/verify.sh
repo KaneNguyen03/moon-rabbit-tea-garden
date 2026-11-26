@@ -19,6 +19,7 @@ for arg in "$@"; do
     *) echo "verify: unknown option $arg (use --build, --fast, --preview)" >&2; exit 64 ;;
   esac
 done
+tools/unity-gate.sh held || exec tools/unity-gate.sh "${UNITY_GATE_PRIORITY:-50}" tools/verify.sh "$@"
 mkdir -p Logs
 declare -a NAMES RESULTS
 fail=0
