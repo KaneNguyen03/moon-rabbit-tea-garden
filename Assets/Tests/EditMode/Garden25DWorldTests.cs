@@ -222,6 +222,11 @@ namespace VuonTra.Core.Tests
                 AssertHex("85554C", loaded.Paint(SlabPart.Earth));
                 AssertHex("60424A", loaded.Paint(SlabPart.EarthShade));
                 AssertHex("362C47", loaded.Paint(SlabPart.Underside));
+                var settings = Resources.Load<GardenCameraSettings>(Garden25DWorld.SettingsPath);
+                Assert.AreSame(loaded.LockedPaint, loaded.LockedLand.GetComponent<MeshRenderer>().sharedMaterial);
+                AssertHex("31605C", loaded.LockedPaint);
+                Assert.AreEqual(ColorUtility.ToHtmlStringRGB(settings.LockedGrass), ColorUtility.ToHtmlStringRGB(loaded.LockedPaint.color), "design's temporary colour for land not opened yet, no fog");
+                Assert.IsNull(loaded.LockedPaint.mainTexture, "a flat colour until design delivers the locked land's shape");
                 AssertHex("85554C", Resources.Load<Material>(Garden25DWorld.EarthPath));
                 Assert.AreEqual("Universal Render Pipeline/Unlit", Resources.Load<Material>(Garden25DWorld.EarthPath).shader.name, "flat toon steps, not lit by a light the scene does not have yet");
                 Assert.AreEqual("Universal Render Pipeline/Unlit", Resources.Load<Material>(Garden25DWorld.LawnPath).shader.name, "the grass reads as bright as the 2D garden until the moon light of #147");
@@ -229,8 +234,74 @@ namespace VuonTra.Core.Tests
             finally
             {
                 for (int part = 1; part < SlabMesh.PartCount; part++) Object.DestroyImmediate(loaded.Paint((SlabPart)part));
+                Object.DestroyImmediate(loaded.LockedPaint);
                 Object.DestroyImmediate(loaded.gameObject);
             }
+        }
+
+        [Test]
+        public void Dark_Grass_Spreads_Past_The_Island_Edge_Below_Its_Earth_So_The_Frame_Has_No_Empty_Night()
+        {
+            GardenApron land = _world.LockedLand;
+            var slab = _settings.Slab();
+            Assert.AreEqual(-(float)slab.Thickness - GardenApron.Below, land.Top, 1e-5);
+            GroundRect island = _world.Island;
+            Assert.LessOrEqual(land.Area.MinX, island.MinX - _settings.LockedReach + 1e-6);
+            Assert.GreaterOrEqual(land.Area.MaxZ, island.MaxZ + _settings.LockedReach - 1e-6);
+            var plane = new Plane(Vector3.up, new Vector3(0f, land.Top, 0f));
+            Camera view = _world.Rig.View;
+            foreach (GroundPoint corner in new[] { new GroundPoint(island.MinX, island.MinZ), new GroundPoint(island.MaxX, island.MaxZ) })
+            {
+                _world.Rig.Frame(corner, _world.Rig.Spec.FarDistance);
+                foreach (Vector2 screen in new[] { Vector2.zero, new Vector2(view.pixelWidth, 0f), new Vector2(0f, view.pixelHeight), new Vector2(view.pixelWidth, view.pixelHeight) })
+                {
+                    Ray ray = view.ScreenPointToRay(screen);
+                    Assert.IsTrue(plane.Raycast(ray, out float along), "every corner of the screen looks down onto the ground");
+                    Vector3 hit = ray.GetPoint(along);
+                    Assert.IsTrue(land.Area.Contains(new GroundPoint(hit.x, hit.z)), "zoomed all the way out at the island's corner, the screen corner " + screen + " still shows grass, not night");
+                }
+            }
+            Mesh islandMesh = _world.Ground.GetComponent<MeshFilter>().sharedMesh, lockedMesh = _world.LockedLand.GetComponent<MeshFilter>().sharedMesh;
+            _world.Grow(3);
+            Assert.AreSame(islandMesh, _world.Ground.GetComponent<MeshFilter>().sharedMesh, "growing refills the island mesh instead of destroying it, which edit mode forbids");
+            Assert.AreSame(lockedMesh, _world.LockedLand.GetComponent<MeshFilter>().sharedMesh);
+            Physics.SyncTransforms();
+            Assert.AreEqual((float)_world.Island.MaxX, _world.Ground.GetComponent<MeshCollider>().bounds.max.x, 0.05f, "the tap collider grows with the island");
+            Assert.LessOrEqual(_world.LockedLand.Area.MaxX, _world.Island.MaxX + _settings.LockedReach + 1e-6);
+            Assert.GreaterOrEqual(_world.LockedLand.Area.MaxX, _world.Island.MaxX + _settings.LockedReach - 1e-6, "it grows with the island");
+        }
+
+        [Test]
+        public void A_Drag_Starting_On_The_Dark_Grass_Moves_The_Garden_And_A_Tap_There_Names_No_Tile()
+        {
+            int tiles = 0, touches = 0;
+            _world.Ground.TileTapped += h => tiles++;
+            _world.Ground.Touched += () => touches++;
+            GroundRect island = _world.Island;
+            var outside = new Vector3((float)island.MaxX + 3f, _world.LockedLand.Top, (float)island.Centre.Z);
+            _world.Rig.Frame(new GroundPoint(island.MaxX, island.Centre.Z), _world.Rig.Spec.DefaultDistance);
+            Physics.SyncTransforms();
+            Vector2 at = _world.Rig.View.WorldToScreenPoint(outside);
+            var press = new PointerEventData(null) { position = at, pressPosition = at };
+            var hits = new List<RaycastResult>();
+            _world.Rig.View.GetComponent<PhysicsRaycaster>().Raycast(press, hits);
+            hits.Sort((a, b) => a.distance.CompareTo(b.distance));
+            Assert.AreSame(_world.LockedLand.gameObject, hits[0].gameObject);
+            press.pointerCurrentRaycast = hits[0];
+            GameObject handler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);
+            ExecuteEvents.Execute(handler, press, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(handler, press, ExecuteEvents.pointerUpHandler);
+            press.pointerPress = handler;
+            ExecuteEvents.Execute(handler, press, ExecuteEvents.pointerClickHandler);
+            Assert.AreEqual(0, tiles, "land not opened yet has no tile to name");
+            Assert.AreEqual(1, touches, "but the tap still reaches the ground, so an open card can close");
+            GroundPoint before = _world.Rig.Focus;
+            var drag = new PointerEventData(null) { position = at, pressPosition = at, pointerCurrentRaycast = hits[0] };
+            ExecuteEvents.Execute(handler, drag, ExecuteEvents.pointerDownHandler);
+            drag.position = at + new Vector2(0f, -300f);
+            ExecuteEvents.Execute(handler, drag, ExecuteEvents.dragHandler);
+            Assert.AreNotEqual(before.Z, _world.Rig.Focus.Z, "dragging on the dark grass moves the view like dragging on the lawn");
+            ExecuteEvents.Execute(handler, drag, ExecuteEvents.pointerUpHandler);
         }
 
         static void AssertHex(string hex, Material paint)

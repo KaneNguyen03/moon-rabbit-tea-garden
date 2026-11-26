@@ -338,7 +338,7 @@ namespace VuonTra.EditorTools
 
             animator.runtimeAnimatorController = BuildController(root);
             var actor = rabbit.AddComponent<RabbitActor>();
-            Wire(actor, ("animator", animator), ("front", front), ("threeQuarter", side));
+            Wire(actor, ("animator", animator), ("front", front), ("threeQuarter", side), ("shadow", shadow));
 
             AssetDatabase.DeleteAsset(PrefabPath);
             PrefabUtility.SaveAsPrefabAsset(rabbit, PrefabPath);

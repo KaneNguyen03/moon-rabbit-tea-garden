@@ -12,15 +12,21 @@ namespace VuonTra.Game
         public const string SettingsPath = "Garden25D/GardenCameraSettings";
         public const string LawnPath = "Garden25D/IslandLawn";
         public const string EarthPath = "Garden25D/IslandEarth";
+        public const string StandsPath = "Garden25D/GardenStands";
+        public static readonly Vector3 DepthAxis = new Vector3(0f, 0f, 1f);
 
         readonly Tweens _tweens = new Tweens();
         GardenCameraSettings _settings;
         Material[] _paints;
+        Material _lockedPaint;
 
         public GardenCameraRig Rig { get; private set; }
         public GardenGround Ground { get; private set; }
+        public GardenApron LockedLand { get; private set; }
+        public Material LockedPaint => _lockedPaint;
         public GardenPanZoom PanZoom { get; private set; }
         public GardenMapCamera Map { get; private set; }
+        public GardenStandRow Stands { get; private set; }
         public int Segments { get; private set; }
         public GroundRect Island => GardenFraming.Island(Segments, Rig.Spec);
         public int PendingMotion => _tweens.Count;
@@ -43,6 +49,8 @@ namespace VuonTra.Game
             view.backgroundColor = Palette.Night;
             view.nearClipPlane = 1f;
             view.farClipPlane = 200f;
+            view.transparencySortMode = TransparencySortMode.CustomAxis;
+            view.transparencySortAxis = DepthAxis;
             view.GetUniversalAdditionalCameraData().SetRenderer(RendererIndex);
             world.Rig = eye.AddComponent<GardenCameraRig>();
             world.Rig.Attach(view, spec);
@@ -52,7 +60,12 @@ namespace VuonTra.Game
             world.Ground = land.AddComponent<GardenGround>();
             world.PanZoom = land.AddComponent<GardenPanZoom>();
             world.PanZoom.Attach(world.Rig, world._tweens, world.Island);
-            world.PanZoom.Tapped += world.Ground.Tap;
+            world.PanZoom.Tapped += world.Touch;
+            var locked = new GameObject("Locked Land", typeof(MeshFilter), typeof(MeshRenderer), typeof(BoxCollider));
+            locked.transform.SetParent(world.transform, false);
+            locked.AddComponent<GardenTouch>().Attach(world.PanZoom);
+            world.LockedLand = locked.AddComponent<GardenApron>();
+            if (earth != null) world._lockedPaint = new Material(earth) { name = "Locked Land", color = settings.LockedGrass };
             world.BuildGround();
 
             var mapEye = new GameObject("Map Camera", typeof(Camera));
@@ -75,9 +88,32 @@ namespace VuonTra.Game
 
         public void Tick(float seconds) => _tweens.Update(seconds);
 
+        public GardenStandRow Raise(GameCatalog catalog) => Raise(catalog, Resources.Load<GardenStandSettings>(StandsPath));
+
+        public GardenStandRow Raise(GameCatalog catalog, GardenStandSettings settings)
+        {
+            if (Stands != null) Destroy(Stands.gameObject);
+            var row = new GameObject("Stands");
+            row.transform.SetParent(transform, false);
+            Stands = row.AddComponent<GardenStandRow>();
+            Stands.Build(catalog, settings, PanZoom, Rig.Spec, Rig.View.transform.eulerAngles.y);
+            return Stands;
+        }
+
+        public void Touch(PointerEventData eventData)
+        {
+            GardenStand stand = eventData.pointerPress != null ? eventData.pointerPress.GetComponent<GardenStand>() : null;
+            if (stand != null && Stands != null) Stands.Tap(stand.Index);
+            else Ground.Tap(eventData);
+        }
+
         public Material Paint(SlabPart part) => _paints[(int)part];
 
-        void BuildGround() => Ground.Build(Segments, Rig.Spec, _settings.Slab(), _paints);
+        void BuildGround()
+        {
+            Ground.Build(Segments, Rig.Spec, _settings.Slab(), _paints);
+            LockedLand.Build(Island, _settings.Slab(), _settings.LockedReach, _lockedPaint);
+        }
 
         static Material[] Paints(GardenCameraSettings settings, Material lawn, Material earth)
         {
@@ -94,6 +130,7 @@ namespace VuonTra.Game
         {
             for (int part = 0; part < _paints.Length; part++)
                 if ((SlabPart)part != SlabPart.Lawn && _paints[part] != null) Destroy(_paints[part]);
+            if (_lockedPaint != null) Destroy(_lockedPaint);
         }
     }
 }

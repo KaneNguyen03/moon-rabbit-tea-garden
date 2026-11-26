@@ -28,3 +28,5 @@ MonoBehaviour:
   earthLit: {r: 0.52157, g: 0.33333, b: 0.29804, a: 1}
   earthShade: {r: 0.37647, g: 0.25882, b: 0.29020, a: 1}
   underside: {r: 0.21176, g: 0.17255, b: 0.27843, a: 1}
+  lockedReach: 60
+  lockedGrass: {r: 0.19216, g: 0.37647, b: 0.36078, a: 1}

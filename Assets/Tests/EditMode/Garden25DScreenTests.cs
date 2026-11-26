@@ -49,6 +49,7 @@ namespace VuonTra.Core.Tests
                 _runner.Garden25D.Map.Release();
                 for (int part = 0; part < SlabMesh.PartCount; part++)
                     if ((SlabPart)part != SlabPart.Lawn) Object.DestroyImmediate(_runner.Garden25D.Paint((SlabPart)part));
+                Object.DestroyImmediate(_runner.Garden25D.LockedPaint);
                 Object.DestroyImmediate(_runner.Garden25D.gameObject);
             }
             Object.DestroyImmediate(_root);
@@ -104,6 +105,18 @@ namespace VuonTra.Core.Tests
                 Rect area = Rect.MinMaxRect(Mathf.Min(a.x, b.x), Mathf.Min(a.y, b.y), Mathf.Max(a.x, b.x), Mathf.Max(a.y, b.y));
                 Assert.IsFalse(area.Contains(middle), g.name + " under " + g.transform.parent.name + " would take the taps meant for the island");
             }
+        }
+
+        [Test]
+        public void With_The_Switch_On_The_Stations_Stand_On_The_Island_And_A_Tap_On_One_Opens_Its_Card()
+        {
+            Open(true);
+            Assert.IsNotNull(World.Stands);
+            Assert.IsTrue(World.Stands.Stand(0).gameObject.activeSelf, "the teapot stands on the island");
+            World.Stands.Tap(0);
+            Assert.AreEqual(0, _screen.Selected);
+            World.Ground.Tap(new PointerEventData(null) { pointerCurrentRaycast = new RaycastResult { worldPosition = Vector3.zero } });
+            Assert.AreEqual(-1, _screen.Selected, "a tap on open ground puts the card away");
         }
 
         [Test]

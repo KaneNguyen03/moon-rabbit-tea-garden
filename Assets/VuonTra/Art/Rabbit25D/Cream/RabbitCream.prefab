@@ -378,6 +378,7 @@ MonoBehaviour:
   animator: {fileID: 2012543705408584845}
   front: {fileID: 3646604048616602990}
   threeQuarter: {fileID: 6977344320007618820}
+  shadow: {fileID: 8542177403842991263}
   view: 0
 --- !u!1 &2623965106795989489
 GameObject:

@@ -22,6 +22,11 @@ namespace VuonTra.Game
         [SerializeField] Color earthLit;
         [SerializeField] Color earthShade;
         [SerializeField] Color underside;
+        [SerializeField, Min(0f)] float lockedReach = 60f;
+        [SerializeField] Color lockedGrass = new Color(0.19216f, 0.37647f, 0.36078f, 1f);
+
+        public double LockedReach => lockedReach;
+        public Color LockedGrass => lockedGrass;
 
         public CameraSpec Spec() => new CameraSpec
         {

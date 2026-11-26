@@ -1,0 +1,85 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3f0e6c2a7d4e1f9c8b7a6d5e4f3a21, type: 3}
+  m_Name: GardenStands
+  m_EditorClassIdentifier: 
+  rabbitMetres: 1.15
+  rigs:
+  - Kind: tho-bong
+    Rig: {fileID: 8898068572492572611, guid: a898b7fdfafa041c691a293e84234d78, type: 3}
+  shadow: {fileID: 21300000, guid: c1ad310b1e8d4766860dde315ec755ef, type: 3}
+  shadowTint: {r: 1, g: 1, b: 1, a: 1}
+  shadowShare: 0.9
+  shadowMinWidth: 0.3
+  shadowDepth: 0.55
+  shadowFall: {x: 0.04, y: 0.03}
+  pads:
+  - {fileID: 21300000, guid: 0cac8242aaf6475e90d8abeec77fe5bf, type: 3}
+  - {fileID: 21300000, guid: adb3f7c16fe34aa68ad73b85143ccfb6, type: 3}
+  - {fileID: 21300000, guid: 963df3d0747e46a7a7fcf4075bc90db1, type: 3}
+  - {fileID: 21300000, guid: b4505d74e8b149509c6d7108c9dd6e04, type: 3}
+  padTint: {r: 0.66024, g: 0.66471, b: 0.72282, a: 0.92}
+  padShare: 1.5
+  padMinWidth: 1.4
+  padDepth: 0.85
+  dressing:
+  - Art: {fileID: 21300000, guid: fa61d4bf2c82400887a2645bb16b1065, type: 3}
+    Role: 7
+    Height: 0.6
+    Offset: {x: 1.15, y: -0.1}
+  - Art: {fileID: 21300000, guid: 0ca7a09db4344d3f983f4ab927bc4fce, type: 3}
+    Role: 7
+    Height: 0.4
+    Offset: {x: -1.05, y: 0.45}
+  - Art: {fileID: 21300000, guid: 69c6c435f6aa4b44b65bc14efaf5862f, type: 3}
+    Role: 7
+    Height: 0.55
+    Offset: {x: 0.85, y: 0.75}
+  - Art: {fileID: 21300000, guid: e1d382988c6c473688e4caa5cb09166a, type: 3}
+    Role: 7
+    Height: 0.3
+    Offset: {x: 0.6, y: -0.95}
+  lampPost: {fileID: 21300000, guid: 80675e0e0eab4a30bb32599c90d22278, type: 3}
+  lampPostHeight: 1.4
+  lampPostAside: 0.9
+  stone: {fileID: 21300000, guid: 66b0fe9c33e0464a8ae2d9bd14b6c176, type: 3}
+  stoneTint: {r: 0.48265, g: 0.54431, b: 0.52775, a: 1}
+  stoneWidth: 0.3
+  stoneStep: 0.45
+  stoneClear: 1.1
+  keepClear: 1.1
+  unbuiltTint: {r: 0.55, g: 0.5, b: 0.62, a: 0.65}
+  stations:
+  - Id: am-tra
+    Role: 1
+    Height: 1.15
+    Art: {fileID: 21300000, guid: e69d6a4736924eacbbfb8de23989bf1d, type: 3}
+    Work: 3
+    RabbitSpot: {x: -0.6, y: -0.3}
+  - Id: gio-la
+    Role: 1
+    Height: 0.9
+    Art: {fileID: 21300000, guid: b77bfc30908f401d8898ed78345d80e5, type: 3}
+    Work: 2
+    RabbitSpot: {x: -0.45, y: -0.4}
+  - Id: noi-mut
+    Role: 1
+    Height: 1
+    Art: {fileID: 21300000, guid: af0a670bc0ac4febb75f4379e819a21d, type: 3}
+    Work: 0
+    RabbitSpot: {x: -0.45, y: -0.3}
+  - Id: tra-sua
+    Role: 2
+    Height: 2
+    Art: {fileID: 21300000, guid: c29dafd831574d82bcceaad7447d8758, type: 3}
+    Work: 1
+    RabbitSpot: {x: -0.15, y: -0.6}

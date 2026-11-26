@@ -19,6 +19,7 @@ namespace VuonTra.EditorTools
             OutlineKinds();
             ImportFolder(Folder);
             ImportFolder(Generated);
+            BillboardArt.Import();
         }
 
         static void OutlineKinds()
