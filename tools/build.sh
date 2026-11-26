@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Builds a player from the command line: tools/build.sh mac | ios | android
+# Builds a player from the command line: tools/build.sh mac | ios | android | webgl
 # iOS and Android need their Unity module (Unity Hub → Installs → Add modules) and Xcode or the Android SDK;
 # without the module the script stops with exit code 2 and says what to install.
 set -u
@@ -9,7 +9,8 @@ case "${1:-mac}" in
   mac) METHOD=BuildMac ;;
   ios) METHOD=BuildIOS ;;
   android) METHOD=BuildAndroid ;;
-  *) echo "usage: tools/build.sh mac|ios|android" >&2; exit 64 ;;
+  webgl) METHOD=BuildWebGL ;;
+  *) echo "usage: tools/build.sh mac|ios|android|webgl" >&2; exit 64 ;;
 esac
 mkdir -p Logs
 "$UNITY" -batchmode -projectPath "$PWD" -logFile "$PWD/Logs/build-$1.log" -executeMethod VuonTra.EditorTools.BuildScript.$METHOD -quit
