@@ -689,6 +689,7 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(covered, covered.Count + " covered:\n" + string.Join("\n", covered));
         }
 
+        [Category("Slow")]
         [Test]
         public void After_Any_Station_Move_The_Arranging_Mode_Takes_No_Two_Station_Plates_Overlap()
         {
