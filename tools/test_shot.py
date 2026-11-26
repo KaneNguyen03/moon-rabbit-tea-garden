@@ -26,7 +26,9 @@ echo "$method|${VUONTRA_SHOTS:-}|${VUONTRA_SHOT_NAMES_ONLY:-}" >> "$project/unit
 if [ -n "${FAKE_EXCEPTION:-}" ]; then echo "NullReferenceException: fake" >> "$log"; exit 1; fi
 case "$method" in *RenderSelected) ;; *) exit 0 ;; esac
 mkdir -p "$project/Logs/shot"
-for part in $VUONTRA_SHOTS; do
+parts=${VUONTRA_SHOTS:-}
+[ -n "$parts" ] || parts=$(cut -f1 "$project/truth.txt" | uniq)
+for part in $parts; do
   group=${part%%:*}
   only=""; [ "$part" = "$group" ] || only=",${part#*:},"
   while IFS=$'\t' read -r owner frame; do
@@ -213,7 +215,7 @@ class ThroughTheGateTest(ShotTest):
     def test_names_rewrites_the_list_and_draws_nothing(self):
         result = self.shot("--names")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(self.calls()[0].split("|")[1:], [" ".join(source_groups()) + " ", "1"])
+        self.assertEqual(self.calls()[0].split("|")[1:], ["", "1"])
         self.assertEqual(len(self.names()), 5)
         self.assertEqual([name for name in self.pictures() if name.endswith(".png")], [])
 

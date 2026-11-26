@@ -27,7 +27,7 @@ namespace VuonTra.EditorTools
             public readonly Action Alone;
             public bool StartsOwnGame;
             public bool OnlyByName;
-            public string ContinuesGameOf;
+            public bool Standalone;
 
             public Group(string name, SharedScene shared) { Name = name; Shared = shared; }
             public Group(string name, Action alone) { Name = name; Alone = alone; }
@@ -40,9 +40,9 @@ namespace VuonTra.EditorTools
             new Group("main", RenderMain) { StartsOwnGame = true },
             new Group("guidance", RenderGuidance),
             new Group("land-waves", RenderLandWaves),
-            new Group("photo-ask", RenderPhotoAsk) { ContinuesGameOf = "land-waves" },
+            new Group("photo-ask", RenderPhotoAsk),
             new Group("rest-share", RenderRestShare),
-            new Group("chatter", RenderChatter) { ContinuesGameOf = "rest-share" },
+            new Group("chatter", RenderChatter),
             new Group("album-sets", RenderAlbumSets),
             new Group("moon-jars", RenderMoonJars),
             new Group("gift-codes", RenderGiftCodes),
@@ -50,7 +50,7 @@ namespace VuonTra.EditorTools
             new Group("ad-seams", RenderAdSeams),
             new Group("moon-pass", RenderMoonPass),
             new Group("forest-rings", RenderForestRings),
-            new Group("map-edges", RenderMapEdges),
+            new Group("map-edges", RenderMapEdges) { Standalone = true },
             new Group("layout", RenderLayout),
             new Group("pond", RenderPond),
             new Group("recipes", RenderRecipes),
@@ -58,16 +58,16 @@ namespace VuonTra.EditorTools
             new Group("recipe-book", RenderRecipeBook),
             new Group("newcomer", RenderNewcomer),
             new Group("offers", RenderOffers),
-            new Group("quest-chests", RenderQuestChests),
+            new Group("quest-chests", RenderQuestChests) { Standalone = true },
             new Group("achievement-tiers", RenderAchievementTiers),
-            new Group("month-pass", RenderMonthPass),
-            new Group("welcome-back", RenderWelcomeBack),
+            new Group("month-pass", RenderMonthPass) { Standalone = true },
+            new Group("welcome-back", RenderWelcomeBack) { Standalone = true },
             new Group("fair", RenderFair),
-            new Group("trunk", RenderTrunk),
-            new Group("juice", RenderJuice),
+            new Group("trunk", RenderTrunk) { Standalone = true },
+            new Group("juice", RenderJuice) { Standalone = true },
             new Group("intros", RenderIntros),
-            new Group("first-session", RenderFirstSession),
-            new Group("round-two-large-text", RenderRoundTwoLargeText),
+            new Group("first-session", RenderFirstSession) { Standalone = true },
+            new Group("round-two-large-text", RenderRoundTwoLargeText) { Standalone = true },
             new Group("qa-nits-2", RenderQaNits2),
             new Group("reserved-props", RenderReservedProps),
             new Group("guest-by-pond", RenderGuestByPond),
@@ -93,7 +93,7 @@ namespace VuonTra.EditorTools
         static bool Wanted(string name)
         {
             if (_seen == null) return true;
-            if (_group != _asked) return false;
+            if (_asked != null && _group != _asked) return false;
             _seen.Add(_group + "\t" + name);
             return !_namesOnly && (_only == null || _only.Contains(name));
         }
@@ -139,15 +139,18 @@ namespace VuonTra.EditorTools
             Directory.CreateDirectory(ShotFolder);
             try
             {
-                foreach (string part in request.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries))
+                string[] parts = request.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length == 0 && !_namesOnly) throw new ArgumentException("Preview: " + ShotRequest + " names no group");
+                if (parts.Length == 0) RenderGroups(group => true);
+                foreach (string part in parts)
                 {
                     string[] pieces = part.Split(':');
-                    string name = pieces[0];
-                    Group asked = Array.Find(Groups, group => group.Name == name);
-                    if (asked == null) throw new ArgumentException("Preview: no group named " + name);
+                    int asked = Array.FindIndex(Groups, group => group.Name == pieces[0]);
+                    if (asked < 0) throw new ArgumentException("Preview: no group named " + pieces[0]);
+                    bool replay = Groups[asked].Shared != null && !Groups[asked].Standalone;
                     _only = pieces.Length > 1 ? new HashSet<string>(pieces[1].Split(',')) : null;
-                    _asked = name;
-                    RenderGroups(group => group.Name == name || group.Name == asked.ContinuesGameOf);
+                    _asked = pieces[0];
+                    RenderGroups(group => group == Groups[asked] || (replay && group.Shared != null && Array.IndexOf(Groups, group) < asked));
                 }
                 File.WriteAllLines(Path.Combine(ShotFolder, ShotNamesFile), _seen);
                 Debug.Log("[VuonTra] Shots written to " + ShotFolder);

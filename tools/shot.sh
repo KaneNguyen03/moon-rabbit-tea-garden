@@ -14,7 +14,8 @@ usage: tools/shot.sh <name>...        renders the named preview frames to Logs/s
        tools/shot.sh --groups         prints each group with its number of frames (no Unity)
        tools/shot.sh --names [group]  asks Unity which frames each group draws and rewrites tools/shot-names.txt (no pictures)
 A name is a frame (113-ruong-mo), a pattern in quotes ('113-*'), or a group (trunk).
-Unity runs a whole group to reach one frame, so one frame costs its group's time; only the named frames are drawn.
+Only the named frames are drawn, but Unity plays the frame's whole group to reach it, and for a group not marked Standalone in
+PreviewShot.Select.cs also the groups before it, because those groups build on the game the earlier ones leave.
 --seed runs the content seeder first; needed only after a change to seeded content, art imports or string tables.
 The run queues through tools/unity-gate.sh (UNITY_GATE_PRIORITY, UNITY_GATE_MAX_WAIT) and must start outside the Claude Code sandbox.
 EOF
@@ -73,8 +74,7 @@ if [ "$MODE" = list ]; then
 fi
 
 SPEC=""
-if [ "$MODE" = names ] && [ ${#WANT[@]} -eq 0 ]; then SPEC=$(groups | tr '\n' ' ')
-else
+if [ "$MODE" != names ] || [ ${#WANT[@]} -gt 0 ]; then
   [ ${#WANT[@]} -gt 0 ] || usage
   for group in $(groups); do
     case "$WHOLE" in *" $group "*) SPEC="$SPEC$group "; continue ;; esac
