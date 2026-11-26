@@ -73,6 +73,7 @@ Kiểm trước commit vẫn là `tools/verify.sh --fast` (Unity) hoặc ít nh�
 
 **Một issue = một story.** Không có story nào không có issue, và không mở issue mới chỉ để có story.
 
+- **Issue mới:** mở từ mẫu trong `.github/ISSUE_TEMPLATE/`: `viec.md` cho việc (dạng của #147, #150), `loi.md` cho lỗi (các mục của `/bug-report`). Mẫu chỉ gắn sẵn `enhancement` hoặc `bug`; nhãn chủ đề và `QA` gắn tay.
 - **Tên file:** `production/epics/<epic-slug>/story-<số issue>-<slug>.md` (ví dụ `production/epics/vuon-2-5d/story-145-dat-va-camera.md`). Số story của studio là số issue, nên `NNN` không cần đánh lại.
 - **Dòng đầu phần header:** `> **GitHub**: KaneNguyen03/moon-rabbit-tea-garden#145`. Thân issue thêm một dòng `Spec: production/epics/…/story-145-….md` khi story file được tạo.
 - **Acceptance criteria:** sau khi story file có, AC sửa trong story file; issue chỉ giữ thảo luận, ảnh và nghiệm thu.
