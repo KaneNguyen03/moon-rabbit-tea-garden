@@ -19,4 +19,12 @@ MonoBehaviour:
   glideFadeSeconds: 0.35
   stopSpeed: 0.05
   islandThickness: 0.8
-  grassTileMetres: 2
+  grassTileMetres: 3.4
+  grassLipMetres: 0.12
+  lipShadowMetres: 0.05
+  moonFrom: {x: -1, y: -1}
+  grassLip: {r: 0.21176, g: 0.43529, b: 0.38431, a: 1}
+  lipShadow: {r: 0.27059, g: 0.20392, b: 0.28235, a: 1}
+  earthLit: {r: 0.52157, g: 0.33333, b: 0.29804, a: 1}
+  earthShade: {r: 0.37647, g: 0.25882, b: 0.29020, a: 1}
+  underside: {r: 0.21176, g: 0.17255, b: 0.27843, a: 1}

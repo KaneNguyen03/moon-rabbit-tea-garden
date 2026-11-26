@@ -45,6 +45,8 @@ namespace VuonTra.Game
         bool _ready;
         AwayReport _pendingAway;
         Garden25DWorld _garden25D;
+
+        public Garden25DWorld Garden25D => _garden25D;
         public AwayReport LastAway { get; private set; }
         public bool LastAwayDoubled { get; private set; }
 
@@ -1262,7 +1264,11 @@ namespace VuonTra.Game
             else if (!paused && _ready) { StartSession(); Notifications.CameBack(); }
         }
 
-        void OnDestroy() => Application.logMessageReceived -= OnLogMessage;
+        void OnDestroy()
+        {
+            Application.logMessageReceived -= OnLogMessage;
+            if (_garden25D != null) Destroy(_garden25D.gameObject);
+        }
 
         void OnApplicationQuit()
         {

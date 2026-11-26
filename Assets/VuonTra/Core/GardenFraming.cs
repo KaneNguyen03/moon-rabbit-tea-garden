@@ -150,5 +150,44 @@ namespace VuonTra.Core
 
         public static MapFrame Map(GroundRect island, double aspect) =>
             new MapFrame(island.Centre, Math.Max(island.Depth / 2d, island.Width / 2d / aspect));
+
+        public static GroundRect Pad(GroundRect area, double margin) =>
+            new GroundRect(area.MinX - margin, area.MaxX + margin, area.MinZ - margin, area.MaxZ + margin);
+
+        public static GroundPoint MapPoint(MapFrame frame, double aspect, double u, double v) =>
+            new GroundPoint(frame.Centre.X + (u - 0.5d) * 2d * frame.HalfHeight * aspect, frame.Centre.Z + (v - 0.5d) * 2d * frame.HalfHeight);
+
+        public const double TapSlopUnits = 12d;
+        public const double DoubleTapSeconds = 0.35d, DoubleTapReachUnits = 48d;
+        public const double CanvasWidth = 1080d, CanvasHeight = 1920d;
+
+        public static double CanvasScale(double screenWidth, double screenHeight) =>
+            Math.Sqrt(screenWidth / CanvasWidth * (screenHeight / CanvasHeight));
+
+        public static double TapSlopPixels(double screenWidth, double screenHeight) => TapSlopUnits * CanvasScale(screenWidth, screenHeight);
+
+        public static bool IsTap(double dx, double dy, double screenWidth, double screenHeight)
+        {
+            double slop = TapSlopPixels(screenWidth, screenHeight);
+            return dx * dx + dy * dy <= slop * slop;
+        }
+
+        public static bool IsDoubleTap(double secondsApart, double dx, double dy, double screenWidth, double screenHeight)
+        {
+            double reach = DoubleTapReachUnits * CanvasScale(screenWidth, screenHeight);
+            return secondsApart >= 0d && secondsApart <= DoubleTapSeconds && dx * dx + dy * dy <= reach * reach;
+        }
+
+        public static double DoubleTapDistance(double distance, CameraSpec spec) =>
+            ShowsDetail(distance, spec) ? spec.DefaultDistance : spec.NearDistance;
+
+        public static double NextZoomStep(double distance, CameraSpec spec)
+        {
+            double[] steps = { spec.FarDistance, spec.DefaultDistance, spec.NearDistance };
+            int nearest = 0;
+            for (int i = 1; i < steps.Length; i++)
+                if (Math.Abs(Math.Log(distance / steps[i])) < Math.Abs(Math.Log(distance / steps[nearest]))) nearest = i;
+            return steps[(nearest + 1) % steps.Length];
+        }
     }
 }

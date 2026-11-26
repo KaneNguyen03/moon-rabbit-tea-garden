@@ -15,7 +15,7 @@ namespace VuonTra.Game
 
         readonly Tweens _tweens = new Tweens();
         GardenCameraSettings _settings;
-        Material _lawn, _earth;
+        Material[] _paints;
 
         public GardenCameraRig Rig { get; private set; }
         public GardenGround Ground { get; private set; }
@@ -32,8 +32,7 @@ namespace VuonTra.Game
         {
             var world = new GameObject("Garden 2.5D").AddComponent<Garden25DWorld>();
             world._settings = settings;
-            world._lawn = lawn;
-            world._earth = earth;
+            world._paints = Paints(settings, lawn, earth);
             world.Segments = segments;
             CameraSpec spec = settings.Spec();
 
@@ -53,12 +52,14 @@ namespace VuonTra.Game
             world.Ground = land.AddComponent<GardenGround>();
             world.PanZoom = land.AddComponent<GardenPanZoom>();
             world.PanZoom.Attach(world.Rig, world._tweens, world.Island);
+            world.PanZoom.Tapped += world.Ground.Tap;
             world.BuildGround();
 
             var mapEye = new GameObject("Map Camera", typeof(Camera));
             mapEye.transform.SetParent(world.transform, false);
             world.Map = mapEye.AddComponent<GardenMapCamera>();
             world.Map.Attach(mapEye.GetComponent<Camera>());
+            mapEye.GetComponent<Camera>().GetUniversalAdditionalCameraData().SetRenderer(RendererIndex);
 
             world.Rig.Frame(new GroundPoint(0d, 0d), spec.DefaultDistance);
             return world;
@@ -74,6 +75,25 @@ namespace VuonTra.Game
 
         public void Tick(float seconds) => _tweens.Update(seconds);
 
-        void BuildGround() => Ground.Build(Segments, Rig.Spec, _settings.IslandThickness, _settings.GrassTileMetres, _lawn, _earth);
+        public Material Paint(SlabPart part) => _paints[(int)part];
+
+        void BuildGround() => Ground.Build(Segments, Rig.Spec, _settings.Slab(), _paints);
+
+        static Material[] Paints(GardenCameraSettings settings, Material lawn, Material earth)
+        {
+            var paints = new Material[SlabMesh.PartCount];
+            for (int part = 0; part < paints.Length; part++)
+            {
+                if ((SlabPart)part == SlabPart.Lawn) paints[part] = lawn;
+                else if (earth != null) paints[part] = new Material(earth) { name = "Island " + (SlabPart)part, color = settings.Tint((SlabPart)part) };
+            }
+            return paints;
+        }
+
+        void OnDestroy()
+        {
+            for (int part = 0; part < _paints.Length; part++)
+                if ((SlabPart)part != SlabPart.Lawn && _paints[part] != null) Destroy(_paints[part]);
+        }
     }
 }

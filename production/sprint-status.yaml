@@ -21,7 +21,7 @@ stories:
     name: "Đất và camera"
     file: "production/epics/vuon-2-5d/story-145-dat-va-camera.md"
     priority: must-have
-    status: in-progress
+    status: review
     owner: "B/agent-145"
     estimate_days: 2
     blocker: ""
@@ -30,8 +30,8 @@ stories:
     name: "Trạm, đồ và thỏ dựng đứng có bóng, bảng tỉ lệ, vòng làm việc ba trạm mẫu"
     file: "production/epics/vuon-2-5d/story-146-dung-dung-billboard.md"
     priority: must-have
-    status: ready-for-dev
-    owner: ""
+    status: in-progress
+    owner: "B/agent-146"
     estimate_days: 2
     blocker: ""
     completed: ""

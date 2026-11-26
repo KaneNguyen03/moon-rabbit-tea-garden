@@ -14,9 +14,14 @@ namespace VuonTra.Game
         [SerializeField, Min(0f)] float stopSpeed = 0.05f;
         [SerializeField, Min(0.1f)] float islandThickness = 0.8f;
         [SerializeField, Min(0.25f)] float grassTileMetres = 2f;
-
-        public float IslandThickness => islandThickness;
-        public float GrassTileMetres => grassTileMetres;
+        [SerializeField, Min(0f)] float grassLipMetres = 0.12f;
+        [SerializeField, Min(0f)] float lipShadowMetres = 0.05f;
+        [SerializeField] Vector2 moonFrom = new Vector2(-1f, -1f);
+        [SerializeField] Color grassLip;
+        [SerializeField] Color lipShadow;
+        [SerializeField] Color earthLit;
+        [SerializeField] Color earthShade;
+        [SerializeField] Color underside;
 
         public CameraSpec Spec() => new CameraSpec
         {
@@ -26,6 +31,26 @@ namespace VuonTra.Game
             EdgeGive = edgeGive,
             GlideFadeSeconds = glideFadeSeconds,
             StopSpeed = stopSpeed,
+        };
+
+        public SlabSpec Slab() => new SlabSpec
+        {
+            Thickness = islandThickness,
+            Lip = grassLipMetres,
+            Gap = lipShadowMetres,
+            GrassMetres = grassTileMetres,
+            MoonX = moonFrom.x,
+            MoonZ = moonFrom.y,
+        };
+
+        public Color Tint(SlabPart part) => part switch
+        {
+            SlabPart.Lip => grassLip,
+            SlabPart.Gap => lipShadow,
+            SlabPart.Earth => earthLit,
+            SlabPart.EarthShade => earthShade,
+            SlabPart.Underside => underside,
+            _ => Color.white,
         };
     }
 }

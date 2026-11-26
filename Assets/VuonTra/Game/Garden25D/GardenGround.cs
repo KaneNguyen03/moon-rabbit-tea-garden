@@ -6,7 +6,7 @@ using VuonTra.Core;
 namespace VuonTra.Game
 {
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer), typeof(MeshCollider))]
-    public sealed class GardenGround : MonoBehaviour, IPointerClickHandler
+    public sealed class GardenGround : MonoBehaviour
     {
         CameraSpec _spec;
         int _segments;
@@ -14,11 +14,11 @@ namespace VuonTra.Game
 
         public event Action<Hex> TileTapped;
 
-        public void Build(int segments, CameraSpec spec, float thickness, float grassMetres, Material lawn, Material earth)
+        public void Build(int segments, CameraSpec spec, SlabSpec bands, Material[] paints)
         {
             _spec = spec;
             _segments = segments;
-            SlabMesh slab = IslandShape.Slab(GardenFraming.Island(segments, spec), thickness, grassMetres);
+            SlabMesh slab = IslandShape.Slab(GardenFraming.Island(segments, spec), bands);
             var corners = new Vector3[slab.VertexCount];
             var uvs = new Vector2[slab.VertexCount];
             for (int v = 0; v < slab.VertexCount; v++)
@@ -30,18 +30,17 @@ namespace VuonTra.Game
             _mesh = new Mesh { name = "Island" };
             _mesh.SetVertices(corners);
             _mesh.SetUVs(0, uvs);
-            _mesh.subMeshCount = 2;
-            _mesh.SetTriangles(slab.LawnTriangles, 0);
-            _mesh.SetTriangles(slab.EarthTriangles, 1);
+            _mesh.subMeshCount = SlabMesh.PartCount;
+            for (int part = 0; part < SlabMesh.PartCount; part++) _mesh.SetTriangles(slab.Part((SlabPart)part), part);
             _mesh.RecalculateNormals();
             _mesh.RecalculateBounds();
             GetComponent<MeshFilter>().sharedMesh = _mesh;
-            GetComponent<MeshRenderer>().sharedMaterials = new[] { lawn, earth };
+            GetComponent<MeshRenderer>().sharedMaterials = paints;
             GetComponent<MeshCollider>().sharedMesh = _mesh;
             if (old != null) Destroy(old);
         }
 
-        public void OnPointerClick(PointerEventData eventData)
+        public void Tap(PointerEventData eventData)
         {
             Vector3 at = eventData.pointerCurrentRaycast.worldPosition;
             Hex tile = GardenFraming.TileAt(new GroundPoint(at.x, at.z), _spec);
