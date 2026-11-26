@@ -15,6 +15,7 @@ Measured on this Mac on 26 Nov 2026, unless a row says otherwise.
 | Checker self-tests | `python3 -I tools/test_conventions.py` | `tools/conventions.py` itself | 6–19 s |
 | Core tests | `tools/ci/core-tests.sh` | Test files in `Assets/Tests/EditMode` with no Unity reference: game rules, saves, economy. No Unity needed | 24–47 s with compile |
 | One test group | `tools/test.sh <filter>` | Unity EditMode tests whose full name matches, e.g. `tools/test.sh SaveStoreTests` | Not measured; needs a Unity start |
+| One screen's picture | `tools/shot.sh <frame>` | One named preview frame as `Logs/shot/<frame>.png`, e.g. `tools/shot.sh 113-ruong-mo`; `--list` and `--groups` print the names without Unity. Its own test: `python3 -I tools/test_shot.py` (28 s, no Unity, outside the sandbox) | Not measured; needs a Unity start |
 | Fast verify | `tools/verify.sh --fast` | Rules, content seed, compile of every assembly, EditMode tests except `[Category("Slow")]`, player save untouched | Not measured |
 | Full verify | `tools/verify.sh` | Fast verify plus preview shots and the Slow tests; `--build` adds a Mac build that is opened | Test step alone took 31, 39 and 76 min in three recorded runs (24–26 Nov) |
 
@@ -43,7 +44,7 @@ Who does what, which file is the source of truth, and which skill each role uses
 2. **Data-Driven Modularity:** Use `ScriptableObject` for all items, characters, and station stats. For 2D character customization/skins, use `SpriteLibrary` + `SpriteResolver` + `SortingGroup`, never duplicate prefabs per skin.
 3. **Native VFX Only:** Never bake sparkles, dust, steam, or falling leaves into character/prop PNGs. Use Unity `ParticleSystem` (Shuriken).
 4. **Clean Lifecycle:** Keep `Update()` empty unless handling per-frame input/physics. Use C# events and `DOTween` for UI transitions and tactile "juice" feedback.
-5. **Visual Proof Required:** Before marking any visual/UI/animation task complete, generate a composite preview image or GameView screenshot and verify alignment, palette consistency, and clean alpha edges.
+5. **Visual Proof Required:** Before marking any visual/UI/animation task complete, generate a composite preview image or GameView screenshot (`tools/shot.sh <frame>` renders one screen) and verify alignment, palette consistency, and clean alpha edges.
 
 ## Project Skills (`.claude/skills/`)
 | Skill | Use for |

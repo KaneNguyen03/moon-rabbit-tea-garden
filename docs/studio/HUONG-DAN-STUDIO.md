@@ -37,6 +37,8 @@ Gọi skill bằng `/tên-skill` (hoặc Skill tool). Mọi skill đọc `projec
 
 Kiểm trước commit vẫn là `tools/verify.sh --fast` (Unity) hoặc ít nhất `python3 -I tools/conventions.py && tools/ci/core-tests.sh` (không Unity).
 
+Ảnh chứng cho một màn hình: `tools/shot.sh <tên khung>` (ví dụ `tools/shot.sh 113-ruong-mo`) vẽ đúng khung đó vào `Logs/shot/` và in đường dẫn, không cần chạy cả lượt preview của `tools/verify.sh`. `tools/shot.sh --list` và `--groups` liệt kê tên khung và nhóm mà không cần Unity. Tên khung trùng tên ảnh trong `docs/anh/po-<issue>/`; chép ảnh từ `Logs/shot/` sang đó khi issue cần ảnh chứng. Lệnh tự xếp hàng qua `tools/unity-gate.sh`.
+
 ### Design — UX/UI, mỹ thuật, hoạt ảnh (worktree riêng)
 
 | Khi | Skill | Ra gì |

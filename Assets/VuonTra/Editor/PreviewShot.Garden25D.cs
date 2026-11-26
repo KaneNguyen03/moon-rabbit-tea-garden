@@ -38,6 +38,7 @@ namespace VuonTra.EditorTools
 
         static void ShootGarden(bool island, string code, bool large, bool map, string name)
         {
+            if (!Wanted(name)) return;
             EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
             Features.Garden25D = island;
             L10n.SetLocale(code);
@@ -84,7 +85,7 @@ namespace VuonTra.EditorTools
             tex.Apply();
             RenderTexture.active = null;
             eye.targetTexture = null;
-            File.WriteAllBytes(Path.Combine(IslandFolder, name + ".png"), tex.EncodeToPNG());
+            File.WriteAllBytes(Path.Combine(OutFolder(IslandFolder), name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             if (map) screen.IslandMap.Close();
             rt.Release();
