@@ -7,6 +7,7 @@ if [ $# -lt 1 ] || [ -z "$1" ]; then
   exit 64
 fi
 FILTER=$1
+tools/unity-gate.sh held || exec tools/unity-gate.sh "${UNITY_GATE_PRIORITY:-50}" tools/test.sh "$@"
 RESULTS="$PWD/Logs/TestResults-filter.xml"
 LOG="$PWD/Logs/test-filter.log"
 mkdir -p Logs
