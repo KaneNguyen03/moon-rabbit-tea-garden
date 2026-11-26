@@ -2,7 +2,7 @@
 
 > **GitHub**: KaneNguyen03/moon-rabbit-tea-garden#145
 > **Epic**: Vườn 2.5D
-> **Status**: In Review
+> **Status**: Complete
 > **Layer**: Presentation
 > **Type**: Integration
 > **Estimate**: L (6–9 ngày theo docs/de-xuat-2-5d.md §6)
