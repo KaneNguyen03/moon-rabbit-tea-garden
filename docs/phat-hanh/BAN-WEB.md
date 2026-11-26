@@ -24,7 +24,7 @@ tools/publish-pages.sh
 | Độ nét | canvas theo cửa sổ, `devicePixelRatio` tối đa 2 | `index.html` của template |
 | Save | `persistentDataPath` trên web là `/idbfs/...` trong IndexedDB; template bật `autoSyncPersistentDataPath` nên mỗi lần `SaveStore` ghi tệp là Unity tự đẩy xuống IndexedDB, không cần `.jslib` | `index.html` của template |
 | Tiếng | trình duyệt chặn âm thanh trước lần chạm đầu; Unity tự mở lại `AudioContext` khi người chơi chạm/nhấn lần đầu | sẵn trong Unity |
-| Khởi động | Trên web, Localization/Addressables không được tải đồng bộ (`WaitForCompletion` ném lỗi). `GameRunner` giữ object `Game` tắt cho tới khi Localization khởi tạo xong và bảng chữ đã tải, rồi mới `Init` và bật lại; `L10n.T` trả về khoá thay vì chặn khi bảng chưa sẵn sàng. Máy tính, iOS, Android và Editor vẫn chạy đồng bộ như cũ (`L10n.LoadsAsync` chỉ đúng trên WebGL) | `GameRunner.Awake`, `L10n` |
+| Khởi động | Trên web, Localization/Addressables không được tải đồng bộ (`WaitForCompletion` ném lỗi). `GameRunner` giữ object `Game` tắt cho tới khi Localization khởi tạo xong và bảng chữ đã tải, rồi mới `Init` và bật lại; Khi đổi ngôn ngữ, Localization nhả mọi bảng rồi tải lại; trong lúc đó `L10n.T` trả lại chữ đã hiện trước đó cho khoá ấy, và `L10n.Changed` chỉ báo khi bảng mới đã tải xong. Máy tính, iOS, Android và Editor vẫn chạy đồng bộ như cũ (`L10n.LoadsAsync` chỉ đúng trên WebGL) | `GameRunner.Awake`, `L10n` |
 | Chữ | Web không có font hệ điều hành, font dựng sẵn của Unity thiếu dấu tiếng Việt (ạ, ơ, ư, đ...). Bản web dùng `Assets/Resources/Fonts/DejaVuSans.ttf` (giấy phép Bitstream Vera/DejaVu cho phép phân phối lại, nằm sẵn trong tệp font), đủ mọi ký tự game dùng kể cả ✦ ☆ ♥ ▶ ✓. Các nền tảng khác vẫn dùng font hệ điều hành như trước | `UiKit.Font` |
 | Seam iOS/Android | IAP, Game Center, iCloud, Play Games, thông báo, Firebase đều nằm sau `#if UNITY_IOS`/`UNITY_ANDROID`; trên WebGL các seam này là bản rỗng | `Assets/VuonTra/Game/Platform`, `Store` |
 | Kiếm tiền | cờ `Features.Monetization` vẫn tắt (#144), bản web không có mua hàng/quảng cáo/giá | không đổi |
@@ -53,6 +53,19 @@ GH_TOKEN=$(env -u GITHUB_TOKEN -u GH_TOKEN gh auth token --user KaneNguyen03) \
 ```
 
 Repo đang public nên Pages miễn phí. Nếu repo chuyển sang private thì Pages cần gói GitHub Pro.
+
+## Số đo bản build 26/11
+
+| Mục | Giá trị |
+|---|---|
+| Dung lượng tải | 43 MB trên đĩa, ~42 MB tải lần đầu: `WebGL.data.unityweb` 32,5 MB, `WebGL.wasm.unityweb` 9,3 MB, `framework.js` + `loader.js` 0,2 MB |
+| Tải lần đầu | 5,5–9,5 s từ `localhost` (Chrome headless, `python3 -m http.server`, không header `Content-Encoding`); mạng 20 Mbit/s cộng thêm khoảng 17 s, vẫn dưới 30 s |
+| Mở lại | ~6 s, tải 0 MB (Unity cache tệp build trong IndexedDB) |
+| Console | không lỗi, không cảnh báo; chỉ có dòng gợi ý của Unity về header `Content-Encoding: br` |
+| Save | đóng hẳn trình duyệt rồi mở lại: `playSeconds` 15,1 → 30,2, vườn còn nguyên |
+| Đổi ngôn ngữ | Tiếng Việt ↔ English trong menu Tạm nghỉ đổi ngay, không hiện khoá thô |
+
+Ảnh: `docs/anh/po-150/web-desktop-*.png` (1440×900) và `web-mobile-*.png` (390×844, iPhone).
 
 ## Lưu ý
 

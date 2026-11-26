@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
@@ -55,13 +56,23 @@ namespace VuonTra.Game
         public static string T(string key, params object[] args)
         {
             Hook();
-            if (!Ready) return key;
+            string text = Ready ? Find(key, args) : ShownBefore(key);
+            if (text == null) return key;
+            return args == null || args.Length == 0 ? text : string.Format(text, args);
+        }
+
+        static readonly Dictionary<string, string> _shownBefore = new Dictionary<string, string>();
+
+        static string ShownBefore(string key) => _shownBefore.TryGetValue(key, out string text) ? text : null;
+
+        static string Find(string key, object[] args)
+        {
             string text = null;
             if (args != null && args.Length > 0 && Code.StartsWith("en", StringComparison.Ordinal) && FirstCountIsOne(args))
                 text = EntryOrNull(key + OneSuffix);
             if (text == null) text = LookUp(key) ?? LookUpAfterLoadingTable(key);
-            if (text == null) return key;
-            return args == null || args.Length == 0 ? text : string.Format(text, args);
+            if (LoadsAsync && text != null) _shownBefore[key] = text;
+            return text;
         }
 
         static string LookUp(string key) => LocalizationSettings.StringDatabase.GetLocalizedString(Table, key);

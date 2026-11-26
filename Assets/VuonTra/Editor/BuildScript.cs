@@ -34,7 +34,12 @@ namespace VuonTra.EditorTools
             BuildTarget previous = EditorUserBuildSettings.activeBuildTarget;
             BuildTargetGroup previousGroup = BuildPipeline.GetBuildTargetGroup(previous);
             ConfigureWebGL();
-            if (previous != BuildTarget.WebGL) EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL);
+            if (previous != BuildTarget.WebGL && !EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL))
+            {
+                Debug.LogError("[VuonTra] Build WebGL: không chuyển được build target sang WebGL; kiểm tra module WebGL trong Unity Hub.");
+                if (Application.isBatchMode) EditorApplication.Exit(2);
+                return;
+            }
             int exitCode = BuildAndReport(BuildTarget.WebGL, BuildTargetGroup.WebGL, WebGLPath);
             if (previous != BuildTarget.WebGL) EditorUserBuildSettings.SwitchActiveBuildTarget(previousGroup, previous);
             if (Application.isBatchMode && exitCode != 0) EditorApplication.Exit(exitCode);

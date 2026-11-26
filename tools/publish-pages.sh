@@ -13,7 +13,7 @@ fi
 big=$(find "$SITE" -type f -size +95M)
 if [ -n "$big" ]; then
   echo "publish-pages: GitHub rejects files over 100 MB:" >&2
-  printf '  %s\n' $big >&2
+  printf '  %s\n' "$big" >&2
   exit 3
 fi
 
