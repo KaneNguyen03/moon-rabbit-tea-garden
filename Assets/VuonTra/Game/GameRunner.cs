@@ -44,6 +44,7 @@ namespace VuonTra.Game
         float _sinceSave;
         bool _ready;
         AwayReport _pendingAway;
+        Garden25DWorld _garden25D;
         public AwayReport LastAway { get; private set; }
         public bool LastAwayDoubled { get; private set; }
 
@@ -126,6 +127,7 @@ namespace VuonTra.Game
             _passWatch.Reset(State, TodayNumber);
             _dishWatch.Reset(State);
             _ready = true;
+            if (Features.Garden25D && _garden25D == null) _garden25D = Garden25DWorld.Load(State.Grid.Segments);
             Analytics.LogGameOpen(newGarden);
             StartSession();
             NoteOffers();
@@ -162,6 +164,11 @@ namespace VuonTra.Game
             }
 
             if (!Paused) State.PlaySeconds += dt;
+            if (_garden25D != null)
+            {
+                _garden25D.Grow(State.Grid.Segments);
+                _garden25D.Tick(dt);
+            }
             (_adProvider as FakeRewardedAds)?.Advance(dt);
             _sinceSync += dt;
             if (_sinceSync >= SyncTimerSeconds) SyncNow(SyncReason.Timer);

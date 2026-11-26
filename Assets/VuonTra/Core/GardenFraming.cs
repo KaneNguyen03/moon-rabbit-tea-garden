@@ -134,6 +134,20 @@ namespace VuonTra.Core
             return Math.Abs(next) < spec.StopSpeed ? 0d : next;
         }
 
+        public static double GlideReach(double speed, CameraSpec spec, bool reducedMotion)
+        {
+            if (reducedMotion || Math.Abs(speed) < spec.StopSpeed) return 0d;
+            double rate = -Math.Log(spec.GlideLeftAtFade) / spec.GlideFadeSeconds;
+            return Math.Sign(speed) * (Math.Abs(speed) - spec.StopSpeed) / rate;
+        }
+
+        public static double GlideSeconds(double speed, CameraSpec spec, bool reducedMotion)
+        {
+            if (reducedMotion || Math.Abs(speed) < spec.StopSpeed) return 0d;
+            double rate = -Math.Log(spec.GlideLeftAtFade) / spec.GlideFadeSeconds;
+            return Math.Log(Math.Abs(speed) / spec.StopSpeed) / rate;
+        }
+
         public static MapFrame Map(GroundRect island, double aspect) =>
             new MapFrame(island.Centre, Math.Max(island.Depth / 2d, island.Width / 2d / aspect));
     }

@@ -92,6 +92,7 @@ URP: UniversalRP.asset [0] Renderer2D (default, 2D garden)  [1] Garden25DRendere
 - `GardenFraming.Pose(GroundPoint focus, double distance, CameraSpec) -> CameraPose`
 - `GardenFraming.TileAt(GroundPoint, CameraSpec) -> Hex`
 - `GardenFraming.Map(GroundRect island, double aspect) -> MapFrame`
+- `Garden25DWorld.Load(int segments)`, `Grow(int)`, `Tick(float)`; `GardenGround.TileTapped(Hex)`; `GardenMapCamera.Shoot(GroundRect, int, int) -> RenderTexture`, `Release()`
 
 ### Implementation Guidelines
 
@@ -165,8 +166,8 @@ URP: UniversalRP.asset [0] Renderer2D (default, 2D garden)  [1] Garden25DRendere
 ## Migration Plan
 
 1. Core `GardenFraming` + test (xong 26/11).
-2. ScriptableObject cài đặt camera, renderer data Forward+, prefab `Garden25D` sau `Features.Garden25D`.
-3. Mesh đảo, `PhysicsRaycaster`, chạm ô; camera bản đồ.
+2. ScriptableObject cài đặt camera, renderer data Forward+, cảnh `Garden25DWorld` dựng bằng code sau `Features.Garden25D` (xong 26/11; dựng bằng code vì `Garden.unity` không được commit).
+3. Mesh đảo chữ nhật, `PhysicsRaycaster`, chạm ô; camera bản đồ (xong phần code 26/11; mép đảo và màn bản đồ còn lại).
 4. `GardenScreen.cs` đọc hằng số zoom từ `CameraSpec`; khi 2.5D thay bản 2D, bỏ `ClampView` 2D.
 
 **Rollback plan**: tắt `Features.Garden25D`; bỏ renderer chỉ số 1.

@@ -10,6 +10,7 @@ namespace VuonTra.Game
 
         CameraSpec _spec;
 
+        public Camera View => view;
         public CameraSpec Spec => _spec ??= settings != null ? settings.Spec() : new CameraSpec();
         public GroundPoint Focus { get; private set; }
         public double Distance { get; private set; }

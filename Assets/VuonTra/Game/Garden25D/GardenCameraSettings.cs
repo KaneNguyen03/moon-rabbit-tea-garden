@@ -12,6 +12,11 @@ namespace VuonTra.Game
         [SerializeField, Min(0f)] float edgeGive = 0.6f;
         [SerializeField, Min(0.05f)] float glideFadeSeconds = 0.35f;
         [SerializeField, Min(0f)] float stopSpeed = 0.05f;
+        [SerializeField, Min(0.1f)] float islandThickness = 0.8f;
+        [SerializeField, Min(0.25f)] float grassTileMetres = 2f;
+
+        public float IslandThickness => islandThickness;
+        public float GrassTileMetres => grassTileMetres;
 
         public CameraSpec Spec() => new CameraSpec
         {

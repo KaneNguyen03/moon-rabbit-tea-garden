@@ -9,5 +9,9 @@ namespace VuonTra.Core
 #endif
 
         public static bool Monetization { get; set; } = MonetizationByDefault;
+
+        public const bool Garden25DByDefault = false;
+
+        public static bool Garden25D { get; set; } = Garden25DByDefault;
     }
 }
