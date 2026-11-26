@@ -1836,13 +1836,25 @@ namespace VuonTra.Game.UI
             _cardDishLeaf.color = can ? Palette.Mix(LeafGold, Palette.Ink, 0.5f) : LeafGold;
         }
 
+        void DishRaised(int station, int dish, Vector2 at)
+        {
+            GameState s = Runner.State;
+            if (Recipes.IsTop(s, station, dish))
+            {
+                Sfx.Reward();
+                Haptics.Medium();
+                Feel.FloatText(at, L10n.T("dish.top", UiKit.Times(Recipes.StationMultiplier(s, station))), Palette.Lantern, 40);
+                return;
+            }
+            Sfx.Milestone();
+            Haptics.Light();
+            Feel.FloatText(at, L10n.T("dish.raised", Recipes.DishLevel(s, station, dish)), LeafGold, 40);
+        }
+
         void OnRaiseDish(int station)
         {
             if (station < 0 || !Runner.RaiseDish(station)) return;
-            Sfx.Milestone();
-            Haptics.Light();
-            Vector2 at = Feel.PointOf(_cardDishLine.rectTransform);
-            Feel.FloatText(at + new Vector2(0f, 60f), L10n.T("dish.raised", Recipes.Level(Runner.State, station)), LeafGold, 40);
+            DishRaised(station, Recipes.CurrentDish(Runner.State, station), Feel.PointOf(_cardDishLine.rectTransform) + new Vector2(0f, 60f));
             RectTransform line = _cardDishLine.rectTransform;
             Tweens.Add(Motion.Tap, t => { if (line != null) line.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f,
                 () => { if (line != null) line.localScale = Vector3.one; });

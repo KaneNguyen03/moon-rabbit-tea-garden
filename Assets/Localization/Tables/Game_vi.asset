@@ -4642,6 +4642,10 @@ MonoBehaviour:
     m_Localized: "M\u1ED7i nhi\u1EC7m v\u1EE5 ng\xE0y v\xE0 h\u1ED9p qu\xE0 ng\xE0y cho \u0111i\u1EC3m tu\u1EA7n.\n\u0110\u1EE7 100, 250, 400 \u0111i\u1EC3m l\xE0 m\u1EDF m\u1ED9t r\u01B0\u01A1ng \u1EDF tab Nhi\u1EC7m v\u1EE5."
     m_Metadata:
       m_Items: []
+  - m_Id: 1507387750998016
+    m_Localized: "M\xF3n c\u1EA5p t\u1ED1i \u0111a \xB7 tr\u1EA1m \xD7{0}!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

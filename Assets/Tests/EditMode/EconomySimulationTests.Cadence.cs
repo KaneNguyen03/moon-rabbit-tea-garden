@@ -106,7 +106,7 @@ namespace VuonTra.Core.Tests
             var run = new Cadence { Seed = seed, Pace = pace, UpgradeAll = pressUpgradeAll };
             var moons = new Seasons { Seed = seed };
             run.Moons = moons;
-            int season = s.Season, open = OpenStations(), segments = Expansion.Segments(s), level = Garden.Level(s), tiers = Quests.TiersDone(quests, s);
+            int season = s.Season, open = OpenStations(), segments = Expansion.Segments(s), level = Garden.Level(s), tiers = Quests.TiersDone(quests, s), topDishes = Recipes.TopDishes(s);
             long fair = -1;
             int quiet = 0, quietWithLevels = 0;
             for (int day = 1; day <= CadenceDays; day++)
@@ -128,6 +128,8 @@ namespace VuonTra.Core.Tests
                 if (segmentsNow > segments) news.Add("đoạn đất " + segmentsNow);
                 int fresh = Recipes.NewDishes(s);
                 if (fresh > 0) { news.Add(fresh + " món mới"); Recipes.SeeDishes(s); }
+                int topNow = Recipes.TopDishes(s);
+                if (topNow > topDishes) news.Add((topNow - topDishes) + " món cấp tối đa");
                 int tiersNow = Quests.TiersDone(quests, s);
                 if (tiersNow > tiers) news.Add((tiersNow - tiers) + " nấc thành tựu");
                 if (Fairs.Open(s, today) is FairRun run0 && run0.Start != fair) { fair = run0.Start; news.Add("hội " + run0.Def.Id); }
@@ -149,7 +151,7 @@ namespace VuonTra.Core.Tests
                     run.Quiet = Math.Max(run.Quiet, quiet);
                     run.QuietWithLevels = Math.Max(run.QuietWithLevels, quietWithLevels);
                 }
-                season = s.Season; open = openNow; segments = segmentsNow; level = levelNow; tiers = tiersNow;
+                season = s.Season; open = openNow; segments = segmentsNow; level = levelNow; tiers = tiersNow; topDishes = topNow;
             }
             return run;
         }
@@ -206,7 +208,7 @@ namespace VuonTra.Core.Tests
                 "60 giây với người chăm, 10 giây với người không nghỉ tay) × " + Seeds.Length + " hạt, ngày 1–" + CadenceDays + ", bắt đầu Mùa trăng mới ngay khi được, câu " + Fishing.BaitCap + " mồi mỗi ngày và giữ cá, nhận nhiệm vụ mỗi " + CadenceQuestEvery + " giây (đo theo ngày nên chậm vài giây không đổi gì; người không nghỉ tay của test 2 giờ nhận mỗi giây). " +
                 "Chạy với kiếm tiền tắt (#144, mặc định): thẻ vé tháng không hiện. Lịch bắt đầu ngày 2/1/1970, không có hội trong 28 ngày ấy (hội chạy ngày 10–19 của tháng 3, 4, 5, 6, 7, 8, 10, 11), nên số đo là trường hợp không có hội.");
             report.AppendLine();
-            report.AppendLine("Thứ mới trong ngày: trạm mở (cả mở lại sau trăng mới), đoạn đất, Mùa trăng mới, thẻ giới thiệu tới lượt (tính năng mới), món mới trong sổ công thức, nấc thành tựu mới, hội. Lên cấp vườn không tính; cột cuối tính thêm để so với báo cáo 23/11.");
+            report.AppendLine("Thứ mới trong ngày: trạm mở (cả mở lại sau trăng mới), đoạn đất, Mùa trăng mới, thẻ giới thiệu tới lượt (tính năng mới), món mới trong sổ công thức, món lên cấp tối đa (cấp " + Recipes.MaxLevel + ", món ấy ×" + Recipes.TopLevelMultiplier + " thu nhập trạm; có tiếng thưởng, rung mạnh và chữ vàng riêng), nấc thành tựu mới, hội. Lên cấp vườn không tính; cột cuối tính thêm để so với báo cáo 23/11.");
             report.AppendLine("\"Chuỗi không có gì mới\" là số ngày liền nhau trong ngày " + CadenceFrom + "–" + CadenceDays + " không có thứ mới nào; mỗi ô là trung vị [p10–p90] trên " + Seeds.Length + " hạt.");
             report.AppendLine();
             report.AppendLine("| Kiểu, cách mua | Chuỗi dài nhất không có gì mới | Hạt có chuỗi > " + QuietMedian + " ngày | Kể cả lên cấp vườn (như 23/11) | Trăng mới 1 / 2 / 3 / 7 (ngày) |");
@@ -215,8 +217,8 @@ namespace VuonTra.Core.Tests
                 report.AppendLine("| " + group.Key + " | " + Spread(group, r => r.Quiet) + " | " + group.Count(r => r.Quiet > QuietMedian) + "/" + group.Count() + " | " + Spread(group, r => r.QuietWithLevels)
                     + " | " + string.Join(" / ", new[] { 1, 2, 3, NewMoon.MaxSeasons }.Select(n => Median(group, r => r.MoonDay(n)).ToString())) + " |");
             report.AppendLine();
-            report.AppendLine("Test kiểm luật ≤ " + QuietMedian + " ngày (trung vị), ≤ " + QuietP90 + " ngày (p90) ở cột \"Kể cả lên cấp vườn\" cho cả sáu nhóm, và ở cột đầu cho người thong thả. Người chăm và không nghỉ tay tới trăng mới thứ " + NewMoon.MaxSeasons
-                + " (trần) trước ngày " + CadenceDays + ", sau đó chỉ còn nấc thành tựu và cấp vườn: cột đầu của họ là số để chủ project quyết, không phải luật của test.");
+            report.AppendLine("Test kiểm luật ≤ " + QuietMedian + " ngày (trung vị), ≤ " + QuietP90 + " ngày (p90) cho cả sáu nhóm, ở cả cột đầu (không tính lên cấp vườn) và cột \"Kể cả lên cấp vườn\". Sau trần " + NewMoon.MaxSeasons
+                + " mùa trăng mới của người chăm và không nghỉ tay, thứ mới chủ yếu là món lên cấp tối đa và nấc thành tựu.");
             report.AppendLine();
 
             report.AppendLine("## Ngày thẻ tới lượt (trung vị [p10–p90]; > " + CadenceDays + " là chưa tới trong " + CadenceDays + " ngày)");
@@ -266,12 +268,9 @@ namespace VuonTra.Core.Tests
                 var withLevels = group.Select(r => (double)r.QuietWithLevels).ToList();
                 Assert.LessOrEqual(Median(withLevels), QuietMedian, group.Key + ": at most two days in a row without a garden level or anything new, on the median\n" + text);
                 Assert.LessOrEqual(Percentile(withLevels, 0.9), QuietP90, group.Key + ": and at most three at the ninetieth percentile\n" + text);
-                if (group.First().Pace == Pace.Casual)
-                {
-                    var values = group.Select(r => (double)r.Quiet).ToList();
-                    Assert.LessOrEqual(Median(values), QuietMedian, group.Key + ": at most two days in a row with nothing new even without the levels, on the median\n" + text);
-                    Assert.LessOrEqual(Percentile(values, 0.9), QuietP90, group.Key + ": and at most three at the ninetieth percentile\n" + text);
-                }
+                var values = group.Select(r => (double)r.Quiet).ToList();
+                Assert.LessOrEqual(Median(values), QuietMedian, group.Key + ": at most two days in a row with nothing new even without the levels, on the median\n" + text);
+                Assert.LessOrEqual(Percentile(values, 0.9), QuietP90, group.Key + ": and at most three at the ninetieth percentile\n" + text);
                 foreach (Cadence run in group)
                 {
                     Assert.AreEqual(Intros.WeekChestDay, run.CardDay[Intros.WeekChest], group.Key + ", seed " + run.Seed + ": the week chest card on day two\n" + text);

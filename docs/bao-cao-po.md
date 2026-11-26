@@ -2504,6 +2504,13 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt: tab sheet đóng không tự làm mới; 8 người đưa nguyên liệu dùng lại.
 - Bản build đo dùng tên và bundle riêng vì bản Mac không theo biến `HOME`; có thể xoá hai thư mục `~/Library/Application Support/com.vuontratho.perf123/` và `~/Library/Logs/VuonTraTho/Perf 123 Garden/`.
 
+## #122 (vòng 2) — Món cấp tối đa là "thứ mới" cho người chơi chăm sau trần trăng mới (agent-122b)
+**Test:** `tools/verify.sh` đầy đủ: tests 1814/1814, rules ok, RESULT GREEN. Mô phỏng nhịp tuần 2–4 đạt sau 495 s.
+**Commit:** 309fff5 (main fast-forward tới 2cbea65; verify lượt gộp 1817/1817).
+**Đã làm:** `Recipes.IsTop`/`TopDishes`. Món đạt cấp 10 có tiếng thưởng, rung mạnh và chữ vàng "Món cấp tối đa · trạm ×N!" với hệ số thật của trạm, ở cả tấm trạm và sổ công thức. Sửa chữ nổi "Món lên cấp" trong sổ (trước đây hiện cấp của món đang bán, không phải món vừa nâng). Mô phỏng đếm món cấp tối đa là thứ mới và kiểm trung vị ≤ 2, p90 ≤ 3 cho cả sáu nhóm, không tính lên cấp vườn: nhóm chăm và không nghỉ tay từ 2–3 [p90 3,4–4] xuống 1 [p90 2], không hạt nào có chuỗi quá 2 ngày. Không đổi số kinh tế. Studio code-review: hai điểm (thiếu chuỗi trong bảng, hệ số ×2 sai với món 2–3) đã sửa trước verify cuối.
+### Chưa đạt / cần PO quyết
+- Không có.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

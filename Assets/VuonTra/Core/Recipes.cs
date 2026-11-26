@@ -44,6 +44,18 @@ namespace VuonTra.Core
             return at < s.DishLevels.Length ? Math.Max(1, Math.Min(MaxLevel, s.DishLevels[at])) : 1;
         }
 
+        public static bool IsTop(GameState s, int station, int dish) => DishLevel(s, station, dish) >= MaxLevel;
+
+        public static int TopDishes(GameState s)
+        {
+            if (s?.Levels == null) return 0;
+            int n = 0;
+            for (int i = 0; i < s.Levels.Length; i++)
+                for (int d = 0; d < Dishes; d++)
+                    if (IsTop(s, i, d)) n++;
+            return n;
+        }
+
         public static int KnownLevel(GameState s, int station, int dish)
         {
             int level = DishLevel(s, station, dish);
