@@ -8,7 +8,7 @@ VERDICT: APPROVED
 2. pass - các lớp giữ nguyên khung và vị trí; các khung hình clip không giật
 3. pass - viền Ink trên mọi phần; lông rig kéo về tông Thỏ Bông (#FEF4DA); nồi hồng vẫn là placeholder nét dày, sẽ thay ở #131
 4. pass - hết viền xám xanh ở quầy, đèn, nắp ấm, giọt và lấp lánh; tam giác giữa mái và xà của quầy giờ trong suốt
-5. pass - bỏ bong bóng vẽ sẵn trên nồi hồng; hơi và bọt sẽ làm bằng Shuriken
+5. pass - bản 2.5D của nồi hồng (docs/anh/po-146/prop_noi-mut.png) không có bong bóng vẽ sẵn; bản 2D giữ bong bóng cho tới khi #136 có hơi bằng Shuriken
 6. pass - kích thước không đổi; bóng dưới chân là phần code (ASSET-012)
 7. không áp dụng (không có UI)
 ```
