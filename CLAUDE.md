@@ -24,6 +24,7 @@ The three Unity rows were not run for this table: they are cited from the script
 |---|---|
 | Docs, `production/`, `design/` only | Rules |
 | `tools/conventions.py` or its baseline | Rules and checker self-tests |
+| `tools/unity-gate.sh` or a tool that starts Unity | Rules and `python3 -I tools/test_unity_gate.py` (24 s, no Unity, outside the sandbox) |
 | `Assets/VuonTra/Core` or a pure test | Rules and Core tests |
 | `Game`, `Editor`, a screen test, assets | Rules, Core tests, `tools/test.sh <filter>` for the area, then fast verify before merge |
 | A round of merges on `main`, or a release | Full verify |
@@ -32,7 +33,7 @@ CI (`.github/workflows/checks.yml`) runs only the first three rows. Nothing in C
 
 Traps:
 - `tools/ci/core-tests.sh` fails inside the Claude Code sandbox with `SocketException (13): Permission denied`, because the .NET test host binds a local socket. Run it outside the sandbox.
-- Every checkout shares one Mac and one Unity queue. Unity runs go through `/tmp/unity-gate.sh` (`docs/save-va-test.md`), a script outside the repo that `/tmp` loses on restart. Only session B runs Unity; other sessions ask B (`docs/studio/HUONG-DAN-STUDIO.md` section 5).
+- Every checkout shares one Mac and one Unity queue, `tools/unity-gate.sh` (`docs/save-va-test.md`). `tools/verify.sh`, `tools/test.sh` and `tools/build.sh` queue through it themselves; never start the Unity binary any other way. `tools/unity-gate.sh status` shows who holds Unity, who waits and for how long. The gate and its status need to run outside the Claude Code sandbox. Only session B runs Unity; other sessions ask B (`docs/studio/HUONG-DAN-STUDIO.md` section 5).
 - Batch mode cannot open a project the Unity Editor holds, and Unity builds nothing from a checkout under `.claude/worktrees`.
 
 Who does what, which file is the source of truth, and which skill each role uses: `docs/studio/HUONG-DAN-STUDIO.md` (Vietnamese). Folder map and first-clone setup: `README.md`.
