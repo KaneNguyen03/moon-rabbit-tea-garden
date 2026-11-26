@@ -19,7 +19,7 @@ Measured on this Mac on 26 Nov 2026, unless a row says otherwise.
 | Fast verify | `tools/verify.sh --fast` | Rules, content seed, compile of every assembly, EditMode tests except `[Category("Slow")]`, player save untouched | Not measured. Its tests took 496 s and 986 s in two recorded full runs, plus two Unity starts |
 | Full verify | `tools/verify.sh` | Fast verify plus preview shots and the Slow tests; `--build` adds a Mac build that is opened | Test step alone took 31, 39, 71 and 76 min in four recorded runs (24–26 Nov). The 32 Slow tests are three quarters of it |
 
-The four Unity rows were not run for this table: on 26 Nov the queue gave no slot in two waits of 45 minutes. Test times are sums of per-test durations in the `TestResults.xml` of two full runs (24 and 26 Nov; the second shared the Mac with other runs). A Unity start took 6–12 s in a checkout that has a `Library` folder and 144–174 s for the first import in a fresh worktree (logs of two fresh worktrees and four warm starts, 26 Nov). Waiting for a slot is extra: `tools/unity-gate.sh status`.
+Of the four Unity rows only the area tests ran for this table: `tools/test.sh --changed` on the `content` area took 316 s of Unity in a fresh worktree (275 s first import, 21 s for its 47 tests), after two earlier waits of 45 minutes without a slot. Test times are sums of per-test durations in the `TestResults.xml` of two full runs (24 and 26 Nov; the second shared the Mac with other runs). A Unity start took 6–12 s in a checkout that has a `Library` folder and 144–275 s for the first import in a fresh worktree (logs of three fresh worktrees and four warm starts, 26 Nov). Waiting for a slot is extra: `tools/unity-gate.sh status`.
 
 | Change | Run |
 |---|---|
