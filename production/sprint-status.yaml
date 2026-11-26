@@ -21,11 +21,11 @@ stories:
     name: "Đất và camera"
     file: "production/epics/vuon-2-5d/story-145-dat-va-camera.md"
     priority: must-have
-    status: review
+    status: done
     owner: "B/agent-145"
     estimate_days: 2
     blocker: ""
-    completed: ""
+    completed: "2026-11-26"
   - id: "2.5d-146"
     name: "Trạm, đồ và thỏ dựng đứng có bóng, bảng tỉ lệ, vòng làm việc ba trạm mẫu"
     file: "production/epics/vuon-2-5d/story-146-dung-dung-billboard.md"
