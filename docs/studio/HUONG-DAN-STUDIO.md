@@ -119,7 +119,7 @@ Chi tiết thiếu gì để qua mốc: [production/gate-checks/2026-11-26-produ
 | Studio có agent chuyên Godot và Unreal (5 `godot-*`, 4 `ue-*`, `unreal-specialist`) | Game là Unity | Đã xoá 10 agent đó khỏi `.claude/agents` (còn 39); khi nâng cấp studio không chép lại. Skill studio vẫn nhắc tên chúng ở nhánh "nếu engine là Godot/Unreal"; `project.yaml` ghi Unity nên nhánh đó không chạy |
 | `/prototype` dựng game trình duyệt | Game là Unity, đã có | Không dùng `/prototype`; spike thì làm nhánh Unity như `spike-3d` |
 | Tài liệu studio tiếng Anh | Tài liệu dự án tiếng Việt | Viết tiếng Việt; giữ nguyên tiêu đề mục tiếng Anh của mẫu (`## Overview`, `## Status`…) vì script studio tìm theo tên đó |
-| `review_mode: lean` (từ rigor `standard`) gọi agent giám đốc ở gate | Chi phí token | Ai thấy tốn có thể đặt `--local modes.review_mode=solo` trong `project.local.yaml`; file này **chưa** có trong `.gitignore`, nên đừng commit nó (B thêm dòng `/project.local.yaml` vào `.gitignore`, kế hoạch di trú 5.4) |
+| `review_mode: lean` (từ rigor `standard`) gọi agent giám đốc ở gate | Chi phí token | Ai thấy tốn có thể đặt `--local modes.review_mode=solo` trong `project.local.yaml`; file này là cấu hình riêng từng máy và `.gitignore` đã bỏ qua nó (`git check-ignore -v project.local.yaml`) |
 | `CLAUDE.md` ghi "701 tests" | Core tests nay 963 (26/11) | B sửa con số khi chạm `CLAUDE.md` |
 
 ## 6. Mặc định đã chọn khi không hỏi được ai

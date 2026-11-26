@@ -123,7 +123,7 @@ Session QA chạy `/smoke-check` (lệnh `commands.smoke` = conventions + Core t
 
 - [ ] **5.1** `CLAUDE.md` ghi "701 tests"; Core tests nay là 963 (chạy 26/11). B sửa con số khi chạm `CLAUDE.md`.
 - [ ] **5.2** Entity registry `design/registry/entities.yaml` còn trống: `/consistency-check` sau khi có 9 GDD.
-- [ ] **5.4** `project.local.yaml` (cấu hình riêng từng người của studio) chưa có trong `.gitignore`: B thêm `/project.local.yaml`.
+- [x] **5.4** `project.local.yaml` (cấu hình riêng từng người của studio) đã có trong `.gitignore` (dòng `/project.local.yaml`).
 - [ ] **5.3** `.claude/docs/technical-preferences.md` (bản phụ của `project.yaml`) chưa điền; studio nói `project.yaml` thắng khi khác nhau, nên không bắt buộc.
 
 ---
