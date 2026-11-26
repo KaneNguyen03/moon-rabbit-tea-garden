@@ -11,6 +11,7 @@ case "${1:-mac}" in
   android) METHOD=BuildAndroid ;;
   *) echo "usage: tools/build.sh mac|ios|android" >&2; exit 64 ;;
 esac
+tools/unity-gate.sh held || exec tools/unity-gate.sh "${UNITY_GATE_PRIORITY:-50}" tools/build.sh "$@"
 mkdir -p Logs
 "$UNITY" -batchmode -projectPath "$PWD" -logFile "$PWD/Logs/build-$1.log" -executeMethod VuonTra.EditorTools.BuildScript.$METHOD -quit
 code=$?
