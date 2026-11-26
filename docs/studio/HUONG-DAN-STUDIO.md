@@ -120,7 +120,7 @@ Chi tiết thiếu gì để qua mốc: [production/gate-checks/2026-11-26-produ
 | `/prototype` dựng game trình duyệt | Game là Unity, đã có | Không dùng `/prototype`; spike thì làm nhánh Unity như `spike-3d` |
 | Tài liệu studio tiếng Anh | Tài liệu dự án tiếng Việt | Viết tiếng Việt; giữ nguyên tiêu đề mục tiếng Anh của mẫu (`## Overview`, `## Status`…) vì script studio tìm theo tên đó |
 | `review_mode: lean` (từ rigor `standard`) gọi agent giám đốc ở gate | Chi phí token | Ai thấy tốn có thể đặt `--local modes.review_mode=solo` trong `project.local.yaml`; file này là cấu hình riêng từng máy và `.gitignore` đã bỏ qua nó (`git check-ignore -v project.local.yaml`) |
-| `CLAUDE.md` ghi "701 tests" | Core tests nay 963 (26/11) | B sửa con số khi chạm `CLAUDE.md` |
+| Tài liệu studio hay chép số test | Số test Core tăng theo từng story | Không chép con số vào tài liệu: chạy `tools/ci/core-tests.sh` và đọc dòng `Passed! … Total:` nó in ra |
 
 ## 6. Mặc định đã chọn khi không hỏi được ai
 
