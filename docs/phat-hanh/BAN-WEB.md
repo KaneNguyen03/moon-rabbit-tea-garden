@@ -36,7 +36,7 @@ tools/publish-pages.sh
 1. `git pull` trên nhánh cần phát hành; `tools/verify.sh` xanh.
 2. `tools/build-webgl.sh` (lần đầu trên một Library mới mất lâu vì import lại toàn bộ asset cho WebGL; các lần sau nhanh hơn).
 3. Thử tại máy: `cd Build/WebGL && python3 -m http.server 8150`, mở `http://localhost:8150/`. Thanh tải chạy hết, vào vườn, chạm vài lần, đóng tab, mở lại: vườn còn.
-4. `tools/publish-pages.sh`. Script dựng một repo tạm chỉ chứa nội dung `Build/WebGL/` + `.nojekyll`, commit "Web build from <sha>", rồi **force push** một commit duy nhất lên `gh-pages` (nhánh không giữ lịch sử build cũ, repo không phình thêm vài chục MB mỗi lần).
+4. `tools/publish-pages.sh`. Script dựng một repo tạm chỉ chứa nội dung `Build/WebGL/` + `.nojekyll`, lấy `gh-pages` hiện có làm gốc (fetch nông một commit), commit "Web build from <sha>" lên trên rồi push thường, **không force push** (luật repo). Mỗi lần publish thêm một commit vào `gh-pages`; build không đổi thì script dừng, không push.
 5. Đợi 1–2 phút cho GitHub Pages dựng lại, mở đường dẫn ở đầu trang.
 
 Token lấy bằng `env -u GITHUB_TOKEN -u GH_TOKEN gh auth token --user KaneNguyen03`, đưa vào git qua một credential helper chỉ sống trong lệnh `push` đó và đọc token từ biến môi trường, không nằm trong URL remote, không ghi xuống tệp nào. Đổi tài khoản bằng `PAGES_ACCOUNT=...`, đổi nhánh bằng `PAGES_BRANCH=...`. Thử script mà không đụng origin: `tools/publish-pages.sh /đường/dẫn/repo-trần.git`.

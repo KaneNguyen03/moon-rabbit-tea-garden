@@ -18,29 +18,34 @@ if [ -n "$big" ]; then
 fi
 
 STAGE=$(mktemp -d "${TMPDIR:-/tmp}/pages.XXXXXX")
-trap 'rm -rf "$STAGE"' EXIT
-cp -R "$SITE"/. "$STAGE"/
-touch "$STAGE/.nojekyll"
+trap 'rm -rf "$STAGE"; unset PAGES_TOKEN' EXIT
 
-SOURCE=$(git rev-parse --short HEAD)
-NAME=$(git config user.name || echo "$ACCOUNT")
-EMAIL=$(git config user.email || echo "$ACCOUNT@users.noreply.github.com")
-git -C "$STAGE" init -q -b "$BRANCH"
-git -C "$STAGE" add -A
-git -C "$STAGE" -c user.name="$NAME" -c user.email="$EMAIL" commit -q -m "Web build from $SOURCE"
-
+auth=()
 case "$REMOTE" in
   https://*)
     PAGES_TOKEN=$(env -u GITHUB_TOKEN -u GH_TOKEN gh auth token --user "$ACCOUNT")
     export PAGES_TOKEN
-    git -C "$STAGE" -c credential.helper= -c "credential.helper=!f() { echo username=$ACCOUNT; echo password=\$PAGES_TOKEN; }; f" \
-      push --force "$REMOTE" "$BRANCH:$BRANCH"
-    unset PAGES_TOKEN
-    ;;
-  *)
-    git -C "$STAGE" push --force "$REMOTE" "$BRANCH:$BRANCH"
+    auth=(-c credential.helper= -c "credential.helper=!f() { echo username=$ACCOUNT; echo password=\$PAGES_TOKEN; }; f")
     ;;
 esac
+stage_git() { git -C "$STAGE" ${auth[@]+"${auth[@]}"} "$@"; }
+
+SOURCE=$(git rev-parse --short HEAD)
+NAME=$(git config user.name || echo "$ACCOUNT")
+EMAIL=$(git config user.email || echo "$ACCOUNT@users.noreply.github.com")
+stage_git init -q -b "$BRANCH"
+if stage_git fetch -q --depth 1 "$REMOTE" "refs/heads/$BRANCH" 2>/dev/null; then
+  stage_git reset -q --soft FETCH_HEAD
+fi
+cp -R "$SITE"/. "$STAGE"/
+touch "$STAGE/.nojekyll"
+stage_git add -A
+if stage_git rev-parse -q --verify HEAD >/dev/null && stage_git diff --cached --quiet; then
+  echo "publish-pages: $BRANCH already holds this build; nothing to push"
+  exit 0
+fi
+stage_git -c user.name="$NAME" -c user.email="$EMAIL" commit -q -m "Web build from $SOURCE"
+stage_git push "$REMOTE" "HEAD:refs/heads/$BRANCH"
 
 echo "publish-pages: $BRANCH on $REMOTE now holds $SITE from $SOURCE ($(du -sh "$SITE" | cut -f1))"
 case "$REMOTE" in
