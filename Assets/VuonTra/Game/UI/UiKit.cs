@@ -255,16 +255,16 @@ namespace VuonTra.Game.UI
             return button;
         }
 
-        public const float LockSize = 44f;
+        public const float LockSize = 36f;
 
         public static RectTransform LockBadge(RectTransform parent, Sprite panel)
         {
-            var badge = Rect("Lock", parent).Place(0f, 1f, 12, -8, LockSize, LockSize);
+            var badge = Rect("Lock", parent).Place(0f, 1f, -6, 8, LockSize, LockSize);
             badge.AddImage(panel, Palette.Ink, true);
-            Rect("Shackle", badge).Place(0.5f, 0.5f, 0, 7, 18, 20).AddImage(panel, Palette.Paper, true);
-            Rect("Gap", badge).Place(0.5f, 0.5f, 0, 6, 8, 12).AddImage(panel, Palette.Ink, true);
-            Rect("Body", badge).Place(0.5f, 0.5f, 0, -6, 26, 18).AddImage(panel, Palette.Paper, true);
-            Rect("Keyhole", badge).Place(0.5f, 0.5f, 0, -6, 5, 8).AddImage(panel, Palette.Ink, true);
+            Rect("Shackle", badge).Place(0.5f, 0.5f, 0, 6, 15, 16).AddImage(panel, Palette.Paper, true);
+            Rect("Gap", badge).Place(0.5f, 0.5f, 0, 5, 7, 10).AddImage(panel, Palette.Ink, true);
+            Rect("Body", badge).Place(0.5f, 0.5f, 0, -5, 21, 15).AddImage(panel, Palette.Paper, true);
+            Rect("Keyhole", badge).Place(0.5f, 0.5f, 0, -5, 4, 7).AddImage(panel, Palette.Ink, true);
             return badge;
         }
 

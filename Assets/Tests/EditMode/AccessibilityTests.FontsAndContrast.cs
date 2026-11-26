@@ -130,6 +130,8 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(padlock, "short of carrots is drawn, not only tinted");
             Assert.IsTrue(padlock.gameObject.activeSelf);
             Assert.GreaterOrEqual(Contrast(padlock.GetComponent<Image>().color, buy.Find("Face").GetComponent<Image>().color), 3.0, "the lock is a shape the eye can find");
+            Layout();
+            Assert.IsFalse(RectIn((RectTransform)padlock, (RectTransform)buy).Overlaps(RectIn(top.rectTransform, (RectTransform)buy)), "the lock sits on the corner, clear of the words");
 
             runner.State.Coins = new BigNum(1e30);
             screen.Refresh(-1f);
