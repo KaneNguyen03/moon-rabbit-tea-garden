@@ -116,6 +116,7 @@ Chi tiết thiếu gì để qua mốc: [production/gate-checks/2026-11-26-produ
 | Studio hooks (`validate-commit.sh`, session-start, statusline) | Hook Claude + `.githooks/pre-commit` của dự án | Không cài hook studio; chỉ `yaml-helper.sh` |
 | Commit message studio tự do | Một câu tiếng Anh nói điều thay đổi + dòng Co-Authored-By; commit theo đường dẫn | Giữ quy ước dự án |
 | Asset skill gợi ý công cụ AI tạo hình | Không SpriteCook; hình theo `cozy-watercolor-art`, cắt bằng `img2game2d`, đóng bằng `visual-critic-gate` | Skill dự án quyết; `/asset-spec` chỉ viết spec |
+| Studio có agent chuyên Godot và Unreal (5 `godot-*`, 4 `ue-*`, `unreal-specialist`) | Game là Unity | Đã xoá 10 agent đó khỏi `.claude/agents` (còn 39); khi nâng cấp studio không chép lại. Skill studio vẫn nhắc tên chúng ở nhánh "nếu engine là Godot/Unreal"; `project.yaml` ghi Unity nên nhánh đó không chạy |
 | `/prototype` dựng game trình duyệt | Game là Unity, đã có | Không dùng `/prototype`; spike thì làm nhánh Unity như `spike-3d` |
 | Tài liệu studio tiếng Anh | Tài liệu dự án tiếng Việt | Viết tiếng Việt; giữ nguyên tiêu đề mục tiếng Anh của mẫu (`## Overview`, `## Status`…) vì script studio tìm theo tên đó |
 | `review_mode: lean` (từ rigor `standard`) gọi agent giám đốc ở gate | Chi phí token | Ai thấy tốn có thể đặt `--local modes.review_mode=solo` trong `project.local.yaml`; file này **chưa** có trong `.gitignore`, nên đừng commit nó (B thêm dòng `/project.local.yaml` vào `.gitignore`, kế hoạch di trú 5.4) |
