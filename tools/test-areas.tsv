@@ -25,3 +25,4 @@ world-labels	WorldLabelTiersTests	Assets/VuonTra/Game/UI/GardenScreen.WorldLabel
 juice	JuiceTests|EaseTests|AwaySheetFeelTests	Assets/VuonTra/Game/UI/GardenScreen.Juice.cs Assets/VuonTra/Game/UI/FeelLayer.cs Assets/VuonTra/Game/UI/PressDip.cs Assets/VuonTra/Game/UI/Ease.cs	
 runner	ScreenTests|RunnerTests	Assets/VuonTra/Game/GameRunner.cs	Every screen test drives the runner.
 ui	ScreenTests|AccessibilityTests|LayoutModeTests|AllocationTests|JuiceTests|AwaySheetFeelTests|WorldLabelTiersTests|FourStationsTests|EaseTests|StationSoundTests	Assets/VuonTra/Game/UI/*	The garden screen and every view without a row of its own. This is most of the fast verify.
+dotween	DOTweenInstallTests	Assets/Plugins/Demigiant/DOTween/* Assets/Resources/DOTweenSettings.asset Assets/VuonTra/Game/VuonTra.Game.asmdef	The vendored plugin must not be edited (its licence); the test proves the game assemblies still reach it after an upgrade.
