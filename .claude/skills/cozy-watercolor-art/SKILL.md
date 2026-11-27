@@ -39,3 +39,4 @@ The colours come from `docs/art-bible.md` and `Assets/VuonTra/Game/UI/Palette.cs
 2. Check the cut PNG for coloured fringe from the background along the edges (defringe) before importing.
 3. PNG sides in multiples of 4 px. Import as Sprite, `Filter Mode = Bilinear` (as the art in `Assets/VuonTra/Art/Final` is), compression High Quality (or ASTC 6x6 per platform override).
 4. Pivot: **new** world props that stand on the ground use Bottom Center. Existing sprites use Center; don't re-pivot one without checking every place it is positioned.
+5. 2.5D garden art follows `docs/art-bible.md` items 8–19: one source density (448 px per rabbit height), ground pieces drawn top-down, the shared style block and per-asset prompts in `docs/anh/2-5d-mau/`, cut with `docs/anh/2-5d-mau/cong-cu/cat-theo-chieu-cao.py`.
