@@ -1,0 +1,4 @@
+I have invoked the `image-generator` subagent to perform the image editing task. I will provide the saved file path once it completes.
+The `image-generator` subagent was unable to generate `/Users/hiquyennek/Documents/VuonTraNam-tho4/docs/anh/do-hoa-tho/tho-4-kieu/plates/kem-truoc-head.png` because the image generation service exceeded its quota:
+
+> **RESOURCE_EXHAUSTED (code 429):** You have exhausted your capacity on this model. Your quota will reset in approximately 4 hours and 56 minutes.

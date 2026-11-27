@@ -17,6 +17,10 @@ draw() {
       out="$base-arms.png"
       agy --effort medium --print-timeout 540s --dangerously-skip-permissions -p="Use the image-generator subagent to EDIT the image $master and save the result as $out. Edit: keep ONLY the bunny's arms with their paws (for a three-quarter view keep only the arm nearest to the viewer), each as a complete closed shape with its full purple ink outline all around, including the side that touched the body and a rounded top at the shoulder. Erase everything else (head, ears, body, clothing, feet, tail, hat) to the flat dark green background. The arms must stay at exactly the same position, size and angle as in the original. Keep image size 1024x1024. After saving, reply only with the saved file path." > "$base-arms.log" 2>&1
       ;;
+    head)
+      out="$base-head.png"
+      agy --effort medium --print-timeout 540s --dangerously-skip-permissions -p="Use the image-generator subagent to EDIT the image $master and save the result as $out. Edit: keep ONLY the bunny's HEAD with both ears and the face, as one complete closed shape with its full purple ink outline all around, including a smooth rounded chin line at the bottom where the head met the body. Erase everything else (body, neck scarf or neckerchief, apron, arms, paws, feet, tail, hat on the back) to the flat dark green background. The head must stay at exactly the same position, size and angle as in the original. Keep image size 1024x1024. After saving, reply only with the saved file path." > "$base-head.log" 2>&1
+      ;;
   esac
   [ -f "$out" ] && echo "ok $out" || echo "FAIL $out $(tail -c 300 "$base-$kind.log")"
 }
