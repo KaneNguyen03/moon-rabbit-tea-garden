@@ -28,8 +28,11 @@ namespace VuonTra.EditorTools
         public readonly string LowerBone;
         public readonly float BlendFrom;
         public readonly float BlendTo;
+        public readonly string UpperBone;
+        public readonly float UpperFrom;
 
-        public RigPart(string layer, int order, string bone, string lowerBone = null, float blendFrom = 0f, float blendTo = 0f)
+        public RigPart(string layer, int order, string bone, string lowerBone = null, float blendFrom = 0f, float blendTo = 0f,
+            string upperBone = null, float upperFrom = 0f)
         {
             Layer = layer;
             Order = order;
@@ -37,6 +40,8 @@ namespace VuonTra.EditorTools
             LowerBone = lowerBone;
             BlendFrom = blendFrom;
             BlendTo = blendTo;
+            UpperBone = upperBone;
+            UpperFrom = upperFrom;
         }
     }
 
@@ -56,6 +61,7 @@ namespace VuonTra.EditorTools
 
     public sealed class RigView
     {
+        public RigViewKind Kind;
         public string Name;
         public string Key;
         public string Psb;
@@ -132,80 +138,72 @@ namespace VuonTra.EditorTools
     public sealed class WorkLoop
     {
         public RabbitWork Work;
-        public string Clip;
         public bool Snappy;
         public float ReturnLength;
         public Beat[] Beats;
     }
 
+    public sealed class RabbitKind
+    {
+        public readonly string Id;
+        public readonly string Art;
+        public readonly bool Lop;
+
+        public RabbitKind(string id, string art, bool lop)
+        {
+            Id = id;
+            Art = art;
+            Lop = lop;
+        }
+
+        public string Folder => $"{RabbitRigSpec.ArtRoot}/{Id}";
+        public string Psb(RigViewKind view) => $"{Folder}/{Id}{view}.psb";
+        public string Pivots(RigViewKind view) => $"{Folder}/{Id}{view}.pivots.json";
+        public string Prefab => $"{Folder}/Rabbit{Id}.prefab";
+        public string Library => $"{Folder}/Rabbit{Id}_Library.asset";
+        public string Clip(WorkLoop loop) => $"{Folder}/{Id}_{loop.Work}.anim";
+    }
+
+    public enum RigViewKind
+    {
+        Front,
+        Side,
+    }
+
     public static class RabbitRigSpec
     {
-        public const string Kind = "Cream";
-        public const string Folder = "Assets/VuonTra/Art/Rabbit25D/Cream";
-        public const string ToolFolder = Folder + "/Tools";
+        public const string ArtRoot = "Assets/VuonTra/Art/Rabbit25D";
+        public const string Shared = ArtRoot + "/Shared";
+        public const string ToolFolder = Shared + "/Tools";
+        public const string ShadowPath = Shared + "/Shadow.png";
+        public const string ControllerPath = Shared + "/Rabbit.controller";
         public const string ToolCategory = "Tool";
         public const string ShadowCategory = "Shadow";
         public const int CanvasPx = 512;
         public const float Ppu = 100f;
         public const float ToolPpu = 470f;
         public const float ShadowWidthPx = 170f;
+        public const float EarBlendPx = 36f;
 
         public const string FrontKey = "F";
         public const string SideKey = "S";
         public const string ShadowTarget = "Shadow";
+        public const string FrontObject = "Front";
+        public const string SideObject = "ThreeQuarter";
 
-        public static readonly RigView Front = new RigView
+        public static readonly RabbitKind[] Kinds =
         {
-            Name = "Front",
-            Key = FrontKey,
-            Psb = Folder + "/CreamFront.psb",
-            Bones = new[]
-            {
-                new RigBone("Hips", null, new Vector2(256, 466), new Vector2(256, 400)),
-                new RigBone("Spine", "Hips", new Vector2(256, 400), new Vector2(256, 300)),
-                new RigBone("Neck", "Spine", new Vector2(256, 293), new Vector2(256, 150)),
-                new RigBone("EarRoot", "Neck", new Vector2(256, 160), new Vector2(256, 40)),
-                new RigBone("ShoulderL", "Spine", new Vector2(178, 281), new Vector2(145, 366)),
-                new RigBone("GripL", "ShoulderL", new Vector2(145, 366), new Vector2(140, 392)),
-                new RigBone("ShoulderR", "Spine", new Vector2(336, 280), new Vector2(366, 367)),
-                new RigBone("GripR", "ShoulderR", new Vector2(366, 367), new Vector2(371, 392)),
-            },
-            Parts = new[]
-            {
-                new RigPart("FrontEars", 1, "EarRoot"),
-                new RigPart("FrontBody", 2, "Spine", "Hips", 400f, 446f),
-                new RigPart("FrontHead", 3, "Neck"),
-                new RigPart("FrontArmL", 5, "ShoulderL"),
-                new RigPart("FrontArmR", 7, "ShoulderR"),
-            },
-            Hands = new[] { new RigHand("L", "GripL", 4), new RigHand("R", "GripR", 6) },
+            new RabbitKind("Kem", "kem", false),
+            new RabbitKind("TaiCup", "taicup", true),
+            new RabbitKind("DomXam", "domxam", false),
+            new RabbitKind("Tim", "tim", false),
         };
 
-        public static readonly RigView Side = new RigView
-        {
-            Name = "ThreeQuarter",
-            Key = SideKey,
-            Psb = Folder + "/CreamSide.psb",
-            Bones = new[]
-            {
-                new RigBone("Hips", null, new Vector2(256, 466), new Vector2(256, 400)),
-                new RigBone("Spine", "Hips", new Vector2(256, 400), new Vector2(238, 288)),
-                new RigBone("Neck", "Spine", new Vector2(235.6f, 279.6f), new Vector2(236, 170)),
-                new RigBone("EarRoot", "Neck", new Vector2(277, 150), new Vector2(270, 50)),
-                new RigBone("ShoulderR", "Spine", new Vector2(301.6f, 307.7f), new Vector2(300, 362)),
-                new RigBone("GripR", "ShoulderR", new Vector2(300, 362), new Vector2(300, 388)),
-            },
-            Parts = new[]
-            {
-                new RigPart("SideBody", 1, "Spine", "Hips", 390f, 440f),
-                new RigPart("SideEars", 2, "EarRoot"),
-                new RigPart("SideHead", 3, "Neck"),
-                new RigPart("SideArm", 5, "ShoulderR"),
-            },
-            Hands = new[] { new RigHand("R", "GripR", 4) },
-        };
+        public static readonly RigViewKind[] ViewKinds = { RigViewKind.Front, RigViewKind.Side };
 
-        public static readonly RigView[] Views = { Front, Side };
+        public static string ViewObject(RigViewKind view) => view == RigViewKind.Front ? FrontObject : SideObject;
+
+        public static string ViewKey(RigViewKind view) => view == RigViewKind.Front ? FrontKey : SideKey;
 
         public static readonly ToolArt[] ToolArts =
         {
@@ -234,7 +232,6 @@ namespace VuonTra.EditorTools
             new WorkLoop
             {
                 Work = RabbitWork.Idle,
-                Clip = "Cream_Idle",
                 Snappy = false,
                 ReturnLength = 1.3f,
                 Beats = new[]
@@ -257,7 +254,6 @@ namespace VuonTra.EditorTools
             new WorkLoop
             {
                 Work = RabbitWork.MilkTea,
-                Clip = "Cream_MilkTea",
                 Snappy = true,
                 ReturnLength = 0.4f,
                 Beats = new[]
@@ -322,7 +318,6 @@ namespace VuonTra.EditorTools
             new WorkLoop
             {
                 Work = RabbitWork.TeaPicking,
-                Clip = "Cream_TeaPicking",
                 Snappy = true,
                 ReturnLength = 0.4f,
                 Beats = new[]
@@ -382,7 +377,6 @@ namespace VuonTra.EditorTools
             new WorkLoop
             {
                 Work = RabbitWork.TeaBrewing,
-                Clip = "Cream_TeaBrewing",
                 Snappy = true,
                 ReturnLength = 0.4f,
                 Beats = new[]

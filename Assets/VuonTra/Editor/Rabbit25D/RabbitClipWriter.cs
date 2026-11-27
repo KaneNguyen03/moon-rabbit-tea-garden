@@ -95,6 +95,7 @@ namespace VuonTra.EditorTools
         static void WriteChannel(AnimationClip clip, Transform root, WorkLoop loop, string target, string channel)
         {
             Transform t = RabbitRigBuilder.Target(root, target);
+            if (t == null) return;
             float rest = Rest(t, channel);
             Keyframe[] keys = Channel(loop, target, channel).Select(k => new Keyframe(k.time, rest + k.value)).ToArray();
             var curve = new AnimationCurve(keys);
@@ -149,6 +150,7 @@ namespace VuonTra.EditorTools
             if (events[0].time > 0f) events.Insert(0, (0f, null));
 
             Transform tool = RabbitRigBuilder.Hand(root, hand);
+            if (tool == null) return;
             var resolver = tool.GetComponent<SpriteResolver>();
             string path = AnimationUtility.CalculateTransformPath(tool, root);
             var enabled = new List<Keyframe>();
@@ -173,14 +175,14 @@ namespace VuonTra.EditorTools
 
         static IEnumerable<string> Hands()
         {
-            foreach (RigView view in Views)
-            foreach (RigHand hand in view.Hands)
-                yield return $"{view.Key}:{hand.Hand}";
+            yield return FrontKey + ":L";
+            yield return FrontKey + ":R";
+            yield return SideKey + ":R";
         }
 
-        public static AnimationClip Write(Transform root, WorkLoop loop)
+        public static AnimationClip Write(Transform root, WorkLoop loop, string assetPath)
         {
-            var clip = new AnimationClip { name = loop.Clip, frameRate = 30f };
+            var clip = new AnimationClip { name = System.IO.Path.GetFileNameWithoutExtension(assetPath), frameRate = 30f };
             var channels = loop.Beats.SelectMany(b => b.Pose.Select(p => (p.Target, p.Channel)))
                 .Concat(loop.Beats.SelectMany(b => b.Wiggles.Select(w => (w.Target, w.Channel))))
                 .Distinct();
@@ -190,7 +192,6 @@ namespace VuonTra.EditorTools
             AnimationClipSettings settings = AnimationUtility.GetAnimationClipSettings(clip);
             settings.loopTime = true;
             AnimationUtility.SetAnimationClipSettings(clip, settings);
-            string assetPath = $"{Folder}/{loop.Clip}.anim";
             AssetDatabase.DeleteAsset(assetPath);
             AssetDatabase.CreateAsset(clip, assetPath);
             return clip;

@@ -10,63 +10,51 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5bf7c34a0dc4e6348bea04faa70406ee, type: 3}
-  m_Name: RabbitCream_Library
+  m_Name: RabbitKem_Library
   m_EditorClassIdentifier: Unity.2D.Animation.Runtime::UnityEngine.U2D.Animation.SpriteLibraryAsset
   m_Labels:
-  - m_Name: FrontEars
-    m_Hash: 394059277
-    m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: 5092058271998010133, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
   - m_Name: FrontBody
     m_Hash: 1014536055
     m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: -585671040638894506, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+    - m_Name: Kem
+      m_Hash: 671562036
+      m_Sprite: {fileID: 3900424751615614273, guid: 06b1fa667512b47a483e8e579469c55c, type: 3}
   - m_Name: FrontHead
     m_Hash: 2320985
     m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: -200397227002224142, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+    - m_Name: Kem
+      m_Hash: 671562036
+      m_Sprite: {fileID: 6496670536734568500, guid: 06b1fa667512b47a483e8e579469c55c, type: 3}
   - m_Name: FrontArmL
     m_Hash: 1027766224
     m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: 3637128107531923341, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+    - m_Name: Kem
+      m_Hash: 671562036
+      m_Sprite: {fileID: -4804706977155698272, guid: 06b1fa667512b47a483e8e579469c55c, type: 3}
   - m_Name: FrontArmR
     m_Hash: 122505907
     m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: 5354798634786780669, guid: 533aa2174efc54d84a5afa2a58ee935e, type: 3}
+    - m_Name: Kem
+      m_Hash: 671562036
+      m_Sprite: {fileID: -5946804684629351384, guid: 06b1fa667512b47a483e8e579469c55c, type: 3}
   - m_Name: SideBody
     m_Hash: 952954011
     m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: -8169258302747631804, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
-  - m_Name: SideEars
-    m_Hash: 331916769
-    m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: 6296335686816314174, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
+    - m_Name: Kem
+      m_Hash: 671562036
+      m_Sprite: {fileID: 9046912114353457719, guid: 920652a871d4142f8984de7c49c2505c, type: 3}
   - m_Name: SideHead
     m_Hash: 77009333
     m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: 3513955515037650002, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
+    - m_Name: Kem
+      m_Hash: 671562036
+      m_Sprite: {fileID: 8605327846824574408, guid: 920652a871d4142f8984de7c49c2505c, type: 3}
   - m_Name: SideArm
     m_Hash: 531776796
     m_CategoryList:
-    - m_Name: Cream
-      m_Hash: 431944539
-      m_Sprite: {fileID: 29040766493158060, guid: 35fa29bf4a152439381e6deb6600a032, type: 3}
+    - m_Name: Kem
+      m_Hash: 671562036
+      m_Sprite: {fileID: -3952924460126212030, guid: 920652a871d4142f8984de7c49c2505c, type: 3}
   - m_Name: Tool
     m_Hash: 12685807
     m_CategoryList:

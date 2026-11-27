@@ -31,17 +31,8 @@ def gif(frames, out, scale):
     small[0].save(out, save_all=True, append_images=small[1:], duration=int(2000 / 24), loop=0, optimize=True)
 
 
-def main(logs, out):
-    logs, out = Path(logs), Path(out)
-    out.mkdir(parents=True, exist_ok=True)
-    table = json.loads((logs / "beats.json").read_text())
+def keyframes(flat, table, out):
     fps = table["fps"]
-    flat = sorted((logs / "flat").glob("f*.png"))
-    tilted = sorted((logs / "tilted").glob("f*.png"))
-    gif([Image.open(p) for p in flat], out / "cream-25d-loops.gif", 0.4)
-    gif([Image.open(p) for p in tilted], out / "cream-25d-tilted40.gif", 0.5)
-    Image.open(tilted[len(tilted) // 3]).save(out / "cream-25d-tilted40.png")
-
     rows = []
     for col, loop in enumerate(table["loops"]):
         times = [0.0] + [b["pose"] for b in loop["beats"]]
@@ -56,12 +47,22 @@ def main(logs, out):
         for c, (label, image) in enumerate(cells):
             sheet.paste(image, (200 + c * 340, r * 580))
             draw.text((205 + c * 340, r * 580 + 540), label[:44], fill=(250, 240, 220))
-    sheet.save(out / "cream-25d-keyframes.png")
+    sheet.save(out)
+
+
+def main(logs, out):
+    logs, out = Path(logs), Path(out)
+    out.mkdir(parents=True, exist_ok=True)
+    table = json.loads((logs / "beats.json").read_text())
+    for kind_dir in sorted(p for p in logs.iterdir() if (p / "flat").is_dir()):
+        flat = sorted((kind_dir / "flat").glob("f*.png"))
+        name = kind_dir.name.lower()
+        gif([Image.open(p) for p in flat], out / f"{name}-loops.gif", 0.4)
+        keyframes(flat, table, out / f"{name}-keyframes.png")
+    tilted = sorted((logs / "tilted").glob("f*.png"))
+    gif([Image.open(p) for p in tilted], out / "tilted40.gif", 0.5)
+    Image.open(tilted[len(tilted) // 3]).save(out / "tilted40.png")
     print(out)
-
-
-if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
 
 
 def layer_sheet(layers, out):
@@ -97,3 +98,7 @@ def layer_sheet(layers, out):
     draw.text((6, len(files) * size + 10), "truoc/Head neck edge 400%", fill=(250, 240, 220))
     sheet.paste(zoom.convert("RGB"), (220, len(files) * size + 10))
     sheet.save(out)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1], sys.argv[2])

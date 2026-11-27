@@ -36,9 +36,9 @@ namespace VuonTra.EditorTools
             public WorkLoop Loop;
         }
 
-        static Actor Spawn(GameObject prefab, RabbitView view, WorkLoop loop, Vector3 position, Quaternion facing, bool flatShadow)
+        static Actor Spawn(RabbitKind kind, RabbitView view, WorkLoop loop, Vector3 position, Quaternion facing, bool flatShadow)
         {
-            var rabbit = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+            var rabbit = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(kind.Prefab));
             rabbit.transform.SetPositionAndRotation(position, facing);
             rabbit.GetComponent<Animator>().enabled = false;
             rabbit.GetComponent<RabbitActor>().SetView(view);
@@ -48,7 +48,7 @@ namespace VuonTra.EditorTools
                 skin.alwaysUpdate = true;
                 skin.forceCpuDeformation = true;
             }
-            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>($"{Folder}/{loop.Clip}.anim");
+            var clip = AssetDatabase.LoadAssetAtPath<AnimationClip>(kind.Clip(loop));
             return new Actor { Rabbit = rabbit, Clip = clip, Loop = loop };
         }
 
@@ -102,22 +102,22 @@ namespace VuonTra.EditorTools
 
         static int Frames() => Mathf.CeilToInt(Loops.Max(l => RabbitClipWriter.Length(l)) * Fps);
 
-        static void Flat(GameObject prefab)
+        static void Flat(RabbitKind kind)
         {
             var actors = new List<Actor>();
             for (int row = 0; row < Rows.Length; row++)
             for (int col = 0; col < Loops.Length; col++)
-                actors.Add(Spawn(prefab, Rows[row], Loops[col], new Vector3(col * 3.6f, -row * 5.6f, 0f), Quaternion.identity, false));
+                actors.Add(Spawn(kind, Rows[row], Loops[col], new Vector3(col * 3.6f, -row * 5.6f, 0f), Quaternion.identity, false));
             Camera camera = NewCamera();
             camera.orthographic = true;
             camera.orthographicSize = 8.4f;
             camera.transform.position = new Vector3(5.4f, -3.35f, -10f);
-            Shoot(camera, 1500, 1680, OutDir("flat"), Frames(), actors);
+            Shoot(camera, 1500, 1680, OutDir($"{kind.Id}/flat"), Frames(), actors);
             UnityEngine.Object.DestroyImmediate(camera.gameObject);
             foreach (Actor actor in actors) UnityEngine.Object.DestroyImmediate(actor.Rabbit);
         }
 
-        static void Tilted(GameObject prefab)
+        static void Tilted(RabbitKind[] kinds)
         {
             Quaternion look = Quaternion.Euler(TiltDegrees, 0f, 0f);
             var ground = new GameObject("Ground").AddComponent<SpriteRenderer>();
@@ -128,8 +128,8 @@ namespace VuonTra.EditorTools
             ground.transform.localScale = new Vector3(40f, 30f, 1f);
             var actors = new List<Actor>();
             for (int row = 0; row < Rows.Length; row++)
-            for (int col = 0; col < Loops.Length; col++)
-                actors.Add(Spawn(prefab, Rows[row], Loops[col], new Vector3(col * 3.4f, 0f, row * 6f), look, true));
+            for (int col = 0; col < kinds.Length; col++)
+                actors.Add(Spawn(kinds[col], Rows[row], Loops[(row + col) % Loops.Length], new Vector3(col * 3.4f, 0f, row * 6f), look, true));
             Camera camera = NewCamera();
             camera.orthographic = false;
             camera.fieldOfView = 34f;
@@ -141,14 +141,14 @@ namespace VuonTra.EditorTools
             foreach (Actor actor in actors) UnityEngine.Object.DestroyImmediate(actor.Rabbit);
         }
 
-        static string CheckTools(GameObject prefab)
+        static string CheckTools(RabbitKind kind)
         {
             var report = new StringBuilder();
             int failures = 0;
             foreach (WorkLoop loop in Loops)
             foreach (RabbitView view in new[] { RabbitView.Front, RabbitView.ThreeQuarterLeft })
             {
-                Actor actor = Spawn(prefab, view, loop, Vector3.zero, Quaternion.identity, false);
+                Actor actor = Spawn(kind, view, loop, Vector3.zero, Quaternion.identity, false);
                 for (int i = 0; i < loop.Beats.Length; i++)
                 {
                     float time = RabbitClipWriter.BeatStart(loop, i) + loop.Beats[i].Length * 0.97f;
@@ -161,7 +161,7 @@ namespace VuonTra.EditorTools
                         string shown = renderer.enabled ? renderer.sprite.name : null;
                         bool ok = expected == shown;
                         if (!ok) failures++;
-                        report.AppendLine($"{loop.Clip} beat {i + 1} {resolver.name}: expected {expected ?? "-"} shown {shown ?? "-"} {(ok ? "ok" : "FAIL")}");
+                        report.AppendLine($"{kind.Id}_{loop.Work} beat {i + 1} {resolver.name}: expected {expected ?? "-"} shown {shown ?? "-"} {(ok ? "ok" : "FAIL")}");
                     }
                 }
                 UnityEngine.Object.DestroyImmediate(actor.Rabbit);
@@ -184,7 +184,7 @@ namespace VuonTra.EditorTools
         {
             var json = new StringBuilder("{\"fps\":" + Fps + ",\"loops\":[");
             json.Append(string.Join(",", Loops.Select(loop =>
-                "{\"clip\":\"" + loop.Clip + "\",\"length\":" + RabbitClipWriter.Length(loop).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) +
+                "{\"clip\":\"" + loop.Work + "\",\"length\":" + RabbitClipWriter.Length(loop).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) +
                 ",\"beats\":[" + string.Join(",", loop.Beats.Select((b, i) =>
                     "{\"name\":\"" + b.Name + "\",\"pose\":" +
                     (RabbitClipWriter.BeatStart(loop, i) + b.Length * 0.7f).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture) + "}")) + "]}")));
@@ -195,14 +195,18 @@ namespace VuonTra.EditorTools
         public static void Capture()
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(RabbitRigBuilder.PrefabPath);
+            RabbitKind[] kinds = RabbitRigBuilder.ReadyKinds();
             Directory.CreateDirectory(OutDir(""));
-            string tools = CheckTools(prefab);
-            File.WriteAllText(Path.Combine(OutDir(""), "tool-check.txt"), tools);
             File.WriteAllText(Path.Combine(OutDir(""), "beats.json"), BeatTable());
-            Flat(prefab);
-            Tilted(prefab);
-            Debug.Log("[rabbit25d] captured\n" + tools);
+            var tools = new StringBuilder();
+            foreach (RabbitKind kind in kinds)
+            {
+                tools.Append(CheckTools(kind));
+                Flat(kind);
+            }
+            File.WriteAllText(Path.Combine(OutDir(""), "tool-check.txt"), tools.ToString());
+            Tilted(kinds);
+            Debug.Log("[rabbit25d] captured " + string.Join(", ", kinds.Select(k => k.Id)) + "\n" + tools);
         }
     }
 }

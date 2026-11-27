@@ -55,13 +55,13 @@ Chủ project muốn cảm giác thể loại (camera nghiêng cố định, đ�
 - Đề xuất duyệt: `docs/de-xuat-2-5d.md` (renderer, camera, mặt đất, billboard, bóng, đèn, hậu kỳ, bản đồ #91, chuẩn mỹ thuật, lộ trình 5 bước), tấm `docs/anh/de-xuat-2-5d/so-sanh-2d-25d.png`, `VERDICT.md` APPROVED kèm 4 ghi chú.
 - Spike trên nhánh `spike-3d` (`dfdc8b1`, 25/11, không gộp vào main): hình vẽ hiện có đứng như thẻ đổ bóng trên đảo cỏ 3D, `Spike3DBuilder.BuildAndShoot`.
 - Ô cỏ màu nước lặp không đường nối `Assets/VuonTra/Art/Ground/bg_grass.png` (#129, `e26a577`), dự định làm texture mặt đất.
-- Thỏ Cream cho 2.5D (`47e6642`): `Assets/VuonTra/Art/Rabbit25D/Cream/RabbitCream.prefab` với hai rig PSB (`CreamFront.psb`, `CreamSide.psb` 3/4, lật gương cho bên phải), pivot ở chân, `Shadow.png` tách riêng, đồ cầm tay đổi bằng `SpriteResolver` (`RabbitCream_Library.asset`), clip `Cream_Idle`, `Cream_MilkTea`, `Cream_TeaPicking`, `Cream_TeaBrewing`, `RabbitCream.controller` tham số `Work`. `Assets/VuonTra/Game/Rabbit25D/RabbitActor.cs` chỉ đặt tham số Animator và hướng nhìn. Công cụ dựng trong `Assets/VuonTra/Editor/Rabbit25D/` (asmdef riêng).
+- Thỏ 2.5D: mỗi giống một thư mục `Assets/VuonTra/Art/Rabbit25D/<Giống>/` (`Kem`, `TaiCup`, `DomXam`, `Tim`) với `Rabbit<Giống>.prefab`, hai rig PSB (`<Giống>Front.psb`, `<Giống>Side.psb` 3/4, lật gương cho bên phải) dựng từ `<Giống><View>.pivots.json`, clip `<Giống>_Idle|MilkTea|TeaPicking|TeaBrewing`, thư viện `Rabbit<Giống>_Library.asset`. Dùng chung trong `Shared/`: đồ cầm tay `Tools/`, `Shadow.png` tách riêng, `Rabbit.controller` (tham số `Work`, clip của Kem); giống khác chạy qua `AnimatorOverrideController`. Pivot ở chân. `Assets/VuonTra/Game/Rabbit25D/RabbitActor.cs` chỉ đặt tham số Animator và hướng nhìn. Công cụ dựng trong `Assets/VuonTra/Editor/Rabbit25D/` (asmdef riêng).
 - Dữ liệu đường đi cho thỏ nghỉ tay trên cảnh 2.5D: `Core/Strolls.cs` `Break.From/To`, `LegAt` (#127, `dc54b15`), chưa nối vào cảnh.
 
 **Chưa có:**
 - `Assets/Settings/UniversalRP.asset` chỉ có một renderer (`Renderer2D`); chưa có `UniversalRendererData`.
 - Chưa có scene vườn 2.5D, camera phối cảnh, mesh đảo, `PhysicsRaycaster` (#145).
-- `RabbitActor`/`RabbitCream` chưa được scene hay mã `Game` nào dùng (#146). Chưa có prefab billboard cho trạm, đồ.
+- `RabbitActor`/prefab thỏ chưa được scene hay mã `Game` nào dùng (#146). Chưa có prefab billboard cho trạm, đồ.
 - Ánh sáng trăng, đèn lồng (#147); hậu kỳ, vân giấy, HUD trên cảnh (#148); đo hiệu năng mobile (#149).
 - Chưa cài Cinemachine, ProBuilder.
 
@@ -85,7 +85,7 @@ Giữ Core, test, uGUI và mọi hình 2D; làm lại phần dựng thế giới
 Core (unchanged) -> GameRunner -> Garden 2.5D scene (UniversalRendererData Forward+)
                                     perspective camera ~25° FOV, ~40° tilt
                                     island mesh (bg_grass.png) + billboard prefabs (sprites, pivot at feet)
-                                    RabbitActor -> Animator (Work) on RabbitCream prefab
+                                    RabbitActor -> Animator (Work) on Rabbit<Kind> prefab
                                     ortho camera -> RenderTexture -> map screen (#91)
                   -> uGUI HUD/cards (unchanged, Screen Space) + World Space labels (#135)
 ```
