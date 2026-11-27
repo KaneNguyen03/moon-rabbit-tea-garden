@@ -144,7 +144,7 @@ namespace VuonTra.Core
         public int[] DishesSeen = new int[0];
 
         public long Pets, Boosts, LayoutMoves, Merges, CloverCalls, GoldenCalls, JarsOpened, DailyGifts;
-        public int DailyQuestsToday, BestFish;
+        public int DailyQuestsToday, BestFish, DupStreak;
         public NewcomerRecord Newcomer = new NewcomerRecord();
         public ReviewRecord Review = new ReviewRecord();
         public WelcomeBackRecord WelcomeBack = new WelcomeBackRecord();

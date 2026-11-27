@@ -125,9 +125,11 @@ namespace VuonTra.Core
             s.GoldenCalls++;
             int tier = Rabbits.RollTier(roll, GoldenOdds);
             RabbitKind seasonKind = Seasons.KindOf(Seasons.SeasonOf(day));
-            if (seasonKind == null || tier != seasonKind.Tier) return Rabbits.Arrive(s, tier, name, kindRoll);
-            if (kindRoll < Seasons.GoldenCallShare) return Rabbits.ArriveKind(s, seasonKind.Id, name);
-            return Rabbits.Arrive(s, tier, name, (kindRoll - Seasons.GoldenCallShare) / (1d - Seasons.GoldenCallShare));
+            if (seasonKind == null || tier != seasonKind.Tier) return Rabbits.Call(s, tier, name, kindRoll);
+            bool lucky = Rabbits.LuckyReady(s) && s.SeenKinds.Contains(seasonKind.Id);
+            if (kindRoll < Seasons.GoldenCallShare && !lucky) return Rabbits.Tally(s, Rabbits.ArriveKind(s, seasonKind.Id, name));
+            double rest = kindRoll < Seasons.GoldenCallShare ? kindRoll / Seasons.GoldenCallShare : (kindRoll - Seasons.GoldenCallShare) / (1d - Seasons.GoldenCallShare);
+            return Rabbits.Call(s, tier, name, rest);
         }
 
         public static Rabbit SummonGolden(GameState s, double roll, string name, double kindRoll = 0d)
@@ -135,13 +137,12 @@ namespace VuonTra.Core
             if (s.GoldenCarrots < GoldenSummonCost) return null;
             s.GoldenCarrots -= GoldenSummonCost;
             s.GoldenCalls++;
-            return Rabbits.Arrive(s, Rabbits.RollTier(roll, GoldenOdds), name, kindRoll);
+            return Rabbits.Call(s, Rabbits.RollTier(roll, GoldenOdds), name, kindRoll);
         }
 
         public static readonly double[] VisitorTierOdds = { 0.60, 0.30, 0.09, 0.01 };
         public const int VisitorFirstTier = 2;
         public static readonly int[] VisitorPrices = { 15, 40, 120, 400 };
-        public const int UnseenWeight = 3;
 
         public struct Visitor
         {
@@ -166,20 +167,7 @@ namespace VuonTra.Core
             return (h >> 11) / (double)(1UL << 53);
         }
 
-        public static string PickKind(GameState s, int tier, double roll)
-        {
-            IReadOnlyList<RabbitKind> kinds = RabbitKinds.OfTier(tier);
-            if (kinds.Count == 0) return RabbitKinds.DefaultFor(tier);
-            double total = 0d;
-            foreach (RabbitKind kind in kinds) total += s.SeenKinds.Contains(kind.Id) ? 1d : UnseenWeight;
-            double at = Math.Max(0d, Math.Min(0.999999d, roll)) * total;
-            foreach (RabbitKind kind in kinds)
-            {
-                at -= s.SeenKinds.Contains(kind.Id) ? 1d : UnseenWeight;
-                if (at < 0d) return kind.Id;
-            }
-            return kinds[kinds.Count - 1].Id;
-        }
+        public static string PickKind(GameState s, int tier, double roll) => RabbitKinds.Pick(tier, roll, s.SeenKinds);
 
         public static Visitor VisitorFor(GameState s, long day)
         {

@@ -347,7 +347,7 @@ namespace VuonTra.Core.Tests
             s.SeenKinds.Remove(missing);
             int hits = 0, n = 10000;
             for (int i = 0; i < n; i++) if (Shop.PickKind(s, 2, i / (double)n) == missing) hits++;
-            double expected = (double)Shop.UnseenWeight / (Shop.UnseenWeight + blue.Count - 1);
+            double expected = (double)RabbitKinds.UnseenWeight / (RabbitKinds.UnseenWeight + blue.Count - 1);
             Assert.AreEqual(expected, hits / (double)n, 0.01);
         }
 

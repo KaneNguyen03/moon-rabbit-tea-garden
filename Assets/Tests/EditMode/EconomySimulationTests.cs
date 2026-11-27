@@ -44,6 +44,7 @@ namespace VuonTra.Core.Tests
         System.Random fishRng;
         int cloversQuests, cloversGames, cloversOrders, goldenGift, goldenPhoto, goldenQuests, goldenGames, goldenTray, goldenSpent;
         int goldenNewTiers;
+        int luckyCalls, raisedCalls;
         int summoned, goldenCalls, visitorsBought, gamesPlayed, ordersDelivered, rabbitLevels, boosts;
         bool takeFreeDouble, everyAd;
         bool moonPass;
@@ -67,6 +68,7 @@ namespace VuonTra.Core.Tests
         bool welcomeBack;
         int goldenWelcome, cloversWelcome, welcomeStarts, welcomeCheckIns;
         bool atFair;
+        bool plainCalls;
         int fairEarned, fairRabbitDay, fairGolden, fairLeft;
         readonly int[] fairBought = new int[Fairs.Stall.Length];
 
@@ -115,6 +117,7 @@ namespace VuonTra.Core.Tests
             fishRng = new System.Random(unchecked(seed * 31 + 58));
             cloversQuests = cloversGames = cloversOrders = goldenGift = goldenPhoto = goldenQuests = goldenGames = goldenTray = goldenSpent = 0;
             goldenNewTiers = 0;
+            luckyCalls = raisedCalls = 0;
             summoned = goldenCalls = visitorsBought = gamesPlayed = ordersDelivered = rabbitLevels = boosts = 0;
             takeFreeDouble = everyAd = upgradeAll = false;
             raiseDishes = true;
@@ -467,7 +470,11 @@ namespace VuonTra.Core.Tests
         {
             while (s.Clovers >= Rabbits.SummonCost)
             {
-                Rabbits.Summon(s, rng.NextDouble(), "R", rng.NextDouble());
+                double roll = rng.NextDouble(), kindRoll = rng.NextDouble();
+                bool lit = Rabbits.LuckyReady(s);
+                Rabbit called = plainCalls ? CallAsBefore173(Rabbits.Odds, roll, "R", kindRoll) : Rabbits.Summon(s, roll, "R", kindRoll);
+                if (lit) luckyCalls++;
+                if (called.Tier > Rabbits.RollTier(roll)) raisedCalls++;
                 summoned++;
                 Rabbits.AutoAssign(defs, s);
             }
@@ -485,11 +492,39 @@ namespace VuonTra.Core.Tests
             }
             while (s.GoldenCarrots >= Shop.GoldenSummonCost)
             {
-                Shop.SummonGolden(s, rng.NextDouble(), "G", rng.NextDouble());
+                if (plainCalls) CallAsBefore173(Shop.GoldenOdds, rng.NextDouble(), "G", rng.NextDouble());
+                else Shop.SummonGolden(s, rng.NextDouble(), "G", rng.NextDouble());
                 goldenSpent += Shop.GoldenSummonCost;
                 goldenCalls++;
                 Rabbits.AutoAssign(defs, s);
             }
+        }
+
+        double AlbumLift()
+        {
+            HashSet<string> seen = s.SeenKinds;
+            double with = Income.ToDouble();
+            s.SeenKinds = new HashSet<string>();
+            double without = Income.ToDouble();
+            s.SeenKinds = seen;
+            return without > 0d ? with / without : 1d;
+        }
+
+        double RabbitLift()
+        {
+            double with = Income.ToDouble();
+            var stations = new int[s.Rabbits.Count];
+            for (int i = 0; i < s.Rabbits.Count; i++) { stations[i] = s.Rabbits[i].Station; s.Rabbits[i].Station = -1; }
+            double without = Income.ToDouble();
+            for (int i = 0; i < s.Rabbits.Count; i++) s.Rabbits[i].Station = stations[i];
+            return without > 0d ? with / without : 1d;
+        }
+
+        Rabbit CallAsBefore173(double[] odds, double roll, string name, double kindRoll)
+        {
+            if (odds == Rabbits.Odds) { s.Clovers -= Rabbits.SummonCost; s.CloverCalls++; }
+            else { s.GoldenCarrots -= Shop.GoldenSummonCost; s.GoldenCalls++; }
+            return Rabbits.Arrive(s, Rabbits.RollTier(roll, odds), name, kindRoll);
         }
 
         void ClaimQuests()
@@ -793,13 +828,18 @@ namespace VuonTra.Core.Tests
             public double TankBonus;
             public int DishesRaised, TopDish, LeavesLeft;
             public string Table, Report, Fingerprint;
+            public int Kinds, Sets;
+            public double AlbumLift, RabbitLift, ModsLift;
+            public int StationLevels, RabbitLevels, TopTier, LuckyCalls, RaisedCalls, InTrade, Seated;
+            public double TierFactor = 1d;
             public int Golden => GoldenCalls + Visitors;
         }
 
         Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true, bool dishes = true,
-            bool buyMoonPass = false, int goldenAtStart = 0, Tank fiveBaits = Tank.Off)
+            bool buyMoonPass = false, int goldenAtStart = 0, Tank fiveBaits = Tank.Off, bool callsBefore173 = false)
         {
             Reset(false, seed);
+            plainCalls = callsBefore173;
             tank = fiveBaits;
             if (fiveBaits != Tank.Off) fishing = true;
             raiseDishes = dishes;
@@ -853,7 +893,18 @@ namespace VuonTra.Core.Tests
             w.GoldenCalls = goldenCalls; w.Visitors = visitorsBought; w.Summoned = summoned;
             w.GoldenAds = goldenAds; w.ExtraRounds = extraRounds;
             w.GoldenEarned = GoldenEarned; w.GoldenChests = goldenChests; w.Boxes = boxesOpened; w.Chests = chestsOpened;
-            w.Plots = s.Plots; w.Rabbits = s.Rabbits.Count; w.LevelEnd = Garden.Level(s);
+            w.Plots = s.Plots; w.Rabbits = s.Rabbits.Count; w.LevelEnd = Garden.Level(s); w.Kinds = AlbumSets.KindsMet(s); w.Sets = AlbumSets.Completed(s).Count; w.AlbumLift = AlbumLift(); w.RabbitLift = RabbitLift(); w.ModsLift = mods.IncomeMultiplier * mods.SpeedMultiplier;
+            foreach (int level in s.Levels) w.StationLevels += level;
+            foreach (Rabbit r in s.Rabbits)
+            {
+                w.TopTier = Math.Max(w.TopTier, r.Tier);
+                if (r.Station < 0) continue;
+                w.RabbitLevels += r.Level;
+                w.Seated++;
+                w.TierFactor *= Rabbits.Multipliers[Math.Max(0, Math.Min(Rabbits.Multipliers.Length - 1, r.Tier))];
+                if (Rabbits.InTrade(defs, r)) w.InTrade++;
+            }
+            w.LuckyCalls = luckyCalls; w.RaisedCalls = raisedCalls;
             w.DoubleShare = Share(earnedDoubles); w.AdShare = Share(earnedAds);
             w.MostHearts = MostHearts(); w.FishCaught = fishCaught;
             w.MostFreeJars = MostFreeJarsInADay(); w.JarsOpened = jarsOpened; w.FrogsMet = frogsMet;
@@ -986,14 +1037,14 @@ namespace VuonTra.Core.Tests
         static string SeedTable(Week[] weeks)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("| Hạt | Cấp 5 | Cấp 10 | Cấp hết ngày 1 | Cấp 15 | 12 ô đất (R 7) | R 8 | R 9 | Trò chơi + khách ngày 1 % | Nhiệm vụ ngày 1 % | Gọi vàng + thỏ ghé tiệm | Thu/giây hết ngày 7 | Cấp hết ngày 7 | Thỏ ngày 7 |");
-            sb.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            sb.AppendLine("| Hạt | Cấp 5 | Cấp 10 | Cấp hết ngày 1 | Cấp 15 | 12 ô đất (R 7) | R 8 | R 9 | Trò chơi + khách ngày 1 % | Nhiệm vụ ngày 1 % | Gọi vàng + thỏ ghé tiệm | Thu/giây hết ngày 7 | Cấp hết ngày 7 | Thỏ ngày 7 | Loài đã gặp ngày 7 |");
+            sb.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
             foreach (Week w in weeks)
                 sb.AppendLine("| " + w.Seed + " | " + Clock(w.Level5) + " | " + Clock(w.Level10) + " | " + w.LevelDayOne + " | " + Clock(w.Level15) + " | " + Clock(w.Plots12) + " | " + Clock(w.R8At) + " | " + Clock(w.R9At)
-                    + " | " + Math.Round(w.PlayShare, 1) + " | " + Math.Round(w.QuestShare, 1) + " | " + w.Golden + " | " + new BigNum(w.Income7).ToShortString() + " | " + w.LevelEnd + " | " + w.Rabbits + " |");
+                    + " | " + Math.Round(w.PlayShare, 1) + " | " + Math.Round(w.QuestShare, 1) + " | " + w.Golden + " | " + new BigNum(w.Income7).ToShortString() + " | " + w.LevelEnd + " | " + w.Rabbits + " | " + w.Kinds + " |");
             sb.AppendLine("| **trung vị** | " + Clock(Median(weeks, w => w.Level5)) + " | " + Clock(Median(weeks, w => w.Level10)) + " | " + Median(weeks, w => w.LevelDayOne) + " | " + Clock(Median(weeks, w => Late(w.Level15)))
                 + " | " + Clock(Median(weeks, w => Late(w.Plots12))) + " | " + Clock(Median(weeks, w => Late(w.R8At))) + " | " + Clock(Median(weeks, w => Late(w.R9At))) + " | " + Math.Round(Median(weeks, w => w.PlayShare), 1)
-                + " | " + Math.Round(Median(weeks, w => w.QuestShare), 1) + " | " + Median(weeks, w => w.Golden) + " | " + new BigNum(Median(weeks, w => w.Income7)).ToShortString() + " | " + Median(weeks, w => w.LevelEnd) + " | " + Median(weeks, w => w.Rabbits) + " |");
+                + " | " + Math.Round(Median(weeks, w => w.QuestShare), 1) + " | " + Median(weeks, w => w.Golden) + " | " + new BigNum(Median(weeks, w => w.Income7)).ToShortString() + " | " + Median(weeks, w => w.LevelEnd) + " | " + Median(weeks, w => w.Rabbits) + " | " + Median(weeks, w => w.Kinds) + " |");
             return sb.ToString();
         }
 
@@ -1046,6 +1097,80 @@ namespace VuonTra.Core.Tests
             Always(weeks, w => w.MostFreeJars <= MoonJars.FreePerDay, "at most one free jar a day", report.ToString());
             Always(hours, h => h.MostFreeJars <= MoonJars.FreePerDay, "the tireless player too", report.ToString());
             Always(weeks, w => w.FrogsMet > 0 && w.FrogsMet <= 7 * FrogRabbit.PerDay, "the casual player meets the Frog Rabbit, two a day at most", report.ToString());
+        }
+
+        [Test]
+        public void Calls_That_Favour_Unseen_Kinds_And_The_Lucky_Lantern_Meet_Forty_Five_Kinds_By_Day_Seven_Without_Moving_The_Pace()
+        {
+            Week[] after = OverSeeds(false, false, false);
+            var before = new Week[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++) before[i] = CasualWeek(false, false, seed: Seeds[i], callsBefore173: true);
+
+            var report = new StringBuilder();
+            report.AppendLine("# Gọi thỏ ưu tiên loài chưa gặp và đèn may mắn (#173)");
+            report.AppendLine();
+            report.AppendLine("Cùng tuần chơi thong thả với EconomySimulationTests, trên " + Seeds.Length + " hạt. Trước: gọi bằng cỏ và gọi vàng chọn loài đều nhau trong bậc. Sau, từ cấp vườn " + Rabbits.FavourFromLevel + ": loài chưa gặp nặng ×" + RabbitKinds.UnseenWeight
+                + ", sau " + Rabbits.LuckyAfter + " lần trùng liên tiếp lần kế chắc chắn là loài chưa gặp (dời xuống tối đa bậc " + Rabbits.LuckyTopTier + "). Loài đã gặp: " + AlbumSets.EveryDayKinds + " loài thường ngày trong sổ.");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Loài ngày 7 | Bộ sổ đủ | Cấp 10 | Cấp hết ngày 1 | 12 ô đất | Gọi vàng + ghé tiệm | Thu/giây hết ngày 7 | Thu ngày 7 sau/trước | Sổ thỏ nâng thu ngày 7 | Phần sổ thỏ sau/trước |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
+            var ratios = new double[Seeds.Length];
+            var albumRatios = new double[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                Week b = before[i], a = after[i];
+                ratios[i] = a.Income7 / b.Income7;
+                albumRatios[i] = a.AlbumLift / b.AlbumLift;
+                report.AppendLine("| " + Seeds[i] + " | " + b.Kinds + " → " + a.Kinds + " | " + b.Sets + " → " + a.Sets + " | " + Clock(b.Level10) + " → " + Clock(a.Level10) + " | " + b.LevelDayOne + " → " + a.LevelDayOne
+                    + " | " + Clock(b.Plots12) + " → " + Clock(a.Plots12) + " | " + b.Golden + " → " + a.Golden + " | " + new BigNum(b.Income7).ToShortString() + " → " + new BigNum(a.Income7).ToShortString() + " | " + Math.Round(ratios[i], 3)
+                    + " | ×" + Math.Round(b.AlbumLift, 3) + " → ×" + Math.Round(a.AlbumLift, 3) + " | " + Math.Round(albumRatios[i], 3) + " |");
+            }
+            double ratio = Median(ratios), albumRatio = Median(albumRatios);
+            report.AppendLine("| **trung vị** | " + Median(before, w => w.Kinds) + " → " + Median(after, w => w.Kinds) + " | " + Median(before, w => w.Sets) + " → " + Median(after, w => w.Sets)
+                + " | " + Clock(Median(before, w => Late(w.Level10))) + " → " + Clock(Median(after, w => Late(w.Level10))) + " | " + Median(before, w => w.LevelDayOne) + " → " + Median(after, w => w.LevelDayOne)
+                + " | " + Clock(Median(before, w => Late(w.Plots12))) + " → " + Clock(Median(after, w => Late(w.Plots12)))
+                + " | " + Median(before, w => w.Golden) + " → " + Median(after, w => w.Golden) + " | " + new BigNum(Median(before, w => w.Income7)).ToShortString() + " → " + new BigNum(Median(after, w => w.Income7)).ToShortString() + " | " + Math.Round(ratio, 3)
+                + " | ×" + Math.Round(Median(before, w => w.AlbumLift), 3) + " → ×" + Math.Round(Median(after, w => w.AlbumLift), 3) + " | " + Math.Round(albumRatio, 3) + " |");
+            report.AppendLine();
+            report.AppendLine("Sổ thỏ nâng thu ngày 7: thu/giây cuối ngày 7 chia cho thu/giây của cùng khu vườn khi không có thưởng bộ sổ (3 %/bộ). Thu sau/trước so hai ván khác nhau (thỏ khác, trạm khác) nên dao động rộng; luật ≤ 10 % đo phần do sổ thỏ.");
+            report.AppendLine();
+            report.AppendLine("## Thu/giây cuối ngày 7 tách theo nguồn (sau/trước, trung vị trên " + Seeds.Length + " hạt)");
+            report.AppendLine("Thỏ ở trạm: thu/giây chia cho thu/giây khi không bé nào ngồi trạm. Vườn + nâng cấp: hệ số thu nhập và tốc độ của vườn. Trạm + món: phần còn lại (cấp trạm, nguyên liệu, món).");
+            report.AppendLine();
+            report.AppendLine("| Hạt | Thu sau/trước | Sổ thỏ | Thỏ ở trạm | Vườn + nâng cấp | Trạm + món | Cấp vườn ngày 7 | Tổng cấp trạm | Tổng cấp thỏ ở trạm | Bậc thỏ cao nhất | Món nâng | Hệ số bậc thỏ ở trạm sau/trước | Thỏ đúng nghề ở trạm | Lần gọi có đèn sáng | Lần gọi lên bậc cao hơn bậc quay |");
+            report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|");
+            var tierRatios = new double[Seeds.Length];
+            var rabbitRatios = new double[Seeds.Length];
+            var modsRatios = new double[Seeds.Length];
+            var baseRatios = new double[Seeds.Length];
+            for (int i = 0; i < Seeds.Length; i++)
+            {
+                Week b = before[i], a = after[i];
+                rabbitRatios[i] = a.RabbitLift / b.RabbitLift;
+                modsRatios[i] = a.ModsLift / b.ModsLift;
+                baseRatios[i] = ratios[i] / (albumRatios[i] * rabbitRatios[i] * modsRatios[i]);
+                report.AppendLine("| " + Seeds[i] + " | " + Math.Round(ratios[i], 3) + " | " + Math.Round(albumRatios[i], 3) + " | " + Math.Round(rabbitRatios[i], 3) + " | " + Math.Round(modsRatios[i], 3) + " | " + Math.Round(baseRatios[i], 3)
+                    + " | " + b.LevelEnd + " → " + a.LevelEnd + " | " + b.StationLevels + " → " + a.StationLevels + " | " + b.RabbitLevels + " → " + a.RabbitLevels + " | " + b.TopTier + " → " + a.TopTier + " | " + b.DishesRaised + " → " + a.DishesRaised
+                    + " | " + Math.Round(tierRatios[i] = a.TierFactor / b.TierFactor, 3) + " | " + b.InTrade + "/" + b.Seated + " → " + a.InTrade + "/" + a.Seated + " | " + a.LuckyCalls + " | " + a.RaisedCalls + " |");
+            }
+            report.AppendLine("| **trung vị** | " + Math.Round(ratio, 3) + " | " + Math.Round(albumRatio, 3) + " | " + Math.Round(Median(rabbitRatios), 3) + " | " + Math.Round(Median(modsRatios), 3) + " | " + Math.Round(Median(baseRatios), 3)
+                + " | " + Median(before, w => w.LevelEnd) + " → " + Median(after, w => w.LevelEnd) + " | " + Median(before, w => w.StationLevels) + " → " + Median(after, w => w.StationLevels)
+                + " | " + Median(before, w => w.RabbitLevels) + " → " + Median(after, w => w.RabbitLevels) + " | " + Median(before, w => w.TopTier) + " → " + Median(after, w => w.TopTier) + " | " + Median(before, w => w.DishesRaised) + " → " + Median(after, w => w.DishesRaised)
+                + " | " + Math.Round(Median(tierRatios), 3) + " | " + Median(before, w => w.InTrade) + " → " + Median(after, w => w.InTrade) + " | " + Median(after, w => w.LuckyCalls) + " | " + Median(after, w => w.RaisedCalls) + " |");
+            report.AppendLine("Hạt có thu ngày 7 cao hơn: " + Count(ratios, r => r > 1d) + "/" + Seeds.Length + ".");
+
+            System.IO.Directory.CreateDirectory("Logs");
+            System.IO.File.WriteAllText("Logs/economy-kinds.txt", report.ToString());
+            TestContext.WriteLine(report.ToString());
+            string text = report.ToString();
+
+            Assert.GreaterOrEqual(Median(after, w => w.Kinds), 45, "a casual player has met at least 45 kinds by the end of day seven, on the median\n" + text);
+            HardRules(after, text);
+            Holds(after, w => w.Golden >= 2 && w.Golden <= 6, "golden calls stay a few a week, at most six", text);
+            Assert.AreEqual(Median(before, w => w.Golden), Median(after, w => w.Golden), "the same golden calls a week on the median\n" + text);
+            Assert.AreEqual(Median(before, w => w.LevelDayOne), Median(after, w => w.LevelDayOne), "the same garden level at the end of day one on the median\n" + text);
+            Assert.That(Median(after, w => Late(w.Level10)), Is.InRange(0.9 * Median(before, w => Late(w.Level10)), 1.1 * Median(before, w => Late(w.Level10))), "garden level 10 within a tenth of the time it took before\n" + text);
+            Assert.LessOrEqual(albumRatio, 1.10, "the album's 3 % a set adds at most a tenth to day seven's income, on the median\n" + text);
         }
 
         [Test]

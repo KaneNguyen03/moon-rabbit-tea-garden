@@ -163,12 +163,14 @@ namespace VuonTra.Core.Tests
         [TestCase(0.1, 0)]
         [TestCase(0.9, 2)]
         [TestCase(0.9995, 5)]
-        public void Summon_Picks_Evenly_Among_The_Kinds_Of_The_Tier_It_Rolled(double roll, int tier)
+        public void Summon_Picks_Evenly_Among_The_Kinds_Of_The_Tier_It_Rolled_Once_All_Are_Met(double roll, int tier)
         {
             IReadOnlyList<RabbitKind> kinds = RabbitKinds.OfTier(tier);
+            foreach (RabbitKind kind in kinds) s.SeenKinds.Add(kind.Id);
             for (int k = 0; k < kinds.Count; k++)
             {
                 s.Clovers = 1;
+                s.DupStreak = 0;
                 Rabbit r = Rabbits.Summon(s, roll, "A", (k + 0.5) / kinds.Count);
                 Assert.AreEqual(tier, r.Tier);
                 Assert.AreEqual(kinds[k].Id, r.Kind);
