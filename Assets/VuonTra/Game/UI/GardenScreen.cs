@@ -2261,41 +2261,95 @@ namespace VuonTra.Game.UI
             lens.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
             lens.Render();
-            RenderTexture.active = rt;
             if (_photoTexture != null) { if (Application.isPlaying) Destroy(_photoTexture); else DestroyImmediate(_photoTexture); }
-            _photoTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
-            _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            _photoTexture.Apply();
-            RenderTexture.active = null;
+            bool readsBack = PhotoReadsBackAtOnce;
+            _photoTexture = new Texture2D(width, height, readsBack ? TextureFormat.RGB24 : TextureFormat.RGBA32, false);
+            if (readsBack)
+            {
+                RenderTexture.active = rt;
+                _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                _photoTexture.Apply();
+                RenderTexture.active = null;
+            }
+            else Graphics.CopyTexture(rt, _photoTexture);
             lens.targetTexture = was;
-            rt.Release();
+            string path = NewPhotoPath();
 
+            Sfx.Shutter();
+            Haptics.Medium();
+            Feel.Flash(Color.white, 0.18f);
+            if (readsBack)
+            {
+                ReleasePhotoTarget(rt);
+                ShowPhoto(WritePhoto(path, _photoTexture));
+                return;
+            }
+            UnityEngine.Rendering.AsyncGPUReadback.Request(rt, 0, TextureFormat.RGBA32, request =>
+            {
+                string written = null;
+                if (!request.hasError)
+                {
+                    var picture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                    picture.SetPixelData(request.GetData<byte>(), 0);
+                    written = WritePhoto(path, picture);
+                    Destroy(picture);
+                }
+                ReleasePhotoTarget(rt);
+                if (this != null && PhotoMode) ShowPhoto(written);
+            });
+        }
+
+        public static bool PhotoReadsBackAtOnce => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.WebGPU;
+
+        string NewPhotoPath()
+        {
             string folder = string.IsNullOrEmpty(PhotoFolder)
                 ? System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyPictures), "VuonTraTho")
                 : PhotoFolder;
-            string path = null;
             try
             {
                 System.IO.Directory.CreateDirectory(folder);
                 // One file per picture, even two in the same second.
                 string stamp = System.DateTime.Now.ToString("yyyyMMdd-HHmmss");
-                path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
+                string path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
                 for (int n = 2; System.IO.File.Exists(path); n++) path = System.IO.Path.Combine(folder, "vuon-" + stamp + "-" + n + ".png");
-                System.IO.File.WriteAllBytes(path, _photoTexture.EncodeToPNG());
+                return path;
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning("Không lưu được ảnh: " + e.Message);
+                return null;
             }
-            LastPhotoPath = path;
+        }
 
-            Sfx.Shutter();
-            Haptics.Medium();
-            Feel.Flash(Color.white, 0.18f);
+        static string WritePhoto(string path, Texture2D picture)
+        {
+            if (path == null) return null;
+            try
+            {
+                System.IO.File.WriteAllBytes(path, picture.EncodeToPNG());
+                return path;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("Không lưu được ảnh: " + e.Message);
+                return null;
+            }
+        }
+
+        static void ReleasePhotoTarget(RenderTexture rt)
+        {
+            rt.Release();
+            if (Application.isPlaying) Destroy(rt); else DestroyImmediate(rt);
+        }
+
+        void ShowPhoto(string path)
+        {
+            LastPhotoPath = path;
             bool gift = Runner.TakePhoto(path);
             bool asked = PhotoAskFraming && AnswerPhotoAsk();
             _photoAskLine.gameObject.SetActive(asked);
-            _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
+            _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, _photoTexture.width, _photoTexture.height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftGolden) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
             _photoReview.SetActive(true);

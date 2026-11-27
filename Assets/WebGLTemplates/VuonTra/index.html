@@ -16,12 +16,20 @@
         <div id="loading-error"></div>
       </div>
     </div>
+    <div id="renderer"></div>
     <script src="Build/{{{ LOADER_FILENAME }}}"></script>
     <script>
       var canvas = document.querySelector("#unity-canvas");
       var loading = document.querySelector("#loading");
       var fill = document.querySelector("#loading-fill");
       var error = document.querySelector("#loading-error");
+      var renderer = document.querySelector("#renderer");
+
+      function rendererName() {
+        if (canvas.getContext("webgpu")) return "WebGPU";
+        if (canvas.getContext("webgl2")) return navigator.gpu ? "WebGL 2 (fallback)" : "WebGL 2 (fallback: no WebGPU in this browser)";
+        return "unknown";
+      }
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) document.body.className = "phone";
 
@@ -56,6 +64,9 @@
         fill.style.width = Math.round(progress * 100) + "%";
       }).then(function () {
         loading.remove();
+        var line = "Renderer: " + rendererName();
+        console.info(line);
+        if (new URLSearchParams(location.search).has("debug")) renderer.textContent = line;
       }).catch(function (message) {
         error.textContent = message;
       });
