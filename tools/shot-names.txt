@@ -485,3 +485,11 @@ garden-25d	145-truoc
 garden-25d	145-sau
 garden-25d	145-sau-en-chu-to
 garden-25d	145-sau-ban-do
+feel-lane	168-vi-vuon
+feel-lane	168-vi-dang-bay
+feel-lane	168-vi-qua-va-so-noi
+feel-lane	168-vi-bang-day-qua
+feel-lane	168-en-vuon
+feel-lane	168-en-dang-bay
+feel-lane	168-en-qua-va-so-noi
+feel-lane	168-en-bang-day-qua

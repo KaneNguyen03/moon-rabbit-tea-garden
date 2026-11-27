@@ -74,13 +74,37 @@ namespace VuonTra.Game.UI
 
         void FlyTo(Vector2 from, RectTransform chip, Sprite sprite, Color tint, int count, string label, Color labelColor, Action land)
         {
-            Vector2 to = Feel.PointOf(chip);
+            Vector2 to = Feel.PointOf(chip == _purse ? _currency : chip);
             Feel.Fly(from, to, sprite, tint, count, 44f, () =>
             {
                 if (chip == null) return;
-                Feel.FloatText(to + new Vector2(0, chip == _tabIcons[3].rectTransform ? 90 : -90), label, labelColor, 34);
+                if (chip == _tabIcons[3].rectTransform) Feel.FloatText(to + new Vector2(0, 90), label, labelColor, 34);
+                else Feel.FloatBelow(UnderHud(chip), label, labelColor, 34);
                 land();
             });
+        }
+
+        public const float HudGainLane = 212f + FeelLayer.GainHeight / 2f;
+
+        Vector2 UnderHud(RectTransform chip) => new Vector2(Feel.PointOf(chip).x, Feel.PointOf(_hud, new Vector2(0f, -HudGainLane)).y);
+
+        void UnderFronts(Transform rt)
+        {
+            int lowest = int.MaxValue;
+            foreach (StationActorView actor in _actors) if (actor.Front != null && actor.Front.parent == rt.parent) lowest = Mathf.Min(lowest, actor.Front.GetSiblingIndex());
+            if (lowest == int.MaxValue) return;
+            if (rt.GetSiblingIndex() < lowest) lowest--;
+            rt.SetSiblingIndex(lowest);
+        }
+
+        Vector2 BannerBand()
+        {
+            float top = _canvas.rect.height - SafeInsets().y - FeelLayer.BannerGap;
+            float floor = (SheetOpen ? SheetHeight : ProductTray.Root.anchoredPosition.y + TrayView.Height) + FeelLayer.BannerGap;
+            if (!SheetOpen) return new Vector2(floor, floor + FeelLayer.BannerHeight);
+            if (top - floor >= FeelLayer.BannerHeight * FeelLayer.BannerLeastFit) return new Vector2(floor, Mathf.Min(top, floor + FeelLayer.BannerHeight));
+            float bar = SafeBottom() + TabBarGap;
+            return new Vector2(bar, bar + Mathf.Max(TabBarHeight, TabLiftY + TabLiftSize / 2f));
         }
 
         void PopChip(RectTransform chip, float swell)

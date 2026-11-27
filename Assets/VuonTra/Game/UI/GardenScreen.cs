@@ -120,7 +120,7 @@ namespace VuonTra.Game.UI
         int _shownClaimable = -1;
         RectTransform _barBadgeRect, _rabbitBadgeRect, _stationBadgeRect;
         Text _rabbitBadgeText, _stationBadgeText;
-        const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f;
+        const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f, TabLiftY = 112f, TabLiftSize = 136f;
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
         readonly List<Image> _tierTradeBadges = new List<Image>();
@@ -372,7 +372,7 @@ namespace VuonTra.Game.UI
                 {
                     _purseHeld = true;
                     Sfx.Blip();
-                    Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -70)), L10n.T("purse.full", s.Coins.Full()), Palette.Ink, 34);
+                    Feel.FloatBelow(UnderHud(_purse), L10n.T("purse.full", s.Coins.Full()), Palette.Ink, 34);
                 }
             }
             if (Shell.State == ShellState.Playing)
@@ -1004,6 +1004,7 @@ namespace VuonTra.Game.UI
                 GameCatalog catalog = Runner.Catalog;
                 Vector2 from = StationSpot(route.x) + new Vector2(112, -70) * StationSize(route.x), to = StationSpot(route.y) + new Vector2(112, -70) * StationSize(route.y);
                 Courier courier = TakeCourier(catalog);
+                UnderFronts(courier.Rect);
                 courier.Item.sprite = catalog.Stations[route.x].Prop;
                 courier.Rect.anchoredPosition = from;
                 courier.From = from;
@@ -1246,7 +1247,7 @@ namespace VuonTra.Game.UI
             if (island != null) StandOnTheIsland(catalog, island);
             BuildSheet(catalog);
             BuildLayout(catalog);
-            Feel = new FeelLayer(_canvas, catalog, Tweens);
+            Feel = new FeelLayer(_canvas, catalog, Tweens) { BannerBand = BannerBand };
             Arrival = new SummonMomentView(_canvas, catalog);
             Detail = new RabbitDetailView(_canvas, catalog, Tweens, OnLevelUp, OnLevelMax,
                 rabbitId => { Sfx.Click(); Rename.Open(Runner.State, rabbitId); },
@@ -1302,7 +1303,7 @@ namespace VuonTra.Game.UI
                 {
                     Profile.Close();
                     Shell.Resume();
-                    Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
+                    Feel.FloatBelow(UnderHud(_purse), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
                     Refresh(-1f);
                 }), OnRedeemCode, () => Runner.OpenStorePage(), () => IntroList.Open(Runner.State));
             BuildMail(catalog);
@@ -1321,7 +1322,7 @@ namespace VuonTra.Game.UI
             NewMoonMoment = new NewMoonMomentView(_canvas, catalog);
             CloudChoice = new CloudChoiceView(_canvas, catalog, Tweens, takeRemote => Runner.ResolveSync(takeRemote, r =>
             {
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : "cloud.kept"), Palette.Ink, 34);
+                Feel.FloatBelow(UnderHud(_purse), L10n.T(r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : "cloud.kept"), Palette.Ink, 34);
                 Refresh(-1f);
             }));
             if (_onSeasonBegan != null) Runner.SeasonBegan -= _onSeasonBegan;
@@ -3436,7 +3437,7 @@ namespace VuonTra.Game.UI
             _energyButton.Dip.Denied = () =>
             {
                 Sfx.Deny();
-                Feel.FloatText(Feel.PointOf(energyRect, new Vector2(0, 70)), L10n.T("energy.wait", Span(Energy.SecondsUntilBoost(Runner.State))), Palette.Lantern, 32);
+                Feel.FloatBelow(UnderHud(energyRect), L10n.T("energy.wait", Span(Energy.SecondsUntilBoost(Runner.State))), Palette.Lantern, 32);
             };
             // The name and the action each get their own half of the top row, one line tall, and shrink to fit it:
             // "Trà lực 28" and "×2 · 30 giây" never run into each other (test).
@@ -3550,7 +3551,7 @@ namespace VuonTra.Game.UI
                 });
 
                 // The raised disc under the chosen tab's icon; it pokes a little above the plate.
-                _tabLifts[i] = UiKit.Rect("Lift", rt).Place(0.5f, 0f, 0, 112, 136, 136);
+                _tabLifts[i] = UiKit.Rect("Lift", rt).Place(0.5f, 0f, 0, TabLiftY, TabLiftSize, TabLiftSize);
                 _tabLifts[i].AddShadow(12f, 8f, 0.3f);
                 UiKit.Rect("Lip", _tabLifts[i]).Stretch(0, 0, 1, 1).AddImage(catalog.Round, Palette.CarrotLip);
                 UiKit.Rect("Face", _tabLifts[i]).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Round, Palette.Lantern);
@@ -4073,13 +4074,12 @@ namespace VuonTra.Game.UI
             System.Action arrive = () =>
             {
                 if (_purse == null) return;
-                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
                 PopChip(_purse, 0.08f);
                 landed?.Invoke();
             };
             if (!_purse.gameObject.activeInHierarchy) { arrive(); return; }
             Feel.BringToFront();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, AwayFlyCount, 46f, arrive);
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, AwayFlyCount, 46f, arrive);
         }
 
         void AwayDoubled()
@@ -4088,7 +4088,7 @@ namespace VuonTra.Game.UI
             Sfx.Milestone();
             Haptics.Medium();
             Vector2 from = Feel.PointOf(AwayCard.CarrotIcon);
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + Runner.LastAway.Paid.Short(), Palette.Carrot, 44);
+            Feel.FloatBelow(UnderHud(_purse), "+" + Runner.LastAway.Paid.Short(), Palette.Carrot, 44);
             AwayCarrotsHome(from, () => AwayCarrotsHome(from, null));
             AwayCard.Close();
         }
@@ -4615,8 +4615,8 @@ namespace VuonTra.Game.UI
         {
             if (away.WorthTelling) { AwayCard.Open(away, Runner.State); return; }
             if (away.Paid < BigNum.One || Feel == null) return;
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + away.Paid.Short(), Palette.Carrot, 40);
-            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 8, 420f, 40f);
+            Feel.FloatBelow(UnderHud(_purse), "+" + away.Paid.Short(), Palette.Carrot, 40);
+            PopChip(_purse, 0.08f);
         }
 
         /// <summary>The sheet for a plain amount and time, as older callers and the tests had it.</summary>
@@ -5261,11 +5261,10 @@ namespace VuonTra.Game.UI
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();
             // The carrots fly from the row up to the purse, which swells as they land.
-            Feel.Fly(carrotsFrom, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(carrotsFrom, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
-                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 8, 460f, 40f);
+                Feel.FloatBelow(UnderHud(_purse), gained, Palette.Lantern, 46);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
             if (jars > 0) JarArrived(jarsFrom);
@@ -5599,10 +5598,10 @@ namespace VuonTra.Game.UI
             Haptics.Light();
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 5, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, 5, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
+                Feel.FloatBelow(UnderHud(_purse), gained, Palette.Lantern, 46);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
             if (golden > 0)
@@ -5967,10 +5966,10 @@ namespace VuonTra.Game.UI
             OrderCard.Close();
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
+                Feel.FloatBelow(UnderHud(_purse), gained, Palette.Lantern, 46);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
             if (clovers > 0)
@@ -6468,9 +6467,9 @@ namespace VuonTra.Game.UI
             Sfx.Reward();
             Haptics.Light();
             string gained = "+" + _askPaid.Short();
-            Feel.Fly(at, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(at, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
-                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+                if (_purse != null) Feel.FloatBelow(UnderHud(_purse), gained, Palette.Carrot, 44);
             });
         }
 
@@ -6774,10 +6773,10 @@ namespace VuonTra.Game.UI
         void JarArrived(Vector2 from)
         {
             GameCatalog catalog = Runner.Catalog;
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Round, Palette.Lantern, 1, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Round, Palette.Lantern, 1, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), L10n.T("float.jar.bought"), Palette.Lantern, 34);
+                Feel.FloatBelow(UnderHud(_purse), L10n.T("float.jar.bought"), Palette.Lantern, 34);
                 if (_jarChip != null) Tweens.Add(Motion.Tap, t => { if (_jarChip != null) _jarChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_jarChip != null) _jarChip.localScale = Vector3.one; });
             });
         }
@@ -7345,9 +7344,9 @@ namespace VuonTra.Game.UI
             Feel.FloatText(from + new Vector2(50, 40), "♥", Palette.Blush, 50);
             Feel.FloatText(from + new Vector2(-40, 70), "♥", Palette.Blush, 36);
             string gained = "+" + paid.Short();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
-                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+                if (_purse != null) Feel.FloatBelow(UnderHud(_purse), gained, Palette.Carrot, 44);
             });
             if (clovers > 0)
             {
@@ -8887,7 +8886,7 @@ namespace VuonTra.Game.UI
         {
             if (!_built || _purse == null) return;
             Sfx.Reward();
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -130)), L10n.T("intro.paid", paid.Short(), clovers), Palette.Lantern, 36);
+            Feel.FloatBelow(UnderHud(_purse), L10n.T("intro.paid", paid.Short(), clovers), Palette.Lantern, 36);
         }
 
         #endregion
