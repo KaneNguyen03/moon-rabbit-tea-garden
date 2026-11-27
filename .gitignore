@@ -21,6 +21,8 @@
 .vscode/
 TestResults*.xml
 crashlytics-build.properties
+*.keystore
+*.jks
 .DS_Store
 # local tool config
 .claude/*
