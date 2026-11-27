@@ -22,6 +22,7 @@ namespace VuonTra.Core.Tests
             s.TutorialStep = Tutorial.Steps;
             s.NextOrderId = 1;
             s.Grid.Segments = 1;
+            s.PlaySeconds = Intros.EarliestSeconds;
             s.Fish[0] = Intros.TankFish;
             long fair = Fairs.StartOf(Fairs.All[0], 2026);
             Seasons.Clamp(s, fair - Intros.MonthPassDay);
@@ -81,6 +82,53 @@ namespace VuonTra.Core.Tests
         }
 
         [Test, MonetizationOn]
+        public void No_Card_But_The_Shop_Shows_Before_Seven_Minutes_Of_Play()
+        {
+            OpenEverything();
+            Assert.AreEqual(420d, Intros.EarliestSeconds);
+            s.PlaySeconds = Intros.EarliestSeconds - 1d;
+            foreach (string id in Intros.All)
+            {
+                Assert.IsTrue(Intros.IsOpen(s, id), id + ": the feature itself is open");
+                Assert.AreEqual(id == Intros.Shop, Intros.Due(s, id), id);
+            }
+            Assert.AreEqual(Intros.Shop, Intros.Next(s), "only the shop comes in the first seven minutes");
+            Assert.IsFalse(Intros.Show(s, Intros.Fishing));
+            Assert.IsTrue(Intros.Show(s, Intros.Shop));
+            Assert.IsNull(Intros.Next(s));
+            var queue = new IntroQueue();
+            for (int k = 0; k < 30; k++) Assert.IsNull(queue.Tick(s, 1d, false), "second " + k);
+
+            s.PlaySeconds = Intros.EarliestSeconds;
+            Assert.AreEqual(Intros.Fishing, Intros.Next(s), "at minute seven the cards start, in the list's order");
+            Assert.AreEqual(Intros.Fishing, queue.Tick(s, 1d, false));
+        }
+
+        [Test]
+        public void The_Fishing_Card_Waits_For_The_First_Band_Of_New_Land()
+        {
+            s.PlaySeconds = Intros.EarliestSeconds;
+            Assert.AreEqual(0, Expansion.Segments(s));
+            Assert.IsTrue(Fishing.Unlocked(s), "the pond stays open from the first level");
+            Assert.IsTrue(Intros.IsOpen(s, Intros.Fishing));
+            Assert.IsFalse(Intros.Due(s, Intros.Fishing));
+            Assert.IsNull(Intros.Next(s));
+            Assert.IsFalse(Intros.Show(s, Intros.Fishing));
+            s.Grid.Segments = Intros.FishingSegments;
+            Assert.AreEqual(1, Intros.FishingSegments);
+            Assert.AreEqual(Intros.Fishing, Intros.Next(s));
+            Assert.IsTrue(Intros.Show(s, Intros.Fishing));
+        }
+
+        [Test]
+        public void Trying_The_Pond_Before_Its_Card_Still_Pays_The_First_Try_Gift()
+        {
+            Assert.IsTrue(Intros.Use(defs, s, Modifiers.None, Intros.Fishing, out _, out int clovers), "the gift follows the feature, not the card's clock");
+            Assert.AreEqual(Intros.RewardClovers, clovers);
+            Assert.IsTrue(s.IntrosSeen.Contains(Intros.Fishing));
+        }
+
+        [Test, MonetizationOn]
         public void Every_Card_Shows_Exactly_Once()
         {
             OpenEverything();
@@ -113,6 +161,7 @@ namespace VuonTra.Core.Tests
             s.TutorialStep = Tutorial.Steps;
             s.NextOrderId = 4;
             s.Grid.Segments = 1;
+            s.PlaySeconds = 2d * Intros.EarliestSeconds;
             string json = SaveCodec.Encode(defs, s);
             int at = json.IndexOf(",\"intros\":");
             Assert.Greater(at, 0, "the save writes the cards' block");
@@ -143,7 +192,7 @@ namespace VuonTra.Core.Tests
         {
             LoadResult empty = SaveCodec.Decode(defs, "");
             Assert.AreEqual(0, empty.State.IntrosSeen.Count);
-            Assert.AreEqual(Intros.Fishing, Intros.Next(empty.State));
+            Assert.IsNull(Intros.Next(empty.State), "a new garden starts on the main loop, no card yet");
 
             OpenEverything();
             Intros.Show(s, Intros.Fishing);
@@ -330,6 +379,7 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(Intros.Use(defs, s, Modifiers.None, Intros.Trunk, out _, out _), "nor pays before its day");
             Assert.IsFalse(s.IntrosSeen.Contains(Intros.Trunk));
             PlayDay(Intros.TrunkDay);
+            s.PlaySeconds = Intros.EarliestSeconds;
             Assert.IsTrue(Intros.IsOpen(s, Intros.Trunk), "on its day the card comes");
             Assert.IsTrue(Intros.Show(s, Intros.Trunk));
             Assert.IsTrue(Intros.Use(defs, s, Modifiers.None, Intros.Trunk, out _, out int clovers));

@@ -14,7 +14,7 @@ namespace VuonTra.Core.Tests
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
             s.Levels = new[] { 5, 2, 1 };
-            s.GardenXp = Garden.XpForLevel(4);
+            s.GardenXp = Garden.XpForLevel(Leaves.UnlockLevel);
         }
 
         static Leaf At(double lands, double x, LeafKind kind) => new Leaf { Lands = lands, Drop = lands - 2d, X = x, Kind = kind };
@@ -202,15 +202,32 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Basket_Waits_For_Garden_Level_Four()
+        public void The_Basket_Waits_For_Garden_Level_Seven()
         {
-            s.GardenXp = Garden.XpForLevel(3);
+            Assert.AreEqual(7, Leaves.UnlockLevel);
+            s.GardenXp = Garden.XpForLevel(Leaves.UnlockLevel - 1);
             Assert.IsFalse(Leaves.Unlocked(s));
             Assert.IsFalse(Leaves.Start(s, 5));
             Assert.IsTrue(Pounding.Unlocked(s), "a level the mortar is already open at");
-            s.GardenXp = Garden.XpForLevel(4);
+            s.GardenXp = Garden.XpForLevel(Leaves.UnlockLevel);
             Assert.IsTrue(Leaves.Unlocked(s));
             Assert.IsTrue(Leaves.Start(s, 5));
+        }
+
+        [Test]
+        public void A_Save_That_Already_Knew_The_Basket_Below_Level_Seven_Keeps_It()
+        {
+            Assert.AreEqual(4, Leaves.KeptFromLevel);
+            s.GardenXp = Garden.XpForLevel(Leaves.KeptFromLevel);
+            Assert.IsFalse(Leaves.Unlocked(s), "a new garden at level four waits for seven");
+            s.Leaves.Games = 1;
+            Assert.IsTrue(Leaves.Unlocked(s), "a garden that played it keeps it");
+            Assert.IsTrue(Leaves.Start(s, 5));
+            s.Leaves.Games = 0;
+            s.IntrosSeen.Add(Intros.Leaves);
+            Assert.IsTrue(Leaves.Unlocked(s), "a garden that was shown its card keeps it");
+            s.GardenXp = Garden.XpForLevel(Leaves.KeptFromLevel - 1);
+            Assert.IsFalse(Leaves.Unlocked(s), "below the old level it was shut before too");
         }
 
         [Test]

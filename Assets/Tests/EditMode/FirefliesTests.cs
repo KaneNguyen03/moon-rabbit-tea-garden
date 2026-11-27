@@ -14,7 +14,7 @@ namespace VuonTra.Core.Tests
             defs = Fixture.Defs();
             s = GameState.NewGame(defs);
             s.Levels = new[] { 5, 2, 1 };
-            s.GardenXp = Garden.XpForLevel(5);
+            s.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel);
         }
 
         static Firefly Crossing(int index, double appears, double y, bool golden = false) =>
@@ -199,15 +199,32 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Jar_Waits_For_Garden_Level_Five()
+        public void The_Jar_Waits_For_Garden_Level_Nine()
         {
-            s.GardenXp = Garden.XpForLevel(4);
+            Assert.AreEqual(9, Fireflies.UnlockLevel);
+            s.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel - 1);
             Assert.IsFalse(Fireflies.Unlocked(s));
             Assert.IsFalse(Fireflies.Start(s, 5));
             Assert.IsTrue(Leaves.Unlocked(s), "a level the basket is already out at");
-            s.GardenXp = Garden.XpForLevel(5);
+            s.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel);
             Assert.IsTrue(Fireflies.Unlocked(s));
             Assert.IsTrue(Fireflies.Start(s, 5));
+        }
+
+        [Test]
+        public void A_Save_That_Already_Knew_The_Fireflies_Below_Level_Nine_Keeps_Them()
+        {
+            Assert.AreEqual(5, Fireflies.KeptFromLevel);
+            s.GardenXp = Garden.XpForLevel(Fireflies.KeptFromLevel);
+            Assert.IsFalse(Fireflies.Unlocked(s), "a new garden at level five waits for nine");
+            s.Fireflies.Games = 2;
+            Assert.IsTrue(Fireflies.Unlocked(s), "a garden that played it keeps it");
+            Assert.IsTrue(Fireflies.Start(s, 5));
+            s.Fireflies.Games = 0;
+            s.IntrosSeen.Add(Intros.Fireflies);
+            Assert.IsTrue(Fireflies.Unlocked(s), "a garden that was shown its card keeps it");
+            s.GardenXp = Garden.XpForLevel(Fireflies.KeptFromLevel - 1);
+            Assert.IsFalse(Fireflies.Unlocked(s));
         }
 
         [Test]

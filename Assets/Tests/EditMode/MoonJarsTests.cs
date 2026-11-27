@@ -199,11 +199,29 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Button_Waits_For_Garden_Level_Three()
+        public void The_Button_Waits_For_Garden_Level_Six()
         {
+            Assert.AreEqual(6, MoonJars.ShowLevel);
             Assert.IsFalse(MoonJars.Shown(s));
-            Garden.AddXp(s, Garden.XpForLevel(MoonJars.ShowLevel));
+            Garden.AddXp(s, Garden.XpForLevel(MoonJars.ShowLevel - 1));
+            Assert.IsFalse(MoonJars.Shown(s));
+            Garden.AddXp(s, Garden.XpForLevel(MoonJars.ShowLevel) - s.GardenXp);
             Assert.IsTrue(MoonJars.Shown(s));
+        }
+
+        [Test]
+        public void A_Save_That_Already_Had_The_Jars_Below_Level_Six_Keeps_The_Button()
+        {
+            Assert.AreEqual(3, MoonJars.KeptFromLevel);
+            s.GardenXp = Garden.XpForLevel(MoonJars.KeptFromLevel);
+            Assert.IsFalse(MoonJars.Shown(s), "a new garden at level three waits for six");
+            s.JarsOpened = 1;
+            Assert.IsTrue(MoonJars.Shown(s), "a garden that opened a jar keeps the button");
+            s.JarsOpened = 0;
+            s.IntrosSeen.Add(Intros.MoonJar);
+            Assert.IsTrue(MoonJars.Shown(s), "a garden that was shown its card keeps it");
+            GameState back = SaveCodec.Decode(defs, SaveCodec.Encode(defs, s)).State;
+            Assert.IsTrue(MoonJars.Shown(back), "and keeps it after a reload");
         }
 
         [Test]
