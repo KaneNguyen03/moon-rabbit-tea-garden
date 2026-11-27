@@ -11,6 +11,8 @@ namespace VuonTra.EditorTools
         public const string MacPath = "Build/Mac/VuonTraTho.app";
         public const string IOSPath = "Build/iOS";
         public const string AndroidPath = "Build/Android/VuonTraTho.apk";
+        public const string WebGLPath = "Build/WebGL";
+        public const string WebGLTemplate = "PROJECT:VuonTra";
 
         public const string ProductName = "Moon Rabbit Tea Garden";
         public const string BundleId = "com.vuontratho.game";
@@ -26,13 +28,44 @@ namespace VuonTra.EditorTools
         [MenuItem("VuonTra/Build Android (APK)")]
         public static void BuildAndroid() => Build(BuildTarget.Android, BuildTargetGroup.Android, AndroidPath);
 
+        [MenuItem("VuonTra/Build WebGL")]
+        public static void BuildWebGL()
+        {
+            BuildTarget previous = EditorUserBuildSettings.activeBuildTarget;
+            BuildTargetGroup previousGroup = BuildPipeline.GetBuildTargetGroup(previous);
+            ConfigureWebGL();
+            if (previous != BuildTarget.WebGL && !EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL))
+            {
+                Debug.LogError("[VuonTra] Build WebGL: không chuyển được build target sang WebGL; kiểm tra module WebGL trong Unity Hub.");
+                if (Application.isBatchMode) EditorApplication.Exit(2);
+                return;
+            }
+            int exitCode = BuildAndReport(BuildTarget.WebGL, BuildTargetGroup.WebGL, WebGLPath);
+            if (previous != BuildTarget.WebGL) EditorUserBuildSettings.SwitchActiveBuildTarget(previousGroup, previous);
+            if (Application.isBatchMode && exitCode != 0) EditorApplication.Exit(exitCode);
+        }
+
+        public static void ConfigureWebGL()
+        {
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.WebGL.decompressionFallback = true;
+            PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
+            PlayerSettings.WebGL.template = WebGLTemplate;
+            PlayerSettings.WebGL.dataCaching = true;
+        }
+
         static void Build(BuildTarget target, BuildTargetGroup group, string path)
+        {
+            int exitCode = BuildAndReport(target, group, path);
+            if (Application.isBatchMode && exitCode != 0) EditorApplication.Exit(exitCode);
+        }
+
+        static int BuildAndReport(BuildTarget target, BuildTargetGroup group, string path)
         {
             if (!BuildPipeline.IsBuildTargetSupported(group, target))
             {
                 Debug.LogError("[VuonTra] Thiếu module " + target + ": cài qua Unity Hub (Installs → Add modules), kèm Xcode cho iOS hoặc Android SDK/NDK/OpenJDK cho Android, rồi chạy lại.");
-                if (Application.isBatchMode) EditorApplication.Exit(2);
-                return;
+                return 2;
             }
             UnityEditor.AddressableAssets.Settings.AddressableAssetSettings.BuildPlayerContent();
 
@@ -46,7 +79,7 @@ namespace VuonTra.EditorTools
             };
             BuildReport report = BuildPipeline.BuildPlayer(options);
             Debug.Log("[VuonTra] Build " + target + " " + report.summary.result + ", " + report.summary.totalSize + " bytes");
-            if (Application.isBatchMode && report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
+            return report.summary.result == BuildResult.Succeeded ? 0 : 1;
         }
 
         public const string MonetizationDefine = "VUONTRA_MONETIZATION";

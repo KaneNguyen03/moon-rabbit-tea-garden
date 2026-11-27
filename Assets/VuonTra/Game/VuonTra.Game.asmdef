@@ -9,6 +9,7 @@
         "UnityEngine.UI",
         "Unity.InputSystem",
         "Unity.Localization",
+        "Unity.ResourceManager",
         "Google.Play.Games",
         "UnityEngine.Purchasing",
         "UnityEngine.Purchasing.Stores",
