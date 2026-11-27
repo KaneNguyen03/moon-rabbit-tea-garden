@@ -64,7 +64,9 @@
         fill.style.width = Math.round(progress * 100) + "%";
       }).then(function () {
         loading.remove();
-        renderer.textContent = "Renderer: " + rendererName();
+        var line = "Renderer: " + rendererName();
+        console.info(line);
+        if (new URLSearchParams(location.search).has("debug")) renderer.textContent = line;
       }).catch(function (message) {
         error.textContent = message;
       });

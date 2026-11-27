@@ -40,7 +40,7 @@ Tài liệu Unity 6000.6 đã đọc:
 - [Limitations of the WebGPU graphics API](https://docs.unity.com/en-us/engine/6000.6/manual/platform-specific/webgl/develop/graphics/web-gpu/limitations): không async compute, dynamic resolution, cubemap array; **không đọc ngược GPU→CPU đồng bộ** (`GetPixels`, `CaptureScreenshot`...), dùng `AsyncGPUReadback`; Safari/Firefox thiếu vài định dạng texture; máy yếu chạy "compatibility mode".
 - [WebGPU Device Filter asset](https://docs.unity.com/en-us/engine/6000.6/manual/platform-specific/webgl/develop/graphics/web-gpu/webgpu-device-filter-asset/webgpu-intro-device-filter-asset): trình duyệt bị lọc dùng API dự phòng trong Player settings; không có API dự phòng thì không mở được game. Bản này không dùng filter.
 
-Trang web ghi renderer ở góc dưới trái sau khi tải xong: `Renderer: WebGPU`, `Renderer: WebGL 2 (fallback)` (có `navigator.gpu` nhưng không dùng được), hoặc `Renderer: WebGL 2 (fallback: no WebGPU in this browser)`.
+**Xem game đang chạy renderer nào (cho tester):** mở trang với `?debug`, ví dụ `https://kanenguyen03.github.io/moon-rabbit-tea-garden/?debug` hoặc `http://localhost:8150/?debug`. Sau khi tải xong, góc trên trái hiện một dòng nhỏ: `Renderer: WebGPU`, `Renderer: WebGL 2 (fallback)` (có `navigator.gpu` nhưng không dùng được), hoặc `Renderer: WebGL 2 (fallback: no WebGPU in this browser)`. Không có `?debug` thì người chơi không thấy dòng này (chủ project 28/11: dòng chữ đè lên thanh tab là rác debug); dòng ấy vẫn luôn được ghi vào console của trình duyệt.
 
 Kiểm tra bằng build thật qua cổng Unity, Edge 158.0.4370.45 trên Windows 11 (RTX 4070), `python3 -m http.server`:
 
@@ -52,7 +52,7 @@ Kiểm tra bằng build thật qua cổng Unity, Edge 158.0.4370.45 trên Window
 
 Shader: build biên dịch 95 shader cho cả `gles3` và `webgpu`, không lỗi, không cảnh báo shader. Game không có shader riêng; vườn 2D (URP 2D renderer), post-processing, hạt Shuriken, UI, font DejaVu có dấu tiếng Việt và DOTween đều hiện giống WebGL 2 trên ảnh. Vườn 2.5D đang tắt trên main (`Features.Garden25DByDefault = false`) nên chỉ biên dịch shader của nó, chưa xem trên trình duyệt.
 
-Lỗi WebGPU duy nhất tìm thấy: chế độ chụp ảnh dùng `ReadPixels` nên dưới WebGPU ảnh xám trắng (`webgpu-anh-truoc-khi-sua.png`, console: "Texture Readback is not supported by WebGPU"). `GardenScreen.Snap` dưới WebGPU chép ảnh bằng `Graphics.CopyTexture` cho khung xem trước và ghi PNG bằng `AsyncGPUReadback`; các nền tảng khác giữ `ReadPixels` như cũ.
+Lỗi WebGPU duy nhất tìm thấy: chế độ chụp ảnh dùng `ReadPixels` nên dưới WebGPU ảnh xám trắng (`webgpu-anh-truoc-khi-sua.png`, console: "Texture Readback is not supported by WebGPU"). `GardenScreen.Snap` dưới WebGPU chép ảnh bằng `Graphics.CopyTexture` cho khung xem trước, ghi PNG bằng `AsyncGPUReadback`, và chỉ khi tệp đã ghi xong mới lưu đường dẫn (`LastPhotoPath`, album, quà ảnh) và mở bảng xem ảnh, nên "Copy image", "Show file" và album không bao giờ trỏ tới tệp chưa có. Các nền tảng khác giữ `ReadPixels` như cũ. Mỗi lần chụp giờ huỷ cả RenderTexture tạm (trước đây chỉ `Release`, để rò một object mỗi ảnh).
 
 Dung lượng (Brotli, 27/11): `WebGL.data.unityweb` 32,93 MB (52,90 MB giải nén), `WebGL.wasm.unityweb` 9,75 MB (53,27 MB), `WebGL.framework.js.unityweb` 0,07 MB (0,43 MB), `WebGL.loader.js` 0,11 MB. Tổng tải 42,87 MB, giải nén 106,71 MB (MB = 2^20 byte). So với bản WebGL 2 ngày 26/11 (32,5 + 9,3 MB) thêm khoảng 0,9 MB vì có cả hai bộ shader và mã WebGPU.
 

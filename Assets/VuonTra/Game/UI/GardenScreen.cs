@@ -2273,56 +2273,86 @@ namespace VuonTra.Game.UI
             }
             else Graphics.CopyTexture(rt, _photoTexture);
             lens.targetTexture = was;
+            string path = NewPhotoPath();
 
+            Sfx.Shutter();
+            Haptics.Medium();
+            Feel.Flash(Color.white, 0.18f);
+            if (readsBack)
+            {
+                ReleasePhotoTarget(rt);
+                ShowPhoto(WritePhoto(path, _photoTexture));
+                return;
+            }
+            UnityEngine.Rendering.AsyncGPUReadback.Request(rt, 0, TextureFormat.RGBA32, request =>
+            {
+                string written = null;
+                if (!request.hasError)
+                {
+                    var picture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                    picture.SetPixelData(request.GetData<byte>(), 0);
+                    written = WritePhoto(path, picture);
+                    Destroy(picture);
+                }
+                ReleasePhotoTarget(rt);
+                if (this != null && PhotoMode) ShowPhoto(written);
+            });
+        }
+
+        public static bool PhotoReadsBackAtOnce => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.WebGPU;
+
+        string NewPhotoPath()
+        {
             string folder = string.IsNullOrEmpty(PhotoFolder)
                 ? System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyPictures), "VuonTraTho")
                 : PhotoFolder;
-            string path = null;
             try
             {
                 System.IO.Directory.CreateDirectory(folder);
                 // One file per picture, even two in the same second.
                 string stamp = System.DateTime.Now.ToString("yyyyMMdd-HHmmss");
-                path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
+                string path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
                 for (int n = 2; System.IO.File.Exists(path); n++) path = System.IO.Path.Combine(folder, "vuon-" + stamp + "-" + n + ".png");
-                if (readsBack) System.IO.File.WriteAllBytes(path, _photoTexture.EncodeToPNG());
+                return path;
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning("Không lưu được ảnh: " + e.Message);
+                return null;
             }
-            if (readsBack) rt.Release();
-            else SavePhotoOnceRead(rt, path);
-            LastPhotoPath = path;
+        }
 
-            Sfx.Shutter();
-            Haptics.Medium();
-            Feel.Flash(Color.white, 0.18f);
+        static string WritePhoto(string path, Texture2D picture)
+        {
+            if (path == null) return null;
+            try
+            {
+                System.IO.File.WriteAllBytes(path, picture.EncodeToPNG());
+                return path;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("Không lưu được ảnh: " + e.Message);
+                return null;
+            }
+        }
+
+        static void ReleasePhotoTarget(RenderTexture rt)
+        {
+            rt.Release();
+            if (Application.isPlaying) Destroy(rt); else DestroyImmediate(rt);
+        }
+
+        void ShowPhoto(string path)
+        {
+            LastPhotoPath = path;
             bool gift = Runner.TakePhoto(path);
             bool asked = PhotoAskFraming && AnswerPhotoAsk();
             _photoAskLine.gameObject.SetActive(asked);
-            _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
+            _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, _photoTexture.width, _photoTexture.height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftGolden) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
             _photoReview.SetActive(true);
-        }
-
-        public static bool PhotoReadsBackAtOnce => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.WebGPU;
-
-        static void SavePhotoOnceRead(RenderTexture rt, string path)
-        {
-            UnityEngine.Rendering.AsyncGPUReadback.Request(rt, 0, TextureFormat.RGBA32, request =>
-            {
-                if (!request.hasError && path != null)
-                {
-                    var picture = new Texture2D(rt.width, rt.height, TextureFormat.RGBA32, false);
-                    picture.SetPixelData(request.GetData<byte>(), 0);
-                    try { System.IO.File.WriteAllBytes(path, picture.EncodeToPNG()); }
-                    catch (System.Exception e) { Debug.LogWarning("Không lưu được ảnh: " + e.Message); }
-                    Destroy(picture);
-                }
-                rt.Release();
-            });
         }
 
         /// <summary>Opens the folder with the picture selected (Finder on a Mac).</summary>
