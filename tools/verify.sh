@@ -9,7 +9,7 @@
 # Close the Unity Editor first: batch mode cannot open a project that an editor holds.
 set -u
 cd "$(dirname "$0")/.."
-UNITY="${UNITY:-/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity}"
+. tools/unity-env.sh
 BUILD=0; FAST=0; PREVIEW=1
 for arg in "$@"; do
   case "$arg" in
@@ -25,7 +25,7 @@ declare -a NAMES RESULTS
 fail=0
 note() { NAMES+=("$1"); RESULTS+=("$2"); case "$2" in FAIL*) fail=1;; esac; }
 
-if [ -f Temp/UnityLockfile ] && pgrep -f "Unity.app/Contents/MacOS/Unity" >/dev/null; then
+if [ -f Temp/UnityLockfile ] && unity_editor_open; then
   echo "verify: the Unity Editor holds this project (Temp/UnityLockfile). Close it first." >&2
   exit 2
 fi
@@ -44,15 +44,11 @@ run_unity() { # name, logfile, args...
   return 0
 }
 
-player_save() {
-  local company product
-  company=$(sed -n 's/^  companyName: //p' ProjectSettings/ProjectSettings.asset)
-  product=$(sed -n 's/^  productName: //p' ProjectSettings/ProjectSettings.asset)
-  printf '%s\n' "$HOME/Library/Application Support/$company/$product/save.json"
-}
+PLAYER_DIR=$(player_dir)
+player_save() { printf '%s\n' "$PLAYER_DIR/save.json"; }
 save_stamp() {
   local f; f=$(player_save)
-  if [ -f "$f" ]; then printf '%s %s\n' "$(stat -f %m "$f")" "$(shasum "$f" | cut -d' ' -f1)"; else echo "none"; fi
+  if [ -f "$f" ]; then printf '%s %s\n' "$(file_time "$f")" "$(shasum "$f" | cut -d' ' -f1)"; else echo "none"; fi
 }
 SAVE_BEFORE=$(save_stamp)
 
@@ -97,8 +93,7 @@ else
 fi
 
 SAVE_AFTER=$(save_stamp)
-player_dir=$(dirname "$(player_save)")
-rm -f "$player_dir/TestResults.xml" "$player_dir/PerformanceTestResults.json"
+rm -f "$PLAYER_DIR/TestResults.xml" "$PLAYER_DIR/PerformanceTestResults.json"
 if [ "$SAVE_BEFORE" = "$SAVE_AFTER" ]; then note "save" "ok (player save.json untouched: $SAVE_AFTER)"
 else note "save" "FAIL (player save.json changed during the run: $SAVE_BEFORE -> $SAVE_AFTER; was the game open?)"; fi
 

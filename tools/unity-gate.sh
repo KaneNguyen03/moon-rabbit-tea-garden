@@ -11,7 +11,7 @@ OVERRIDE="$STATE/unity-gate-rules.sh"
 POLL="${UNITY_GATE_POLL:-5}"
 MAX_WAIT="${UNITY_GATE_MAX_WAIT:-0}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-UNITY_ARGS='^/Applications/Unity/Hub/Editor/[^ ]*/Unity.app/Contents/MacOS/Unity '
+. "$ROOT/tools/unity-env.sh"
 
 usage() {
   cat >&2 <<'EOF'
@@ -36,7 +36,7 @@ alive() {
 unity_below() {
   local child
   for child in $(pgrep -P "$1" 2>/dev/null); do
-    ps -o args= -p "$child" | grep -q "$UNITY_ARGS" && return 0
+    ps -o args= -p "$child" | grep -qE "$UNITY_PROCESS" && return 0
     unity_below "$child" && return 0
   done
   return 1
@@ -44,8 +44,8 @@ unity_below() {
 
 unity_projects() {
   local pid
-  for pid in $(pgrep -f "$UNITY_ARGS" 2>/dev/null); do
-    ps -o args= -p "$pid" | grep -o 'projectPath /Users/[A-Za-z][^ ]*'
+  for pid in $(pgrep -f "$UNITY_PROCESS" 2>/dev/null); do
+    ps -o args= -p "$pid" | grep -oE 'projectPath (/Users/[A-Za-z]|[A-Za-z]:\\)[^ ]*'
   done | sort -u
 }
 
@@ -125,12 +125,7 @@ holder() {
   return 1
 }
 
-player_save() {
-  local company product
-  company=$(sed -n 's/^  companyName: //p' "$ROOT/ProjectSettings/ProjectSettings.asset" 2>/dev/null)
-  product=$(sed -n 's/^  productName: //p' "$ROOT/ProjectSettings/ProjectSettings.asset" 2>/dev/null)
-  printf '%s\n' "$HOME/Library/Application Support/${company:-VuonTraTho}/${product:-Moon Rabbit Tea Garden}/save.json"
-}
+player_save() { printf '%s\n' "$(player_dir)/save.json"; }
 
 span() {
   local seconds=$1
@@ -139,7 +134,7 @@ span() {
   else echo "${seconds}s"; fi
 }
 
-age() { echo $(($(date +%s) - $(stat -f %m "$1" 2>/dev/null || date +%s))); }
+age() { echo $(($(date +%s) - $(file_time "$1" 2>/dev/null || date +%s))); }
 
 field() { sed -n "s/^$2=//p" "$INFO/$1" 2>/dev/null | head -1; }
 

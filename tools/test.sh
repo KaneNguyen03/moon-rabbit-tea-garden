@@ -1,7 +1,7 @@
 #!/bin/bash
 set -u
 cd "$(dirname "$0")/.."
-UNITY="${UNITY:-/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity}"
+. tools/unity-env.sh
 if [ "${1:-}" = "--changed" ]; then
   shift
   FILTER=$(python3 -I tools/test_areas.py "$@") || exit 1
@@ -28,11 +28,9 @@ RESULTS="$PWD/Logs/TestResults-filter.xml"
 LOG="$PWD/Logs/test-filter.log"
 mkdir -p Logs
 rm -f "$RESULTS"
-company=$(sed -n 's/^  companyName: //p' ProjectSettings/ProjectSettings.asset)
-product=$(sed -n 's/^  productName: //p' ProjectSettings/ProjectSettings.asset)
-player_dir="$HOME/Library/Application Support/$company/$product"
+PLAYER_DIR=$(player_dir)
 "$UNITY" -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode -testFilter "$FILTER" ${CATEGORY[@]+"${CATEGORY[@]}"} -testResults "$RESULTS" -logFile "$LOG" >/dev/null 2>&1
-rm -f "$player_dir/TestResults.xml" "$player_dir/PerformanceTestResults.json"
+rm -f "$PLAYER_DIR/TestResults.xml" "$PLAYER_DIR/PerformanceTestResults.json"
 cs=$(grep -E "error CS[0-9]+" "$LOG" | head -5)
 if [ -n "$cs" ]; then printf '%s\n' "$cs" >&2; echo "test: FAIL (compile errors, see Logs/test-filter.log)"; exit 1; fi
 if [ ! -f "$RESULTS" ]; then echo "test: FAIL (no results, see Logs/test-filter.log)"; exit 1; fi

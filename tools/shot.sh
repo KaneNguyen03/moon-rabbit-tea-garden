@@ -1,7 +1,7 @@
 #!/bin/bash
 set -u
 cd "$(dirname "$0")/.."
-UNITY="${UNITY:-/Applications/Unity/Hub/Editor/6000.6.10f1/Unity.app/Contents/MacOS/Unity}"
+. tools/unity-env.sh
 NAMES=tools/shot-names.txt
 SOURCE=Assets/VuonTra/Editor/PreviewShot.Select.cs
 OUT=Logs/shot
