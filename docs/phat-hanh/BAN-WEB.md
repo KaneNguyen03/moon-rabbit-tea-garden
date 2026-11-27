@@ -2,6 +2,8 @@
 
 *Viết 26/11/2026 cho #150.* Đường dẫn chơi: **https://kanenguyen03.github.io/moon-rabbit-tea-garden/**
 
+Bản cũ (chỉ WebGL 2, build từ `e7da078`) để dự phòng: **https://kanenguyen03.github.io/moon-rabbit-tea-garden/old/**. Xem mục [Bản cũ ở /old/](#bản-cũ-ở-old-2811).
+
 ## Hai lệnh
 
 ```bash
@@ -69,6 +71,24 @@ Dung lượng (Brotli, 27/11): `WebGL.data.unityweb` 32,93 MB (52,90 MB giải n
 Token lấy bằng `env -u GITHUB_TOKEN -u GH_TOKEN gh auth token --user KaneNguyen03`, đưa vào git qua một credential helper chỉ sống trong lệnh `push` đó và đọc token từ biến môi trường, không nằm trong URL remote, không ghi xuống tệp nào. Đổi tài khoản bằng `PAGES_ACCOUNT=...`, đổi nhánh bằng `PAGES_BRANCH=...`. Thử script mà không đụng origin: `tools/publish-pages.sh /đường/dẫn/repo-trần.git`.
 
 Script dừng nếu chưa có `Build/WebGL/index.html` (mã 2) hoặc có tệp lớn hơn 95 MB, vì GitHub từ chối tệp trên 100 MB (mã 3).
+
+## Bản cũ ở /old/ (28/11)
+
+Chủ project duyệt 28/11: "Thay, giữ bản cũ ở /old/". Commit `763409e` trên `gh-pages` (một commit thường trên `01e04a9`, không force push) chuyển nguyên bản đang chạy lúc ấy (`Web build from e7da078`, chỉ WebGL 2) vào thư mục `old/`, byte nào cũng như cũ, rồi đặt bản WebGPU build từ `43dcb74` (`b75be6a`, không khác `Assets`, `ProjectSettings`, `Packages`) ở gốc. Trang và Addressables của bản cũ chỉ dùng đường dẫn tương đối (`Build/...`, `StreamingAssets`, `{Addressables.RuntimePath}`) nên chạy được từ `/old/` không cần sửa. Lần dựng Pages: [46059574190](https://github.com/KaneNguyen03/moon-rabbit-tea-garden/actions/runs/46059574190).
+
+Kiểm tra trên trang thật, Edge 158.0.4370.45 trên Windows 11:
+
+| Địa chỉ | Kết quả | Ảnh |
+|---|---|---|
+| `/?debug` | vào vườn, `Renderer: WebGPU` | `docs/anh/webgpu/pages-webgpu.png` |
+| `/?debug`, Edge mở với `--disable-features=WebGPUService,WebGPU` | vào vườn, `Renderer: WebGL 2 (fallback)` | `docs/anh/webgpu/pages-webgl2-fallback.png` |
+| `/old/` | vào vườn bản cũ, console `Creating WebGL 2.0 context.` | `docs/anh/webgpu/pages-old.png` |
+
+Dung lượng trên `gh-pages`: gốc 42,92 MB (MB = 2^20 byte; `WebGL.data.unityweb` 34 530 333 byte, `WebGL.wasm.unityweb` 10 206 207 byte), `old/` 42,06 MB (34 030 104 và 9 796 038 byte).
+
+Save gắn với đường dẫn trang, nên `/old/` có save riêng, không thấy save của bản ở gốc và ngược lại.
+
+**`tools/publish-pages.sh` sẽ xoá `old/`.** Script lấy cây của `gh-pages` làm index rồi `git add -A` trên một thư mục chỉ có `Build/WebGL/`, nên mọi tệp không có trong bản build mới, kể cả `old/`, bị xoá trong commit mới. Muốn giữ `/old/` khi phát hành lần sau thì commit tay như trên, hoặc sửa script trước. Bỏ `/old/` là quyết định của chủ project.
 
 ## Bật GitHub Pages (một lần, sau lần publish đầu)
 
