@@ -1,6 +1,0 @@
-I have invoked the `image-generator` subagent to perform the image edit. I will provide the file path as soon as it completes.
-The `image-generator` subagent was unable to generate [/Users/hiquyennek/Documents/VuonTraNam-tho4/docs/anh/do-hoa-tho/tho-4-kieu/plates/tim-truoc-head.png](file:///Users/hiquyennek/Documents/VuonTraNam-tho4/docs/anh/do-hoa-tho/tho-4-kieu/plates/tim-truoc-head.png) because the backend image generation service encountered a quota exhaustion limit:
-
-> **RESOURCE_EXHAUSTED (code 429):** You have exhausted your capacity on this model. Your quota will reset after ~4h54m.
-
-No image was generated or saved. Please try again once the image generation quota resets.
