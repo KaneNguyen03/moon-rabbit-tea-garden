@@ -173,7 +173,7 @@ Chuẩn ở `docs/nghien-cuu-thiet-ke-do-hoa.md` (nhánh `do-net-do-hoa`, worktr
 | Nhãn trên vườn | ≤ 3 viên có chữ ở zoom mặc định | ≤ 4 nhãn chữ trong thế giới (bài kiểm §4); nhãn nền mực tối chữ kem, kem sáng nhất dành cho thỏ, đèn, thẻ UI (art bible mới mục 7; đã làm cho cối, giỏ, hũ, ao, "Xếp thỏ +") | theo chuẩn, ≤ 4 là mức đạt; #135 |
 | Thời lượng nhịp làm việc | 1 vòng = 1 `CycleSeconds` | 0,6–1 s mỗi nhịp, chuẩn bị 100 ms, đi theo 150 ms (§7) | theo chuẩn: vòng không nén theo chu kỳ; #132, §4a |
 | Phông | Baloo 2 + Nunito (OFL) | phông tròn bundle có dấu tiếng Việt, cân nhắc TMP (mục 11) | đề xuất cụ thể, session thiết kế chốt; #142 |
-| DOTween | không thêm | quyết định của chủ project (V19) | khớp; #136 dùng `Tweens`/`FeelLayer` |
+| DOTween | không thêm | quyết định của chủ project (V19) | hết hiệu lực từ #155: DOTween 1.3.045 đã cài ở `Assets/Plugins/Demigiant/DOTween`; #136 đã làm bằng `Tweens`/`FeelLayer` trước đó |
 | Thẻ trạm trống | hình trạm + món + thỏ bằng sprite có sẵn | RenderTexture (mục 13) | khớp hướng; #143 để session thiết kế chọn cách |
 | Vòng làm việc theo trạm, ô đất đầy, 11 trạm placeholder | có (#130 #131 #133 #139–#141) | chưa nêu | bổ sung, không mâu thuẫn |
 

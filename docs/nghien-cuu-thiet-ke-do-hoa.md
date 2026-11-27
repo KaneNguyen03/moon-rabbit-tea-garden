@@ -256,7 +256,7 @@ Chưa có ảnh chụp `TutorialView` trong bộ ảnh đã xem, nên chưa đá
 |---|---|---|
 | Thỏ, khách, ếch (thân, tay, tai) | Rig PSB, SpriteLibrary/Resolver, Animator, clip `.anim` | Idle 2–3 s lặp, chớp mắt ngẫu nhiên mỗi 3–6 s, làm việc 0,6–1 s mỗi nhịp |
 | Đạo cụ trạm (cối giã, nắp nồi) | Clip `.anim` trên prop | Có chuẩn bị 100 ms, va 60 ms, đi theo 150 ms |
-| Nút, thẻ, bảng, HUD | DOTween nếu cài, hoặc `Tweens`/`Ease` hiện có nếu chủ dự án chọn giữ | Nhấn 80–120 ms, nảy 180–250 ms `OutBack`. Bảng vào 300 ms ease-out, ra 200 ms ease-in. Hàng so le 50 ms |
+| Nút, thẻ, bảng, HUD | DOTween (đã cài từ #155, bản 1.3.045 ở `Assets/Plugins/Demigiant/DOTween`); code cũ còn dùng `Tweens`/`Ease` cho tới khi được chuyển | Nhấn 80–120 ms, nảy 180–250 ms `OutBack`. Bảng vào 300 ms ease-out, ra 200 ms ease-in. Hàng so le 50 ms |
 | Số đếm | Tween giá trị | 400–700 ms `OutCubic`, chữ nảy 1,1 khi xong |
 | Hơi, bụi, lá, lấp lánh, đom đóm | Shuriken (`ParticleSystem`) trên camera canvas | Đời hạt 0,6–2 s. Giới hạn số hạt theo cấp chất lượng |
 | Đèn lồng lắc, cỏ đung đưa | Shader wind sway (skill `shader-programming`) hoặc clip `.anim` | Chu kỳ 3–5 s, lệch pha giữa các cái |
@@ -287,7 +287,7 @@ Sau đó chụp lại 114-be-ca-vuon và 91c-6, ghép ảnh trước/sau và ch�
 - Font bundle (11).
 - Thẻ trạm có hình (13).
 - Một view "khoảnh khắc thưởng" dùng chung.
-- Quyết định DOTween hay `Tweens`.
+- DOTween đã cài (#155); còn lại là quyết định có chuyển code đang dùng `Tweens` sang DOTween hay không.
 - Chuyển đom đóm và FeelLayer sang Shuriken.
 
 **Cần vẽ thêm:**
