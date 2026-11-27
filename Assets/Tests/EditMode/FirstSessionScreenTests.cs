@@ -201,7 +201,8 @@ namespace VuonTra.Core.Tests
         public void A_Card_That_Wants_To_Come_Right_After_Another_Waits_Its_Twenty_Seconds()
         {
             S.TutorialStep = Tutorial.Steps;
-            S.PlaySeconds = Offers.StarterQuietSeconds;
+            S.PlaySeconds = Intros.EarliestSeconds;
+            S.Grid.Segments = Intros.FishingSegments;
             S.GardenXp = Garden.XpForLevel(Offers.StarterLevel);
             S.IntrosSeen.UnionWith(Intros.All);
             S.IntrosTried.UnionWith(Intros.All);

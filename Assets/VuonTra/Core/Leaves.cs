@@ -127,7 +127,8 @@ namespace VuonTra.Core
         public const int MaxScore = LeafCount * LeafPoints + GoldenCount * GoldenPoints;
         public const int OneStar = 15, TwoStars = 29, ThreeStars = 38;
         public const int PlaysPerDay = 3;
-        public const int UnlockLevel = 4;
+        public const int UnlockLevel = 7;
+        public const int KeptFromLevel = 4;
         public const double RewardSeconds = 60d;
         public const string StationKind = "gio-la";
 
@@ -176,7 +177,8 @@ namespace VuonTra.Core
 
         public static int StarsFor(int score) => score >= ThreeStars ? 3 : (score >= TwoStars ? 2 : (score >= OneStar ? 1 : 0));
 
-        public static bool Unlocked(GameState s) => Garden.Level(s) >= UnlockLevel;
+        public static bool Unlocked(GameState s)
+            => Garden.Level(s) >= UnlockLevel || (Garden.Level(s) >= KeptFromLevel && (s.Leaves.Games > 0 || s.IntrosSeen.Contains(Intros.Leaves)));
 
         public static int StationIndex(IReadOnlyList<StationDef> defs)
         {

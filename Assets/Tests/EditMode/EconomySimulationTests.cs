@@ -1997,7 +1997,8 @@ namespace VuonTra.Core.Tests
 
         const double SittingEnd = 31.5d * 60d;
         const double QuietFrom = 60d, QuietTo = 30d * 60d;
-        const double MostQuietMedian = 180d, MostQuietP90 = 240d;
+        const double MostQuietMedian = 171d, MostQuietP90 = 200d;
+        const int LeastMomentsMinutesTwentyFiveToThirty = 7;
         const double MarkWindow = 90d;
         static readonly double[] Marks = { 5d * 60d, 15d * 60d, 30d * 60d };
         const double CardReadSeconds = 4d;
@@ -2210,7 +2211,8 @@ namespace VuonTra.Core.Tests
             report.AppendLine("Người chơi thong thả của EconomySimulationTests với Tuần đầu (#102) và câu cá, chơi liền " + Mmss(SittingEnd) + ". Mỗi thẻ tự hiện được đọc " + CardReadSeconds
                 + " giây rồi đóng; thẻ sau chờ " + CardPacer.GapSeconds + " giây sau khi thẻ trước đóng; gói người mới chờ xong hướng dẫn và phút " + Offers.StarterQuietSeconds / 60d + ".");
             report.AppendLine("Khoảnh khắc: mở trạm, mở đoạn đất, lên cấp vườn (có băng), thỏ mới tới, việc Tuần đầu xong, thẻ giới thiệu hiện, quà khay vàng, khách đầu tiên, trò nhỏ đầu tiên.");
-            report.AppendLine("Ngưỡng: khoảng trống lớn nhất phút 1–30 ≤ " + MostQuietMedian + " giây (trung vị), ≤ " + MostQuietP90 + " giây (p90); mỗi mốc 5/15/30 phút có khoảnh khắc trong ±" + MarkWindow + " giây ở ≥ " + Enough + "/" + Seeds.Length + " hạt.");
+            report.AppendLine("Ngưỡng: khoảng trống lớn nhất phút 1–30 ≤ " + MostQuietMedian + " giây (trung vị), ≤ " + MostQuietP90 + " giây (p90); mỗi mốc 5/15/30 phút có khoảnh khắc trong ±" + MarkWindow + " giây ở ≥ " + Enough + "/" + Seeds.Length + " hạt; phút 25–30 ≥ "
+                + LeastMomentsMinutesTwentyFiveToThirty + " khoảnh khắc (trung vị, #175); thẻ giới thiệu trừ Tiệm chờ phút " + Intros.EarliestSeconds / 60d + ", thẻ câu cá chờ đoạn đất " + Intros.FishingSegments + ".");
             report.AppendLine();
             report.AppendLine("| Hạt | Trống lớn nhất | Từ | Khoảnh khắc mỗi 5 phút | Xong hướng dẫn | Cấp 5 | Thẻ | Thẻ sát nhau nhất | Phút 5 | Phút 15 | Phút 30 |");
             report.AppendLine("|---|---|---|---|---|---|---|---|---|---|---|");
@@ -2247,6 +2249,15 @@ namespace VuonTra.Core.Tests
             string text = WriteFirstSession(runs);
             Assert.LessOrEqual(Median(runs, r => r.LongestQuiet), MostQuietMedian, "the longest quiet stretch of minutes 1–30, on the median\n" + text);
             Assert.LessOrEqual(P90(runs.Select(r => r.LongestQuiet)), MostQuietP90, "and on the ninetieth percentile\n" + text);
+        }
+
+        [Test]
+        public void Intro_Cards_But_The_Shop_Wait_For_Minute_Seven_And_Minutes_Twenty_Five_To_Thirty_Keep_Seven_Moments()
+        {
+            FirstSitting[] runs = SittingsOverSeeds();
+            string text = WriteFirstSession(runs);
+            Assert.GreaterOrEqual(Median(runs, r => r.PerFive[5]), LeastMomentsMinutesTwentyFiveToThirty, "moments in minutes 25–30, on the median\n" + text);
+            Always(runs, r => r.Cards.All(c => c.What == "thẻ giới thiệu " + Intros.Shop || !c.What.StartsWith("thẻ giới thiệu") || c.Played >= Intros.EarliestSeconds), "no intro card but the shop's before minute seven", text);
         }
 
         [Test]

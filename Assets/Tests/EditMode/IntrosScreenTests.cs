@@ -32,6 +32,8 @@ namespace VuonTra.Core.Tests
             s.GardenXp = Garden.XpForLevel(Pounding.UnlockLevel);
             s.HintSeen = true;
             s.TutorialStep = Tutorial.Steps;
+            s.PlaySeconds = Intros.EarliestSeconds;
+            s.Grid.Segments = Intros.FishingSegments;
             runner.Init(s);
             screen = root.AddComponent<GardenScreen>();
             screen.Runner = runner;

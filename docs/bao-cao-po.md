@@ -2621,6 +2621,7 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 ### Con số chờ chủ project quyết (gom một chỗ)
 | Issue | Số hiện tại | Phương án khác |
 |---|---|---|
+| #175 | Hứng lá mở ở cấp vườn 7 (trước 4), Đom đóm cấp 9 (trước 5), hũ trăng hiện ở cấp 6 (trước 3); save đã biết trò giữ từ cấp cũ. Thẻ giới thiệu trừ Tiệm chờ 420 giây chơi (`Intros.EarliestSeconds`), thẻ câu cá chờ đoạn đất 1 | Chờ 600 giây như đề xuất: quãng trống lớn nhất phút 1–30 thành 200 giây (p90 234), vượt luật 180 |
 | #91 | Lề nhìn quá bãi cỏ 360 ngang, 600 dọc; viên ▼ né sang bên khi tiệm trà ở ngay sau | |
 | #101 | "Nâng tất cả" mở ở cấp vườn 15 | Cấp 16; hoặc mở ở cấp 12 và mỗi lần bấm tối đa 50–75 điểm vườn |
 | #99 | Đoạn 5 cần 4 ngày chơi, đoạn 6 cần 7 ngày; giá đất hai đoạn ×2,5 | Giá ×1 đến ×3 cho cùng ngày mở trạm. Save cũ không phải chờ ngày |

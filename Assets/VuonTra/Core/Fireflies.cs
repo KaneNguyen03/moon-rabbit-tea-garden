@@ -90,7 +90,8 @@ namespace VuonTra.Core
         public const int MaxScore = (Count - GoldenCount) * PlainPoints + GoldenCount * GoldenPoints;
         public const int OneStar = 10, TwoStars = 20, ThreeStars = 26;
         public const int PlaysPerDay = 3;
-        public const int UnlockLevel = 5;
+        public const int UnlockLevel = 9;
+        public const int KeptFromLevel = 5;
         public const double RewardSeconds = 20d;
         public const int PointsPerClover = 10, CloversMost = 3, CloverCapPerDay = 3;
         public const int GoldenForThreeStars = 1, GoldenCapPerDay = 1;
@@ -162,7 +163,8 @@ namespace VuonTra.Core
 
         public static int StarsFor(int score) => score >= ThreeStars ? 3 : (score >= TwoStars ? 2 : (score >= OneStar ? 1 : 0));
 
-        public static bool Unlocked(GameState s) => Garden.Level(s) >= UnlockLevel;
+        public static bool Unlocked(GameState s)
+            => Garden.Level(s) >= UnlockLevel || (Garden.Level(s) >= KeptFromLevel && (s.Fireflies.Games > 0 || s.IntrosSeen.Contains(Intros.Fireflies)));
 
         public static int PlaysLeft(GameState s, long day) => s.Fireflies.PlaysLeft(day, PlaysPerDay);
 

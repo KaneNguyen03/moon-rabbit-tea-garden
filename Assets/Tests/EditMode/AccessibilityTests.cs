@@ -905,7 +905,7 @@ namespace VuonTra.Core.Tests
         public void The_Guest_Pill_Covers_No_Garden_Plate_As_The_View_Rests_On_The_Teapot()
         {
             screen.Shell.StartGame();
-            runner.State.GardenXp = Garden.XpForLevel(5);
+            runner.State.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel);
             runner.PlaceOrder();
             screen.Refresh();
             screen.LookAt(screen.StationSpot(0));
@@ -967,7 +967,7 @@ namespace VuonTra.Core.Tests
             Motion.SetReduced(true);
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
-            runner.State.GardenXp = Garden.XpForLevel(5);
+            runner.State.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel);
             runner.State.Order = new Order { Id = 1, Guest = RabbitKinds.All[0].Id, Left = 40, RewardSeconds = Orders.RewardSeconds };
             runner.State.Order.Lines.Add(new OrderLine { Station = 0, Count = 3 });
             runner.State.Order.Lines.Add(new OrderLine { Station = 2, Count = 3 });

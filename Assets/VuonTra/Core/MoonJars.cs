@@ -9,13 +9,15 @@ namespace VuonTra.Core
         public const int Cap = 9;
         public const int Price = 12, BuyPerDay = 3;
         public const int FreePerDay = 1;
-        public const int ShowLevel = 3;
+        public const int ShowLevel = 6;
+        public const int KeptFromLevel = 3;
         public const int LevelStep = 10;
         public const int DailyLevel = 15;
 
         public enum BuyCheck { Ok, Full, SoldOut, Short }
 
-        public static bool Shown(GameState s) => Garden.Level(s) >= ShowLevel;
+        public static bool Shown(GameState s)
+            => Garden.Level(s) >= ShowLevel || (Garden.Level(s) >= KeptFromLevel && (s.JarsOpened > 0 || s.IntrosSeen.Contains(Intros.MoonJar)));
 
         public static bool Full(GameState s) => s.MoonJars >= Cap;
 

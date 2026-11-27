@@ -4229,16 +4229,17 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Basket_Opens_The_Leaf_Game_From_Garden_Level_Four_And_A_Finished_Game_Is_Paid()
+        public void The_Basket_Opens_The_Leaf_Game_From_Garden_Level_Seven_And_A_Finished_Game_Is_Paid()
         {
             runner.State.Coins = new BigNum(1000);
+            runner.State.IntrosSeen.Remove(Intros.Leaves);
             screen.Shell.StartGame();
-            runner.State.GardenXp = Garden.XpForLevel(3);
+            runner.State.GardenXp = Garden.XpForLevel(Leaves.UnlockLevel - 1);
             screen.Refresh();
             GameObject basket = root.transform.Find("Canvas/Garden/Content/Basket").gameObject;
-            Assert.IsFalse(basket.activeSelf, "no basket at garden level three, where the mortar already stands");
+            Assert.IsFalse(basket.activeSelf, "no basket at garden level six, where the mortar already stands");
             Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Mortar").gameObject.activeSelf);
-            runner.State.GardenXp = Garden.XpForLevel(4);
+            runner.State.GardenXp = Garden.XpForLevel(Leaves.UnlockLevel);
             screen.Refresh();
             Assert.IsTrue(basket.activeSelf);
             Assert.AreEqual(L10n.T("basket.plays", 3), basket.transform.Find("Plate/Text").GetComponent<Text>().text);
@@ -4284,16 +4285,17 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Jar_Opens_The_Firefly_Night_From_Garden_Level_Five_And_A_Finished_Night_Is_Paid_Under_The_Days_Caps()
+        public void The_Jar_Opens_The_Firefly_Night_From_Garden_Level_Nine_And_A_Finished_Night_Is_Paid_Under_The_Days_Caps()
         {
             runner.State.Coins = new BigNum(1000);
+            runner.State.IntrosSeen.Remove(Intros.Fireflies);
             screen.Shell.StartGame();
-            runner.State.GardenXp = Garden.XpForLevel(4);
+            runner.State.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel - 1);
             screen.Refresh();
             GameObject jar = root.transform.Find("Canvas/Garden/Content/Jar").gameObject;
-            Assert.IsFalse(jar.activeSelf, "no jar at garden level four, where the basket is already out");
+            Assert.IsFalse(jar.activeSelf, "no jar at garden level eight, where the basket is already out");
             Assert.IsTrue(root.transform.Find("Canvas/Garden/Content/Basket").gameObject.activeSelf);
-            runner.State.GardenXp = Garden.XpForLevel(5);
+            runner.State.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel);
             screen.Refresh();
             Assert.IsTrue(jar.activeSelf);
             Assert.AreEqual(L10n.T("jar.plays", 3), jar.transform.Find("Plate/Text").GetComponent<Text>().text);
@@ -5309,11 +5311,11 @@ namespace VuonTra.Core.Tests
             UiKit.SetLargeText(large);
             screen.RebuildUi();
             screen.Shell.StartGame();
-            runner.State.GardenXp = Garden.XpForLevel(5);
+            runner.State.GardenXp = Garden.XpForLevel(Fireflies.UnlockLevel);
             screen.Refresh();
             var street = (RectTransform)root.transform.Find("Canvas/Garden/Content");
             var jar = (RectTransform)street.Find("Jar");
-            Assert.IsTrue(jar.gameObject.activeSelf, "the jar is out from garden level five");
+            Assert.IsTrue(jar.gameObject.activeSelf, "the jar is out from its garden level");
             var plate = (RectTransform)jar.Find("Plate");
             float centre = jar.anchoredPosition.x + plate.anchoredPosition.x;
             float left = centre - plate.rect.width / 2f, right = centre + plate.rect.width / 2f;

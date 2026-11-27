@@ -2885,6 +2885,7 @@ namespace VuonTra.EditorTools
             s.GardenXp = Garden.XpForLevel(5) + 90;
             s.HintSeen = true;
             s.TutorialStep = Tutorial.Steps;
+            s.PlaySeconds = Intros.EarliestSeconds;
             s.Coins = new BigNum(84000);
             Rabbits.Assign(s, Rabbits.ArriveKind(s, "tho-bong", "Bông").Id, 0);
             Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);

@@ -17,6 +17,8 @@ namespace VuonTra.Core
         public const double RewardSeconds = 60d;
         public const int RewardClovers = 1;
         public const double GapSeconds = 200d;
+        public const double EarliestSeconds = 420d;
+        public const int FishingSegments = 1;
 
         public const int WeekChestDay = 2, TrunkDay = 3, MonthPassDay = 4, TankFish = 10;
 
@@ -48,6 +50,11 @@ namespace VuonTra.Core
             }
         }
 
+        public static double EarliestFor(string id) => id == Shop ? 0d : EarliestSeconds;
+
+        public static bool Due(GameState s, string id)
+            => IsOpen(s, id) && s.PlaySeconds >= EarliestFor(id) && (id != Fishing || Expansion.Segments(s) >= FishingSegments);
+
         public static bool Used(GameState s, string id)
         {
             switch (id)
@@ -67,13 +74,13 @@ namespace VuonTra.Core
         public static string Next(GameState s)
         {
             foreach (string id in All)
-                if (!s.IntrosSeen.Contains(id) && IsOpen(s, id)) return id;
+                if (!s.IntrosSeen.Contains(id) && Due(s, id)) return id;
             return null;
         }
 
         public static bool Show(GameState s, string id)
         {
-            if (!Known(id) || s.IntrosSeen.Contains(id) || !IsOpen(s, id)) return false;
+            if (!Known(id) || s.IntrosSeen.Contains(id) || !Due(s, id)) return false;
             s.IntrosSeen.Add(id);
             return true;
         }
