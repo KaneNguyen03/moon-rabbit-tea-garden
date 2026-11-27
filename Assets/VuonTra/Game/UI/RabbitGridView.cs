@@ -131,8 +131,9 @@ namespace VuonTra.Game.UI
             bool ready = Rabbits.LuckyReady(s);
             for (int i = 0; i < _lamps.Length; i++)
                 _lamps[i].color = i >= lit ? Palette.Card : ready ? Palette.Carrot : Palette.Lantern;
-            _luckyLabel.text = ready ? L10n.T("rabbits.lucky.ready") : L10n.T("rabbits.lucky", lit, Rabbits.LuckyAfter);
-            _luckyLabel.color = ready ? Palette.CarrotInk : Quiet;
+            bool sure = ready && Rabbits.LuckySure(s);
+            _luckyLabel.text = sure ? L10n.T("rabbits.lucky.ready") : ready ? L10n.T("rabbits.lucky.near") : L10n.T("rabbits.lucky", lit, Rabbits.LuckyAfter);
+            _luckyLabel.color = sure ? Palette.CarrotInk : Quiet;
         }
 
         Image AddSubTab(RectTransform tabs, string name, float from, string label, bool album, out Text text)

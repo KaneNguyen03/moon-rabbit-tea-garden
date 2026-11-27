@@ -99,24 +99,26 @@ namespace VuonTra.Core.Tests
         public void After_Eight_Repeats_In_A_Row_The_Ninth_Call_Always_Brings_An_Unseen_Kind_At_Tier_Three_Or_Below()
         {
             for (int tier = 0; tier <= Rabbits.LuckyTopTier; tier++) SeeTier(tier);
-            IReadOnlyList<RabbitKind> purple = RabbitKinds.OfTier(Rabbits.LuckyTopTier);
-            s.SeenKinds.Remove(purple[purple.Count - 1].Id);
+            IReadOnlyList<RabbitKind> green = RabbitKinds.OfTier(1);
+            s.SeenKinds.Remove(green[green.Count - 1].Id);
+            int[] repeatTiers = { 0, 2, 3 };
             var rng = new Random(9);
             for (int trial = 0; trial < 500; trial++)
             {
                 s.DupStreak = 0;
                 for (int call = 1; call <= Rabbits.LuckyAfter; call++)
                 {
-                    Rabbit dup = Rabbits.Summon(s, RollFor(rng.Next(0, Rabbits.LuckyTopTier)), "D", rng.NextDouble());
+                    Rabbit dup = Rabbits.Summon(s, RollFor(repeatTiers[rng.Next(repeatTiers.Length)]), "D", rng.NextDouble());
                     Assert.IsFalse(dup.FirstOfKind);
                     Assert.AreEqual(call, s.DupStreak);
                 }
                 Assert.IsTrue(Rabbits.LuckyReady(s));
+                Assert.IsTrue(Rabbits.LuckySure(s), "an unmet Green kind is within reach of every roll");
                 Assert.AreEqual(Rabbits.LuckyAfter, Rabbits.LuckyLamps(s));
                 int rolled = rng.Next(0, Rabbits.TierCount);
                 Rabbit ninth = Rabbits.Summon(s, RollFor(rolled), "N", rng.NextDouble());
                 Assert.IsTrue(ninth.FirstOfKind, "trial " + trial + ": the ninth call is new");
-                if (rolled <= Rabbits.LuckyTopTier) Assert.AreEqual(Rabbits.LuckyTopTier, ninth.Tier, "trial " + trial + ": only Purple has an unseen kind left");
+                if (rolled <= Rabbits.LuckyTopTier) Assert.AreEqual(1, ninth.Tier, "trial " + trial + ": the only unmet kind up to Purple is Green");
                 else Assert.AreEqual(rolled, ninth.Tier, "trial " + trial + ": a rolled tier with unseen kinds keeps its own new kind");
                 Assert.AreEqual(0, s.DupStreak, "a new kind puts the lantern back to zero");
                 s.SeenKinds.Remove(ninth.Kind);
@@ -124,7 +126,7 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
-        public void The_Ninth_Call_Rolled_Into_A_Full_Tier_Goes_To_The_Lowest_Tier_With_An_Unseen_Kind()
+        public void The_Ninth_Call_Rolled_Into_A_Full_Tier_Goes_To_The_Lowest_Unseen_Tier_At_Most_One_Above()
         {
             for (int tier = 0; tier < Rabbits.TierCount; tier++) SeeTier(tier);
             IReadOnlyList<RabbitKind> blue = RabbitKinds.OfTier(2);
@@ -132,10 +134,52 @@ namespace VuonTra.Core.Tests
             s.SeenKinds.Remove(blue[3].Id);
             s.SeenKinds.Remove(purple[1].Id);
             s.DupStreak = Rabbits.LuckyAfter;
-            Rabbit r = Rabbits.Summon(s, RollFor(0), "A", 0.5);
+            Rabbit r = Rabbits.Summon(s, RollFor(1), "A", 0.5);
             Assert.AreEqual(blue[3].Id, r.Kind);
             Assert.IsTrue(r.FirstOfKind);
             Assert.AreEqual(0, s.DupStreak);
+        }
+
+        [Test]
+        public void A_Lit_Lantern_Never_Lifts_A_Call_More_Than_One_Tier_And_Says_So_Softly()
+        {
+            for (int tier = 0; tier < Rabbits.LuckyTopTier; tier++) SeeTier(tier);
+            s.DupStreak = Rabbits.LuckyAfter;
+            Assert.IsTrue(Rabbits.LuckyReady(s));
+            Assert.IsFalse(Rabbits.LuckySure(s), "a Silver roll cannot reach Purple");
+            Rabbit silver = Rabbits.Summon(s, RollFor(0), "A", 0.5);
+            Assert.AreEqual(0, silver.Tier);
+            Assert.IsFalse(silver.FirstOfKind);
+            Assert.AreEqual(Rabbits.LuckyAfter + 1, s.DupStreak, "the lantern stays lit");
+            Rabbit blue = Rabbits.Summon(s, RollFor(2), "B", 0.5);
+            Assert.AreEqual(Rabbits.LuckyTopTier, blue.Tier, "a Blue roll reaches Purple, one tier up");
+            Assert.IsTrue(blue.FirstOfKind);
+            Assert.AreEqual(0, s.DupStreak);
+        }
+
+        [Test]
+        public void The_Sure_Line_Is_Only_Shown_When_Every_Roll_Brings_A_New_Kind()
+        {
+            var rng = new Random(31);
+            IReadOnlyList<RabbitKind> all = RabbitKinds.All;
+            int sureStates = 0;
+            for (int trial = 0; trial < 400; trial++)
+            {
+                s.SeenKinds.Clear();
+                foreach (RabbitKind kind in all) if (rng.NextDouble() < 0.93) s.SeenKinds.Add(kind.Id);
+                s.DupStreak = Rabbits.LuckyAfter;
+                if (!Rabbits.LuckySure(s)) continue;
+                sureStates++;
+                string json = SaveCodec.Encode(defs, s);
+                for (int tier = 0; tier < Rabbits.TierCount; tier++)
+                {
+                    GameState copy = SaveCodec.Decode(defs, json).State;
+                    copy.Clovers = 1;
+                    Rabbit r = Rabbits.Summon(copy, RollFor(tier), "S", rng.NextDouble());
+                    Assert.IsTrue(r.FirstOfKind, "trial " + trial + ", rolled tier " + tier);
+                }
+            }
+            Assert.Greater(sureStates, 20);
         }
 
         [Test]
@@ -186,7 +230,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0, dup.Tier);
             Assert.AreEqual(1, s.DupStreak);
             s.DupStreak = Rabbits.LuckyAfter;
-            Rabbit lucky = Shop.SummonGolden(s, 0.1, "G", 0.5);
+            Rabbit lucky = Shop.SummonGolden(s, 0.4, "G", 0.5);
             Assert.IsTrue(lucky.FirstOfKind);
             Assert.AreEqual(2, lucky.Tier);
             Assert.AreEqual(0, s.DupStreak);

@@ -268,6 +268,7 @@ namespace VuonTra.Core
 
         public const int LuckyAfter = 8;
         public const int LuckyTopTier = 3;
+        public const int LuckyStepUp = 1;
         public const int FavourFromLevel = 10;
 
         public static bool Favours(GameState s) => Garden.Level(s) >= FavourFromLevel;
@@ -286,10 +287,20 @@ namespace VuonTra.Core
 
         public static int LuckyTier(GameState s, int rolled)
         {
-            if (RabbitKinds.Unseen(ClampTier(rolled), s.SeenKinds).Count > 0) return ClampTier(rolled);
-            for (int tier = 0; tier <= LuckyTopTier; tier++)
+            rolled = ClampTier(rolled);
+            if (RabbitKinds.Unseen(rolled, s.SeenKinds).Count > 0) return rolled;
+            int reach = Math.Min(LuckyTopTier, rolled + LuckyStepUp);
+            for (int tier = 0; tier <= reach; tier++)
                 if (RabbitKinds.Unseen(tier, s.SeenKinds).Count > 0) return tier;
             return -1;
+        }
+
+        public static bool LuckySure(GameState s)
+        {
+            if (!LuckyReady(s)) return false;
+            for (int tier = 0; tier < TierCount; tier++)
+                if (LuckyTier(s, tier) < 0) return false;
+            return true;
         }
 
         public static Rabbit Call(GameState s, int tier, string name, double kindRoll)
