@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using UnityEditor;
 using UnityEngine;
+using VuonTra.Game.UI;
 
 namespace VuonTra.EditorTools
 {
@@ -131,13 +132,19 @@ namespace VuonTra.EditorTools
                 return new Color(0.80f, 0.90f, 1f, shafts * sides * fade * 0.25f);
             });
 
-            Color edge = Hex("0b0f2a");
-            Write("bg_vignette", 256, 144, (u, v) =>
+            Color edge = Palette.Night, moonlight = new Color(0.80f, 0.90f, 1f);
+            Write("bg_vignette", 144, 256, (u, v) =>
             {
-                float dx = (u - 0.5f) * 1.9f, dy = (v - 0.46f) * 2.2f;
+                float dx = (u - 0.5f) * 2f, dy = (v - 0.5f) * 2f;
                 float d = Mathf.Sqrt(dx * dx + dy * dy);
-                float a = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((d - 0.62f) / 0.75f)) * 0.62f;
-                return new Color(edge.r, edge.g, edge.b, a);
+                float dark = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01((d - 0.75f) / 0.65f)) * SceneOverlays.VignetteStrength;
+                float mx = (u - 0.87f) / 0.6f, my = (v - 0.9f) / 0.34f;
+                float spill = 1f - Mathf.Clamp01(Mathf.Sqrt(mx * mx + my * my));
+                float light = spill * spill * SceneOverlays.MoonlightStrength * (1f - dark);
+                float a = dark + light;
+                if (a <= 0f) return new Color(edge.r, edge.g, edge.b, 0f);
+                Color c = (edge * dark + moonlight * light) / a;
+                return new Color(c.r, c.g, c.b, a);
             });
 
             AssetDatabase.Refresh();
@@ -162,16 +169,17 @@ namespace VuonTra.EditorTools
                 if (importer == null) continue;
                 bool ok = importer.textureType == TextureImporterType.Default
                     && importer.wrapMode == TextureWrapMode.Repeat
-                    && !importer.mipmapEnabled
+                    && importer.mipmapEnabled
+                    && importer.filterMode == FilterMode.Trilinear
                     && importer.npotScale == TextureImporterNPOTScale.None
                     && importer.textureCompression == TextureImporterCompression.Uncompressed;
                 if (ok) continue;
                 importer.textureType = TextureImporterType.Default;
                 importer.alphaIsTransparency = false;
                 importer.wrapMode = TextureWrapMode.Repeat;
-                importer.mipmapEnabled = false;
+                importer.mipmapEnabled = true;
                 importer.npotScale = TextureImporterNPOTScale.None;
-                importer.filterMode = FilterMode.Bilinear;
+                importer.filterMode = FilterMode.Trilinear;
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
                 importer.SaveAndReimport();
             }

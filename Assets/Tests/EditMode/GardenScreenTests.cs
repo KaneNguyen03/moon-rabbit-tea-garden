@@ -2982,21 +2982,18 @@ namespace VuonTra.Core.Tests
             screen.Shell.StartGame();
             Transform fireflies = root.transform.Find("Canvas/Garden/Content/Fireflies");
             Image wash = root.transform.Find("Canvas/Daylight").GetComponent<Image>();
-            Image moon = root.transform.Find("Canvas/MoonGlow").GetComponent<Image>();
             int all = fireflies.childCount;
             int Out() { int n = 0; foreach (Transform f in fireflies) if (f.gameObject.activeSelf) n++; return n; }
 
             screen.ClockHours = () => 22.0;
             screen.Refresh();
             Assert.AreEqual(0f, wash.color.a, 1e-6, "at night nothing lies over the garden");
-            Assert.AreEqual(0.12f, moon.color.a, 1e-6);
             Assert.AreEqual(all, Out());
             double before = runner.State.Coins.ToDouble();
 
             screen.ClockHours = () => 13.0;
             screen.Refresh();
             Assert.Greater(wash.color.a, 0.1f, "a pale warmth by day");
-            Assert.Less(moon.color.a, 0.12f, "the moon's glow fades by day");
             Assert.AreEqual(Daylight.FirefliesAt(13, all), Out(), "only a few fireflies by day");
             Assert.AreEqual(before, runner.State.Coins.ToDouble(), 1e-9, "the hour changes the look, never the carrots");
 

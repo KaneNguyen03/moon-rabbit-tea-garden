@@ -152,7 +152,7 @@ namespace VuonTra.Game.UI
         public int SeatedCount => _seated;
         /// <summary>The scenery that moves: trees lean from the root, lanterns swing from the hook and flicker, the pond shimmers.</summary>
         readonly List<RectTransform> _swayTrees = new List<RectTransform>(), _swayLanterns = new List<RectTransform>();
-        readonly List<Image> _lanternGlows = new List<Image>(), _ripples = new List<Image>();
+        readonly List<Image> _lanternGlows = new List<Image>(), _lanternPools = new List<Image>(), _ripples = new List<Image>();
         /// <summary>Every paper lantern's picture, for the colour the player hangs on them (#11), and the colour its glow takes.</summary>
         readonly List<Image> _lanternArt = new List<Image>();
         Color _lanternGlowColor = Palette.Lantern;
@@ -284,6 +284,7 @@ namespace VuonTra.Game.UI
         float _sheetDragSpeed;
 
         RectTransform _canvas, _street, _hud, _purse, _currency, _panel, _tabBar, _energyFill, _plotRow;
+        RectTransform _ground;
         RawImage _groundTile;
         readonly List<RectTransform> _fireflies = new List<RectTransform>();
         readonly List<Vector2> _glowSpots = new List<Vector2>(); // lanterns and other lights the fireflies gather round
@@ -1170,7 +1171,7 @@ namespace VuonTra.Game.UI
             _decorSpots.Clear(); _lanternArt.Clear(); _lanternGlowColor = Palette.Lantern;
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
-            _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
+            _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _lanternPools.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
             _seatHats.Clear(); _seatNames.Clear();
             _worldLabels.Clear(); _labelsNear = false;
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _idleCouriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
@@ -1377,10 +1378,12 @@ namespace VuonTra.Game.UI
 
         void BuildBackdrop(GameCatalog catalog)
         {
-            var rt = UiKit.Rect("Ground", _canvas).Stretch(0, 0, 1, 1);
-            _groundTile = rt.gameObject.AddComponent<RawImage>();
+            _ground = UiKit.Rect("Ground", _canvas).Stretch(0, 0, 1, 1);
+            _ground.AddImage(null, Palette.Grass).raycastTarget = false;
+            _groundTile = UiKit.Rect("Tile", _ground).Stretch(0, 0, 1, 1).gameObject.AddComponent<RawImage>();
             _groundTile.texture = catalog.BgGrass;
-            _groundTile.color = catalog.BgGrass != null ? Color.white : Palette.Grass;
+            _groundTile.color = Palette.Alpha(Color.white, SceneOverlays.GrassTileStrength);
+            _groundTile.enabled = catalog.BgGrass != null;
             _groundTile.raycastTarget = false;
         }
 
@@ -2442,18 +2445,19 @@ namespace VuonTra.Game.UI
         /// <summary>Moonlight and darkened corners over the garden, under the HUD.</summary>
         /// <summary>The hour of the day the garden is lit for. Tests and previews set their own.</summary>
         public System.Func<double> ClockHours = () => System.DateTime.Now.TimeOfDay.TotalHours;
-        Image _daylight, _moonGlow;
+        Image _daylight;
         /// <summary>The light round the edges of the screen while a speed burst runs, and how far it has come up.</summary>
         GameObject _boostEdge;
         readonly List<Image> _boostEdges = new List<Image>();
         float _boostGlow;
-        static readonly Color MoonGlowColor = new Color(0.80f, 0.90f, 1f, 0.12f);
 
         void BuildAtmosphere(GameCatalog catalog)
         {
             // The time of day lies over the garden as a wash of colour: amber at dusk, rose and blue at dawn,
             // a pale warmth by day, and nothing at all at night, which is how the garden is meant to be seen.
             _daylight = UiKit.Rect("Daylight", _canvas).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            _daylight.raycastTarget = false;
+            _daylight.transform.SetSiblingIndex(_ground.GetSiblingIndex() + 1);
             // While a speed burst runs the whole screen is rimmed with the tea bar's green, so the garden
             // itself says the burst is on. Four fading bands, one per edge, that pulse and then go.
             var edge = UiKit.Rect("BoostEdge", _canvas).Stretch(0, 0, 1, 1);
@@ -2472,9 +2476,6 @@ namespace VuonTra.Game.UI
             _boostEdge = edge.gameObject;
             _boostEdge.SetActive(false);
             _boostGlow = 0f;
-            // The moon itself is above the canopy; its glow spills in at the top corner.
-            _moonGlow = UiKit.Rect("MoonGlow", _canvas).Place(1f, 1f, -140, -200, 1300, 1300)
-                .AddImage(catalog.Glow, MoonGlowColor);
             if (catalog.BgVignette != null)
             {
                 var v = UiKit.Rect("Vignette", _canvas).Stretch(0, 0, 1, 1);
@@ -2518,7 +2519,6 @@ namespace VuonTra.Game.UI
                 _daylight.color = wash;
                 _daylight.enabled = wash.a > 0.002f;
             }
-            if (_moonGlow != null) _moonGlow.color = Palette.Alpha(MoonGlowColor, MoonGlowColor.a * Mathf.Lerp(0.3f, 1f, night));
             int awake = Daylight.FirefliesAt(hour, _fireflies.Count);
             for (int i = 0; i < _fireflies.Count; i++)
                 if (_fireflies[i].gameObject.activeSelf != (i < awake)) _fireflies[i].gameObject.SetActive(i < awake);
@@ -2662,6 +2662,8 @@ namespace VuonTra.Game.UI
             Color tint = LanternTint(s.LanternColor);
             foreach (Image lantern in _lanternArt) if (lantern != null && lantern.color != tint) lantern.color = tint;
             _lanternGlowColor = s.LanternColor > 0 ? Palette.Mix(Palette.Lantern, Palette.Hex(MonthPass.LanternHex(s.LanternColor)), 0.5f) : Palette.Lantern;
+            Color pool = Palette.Alpha(_lanternGlowColor, SceneOverlays.LanternPoolAlpha);
+            foreach (Image light in _lanternPools) if (light != null && light.color != pool) light.color = pool;
             if (DecorCard != null) DecorCard.Refresh(s);
         }
 
@@ -3004,6 +3006,13 @@ namespace VuonTra.Game.UI
                 return true;
             }
             // Everything that stands casts a soft shadow on the grass, drawn just behind it.
+            void LightPool(float x, float y, float width)
+            {
+                var pool = UiKit.Rect("LanternPool", _street).Place(0f, 0f, x, y, width, width * 0.45f);
+                Image light = pool.AddImage(catalog.Glow, Palette.Alpha(_lanternGlowColor, SceneOverlays.LanternPoolAlpha));
+                light.raycastTarget = false;
+                _lanternPools.Add(light);
+            }
             void Shade(Transform parent, List<KeyValuePair<float, Transform>> into, float x, float y, float height)
             {
                 float w = Mathf.Clamp(height * 0.55f, 50f, 260f);
@@ -3045,6 +3054,7 @@ namespace VuonTra.Game.UI
                 }
                 if (kind == Lantern)
                 {
+                    LightPool(x + 14f * DecorScale, y, 380f);
                     var at = new Vector2(x + 14f * DecorScale, y + 150f * DecorScale);
                     var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, at.x, at.y, 300f, 300f);
                     _lanternGlows.Add(glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, LanternGlowAlpha)));
@@ -3304,7 +3314,9 @@ namespace VuonTra.Game.UI
             foreach (Vector2 o in new[] { new Vector2(-380f, -1010f), new Vector2(120f, -930f) })
             {
                 Vector2 at = Heart + o;
-                if (catalog.StoneLantern != null && Free(at.x, at.y, 150f, 230f, 240f)) Stand(catalog.StoneLantern, "StoneLantern", at.x, at.y, 150f, Color.white, false, true);
+                if (catalog.StoneLantern == null || !Free(at.x, at.y, 150f, 230f, 240f)) continue;
+                LightPool(at.x, at.y, 300f);
+                Stand(catalog.StoneLantern, "StoneLantern", at.x, at.y, 150f, Color.white, false, true);
             }
 
             // Inside: a few small things wherever there is still room that is not a station, a seat or the pond.
@@ -4675,7 +4687,7 @@ namespace VuonTra.Game.UI
 
         void StandOnTheIsland(GameCatalog catalog, Garden25DWorld island)
         {
-            _groundTile.gameObject.SetActive(false);
+            _ground.gameObject.SetActive(false);
             _street.parent.gameObject.SetActive(false);
             var home = (RectTransform)_home.transform;
             IslandMap = new GardenMapView(_canvas, catalog, island, HudCover + SafeInsets().y, TabCover + SafeBottom(), home.anchoredPosition, home.sizeDelta);
@@ -7091,7 +7103,10 @@ namespace VuonTra.Game.UI
             RainLevel = 0f;
             _sheltered = false;
             _rainLayer = UiKit.Rect("Rain", _canvas).Stretch(0, 0, 1, 1);
-            _rainTint = UiKit.Rect("Tint", _rainLayer).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            _rainTint = UiKit.Rect("RainTint", _canvas).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            _rainTint.raycastTarget = false;
+            _rainTint.transform.SetSiblingIndex(_daylight.transform.GetSiblingIndex() + 1);
+            _rainTint.gameObject.SetActive(false);
             // Faint slanting streaks, drawn by code like the mist: thin lines that fall and come round again.
             _rainStreaks = UiKit.Rect("Streaks", _rainLayer).Stretch(0, 0, 1, 1);
             for (int i = 0; i < 90; i++)
@@ -7126,6 +7141,7 @@ namespace VuonTra.Game.UI
             Sfx.SetRain(raining);
             bool shown = RainLevel > 0f;
             if (_rainLayer.gameObject.activeSelf != shown) _rainLayer.gameObject.SetActive(shown);
+            if (_rainTint.gameObject.activeSelf != shown) _rainTint.gameObject.SetActive(shown);
             if (shown)
             {
                 // A grey-blue wash by day, a deeper blue at night, under the HUD.
