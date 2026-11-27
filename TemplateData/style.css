@@ -23,12 +23,6 @@ body {
   box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
 }
 
-body.phone #frame {
-  width: 100vw;
-  height: 100dvh;
-  box-shadow: none;
-}
-
 #unity-canvas {
   display: block;
   width: 100%;
