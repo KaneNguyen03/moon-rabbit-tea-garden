@@ -104,7 +104,7 @@ namespace VuonTra.Game.UI
             if (!SheetOpen) return new Vector2(floor, floor + FeelLayer.BannerHeight);
             if (top - floor >= FeelLayer.BannerHeight * FeelLayer.BannerLeastFit) return new Vector2(floor, Mathf.Min(top, floor + FeelLayer.BannerHeight));
             float bar = SafeBottom() + TabBarGap;
-            return new Vector2(bar, bar + TabBarHeight);
+            return new Vector2(bar, bar + Mathf.Max(TabBarHeight, TabLiftY + TabLiftSize / 2f));
         }
 
         void PopChip(RectTransform chip, float swell)

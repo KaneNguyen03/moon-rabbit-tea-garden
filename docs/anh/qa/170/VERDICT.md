@@ -40,3 +40,24 @@ Notes from the grader that do not block approval:
 - While the card is up it covers the two stone lanterns at the bottom of the garden.
 
 Out of scope here (no change made): the "Bông"/"Mây" name pills and "Tea power 100" are about 16–18 units, and the Vietnamese gift line breaks in the middle of a phrase.
+
+## After QA of #182: the sheet pulled to full height
+QA found that with the quests sheet pulled to full height (1748), the card covered the sheet's title and first row (card at 1480–1690). `bang-day-truoc-sau-en.png` and `bang-day-truoc-sau-vi.png` show frame `168-<vi|en>-bang-day-qua`, before on the left and after on the right. When there is room for at least 0.7 of the card above the sheet, it rests there. Otherwise it rests over the tab bar and the chosen tab's raised disc (180 tall), scaled to fit (0.86, so its subtitle is about 31 units on screen). It follows the sheet while it is up. `FeelLaneScreenTests` checks this on a 1080×1920 portrait canvas and on the batch canvas.
+
+### Round 6: REJECTED
+Fixed after this round:
+- The chosen tab's raised disc poked out above the card. The card now reaches the top of the disc (`TabLiftY + TabLiftSize / 2`), which is also where the sheet's list begins.
+- The card had almost no edge against the cream tab bar. It now has the drop shadow the HUD cards use.
+
+### Round 7: APPROVED
+```
+VERDICT: APPROVED
+1. pass - one solid cream panel; its bottom edge lines up with the tab bar's bottom; it cuts into no quest row
+2. pass - centred on the screen, title and two lines centred; EN and VI in the same place
+3. pass - cream card, carrot title, ink text; the soft lower edge and shadow match the quest cards and the tab bar
+4. pass - clean corners and shadow edge
+5. pass - nothing painted into the card
+6. pass - about 700 x 170, the tab bar's height; the Arrange and Rabbits tabs stay visible
+7. pass - title about 40, second line about 30; the sheet's header and every row are visible; nothing clipped
+```
+Note from the grader that does not block approval: for about 2 s the card covers the Stations, Charms and Quests tabs right after the player taps Claim in the sheet.

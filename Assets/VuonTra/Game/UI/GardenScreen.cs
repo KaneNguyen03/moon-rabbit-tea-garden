@@ -120,7 +120,7 @@ namespace VuonTra.Game.UI
         int _shownClaimable = -1;
         RectTransform _barBadgeRect, _rabbitBadgeRect, _stationBadgeRect;
         Text _rabbitBadgeText, _stationBadgeText;
-        const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f;
+        const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f, TabLiftY = 112f, TabLiftSize = 136f;
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
         readonly List<Image> _tierTradeBadges = new List<Image>();
@@ -3551,7 +3551,7 @@ namespace VuonTra.Game.UI
                 });
 
                 // The raised disc under the chosen tab's icon; it pokes a little above the plate.
-                _tabLifts[i] = UiKit.Rect("Lift", rt).Place(0.5f, 0f, 0, 112, 136, 136);
+                _tabLifts[i] = UiKit.Rect("Lift", rt).Place(0.5f, 0f, 0, TabLiftY, TabLiftSize, TabLiftSize);
                 _tabLifts[i].AddShadow(12f, 8f, 0.3f);
                 UiKit.Rect("Lip", _tabLifts[i]).Stretch(0, 0, 1, 1).AddImage(catalog.Round, Palette.CarrotLip);
                 UiKit.Rect("Face", _tabLifts[i]).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Round, Palette.Lantern);

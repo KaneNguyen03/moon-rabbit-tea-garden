@@ -45,6 +45,7 @@ namespace VuonTra.Game.UI
 
             _banner = UiKit.Rect("Banner", _root).Place(0.5f, 0f, 0, BannerGap, 820, BannerHeight);
             _banner.pivot = new Vector2(0.5f, 0f);
+            _banner.AddShadow();
             UiKit.Rect("Lip", _banner).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Card", _banner).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             _bannerTitle = UiKit.Rect("Title", _banner).Stretch(0, 0.45f, 1, 1, 30, 0, 30, 24)

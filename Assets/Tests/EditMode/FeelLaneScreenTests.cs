@@ -203,7 +203,8 @@ namespace VuonTra.Core.Tests
             Rect card = InCanvas((RectTransform)root.transform.Find("Canvas/Feel/Banner"));
             Rect bar = InCanvas((RectTransform)root.transform.Find("Canvas/TabBar"));
             Assert.GreaterOrEqual(card.yMin, bar.yMin - 0.5f, "the card lies on the tab bar");
-            Assert.LessOrEqual(card.yMax, bar.yMax + 0.5f, "and no higher than it");
+            foreach (CanvasGroup lift in root.transform.Find("Canvas/TabBar").GetComponentsInChildren<CanvasGroup>())
+                if (lift.name == "Lift" && lift.alpha > 0.5f) Assert.GreaterOrEqual(card.yMax, InCanvas((RectTransform)lift.transform).yMax - 0.5f, "and over the chosen tab's raised disc, which would poke out above it");
             Text sub = root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>();
             Assert.GreaterOrEqual(sub.fontSize * InCanvas(sub.rectTransform).height / sub.rectTransform.rect.height, LeastWorldText - 0.5f, "its smaller words still read");
             Step(1.5f);
