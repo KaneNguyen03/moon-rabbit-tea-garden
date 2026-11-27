@@ -160,7 +160,7 @@ namespace VuonTra.Core.Tests
             Assert.AreSame(catalog.ButtonFrame, button.Face.sprite);
             Assert.AreEqual(Color.white, button.Face.color);
             button.SetEnabled(false);
-            Assert.AreEqual(Palette.Off, button.Face.color);
+            Assert.AreEqual(Palette.Track, button.Face.color);
             button.SetEnabled(true);
             Assert.AreEqual(Color.white, button.Face.color);
             Assert.AreEqual(0f, button.Lip.color.a, "the painted button carries its own lip");

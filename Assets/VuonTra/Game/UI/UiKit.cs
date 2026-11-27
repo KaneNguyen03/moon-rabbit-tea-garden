@@ -334,7 +334,7 @@ namespace VuonTra.Game.UI
         {
             Button.interactable = on;
             Lip.color = on && !Painted ? Palette.CarrotLip : new Color(0, 0, 0, 0);
-            Face.color = Painted ? (on ? Color.white : Palette.Off) : (on ? Palette.Carrot : Palette.Track);
+            Face.color = Painted ? (on ? Color.white : Palette.Track) : (on ? Palette.Carrot : Palette.Track);
             if (Shine != null && Shine.activeSelf != on) Shine.SetActive(on);
         }
 
