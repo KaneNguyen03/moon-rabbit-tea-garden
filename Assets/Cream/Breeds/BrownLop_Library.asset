@@ -1,0 +1,86 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5bf7c34a0dc4e6348bea04faa70406ee, type: 3}
+  m_Name: BrownLop_Library
+  m_EditorClassIdentifier: Unity.2D.Animation.Runtime::UnityEngine.U2D.Animation.SpriteLibraryAsset
+  m_Labels:
+  - m_Name: Body
+    m_Hash: 999990412
+    m_CategoryList:
+    - m_Name: Body_Full
+      m_Hash: 389563743
+      m_Sprite: {fileID: 7799882719817823419, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+  - m_Name: EarsBack
+    m_Hash: 1035916145
+    m_CategoryList:
+    - m_Name: Ears_Back
+      m_Hash: 251110817
+      m_Sprite: {fileID: -6478169896738169992, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+  - m_Name: EarsLop
+    m_Hash: 965711730
+    m_CategoryList:
+    - m_Name: Ears_Lop
+      m_Hash: 159911776
+      m_Sprite: {fileID: -3123834971810227520, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+  - m_Name: Head
+    m_Hash: 130111906
+    m_CategoryList:
+    - m_Name: HeadAwake
+      m_Hash: 72580611
+      m_Sprite: {fileID: 8698372966221547382, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: HeadDoze
+      m_Hash: 372977629
+      m_Sprite: {fileID: -1154849733182153820, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+  - m_Name: NearArm_Job
+    m_Hash: 395595326
+    m_CategoryList:
+    - m_Name: ArmIdle
+      m_Hash: 84573106
+      m_Sprite: {fileID: -3392674979668372137, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: ArmBrew
+      m_Hash: 685500784
+      m_Sprite: {fileID: 34817941680480456, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: ArmBake
+      m_Hash: 461482143
+      m_Sprite: {fileID: -301373237682210389, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: ArmGather
+      m_Hash: 434372266
+      m_Sprite: {fileID: -8853781809867467952, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: ArmStargaze
+      m_Hash: 654918110
+      m_Sprite: {fileID: -4767247241757710553, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: ArmDoze
+      m_Hash: 665712985
+      m_Sprite: {fileID: 9052460146913865746, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+  - m_Name: Hat
+    m_Hash: 709290665
+    m_CategoryList:
+    - m_Name: Crown
+      m_Hash: 297308896
+      m_Sprite: {fileID: 8449513343374563, guid: b9c0f0243b65a44c6b6ea8346df1735e, type: 3}
+    - m_Name: Beanie
+      m_Hash: 716489100
+      m_Sprite: {fileID: 264337960387287517, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: NonLa
+      m_Hash: 647250317
+      m_Sprite: {fileID: 1045407755990539469, guid: e101f87dd20da4a5badc70d8dfbe9d80, type: 3}
+    - m_Name: Bow
+      m_Hash: 542839627
+      m_Sprite: {fileID: 4790041237875359259, guid: b9c0f0243b65a44c6b6ea8346df1735e, type: 3}
+  - m_Name: Outfit
+    m_Hash: 900633399
+    m_CategoryList:
+    - m_Name: Apron
+      m_Hash: 395616625
+      m_Sprite: {fileID: 5106519957924015835, guid: b9c0f0243b65a44c6b6ea8346df1735e, type: 3}
+  m_ModificationHash: 0
+  m_Version: 1
