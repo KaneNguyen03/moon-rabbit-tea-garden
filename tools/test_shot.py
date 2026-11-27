@@ -84,7 +84,7 @@ class ShotTest(unittest.TestCase):
         self.state = tempfile.mkdtemp(prefix="shot-gate-")
         os.makedirs(os.path.join(self.project, "tools"))
         os.makedirs(os.path.join(self.project, os.path.dirname(SOURCE)))
-        for name in ("tools/shot.sh", "tools/unity-gate.sh", SOURCE):
+        for name in ("tools/shot.sh", "tools/unity-gate.sh", "tools/unity-env.sh", SOURCE):
             shutil.copy(os.path.join(ROOT, name), os.path.join(self.project, name))
         self.first, self.second = source_groups()[:2]
         self.write(NAMES, [(self.first, "1-title"), (self.first, "2-garden"), (self.second, "30-buoc-1"), (self.second, "30-buoc-2")])
