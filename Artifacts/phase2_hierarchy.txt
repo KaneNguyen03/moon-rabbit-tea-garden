@@ -1,0 +1,12 @@
+BunnyCharacter  [SpriteLibrary, SortingGroup, Animator, BunnyCharacter]
+  NearArm_Job  [SpriteRenderer, SpriteSkin, SpriteResolver]
+  Hat  [SpriteRenderer, SpriteSkin, SpriteResolver]
+  Head  [SpriteRenderer, SpriteSkin]
+  Ears_Back  [SpriteRenderer, SpriteSkin]
+  Body_Full  [SpriteRenderer, SpriteSkin]
+  Root
+    Spine
+      Neck
+        Ears
+      Shoulder
+  BrewSteam  [ParticleSystem, ParticleSystemRenderer]

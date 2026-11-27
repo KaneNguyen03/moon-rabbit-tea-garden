@@ -1,0 +1,124 @@
+{
+ "canvas": [
+  512,
+  512
+ ],
+ "pixels_per_unit": 100,
+ "sprite_pivot": "bottom centre of the 512 canvas",
+ "sorting_order": {
+  "tail": 0,
+  "arm_left": 0,
+  "foot_left": 1,
+  "foot_right": 1,
+  "torso": 2,
+  "ear_left": 4,
+  "ear_right": 4,
+  "head": 4,
+  "arm_right": 6
+ },
+ "neck": [
+  275.9,
+  309.4
+ ],
+ "ear_left_base": [
+  264.1,
+  162.0
+ ],
+ "ear_right_base": [
+  290.6,
+  163.0
+ ],
+ "shoulder_left": [
+  356.1,
+  314.5
+ ],
+ "shoulder_right": [
+  233.8,
+  335.0
+ ],
+ "hip_left": [
+  194.1,
+  408.5
+ ],
+ "hip_right": [
+  337.2,
+  407.5
+ ],
+ "tail_root": [
+  212.0,
+  399.8
+ ],
+ "fit": {
+  "head": {
+   "scale": 0.615,
+   "centre": [
+    553.6,
+    408.5
+   ]
+  },
+  "torso": {
+   "iou": 0.933,
+   "scale": 0.7687,
+   "centre": [
+    536,
+    652
+   ]
+  },
+  "foot_left": {
+   "iou": 0.868,
+   "scale": 0.9609,
+   "angle": 0,
+   "centre": [
+    420,
+    826
+   ]
+  },
+  "foot_right": {
+   "iou": 0.943,
+   "scale": 0.9609,
+   "angle": 0,
+   "centre": [
+    642,
+    820
+   ]
+  },
+  "tail": {
+   "iou": 0.873,
+   "scale": 0.8456,
+   "centre": [
+    348,
+    718
+   ]
+  },
+  "ear_left": {
+   "scale": 0.56,
+   "angle": 12,
+   "base": [
+    439.0,
+    281.3
+   ]
+  },
+  "ear_right": {
+   "scale": 0.56,
+   "angle": -12,
+   "base": [
+    664.6,
+    280.2
+   ]
+  },
+  "arm_right": {
+   "scale": 0.5996,
+   "centre": [
+    452,
+    676
+   ]
+  },
+  "arm_left": {
+   "scale": 0.6534,
+   "centre": [
+    730,
+    646
+   ]
+  }
+ }
+}

@@ -26,3 +26,5 @@ Never add comments to code. No `//`, `/* */`, `///` XML docs, `#` notes or comme
 | `game-feel-juice` | DOTween punch/bounce, random-pitch SFX, Shuriken particles for every interaction |
 | `visual-critic-gate` | Mandatory QA sheet or GameView capture graded by a vision model; only `APPROVED` closes a visual task |
 | `cozy-watercolor-art` | House art style for this game |
+
+@.claude/pstack-models.md

@@ -1,0 +1,142 @@
+[
+ {
+  "name": "Body_Full",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/Body_Full.png",
+  "box": [
+   131,
+   268,
+   388,
+   469
+  ],
+  "at": [
+   42,
+   70
+  ]
+ },
+ {
+  "name": "Head",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/Head.png",
+  "box": [
+   125,
+   121,
+   343,
+   293
+  ],
+  "at": [
+   402,
+   84
+  ]
+ },
+ {
+  "name": "Head_Doze",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/Head_Doze.png",
+  "box": [
+   125,
+   120,
+   343,
+   292
+  ],
+  "at": [
+   743,
+   84
+  ]
+ },
+ {
+  "name": "Ears_Back",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/Ears_Back.png",
+  "box": [
+   189,
+   14,
+   364,
+   185
+  ],
+  "at": [
+   83,
+   426
+  ]
+ },
+ {
+  "name": "NearArm",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/NearArm.png",
+  "box": [
+   262,
+   284,
+   320,
+   369
+  ],
+  "at": [
+   397,
+   469
+  ]
+ },
+ {
+  "name": "NearArm_Doze",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/NearArm_Doze.png",
+  "box": [
+   263,
+   283,
+   319,
+   380
+  ],
+  "at": [
+   568,
+   463
+  ]
+ },
+ {
+  "name": "NearArm_Brew",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/NearArm_Brew.png",
+  "box": [
+   191,
+   284,
+   317,
+   416
+  ],
+  "at": [
+   789,
+   445
+  ]
+ },
+ {
+  "name": "NearArm_Bake",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/NearArm_Bake.png",
+  "box": [
+   116,
+   298,
+   320,
+   410
+  ],
+  "at": [
+   68,
+   796
+  ]
+ },
+ {
+  "name": "NearArm_Gather",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/NearArm_Gather.png",
+  "box": [
+   185,
+   273,
+   315,
+   364
+  ],
+  "at": [
+   446,
+   807
+  ]
+ },
+ {
+  "name": "NearArm_Stargaze",
+  "path": "/Users/hiquyennek/Documents/VuonTraNam/docs/anh/do-hoa-tho/rig-cream/NearArm_Stargaze.png",
+  "box": [
+   140,
+   191,
+   306,
+   326
+  ],
+  "at": [
+   769,
+   785
+  ]
+ }
+]
