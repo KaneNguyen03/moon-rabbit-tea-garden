@@ -27,6 +27,7 @@ Mã game chỉ ghi save qua `SaveStore` (`Assets/VuonTra/Game/SaveStore.cs`); th
 - `tools/verify.sh` ghi kết quả vào `TestResults.xml` trong thư mục project, và bước `save` báo FAIL nếu `save.json` của người chơi đổi trong lúc chạy.
 - Chạy test của vùng code vừa sửa: `tools/test.sh --changed` (bảng vùng → bộ lọc ở `tools/test-areas.tsv`, bỏ test `Slow`).
 - Chạy một nhóm test: `tools/test.sh <bộ lọc>` (ví dụ `tools/test.sh SaveStoreTests`). Kết quả vào `Logs/TestResults-filter.xml`, log vào `Logs/test-filter.log`.
+- Chụp một màn hình: `tools/shot.sh <tên khung>` (ví dụ `tools/shot.sh 113-ruong-mo`). Ảnh vào `Logs/shot/`, log vào `Logs/shot.log`. `tools/shot.sh --list` in mọi tên khung kèm nhóm, không cần Unity. Unity chạy cả nhóm chứa khung nhưng chỉ vẽ khung được gọi tên. Không chạy bộ seed trừ khi thêm `--seed`: scene và dữ liệu seed đã nằm trong git, chỉ cần seed lại sau khi đổi nội dung seed, ảnh nhập hay bảng chữ.
 - Sau mỗi lần chạy test, gói `com.unity.test-framework.performance` (đi kèm `com.unity.collections`, game không dùng) luôn ghi `TestResults.xml` và có thể cả `PerformanceTestResults.json` vào thư mục save của người chơi, dù có truyền `-testResults` hay không. Hai tệp này không phải save. `tools/verify.sh` và `tools/test.sh` xoá chúng sau mỗi lần chạy; chạy test từ cửa sổ Test Runner hoặc MCP thì tệp vẫn còn, không hại gì cho save.
 - `tools/verify.sh --build` mở bản build vài giây trên save thật. Đóng game trước. Lệnh tự đi qua gate (mục dưới), và gate giữ một bản sao save từ trước lần chạy.
 
