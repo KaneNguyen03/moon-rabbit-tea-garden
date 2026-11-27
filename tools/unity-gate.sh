@@ -45,7 +45,7 @@ unity_below() {
 unity_projects() {
   local pid
   for pid in $(pgrep -f "$UNITY_PROCESS" 2>/dev/null); do
-    ps -o args= -p "$pid" | grep -oE 'projectPath (/Users/[A-Za-z]|[A-Za-z]:\\)[^ ]*'
+    ps -o args= -p "$pid" | grep -oE 'projectPath (/Users/[A-Za-z]|[A-Za-z]:\\)([^ ]| [^-])*'
   done | sort -u
 }
 
@@ -125,7 +125,7 @@ holder() {
   return 1
 }
 
-player_save() { printf '%s\n' "$(player_dir)/save.json"; }
+player_save() { local dir; dir=$(player_dir) || return 1; printf '%s\n' "$dir/save.json"; }
 
 span() {
   local seconds=$1
@@ -199,6 +199,8 @@ run() {
     exit 73
   fi
   local started entry name save stamp code waited limit
+  save="${UNITY_GATE_SAVE:-}"
+  [ -n "$save" ] || save=$(player_save) || exit 1
   started=$(date +%s)
   name="$priority.$started.$$"
   entry="$WAIT/$name"
@@ -226,7 +228,6 @@ run() {
     sleep "$POLL"
   done
   echo "unity-gate: slot after $(span $(($(date +%s) - started)))" >&2
-  save="${UNITY_GATE_SAVE:-$(player_save)}"
   stamp="$(date +%Y%m%d-%H%M%S)-p$priority-$$"
   [ -f "$save" ] && cp -p "$save" "$GUARD/$stamp.json"
   "$@"

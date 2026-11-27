@@ -108,6 +108,7 @@ names_only=0; [ "$MODE" = names ] && names_only=1
 VUONTRA_SHOTS="$SPEC" VUONTRA_SHOT_NAMES_ONLY=$names_only unity "$LOG" -executeMethod VuonTra.EditorTools.PreviewShot.RenderSelected || exit 1
 seconds=$(($(date +%s) - started))
 if [ ! -f "$OUT/names.txt" ]; then echo "shot: FAIL (Unity wrote no $OUT/names.txt, see $LOG)" >&2; exit 1; fi
+unix_names=$(mktemp); tr -d '\r' < "$OUT/names.txt" > "$unix_names" && mv "$unix_names" "$OUT/names.txt"
 
 merged=$(mktemp)
 for group in $(groups); do

@@ -28,7 +28,7 @@ RESULTS="$PWD/Logs/TestResults-filter.xml"
 LOG="$PWD/Logs/test-filter.log"
 mkdir -p Logs
 rm -f "$RESULTS"
-PLAYER_DIR=$(player_dir)
+PLAYER_DIR=$(player_dir) || exit 1
 "$UNITY" -batchmode -projectPath "$PWD" -runTests -testPlatform EditMode -testFilter "$FILTER" ${CATEGORY[@]+"${CATEGORY[@]}"} -testResults "$RESULTS" -logFile "$LOG" >/dev/null 2>&1
 rm -f "$PLAYER_DIR/TestResults.xml" "$PLAYER_DIR/PerformanceTestResults.json"
 cs=$(grep -E "error CS[0-9]+" "$LOG" | head -5)

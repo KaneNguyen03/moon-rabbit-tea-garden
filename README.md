@@ -6,7 +6,7 @@ A cozy idle game for phones, played in portrait: moon rabbits run a tea and moch
 
 Unity 6000.6.10f1, URP 17.6, C#, uGUI built in code, Unity Localization, Unity IAP, Google Play Games, mobile notifications. Tests are NUnit EditMode. The scripts in `tools/` expect Unity at `/Applications/Unity/Hub/Editor/6000.6.10f1` (set `UNITY` to override).
 
-On Windows, run the scripts from WSL with `UNITY` set to the Windows editor, e.g. `UNITY=/mnt/d/Unity/Editors/6000.6.10f1/Editor/Unity.exe tools/test.sh SaveStoreTests`. The checkout must be on a Windows drive (`/mnt/d/...`), checked out with LF line endings (WSL git does this); `tools/unity-env.sh` turns the paths it passes to `Unity.exe` into Windows paths, and the player save is then in `%USERPROFILE%\AppData\LocalLow`. The Editor needs the iOS Build Support module, because `BuildScript.cs` uses `UnityEditor.iOS.Xcode`. Mac builds (`tools/build.sh mac`, `tools/verify.sh --build`) need a Mac.
+On Windows, run the scripts from WSL with `UNITY` set to the Windows editor, e.g. `UNITY=/mnt/d/Unity/Editors/6000.6.10f1/Editor/Unity.exe tools/test.sh SaveStoreTests`. The checkout must be on a Windows drive (`/mnt/d/...`), checked out with LF line endings (WSL git does this); `tools/unity-env.sh` turns the paths it passes to `Unity.exe` into Windows paths, adds the `VUONTRA_*` variables Unity reads (shots, Android signing, monetization) to `WSLENV` so they reach it, and the player save is then in `%USERPROFILE%\AppData\LocalLow`. The Editor needs the iOS Build Support module, because `BuildScript.cs` uses `UnityEditor.iOS.Xcode`. Mac builds (`tools/build.sh mac`, `tools/verify.sh --build`) need a Mac.
 
 ## Folder map
 

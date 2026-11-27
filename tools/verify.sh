@@ -44,7 +44,7 @@ run_unity() { # name, logfile, args...
   return 0
 }
 
-PLAYER_DIR=$(player_dir)
+PLAYER_DIR=$(player_dir) || exit 1
 player_save() { printf '%s\n' "$PLAYER_DIR/save.json"; }
 save_stamp() {
   local f; f=$(player_save)
