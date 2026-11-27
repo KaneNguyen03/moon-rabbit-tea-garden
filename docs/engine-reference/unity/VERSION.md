@@ -26,7 +26,7 @@
 | com.unity.ai.navigation | 2.0.16 |
 | com.google.play.games | v2.3.0 (git) |
 
-DOTween không nằm trong manifest; nó là plugin trong `Assets/`.
+DOTween không có trong bảng trên. Nó thường được cài như plugin dưới `Assets/` chứ không qua manifest, nên muốn biết nhánh đang đứng đã có nó chưa thì chạy `git grep -l -i dotween -- Assets Packages/manifest.json`: không ra dòng nào là chưa cài.
 
 ## Chưa tra nguồn
 

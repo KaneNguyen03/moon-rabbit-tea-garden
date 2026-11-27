@@ -14,6 +14,8 @@ namespace VuonTra.EditorTools
         public const string IOSPath = "Build/iOS";
         public const string AndroidBundlePath = "Build/Android/VuonTraTho.aab";
         public const string AndroidApkPath = "Build/Android/VuonTraTho.apk";
+        public const string WebGLPath = "Build/WebGL";
+        public const string WebGLTemplate = "PROJECT:VuonTra";
 
         public const int BuildFailedExitCode = 1;
         public const int MissingModuleExitCode = 2;
@@ -32,6 +34,32 @@ namespace VuonTra.EditorTools
 
         [MenuItem("VuonTra/Build Android (AAB, upload key)")]
         public static void BuildAndroid() => Finish(BuildSignedBundle());
+
+        [MenuItem("VuonTra/Build WebGL")]
+        public static void BuildWebGL()
+        {
+            BuildTarget previous = EditorUserBuildSettings.activeBuildTarget;
+            BuildTargetGroup previousGroup = BuildPipeline.GetBuildTargetGroup(previous);
+            ConfigureWebGL();
+            if (previous != BuildTarget.WebGL && !EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL))
+            {
+                Debug.LogError("[VuonTra] Build WebGL: không chuyển được build target sang WebGL; kiểm tra module WebGL trong Unity Hub.");
+                Finish(MissingModuleExitCode);
+                return;
+            }
+            int exitCode = Build(BuildTarget.WebGL, BuildTargetGroup.WebGL, WebGLPath);
+            if (previous != BuildTarget.WebGL) EditorUserBuildSettings.SwitchActiveBuildTarget(previousGroup, previous);
+            Finish(exitCode);
+        }
+
+        public static void ConfigureWebGL()
+        {
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.WebGL.decompressionFallback = true;
+            PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
+            PlayerSettings.WebGL.template = WebGLTemplate;
+            PlayerSettings.WebGL.dataCaching = true;
+        }
 
         [MenuItem("VuonTra/Build Android (APK, debug key)")]
         public static void BuildAndroidApk()
