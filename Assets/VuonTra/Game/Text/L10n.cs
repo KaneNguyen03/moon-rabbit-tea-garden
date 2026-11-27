@@ -1,7 +1,9 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Settings;
 using UnityEngine.Localization.Tables;
+using UnityEngine.ResourceManagement.AsyncOperations;
 using VuonTra.Core;
 
 namespace VuonTra.Game
@@ -18,7 +20,28 @@ namespace VuonTra.Game
         {
             if (_hooked) return;
             _hooked = true;
-            LocalizationSettings.SelectedLocaleChanged += _ => Changed?.Invoke();
+            LocalizationSettings.SelectedLocaleChanged += _ => WhenReady(() => Changed?.Invoke());
+        }
+
+        public static bool LoadsAsync =>
+#if UNITY_WEBGL && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
+
+        public static bool Ready => !LoadsAsync || (LocalizationSettings.InitializationOperation.IsDone && SelectedTable.IsDone);
+
+        static AsyncOperationHandle<StringTable> SelectedTable => LocalizationSettings.StringDatabase.GetTableAsync(Table);
+
+        public static void WhenReady(Action ready)
+        {
+            if (Ready)
+            {
+                ready();
+                return;
+            }
+            LocalizationSettings.InitializationOperation.Completed += _ => SelectedTable.Completed += __ => ready();
         }
 
         public static string Code
@@ -33,12 +56,23 @@ namespace VuonTra.Game
         public static string T(string key, params object[] args)
         {
             Hook();
+            string text = Ready ? Find(key, args) : ShownBefore(key);
+            if (text == null) return key;
+            return args == null || args.Length == 0 ? text : string.Format(text, args);
+        }
+
+        static readonly Dictionary<string, string> _shownBefore = new Dictionary<string, string>();
+
+        static string ShownBefore(string key) => _shownBefore.TryGetValue(key, out string text) ? text : null;
+
+        static string Find(string key, object[] args)
+        {
             string text = null;
             if (args != null && args.Length > 0 && Code.StartsWith("en", StringComparison.Ordinal) && FirstCountIsOne(args))
                 text = EntryOrNull(key + OneSuffix);
             if (text == null) text = LookUp(key) ?? LookUpAfterLoadingTable(key);
-            if (text == null) return key;
-            return args == null || args.Length == 0 ? text : string.Format(text, args);
+            if (LoadsAsync && text != null) _shownBefore[key] = text;
+            return text;
         }
 
         static string LookUp(string key) => LocalizationSettings.StringDatabase.GetLocalizedString(Table, key);
@@ -49,7 +83,10 @@ namespace VuonTra.Game
             return LookUp(key);
         }
 
-        static void LoadSelectedTable() => LocalizationSettings.StringDatabase.GetTable(Table);
+        static void LoadSelectedTable()
+        {
+            if (!LoadsAsync) LocalizationSettings.StringDatabase.GetTable(Table);
+        }
 
         public const string OneSuffix = ".one";
 

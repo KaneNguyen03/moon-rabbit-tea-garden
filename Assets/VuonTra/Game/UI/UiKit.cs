@@ -14,12 +14,22 @@ namespace VuonTra.Game.UI
 
         static Font _font;
 
+        public const string BundledFontPath = "Fonts/DejaVuSans";
+
+        public static bool HasNoOSFonts =>
+#if UNITY_WEBGL && !UNITY_EDITOR
+            true;
+#else
+            false;
+#endif
+
         public static Font Font
         {
             get
             {
                 if (_font != null) return _font;
-                _font = Font.CreateDynamicFontFromOSFont(
+                if (HasNoOSFonts) _font = Resources.Load<Font>(BundledFontPath);
+                if (_font == null) _font = Font.CreateDynamicFontFromOSFont(
                     new[] { "Avenir Next", "Helvetica Neue", "Arial", "Roboto", "Noto Sans", "Segoe UI" }, 32);
                 if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 return _font;

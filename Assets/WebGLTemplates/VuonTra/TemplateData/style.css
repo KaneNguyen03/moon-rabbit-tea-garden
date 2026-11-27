@@ -1,0 +1,70 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #16120e;
+  color: #f3e6cc;
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#frame {
+  position: relative;
+  width: min(100vw, calc(100dvh * 9 / 16));
+  height: min(100dvh, calc(100vw * 16 / 9));
+  background: #231c15;
+  box-shadow: 0 0 48px rgba(0, 0, 0, 0.6);
+}
+
+#unity-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  outline: none;
+  touch-action: none;
+}
+
+#loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  background: #231c15;
+}
+
+#loading-title {
+  font-size: 20px;
+  letter-spacing: 0.04em;
+}
+
+#loading-track {
+  width: 60%;
+  height: 8px;
+  border-radius: 4px;
+  background: #3a2f24;
+  overflow: hidden;
+}
+
+#loading-fill {
+  width: 0;
+  height: 100%;
+  background: #e9b872;
+  transition: width 0.2s;
+}
+
+#loading-error {
+  max-width: 80%;
+  font-size: 14px;
+  text-align: center;
+  color: #f0a08a;
+}

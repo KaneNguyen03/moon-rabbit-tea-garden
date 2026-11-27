@@ -75,7 +75,19 @@ namespace VuonTra.Game
             Application.logMessageReceived += OnLogMessage;
 #endif
             OfferCardsOn = true;
+            if (!_ready && !L10n.Ready)
+            {
+                gameObject.SetActive(false);
+                L10n.WhenReady(StartOnceTextLoads);
+                return;
+            }
             if (!_ready) Init();
+        }
+
+        void StartOnceTextLoads()
+        {
+            Init();
+            gameObject.SetActive(true);
         }
 
         public void Init(GameState preset = null)
