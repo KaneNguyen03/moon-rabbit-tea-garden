@@ -11,6 +11,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="../../Assets/VuonTra/Core/**/*.cs" />
+    <Compile Include="../../Assets/VuonTra/Editor/AndroidSigning.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildThisFileDirectory)obj/pure-tests.props" Condition="Exists('$(MSBuildThisFileDirectory)obj/pure-tests.props')" />
   <ItemGroup>
