@@ -33,7 +33,6 @@ namespace VuonTra.Core
         public const double RewardSeconds = 90d;
         public const int PerDay = 8, MaxLines = 2, MaxCount = 3;
         public const double CloverChance = 1d / 3d;
-        public const int UnseenWeight = 3;
 
         public static double StartingClock => Interval - FirstAfter;
 
@@ -107,11 +106,11 @@ namespace VuonTra.Core
         {
             IReadOnlyList<RabbitKind> kinds = RabbitKinds.All;
             double total = 0d;
-            foreach (RabbitKind kind in kinds) total += s.SeenKinds.Contains(kind.Id) ? 1d : UnseenWeight;
+            foreach (RabbitKind kind in kinds) total += s.SeenKinds.Contains(kind.Id) ? 1d : RabbitKinds.UnseenWeight;
             double at = Math.Max(0d, Math.Min(0.999999d, roll)) * total;
             foreach (RabbitKind kind in kinds)
             {
-                at -= s.SeenKinds.Contains(kind.Id) ? 1d : UnseenWeight;
+                at -= s.SeenKinds.Contains(kind.Id) ? 1d : RabbitKinds.UnseenWeight;
                 if (at < 0d) return kind.Id;
             }
             return kinds[kinds.Count - 1].Id;

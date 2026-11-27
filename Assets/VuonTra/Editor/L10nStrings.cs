@@ -358,6 +358,8 @@ namespace VuonTra.EditorTools
             { "rabbits.tab.mine", "Thỏ của tôi", "My rabbits" },
             { "rabbits.tab.album", "Sổ thỏ", "Rabbit book" },
             { "rabbits.clovers.short", "Gọi bé thỏ mới · đang có {0} cỏ", "Call a new rabbit · {0} clovers" },
+            { "rabbits.lucky", "Đèn may mắn {0}/{1} · đủ đèn là gặp bạn mới", "Lucky lanterns {0}/{1} · all lit brings a new friend" },
+            { "rabbits.lucky.ready", "Lần gọi tới chắc chắn là bạn mới", "Your next call is sure to be a new friend" },
             { "album.tier", "{0} · {1}/{2}", "{0} · {1}/{2}" },
             { "album.kind.tier", "Bậc {0} · ×{1}", "{0} tier · ×{1}" },
             { "album.kind.about", "Đứng đúng nghề thì hệ số ×{0}.\nTrạm hợp nghề: {1}", "In its own trade it earns ×{0}.\nIts stations: {1}" },

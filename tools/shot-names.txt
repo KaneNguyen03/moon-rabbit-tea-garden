@@ -157,6 +157,10 @@ photo-ask	56-khung-thu
 rest-share	60-thu-nhap
 rest-share	60-tho-nghi
 rest-share	60-tab-tho
+rest-share	173-den-may-man
+rest-share	173-den-sang
+rest-share	173-den-sang-en
+rest-share	173-den-may-man-en
 chatter	59-noi-ngay
 chatter	59-noi-dem
 album-sets	61-so-tho-bo

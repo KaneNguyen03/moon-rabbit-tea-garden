@@ -263,7 +263,48 @@ namespace VuonTra.Core
             if (s.Clovers < SummonCost) return null;
             s.Clovers -= SummonCost;
             s.CloverCalls++;
-            return Arrive(s, RollTier(roll), name, kindRoll);
+            return Call(s, RollTier(roll), name, kindRoll);
+        }
+
+        public const int LuckyAfter = 8;
+        public const int LuckyTopTier = 3;
+        public const int FavourFromLevel = 10;
+
+        public static bool Favours(GameState s) => Garden.Level(s) >= FavourFromLevel;
+
+        public static bool LuckyCanPromise(GameState s)
+        {
+            if (!Favours(s)) return false;
+            for (int tier = 0; tier <= LuckyTopTier; tier++)
+                if (RabbitKinds.Unseen(tier, s.SeenKinds).Count > 0) return true;
+            return false;
+        }
+
+        public static int LuckyLamps(GameState s) => LuckyCanPromise(s) ? Math.Min(Math.Max(0, s.DupStreak), LuckyAfter) : 0;
+
+        public static bool LuckyReady(GameState s) => s.DupStreak >= LuckyAfter && LuckyCanPromise(s);
+
+        public static int LuckyTier(GameState s, int rolled)
+        {
+            if (RabbitKinds.Unseen(ClampTier(rolled), s.SeenKinds).Count > 0) return ClampTier(rolled);
+            for (int tier = 0; tier <= LuckyTopTier; tier++)
+                if (RabbitKinds.Unseen(tier, s.SeenKinds).Count > 0) return tier;
+            return -1;
+        }
+
+        public static Rabbit Call(GameState s, int tier, string name, double kindRoll)
+        {
+            tier = ClampTier(tier);
+            if (!Favours(s)) return ArriveKind(s, RabbitKinds.Pick(tier, kindRoll), name);
+            string kind = LuckyReady(s) ? RabbitKinds.PickUnseen(LuckyTier(s, tier), kindRoll, s.SeenKinds) : null;
+            return Tally(s, ArriveKind(s, kind ?? RabbitKinds.Pick(tier, kindRoll, s.SeenKinds), name));
+        }
+
+        public static Rabbit Tally(GameState s, Rabbit rabbit)
+        {
+            if (rabbit == null) return null;
+            s.DupStreak = rabbit.FirstOfKind || !LuckyCanPromise(s) ? 0 : s.DupStreak + 1;
+            return rabbit;
         }
 
         public static Rabbit Arrive(GameState s, int tier, string name, double kindRoll)

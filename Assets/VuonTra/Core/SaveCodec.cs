@@ -429,6 +429,7 @@ namespace VuonTra.Core
             sb.Append(",\"gifts\":").Append(s.DailyGifts.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"dailyToday\":").Append(s.DailyQuestsToday.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"bestFish\":").Append(s.BestFish.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"dupStreak\":").Append(s.DupStreak.ToString(CultureInfo.InvariantCulture));
             sb.Append('}');
             sb.Append(",\"newcomer\":{\"claimed\":").Append(s.Newcomer.Claimed.ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"days\":").Append(s.Newcomer.DaysPaid.ToString(CultureInfo.InvariantCulture));
@@ -1109,6 +1110,7 @@ namespace VuonTra.Core
                 s.DailyGifts = Math.Max(0L, ToLong(ReadNumber(tally, "gifts")));
                 s.DailyQuestsToday = Small(ReadNumber(tally, "dailyToday"), 1000);
                 s.BestFish = Small(ReadNumber(tally, "bestFish"), Fishing.Kinds);
+                s.DupStreak = Small(ReadNumber(tally, "dupStreak"), Rabbits.LuckyAfter);
             }
             for (int i = s.Fish.Length - 1; i >= 0 && s.BestFish <= i; i--) if (s.Fish[i] > 0) s.BestFish = i + 1;
 

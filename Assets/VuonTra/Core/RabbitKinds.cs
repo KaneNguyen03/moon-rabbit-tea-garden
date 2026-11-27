@@ -169,6 +169,44 @@ namespace VuonTra.Core
             return Table[0].Id;
         }
 
+        public const int UnseenWeight = 3;
+
+        public static string Pick(int tier, double roll, ISet<string> seen)
+        {
+            if (seen == null) return Pick(tier, roll);
+            IReadOnlyList<RabbitKind> kinds = OfTier(Math.Max(0, Math.Min(Rabbits.TierCount - 1, tier)));
+            if (kinds.Count == 0) return DefaultFor(tier);
+            if (double.IsNaN(roll)) roll = 0d;
+            double total = 0d;
+            foreach (RabbitKind kind in kinds) total += WeightOf(kind, seen);
+            double at = Math.Max(0d, Math.Min(0.999999d, roll)) * total;
+            foreach (RabbitKind kind in kinds)
+            {
+                at -= WeightOf(kind, seen);
+                if (at < 0d) return kind.Id;
+            }
+            return kinds[kinds.Count - 1].Id;
+        }
+
+        static double WeightOf(RabbitKind kind, ISet<string> seen) => seen.Contains(kind.Id) ? 1d : UnseenWeight;
+
+        public static List<RabbitKind> Unseen(int tier, ISet<string> seen)
+        {
+            var list = new List<RabbitKind>();
+            if (tier < 0 || tier >= Rabbits.TierCount) return list;
+            foreach (RabbitKind kind in OfTier(tier))
+                if (seen == null || !seen.Contains(kind.Id)) list.Add(kind);
+            return list;
+        }
+
+        public static string PickUnseen(int tier, double roll, ISet<string> seen)
+        {
+            List<RabbitKind> unseen = Unseen(tier, seen);
+            if (unseen.Count == 0) return null;
+            if (double.IsNaN(roll) || roll < 0d) roll = 0d;
+            return unseen[Math.Min(unseen.Count - 1, (int)Math.Floor(roll * unseen.Count))].Id;
+        }
+
         public static string Pick(int tier, double roll)
         {
             IReadOnlyList<RabbitKind> kinds = OfTier(Math.Max(0, Math.Min(Rabbits.TierCount - 1, tier)));

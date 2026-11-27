@@ -124,7 +124,11 @@ namespace VuonTra.Core.Tests
             for (double r = 0d; r < 1d; r += 0.001) if (Rabbits.RollTier(r, Shop.GoldenOdds) == 4) { goldRoll = r; break; }
             s.GoldenCarrots = 1000000;
             var kinds = new HashSet<string>();
-            for (double k = Seasons.GoldenCallShare; k < 1d; k += 0.001) kinds.Add(Rabbits.KindOf(Shop.SummonGolden(s, goldRoll, "G", k, inSeason)));
+            for (double k = Seasons.GoldenCallShare; k < 1d; k += 0.001)
+            {
+                s.DupStreak = 0;
+                kinds.Add(Rabbits.KindOf(Shop.SummonGolden(s, goldRoll, "G", k, inSeason)));
+            }
             var everyday = new HashSet<string>();
             for (double k = 0d; k < 1d; k += 0.001) everyday.Add(RabbitKinds.Pick(4, k));
             Assert.AreEqual(10, everyday.Count, "ten everyday gold kinds");

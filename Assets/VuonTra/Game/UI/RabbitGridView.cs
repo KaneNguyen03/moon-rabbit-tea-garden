@@ -12,6 +12,7 @@ namespace VuonTra.Game.UI
         public const int Columns = 3;
         const float CellW = 318f, CellGap = 15f, CellH = 322f, AlbumH = 290f;
         const float SetLineH = 56f, SetPad = 10f, SetOutline = 8f;
+        const float SummonH = 124f, SummonLuckyH = 176f;
 
         public static readonly Color Quiet = Palette.Mix(Palette.Ink, Palette.Paper, 0.34f);
 
@@ -23,7 +24,11 @@ namespace VuonTra.Game.UI
         readonly Action<string> _onKind;
         readonly Func<string, bool> _isFresh;
         readonly List<GameObject> _dynamic = new List<GameObject>();
-        Text _count, _clovers, _summonLabel;
+        Text _count, _clovers, _summonLabel, _luckyLabel;
+        RectTransform _lucky;
+        LayoutElement _summonCard;
+        bool? _luckyShown;
+        readonly Image[] _lamps = new Image[Rabbits.LuckyAfter];
         Image _mineTab, _albumTab;
         Text _mineLabel, _albumLabel;
         string _signature;
@@ -70,7 +75,8 @@ namespace VuonTra.Game.UI
 
             var root = UiKit.Rect("Summon", _content);
             root.AddImage(_catalog.Panel, Palette.CardLip, true);
-            root.gameObject.AddComponent<LayoutElement>().preferredHeight = 124;
+            _summonCard = root.gameObject.AddComponent<LayoutElement>();
+            _summonCard.preferredHeight = SummonH;
             UiKit.Rect("Card", root).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(_catalog.Panel, Palette.Card, true);
             Image shade = UiKit.Rect("Shade", root).Place(0f, 0.5f, 68, 6, 92, 100).AddImage(_catalog.Rabbit, Palette.Alpha(Palette.Ink, 0.5f));
             shade.preserveAspect = true;
@@ -80,6 +86,7 @@ namespace VuonTra.Game.UI
             _clovers.resizeTextForBestFit = true;
             _clovers.resizeTextMinSize = 18;
             _clovers.resizeTextMaxSize = 26;
+            BuildLucky(root);
             var button = UiKit.Rect("Button", root).Place(1f, 0.5f, -164, 4, 290, 92);
             Summon = UiKit.Chunky(button, _catalog.Panel, () => _onSummon());
             var odds = UiKit.Rect("Odds", _content);
@@ -90,6 +97,42 @@ namespace VuonTra.Game.UI
             oddsText.resizeTextMaxSize = UiKit.TextSmall;
             _summonLabel = UiKit.Rect("Text", Summon.FaceRect).Stretch(0, 0, 1, 1)
                 .AddText("", UiKit.TextBody, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+        }
+
+        void BuildLucky(RectTransform root)
+        {
+            _lucky = UiKit.Rect("Lucky", root).Stretch(0, 0, 1, 0.56f, 130, 16, 330, 0);
+            for (int i = 0; i < _lamps.Length; i++)
+            {
+                var lamp = UiKit.Rect("Lamp " + i, _lucky).Place(0f, 1f, 15 + i * 36, -15, 30, 30);
+                lamp.AddImage(_catalog.Round, Palette.OffLip);
+                _lamps[i] = UiKit.Rect("Light", lamp).Stretch(0, 0, 1, 1, 4, 4, 4, 4).AddImage(_catalog.Round, Palette.Card);
+            }
+            _luckyLabel = UiKit.Rect("Text", _lucky).Stretch(0, 0, 1, 1, 0, 0, 0, 34)
+                .AddText("", UiKit.TextSmall, Quiet, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _luckyLabel.resizeTextForBestFit = true;
+            _luckyLabel.resizeTextMinSize = 14;
+            _luckyLabel.resizeTextMaxSize = UiKit.TextSmall;
+        }
+
+        void RefreshLucky(GameState s)
+        {
+            bool promise = Rabbits.LuckyCanPromise(s);
+            if (_luckyShown != promise)
+            {
+                _luckyShown = promise;
+                _lucky.gameObject.SetActive(promise);
+                _summonCard.preferredHeight = promise ? SummonLuckyH : SummonH;
+                if (promise) _clovers.rectTransform.Stretch(0, 0.56f, 1, 1, 130, 0, 330, 8);
+                else _clovers.rectTransform.Stretch(0, 0, 1, 1, 130, 8, 330, 0);
+            }
+            if (!promise) return;
+            int lit = Rabbits.LuckyLamps(s);
+            bool ready = Rabbits.LuckyReady(s);
+            for (int i = 0; i < _lamps.Length; i++)
+                _lamps[i].color = i >= lit ? Palette.Card : ready ? Palette.Carrot : Palette.Lantern;
+            _luckyLabel.text = ready ? L10n.T("rabbits.lucky.ready") : L10n.T("rabbits.lucky", lit, Rabbits.LuckyAfter);
+            _luckyLabel.color = ready ? Palette.CarrotInk : Quiet;
         }
 
         Image AddSubTab(RectTransform tabs, string name, float from, string label, bool album, out Text text)
@@ -120,6 +163,7 @@ namespace VuonTra.Game.UI
             _summonLabel.text = can ? L10n.T("rabbits.summon.button", Rabbits.SummonCost) : L10n.T("need.clover", Rabbits.SummonCost - s.Clovers);
             _summonLabel.color = ChunkyButton.InkFor(can);
             Summon.SetEnabled(can);
+            RefreshLucky(s);
             _mineTab.color = Album ? Palette.Alpha(Palette.Carrot, 0f) : Palette.Carrot;
             _albumTab.color = Album ? Palette.Carrot : Palette.Alpha(Palette.Carrot, 0f);
             _mineLabel.color = Album ? Quiet : Palette.Card;

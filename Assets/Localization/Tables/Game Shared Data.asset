@@ -4931,6 +4931,14 @@ MonoBehaviour:
     m_Key: map.open
     m_Metadata:
       m_Items: []
+  - m_Id: 2203810886434816
+    m_Key: rabbits.lucky
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2203810928377856
+    m_Key: rabbits.lucky.ready
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

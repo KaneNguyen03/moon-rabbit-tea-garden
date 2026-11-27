@@ -4650,6 +4650,14 @@ MonoBehaviour:
     m_Localized: "B\u1EA3n \u0111\u1ED3"
     m_Metadata:
       m_Items: []
+  - m_Id: 2203810886434816
+    m_Localized: "\u0110\xE8n may m\u1EAFn {0}/{1} \xB7 \u0111\u1EE7 \u0111\xE8n l\xE0 g\u1EB7p b\u1EA1n m\u1EDBi"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2203810928377856
+    m_Localized: "L\u1EA7n g\u1ECDi t\u1EDBi ch\u1EAFc ch\u1EAFn l\xE0 b\u1EA1n m\u1EDBi"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
