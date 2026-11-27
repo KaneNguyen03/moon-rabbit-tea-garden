@@ -2541,6 +2541,13 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Cần chủ project duyệt: font DejaVu thêm 757 KB vào mọi bản build; khung 9:16 có viền tối trên điện thoại; save web tách riêng với save Mac và điện thoại.
 - Hai lượt full verify bị dừng nhầm vì tưởng treo; thật ra là mô phỏng kinh tế chạy lâu và im log (#161).
 
+## #150 — QA 27/11 trả lại: README thiếu hai lệnh cập nhật bản web (B sửa)
+**Test:** chỉ sửa tài liệu; `python3 -I tools/conventions.py` ok (theo bảng Checking Your Work: đổi docs chỉ cần Rules).
+
+**Commit:** `a3a815d`.
+
+**Đã làm:** `README.md` thêm mục "Web version": đường dẫn bản web, hai lệnh `tools/build-webgl.sh` và `tools/publish-pages.sh` chạy sau mỗi lần gộp main, và trỏ tới `docs/phat-hanh/BAN-WEB.md`. Không dựng lại, không đăng lại.
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái
