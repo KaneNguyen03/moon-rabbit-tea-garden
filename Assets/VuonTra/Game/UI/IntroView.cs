@@ -49,7 +49,7 @@ namespace VuonTra.Game.UI
             _title = UiKit.Rect("Title", _card).Stretch(0, 1, 1, 1, 250, -96, 36, 30)
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             Fit(_title, 20, UiKit.TextTitle);
-            _body = UiKit.Rect("Body", _card).Stretch(0, 1, 1, 1, 250, -212, 36, 104)
+            _body = UiKit.Rect("Body", _card).Stretch(0, 1, 1, 1, 250, -212, 36, 97)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperLeft);
             Fit(_body, 14, UiKit.TextBody);
             _reward = UiKit.Rect("Reward", _card).Stretch(0, 1, 1, 1, 250, -262, 36, 218)
@@ -194,7 +194,7 @@ namespace VuonTra.Game.UI
             Text title = UiKit.Rect("Title", row).Stretch(0, 0.55f, 1, 1, 134, 0, 20, 8)
                 .AddText(L10n.T("intro." + id + ".title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             Fit(title, 14, UiKit.TextBody);
-            Text body = UiKit.Rect("Body", row).Stretch(0, 0, 1, 0.58f, 134, 8, 20, 0)
+            Text body = UiKit.Rect("Body", row).Stretch(0, 0, 1, 0.63f, 134, 8, 20, 0)
                 .AddText(L10n.T("intro." + id + ".body").Replace('\n', ' '), UiKit.TextSmall, Palette.Ink, TextAnchor.UpperLeft);
             Fit(body, 11, UiKit.TextSmall);
             row.gameObject.SetActive(false);

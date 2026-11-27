@@ -42,7 +42,7 @@ namespace VuonTra.Game.UI
             if (catalog.GoldenCarrot != null) UiKit.Rect("Icon", _card).Place(0.5f, 1f, 0, -80, 110, 110).AddImage(catalog.GoldenCarrot, Color.white).preserveAspect = true;
             UiKit.Rect("Title", _card).Place(0.5f, 1f, 0, -180, 800, 70)
                 .AddText(L10n.T("packs.title"), 48, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
-            Text sub = UiKit.Rect("Sub", _card).Place(0.5f, 1f, 0, -275, 800, 90)
+            Text sub = UiKit.Rect("Sub", _card).Place(0.5f, 1f, 0, -287, 800, 122)
                 .AddText(L10n.T("packs.sub"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleCenter);
             sub.horizontalOverflow = HorizontalWrapMode.Wrap;
             sub.resizeTextForBestFit = true;

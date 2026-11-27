@@ -75,7 +75,7 @@ namespace VuonTra.Game.UI
             _weekLabel = UiKit.Rect("Title", WeekRow).Stretch(0, 1, 1, 1, 36, -70, 36, 18)
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             OneLine(_weekLabel, UiKit.TextTitle);
-            _weekSub = UiKit.Rect("Sub", WeekRow).Stretch(0, 0, 1, 0, TrackLeft, 16, TrackRight, -50)
+            _weekSub = UiKit.Rect("Sub", WeekRow).Stretch(0, 0, 1, 0, TrackLeft, 16, TrackRight, -52)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft);
             _weekSub.resizeTextForBestFit = true;
             _weekSub.resizeTextMinSize = 12;
@@ -263,7 +263,7 @@ namespace VuonTra.Game.UI
                 _amounts[i] = UiKit.Rect("Amount", front).Place(0.5f, 0f, 0, 92, TileWidth - 16, 56)
                     .AddText("", 40, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
                 QuestChestsView.OneLine(_amounts[i], 40);
-                _names[i] = UiKit.Rect("Name", front).Place(0.5f, 0f, 0, 40, TileWidth - 20, 52)
+                _names[i] = UiKit.Rect("Name", front).Place(0.5f, 0f, 0, 40, TileWidth - 20, 66)
                     .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
                 _names[i].resizeTextForBestFit = true;
                 _names[i].resizeTextMinSize = 12;
