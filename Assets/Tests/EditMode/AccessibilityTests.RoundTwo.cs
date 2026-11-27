@@ -205,7 +205,6 @@ namespace VuonTra.Core.Tests
                 settings.resizeTextForBestFit = false;
                 settings.verticalOverflow = VerticalWrapMode.Overflow;
                 w = gen.GetPreferredWidth(text.text, settings) / text.pixelsPerUnit;
-                h = TextFit.Height(gen, text.text, settings) / text.pixelsPerUnit;
             }
             if (wide) return w > r.width + 1f ? Path(text.transform) + " wide " + Mathf.RoundToInt(w) + ">" + Mathf.RoundToInt(r.width) + " \"" + text.text + "\"" : null;
             return h > r.height + 1f ? Path(text.transform) + " tall " + Mathf.RoundToInt(h) + ">" + Mathf.RoundToInt(r.height) + " \"" + text.text + "\"" : null;

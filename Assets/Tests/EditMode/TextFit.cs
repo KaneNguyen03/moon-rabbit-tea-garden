@@ -9,24 +9,22 @@ namespace VuonTra.Core.Tests
         public static float Height(TextGenerator generator, string value, TextGenerationSettings settings)
         {
             settings.verticalOverflow = VerticalWrapMode.Overflow;
-            generator.Populate(value, settings);
-            float box = settings.generationExtents.y * settings.scaleFactor;
-            float bottom = -settings.pivot.y * box, top = bottom + box;
-            if (!InkSpan(generator.verts, out float inkBottom, out float inkTop)) return 0f;
-            return box + Mathf.Max(0f, inkTop - top) + Mathf.Max(0f, bottom - inkBottom);
+            return Drawn(generator, value, settings);
         }
 
         public static float Height(Text text)
         {
-            var generator = new TextGenerator();
-            TextGenerationSettings settings = text.GetGenerationSettings(text.rectTransform.rect.size);
-            if (text.resizeTextForBestFit)
-            {
-                generator.Populate(text.text, settings);
-                settings.fontSize = generator.fontSizeUsedForBestFit;
-                settings.resizeTextForBestFit = false;
-            }
-            return Height(generator, text.text, settings) / text.pixelsPerUnit;
+            return Drawn(new TextGenerator(), text.text, text.GetGenerationSettings(text.rectTransform.rect.size)) / text.pixelsPerUnit;
+        }
+
+        static float Drawn(TextGenerator generator, string value, TextGenerationSettings settings)
+        {
+            generator.Populate(value, settings);
+            float box = settings.generationExtents.y * settings.scaleFactor;
+            float bottom = -settings.pivot.y * box, top = bottom + box;
+            if (!InkSpan(generator.verts, out float inkBottom, out float inkTop)) return 0f;
+            float cut = generator.characterCountVisible < value.TrimEnd().Length ? box : 0f;
+            return box + Mathf.Max(0f, inkTop - top) + Mathf.Max(0f, bottom - inkBottom) + cut;
         }
 
         static bool InkSpan(IList<UIVertex> verts, out float bottom, out float top)

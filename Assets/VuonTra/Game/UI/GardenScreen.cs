@@ -1753,7 +1753,7 @@ namespace VuonTra.Game.UI
             _cardName.horizontalOverflow = HorizontalWrapMode.Overflow;
             var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -104, -42, 160, 46);
             _cardLevelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             // "Cấp 500 ✦✦✦" is wider than the pill at full size: the words shrink to stay on one line (#73).
             _cardLevel.resizeTextForBestFit = true;
             _cardLevel.resizeTextMinSize = 14;
@@ -3752,7 +3752,7 @@ namespace VuonTra.Game.UI
             var buy = UiKit.Rect("Buy", _plotRow).Place(1f, 0.5f, -166, 4, 284, 120);
             _plotBuy = UiKit.Chunky(buy, catalog.Panel, OnBuyPlot);
             _plotBuy.Dip.Denied = () => Deny(_plotBuy, !Expansion.HasCarrots(Runner.Defs, Runner.State));
-            UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 10)
+            UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 7)
                 .AddText(L10n.T("plot.buy"), UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _plotCost = UiKit.Rect("Cost", _plotBuy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 10, 8, 0)
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);

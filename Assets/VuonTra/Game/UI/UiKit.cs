@@ -259,7 +259,7 @@ namespace VuonTra.Game.UI
 
         public static RectTransform LockBadge(RectTransform parent, Sprite panel)
         {
-            var badge = Rect("Lock", parent).Place(0f, 1f, -10, 12, LockSize, LockSize);
+            var badge = Rect("Lock", parent).Place(0f, 1f, -12, 14, LockSize, LockSize);
             badge.AddImage(panel, Palette.Ink, true);
             Rect("Plate", badge).Stretch(0, 0, 1, 1, 3, 3, 3, 3).AddImage(panel, Palette.Paper, true);
             Rect("Shackle", badge).Place(0.5f, 0.5f, 0, 6, 18, 22).AddImage(panel, Palette.Ink, true);

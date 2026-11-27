@@ -64,7 +64,7 @@ namespace VuonTra.Game.UI
 
             var buy = UiKit.Rect("Buy", root).Place(1f, 0.5f, -166, 4, 284, 132);
             Buy = UiKit.Chunky(buy, catalog.Panel, () => onBuy(_index));
-            _buyTop = UiKit.Rect("Top", Buy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 12)
+            _buyTop = UiKit.Rect("Top", Buy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 9)
                 .AddText("", UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _buyCost = UiKit.Rect("Cost", Buy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 12, 8, 0)
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
