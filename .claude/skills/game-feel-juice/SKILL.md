@@ -22,7 +22,7 @@ description: Use when adding or changing any player interaction in Unity - butto
 - Respect the reduced-motion setting: skip scale punches, keep sound and a short fade.
 
 ## Setup Note
-DOTween 1.3.045 (free) is installed as a vendored plugin in `Assets/Plugins/Demigiant/DOTween`, not through `Packages/manifest.json`. `DOTween.Modules.asmdef`, `Assets/Resources/DOTweenSettings.asset` and the `DOTWEEN` scripting define are committed, and `VuonTra.Game` references `DOTween.Modules`, so nothing has to be run in `Tools > Demigiant > DOTween Utility Panel`. Do not edit the files in that folder: the DOTween licence allows redistributing verbatim copies only.
+DOTween is not in `Packages/manifest.json` yet. Add it (Asset Store package or `com.demigiant.dotween` via a scoped registry) only with the owner's go-ahead, then run `Tools > Demigiant > DOTween Utility Panel > Setup`.
 
 ## Done Check
 - Tap a button 10 times fast: no stacked scale drift, pitch varies, particles recycle.
