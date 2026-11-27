@@ -10,13 +10,21 @@ using Motion = VuonTra.Game.UI.Motion;
 
 namespace VuonTra.Core.Tests
 {
+    [TestFixture(true)]
+    [TestFixture(false)]
     public class FeelLaneScreenTests
     {
-        const float LeastWorldText = 24f, ScreenHalf = 960f;
+        const float LeastWorldText = 24f, PhoneW = 1080f, PhoneH = 1920f;
 
+        readonly bool portrait;
         GameObject root;
         GameRunner runner;
         GardenScreen screen;
+
+        public FeelLaneScreenTests(bool portrait)
+        {
+            this.portrait = portrait;
+        }
 
         [SetUp]
         public void SetUp()
@@ -35,9 +43,29 @@ namespace VuonTra.Core.Tests
             screen.Cam = cam.GetComponent<Camera>();
             screen.Raining = () => false;
             screen.Build();
+            Phone();
             screen.Shell.StartGame();
             screen.Refresh();
             Step(1.5f);
+        }
+
+        void Phone()
+        {
+            if (!portrait) return;
+            var canvas = root.transform.Find("Canvas").GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            var rt = (RectTransform)canvas.transform;
+            rt.localScale = Vector3.one;
+            rt.sizeDelta = new Vector2(PhoneW, PhoneH);
+            Canvas.ForceUpdateCanvases();
+            Assert.AreEqual(PhoneH, rt.rect.height, 0.01f);
+        }
+
+        void Rebuild()
+        {
+            screen.RebuildUi();
+            Phone();
+            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
         }
 
         [TearDown]
@@ -132,21 +160,72 @@ namespace VuonTra.Core.Tests
             var banner = (RectTransform)root.transform.Find("Canvas/Feel/Banner");
             Rect card = InCanvas(banner), tray = InCanvas(screen.ProductTray.Root);
             Assert.GreaterOrEqual(card.yMin, tray.yMax, "the banner stands on the tray, not over it");
-            Assert.Less(card.yMax - Frame.rect.yMin, ScreenHalf, "the banner keeps out of the middle of the garden, where the rabbits work");
+            Assert.Less(card.yMax - Frame.rect.yMin, Frame.rect.height / 2f, "the banner keeps out of the middle of the garden, where the rabbits work");
             Assert.AreEqual(banner.parent.childCount - 1, banner.GetSiblingIndex(), "a floating number passes under the banner, never over its words");
             StringAssert.StartsWith(L10n.T("moment.gift.title", ""), root.transform.Find("Canvas/Feel/Banner/Title").GetComponent<Text>().text);
         }
 
+        string CoversTheSheet()
+        {
+            Canvas.ForceUpdateCanvases();
+            Rect card = InCanvas((RectTransform)root.transform.Find("Canvas/Feel/Banner"));
+            Rect panel = InCanvas((RectTransform)root.transform.Find("Canvas/Sheet/Panel")), rows = InCanvas((RectTransform)root.transform.Find("Canvas/Sheet/Panel/Quests"));
+            var sheet = Rect.MinMaxRect(panel.xMin, rows.yMin, panel.xMax, panel.yMax);
+            if (card.Overlaps(sheet)) return "the card " + card + " covers the sheet's header and rows " + sheet + " at height " + screen.SheetHeight;
+            Text sub = root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>();
+            float onScreen = sub.fontSize * InCanvas(sub.rectTransform).height / sub.rectTransform.rect.height;
+            if (screen.Feel.BannerFit > 0.99f && onScreen < LeastWorldText - 0.5f) return "the card's words read at " + onScreen;
+            return null;
+        }
+
         [Test]
-        public void With_A_Sheet_Open_The_Banner_Rests_On_The_Sheet()
+        public void With_A_Sheet_Open_The_Banner_Never_Covers_Its_Header_Or_Rows()
         {
             screen.OpenSheet(2);
             Step(0.6f);
             screen.Feel.Moment("Title", "Sub");
             Step(0.5f);
-            Canvas.ForceUpdateCanvases();
+            Assert.IsNull(CoversTheSheet());
+        }
+
+        [Test]
+        public void With_The_Sheet_Pulled_To_Full_Height_The_Banner_Rests_Over_The_Tab_Bar_And_Still_Reads()
+        {
+            screen.OpenSheet(2);
+            Step(0.6f);
+            screen.DragSheet(GardenScreen.SheetFull);
+            screen.ReleaseSheet();
+            Step(0.6f);
+            Assert.AreEqual(GardenScreen.SheetFull, screen.SheetHeight, 0.5f, "the sheet stands at full height");
+            screen.Feel.Moment(L10n.T("moment.gift.title", "Silver Bell"), "Silver ★ tier · +10% income at its station · equip it in the Rabbits tab");
+            Step(0.5f);
+            Assert.IsNull(CoversTheSheet());
             Rect card = InCanvas((RectTransform)root.transform.Find("Canvas/Feel/Banner"));
-            Assert.GreaterOrEqual(card.yMin - Frame.rect.yMin, screen.SheetHeight, "the banner never hides the sheet's rows");
+            Rect bar = InCanvas((RectTransform)root.transform.Find("Canvas/TabBar"));
+            Assert.GreaterOrEqual(card.yMin, bar.yMin - 0.5f, "the card lies on the tab bar");
+            Assert.LessOrEqual(card.yMax, bar.yMax + 0.5f, "and no higher than it");
+            Text sub = root.transform.Find("Canvas/Feel/Banner/Sub").GetComponent<Text>();
+            Assert.GreaterOrEqual(sub.fontSize * InCanvas(sub.rectTransform).height / sub.rectTransform.rect.height, LeastWorldText - 0.5f, "its smaller words still read");
+            Step(1.5f);
+            Assert.IsFalse(screen.Feel.BannerVisible, "and it leaves on time");
+        }
+
+        [Test]
+        public void A_Card_Already_Up_Moves_Off_A_Sheet_Pulled_Up_Under_It()
+        {
+            screen.OpenSheet(2);
+            Step(0.6f);
+            screen.Feel.Moment("Title", "Sub");
+            var faults = new List<string>();
+            for (int frame = 0; frame < 40; frame++)
+            {
+                if (frame == 10) { screen.DragSheet(GardenScreen.SheetFull); screen.ReleaseSheet(); }
+                screen.Advance(1f / 30f);
+                if (frame < 12 || !screen.Feel.BannerVisible) continue;
+                string fault = CoversTheSheet();
+                if (fault != null) faults.Add("frame " + frame + ": " + fault);
+            }
+            Assert.IsEmpty(faults, string.Join("\n", faults));
         }
 
         [Test]
@@ -191,8 +270,7 @@ namespace VuonTra.Core.Tests
         {
             L10n.SetLocale(code);
             UiKit.SetLargeText(large);
-            screen.RebuildUi();
-            if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
+            Rebuild();
             Step(0.5f);
             Assert.AreEqual(GardenScreen.ZoomLevel.Default, screen.Zoom);
             Canvas.ForceUpdateCanvases();

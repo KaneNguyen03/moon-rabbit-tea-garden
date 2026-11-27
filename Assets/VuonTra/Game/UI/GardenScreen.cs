@@ -1247,7 +1247,7 @@ namespace VuonTra.Game.UI
             if (island != null) StandOnTheIsland(catalog, island);
             BuildSheet(catalog);
             BuildLayout(catalog);
-            Feel = new FeelLayer(_canvas, catalog, Tweens) { BannerFloor = BannerFloor };
+            Feel = new FeelLayer(_canvas, catalog, Tweens) { BannerBand = BannerBand };
             Arrival = new SummonMomentView(_canvas, catalog);
             Detail = new RabbitDetailView(_canvas, catalog, Tweens, OnLevelUp, OnLevelMax,
                 rabbitId => { Sfx.Click(); Rename.Open(Runner.State, rabbitId); },

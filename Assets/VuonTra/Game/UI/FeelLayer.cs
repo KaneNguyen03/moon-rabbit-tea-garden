@@ -7,7 +7,7 @@ namespace VuonTra.Game.UI
     public sealed class FeelLayer
     {
         const int MaxParticles = 90;
-        public const float GainHeight = 64f, GainRise = 150f, GainSink = 60f, BannerGap = 24f, BannerHeight = 210f, BannerCeiling = 230f, GainRim = 2f, GainRimAlpha = 0.85f;
+        public const float GainHeight = 64f, GainRise = 150f, GainSink = 60f, BannerGap = 24f, BannerHeight = 210f, BannerLeastFit = 0.7f, GainRim = 2f, GainRimAlpha = 0.85f;
 
         struct Particle
         {
@@ -25,12 +25,14 @@ namespace VuonTra.Game.UI
         readonly RectTransform _banner;
         readonly Text _bannerTitle, _bannerSub;
         int _bannerToken;
+        float _bannerGrow, _bannerFit = 1f;
 
         public int ParticleCount => _particles.Count;
         public int Flying { get; private set; }
         public const float FlyTime = 0.55f;
         public bool BannerVisible => _banner.gameObject.activeSelf;
-        public System.Func<float> BannerFloor { get; set; }
+        public System.Func<Vector2> BannerBand { get; set; }
+        public float BannerFit => _bannerFit;
 
         public FeelLayer(RectTransform canvas, GameCatalog catalog, Tweens tweens)
         {
@@ -96,8 +98,16 @@ namespace VuonTra.Game.UI
 
         void RestBanner()
         {
-            float floor = BannerFloor != null ? BannerFloor() : 0f;
-            _banner.anchoredPosition = new Vector2(0f, Mathf.Max(0f, floor) + BannerGap);
+            Vector2 band = BannerBand != null ? BannerBand() : new Vector2(BannerGap, BannerGap + BannerHeight);
+            _bannerFit = Mathf.Clamp01((band.y - band.x) / BannerHeight);
+            _banner.anchoredPosition = new Vector2(0f, Mathf.Max(0f, band.x));
+            _banner.localScale = Vector3.one * (_bannerGrow * _bannerFit);
+        }
+
+        void GrowBanner(float grow)
+        {
+            _bannerGrow = grow;
+            _banner.localScale = Vector3.one * (_bannerGrow * _bannerFit);
         }
 
         public void Fly(Vector2 from, Vector2 to, Sprite sprite, Color color, int count, float size, System.Action onArrive = null)
@@ -162,14 +172,14 @@ namespace VuonTra.Game.UI
 
             _bannerTitle.text = title;
             _bannerSub.text = sub;
+            _bannerGrow = 0f;
             RestBanner();
             _banner.SetAsLastSibling();
             _banner.gameObject.SetActive(true);
-            _banner.localScale = Vector3.zero;
-            _tweens.Add(0.35f, t => _banner.localScale = Vector3.one * t, Ease.OutBack, delay: 0.05f);
+            _tweens.Add(0.35f, t => GrowBanner(t), Ease.OutBack, delay: 0.05f);
             _tweens.Add(0.2f, t =>
             {
-                if (token == _bannerToken) _banner.localScale = Vector3.one * (1f - t);
+                if (token == _bannerToken) GrowBanner(1f - t);
             }, Ease.OutCubic, delay: 1.5f, done: () =>
             {
                 if (token == _bannerToken) _banner.gameObject.SetActive(false);
@@ -182,6 +192,7 @@ namespace VuonTra.Game.UI
 
         public void Update(float dt)
         {
+            if (_banner.gameObject.activeSelf) RestBanner();
             for (int i = _particles.Count - 1; i >= 0; i--)
             {
                 Particle p = _particles[i];

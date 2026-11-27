@@ -97,7 +97,15 @@ namespace VuonTra.Game.UI
             rt.SetSiblingIndex(lowest);
         }
 
-        float BannerFloor() => Mathf.Min(SheetOpen ? SheetHeight : ProductTray.Root.anchoredPosition.y + TrayView.Height, ScreenH - FeelLayer.BannerCeiling - FeelLayer.BannerHeight - FeelLayer.BannerGap);
+        Vector2 BannerBand()
+        {
+            float top = _canvas.rect.height - SafeInsets().y - FeelLayer.BannerGap;
+            float floor = (SheetOpen ? SheetHeight : ProductTray.Root.anchoredPosition.y + TrayView.Height) + FeelLayer.BannerGap;
+            if (!SheetOpen) return new Vector2(floor, floor + FeelLayer.BannerHeight);
+            if (top - floor >= FeelLayer.BannerHeight * FeelLayer.BannerLeastFit) return new Vector2(floor, Mathf.Min(top, floor + FeelLayer.BannerHeight));
+            float bar = SafeBottom() + TabBarGap;
+            return new Vector2(bar, bar + TabBarHeight);
+        }
 
         void PopChip(RectTransform chip, float swell)
         {
