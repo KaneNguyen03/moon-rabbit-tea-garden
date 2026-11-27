@@ -1,0 +1,55 @@
+name: Deploy Cloudflare Pages preview
+
+on:
+  push:
+    branches: [cf-preview]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-cf-preview
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_KEY }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      WRANGLER: wrangler@4.160.0
+      PROJECT: moon-rabbit-tea-garden
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Stage the site without .github
+        run: |
+          mkdir -p "$RUNNER_TEMP/site"
+          rsync -a --exclude .git --exclude .github ./ "$RUNNER_TEMP/site/"
+          find "$RUNNER_TEMP/site" -type f -printf '%10s %P\n' | sort -k2
+          too_big=$(find "$RUNNER_TEMP/site" -type f -size +26214400c)
+          if [ -n "$too_big" ]; then echo "Over the 25 MiB Pages limit: $too_big"; exit 1; fi
+
+      - name: Create the Pages project if it does not exist
+        run: |
+          set +e
+          out=$(npx --yes "$WRANGLER" pages project create "$PROJECT" --production-branch main 2>&1)
+          status=$?
+          set -e
+          echo "$out"
+          if [ $status -ne 0 ] && ! grep -qiE 'already exists|8000002' <<<"$out"; then exit $status; fi
+
+      - name: Deploy to the preview branch
+        working-directory: ${{ runner.temp }}/site
+        run: |
+          npx --yes "$WRANGLER" pages deploy . --project-name "$PROJECT" --branch preview --commit-dirty=true --commit-hash "$GITHUB_SHA" 2>&1 | tee "$RUNNER_TEMP/deploy.log"
+          {
+            echo "### Cloudflare Pages preview"
+            grep -oE 'https://[A-Za-z0-9.-]+\.pages\.dev' "$RUNNER_TEMP/deploy.log" | sort -u | sed 's/^/- /'
+          } >> "$GITHUB_STEP_SUMMARY"

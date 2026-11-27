@@ -1,0 +1,7 @@
+/Build/*.unityweb
+  Content-Type: application/octet-stream
+  Cache-Control: public, max-age=0, must-revalidate
+
+/Build/*.part*
+  Content-Type: application/octet-stream
+  Cache-Control: public, max-age=0, must-revalidate
