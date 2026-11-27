@@ -1,8 +1,9 @@
 const joined = "/Build/WebGL.data.unityweb";
 const parts = [
-  "/Build/WebGL.data.unityweb.part0",
-  "/Build/WebGL.data.unityweb.part1",
+  { path: "/Build/WebGL.data.unityweb.part0", size: 20000000 },
+  { path: "/Build/WebGL.data.unityweb.part1", size: 14530333 },
 ];
+const totalSize = parts.reduce((sum, part) => sum + part.size, 0);
 
 export default {
   async fetch(request, env, ctx) {
@@ -13,7 +14,7 @@ export default {
     }
 
     const responses = await Promise.all(
-      parts.map((path) => env.ASSETS.fetch(new Request(new URL(path, url), { method: request.method })))
+      parts.map((part) => env.ASSETS.fetch(new Request(new URL(part.path, url), { method: request.method })))
     );
     const failed = responses.find((response) => !response.ok);
     if (failed) {
@@ -25,12 +26,9 @@ export default {
     const headers = new Headers({
       "Content-Type": "application/octet-stream",
       "Cache-Control": "public, max-age=0, must-revalidate",
+      "Content-Length": String(totalSize),
       ETag: etag,
     });
-    const lengths = responses.map((response) => Number(response.headers.get("Content-Length")));
-    if (lengths.every((length) => Number.isFinite(length) && length > 0)) {
-      headers.set("Content-Length", String(lengths.reduce((sum, length) => sum + length, 0)));
-    }
 
     if (request.headers.get("If-None-Match") === etag) {
       responses.forEach((response) => response.body && response.body.cancel());
@@ -38,7 +36,7 @@ export default {
     }
     if (request.method === "HEAD") return new Response(null, { status: 200, headers });
 
-    const { readable, writable } = new TransformStream();
+    const { readable, writable } = new FixedLengthStream(totalSize);
     ctx.waitUntil(
       (async () => {
         for (const response of responses) await response.body.pipeTo(writable, { preventClose: true });
