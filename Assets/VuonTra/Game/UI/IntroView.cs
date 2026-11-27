@@ -195,7 +195,7 @@ namespace VuonTra.Game.UI
             Text title = UiKit.Rect("Title", row).Stretch(0, 0.55f, 1, 1, 134, 0, 20, 8)
                 .AddText(L10n.T("intro." + id + ".title"), UiKit.TextBody, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             Fit(title, 14, UiKit.TextBody);
-            Text body = UiKit.Rect("Body", row).Stretch(0, 0, 1, 0.58f, 134, 4, 20, 0)
+            Text body = UiKit.Rect("Body", row).Stretch(0, 0, 1, 0.62f, 134, 0, 20, 0)
                 .AddText(L10n.T("intro." + id + ".body").Replace('\n', ' '), UiKit.TextSmall, Palette.Ink, TextAnchor.UpperLeft);
             Fit(body, 11, UiKit.TextSmall);
             body.alignByGeometry = true;
