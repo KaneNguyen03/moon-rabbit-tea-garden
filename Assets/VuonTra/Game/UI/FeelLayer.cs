@@ -7,6 +7,7 @@ namespace VuonTra.Game.UI
     public sealed class FeelLayer
     {
         const int MaxParticles = 90;
+        public const float GainHeight = 64f, GainRise = 150f, GainSink = 60f, BannerGap = 24f, BannerHeight = 210f, BannerCeiling = 230f, GainRim = 2f, GainRimAlpha = 0.85f;
 
         struct Particle
         {
@@ -29,6 +30,7 @@ namespace VuonTra.Game.UI
         public int Flying { get; private set; }
         public const float FlyTime = 0.55f;
         public bool BannerVisible => _banner.gameObject.activeSelf;
+        public System.Func<float> BannerFloor { get; set; }
 
         public FeelLayer(RectTransform canvas, GameCatalog catalog, Tweens tweens)
         {
@@ -39,7 +41,8 @@ namespace VuonTra.Game.UI
             _flash = UiKit.Rect("Flash", _root).Stretch(0, 0, 1, 1).AddImage(null, Palette.Alpha(Palette.Carrot, 0f));
             _flash.gameObject.SetActive(false);
 
-            _banner = UiKit.Rect("Banner", _root).Place(0.5f, 0.7f, 0, 0, 820, 210);
+            _banner = UiKit.Rect("Banner", _root).Place(0.5f, 0f, 0, BannerGap, 820, BannerHeight);
+            _banner.pivot = new Vector2(0.5f, 0f);
             UiKit.Rect("Lip", _banner).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Card", _banner).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
             _bannerTitle = UiKit.Rect("Title", _banner).Stretch(0, 0.45f, 1, 1, 30, 0, 30, 24)
@@ -64,17 +67,37 @@ namespace VuonTra.Game.UI
                 done: () => _flash.gameObject.SetActive(false));
         }
 
-        public void FloatText(Vector2 at, string text, Color color, int size = 40)
+        public void FloatText(Vector2 at, string text, Color color, int size = 40) => Gain(at, text, color, size, GainRise, -90f);
+
+        public void FloatBelow(Vector2 at, string text, Color color, int size = 40) => Gain(at, text, color, size, -GainSink, 0f);
+
+        void Gain(Vector2 at, string text, Color color, int size, float rise, float gravity)
         {
             if (_particles.Count >= MaxParticles) return;
-            var rt = UiKit.Rect("Gain", _root).Place(0.5f, 0.5f, at.x, at.y, 360, 64);
+            var rt = Spawn("Gain").Place(0.5f, 0.5f, at.x, at.y, 360, GainHeight);
             Text label = rt.AddText(text, size, color, TextAnchor.MiddleCenter, FontStyle.Bold);
             label.AddShadow(0.7f);
+            Outline rim = label.gameObject.AddComponent<Outline>();
+            rim.effectColor = Palette.Alpha(Palette.Ink, GainRimAlpha);
+            rim.effectDistance = new Vector2(GainRim, -GainRim);
             _particles.Add(new Particle
             {
-                Rect = rt, Graphic = label, Velocity = new Vector2(0, 150f),
-                Life = 0.75f, Gravity = -90f, StartScale = 1f
+                Rect = rt, Graphic = label, Velocity = new Vector2(0, rise),
+                Life = 0.75f, Gravity = gravity, StartScale = 1f
             });
+        }
+
+        RectTransform Spawn(string name)
+        {
+            RectTransform rt = UiKit.Rect(name, _root);
+            _banner.SetAsLastSibling();
+            return rt;
+        }
+
+        void RestBanner()
+        {
+            float floor = BannerFloor != null ? BannerFloor() : 0f;
+            _banner.anchoredPosition = new Vector2(0f, Mathf.Max(0f, floor) + BannerGap);
         }
 
         public void Fly(Vector2 from, Vector2 to, Sprite sprite, Color color, int count, float size, System.Action onArrive = null)
@@ -87,7 +110,7 @@ namespace VuonTra.Game.UI
             count = Mathf.Clamp(count, 1, 12);
             for (int i = 0; i < count; i++)
             {
-                RectTransform rt = UiKit.Rect("Fly", _root).Place(0.5f, 0.5f, from.x, from.y, size, size);
+                RectTransform rt = Spawn("Fly").Place(0.5f, 0.5f, from.x, from.y, size, size);
                 Image img = rt.AddImage(sprite, color);
                 img.preserveAspect = true;
                 Vector2 start = from + new Vector2(Random.Range(-30f, 30f), Random.Range(-14f, 14f));
@@ -116,7 +139,7 @@ namespace VuonTra.Game.UI
             {
                 float angle = Mathf.Lerp(25f, 155f, (i + Random.value * 0.8f) / count) * Mathf.Deg2Rad;
                 float push = speed * Random.Range(0.55f, 1f);
-                var rt = UiKit.Rect("Bit", _root).Place(0.5f, 0.5f, at.x, at.y, size, size);
+                var rt = Spawn("Bit").Place(0.5f, 0.5f, at.x, at.y, size, size);
                 Image img = rt.AddImage(sprite, colors[i % colors.Length]);
                 img.preserveAspect = true;
                 _particles.Add(new Particle
@@ -139,6 +162,8 @@ namespace VuonTra.Game.UI
 
             _bannerTitle.text = title;
             _bannerSub.text = sub;
+            RestBanner();
+            _banner.SetAsLastSibling();
             _banner.gameObject.SetActive(true);
             _banner.localScale = Vector3.zero;
             _tweens.Add(0.35f, t => _banner.localScale = Vector3.one * t, Ease.OutBack, delay: 0.05f);
