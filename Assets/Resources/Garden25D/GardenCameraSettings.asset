@@ -24,7 +24,15 @@ MonoBehaviour:
   lipShadowMetres: 0.05
   moonFrom: {x: -1, y: -1}
   grassLip: {r: 0.21176, g: 0.43529, b: 0.38431, a: 1}
-  lipShadow: {r: 0.27059, g: 0.20392, b: 0.28235, a: 1}
-  earthLit: {r: 0.52157, g: 0.33333, b: 0.29804, a: 1}
-  earthShade: {r: 0.37647, g: 0.25882, b: 0.29020, a: 1}
-  underside: {r: 0.21176, g: 0.17255, b: 0.27843, a: 1}
+  lipShadow: {r: 0.16471, g: 0.14118, b: 0.28627, a: 1}
+  earthLit: {r: 0.37647, g: 0.25882, b: 0.29020, a: 1}
+  earthShade: {r: 0.27059, g: 0.20392, b: 0.28235, a: 1}
+  underside: {r: 0.12941, g: 0.12549, b: 0.27843, a: 1}
+  islandCornerMetres: 4
+  frontWaveMetres: 0.4
+  frontEdgeShare: 0.15
+  lockedReach: 60
+  lockedBandMetres: 1.5
+  lockedBackMetres: 2.5
+  lockedBand: {r: 0.19216, g: 0.37647, b: 0.36078, a: 1}
+  lockedGrass: {r: 0.13725, g: 0.21569, b: 0.30588, a: 1}

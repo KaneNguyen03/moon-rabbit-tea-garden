@@ -49,6 +49,8 @@ namespace VuonTra.Core.Tests
                 _runner.Garden25D.Map.Release();
                 for (int part = 0; part < SlabMesh.PartCount; part++)
                     if ((SlabPart)part != SlabPart.Lawn) Object.DestroyImmediate(_runner.Garden25D.Paint((SlabPart)part));
+                Object.DestroyImmediate(_runner.Garden25D.LockedPaint);
+                Object.DestroyImmediate(_runner.Garden25D.BandPaint);
                 Object.DestroyImmediate(_runner.Garden25D.gameObject);
             }
             Object.DestroyImmediate(_root);
@@ -107,6 +109,18 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void With_The_Switch_On_The_Stations_Stand_On_The_Island_And_A_Tap_On_One_Opens_Its_Card()
+        {
+            Open(true);
+            Assert.IsNotNull(World.Stands);
+            Assert.IsTrue(World.Stands.Stand(0).gameObject.activeSelf, "the teapot stands on the island");
+            World.Stands.Tap(0);
+            Assert.AreEqual(0, _screen.Selected);
+            World.Ground.Tap(new PointerEventData(null) { pointerCurrentRaycast = new RaycastResult { worldPosition = Vector3.zero } });
+            Assert.AreEqual(-1, _screen.Selected, "a tap on open ground puts the card away");
+        }
+
+        [Test]
         public void With_The_Switch_On_The_Edge_Pills_And_The_Way_Home_Of_The_Two_D_View_Stay_Away()
         {
             Open(true);
@@ -143,7 +157,7 @@ namespace VuonTra.Core.Tests
             foreach (RectTransform button in new[] { map.Pill, map.CloseButton })
             {
                 Rect hit = ((RectTransform)button.Find("Hit")).rect;
-                Assert.GreaterOrEqual(Mathf.Min(hit.width, hit.height), 132f, button.name + " can be hit with a thumb: 44 pt on a 1080-wide canvas");
+                Assert.GreaterOrEqual(Mathf.Min(hit.width, hit.height), 144f, button.name + " can be hit with a thumb: 44 pt on a 1080-wide canvas, with the margin #162 gives it");
                 Assert.IsTrue(button.Find("Hit").GetComponent<Image>().raycastTarget);
             }
             Assert.AreEqual("Bản đồ", map.Pill.GetComponentInChildren<Text>().text);
@@ -185,8 +199,9 @@ namespace VuonTra.Core.Tests
             Assert.IsNull(World.Map.Shot);
             Assert.Greater(World.PendingMotion, 0, "the garden glides to the spot");
             World.Tick(Motion.Travel + 0.1f);
-            Assert.AreEqual(ground.X, World.Rig.Focus.X, 0.02d);
-            Assert.AreEqual(ground.Z, World.Rig.Focus.Z, 0.02d);
+            GroundPoint spot = GardenFraming.Settle(ground, World.PanZoom.Area(World.Rig.Distance));
+            Assert.AreEqual(spot.X, World.Rig.Focus.X, 0.02d);
+            Assert.AreEqual(spot.Z, World.Rig.Focus.Z, 0.02d, "the spot, held back by the front edge's 15 % margin");
         }
 
         [Test]
@@ -198,8 +213,9 @@ namespace VuonTra.Core.Tests
             map.Show();
             map.TapAt(0.5d, 0.5d);
             Assert.AreEqual(0, World.PendingMotion);
-            Assert.AreEqual(World.Island.Centre.X, World.Rig.Focus.X, 1e-6);
-            Assert.AreEqual(World.Island.Centre.Z, World.Rig.Focus.Z, 1e-6);
+            GroundPoint spot = GardenFraming.Settle(World.Island.Centre, World.PanZoom.Area(World.Rig.Distance));
+            Assert.AreEqual(spot.X, World.Rig.Focus.X, 1e-6);
+            Assert.AreEqual(spot.Z, World.Rig.Focus.Z, 1e-6);
         }
 
         [Test]

@@ -23,7 +23,7 @@ MonoBehaviour:
   NeedGardenLevel: 0
   Boosts: []
   BoostScale: 1
-  Prop: {fileID: 21300000, guid: a16eb946362e14985a9a83e4bdcacda6, type: 3}
+  Prop: {fileID: 21300000, guid: 1541354097934c828b4d4658ed25ebe8, type: 3}
   Product: {fileID: 21300000, guid: 36310f978aed94f588ebe03f62c65844, type: 3}
   Rabbit: {fileID: 21300000, guid: 1005cf0b36321400584ee81ad70ffc86, type: 3}
   WorkFrames: []

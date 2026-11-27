@@ -13,6 +13,8 @@ namespace VuonTra.Core
         public double GrassMetres = 2d;
         public double MoonX = -1d;
         public double MoonZ = -1d;
+        public double Radius;
+        public double Wave;
     }
 
     public sealed class SlabMesh
@@ -41,8 +43,46 @@ namespace VuonTra.Core
 
     public static class IslandShape
     {
+        public const int ArcSteps = 6, WaveSteps = 12;
+
+        public static GroundRect Shore(GroundRect island, double radius) =>
+            radius <= 0d ? island : GardenFraming.Pad(island, radius * (1d - Math.Sqrt(0.5d)));
+
+        public static List<GroundPoint> Outline(GroundRect island, double radius, double wave)
+        {
+            double r = Math.Max(0d, Math.Min(radius, Math.Min(island.Width, island.Depth) / 2d));
+            var ring = new List<GroundPoint>();
+            void Arc(double cx, double cz, double fromDegrees)
+            {
+                if (r <= 0d)
+                {
+                    ring.Add(new GroundPoint(cx, cz));
+                    return;
+                }
+                for (int k = 0; k <= ArcSteps; k++)
+                {
+                    double a = (fromDegrees + 90d * k / ArcSteps) * Math.PI / 180d;
+                    ring.Add(new GroundPoint(cx + r * Math.Cos(a), cz + r * Math.Sin(a)));
+                }
+            }
+            Arc(island.MinX + r, island.MinZ + r, 180d);
+            if (wave != 0d)
+                for (int k = 1; k < WaveSteps; k++)
+                {
+                    double t = (double)k / WaveSteps;
+                    double x = island.MinX + r + (island.Width - 2d * r) * t;
+                    ring.Add(new GroundPoint(x, island.MinZ + wave * Math.Sin(2d * Math.PI * t)));
+                }
+            Arc(island.MaxX - r, island.MinZ + r, 270d);
+            Arc(island.MaxX - r, island.MaxZ - r, 0d);
+            Arc(island.MinX + r, island.MaxZ - r, 90d);
+            return ring;
+        }
+
         public static SlabMesh Slab(GroundRect island, SlabSpec spec)
         {
+            island = Shore(island, spec.Radius);
+            List<GroundPoint> ring = Outline(island, spec.Radius, spec.Wave);
             var positions = new List<double>();
             var uvs = new List<double>();
             var parts = new List<int>[SlabMesh.PartCount];
@@ -51,51 +91,58 @@ namespace VuonTra.Core
             double lipFoot = Math.Max(foot, -spec.Lip);
             double gapFoot = Math.Max(foot, -spec.Lip - spec.Gap);
 
-            void Corner(double x, double y, double z, double u, double w)
+            int Corner(double x, double y, double z, double u, double w)
             {
                 positions.Add(x); positions.Add(y); positions.Add(z);
                 uvs.Add(u / spec.GrassMetres); uvs.Add(w / spec.GrassMetres);
+                return positions.Count / 3 - 1;
             }
 
-            void Quad(SlabPart part)
+            void Triangle(SlabPart part, int a, int b, int c)
             {
-                int first = positions.Count / 3 - 4;
                 List<int> into = parts[(int)part];
-                into.Add(first); into.Add(first + 1); into.Add(first + 2);
-                into.Add(first); into.Add(first + 2); into.Add(first + 3);
+                into.Add(a); into.Add(b); into.Add(c);
             }
 
-            void Band(double leftX, double leftZ, double rightX, double rightZ, double along, double top, double bottom, SlabPart part)
+            void Band(GroundPoint left, GroundPoint right, double fromU, double toU, double top, double bottom, SlabPart part)
             {
-                Corner(leftX, bottom, leftZ, 0d, bottom);
-                Corner(leftX, top, leftZ, 0d, top);
-                Corner(rightX, top, rightZ, along, top);
-                Corner(rightX, bottom, rightZ, along, bottom);
-                Quad(part);
+                int a = Corner(left.X, bottom, left.Z, fromU, bottom);
+                int b = Corner(left.X, top, left.Z, fromU, top);
+                int c = Corner(right.X, top, right.Z, toU, top);
+                int d = Corner(right.X, bottom, right.Z, toU, bottom);
+                Triangle(part, a, b, c);
+                Triangle(part, a, c, d);
             }
 
-            void Side(double leftX, double leftZ, double rightX, double rightZ, double along, double outX, double outZ)
+            void Cap(double y, SlabPart part, bool up)
             {
-                bool lit = outX * spec.MoonX + outZ * spec.MoonZ >= 0d;
-                Band(leftX, leftZ, rightX, rightZ, along, 0d, lipFoot, SlabPart.Lip);
-                Band(leftX, leftZ, rightX, rightZ, along, lipFoot, gapFoot, SlabPart.Gap);
-                Band(leftX, leftZ, rightX, rightZ, along, gapFoot, foot, lit ? SlabPart.Earth : SlabPart.EarthShade);
+                bool star = spec.Wave != 0d;
+                int hub = star ? Corner(island.Centre.X, y, island.Centre.Z, island.Centre.X, island.Centre.Z) : -1;
+                int first = positions.Count / 3;
+                foreach (GroundPoint p in ring) Corner(p.X, y, p.Z, p.X, p.Z);
+                int n = ring.Count;
+                for (int i = star ? 0 : 1; i < (star ? n : n - 1); i++)
+                {
+                    int a = star ? hub : first, b = first + i, c = first + (i + 1) % n;
+                    if (up) Triangle(part, a, c, b);
+                    else Triangle(part, a, b, c);
+                }
             }
 
-            Corner(island.MinX, 0d, island.MinZ, island.MinX, island.MinZ);
-            Corner(island.MinX, 0d, island.MaxZ, island.MinX, island.MaxZ);
-            Corner(island.MaxX, 0d, island.MaxZ, island.MaxX, island.MaxZ);
-            Corner(island.MaxX, 0d, island.MinZ, island.MaxX, island.MinZ);
-            Quad(SlabPart.Lawn);
-            Side(island.MinX, island.MinZ, island.MaxX, island.MinZ, island.Width, 0d, -1d);
-            Side(island.MaxX, island.MaxZ, island.MinX, island.MaxZ, island.Width, 0d, 1d);
-            Side(island.MinX, island.MaxZ, island.MinX, island.MinZ, island.Depth, -1d, 0d);
-            Side(island.MaxX, island.MinZ, island.MaxX, island.MaxZ, island.Depth, 1d, 0d);
-            Corner(island.MinX, foot, island.MinZ, island.MinX, island.MinZ);
-            Corner(island.MaxX, foot, island.MinZ, island.MaxX, island.MinZ);
-            Corner(island.MaxX, foot, island.MaxZ, island.MaxX, island.MaxZ);
-            Corner(island.MinX, foot, island.MaxZ, island.MinX, island.MaxZ);
-            Quad(SlabPart.Underside);
+            Cap(0d, SlabPart.Lawn, true);
+            double around = 0d;
+            for (int i = 0; i < ring.Count; i++)
+            {
+                GroundPoint left = ring[i], right = ring[(i + 1) % ring.Count];
+                double dx = right.X - left.X, dz = right.Z - left.Z, along = Math.Sqrt(dx * dx + dz * dz);
+                if (along <= 0d) continue;
+                bool lit = dz * spec.MoonX - dx * spec.MoonZ >= 0d;
+                Band(left, right, around, around + along, 0d, lipFoot, SlabPart.Lip);
+                Band(left, right, around, around + along, lipFoot, gapFoot, SlabPart.Gap);
+                Band(left, right, around, around + along, gapFoot, foot, lit ? SlabPart.Earth : SlabPart.EarthShade);
+                around += along;
+            }
+            Cap(foot, SlabPart.Underside, false);
 
             var built = new int[parts.Length][];
             for (int p = 0; p < parts.Length; p++) built[p] = parts[p].ToArray();

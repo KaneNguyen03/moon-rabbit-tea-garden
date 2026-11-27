@@ -2,7 +2,7 @@
 
 > **GitHub**: KaneNguyen03/moon-rabbit-tea-garden#146
 > **Epic**: Vườn 2.5D
-> **Status**: Ready
+> **Status**: In Progress
 > **Layer**: Presentation
 > **Type**: Visual/Feel
 > **Estimate**: L (6–8 ngày)
@@ -60,12 +60,19 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 
 ## Files
 
-*Dự kiến; `/dev-story` thay bằng danh sách thật.*
+*Bản nháp lát 1, chưa commit:*
 
-- Assets/VuonTra/Game/Garden25D/ (prefab billboard, đặt theo GardenGrid)
-- Assets/VuonTra/Game/UI/GardenScreen.WorldLabels.cs
-- Assets/VuonTra/Game/Rabbit25D/RabbitActor.cs
-- Assets/Tests/EditMode/ (test bảng tỉ lệ và chân chạm đất)
+- `Assets/VuonTra/Core/GardenStands.cs`: bảng tỉ lệ, trạm hiện/ẩn, ô đặt, thỏ làm việc.
+- `Assets/VuonTra/Game/Garden25D/GardenStand.cs`, `GardenStandRow.cs`, `GardenStandSettings.cs`, `Garden25DWorld.cs`: dựng hình, collider, sự kiện chạm/kéo; cấu hình `Assets/Resources/Garden25D/GardenStands.asset`.
+- `Assets/VuonTra/Game/UI/GardenScreen.cs`: nối dựng trạm và chạm đất/trạm, dùng chung luật hiện trạm.
+- `Assets/VuonTra/Game/Rabbit25D/RabbitActor.cs`, `Assets/VuonTra/Art/Rabbit25D/Cream/RabbitCream.prefab`, `Assets/VuonTra/Editor/Rabbit25D/RabbitRigBuilder.cs`: tham chiếu bóng, bounds và trạng thái work.
+- `Assets/VuonTra/Art/Final/`: bộ PNG từ `docs/anh/po-146/`, giữ bản gốc trong docs; bản trong Final đã thử khử thêm viền xám xanh.
+- `Assets/VuonTra/Content/Stations/gio-la.asset`, `tra-sua.asset`: seeder nối hình Final.
+- `Assets/Tests/EditMode/GardenStandsTests.cs`, `Garden25DStandTests.cs`, `Garden25DScreenTests.cs`.
+- `Assets/VuonTra/Editor/PreviewShot.Garden25D.cs`, `PreviewShot.Stands25D.cs`: ảnh trước/sau.
+- `docs/architecture/adr-0007-billboard-dung-dung-vuon-2-5d.md`: đề xuất chưa duyệt, không thay ADR Accepted.
+
+*Còn chưa làm:* World Space Canvas trong `GardenScreen.WorldLabels.cs`, prefab cho từng trạm, đồ/cây/đèn, trạng thái trạm và particles.
 
 ---
 
@@ -90,7 +97,7 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 **Required evidence**:
 - Visual/Feel: ảnh trước/sau ở `docs/anh/po-146/` (thư mục bằng chứng của dự án) + `visual-critic-gate` APPROVED ghi trong comment issue
 
-**Status**: [ ] Not yet created
+**Status**: [ ] Chưa đạt gate. Có ảnh `146-truoc.png`, `146-sau.png`, `146-truoc-gan.png`, `146-sau-gan.png`, tấm `146-truoc-sau.png`, hai crop `146-sau-200.png`/`146-sau-gan-200.png`, và `146-sau-xam-25.png`. Visual review lần 3: REJECTED (còn lỗi phía art và một câu hỏi import); xem tiến độ bên dưới. `VERDICT.md` APPROVED trong thư mục chỉ chứng nhận bộ PNG đầu vào của design, không chứng nhận cảnh dựng lần này.
 
 ---
 
@@ -98,3 +105,104 @@ Một story = một issue: thảo luận, ảnh và nghiệm thu ở issue; acce
 
 - Depends on: production/epics/vuon-2-5d/story-145-dat-va-camera.md
 - Unlocks: story-147
+
+## Tiến độ 26/11 chiều — bản nháp lát 1, chưa nghiệm thu
+
+**Trạng thái: In Progress. Không commit/push/GitHub edit.** `Features.Garden25DByDefault = false` giữ nguyên. Worktree `VuonTraNam-146`, nhánh `agent-146`; đã fetch và fast-forward `origin/main` từ `2e5276b` lên `f429226` trước lượt full verify, rồi lên `4460292` (chỉ `production/sprint-status.yaml`, lấy bản của main) trong lúc verify ở bước test.
+
+**Workflow:** đã gọi `story-readiness` và helper lint; ADR-0005/0006 Accepted, story-145 tồn tại (In Review), thiếu TR registry/control manifest như đã ghi trong story. Gap còn: GDD chỉ dẫn tên tài liệu chưa dẫn luật cụ thể; engine refresh chưa thực hiện. Đề xuất ADR-0007 còn Proposed nên không được xem là quyết định đã duyệt. `/dev-story` bị tool từ chối do `disable-model-invocation`: cần người dùng chạy slash command; không coi quy trình đó đã hoàn tất. Tests Core được viết sau code trong lượt này, không có bằng chứng TDD đỏ trước triển khai.
+
+**Đã có trong bản nháp:**
+- Toàn bộ station data có stand runtime đặt trên `GardenGrid`, pivot chân, cao theo bảng tỉ lệ; quầy trà sữa thuộc nhóm quầy, cao hai lần thỏ. Chưa có prefab riêng từng trạm nên AC-1 chưa đạt toàn bộ.
+- `PhysicsRaycaster` trúng `BoxCollider` trạm; `GardenStand` chuyển con trỏ cho `GardenPanZoom`, một nơi phân biệt kéo/chạm; chạm mở card trạm, chạm đất đóng card. Test kiểm trạm/đất, kéo bắt đầu trên trạm, không cấp phát khi refresh không đổi.
+- (Lát 1, đã thay ở lát 2) Lát 1 dựng Cream rig cho mọi thỏ ở ba trạm mẫu; design không duyệt việc thay giống, nên lát 2 giữ hình đúng giống và chỉ dùng rig cho giống `riggedKind` (đang để trống, xem lát 2). Chưa chứng minh vòng chạy bằng GIF, chưa nối SpriteResolver trạng thái đạo cụ hoặc Shuriken.
+- Bóng elip riêng nằm ở y = 0,01, màu Night. Bóng cũ trong rig tắt để tránh thứ tự vẽ nhóm của rig phủ bóng lên đạo cụ. Chưa có Lit alpha clip nhận sáng/đổ bóng thật: ADR-0007 chỉ là đề xuất cho cách tạm, cần PO/design duyệt hoặc sửa theo yêu cầu gốc.
+- Bộ art đã chép vào Final, `prop_am-tra.png` thay bản có hơi nước vẽ sẵn; seeder cập nhật trà sữa và hái chè. Các texture hạt đã import nhưng chưa nối particle system.
+
+**Test:**
+- Core `GardenStandsTests`: 8/8 pass; suite Core đầy đủ chạy độc lập sau thay đổi cuối: 1003/1003 pass (warning CS0162 cũ ở `FishingTests.cs:112`).
+- Unity targeted `Garden25DStandTests`: 14/14 pass ở lần cuối, gồm regression ẩn/hiện trạm phải đặt lại Work và test bóng tiếp xúc nằm giữa dưới chân (trạm và thỏ, lệch ≤ 0,05 m).
+- Fast verify cũ: rules/seed/compile xanh, 1867/1867 tests (Slow skipped), nhưng RESULT RED ở bước save. Kết quả gate này **invalidated bởi sự cố gate**, không dùng để nghiệm thu save. `pgrep -fl VuonTraTho.app` lúc kiểm không thấy game; log gate cũ ghi PRIO 4 khôi phục save lúc 14:00:03, PRIO 5 lúc 14:03:00. Coordinator thông báo gate đã sửa để không bao giờ restore/write `save.json`; run mới phải báo riêng. Không quy lỗi cho game đang mở, không đụng save thật.
+- Full verify (gate mới, không còn ghi save) trên `f429226`→`4460292`, trước khi chỉnh bóng: **RESULT GREEN** — rules ok, seed ok, preview ok (485 khung, khung vi đều từ bảng vi), compile ok, tests 1899/1899, save ok (`save.json` không đổi). Sau đó merge `001f6db` (chỉ file story-145) và chỉnh bóng.
+- Full verify lần hai trên `001f6db` + bóng giữa chân: **RESULT GREEN** — rules ok, seed ok, preview ok (485 khung), compile ok, tests 1900/1900, save ok (`save.json` không đổi).
+- `python3 -I tools/conventions.py`: ok, 1206 vi phạm cũ, không tăng baseline.
+
+**Code review:** CHANGES REQUIRED ở mức story. Engine reviewer tìm thấy Animator mất Work khi stand tắt/bật và bóng rig đồng phẳng với đất; đã sửa reset trạng thái khi ẩn/hiện và thay bóng rig bằng bóng riêng phía dưới nhóm. Còn thiếu bằng chứng chạy clip thật; shader/prefab còn lệch yêu cầu gốc, visual gate chưa đạt. Collider hiện đúng cho camera yaw = 0; không hứa hỗ trợ camera xoay. Engine reviewer đã đọc lại delta bóng/reset cache cuối: không thấy blocker code mới, confidence medium-high; không chạy Unity độc lập, không xác nhận runtime Animator/playback và không duyệt story.
+
+**Visual gate lần 3 (sau khi sửa phía code):** REJECTED. Đã sửa: bóng tiếp xúc nằm giữa dưới chân (`shadowFall` 0,04/−0,02, trước là 0,08/−0,14 làm bóng rời chân 14 px), màu bóng Night alpha 0,7; viền xám xanh ngoài mái quầy đã khử trong bản `Art/Final` (bản gốc ở `docs/anh/po-146/` giữ nguyên). Lần 3 chấm pass mục 2 (đứng chân, thứ tự vẽ), 6 (tỉ lệ, bóng), 7 (UI); fail còn lại: [art] đường nối cổ của rig Cream và nét viền thỏ cụp dày hơn; [art] mái quầy còn lốm đốm ngoài nét và mảng xanh trong khe tam giác dưới mái phải (nằm sẵn trong `prop_tra-sua.png`); [art cũ] nồi hồng có bọt vẽ sẵn; [render, cần quyết] ấm và bếp trông vỡ hạt vì texture 452 px thu còn ~140 px không có mipmap — `FinalArt.ImportFolder` ép tắt mipmap cho mọi hình Final, bật cho `prop_*` sẽ đổi cả bản 2D đang phát hành nên chưa làm. Ảnh xám: thỏ là vùng sáng nhất (cả ba lần).
+
+**Visual gate lần 2:** REJECTED. Ảnh xám: thỏ là vùng sáng nhất trong thế giới. Các điểm reviewer yêu cầu xử lý: đường nối đầu/thân rig, khoảng hở nhìn thấy giữa chân và bóng, viền xanh/xám còn quanh mái quầy, độ nét/viền không đồng nhất với hình 2D placeholder; nồi hồng cũ vẫn có bọt vẽ vào sprite. Đây là finding thị giác, không tự nhận tất cả là lỗi cấu trúc rig; cần design xem ảnh thực. Không đổi VERDICT APPROVED của bộ PNG nguồn thành duyệt cảnh.
+
+**Lát 2 (26/11 tối, theo design và PO; chưa chấm gate):**
+- ADR-0007 ghi design duyệt ("ADR-0007: DUYỆT phía design, đúng art bible §5 §8", 26/11), đính chính: duyệt chỉ `SpriteRenderer`, pivot chân, hướng cố định, `SortingGroup`, collider chuyển sự kiện; **không** duyệt thay giống bằng Cream. Chủ project chưa trả lời. Duyệt kiến trúc tách riêng visual gate; commit chỉ khi visual gate APPROVED và full verify GREEN trên cây cuối.
+- Giữ đúng giống: mọi thỏ hiện hình giống của mình; ánh xạ giống → rig là dữ liệu (`GardenStandSettings.rigs`, một dòng mỗi giống); rig chỉ chạy cho giống có dòng. **Khoảng trống:** chưa có ánh xạ chính thức rig Cream → `RabbitKind.Id` (rig tai dựng, `tho-cup-kem` tai cụp, `tho-trang` không có căn cứ), nên bảng ghi Cream → `tho-bong` (Thỏ Bông): mặc định của PO (luật 22/11) cộng xác nhận hình của design 26/11 (cùng tai dựng, má hồng, mắt chấm, lông kem; lông rig ấm hơn #FBE7CB/#FEF4DA, thân tròn hơn, chấp nhận được ở cỡ billboard; design đang chỉnh màu lông ở `sua-146-asset`), **chờ chủ project trả lời**. Không bao giờ `tho-trang`/`tho-cup-kem`. Các giống khác giữ hình, không có vòng 4 nhịp (sau này lớp lông theo giống qua `SpriteLibrary`; giống tai cụp cần rig thứ hai, ngoài #146). Test dùng bản sao settings: giống không có dòng giữ hình, giống có dòng chạy rig, đổi qua lại không sinh rig thứ hai; test bảng giao hàng kiểm `tho-bong` có rig, giống khác không.
+- Bóng tạm đổi sang `shadow_elip.png` (ASSET-012 #147, Ink, alpha tâm 0,3): rộng 0,9 × đáy hình, sâu 0,55 × rộng trên mặt đất (≈ 0,35 trên màn ở góc 40°), lệch sau-phải 0,04/0,03 m, tâm ở chân thật.
+- Đế phẳng dưới mỗi trạm (pad đất / sàn gỗ / vòng đá / hoa của bản 2D, màu `FloorTint`), thứ tự −20 dưới bóng −10; đế rộng 1,5 × đáy hình (tối thiểu 1,4 m).
+- Luật import riêng cho 2.5D (`Editor/BillboardArt.cs`, gọi từ `FinalArt.Import`): `Assets/VuonTra/Art/Garden25D/Stand` (pivot ở hàng thấp nhất có alpha ≥ 0,5) và `/Flat` (pivot giữa), mipmap bật, Trilinear, không nén; `Art/Final` của bản 2D giữ nguyên. Hình 2.5D là bản sao: ba trạm mẫu, đế, bóng, đồ trang trí, cột đèn `decor_lantern` của #147, đá lối.
+- Đồ trang trí quanh mỗi trạm đã mở (bồn hoa, nấm, bụi, đá; vai `Dressing` 0,3–0,7 thỏ, lấy từ cỡ bản 2D: đá 0,3, nấm 0,4, bồn hoa 0,63), lật trái/phải theo trạm chẵn/lẻ; không nhận chạm.
+- Lối đá nối các cặp trạm của `GardenStands.Paths` (dời từ `GardenScreen.Paths`, bản 2D đọc lại từ Core), một cột đèn 1,4 thỏ cạnh giữa mỗi lối, phía xa ấm trà. Chưa có mảnh lối #129: dùng đá tròn như bản 2D.
+- Nền cỏ tối quanh đảo (phương án A, coordinator chọn 26/11, design duyệt): mặt phẳng dưới mép đất 0,81 m, rộng ra 60 m quanh đảo, màu phẳng tạm `#31605C` của design, không sương, có collider chuyển kéo/chạm. Khi đảo lớn ra, mesh đảo và nền được đổ lại thay vì `Destroy` (fast verify trước báo lỗi "Destroy may not be called from edit mode" ở `GardenApron.Build`/`GardenGround.Build` qua `Grow`; đã sửa và thêm assert giữ nguyên mesh, collider lớn theo đảo). Lý do chọn A thay C: ở 35 m, FOV 25°, nghiêng 40° khung nhìn phủ ~26 m mặt đất trước-sau, đảo lưu thử sâu ~10–13 m; muốn đảo lấp khung phải kéo camera về ~15 m (thỏ ~250 px) hoặc đổi góc, tức sửa ADR-0006. Đây là chỗ giữ cho phần #145 còn lại: **xong phần đất, chưa có hình** đảo/vùng chưa mở, hàng rào thấp, biển gỗ (chờ design).
+- Ghi chú phạm vi của design: độ đều nét còn lại ở các trạm placeholder vector cũ thuộc #131, không thuộc #146; nhưng hình placeholder cũ **không tự động được miễn** khỏi gate. Không tự sửa verdict của gate.
+- Nút "Bản đồ": câu "97 px ≈ 29 pt" trong verdict là đo trên PNG, **chưa kiểm chứng**, không phải vi phạm đã xác nhận. Cần đo vùng chạm `RectTransform` thật qua `CanvasScaler` và safe area thiết bị so với 44 pt iOS / 48 dp Android. #146 không đổi camera/UI vì một quy đổi chưa kiểm.
+- Asset sửa ở `sua-146-asset` **chưa sẵn**: chờ design bàn giao (cổ Cream phải qua clip chuyển động; viền quầy phải sạch cả khe tam giác dưới mái; nồi hồng do design vẽ lại). Chưa chép gì từ đó.
+
+**Lát 2b (26/11 đêm):**
+- Vòng làm việc 4 nhịp đã quay được ở ba trạm mẫu với Thỏ Bông (rig Cream): `PreviewShot.RenderLoops25D` lấy mẫu clip `Cream_TeaBrewing`, `Cream_TeaPicking`, `Cream_MilkTea` (3,28 s, 40 khung ở 12 fps) trên chính cảnh 2.5D; GIF `docs/anh/po-146/146-am-tra-4-nhip.gif`, `146-gio-la-4-nhip.gif`, `146-tra-sua-4-nhip.gif`, tấm khung nhịp `146-4-nhip.png`. Còn thiếu cho AC-3: trạng thái đồ vật trạm qua `SpriteResolver` (nắp ấm, giỏ vơi/nửa/đầy, luống đã hái), hạt Shuriken, món ở `ProductSpawn`; GIF chưa qua gate.
+- Đồ trang trí, cột đèn và đá lối tránh đế của trạm khác (`keepClear` 1,1 m): ảnh trước đó có cột đèn đứng giữa đế hái chè và bụi cây đè lên đế bên cạnh.
+
+**Lát 2c (26/11 khuya):**
+- Asset của design (`origin/sua-146-asset` c487bc2, VERDICT APPROVED ở `docs/anh/qa/sua-146-asset`) đã lấy vào cây làm việc bằng `git checkout` từng tệp, **không tạo commit merge** (luật: chưa commit trước gate): `CreamFront.psb`, `CreamSide.psb` (bỏ nét mực ở cằm, lông #FEF4DA, giữ hộp lớp), `prop_tra-sua.png` (khe tam giác dưới mái trong suốt, hết viền), `prop_am-tra_nap-mo.png`, `decor_lantern.png`, `vfx_giot-sua/tra`, `vfx_lap-lanh`, nồi hồng không bọt `docs/anh/po-146/prop_noi-mut.png`. Đã chép lại bản 2.5D vào `Art/Garden25D/Stand` (và bản 2D vào `Art/Final` cho quầy, ấm nắp mở, ba hạt). Nồi hồng không bọt chỉ vào `Art/Garden25D/Stand` vì trạm `noi-mut` đứng trong vườn 2.5D; `Art/Placeholder/prop_noi-mut.png` của bản 2D giữ nguyên bọt tới #136. Sao lưu `.meta` của PSB, prefab và controller trước lần Unity đầu để trả lại nếu Unity sinh lại GUID xương.
+- Code review lần 2 (engine reviewer): sửa đế/bóng nằm trong `SortingGroup` của trạm có thể vẽ đè đồ đứng ngay sau nó (đưa ra ngoài nhóm qua `GardenStand.Flat`); test 0 byte có đối chứng dương; rig khớp theo prefab thay vì tên; bỏ closure khi lọc đá; mesh đảo/nền giải phóng khi huỷ; chạm nền tối vẫn gửi `GardenGround.Touched` để thẻ trạm/sheet đóng như chạm cỏ.
+
+**Kiểm tra lát 2c (27/11 rạng sáng):**
+- Fast verify trên cây có asset design: RESULT RED vì (1) `areas`: `Editor/BillboardArt.cs` chưa có hàng trong `tools/test-areas.tsv`, đã thêm vào hàng `garden25d`, `test_test_areas.py` qua; (2) tests: không có `TestResults.xml` vì coordinator dừng Unity pid 57121 lúc 00:08 sau 49 phút log đứng; ba lần chạy (hai full của #150, fast của #146) cùng đứng ngay sau `AnalyticsRunnerTests.Without_A_Provider_Nothing_Goes_Out`, coordinator đang khoanh test treo. Tới khi có tên test, chỉ chạy `tools/test.sh --changed`/bộ lọc hẹp, không fast/full verify.
+- `tools/test.sh --changed` (795 test): 793 qua, 2 hỏng và đã sửa: test 0 byte dùng `GC.GetAllocatedBytesForCurrentThread` không bao giờ đổi trong Mono của Unity (đối chứng dương báo 0 cho `new byte[4096]`), nên test cũ không thể hỏng: đổi sang `Is.Not.AllocatingGCMemory()` kèm đối chứng `Is.AllocatingGCMemory()`; nồi hồng 2.5D (256 px, đáy trống 25 px) có `bounds` kéo xuống dưới chân dù pivot đúng hàng alpha ≥ 0,5: kiểm chân bằng pivot cho hình chân-pivot, chiều cao đo từ chân. Luật import thêm `spriteMeshType = Tight` có test.
+- `RabbitCream.prefab`, `RabbitCream.controller`, `.meta` của hai PSB giữ nguyên byte sau khi Unity nhập PSB mới (so với bản sao lưu).
+
+**Dừng Unity (27/11 00:4x):** máy chạy pin 25–27 %, gate hạ giới hạn về 0; coordinator yêu cầu dừng mọi việc Unity tới khi có điện, không xếp lại, không đổi luật gate. Lần `tools/test.sh Garden25D` đang chờ sẽ tự bỏ với mã 75. Chưa có bằng chứng Unity cho hai sửa test cuối (0 byte, chân nồi hồng) và chưa có ảnh/GIF dựng với asset mới của design. Không Unity: Core 1007/1007, conventions ok (1206 vi phạm cũ), `test_test_areas.py` ok. Bản sao lưu đầy đủ cây làm việc: `origin/backup/agent-146-wip` (b3125a9, coordinator tạo), nhánh `agent-146` không đổi.
+
+**Tiếp theo khi có điện:** `tools/test.sh --changed` (UNITY_GATE_MAX_WAIT=1800); chưa chạy fast/full verify tới khi coordinator nêu tên test treo (nghi `AnalyticsScreenTests` chạy sau `AnalyticsRunnerTests`); dựng lại `PreviewShot.RenderAll146` với asset mới; chấm visual gate khung vườn, khung gần và tấm/GIF 4 nhịp; trả lại tệp Unity tự ghi (`LocalizationSettings.asset`).
+
+**Có điện lại (27/11 trưa):**
+- Sửa lỗi biên dịch: `Is.Not.AllocatingGCMemory()` đụng tên `Is` của NUnit, nay gọi thẳng `ConstraintExtensions.AllocatingGCMemory(Is.Not)`. Fast-forward main `ff118f8` (PR #158 `tools/shot.sh`); `PreviewShot.Garden25D.cs` gộp tay với `Wanted(name)`/`OutFolder(folder)` của main, `test_shot.py` 18/18.
+- `tools/test.sh --changed`: **795/795 qua** (1560 s trong Unity). Trả lại `LocalizationSettings.asset` do seed ghi.
+- Dựng lại `PreviewShot.RenderAll146` với asset mới của design: khung trước/sau, crop 200 %, ảnh xám 25 %, GIF 4 nhịp ba trạm (Thỏ Bông, clip 3,28 s, 40 khung), tấm khung nhịp `146-4-nhip.png`.
+- **Visual gate lần 4: REJECTED.** Đạt: 1 (khớp nối, cả 15 khung nhịp), 2 (đứng chân, thứ tự vẽ, không trôi giữa nhịp), 4 (alpha sạch, mái quầy sạch), 5, 7; ảnh xám: thỏ sáng nhất nhưng sát đèn lồng và sọc mái kem. Hỏng: (3) nền đất khoá `#31605C` không phải Night/hỗn hợp vùng chưa mở của art bible, dải đất `#84544C` dưới đảo thành sọc ngang cả màn, nét viền trạm dày hơn thỏ; (6) bóng thỏ và cột đèn quá nhạt (`shadow_elip` alpha tâm 0,3), đá lối tròn đọc như bóng lạc chỗ. Mục 3 xung đột với quyết định đã duyệt (design chọn `#31605C`; màu đất là của #145) nên không tự đổi, chờ design/PO. Mục 6: bóng là asset ASSET-012 của design; đá lối là đá tròn tạm vì chưa có mảnh lối #129.
+
+**Lát 3 theo câu trả lời vòng 4 của design (27/11 chiều, sau khi chuyển thư mục):**
+- Asset: lấy từng tệp `95b1e4a` (`shadow_elip` Ink alpha tâm 0,6) và `8aba9f1` (viền rig Cream dày, vẽ vào trong, hộp lớp giữ nguyên), không commit merge. Sao lưu `.meta` PSB, prefab, controller, `Assets/Settings` ở `/tmp/claude-501/keep146` trước lần Unity đầu.
+- Bóng: màu bóng của rig `Color.white` (trước là 0,12/0,2/0,16/0,38, alpha thật ~0,11, ngả xanh); bóng cột đèn đặt dưới chân cột: luật import đặt pivot ngang vào giữa các hàng chân (alpha ≥ 0,5, dải 3 % chiều cao), hình chân-pivot đứng theo pivot cả chiều ngang; bóng cột đèn rộng 0,35 m.
+- Nền: dải `#31605C` 1,5 m quanh bờ đảo (bo theo bờ), xa hơn `#23374E` phẳng.
+- Lối: mảnh `loi_thang` #129 (`docs/anh/po-129/loi`) nằm phẳng dọc từng cặp trạm, kéo đều giữa hai chân, nằm dưới đế (thứ tự −30); bỏ hẳn đá tròn. Chưa dùng mảnh cong/ngã ba/đầu vì đầu và chỗ giao nằm dưới đế trạm.
+- Hình đảo: bờ bo góc 4 m, mép trước gợn ±0,4 m (Core `IslandShape.Outline`/`Shore`; bờ nới ra `r(1−1/√2)` để góc bo không cắt ô đất đã mở, có test cho mọi số đoạn); giới hạn kéo `GardenFraming.FocusArea` giữ mép trước cách đáy màn ~15 % (`CameraSpec.FrontEdgeShare`), camera 35 m / 40° / FOV 25° giữ nguyên.
+- Test #145 đổi vì giới hạn kéo thật sự đổi: `Garden25DWorldTests.The_World_Opens_On_The_Teapot_At_The_Default_Distance_With_A_Physics_Raycaster` (mở ở ấm trà hoặc gần nhất mà lề 15 % cho phép), `Garden25DScreenTests` hai test bản đồ (tới chỗ chạm, bị lề 15 % giữ lại). `IslandShapeTests` không đổi (mặc định `SlabSpec` không bo); test bờ mới ở `IslandOutlineTests`.
+
+**Visual gate lần 6 (27/11 chiều): REJECTED.** Đạt 1 (rig liền ở mọi khung của ba vòng), 5, 7, ảnh xám thỏ sáng nhất. Hỏng: (2) giỏ cá lơ lửng trên bóng, quầy xa không chạm cỏ, cối nằm trên bụi cây, nấm trên bóng lệch; (3) dưới vách trước là dải xanh thay vì mặt dưới `#212047`, vành sau đo `#324F55`–`#385A5D` chỉ ~20 px; (4) răng cưa tối ở mái và cột quầy với trilinear, chỉ bilinear sạch (`146-vien-loc.png`); (6) bóng ấm trà là mảng mực đặc như cái lỗ, thỏ trên đế không thấy bóng, quầy và cối không có bóng, bóng giỏ tách rời, nồi hồng ~2,5 thỏ bề ngang. Các màu khác đúng art bible.
+
+**Lát 4 theo art bible c2d394a (§8, 10, 11, 12; design trả lời vòng 6):**
+- Đồ trang trí và cột đèn tránh cả cối, tiệm và bể cá (`KeepClear`/`LampKeepClear`), không chỉ trạm khác; cối hay tiệm đổi ô thì nền lối/đồ trang trí xếp lại. Test `No_Dressing_Piece_Or_Lamp_Post_Stands_On_The_Mortar_The_Shop_Or_The_Tank`.
+- §11: billboard đứng (`Art/Garden25D/Stand`) Bilinear, không mipmap; mảnh phẳng (`Flat`) giữ Trilinear có mipmap. Luật import `BillboardArt.MipmapsOf/FilterOf` và test.
+- §10: tâm ngang của chân là giữa cột đục trái nhất và phải nhất ở dải đáy (không còn trung bình có trọng số); elip neo ở tâm đế: 35 % bề sâu elip ló trước pixel đáy (`shadowInFront`, đổi tên từ `shadowForward`), phần còn lại nằm dưới vật. Bóng trên đế nhân alpha `padShadowAlpha` 0,45 để hai bóng chồng nhau (trạm + thỏ) vẫn không tối hơn đế pha 50 % mực; test lấy mẫu alpha thật của `shadow_elip` trên lưới mỗi đế.
+- §8: vành `#31605C` rộng 1,5 m hai bên và 2,5 m phía sau, không vượt mép trước; trước mép trước là dải mặt dưới `#212047` phủ tới hết vùng (dùng chính vật liệu mặt dưới của đảo), nằm trên vành và đất khoá. Test `The_Teal_Band_Is_Wider_At_The_Back_And_Stops_At_The_Front_Edge_Where_The_Dark_Underside_Runs_To_The_Bottom_Of_The_Screen`.
+- §12: nồi hồng `noi-mut` cao 1,0 thỏ (scale theo chiều cao, bề ngang theo hình); tiệm và cối tint dữ liệu 0,8 (`FixtureStand.Tint`) tới khi #131 thay hình.
+- Merge `origin/main` 4601ccb (DOTween, fast-forward); dòng `Unity.2D.Animation.Runtime` của Game asmdef giữ cạnh tham chiếu DOTween của main.
+
+**Chạy lát 4:** seed + `tools/test.sh --changed` 806/808. Hai lỗi đều của lát này: một test cột đèn còn kiểm cách neo bóng cũ (đã sửa), và test mới "đế không tối hơn đế pha 50 % mực" bắt được nguyên nhân mảng mực đặc ở vòng 6: bóng đầy của vật không có đế (cối, tiệm) rơi lên đế trạm và chồng lên bóng của trạm. Sửa: vật không có đế (cối, tiệm, bể cá, đồ trang trí, cột đèn) vẽ bóng ở thứ tự −25, dưới đế (−20); trên đế chỉ còn bóng của chính trạm và thỏ của nó (alpha × 0,45). Chạy lại `Garden25D|GardenCameraRigTests|MapViewScreenTests`: 104/105, lỗi còn lại là test bản đồ tiếng Anh cần seed (đã qua ở lần có seed). `PreviewShot.RenderAll146` dựng lại bằng chứng.
+
+**Visual gate lần 7 (27/11 tối, chấm theo art bible c2d394a): REJECTED.** Biên bản: `docs/anh/qa/146-vong7/VERDICT.md`. Đạt 2, 5, 6 (hết mảng mực ở ấm trà, nồi hồng 1,0 thỏ, bóng có ở thỏ, quầy, giỏ, thân cây), ảnh xám: thỏ sáng nhất. Hỏng: (1) tay rig đưa trước thân là vòng nhạt, đường nối vai ở nhịp 3 trà sữa; vòng 6 mục 1 đạt với đúng các tệp rig này, nên đây là critic chấm khác đi, không phải hồi quy; (3a) cỏ đo `#40785C` thay vì `#3D8369`; (3b) dải xanh dưới vách trước; (3c) nét nồi hồng ~5 px, cây kiểu vector; (4) viền lốm đốm ở quầy trà sữa khi zoom gần; (7) nút Bản đồ dưới 44 pt. Ngoài mục: nấm sau quầy bị quầy cắt.
+- Code sửa ngay: (3b) dải xanh là vành lộ ra ở chỗ mép trước gợn vào trong; dải mặt dưới nay luồn vào dưới đảo 0,45 m (`GardenApron.TuckUnder` + biên độ gợn), test kiểm mọi điểm mép trước; nấm: đồ trang trí đứng sau trạm được đẩy ra ngang tới khi không chạm hình trạm (`GardenStandRow.Aside`), chỉ đẩy ra ngoài, test kiểm.
+- Chuyển design/PO, không đổi trong #146: (1), (3a) (cỏ là ô #129 trên vật liệu Unlit, màu trên màn là màu ô, không có đèn để chỉnh), (3c), (4) (matte tối ở mép ảnh nguồn; import đã Bilinear không mipmap), (7) (nút của #145, PO quyết).
+
+**Lát 5, AC-3 (đơn vị riêng):** `StandLoop` gắn vào trạm có `Loop`: `SpriteLibrary` trên gốc trạm, `SpriteResolver` trên `Art` và trên từng lớp phụ (giỏ của hái chè), `Animator` với tham số `Work`, đĩa món ở `DishSpot` (= `ProductSpawn`, khay trước trạm) bật từ nhịp 4, hạt Shuriken bùng theo nhịp với hình `vfx_*` có sẵn. `StandLoopBuilder` (chạy trong seed sau luật import) dựng thư viện, hai clip `Idle`/`Work` (khoá `m_SpriteHash` và `m_Enabled` của đĩa) và controller, vật liệu hạt; giữ GUID khi dựng lại. Dữ liệu ba trạm mẫu: ấm trà idle/nắp mở/nắp mở/ngấm, hái chè luống búp→đã hái và giỏ vơi→nửa→đầy, trà sữa (một hình cho mọi nhãn, chờ hình hũ trân châu vơi). Hình đĩa và giỏ là bản sao từ `Art/Final` vào `Art/Garden25D/Stand` (tạm). Test `Garden25DLoopTests`.
+
+**Phạm vi mang sang từ #145 (QA D đóng #145 lúc 14:59, main `4460292`; chưa làm, không tính là đạt):**
+- Hình đảo và vùng chưa mở: cỏ tối một bậc (đã có nền phẳng tạm, xem lát 2), hàng rào thấp, biển gỗ. Chờ design giao hình rồi mới dựng hình.
+- Test ảnh chụp qua camera đảo (QA khuyến nghị, advisory).
+
+**Tiếp theo:**
+1. Người dùng chạy `/dev-story` trên story này; chốt/loại ADR-0007 (SpriteRenderer, bóng tạm, Cream thay giống) trước khi tiếp tục hướng này.
+2. Chờ design (asset): đường nối cổ rig Cream (prefab/PSB mới), xuất lại po-146/147/148 có màu mép tràn vào điểm trong suốt (nửa còn lại của viền mái), nồi hồng vẽ lại không bọt (bọt thành Shuriken). Phía code đã làm: bóng ở chân, mipmap/Trilinear cho billboard 2.5D. Chạy lại gate khi asset của design về.
+3. Prefab, Lit alpha clip, đồ/cây/đèn/cối/bể cá và bảng tỉ lệ đầy đủ cho AC-1.
+4. World Space Canvas ba bậc, ≤ 4 nhãn, ≥ 22 đơn vị; kiểm zoom, vi/en và Chữ to.
+5. Nối trạng thái đạo cụ SpriteResolver, Shuriken, ProductSpawn và vòng 4 nhịp; GIF cả ba trạm, chấm lại visual gate.
+6. Full verify xanh, code-review lại trên diff cuối, rồi mới commit per-path. Không commit scene/LocalizationSettings/Addressables phát sinh bởi seed.

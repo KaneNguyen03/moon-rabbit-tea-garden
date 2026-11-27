@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using VuonTra.Core;
 
@@ -14,6 +15,9 @@ namespace VuonTra.Game
         public CameraSpec Spec => _spec ??= settings != null ? settings.Spec() : new CameraSpec();
         public GroundPoint Focus { get; private set; }
         public double Distance { get; private set; }
+        public LabelTier Tier { get; private set; } = LabelTier.Default;
+
+        public event Action<LabelTier> TierChanged;
 
         public void Attach(Camera camera, CameraSpec spec)
         {
@@ -25,6 +29,12 @@ namespace VuonTra.Game
         {
             Focus = focus;
             Distance = distance;
+            LabelTier tier = GardenFraming.TierOf(distance, Spec);
+            if (tier != Tier)
+            {
+                Tier = tier;
+                TierChanged?.Invoke(tier);
+            }
             CameraPose pose = GardenFraming.Pose(focus, distance, Spec);
             view.orthographic = false;
             view.fieldOfView = (float)Spec.FovDegrees;

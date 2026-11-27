@@ -32,6 +32,8 @@ namespace VuonTra.Core
         public MapFrame(GroundPoint centre, double halfHeight) { Centre = centre; HalfHeight = halfHeight; }
     }
 
+    public enum LabelTier { Far, Default, Near }
+
     public sealed class CameraSpec
     {
         public const double ZoomFar = 1920d / 2970d, ZoomDefault = 0.83d, ZoomNear = 1.5d;
@@ -46,6 +48,7 @@ namespace VuonTra.Core
         public double GlideFadeSeconds = 0.35d;
         public double GlideLeftAtFade = 0.05d;
         public double StopSpeed = 0.05d;
+        public double FrontEdgeShare = 0.15d;
 
         public double NearDistance => DefaultDistance * ZoomDefault / ZoomNear;
         public double FarDistance => DefaultDistance * ZoomDefault / ZoomFar;
@@ -99,6 +102,12 @@ namespace VuonTra.Core
         public static double ZoomOf(double distance, CameraSpec spec) => spec.DefaultDistance * CameraSpec.ZoomDefault / distance;
         public static bool ShowsDetail(double distance, CameraSpec spec) => ZoomOf(distance, spec) > CameraSpec.DetailZoom;
 
+        public static LabelTier TierOf(double distance, CameraSpec spec)
+        {
+            if (ShowsDetail(distance, spec)) return LabelTier.Near;
+            return ZoomOf(distance, spec) < (CameraSpec.ZoomFar + CameraSpec.ZoomDefault) / 2d ? LabelTier.Far : LabelTier.Default;
+        }
+
         public static double Pinch(double distance, double startSpan, double span, CameraSpec spec)
         {
             if (startSpan <= 0d || span <= 0d) return distance;
@@ -113,6 +122,19 @@ namespace VuonTra.Core
 
         public static GroundPoint Drag(GroundPoint wanted, GroundRect island, CameraSpec spec) =>
             new GroundPoint(Give(wanted.X, island.MinX, island.MaxX, spec.EdgeGive), Give(wanted.Z, island.MinZ, island.MaxZ, spec.EdgeGive));
+
+        public static double FrontReach(double distance, CameraSpec spec)
+        {
+            double tilt = spec.TiltDegrees * Degrees;
+            double below = Math.Atan((1d - 2d * spec.FrontEdgeShare) * Math.Tan(spec.FovDegrees * Degrees / 2d));
+            return distance * Math.Cos(tilt) - distance * Math.Sin(tilt) / Math.Tan(tilt + below);
+        }
+
+        public static GroundRect FocusArea(GroundRect island, double front, double distance, CameraSpec spec)
+        {
+            double minZ = Math.Min(island.MaxZ, front + FrontReach(distance, spec));
+            return new GroundRect(island.MinX, island.MaxX, minZ, island.MaxZ);
+        }
 
         public static GroundPoint Settle(GroundPoint held, GroundRect island) =>
             new GroundPoint(Math.Max(island.MinX, Math.Min(island.MaxX, held.X)), Math.Max(island.MinZ, Math.Min(island.MaxZ, held.Z)));

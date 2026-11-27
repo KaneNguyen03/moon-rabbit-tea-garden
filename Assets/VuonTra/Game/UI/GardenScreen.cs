@@ -424,11 +424,7 @@ namespace VuonTra.Game.UI
         /// sits between the stations it supplies.
         /// </summary>
         /// <summary>The worn paths: out from the teapot to the first ring, then on to the far corners.</summary>
-        static readonly Vector2Int[] Paths =
-        {
-            new Vector2Int(0, 4), new Vector2Int(0, 6), new Vector2Int(0, 2), new Vector2Int(0, 7),
-            new Vector2Int(4, 9), new Vector2Int(2, 11),
-        };
+        static readonly Vector2Int[] Paths = System.Array.ConvertAll(GardenStands.Paths, pair => new Vector2Int(pair.From, pair.To));
 
         /// <summary>The hex grid the garden stands on (#52): the player's own, or none before the runner is set.</summary>
         GardenGrid Grid => Runner != null && Runner.State != null ? Runner.State.Grid : null;
@@ -4280,9 +4276,12 @@ namespace VuonTra.Game.UI
         {
             // Stations with a plot, plus the one waiting for the next plot.
             // Open stations, plus the grey outline of the next two at most: the garden grows as you do.
-            int open = 0;
-            for (int i = 0; i < defs.Count; i++) if (s.Levels[i] > 0) open = i + 1;
-            int shown = Mathf.Min(defs.Count, Mathf.Min(s.Plots + 1, open + 2));
+            int shown = GardenStands.Shown(defs, s);
+            if (Runner.Garden25D != null && Runner.Garden25D.Stands != null)
+            {
+                Runner.Garden25D.Stands.Refresh(defs, s);
+                Runner.Garden25D.Fixtures.Refresh(s);
+            }
             if (shown != _shownStations)
             {
                 _shownStations = shown;
@@ -4626,6 +4625,26 @@ namespace VuonTra.Game.UI
             var home = (RectTransform)_home.transform;
             IslandMap = new GardenMapView(_canvas, catalog, island, HudCover + SafeInsets().y, TabCover + SafeBottom(), home.anchoredPosition, home.sizeDelta);
             IslandMap.Root.SetSiblingIndex(_hud.GetSiblingIndex());
+            island.Raise(catalog).StationTapped += OnTap;
+            island.Fixtures.Tapped += OnIslandFixture;
+            island.Ground.Touched += OnIslandGroundTap;
+        }
+
+        void OnIslandFixture(GardenFixture fixture)
+        {
+            if (fixture == GardenFixture.Mortar) OpenPounding();
+            else if (fixture == GardenFixture.Aquarium) OpenTank();
+            else
+            {
+                Sfx.Click();
+                OpenShop();
+            }
+        }
+
+                void OnIslandGroundTap()
+        {
+            if (SheetOpen) CloseSheet();
+            else SelectStation(-1);
         }
 
         RectTransform EdgePill(GameCatalog catalog, string name, float y, System.Action onTap, out Text text)

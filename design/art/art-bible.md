@@ -73,6 +73,7 @@ Hex và tên màu ở [`docs/art-bible.md`](../../docs/art-bible.md) §2 và `As
 
 - **Kiến trúc:** quầy gỗ mái vải sọc, đèn lồng giấy, sàn gỗ tròn: một khu vườn trà nhỏ đêm trăng, gợi Trung thu Việt Nam (đèn lồng, thỏ ngọc) mà không dùng chữ.
 - **Kết cấu:** màu nước và bột màu vẽ tay cho mọi hình; mặt đất dùng ô cỏ #129 lặp liền, tần số trung bình, tương phản thấp. Không PBR, không loang tương phản mạnh.
+- **Đảo, nét, bóng 2.5D:** màu đảo, độ dày nét và bóng tiếp xúc ở [`docs/art-bible.md`](../../docs/art-bible.md) mục 8–10 (27/11).
 - **Mật độ đồ:** quanh trạm dày (luống, hàng rào thấp, đồ dùng); giữa bãi thưa; không mảng cỏ trống lớn hơn một ô trạm; vùng chưa mở cỏ tối hơn một bậc, hàng rào thấp, biển gỗ, không sương.
 - **Kể chuyện không chữ:** trạm có dụng cụ đúng nghề (cối, ấm, giỏ lá); đèn lồng sáng là chỗ có người; hơi nước và lá bay là hạt Shuriken, không vẽ chết vào hình.
 

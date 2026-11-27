@@ -17,6 +17,7 @@ namespace VuonTra.Game
         GardenCameraRig _rig;
         Tweens _tweens;
         GroundRect _island;
+        double _front;
         GroundPoint _wanted;
         Vector2 _pressedAt, _lastTapAt;
         double _lastTapTime = double.NegativeInfinity;
@@ -31,9 +32,16 @@ namespace VuonTra.Game
             _rig = rig;
             _tweens = tweens;
             _island = island;
+            _front = island.MinZ;
         }
 
-        public void SetIsland(GroundRect island) => _island = island;
+        public void SetIsland(GroundRect island, double front)
+        {
+            _island = island;
+            _front = front;
+        }
+
+        public GroundRect Area(double distance) => GardenFraming.FocusArea(_island, _front, distance, _rig.Spec);
 
         public void OnPointerDown(PointerEventData eventData)
         {
@@ -73,7 +81,7 @@ namespace VuonTra.Game
                 _speedX = dx / seconds;
                 _speedZ = dz / seconds;
             }
-            _rig.Frame(GardenFraming.Drag(_wanted, _island, _rig.Spec), _rig.Distance);
+            _rig.Frame(GardenFraming.Drag(_wanted, Area(_rig.Distance), _rig.Spec), _rig.Distance);
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -104,7 +112,7 @@ namespace VuonTra.Game
         {
             double next = GardenFraming.Pinch(_rig.Distance, 1d, 1d + eventData.scrollDelta.y * WheelStep, _rig.Spec);
             ZoomTo(next, eventData.position);
-            GroundPoint rest = GardenFraming.Settle(_rig.Focus, _island);
+            GroundPoint rest = GardenFraming.Settle(_rig.Focus, Area(_rig.Distance));
             _rig.Frame(rest, _rig.Distance);
         }
 
@@ -113,7 +121,7 @@ namespace VuonTra.Game
         public void TravelTo(GroundPoint spot)
         {
             _tweens.Clear();
-            GroundPoint from = _rig.Focus, to = GardenFraming.Settle(spot, _island);
+            GroundPoint from = _rig.Focus, to = GardenFraming.Settle(spot, Area(_rig.Distance));
             double distance = _rig.Distance;
             if (Motion.Reduced)
             {
@@ -128,7 +136,7 @@ namespace VuonTra.Game
             _tweens.Clear();
             GroundPoint from = _rig.Focus;
             double fromDistance = _rig.Distance;
-            GroundPoint Along(double distance) => GardenFraming.Settle(GardenFraming.ZoomAbout(from, anchor, fromDistance, distance), _island);
+            GroundPoint Along(double distance) => GardenFraming.Settle(GardenFraming.ZoomAbout(from, anchor, fromDistance, distance), Area(distance));
             if (Motion.Reduced)
             {
                 _rig.Frame(Along(toDistance), toDistance);
@@ -166,7 +174,7 @@ namespace VuonTra.Game
         {
             GroundPoint anchor = GroundUnder(around);
             _wanted = GardenFraming.ZoomAbout(_rig.Focus, anchor, _rig.Distance, distance);
-            _rig.Frame(GardenFraming.Drag(_wanted, _island, _rig.Spec), distance);
+            _rig.Frame(GardenFraming.Drag(_wanted, Area(distance), _rig.Spec), distance);
         }
 
         void LetGo()
@@ -176,7 +184,7 @@ namespace VuonTra.Game
             var thrown = new GroundPoint(
                 from.X + GardenFraming.GlideReach(_speedX, _rig.Spec, still),
                 from.Z + GardenFraming.GlideReach(_speedZ, _rig.Spec, still));
-            GroundPoint to = GardenFraming.Settle(thrown, _island);
+            GroundPoint to = GardenFraming.Settle(thrown, Area(_rig.Distance));
             double seconds = Math.Max(GardenFraming.GlideSeconds(Math.Sqrt(_speedX * _speedX + _speedZ * _speedZ), _rig.Spec, still), Motion.Travel);
             if (still || (to.X == from.X && to.Z == from.Z))
             {

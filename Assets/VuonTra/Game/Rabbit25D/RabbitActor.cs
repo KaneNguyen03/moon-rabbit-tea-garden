@@ -25,9 +25,12 @@ namespace VuonTra.Game
         [SerializeField] Animator animator;
         [SerializeField] GameObject front;
         [SerializeField] GameObject threeQuarter;
+        [SerializeField] GameObject shadow;
         [SerializeField] RabbitView view = RabbitView.Front;
 
         public RabbitView View => view;
+        public Animator Animator => animator;
+        public GameObject Shadow => shadow;
 
         void Awake() => SetView(view);
 
@@ -39,6 +42,27 @@ namespace VuonTra.Game
             threeQuarter.transform.localScale = new Vector3(next == RabbitView.ThreeQuarterRight ? -1f : 1f, 1f, 1f);
         }
 
-        public void SetWork(RabbitWork work) => animator.SetInteger(WorkId, (int)work);
+        public RabbitWork Work { get; private set; }
+
+        public void SetWork(RabbitWork work)
+        {
+            Work = work;
+            animator.SetInteger(WorkId, (int)work);
+        }
+
+        public Bounds Extent()
+        {
+            GameObject shown = view == RabbitView.Front ? front : threeQuarter;
+            Bounds extent = default;
+            bool any = false;
+            foreach (SpriteRenderer part in shown.GetComponentsInChildren<SpriteRenderer>())
+            {
+                if (part.sprite == null) continue;
+                if (any) extent.Encapsulate(part.bounds);
+                else extent = part.bounds;
+                any = true;
+            }
+            return extent;
+        }
     }
 }

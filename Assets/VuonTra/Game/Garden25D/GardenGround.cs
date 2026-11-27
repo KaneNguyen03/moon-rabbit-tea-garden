@@ -13,6 +13,7 @@ namespace VuonTra.Game
         Mesh _mesh;
 
         public event Action<Hex> TileTapped;
+        public event Action Touched;
 
         public void Build(int segments, CameraSpec spec, SlabSpec bands, Material[] paints)
         {
@@ -26,8 +27,8 @@ namespace VuonTra.Game
                 corners[v] = new Vector3((float)slab.Positions[v * 3], (float)slab.Positions[v * 3 + 1], (float)slab.Positions[v * 3 + 2]);
                 uvs[v] = new Vector2((float)slab.Uvs[v * 2], (float)slab.Uvs[v * 2 + 1]);
             }
-            Mesh old = _mesh;
-            _mesh = new Mesh { name = "Island" };
+            if (_mesh == null) _mesh = new Mesh { name = "Island" };
+            _mesh.Clear();
             _mesh.SetVertices(corners);
             _mesh.SetUVs(0, uvs);
             _mesh.subMeshCount = SlabMesh.PartCount;
@@ -36,16 +37,23 @@ namespace VuonTra.Game
             _mesh.RecalculateBounds();
             GetComponent<MeshFilter>().sharedMesh = _mesh;
             GetComponent<MeshRenderer>().sharedMaterials = paints;
-            GetComponent<MeshCollider>().sharedMesh = _mesh;
-            if (old != null) Destroy(old);
+            var collider = GetComponent<MeshCollider>();
+            collider.sharedMesh = null;
+            collider.sharedMesh = _mesh;
         }
 
         public void Tap(PointerEventData eventData)
         {
+            Touched?.Invoke();
             Vector3 at = eventData.pointerCurrentRaycast.worldPosition;
             Hex tile = GardenFraming.TileAt(new GroundPoint(at.x, at.z), _spec);
             int segment = GardenGrid.SegmentOf(tile);
             if (segment >= 0 && segment <= _segments) TileTapped?.Invoke(tile);
+        }
+
+        void OnDestroy()
+        {
+            if (_mesh != null) Destroy(_mesh);
         }
     }
 }

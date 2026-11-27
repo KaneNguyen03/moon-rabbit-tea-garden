@@ -43,6 +43,19 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Station_Labels_Use_The_Three_Tiers_Of_135_Far_Default_And_Near()
+        {
+            Assert.AreEqual(LabelTier.Far, GardenFraming.TierOf(Spec.FarDistance, Spec));
+            Assert.AreEqual(LabelTier.Default, GardenFraming.TierOf(Spec.DefaultDistance, Spec));
+            Assert.AreEqual(LabelTier.Near, GardenFraming.TierOf(Spec.NearDistance, Spec));
+            double midway = (CameraSpec.ZoomFar + CameraSpec.ZoomDefault) / 2d;
+            Assert.AreEqual(LabelTier.Far, GardenFraming.TierOf(GardenFraming.DistanceOf(midway - 0.01d, Spec), Spec));
+            Assert.AreEqual(LabelTier.Default, GardenFraming.TierOf(GardenFraming.DistanceOf(midway + 0.01d, Spec), Spec), "the same far threshold as the 2D garden's ZoomLevel");
+            Assert.AreEqual(LabelTier.Near, GardenFraming.TierOf(GardenFraming.DistanceOf(CameraSpec.DetailZoom + 0.01d, Spec), Spec));
+            Assert.AreEqual(4, GardenStands.LabelsAtDefault, "hud.md §7: at most four words in the world at the default zoom");
+        }
+
+        [Test]
         public void Every_Lawn_Tile_Stands_Inside_The_Island_And_Neighbours_Are_One_Tile_Apart()
         {
             for (int segments = 0; segments <= GardenGrid.MaxSegments; segments++)
