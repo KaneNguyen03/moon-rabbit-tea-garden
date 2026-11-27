@@ -18,7 +18,7 @@ Không phông nào trong bốn họ khai "Reserved Font Name", nên bản đã c
 Bản gốc của Nunito, Baloo 2 và Noto Sans Symbols là phông biến thiên (một file, trục `wght`). Văn bản uGUI của Unity không đọc trục biến thiên, nên `tools/fonts/build-fonts.py` cắt ra bản tĩnh:
 
 - Nunito và Baloo 2: hai độ đậm 400 (Regular) và 700 (Bold), giữ nguyên toàn bộ ký tự và nét chữ.
-- Baloo 2: đổi chiều cao dòng (`hhea` và `OS/2` typo ascender/descender) từ 1,078/−0,524 về 1,011/−0,353 cho bằng Nunito. Bản gốc chừa chỗ cho chữ Devanagari nên dòng cao 1,6 em; với số đó tiêu đề lệch khỏi tâm nút và chữ nhiều dòng giãn quá thẻ. Dấu tiếng Việt cao nhất của Baloo 2 Bold là 1,03 em, vẫn nằm trong dòng mới.
+- Baloo 2: đổi chiều cao dòng (`hhea` và `OS/2` typo ascender/descender) từ 1,078/−0,524 về 1,011/−0,353 cho bằng Nunito. Bản gốc chừa chỗ cho chữ Devanagari nên dòng cao 1,6 em; với số đó tiêu đề lệch khỏi tâm nút và chữ nhiều dòng giãn quá thẻ. Dấu tiếng Việt cao nhất vượt mép trên của dòng mới một chút: Ẳ của Baloo 2 Bold tới 1,030 em và Ắ của Nunito Bold tới 1,040 em, so với 1,011 em; phần vượt (khoảng 1 px ở cỡ chữ 36) vẽ vào khoảng hở phía trên dòng, và test vừa khung đo đúng nét vẽ này.
 - Noto Sans Symbols và Noto Sans Symbols 2: chỉ giữ 11 ký hiệu game dùng, để file nhỏ (2 KB và 8 KB thay cho 373 KB và 1,2 MB); đặt `unitsPerEm` = 1250 để ký hiệu vẽ ở 80 % cỡ gốc (★ rộng 0,77 em thay cho 0,96 em, vừa các viên sao đã chừa 0,95 em mỗi sao), và dùng chung chiều cao dòng với Nunito.
 
 Đây là "Modified Version" theo OFL; bản đã sửa vẫn theo OFL và giữ nguyên dòng bản quyền trong bảng `name` của phông.

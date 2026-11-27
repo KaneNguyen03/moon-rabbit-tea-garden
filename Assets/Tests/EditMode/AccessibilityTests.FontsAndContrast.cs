@@ -100,6 +100,45 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(faint, faint.Count + " labels under AA in " + code + (large ? " (large text)" : "") + ":\n" + string.Join("\n", faint));
         }
 
+        [TestCase("vi")]
+        [TestCase("en")]
+        public void Every_Label_On_The_Station_Card_Reads_At_AA_Contrast_With_And_Without_A_Worker(string code)
+        {
+            L10n.SetLocale(code);
+            screen.RebuildUi();
+            screen.Shell.StartGame();
+            foreach (bool staffed in new[] { false, true })
+            {
+                if (staffed) Assert.IsTrue(Rabbits.Assign(runner.State, Rabbits.Arrive(runner.State, 2, "Lam", 0d).Id, 0));
+                screen.SelectStation(0);
+                screen.Refresh(-1f);
+                Layout();
+                Transform card = root.transform.Find("Canvas/Card");
+                Text line = card.Find("Worker/Sub").GetComponent<Text>();
+                Assert.IsNotEmpty(line.text.Trim(), "the worker line says something");
+                double have = Contrast(line.color, card.Find("Worker").GetComponent<Image>().color);
+                Assert.GreaterOrEqual(have, NormalText, "the worker line on its plate, " + (staffed ? "with a rabbit" : "empty") + ": " + have.ToString("0.00"));
+                List<string> faint = FaintLabels(card);
+                Assert.IsEmpty(faint, faint.Count + " labels under AA on the station card in " + code + ":\n" + string.Join("\n", faint));
+            }
+        }
+
+        [Test]
+        public void The_Padlock_Is_A_Square_Body_Under_A_Narrower_Shackle()
+        {
+            runner.State.Coins = BigNum.Zero;
+            screen.OpenSheet(0);
+            screen.Refresh(-1f);
+            Layout();
+            var padlock = (RectTransform)StationRow(0).Find("Buy/Lock");
+            Image body = padlock.Find("Body").GetComponent<Image>(), shackle = padlock.Find("Shackle").GetComponent<Image>();
+            Assert.IsNull(body.sprite, "square corners, so it cannot read as the lower loop of an 8");
+            Rect bodyBox = RectIn(body.rectTransform, padlock), shackleBox = RectIn(shackle.rectTransform, padlock);
+            Assert.Less(shackleBox.width, bodyBox.width * 0.75f, "the shackle is clearly narrower than the body");
+            Assert.Greater(shackleBox.yMax, bodyBox.yMax + 6f, "the shackle stands above the body");
+            Assert.GreaterOrEqual(Contrast(body.color, padlock.Find("Plate").GetComponent<Image>().color), NormalText);
+        }
+
         [Test]
         public void An_Income_Number_Is_Ink_Beside_A_Carrot()
         {

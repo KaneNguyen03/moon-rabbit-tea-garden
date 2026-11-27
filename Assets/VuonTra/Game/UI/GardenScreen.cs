@@ -1781,7 +1781,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             _cardWorkerName.horizontalOverflow = HorizontalWrapMode.Overflow;
             _cardWorkerSub = UiKit.Rect("Sub", _cardWorker).Stretch(0, 0, 1, 0.5f, 104, 10, 12, 4)
-                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.UpperLeft);
             _cardWorkerSub.resizeTextForBestFit = true;
             _cardWorkerSub.resizeTextMinSize = 13;
             _cardWorkerSub.resizeTextMaxSize = 20;
@@ -1949,7 +1949,6 @@ namespace VuonTra.Game.UI
                         _cardWorkerName.text = L10n.T("card.noworker");
                         _cardWorkerSub.text = L10n.T("card.noworker.sub", L10n.Trade(defs[i].Trade));
                     }
-                    _cardWorkerSub.color = Palette.InkSoft;
                 }
                 else
                 {
@@ -1961,7 +1960,6 @@ namespace VuonTra.Game.UI
                     if (_cardWorkerShown.Changes(_cardWorkerSub, worker.Id, inTrade ? 1L : 0L, Rabbits.KindOf(worker), (long)Rabbits.TradeOf(worker)))
                         _cardWorkerSub.text = L10n.T("card.worker", L10n.Kind(worker), L10n.Trade(Rabbits.TradeOf(worker)))
                             + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "");
-                    _cardWorkerSub.color = inTrade ? Palette.MossInk : Palette.InkSoft;
                 }
             }
 
@@ -2105,7 +2103,7 @@ namespace VuonTra.Game.UI
             _photoNote.resizeTextMaxSize = UiKit.TextSmall;
             // #56: the thanks of the rabbit that asked for this picture, and what it paid.
             _photoAskLine = UiKit.Rect("Ask", card).Stretch(0, 0, 1, 0, 40, 344, 40, -396)
-                .AddText("", UiKit.TextBody, Palette.Mix(Palette.Carrot, Palette.Ink, 0.55f), TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _photoAskLine.resizeTextForBestFit = true;
             _photoAskLine.resizeTextMinSize = 16;
             _photoAskLine.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
