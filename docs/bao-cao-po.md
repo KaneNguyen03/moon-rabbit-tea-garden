@@ -2519,6 +2519,46 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 - Duyệt việc seeder xoá key không còn liệt kê.
 - `GardenScreen.cs`: chờ nhánh `dotween-gardenscreen`.
 
+## #150 — Bản chơi trên web: WebGL trên GitHub Pages, một lệnh để cập nhật (agent-150, B gộp 27/11)
+**Test:** `tools/verify.sh` đầy đủ trên bản gộp main ff118f8 (74f2383): rules, areas, seed ok; preview 485 khung; compile ok; tests 1879/1879; save ok; RESULT GREEN.
+
+**Commit:** `66d6452`, `0e294a0`, `46cfe45` (agent-150); `5b6707a`, `1761647`, `caad482` (B).
+
+**Đã làm:**
+- Build WebGL: Brotli có fallback, template khung 9:16 có thanh tải, mức exception tối thiểu.
+- Save lưu vào IndexedDB.
+- Trên web game chờ bảng chữ tải xong rồi mới khởi động; đổi ngôn ngữ không còn hiện khoá thô.
+- Font DejaVu Sans để hiện đủ dấu tiếng Việt.
+- `tools/build-webgl.sh` xếp hàng qua cổng Unity của repo.
+- `tools/publish-pages.sh` đưa build lên `gh-pages` bằng một commit chồng lên bản cũ, không force push; build không đổi thì không đẩy.
+- Ảnh desktop và mobile ở `docs/anh/po-150/`, visual gate APPROVED (`docs/anh/qa/150/`).
+- Bản web: https://kanenguyen03.github.io/moon-rabbit-tea-garden/
+
+**Cập nhật bản web sau mỗi lần gộp main:** `tools/build-webgl.sh`, rồi `tools/publish-pages.sh`, đợi 1–2 phút.
+
+### Chưa đạt / cần PO quyết
+- NOT TESTED: Safari desktop, Safari iOS, Chrome Android thật; tải lần đầu ≤ 30 giây qua mạng thật (localhost 5,4–7,0 giây, khoảng 42 MB).
+- Cần chủ project duyệt: font DejaVu thêm 757 KB vào mọi bản build; khung 9:16 có viền tối trên điện thoại; save web tách riêng với save Mac và điện thoại.
+- Hai lượt full verify bị dừng nhầm vì tưởng treo; thật ra là mô phỏng kinh tế chạy lâu và im log (#161).
+
+## #150 — QA 27/11 trả lại: README thiếu hai lệnh cập nhật bản web (B sửa)
+**Test:** chỉ sửa tài liệu; `python3 -I tools/conventions.py` ok (theo bảng Checking Your Work: đổi docs chỉ cần Rules).
+
+**Commit:** `a3a815d`.
+
+**Đã làm:** `README.md` thêm mục "Web version": đường dẫn bản web, hai lệnh `tools/build-webgl.sh` và `tools/publish-pages.sh` chạy sau mỗi lần gộp main, và trỏ tới `docs/phat-hanh/BAN-WEB.md`. Không dựng lại, không đăng lại.
+
+## #162 — Nút "Bản đồ" 2.5D: vùng chạm đạt 48 dp ở Android density 3 (agent-162, B gộp 27/11)
+**Test:** test mới `Garden25DMapPillTouchTests` (2 test: vùng chạm ≥144×144 đơn vị canvas cho nút Bản đồ và nút × của bản đồ, có raycastTarget; hình nút giữ 270×92, vùng chạm nới đều trên dưới), đỏ trước khi sửa (132 < 144), xanh sau. `tools/verify.sh` đầy đủ trên main 71e90de: tests 1890/1890, preview 485 khung, save ok, RESULT GREEN. Core 1001/1001; conventions không đổi (1206).
+
+**Commit:** `0bad625`.
+
+**Đã làm:** `WideTouch` trong `GardenMapView.cs` từ 132 lên 144. Vùng chạm nút Bản đồ thành 270×144 (48 dp ở density 3), nút × thành 144×144. Hình và màu nút không đổi.
+
+### Chưa đạt / cần PO quyết
+- Chưa đo trên máy Android thật, chưa chụp ảnh.
+- Assert ≥132 cũ trong `Garden25DScreenTests.cs` để nâng lên 144 sau khi #146 gộp (tệp đang có thay đổi của #146).
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

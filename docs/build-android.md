@@ -29,13 +29,13 @@ Xung đột snapshot giữa hai máy: `OpenWithAutomaticConflictResolution` vớ
 
 ## 3. Việc chủ project phải làm (Play Console)
 
-1. **Google Play Console**: tạo app (package name trong Player Settings, ví dụ `com.vuontratho.moonrabbitteagarden`), bật **Grow users → Play Games Services → Setup and management → Configuration**.
+1. **Google Play Console**: tạo app với package name **`com.vuontratho.game`** (đúng như Player Settings và `BuildScript.BundleId`; tên gói không đổi được sau khi tạo app), bật **Grow users → Play Games Services → Setup and management → Configuration**.
 2. **Credential**: trong Configuration, **Add credential → Android**, chọn hoặc tạo **OAuth client** trong Google Cloud cho đúng package name và **SHA-1** của khóa ký (khóa upload của Keystore manager, và khóa Play App Signing nếu bật). Mỗi khóa một credential.
 3. **Saved Games**: trong Configuration, bật **Saved Games** (mục Properties / Game details) rồi lưu. Không bật thì `OpenWithAutomaticConflictResolution` trả lỗi và game chơi như khách.
 4. **Tester**: thêm tài khoản Google thử nghiệm vào mục Testers của Play Games Services khi app chưa publish.
 5. **Trong Unity** (cần module Android): **Window → Google Play Games → Setup → Android Setup**. Dán nội dung "Android (XML)" từ **Get resources** của Play Console vào ô Resources definition (ít nhất có `app_id`), bấm Setup. Việc này ghi `app id` vào `GooglePlayGamesSettings` (`Assets/GooglePlayGames/Resources/`), sinh hằng số và `AndroidManifest` cho plugin. Commit các file sinh ra.
 6. **Player Settings**: Scripting backend IL2CPP, ARM64, Target API theo yêu cầu Google Play hiện hành. **Assets → External Dependency Manager → Android Resolver → Resolve** để kéo `play-services-games-v2` về (cần mạng).
-7. Build AAB, lên **Internal testing**, cài trên máy thật và kiểm:
+7. Build AAB theo [mục 7](#7-bản-phát-hành-aab-và-khoá-upload-41), lên **Internal testing**, cài trên máy thật và kiểm:
    - mở game: tự đăng nhập, Hồ sơ hiện "Đã liên kết · <tên Play Games>", vườn chưa đặt tên lấy tên Play Games;
    - Hồ sơ → Lưu ngay: trạng thái "Đã lưu lên mây lúc …"; trong app Play Games, mục Saved games của game có một bản với ảnh bìa và dòng "Cấp vườn N · M thỏ";
    - cài lại game hoặc máy thứ hai: mở game thấy tấm chọn bản hoặc tự lấy bản trên mây;
@@ -65,3 +65,67 @@ Code đã có: `Core/Storefront.cs` (ba gói consumable `vuontra.golden.50`, `vu
 - Kênh thông báo `reminders` ("Nhắc nhở" / "Reminders") được tạo lần đầu cần dùng. Android 13 trở lên: quyền `POST_NOTIFICATIONS` do gói thêm vào manifest; game chỉ hỏi khi người chơi bật "Nhắc tôi".
 - Project Settings → Mobile Notifications → Android: để mặc định (không cần *Reschedule on Device Restart*, vì danh sách được đăng ký lại mỗi lần game vào nền; khởi động lại máy thì mất nhắc cho tới lần chơi sau). Có thể đặt icon nhỏ riêng ở đó; không đặt thì dùng icon app.
 - Thử trên máy (sau #41) như mục iOS.
+
+## 7. Bản phát hành: AAB và khoá upload (#41)
+
+Google Play chỉ nhận `.aab` cho app mới. Hai lệnh, cùng cần module Android của Unity:
+
+| Lệnh | Ra gì | Ký bằng | Dùng khi |
+|---|---|---|---|
+| `tools/build.sh android` | `Build/Android/VuonTraTho.aab` | khoá upload, đọc từ biến môi trường | tải lên Play Console |
+| `tools/build.sh android-apk` | `Build/Android/VuonTraTho.apk` | khoá debug của Unity | cài thẳng lên máy thử bằng `adb install` |
+
+Gọi `tools/build.sh` không kèm đích thì lệnh in cách dùng và dừng với mã thoát 64.
+
+Bản `.aab` đọc bốn biến môi trường lúc build:
+
+| Biến | Nội dung |
+|---|---|
+| `VUONTRA_ANDROID_KEYSTORE` | đường dẫn tới tệp keystore, để ngoài repo |
+| `VUONTRA_ANDROID_KEYSTORE_PASSWORD` | mật khẩu của keystore |
+| `VUONTRA_ANDROID_KEY_ALIAS` | tên khoá (alias) trong keystore |
+| `VUONTRA_ANDROID_KEY_PASSWORD` | mật khẩu của khoá đó |
+
+- Thiếu một biến, hoặc đường dẫn không có tệp: lệnh dừng trước khi build với mã thoát 3 và dòng `[VuonTra] Thiếu …` kể tên từng biến còn thiếu. Bản phát hành không bao giờ lùi về khoá debug. Thiếu module Android thì vẫn là mã thoát 2 như trước, và được kiểm trước khoá ký.
+- Thông báo chỉ nêu tên biến, không in đường dẫn, alias hay mật khẩu.
+- Build xong (hoặc hỏng), đường dẫn keystore và alias được xoá khỏi Player Settings, nên `ProjectSettings/ProjectSettings.asset` không đổi; test `The_Project_Settings_Hold_No_Keystore` giữ điều đó.
+- Dự án Gradle mà Unity sinh ra lúc build (dưới `Library/`) có thể chứa mật khẩu keystore và mật khẩu khoá ở dạng chữ thường. `Library/` không được git theo dõi; không bao giờ chia sẻ, sao lưu hay nén gửi thư mục `Library/` từ máy đã ký bản phát hành. Điều này chưa kiểm được cho tới bản build thật đầu tiên.
+- `.gitignore` bỏ qua `*.keystore` và `*.jks`, để một keystore lỡ đặt trong repo không vào commit; vẫn nên để nó ngoài repo.
+- Đặt biến trong phiên shell hoặc trình quản lý bí mật, đừng ghi vào file trong repo.
+
+Tạo keystore upload một lần (chủ project làm, giữ bản sao ở nơi an toàn):
+
+```bash
+keytool -genkeypair -v -keystore <nơi-an-toàn>/vuontratho-upload.keystore -alias upload -keyalg RSA -keysize 2048 -validity 10000
+```
+
+Mã phiên bản Android (versionCode) tăng **bằng tay**: trước mỗi lần tải bản mới lên Play, sửa `BuildScript.BuildNumber` rồi seed lại (`tools/verify.sh`, cần Unity) để số đó vào Player Settings. Không có gì tự tăng hay kiểm số này; quên tăng thì Play từ chối bản tải lên.
+
+Chưa chạy: máy phát triển không có module Android, nên chưa có tệp `.aab` nào được build hay tải thử. Phần đọc biến và thông báo có test chạy không cần Unity (`AndroidSigningTests`).
+
+## 8. Dung lượng bản cài (#41)
+
+Số đo lấy từ báo cáo của một bản Mac build ngày 24/11/2026 (chưa đo lại trên nhánh này, chưa có bản Android nào):
+
+| Phần | Dung lượng |
+|---|---|
+| Cả bản Mac | 170,9 MB |
+| Tài nguyên của game | 97,9 MB |
+| trong đó hình (texture) | 96,7 MB (98,7 %) |
+| Âm thanh | 0 |
+
+- Bản Mac còn mang khoảng 69 MB runtime Mono và framework mà bản Android (IL2CPP, ARM64) không có, nên 170,9 MB không phải cỡ `.aab`.
+- Ảnh tài liệu (`docs/`, `tham-khao/`) nằm ngoài `Assets/` nên không thể vào bản build. Báo cáo build không có tệp nào ngoài `Assets/VuonTra/Art` và các gói Unity. `Assets/Resources` chỉ có `BillingMode.json` và `Garden25D` (36 KB); không có `StreamingAssets` trong project.
+- Không có hình trùng: mỗi loài thỏ vào build một bản (bản có viền ở `Art/Generated` hoặc bản gốc ở `Art/Final`, không cả hai).
+- Gần hết dung lượng là hình nhập **không nén** (RGBA32, 4 byte mỗi điểm ảnh), theo luật của art bible và do `FinalArt.ImportFolder` giữ. 267 tệp PNG nặng 31 MB trên đĩa thành 138 MiB khi bung ra.
+
+Việc cần chủ project quyết, chưa làm vì đổi chất lượng hình nhìn thấy được:
+
+| Việc | Ước tính (tính từ số bit mỗi điểm ảnh, chưa đo) | Rủi ro |
+|---|---|---|
+| Nén ASTC 4×4 riêng cho Android và iOS, giữ bản Mac không nén | hình 96,7 MB còn khoảng 24 MB | dải màu nước có thể gợn nhẹ; phải xem trên máy thật |
+| Nén ASTC 6×6 | còn khoảng 11 MB | dễ thấy vệt ở vùng chuyển màu mềm |
+| Bỏ logo Unity ở màn hình chờ | 2,7 MB | quyết định về hình thức; kiểm điều khoản giấy phép Unity đang dùng |
+| Thu `icon_app.png` dùng làm hình màn hình chờ từ 1024 xuống 512 | khoảng 3 MB | hình chờ kém nét trên máy tablet |
+
+Ghi đè theo nền tảng không đổi bản Mac, nên chỉ đo được sau khi cài module Android hoặc iOS.

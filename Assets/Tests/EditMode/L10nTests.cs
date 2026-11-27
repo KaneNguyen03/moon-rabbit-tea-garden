@@ -34,6 +34,25 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Text_Is_Ready_At_Once_Where_Tables_Load_Synchronously()
+        {
+            Assert.IsFalse(L10n.LoadsAsync);
+            Assert.IsTrue(L10n.Ready);
+            bool ran = false;
+            L10n.WhenReady(() => ran = true);
+            Assert.IsTrue(ran);
+        }
+
+        [Test]
+        public void The_Web_Font_Draws_Vietnamese_And_The_Game_Symbols()
+        {
+            Font font = Resources.Load<Font>(UiKit.BundledFontPath);
+            Assert.IsNotNull(font);
+            foreach (char c in "ạảấầẩẫậắằẳẵặẹẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹđĐơƠưƯ✦☆★♥♪✎✓→▲▶▼◀·…")
+                Assert.IsTrue(font.HasCharacter(c), "missing " + c);
+        }
+
+        [Test]
         public void Fills_In_Arguments()
         {
             L10n.SetLocale("vi");

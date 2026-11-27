@@ -29,6 +29,17 @@ git config core.hooksPath .githooks
 
 This turns on the pre-commit rule check. Gift codes need `Assets/Resources/keys.json`, which is never committed; `tools/make-code.sh` explains how to make one.
 
+## Web version
+
+The game also plays in a browser: https://kanenguyen03.github.io/moon-rabbit-tea-garden/ (WebGL, served from the `gh-pages` branch). After each merge to `main`, update it with two commands, then wait a minute or two:
+
+```sh
+tools/build-webgl.sh
+tools/publish-pages.sh
+```
+
+`tools/build-webgl.sh` builds into `Build/WebGL` through the shared Unity queue; `tools/publish-pages.sh` adds that build as one new commit on `gh-pages`, without force-pushing, and pushes nothing if the build has not changed. Details, the first-time Pages setup and what is still untested are in [docs/phat-hanh/BAN-WEB.md](docs/phat-hanh/BAN-WEB.md).
+
 ## Working here
 
 Rules and the commands to check a change, with their times, are in [CLAUDE.md](CLAUDE.md). Who does what and which file is the source of truth for what is in [docs/studio/HUONG-DAN-STUDIO.md](docs/studio/HUONG-DAN-STUDIO.md). Work is tracked as GitHub issues.

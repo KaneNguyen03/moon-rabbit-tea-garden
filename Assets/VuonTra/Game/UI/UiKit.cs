@@ -14,6 +14,8 @@ namespace VuonTra.Game.UI
 
         static Font _body, _title, _fallback;
 
+        public const string BundledFontPath = "Fonts/DejaVuSans";
+
         public static void UseFonts(Font body, Font title)
         {
             _body = body;
@@ -30,6 +32,7 @@ namespace VuonTra.Game.UI
         {
             get
             {
+                if (_fallback == null) _fallback = Resources.Load<Font>(BundledFontPath);
                 if (_fallback == null) _fallback = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
                 return _fallback;
             }

@@ -1,8 +1,10 @@
+using System.IO;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.iOS.Xcode;
 using UnityEngine;
+using VuonTra.Release;
 
 namespace VuonTra.EditorTools
 {
@@ -10,7 +12,14 @@ namespace VuonTra.EditorTools
     {
         public const string MacPath = "Build/Mac/VuonTraTho.app";
         public const string IOSPath = "Build/iOS";
-        public const string AndroidPath = "Build/Android/VuonTraTho.apk";
+        public const string AndroidBundlePath = "Build/Android/VuonTraTho.aab";
+        public const string AndroidApkPath = "Build/Android/VuonTraTho.apk";
+        public const string WebGLPath = "Build/WebGL";
+        public const string WebGLTemplate = "PROJECT:VuonTra";
+
+        public const int BuildFailedExitCode = 1;
+        public const int MissingModuleExitCode = 2;
+        public const int MissingSigningExitCode = 3;
 
         public const string ProductName = "Moon Rabbit Tea Garden";
         public const string BundleId = "com.vuontratho.game";
@@ -18,22 +27,97 @@ namespace VuonTra.EditorTools
         public const int BuildNumber = 1;
 
         [MenuItem("VuonTra/Build Mac")]
-        public static void BuildMac() => Build(BuildTarget.StandaloneOSX, BuildTargetGroup.Standalone, MacPath);
+        public static void BuildMac() => Finish(Build(BuildTarget.StandaloneOSX, BuildTargetGroup.Standalone, MacPath));
 
         [MenuItem("VuonTra/Build iOS (Xcode project)")]
-        public static void BuildIOS() => Build(BuildTarget.iOS, BuildTargetGroup.iOS, IOSPath);
+        public static void BuildIOS() => Finish(Build(BuildTarget.iOS, BuildTargetGroup.iOS, IOSPath));
 
-        [MenuItem("VuonTra/Build Android (APK)")]
-        public static void BuildAndroid() => Build(BuildTarget.Android, BuildTargetGroup.Android, AndroidPath);
+        [MenuItem("VuonTra/Build Android (AAB, upload key)")]
+        public static void BuildAndroid() => Finish(BuildSignedBundle());
 
-        static void Build(BuildTarget target, BuildTargetGroup group, string path)
+        [MenuItem("VuonTra/Build WebGL")]
+        public static void BuildWebGL()
         {
-            if (!BuildPipeline.IsBuildTargetSupported(group, target))
+            BuildTarget previous = EditorUserBuildSettings.activeBuildTarget;
+            BuildTargetGroup previousGroup = BuildPipeline.GetBuildTargetGroup(previous);
+            ConfigureWebGL();
+            if (previous != BuildTarget.WebGL && !EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.WebGL, BuildTarget.WebGL))
             {
-                Debug.LogError("[VuonTra] Thiếu module " + target + ": cài qua Unity Hub (Installs → Add modules), kèm Xcode cho iOS hoặc Android SDK/NDK/OpenJDK cho Android, rồi chạy lại.");
-                if (Application.isBatchMode) EditorApplication.Exit(2);
+                Debug.LogError("[VuonTra] Build WebGL: không chuyển được build target sang WebGL; kiểm tra module WebGL trong Unity Hub.");
+                Finish(MissingModuleExitCode);
                 return;
             }
+            int exitCode = Build(BuildTarget.WebGL, BuildTargetGroup.WebGL, WebGLPath);
+            if (previous != BuildTarget.WebGL) EditorUserBuildSettings.SwitchActiveBuildTarget(previousGroup, previous);
+            Finish(exitCode);
+        }
+
+        public static void ConfigureWebGL()
+        {
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Brotli;
+            PlayerSettings.WebGL.decompressionFallback = true;
+            PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
+            PlayerSettings.WebGL.template = WebGLTemplate;
+            PlayerSettings.WebGL.dataCaching = true;
+        }
+
+        [MenuItem("VuonTra/Build Android (APK, debug key)")]
+        public static void BuildAndroidApk()
+        {
+            ForgetAndroidSigning();
+            EditorUserBuildSettings.buildAppBundle = false;
+            Finish(Build(BuildTarget.Android, BuildTargetGroup.Android, AndroidApkPath));
+        }
+
+        static int BuildSignedBundle()
+        {
+            if (!HasModule(BuildTarget.Android, BuildTargetGroup.Android)) return MissingModuleExitCode;
+            AndroidSigning signing = AndroidSigning.Read(System.Environment.GetEnvironmentVariable, File.Exists, out string problem);
+            if (signing == null)
+            {
+                Debug.LogError(problem);
+                return MissingSigningExitCode;
+            }
+            try
+            {
+                PlayerSettings.Android.useCustomKeystore = true;
+                PlayerSettings.Android.keystoreName = signing.Keystore;
+                PlayerSettings.Android.keystorePass = signing.KeystorePassword;
+                PlayerSettings.Android.keyaliasName = signing.KeyAlias;
+                PlayerSettings.Android.keyaliasPass = signing.KeyPassword;
+                EditorUserBuildSettings.buildAppBundle = true;
+                return Build(BuildTarget.Android, BuildTargetGroup.Android, AndroidBundlePath);
+            }
+            finally
+            {
+                ForgetAndroidSigning();
+            }
+        }
+
+        static void ForgetAndroidSigning()
+        {
+            PlayerSettings.Android.useCustomKeystore = false;
+            PlayerSettings.Android.keystoreName = "";
+            PlayerSettings.Android.keystorePass = "";
+            PlayerSettings.Android.keyaliasName = "";
+            PlayerSettings.Android.keyaliasPass = "";
+        }
+
+        static void Finish(int exitCode)
+        {
+            if (Application.isBatchMode && exitCode != 0) EditorApplication.Exit(exitCode);
+        }
+
+        static bool HasModule(BuildTarget target, BuildTargetGroup group)
+        {
+            if (BuildPipeline.IsBuildTargetSupported(group, target)) return true;
+            Debug.LogError("[VuonTra] Thiếu module " + target + ": cài qua Unity Hub (Installs → Add modules), kèm Xcode cho iOS hoặc Android SDK/NDK/OpenJDK cho Android, rồi chạy lại.");
+            return false;
+        }
+
+        static int Build(BuildTarget target, BuildTargetGroup group, string path)
+        {
+            if (!HasModule(target, group)) return MissingModuleExitCode;
             UnityEditor.AddressableAssets.Settings.AddressableAssetSettings.BuildPlayerContent();
 
             var options = new BuildPlayerOptions
@@ -46,7 +130,7 @@ namespace VuonTra.EditorTools
             };
             BuildReport report = BuildPipeline.BuildPlayer(options);
             Debug.Log("[VuonTra] Build " + target + " " + report.summary.result + ", " + report.summary.totalSize + " bytes");
-            if (Application.isBatchMode && report.summary.result != BuildResult.Succeeded) EditorApplication.Exit(1);
+            return report.summary.result == BuildResult.Succeeded ? 0 : BuildFailedExitCode;
         }
 
         public const string MonetizationDefine = "VUONTRA_MONETIZATION";

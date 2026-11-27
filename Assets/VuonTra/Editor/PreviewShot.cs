@@ -22,13 +22,18 @@ namespace VuonTra.EditorTools
         [MenuItem("VuonTra/Render Preview")]
         public static void Render()
         {
-            EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
-            L10n.SetLocale("vi");
-            Features.Monetization = true;
+            if (Directory.Exists(Folder)) Directory.Delete(Folder, true);
+            Directory.CreateDirectory(Folder);
             _language = new PreviewLanguageCheck(L10nStrings.All, L10nStrings.EnglishOne);
-            var runner = Object.FindAnyObjectByType<GameRunner>();
-            var screen = Object.FindAnyObjectByType<GardenScreen>();
+            RenderGroups(group => !group.OnlyByName);
+            _language.Write(Folder);
+            _language = null;
+            Debug.Log("[VuonTra] Previews written to " + Folder);
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+        }
 
+        static void RenderMain(GameRunner runner, GardenScreen screen)
+        {
             var defs = runner.Catalog.BuildDefs();
             GameState state = GameState.NewGame(defs);
             int[] levels = { 27, 12, 9, 4, 2, 0 };
@@ -50,8 +55,6 @@ namespace VuonTra.EditorTools
             screen.Build();
             screen.ClockHours = () => 22.0;
             screen.Refresh();
-            if (Directory.Exists(Folder)) Directory.Delete(Folder, true);
-            Directory.CreateDirectory(Folder);
 
             Step(screen, 0.4f);
             Capture(screen, "1-title");
@@ -650,52 +653,6 @@ namespace VuonTra.EditorTools
             Capture(screen, "21-hoang-hon");
             screen.ClockHours = () => 22.0;
             Step(screen, 0.2f);
-
-            RenderGuidance(runner, screen);
-            RenderLandWaves(runner, screen);
-            RenderPhotoAsk(runner, screen);
-            RenderRestShare(runner, screen);
-            RenderChatter(runner, screen);
-            RenderAlbumSets(runner, screen);
-            RenderMoonJars(runner, screen);
-            RenderGiftCodes(runner, screen);
-            RenderFourStations(runner, screen);
-            RenderAdSeams(runner, screen);
-            RenderMoonPass(runner, screen);
-            RenderForestRings(runner, screen);
-            RenderMapEdges(runner, screen);
-            RenderLayout(runner, screen);
-            RenderPond(runner, screen);
-            RenderRecipes(runner, screen);
-            RenderAquarium(runner, screen);
-            RenderRecipeBook(runner, screen);
-            RenderNewcomer(runner, screen);
-            RenderOffers(runner, screen);
-            RenderQuestChests(runner, screen);
-            RenderAchievementTiers(runner, screen);
-            RenderMonthPass(runner, screen);
-            RenderWelcomeBack(runner, screen);
-            RenderFair(runner, screen);
-            RenderTrunk(runner, screen);
-            RenderJuice(runner, screen);
-            RenderIntros(runner, screen);
-            RenderFirstSession(runner, screen);
-            RenderRoundTwoLargeText(runner, screen);
-            RenderQaNits2();
-            RenderReservedProps();
-            RenderGuestByPond();
-            RenderNgangNits();
-            RenderStationSpacing();
-            foreach (string locale in new[] { "vi", "en" }) RenderEmptySpotHold(locale);
-            foreach (string locale in new[] { "vi", "en" }) RenderBasketFollows(locale);
-            RenderViewEdges();
-            foreach (string locale in new[] { "vi", "en" }) RenderAwayCount(locale);
-            RenderMonetizationOffOnly();
-
-            _language.Write(Folder);
-            _language = null;
-            Debug.Log("[VuonTra] Previews written to " + Folder);
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
 
         static void RenderLandWaves(GameRunner runner, GardenScreen screen)
@@ -1142,6 +1099,7 @@ namespace VuonTra.EditorTools
 
         static void Capture(GardenScreen screen, string name)
         {
+            if (!Wanted(name)) return;
             var rt = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
             Camera cam = screen.Cam;
             cam.targetTexture = rt;
@@ -1155,7 +1113,7 @@ namespace VuonTra.EditorTools
             tex.Apply();
             RenderTexture.active = null;
             cam.targetTexture = null;
-            File.WriteAllBytes(Path.Combine(Folder, name + ".png"), tex.EncodeToPNG());
+            File.WriteAllBytes(Path.Combine(OutFolder(Folder), name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             rt.Release();
             if (_language != null && L10n.Code == "vi") _language.Look(name, screen.transform);
