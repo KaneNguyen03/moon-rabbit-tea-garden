@@ -80,6 +80,7 @@ namespace VuonTra.EditorTools
             new Group("monetization-off", RenderMonetizationOffOnly),
             new Group("garden-25d", RenderGarden25D) { OnlyByName = true },
             new Group("feel-lane", RenderFeelLane) { Standalone = true },
+            new Group("overnight", RenderOvernight) { Standalone = true },
         };
 
         static string _shotFolder;

@@ -4057,7 +4057,7 @@ namespace VuonTra.Game.UI
         {
             // The welcome-back sheet (#69); the carrots are already in the purse, Collect only closes it, ×2 pays again.
             AwayCard = new AwayView(_canvas, catalog, Tweens, () => Runner.AwayDoubleCost, () => Runner.State.GoldenCarrots, () => Runner.LastAwayDoubled,
-                CollectAway, OnDoubleAway);
+                CollectAway, OnDoubleAway, OnStory);
         }
 
         public const int AwayFlyCount = 10;
