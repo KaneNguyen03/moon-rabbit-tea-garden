@@ -5,6 +5,7 @@ SITE=Build/WebGL
 REMOTE="${1:-$(git remote get-url origin)}"
 BRANCH="${PAGES_BRANCH:-gh-pages}"
 ACCOUNT="${PAGES_ACCOUNT:-KaneNguyen03}"
+KEEP="${PAGES_KEEP-old}"
 
 if [ ! -f "$SITE/index.html" ]; then
   echo "publish-pages: $SITE/index.html is missing; run tools/build-webgl.sh first" >&2
@@ -16,6 +17,12 @@ if [ -n "$big" ]; then
   printf '  %s\n' "$big" >&2
   exit 3
 fi
+for kept in $KEEP; do
+  if [ -e "$SITE/$kept" ]; then
+    echo "publish-pages: $SITE/$kept clashes with the kept path $kept on the $BRANCH branch" >&2
+    exit 4
+  fi
+done
 
 STAGE=$(mktemp -d "${TMPDIR:-/tmp}/pages.XXXXXX")
 trap 'rm -rf "$STAGE"; unset PAGES_TOKEN' EXIT
@@ -36,6 +43,12 @@ EMAIL=$(git config user.email || echo "$ACCOUNT@users.noreply.github.com")
 stage_git init -q -b "$BRANCH"
 if stage_git fetch -q --depth 1 "$REMOTE" "refs/heads/$BRANCH" 2>/dev/null; then
   stage_git reset -q --soft FETCH_HEAD
+  for kept in $KEEP; do
+    if stage_git cat-file -e "FETCH_HEAD:$kept" 2>/dev/null; then
+      stage_git checkout -q FETCH_HEAD -- "$kept"
+      echo "publish-pages: keeping $kept from $BRANCH"
+    fi
+  done
 fi
 cp -R "$SITE"/. "$STAGE"/
 touch "$STAGE/.nojekyll"

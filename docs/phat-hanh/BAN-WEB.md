@@ -12,7 +12,7 @@ tools/publish-pages.sh
 ```
 
 - `tools/build-webgl.sh [ưu tiên]` dựng vào `Build/WebGL/` qua `tools/build.sh webgl`, lệnh này tự xếp hàng ở cổng Unity của repo `tools/unity-gate.sh` (ưu tiên mặc định 4; xem `docs/save-va-test.md`).
-- `tools/publish-pages.sh [remote]` đẩy nội dung `Build/WebGL/` cùng `.nojekyll` lên nhánh `gh-pages` của origin bằng tài khoản KaneNguyen03.
+- `tools/publish-pages.sh [remote]` đẩy nội dung `Build/WebGL/` cùng `.nojekyll` lên nhánh `gh-pages` của origin bằng tài khoản KaneNguyen03, giữ nguyên các thư mục trong danh sách giữ lại (mặc định `old/`).
 
 Đóng Unity Editor trước khi build (batch mode không mở được project đang mở). Thư mục `Build/` không bao giờ commit.
 
@@ -65,12 +65,14 @@ Dung lượng (Brotli, 27/11): `WebGL.data.unityweb` 32,93 MB (52,90 MB giải n
 1. `git pull` trên nhánh cần phát hành; `tools/verify.sh` xanh.
 2. `tools/build-webgl.sh` (lần đầu trên một Library mới mất lâu vì import lại toàn bộ asset cho WebGL; các lần sau nhanh hơn).
 3. Thử tại máy: `cd Build/WebGL && python3 -m http.server 8150`, mở `http://localhost:8150/`. Thanh tải chạy hết, vào vườn, chạm vài lần, đóng tab, mở lại: vườn còn.
-4. `tools/publish-pages.sh`. Script dựng một repo tạm chỉ chứa nội dung `Build/WebGL/` + `.nojekyll`, lấy `gh-pages` hiện có làm gốc (fetch nông một commit), commit "Web build from <sha>" lên trên rồi push thường, **không force push** (luật repo). Mỗi lần publish thêm một commit vào `gh-pages`; build không đổi thì script dừng, không push.
+4. `tools/publish-pages.sh`. Script dựng một repo tạm chỉ chứa nội dung `Build/WebGL/` + `.nojekyll`, lấy `gh-pages` hiện có làm gốc (fetch nông một commit), chép lại nguyên các đường dẫn trong danh sách giữ lại từ `gh-pages`, commit "Web build from <sha>" lên trên rồi push thường, **không force push** (luật repo). Mọi tệp khác của bản cũ ở gốc bị thay bằng bản build mới. Mỗi lần publish thêm một commit vào `gh-pages`; build không đổi thì script dừng, không push.
 5. Đợi 1–2 phút cho GitHub Pages dựng lại, mở đường dẫn ở đầu trang.
 
 Token lấy bằng `env -u GITHUB_TOKEN -u GH_TOKEN gh auth token --user KaneNguyen03`, đưa vào git qua một credential helper chỉ sống trong lệnh `push` đó và đọc token từ biến môi trường, không nằm trong URL remote, không ghi xuống tệp nào. Đổi tài khoản bằng `PAGES_ACCOUNT=...`, đổi nhánh bằng `PAGES_BRANCH=...`. Thử script mà không đụng origin: `tools/publish-pages.sh /đường/dẫn/repo-trần.git`.
 
-Script dừng nếu chưa có `Build/WebGL/index.html` (mã 2) hoặc có tệp lớn hơn 95 MB, vì GitHub từ chối tệp trên 100 MB (mã 3).
+Script dừng nếu chưa có `Build/WebGL/index.html` (mã 2), có tệp lớn hơn 95 MB, vì GitHub từ chối tệp trên 100 MB (mã 3), hoặc bản build có sẵn một đường dẫn trùng với danh sách giữ lại (mã 4).
+
+**Danh sách giữ lại:** `PAGES_KEEP`, các đường dẫn ở gốc `gh-pages` cách nhau bằng dấu cách, mặc định `old`. Mỗi đường dẫn có trên `gh-pages` được giữ byte nào cũng như cũ; đường dẫn chưa có thì bỏ qua. `PAGES_KEEP="old ban-thu"` giữ thêm thư mục; `PAGES_KEEP=""` không giữ gì, tức là xoá `/old/` (chỉ làm khi chủ project quyết bỏ bản cũ). `python3 -I tools/test_publish_pages.py` (dưới 1 s, không Unity, chạy trong CI) dựng một `gh-pages` giả trong thư mục tạm, publish vào đó và kiểm tra `old/` còn nguyên, tệp cũ ở gốc bị thay, publish lại bản giống hệt thì không push, và mã 4.
 
 ## Bản cũ ở /old/ (28/11)
 
@@ -88,7 +90,7 @@ Dung lượng trên `gh-pages`: gốc 42,92 MB (MB = 2^20 byte; `WebGL.data.unit
 
 Save gắn với đường dẫn trang, nên `/old/` có save riêng, không thấy save của bản ở gốc và ngược lại.
 
-**`tools/publish-pages.sh` sẽ xoá `old/`.** Script lấy cây của `gh-pages` làm index rồi `git add -A` trên một thư mục chỉ có `Build/WebGL/`, nên mọi tệp không có trong bản build mới, kể cả `old/`, bị xoá trong commit mới. Muốn giữ `/old/` khi phát hành lần sau thì commit tay như trên, hoặc sửa script trước. Bỏ `/old/` là quyết định của chủ project.
+`/old/` được tạo bằng một commit tay vì lúc ấy `tools/publish-pages.sh` còn xoá mọi thứ không có trong bản build. Từ nay script giữ `old/` theo danh sách giữ lại ở trên, nên lần phát hành sau chỉ cần `tools/publish-pages.sh`; bản ở `/old/` vẫn là bản `e7da078` cho tới khi có ai thay nó bằng tay. Bỏ `/old/` là quyết định của chủ project.
 
 ## Bật GitHub Pages (một lần, sau lần publish đầu)
 
