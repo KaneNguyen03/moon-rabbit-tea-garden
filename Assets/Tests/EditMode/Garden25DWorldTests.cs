@@ -71,8 +71,10 @@ namespace VuonTra.Core.Tests
             Assert.IsNotNull(_world.Rig.View.GetComponent<PhysicsRaycaster>());
             Assert.IsFalse(_world.Rig.View.orthographic);
             Assert.AreEqual(_world.Rig.Spec.DefaultDistance, _world.Rig.Distance, 1e-9);
+            GroundPoint opening = GardenFraming.Settle(new GroundPoint(0d, 0d), _world.PanZoom.Area(_world.Rig.Spec.DefaultDistance));
             Assert.AreEqual(0d, _world.Rig.Focus.X, 1e-9);
-            Assert.AreEqual(0d, _world.Rig.Focus.Z, 1e-9);
+            Assert.AreEqual(opening.Z, _world.Rig.Focus.Z, 1e-9, "on the teapot, or as near as the front edge's 15 % margin allows");
+            Assert.GreaterOrEqual(_world.Rig.Focus.Z, 0d);
             Assert.IsTrue(_world.Ground.GetComponent<MeshCollider>().sharedMesh.bounds.size.x > 0f);
         }
 
@@ -218,19 +220,132 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(SlabMesh.PartCount, loaded.Ground.GetComponent<MeshFilter>().sharedMesh.subMeshCount);
                 Assert.AreSame(Resources.Load<Material>(Garden25DWorld.LawnPath), paints[(int)SlabPart.Lawn], "the lawn keeps the #129 grass tile");
                 AssertHex("366F62", loaded.Paint(SlabPart.Lip));
-                AssertHex("453448", loaded.Paint(SlabPart.Gap));
-                AssertHex("85554C", loaded.Paint(SlabPart.Earth));
-                AssertHex("60424A", loaded.Paint(SlabPart.EarthShade));
-                AssertHex("362C47", loaded.Paint(SlabPart.Underside));
-                AssertHex("85554C", Resources.Load<Material>(Garden25DWorld.EarthPath));
+                AssertHex("2A2449", loaded.Paint(SlabPart.Gap));
+                AssertHex("60424A", loaded.Paint(SlabPart.Earth));
+                AssertHex("453448", loaded.Paint(SlabPart.EarthShade));
+                AssertHex("212047", loaded.Paint(SlabPart.Underside));
+                var settings = Resources.Load<GardenCameraSettings>(Garden25DWorld.SettingsPath);
+                AssertHex("31605C", loaded.BandPaint);
+                AssertHex("23374E", loaded.LockedPaint);
+                CollectionAssert.AreEqual(new[] { loaded.BandPaint, loaded.LockedPaint, loaded.Paint(SlabPart.Underside) }, loaded.LockedLand.GetComponent<MeshRenderer>().sharedMaterials, "a narrow teal band round the open land, Night-blue ground beyond, the island's dark underside in front of it, no fog");
+                Assert.IsNull(loaded.LockedPaint.mainTexture, "flat colours until design delivers the locked land's shape");
+                AssertHex("60424A", Resources.Load<Material>(Garden25DWorld.EarthPath));
                 Assert.AreEqual("Universal Render Pipeline/Unlit", Resources.Load<Material>(Garden25DWorld.EarthPath).shader.name, "flat toon steps, not lit by a light the scene does not have yet");
                 Assert.AreEqual("Universal Render Pipeline/Unlit", Resources.Load<Material>(Garden25DWorld.LawnPath).shader.name, "the grass reads as bright as the 2D garden until the moon light of #147");
             }
             finally
             {
                 for (int part = 1; part < SlabMesh.PartCount; part++) Object.DestroyImmediate(loaded.Paint((SlabPart)part));
+                Object.DestroyImmediate(loaded.LockedPaint);
+                Object.DestroyImmediate(loaded.BandPaint);
                 Object.DestroyImmediate(loaded.gameObject);
             }
+        }
+
+        [Test]
+        public void Dark_Grass_Spreads_Past_The_Island_Edge_Below_Its_Earth_So_The_Frame_Has_No_Empty_Night()
+        {
+            GardenApron land = _world.LockedLand;
+            var slab = _settings.Slab();
+            Assert.AreEqual(-(float)slab.Thickness - GardenApron.Below, land.Top, 1e-5);
+            GroundRect island = _world.Island;
+            Assert.LessOrEqual(land.Area.MinX, island.MinX - _settings.LockedReach + 1e-6);
+            Assert.GreaterOrEqual(land.Area.MaxZ, island.MaxZ + _settings.LockedReach - 1e-6);
+            var plane = new Plane(Vector3.up, new Vector3(0f, land.Top, 0f));
+            Camera view = _world.Rig.View;
+            foreach (GroundPoint corner in new[] { new GroundPoint(island.MinX, island.MinZ), new GroundPoint(island.MaxX, island.MaxZ) })
+            {
+                _world.Rig.Frame(corner, _world.Rig.Spec.FarDistance);
+                foreach (Vector2 screen in new[] { Vector2.zero, new Vector2(view.pixelWidth, 0f), new Vector2(0f, view.pixelHeight), new Vector2(view.pixelWidth, view.pixelHeight) })
+                {
+                    Ray ray = view.ScreenPointToRay(screen);
+                    Assert.IsTrue(plane.Raycast(ray, out float along), "every corner of the screen looks down onto the ground");
+                    Vector3 hit = ray.GetPoint(along);
+                    Assert.IsTrue(land.Area.Contains(new GroundPoint(hit.x, hit.z)), "zoomed all the way out at the island's corner, the screen corner " + screen + " still shows grass, not night");
+                }
+            }
+            Mesh islandMesh = _world.Ground.GetComponent<MeshFilter>().sharedMesh, lockedMesh = _world.LockedLand.GetComponent<MeshFilter>().sharedMesh;
+            _world.Grow(3);
+            Assert.AreSame(islandMesh, _world.Ground.GetComponent<MeshFilter>().sharedMesh, "growing refills the island mesh instead of destroying it, which edit mode forbids");
+            Assert.AreSame(lockedMesh, _world.LockedLand.GetComponent<MeshFilter>().sharedMesh);
+            Physics.SyncTransforms();
+            Assert.AreEqual((float)_world.Shore.MaxX, _world.Ground.GetComponent<MeshCollider>().bounds.max.x, 0.05f, "the tap collider grows with the island's rounded shore");
+            Assert.AreEqual(_world.Shore.MaxX + _settings.LockedReach, _world.LockedLand.Area.MaxX, 1e-6, "it grows with the island");
+            Assert.AreEqual(_world.Shore.MaxX + _settings.LockedBandMetres, _world.LockedLand.BandArea.MaxX, 1e-6, "the teal band is a narrow strip round the shore");
+            Assert.AreEqual(_world.Shore.MaxZ + _settings.LockedBackMetres, _world.LockedLand.BandArea.MaxZ, 1e-6);
+            Assert.AreEqual(_world.Shore.MinZ, _world.LockedLand.BandArea.MinZ, 1e-6);
+        }
+
+        [Test]
+        public void The_Teal_Band_Is_Wider_At_The_Back_And_Stops_At_The_Front_Edge_Where_The_Dark_Underside_Runs_To_The_Bottom_Of_The_Screen()
+        {
+            Assert.AreEqual(1.5d, _settings.LockedBandMetres, 1e-9, "art bible §8: 1.5 m at the sides");
+            Assert.AreEqual(2.5d, _settings.LockedBackMetres, 1e-9, "and 2.5 m at the back, so it reads at the grazing angle");
+            GardenApron land = _world.LockedLand;
+            GroundRect shore = _world.Shore;
+            Assert.AreEqual(shore.MaxX + 1.5d, land.BandArea.MaxX, 1e-6);
+            Assert.AreEqual(shore.MinX - 1.5d, land.BandArea.MinX, 1e-6);
+            Assert.AreEqual(shore.MaxZ + 2.5d, land.BandArea.MaxZ, 1e-6);
+            var slab = _settings.Slab();
+            Assert.Greater(slab.Wave, 0d, "the front edge waves, so it dips in and out of a straight line");
+            foreach (GroundPoint edge in IslandShape.Outline(shore, slab.Radius, slab.Wave))
+                if (edge.X > shore.MinX + slab.Radius && edge.X < shore.MaxX - slab.Radius && edge.Z < shore.Centre.Z)
+                    Assert.Less(edge.Z, land.FrontArea.MaxZ, "the underside reaches in under the wavy front edge at x " + edge.X.ToString("0.00") + ", so no band shows between the cliff and the underside");
+            Assert.AreEqual(land.Area.MinZ, land.FrontArea.MinZ, 1e-6);
+            Assert.AreEqual(land.Area.MinX, land.FrontArea.MinX, 1e-6);
+            Assert.AreEqual(land.Area.MaxX, land.FrontArea.MaxX, 1e-6);
+            Mesh mesh = land.GetComponent<MeshFilter>().sharedMesh;
+            Assert.AreEqual(3, mesh.subMeshCount);
+            Vector3[] corners = mesh.vertices;
+            float front = float.MinValue, band = float.MinValue, outer = float.MinValue;
+            foreach (int v in mesh.GetTriangles(2)) front = Mathf.Max(front, corners[v].y);
+            foreach (int v in mesh.GetTriangles(0)) band = Mathf.Max(band, corners[v].y);
+            foreach (int v in mesh.GetTriangles(1)) outer = Mathf.Max(outer, corners[v].y);
+            Assert.Greater(front, band, "the underside lies over the band, so no teal shows in front of the island");
+            Assert.Greater(band, outer);
+            Assert.AreEqual(land.Top, front, 1e-6);
+            Assert.Less(land.Top, -(float)slab.Thickness, "all of it below the island's foot");
+            Motion.Reduced = true;
+            _world.PanZoom.TravelTo(new GroundPoint(0d, -100d));
+            Camera view = _world.Rig.View;
+            var plane = new Plane(Vector3.up, new Vector3(0f, land.Top, 0f));
+            Ray bottom = view.ScreenPointToRay(new Vector2(view.pixelWidth / 2f, 0f));
+            Assert.IsTrue(plane.Raycast(bottom, out float along));
+            Vector3 hit = bottom.GetPoint(along);
+            Assert.IsTrue(land.FrontArea.Contains(new GroundPoint(hit.x, hit.z)), "panned to the front, the bottom of the screen shows the underside, at " + hit);
+        }
+
+        [Test]
+        public void A_Drag_Starting_On_The_Dark_Grass_Moves_The_Garden_And_A_Tap_There_Names_No_Tile()
+        {
+            int tiles = 0, touches = 0;
+            _world.Ground.TileTapped += h => tiles++;
+            _world.Ground.Touched += () => touches++;
+            GroundRect island = _world.Island;
+            var outside = new Vector3((float)island.MaxX + 3f, _world.LockedLand.Top, (float)island.Centre.Z);
+            _world.Rig.Frame(new GroundPoint(island.MaxX, island.Centre.Z), _world.Rig.Spec.DefaultDistance);
+            Physics.SyncTransforms();
+            Vector2 at = _world.Rig.View.WorldToScreenPoint(outside);
+            var press = new PointerEventData(null) { position = at, pressPosition = at };
+            var hits = new List<RaycastResult>();
+            _world.Rig.View.GetComponent<PhysicsRaycaster>().Raycast(press, hits);
+            hits.Sort((a, b) => a.distance.CompareTo(b.distance));
+            Assert.AreSame(_world.LockedLand.gameObject, hits[0].gameObject);
+            press.pointerCurrentRaycast = hits[0];
+            GameObject handler = ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject);
+            ExecuteEvents.Execute(handler, press, ExecuteEvents.pointerDownHandler);
+            ExecuteEvents.Execute(handler, press, ExecuteEvents.pointerUpHandler);
+            press.pointerPress = handler;
+            ExecuteEvents.Execute(handler, press, ExecuteEvents.pointerClickHandler);
+            Assert.AreEqual(0, tiles, "land not opened yet has no tile to name");
+            Assert.AreEqual(1, touches, "but the tap still reaches the ground, so an open card can close");
+            GroundPoint before = _world.Rig.Focus;
+            var drag = new PointerEventData(null) { position = at, pressPosition = at, pointerCurrentRaycast = hits[0] };
+            ExecuteEvents.Execute(handler, drag, ExecuteEvents.pointerDownHandler);
+            drag.position = at + new Vector2(0f, -300f);
+            ExecuteEvents.Execute(handler, drag, ExecuteEvents.dragHandler);
+            Assert.AreNotEqual(before.Z, _world.Rig.Focus.Z, "dragging on the dark grass moves the view like dragging on the lawn");
+            ExecuteEvents.Execute(handler, drag, ExecuteEvents.pointerUpHandler);
         }
 
         static void AssertHex(string hex, Material paint)
@@ -256,6 +371,18 @@ namespace VuonTra.Core.Tests
             _world.PanZoom.OnPointerUp(finger);
             _world.Tick(2f);
             Assert.IsTrue(island.Contains(_world.Rig.Focus), "after the glide the view centre is back on the island");
+        }
+
+        [Test]
+        public void Pulling_The_View_Toward_The_Front_Stops_With_The_Shore_Fifteen_Percent_Up_The_Screen_And_Night_Below()
+        {
+            _world.Grow(3);
+            Motion.Reduced = true;
+            _world.PanZoom.TravelTo(new GroundPoint(0d, -100d));
+            GroundRect area = _world.PanZoom.Area(_world.Rig.Distance);
+            Assert.AreEqual(area.MinZ, _world.Rig.Focus.Z, 1e-6, "the view settles on the front margin, not on the island's front line");
+            Vector3 shore = _world.Rig.View.WorldToViewportPoint(new Vector3((float)_world.Rig.Focus.X, 0f, (float)_world.Shore.MinZ));
+            Assert.AreEqual(_world.Rig.Spec.FrontEdgeShare, shore.y, 0.005f, "the front edge sits about 15 % up from the bottom");
         }
 
         [Test]

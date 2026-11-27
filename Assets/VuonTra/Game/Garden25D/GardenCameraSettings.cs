@@ -22,6 +22,20 @@ namespace VuonTra.Game
         [SerializeField] Color earthLit;
         [SerializeField] Color earthShade;
         [SerializeField] Color underside;
+        [SerializeField, Min(0f)] float islandCornerMetres = 4f;
+        [SerializeField, Min(0f)] float frontWaveMetres = 0.4f;
+        [SerializeField, Range(0f, 0.5f)] float frontEdgeShare = 0.15f;
+        [SerializeField, Min(0f)] float lockedReach = 60f;
+        [SerializeField, Min(0f)] float lockedBandMetres = 1.5f;
+        [SerializeField, Min(0f)] float lockedBackMetres = 2.5f;
+        [SerializeField] Color lockedBand = new Color(0.19216f, 0.37647f, 0.36078f, 1f);
+        [SerializeField] Color lockedGrass = new Color(0.13725f, 0.21569f, 0.30588f, 1f);
+
+        public double LockedReach => lockedReach;
+        public double LockedBandMetres => lockedBandMetres;
+        public double LockedBackMetres => lockedBackMetres;
+        public Color LockedBand => lockedBand;
+        public Color LockedGrass => lockedGrass;
 
         public CameraSpec Spec() => new CameraSpec
         {
@@ -31,6 +45,7 @@ namespace VuonTra.Game
             EdgeGive = edgeGive,
             GlideFadeSeconds = glideFadeSeconds,
             StopSpeed = stopSpeed,
+            FrontEdgeShare = frontEdgeShare,
         };
 
         public SlabSpec Slab() => new SlabSpec
@@ -41,6 +56,8 @@ namespace VuonTra.Game
             GrassMetres = grassTileMetres,
             MoonX = moonFrom.x,
             MoonZ = moonFrom.y,
+            Radius = islandCornerMetres,
+            Wave = frontWaveMetres,
         };
 
         public Color Tint(SlabPart part) => part switch

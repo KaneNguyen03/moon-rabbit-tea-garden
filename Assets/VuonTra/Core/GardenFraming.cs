@@ -46,6 +46,7 @@ namespace VuonTra.Core
         public double GlideFadeSeconds = 0.35d;
         public double GlideLeftAtFade = 0.05d;
         public double StopSpeed = 0.05d;
+        public double FrontEdgeShare = 0.15d;
 
         public double NearDistance => DefaultDistance * ZoomDefault / ZoomNear;
         public double FarDistance => DefaultDistance * ZoomDefault / ZoomFar;
@@ -113,6 +114,19 @@ namespace VuonTra.Core
 
         public static GroundPoint Drag(GroundPoint wanted, GroundRect island, CameraSpec spec) =>
             new GroundPoint(Give(wanted.X, island.MinX, island.MaxX, spec.EdgeGive), Give(wanted.Z, island.MinZ, island.MaxZ, spec.EdgeGive));
+
+        public static double FrontReach(double distance, CameraSpec spec)
+        {
+            double tilt = spec.TiltDegrees * Degrees;
+            double below = Math.Atan((1d - 2d * spec.FrontEdgeShare) * Math.Tan(spec.FovDegrees * Degrees / 2d));
+            return distance * Math.Cos(tilt) - distance * Math.Sin(tilt) / Math.Tan(tilt + below);
+        }
+
+        public static GroundRect FocusArea(GroundRect island, double front, double distance, CameraSpec spec)
+        {
+            double minZ = Math.Min(island.MaxZ, front + FrontReach(distance, spec));
+            return new GroundRect(island.MinX, island.MaxX, minZ, island.MaxZ);
+        }
 
         public static GroundPoint Settle(GroundPoint held, GroundRect island) =>
             new GroundPoint(Math.Max(island.MinX, Math.Min(island.MaxX, held.X)), Math.Max(island.MinZ, Math.Min(island.MaxZ, held.Z)));

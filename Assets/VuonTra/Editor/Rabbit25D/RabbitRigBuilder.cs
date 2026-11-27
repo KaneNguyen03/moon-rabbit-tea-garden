@@ -328,7 +328,7 @@ namespace VuonTra.EditorTools
             shadow.transform.SetParent(root, false);
             var shadowRenderer = shadow.AddComponent<SpriteRenderer>();
             shadowRenderer.sortingOrder = -10;
-            shadowRenderer.color = new Color(0.12f, 0.2f, 0.16f, 0.38f);
+            shadowRenderer.color = Color.white;
             shadow.AddComponent<SpriteResolver>().SetCategoryAndLabel(ShadowCategory, ShadowLabel);
             shadowRenderer.sprite = library.GetSprite(ShadowCategory, ShadowLabel);
 
@@ -338,7 +338,7 @@ namespace VuonTra.EditorTools
 
             animator.runtimeAnimatorController = BuildController(root);
             var actor = rabbit.AddComponent<RabbitActor>();
-            Wire(actor, ("animator", animator), ("front", front), ("threeQuarter", side));
+            Wire(actor, ("animator", animator), ("front", front), ("threeQuarter", side), ("shadow", shadow));
 
             AssetDatabase.DeleteAsset(PrefabPath);
             PrefabUtility.SaveAsPrefabAsset(rabbit, PrefabPath);

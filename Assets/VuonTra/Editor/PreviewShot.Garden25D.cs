@@ -36,7 +36,7 @@ namespace VuonTra.EditorTools
             }
         }
 
-        static void ShootGarden(bool island, string code, bool large, bool map, string name)
+        static void ShootGarden(bool island, string code, bool large, bool map, string name, string folder = IslandFolder, int near = -1, bool staffed = false, System.Action<GameRunner, GardenScreen, Camera, RenderTexture> film = null)
         {
             if (!Wanted(name)) return;
             EditorSceneManager.OpenScene(ContentSeeder.ScenePath, OpenSceneMode.Single);
@@ -49,6 +49,7 @@ namespace VuonTra.EditorTools
             int[] levels = { 27, 12, 9, 4, 2, 0 };
             for (int i = 0; i < levels.Length; i++) state.Levels[i] = levels[i];
             state.Plots = 6;
+            if (staffed) Staff(state, runner.Catalog.BuildDefs());
             state.GardenXp = Garden.XpForLevel(5) + 90;
             state.HintSeen = true;
             state.TutorialStep = Tutorial.Steps;
@@ -75,7 +76,16 @@ namespace VuonTra.EditorTools
             }
             Canvas.ForceUpdateCanvases();
             if (map) screen.IslandMap.Show();
+            if (near >= 0) LookClose(screen, runner, near, island);
             Step(screen, 0.1f);
+            if (film != null)
+            {
+                film(runner, screen, eye, rt);
+                eye.targetTexture = null;
+                rt.Release();
+                Object.DestroyImmediate(rt);
+                return;
+            }
             Canvas.ForceUpdateCanvases();
             eye.Render();
             eye.Render();
@@ -85,7 +95,7 @@ namespace VuonTra.EditorTools
             tex.Apply();
             RenderTexture.active = null;
             eye.targetTexture = null;
-            File.WriteAllBytes(Path.Combine(OutFolder(IslandFolder), name + ".png"), tex.EncodeToPNG());
+            File.WriteAllBytes(Path.Combine(OutFolder(folder), name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             if (map) screen.IslandMap.Close();
             rt.Release();

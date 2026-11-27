@@ -1,0 +1,312 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b3f0e6c2a7d4e1f9c8b7a6d5e4f3a21, type: 3}
+  m_Name: GardenStands
+  m_EditorClassIdentifier: 
+  rabbitMetres: 1.15
+  rigs:
+  - Kind: tho-bong
+    Rig: {fileID: 8898068572492572611, guid: a898b7fdfafa041c691a293e84234d78, type: 3}
+  shadow: {fileID: 21300000, guid: c1ad310b1e8d4766860dde315ec755ef, type: 3}
+  shadowTint: {r: 1, g: 1, b: 1, a: 1}
+  shadowShare: 1.3
+  shadowMinWidth: 0.3
+  shadowDepth: 0.55
+  shadowInFront: 0.35
+  padShadowAlpha: 0.45
+  pads:
+  - {fileID: 21300000, guid: 0cac8242aaf6475e90d8abeec77fe5bf, type: 3}
+  - {fileID: 21300000, guid: adb3f7c16fe34aa68ad73b85143ccfb6, type: 3}
+  - {fileID: 21300000, guid: 963df3d0747e46a7a7fcf4075bc90db1, type: 3}
+  - {fileID: 21300000, guid: b4505d74e8b149509c6d7108c9dd6e04, type: 3}
+  padTint: {r: 0.66024, g: 0.66471, b: 0.72282, a: 0.92}
+  padShare: 1.5
+  padMinWidth: 1.4
+  padDepth: 0.85
+  dressing:
+  - Art: {fileID: 21300000, guid: fa61d4bf2c82400887a2645bb16b1065, type: 3}
+    Role: 7
+    Height: 0.6
+    Offset: {x: 1.15, y: -0.1}
+  - Art: {fileID: 21300000, guid: 0ca7a09db4344d3f983f4ab927bc4fce, type: 3}
+    Role: 7
+    Height: 0.4
+    Offset: {x: -1.05, y: 0.45}
+  - Art: {fileID: 21300000, guid: 69c6c435f6aa4b44b65bc14efaf5862f, type: 3}
+    Role: 7
+    Height: 0.55
+    Offset: {x: 0.85, y: 0.75}
+  - Art: {fileID: 21300000, guid: e1d382988c6c473688e4caa5cb09166a, type: 3}
+    Role: 7
+    Height: 0.3
+    Offset: {x: 0.6, y: -0.95}
+  lampPost: {fileID: 21300000, guid: 80675e0e0eab4a30bb32599c90d22278, type: 3}
+  lampPostHeight: 1.4
+  lampPostAside: 0.9
+  lampPostShadow: 0.35
+  lampKeepClear: 1.8
+  pathPiece: {fileID: 21300000, guid: a4b2cc2431e341048487d627c13e20db, type: 3}
+  pathWidth: 0.55
+  pathBandShare: 0.816
+  keepClear: 1.1
+  fixtures:
+  - Fixture: 0
+    Role: 5
+    Height: 0.7
+    Art: {fileID: 21300000, guid: 0b79bdf7d86d42cea54934a8628507be, type: 3}
+    Tint: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  - Fixture: 1
+    Role: 2
+    Height: 2
+    Art: {fileID: 21300000, guid: 05dd150b5ed34d79901077f473f1fdb2, type: 3}
+    Tint: {r: 0.8, g: 0.8, b: 0.8, a: 1}
+  - Fixture: 2
+    Role: 4
+    Height: 0.9
+    Art: {fileID: 21300000, guid: 8386b89f81ed44dd86402ec10a8f83ab, type: 3}
+    Tint: {r: 1, g: 1, b: 1, a: 1}
+  tree: {fileID: 21300000, guid: 9c430022670e4c0094ba230d64ec811a, type: 3}
+  treeHeight: 3
+  treeSpacing: 3
+  treeBehind: 1.2
+  particleLooks:
+  - Art: {fileID: 21300000, guid: 86615702be3844689ccaaf9c01cad972, type: 3}
+    Look: {fileID: 2100000, guid: 3e3902ce22bb34f9d8ea11a42e18dffa, type: 2}
+  - Art: {fileID: 21300000, guid: fa682ac4e540484bbf64e06a1a42f081, type: 3}
+    Look: {fileID: 2100000, guid: 9aa86f5bda9e94883a3ff3b6b1196881, type: 2}
+  - Art: {fileID: 21300000, guid: 981b2d4573794c17a5341fe94e9860ca, type: 3}
+    Look: {fileID: 2100000, guid: e3b571fefc79949f49a67b92c3862d1f, type: 2}
+  - Art: {fileID: 21300000, guid: 3d9c148fefa54c0f822e7e2b9f3e9df4, type: 3}
+    Look: {fileID: 2100000, guid: 168e007a8dd744666b8b791dfbf9348c, type: 2}
+  - Art: {fileID: 21300000, guid: b5e59802e50f48bea83e6c0ce580757f, type: 3}
+    Look: {fileID: 2100000, guid: 62d80d11d908145cb9435a512ba8e471, type: 2}
+  loopSeconds: 3.28
+  unbuiltTint: {r: 0.55, g: 0.5, b: 0.62, a: 0.65}
+  stations:
+  - Id: am-tra
+    Role: 1
+    Height: 1.15
+    Art: {fileID: 21300000, guid: e69d6a4736924eacbbfb8de23989bf1d, type: 3}
+    Work: 3
+    RabbitSpot: {x: -0.6, y: -0.3}
+    Layers:
+    - Category: Prop
+      Spot: {x: 0, y: 0, z: 0}
+      Height: 0.5
+      States:
+      - Label: idle
+        Art: {fileID: 21300000, guid: e69d6a4736924eacbbfb8de23989bf1d, type: 3}
+      - Label: b1
+        Art: {fileID: 21300000, guid: 7c0dbaaa875b482596deb4af655e4106, type: 3}
+      - Label: b2
+        Art: {fileID: 21300000, guid: 7c0dbaaa875b482596deb4af655e4106, type: 3}
+      - Label: b3
+        Art: {fileID: 21300000, guid: 07714a2955424bcc81db96e76332a7a0, type: 3}
+      Beats:
+      - At: 0
+        Label: b1
+      - At: 0.82
+        Label: b2
+      - At: 1.64
+        Label: b3
+      - At: 2.46
+        Label: idle
+    Dish: {fileID: 21300000, guid: 3be7f697d75c4173a665f83ac2a5e658, type: 3}
+    DishSpot: {x: 0.3, y: 0, z: -0.45}
+    DishHeight: 0.3
+    DishFrom: 2.46
+    Particles:
+    - Art: {fileID: 21300000, guid: 86615702be3844689ccaaf9c01cad972, type: 3}
+      At: 0.15
+      Count: 2
+      From: {x: 0, y: 1.05, z: 0}
+      Life: 0.7
+      Speed: 0.3
+      Size: 0.09
+      Gravity: 0.6
+    - Art: {fileID: 21300000, guid: fa682ac4e540484bbf64e06a1a42f081, type: 3}
+      At: 0.95
+      Count: 3
+      From: {x: 0.1, y: 1, z: 0}
+      Life: 0.6
+      Speed: 0.5
+      Size: 0.06
+      Gravity: 0.8
+    - Art: {fileID: 21300000, guid: 981b2d4573794c17a5341fe94e9860ca, type: 3}
+      At: 1.7
+      Count: 4
+      From: {x: 0.28, y: 0.95, z: 0}
+      Life: 1
+      Speed: 0.25
+      Size: 0.16
+      Gravity: -0.05
+    - Art: {fileID: 21300000, guid: 981b2d4573794c17a5341fe94e9860ca, type: 3}
+      At: 2.6
+      Count: 2
+      From: {x: 0.3, y: 0.4, z: -0.45}
+      Life: 0.9
+      Speed: 0.2
+      Size: 0.12
+      Gravity: -0.05
+    Library: {fileID: 11400000, guid: 162cc68a7d8464da9b2fb9200a9d6e48, type: 2}
+    Loop: {fileID: 9100000, guid: 6ef18cbf7d62a42169bbe4060c5f9089, type: 2}
+  - Id: gio-la
+    Role: 1
+    Height: 0.9
+    Art: {fileID: 21300000, guid: b77bfc30908f401d8898ed78345d80e5, type: 3}
+    Work: 2
+    RabbitSpot: {x: -0.45, y: -0.4}
+    Layers:
+    - Category: Prop
+      Spot: {x: 0, y: 0, z: 0}
+      Height: 0.5
+      States:
+      - Label: idle
+        Art: {fileID: 21300000, guid: b77bfc30908f401d8898ed78345d80e5, type: 3}
+      - Label: b1
+        Art: {fileID: 21300000, guid: b77bfc30908f401d8898ed78345d80e5, type: 3}
+      - Label: b2
+        Art: {fileID: 21300000, guid: b77bfc30908f401d8898ed78345d80e5, type: 3}
+      - Label: b3
+        Art: {fileID: 21300000, guid: 9c8011e674fc4cb1810fda5790f1c337, type: 3}
+      Beats:
+      - At: 0
+        Label: b1
+      - At: 0.82
+        Label: b2
+      - At: 1.64
+        Label: b3
+      - At: 2.46
+        Label: idle
+    - Category: Basket
+      Spot: {x: 0.55, y: 0, z: -0.25}
+      Height: 0.4
+      States:
+      - Label: idle
+        Art: {fileID: 21300000, guid: bb8dde05717140f1acc25c43dce9f98d, type: 3}
+      - Label: b1
+        Art: {fileID: 21300000, guid: bb8dde05717140f1acc25c43dce9f98d, type: 3}
+      - Label: b2
+        Art: {fileID: 21300000, guid: 7d5ba81ff12b49758cd66efa626b9600, type: 3}
+      - Label: b3
+        Art: {fileID: 21300000, guid: 68a376e7f5b84bbeab4e1012a8e87a7a, type: 3}
+      Beats:
+      - At: 0
+        Label: b1
+      - At: 0.82
+        Label: b2
+      - At: 1.64
+        Label: b3
+    Dish: {fileID: 21300000, guid: 00ed806e27c548d48beed2736584cdd4, type: 3}
+    DishSpot: {x: -0.05, y: 0, z: -0.5}
+    DishHeight: 0.28
+    DishFrom: 2.46
+    Particles:
+    - Art: {fileID: 21300000, guid: 86615702be3844689ccaaf9c01cad972, type: 3}
+      At: 0.15
+      Count: 3
+      From: {x: -0.1, y: 0.55, z: -0.1}
+      Life: 0.8
+      Speed: 0.5
+      Size: 0.09
+      Gravity: 0.5
+    - Art: {fileID: 21300000, guid: 86615702be3844689ccaaf9c01cad972, type: 3}
+      At: 0.95
+      Count: 2
+      From: {x: 0.5, y: 0.5, z: -0.25}
+      Life: 0.6
+      Speed: 0.2
+      Size: 0.08
+      Gravity: 0.8
+    - Art: {fileID: 21300000, guid: 86615702be3844689ccaaf9c01cad972, type: 3}
+      At: 2.55
+      Count: 1
+      From: {x: -0.05, y: 0.4, z: -0.5}
+      Life: 0.8
+      Speed: 0.3
+      Size: 0.09
+      Gravity: 0.3
+    Library: {fileID: 11400000, guid: e42bbb3d97cea43a99c90278f0e07048, type: 2}
+    Loop: {fileID: 9100000, guid: 9fe6b6813e7d44996be9965ddee9d5db, type: 2}
+  - Id: noi-mut
+    Role: 1
+    Height: 1
+    Art: {fileID: 21300000, guid: af0a670bc0ac4febb75f4379e819a21d, type: 3}
+    Work: 0
+    RabbitSpot: {x: -0.45, y: -0.3}
+    Layers: []
+    Dish: {fileID: 0}
+    DishSpot: {x: 0, y: 0, z: 0}
+    DishHeight: 0.35
+    DishFrom: 0
+    Particles: []
+    Library: {fileID: 0}
+    Loop: {fileID: 0}
+  - Id: tra-sua
+    Role: 2
+    Height: 2
+    Art: {fileID: 21300000, guid: c29dafd831574d82bcceaad7447d8758, type: 3}
+    Work: 1
+    RabbitSpot: {x: -0.15, y: -0.6}
+    Layers:
+    - Category: Prop
+      Spot: {x: 0, y: 0, z: 0}
+      Height: 0.5
+      States:
+      - Label: idle
+        Art: {fileID: 21300000, guid: c29dafd831574d82bcceaad7447d8758, type: 3}
+      - Label: b1
+        Art: {fileID: 21300000, guid: c29dafd831574d82bcceaad7447d8758, type: 3}
+      - Label: b2
+        Art: {fileID: 21300000, guid: c29dafd831574d82bcceaad7447d8758, type: 3}
+      - Label: b3
+        Art: {fileID: 21300000, guid: c29dafd831574d82bcceaad7447d8758, type: 3}
+      Beats:
+      - At: 0
+        Label: b1
+      - At: 0.82
+        Label: b2
+      - At: 1.64
+        Label: b3
+      - At: 2.46
+        Label: idle
+    Dish: {fileID: 21300000, guid: af47ad1d46654defa92e754969b81ebf, type: 3}
+    DishSpot: {x: 0, y: 0.62, z: -0.05}
+    DishHeight: 0.32
+    DishFrom: 2.46
+    Particles:
+    - Art: {fileID: 21300000, guid: 3d9c148fefa54c0f822e7e2b9f3e9df4, type: 3}
+      At: 0.3
+      Count: 4
+      From: {x: -0.2, y: 0.95, z: -0.3}
+      Life: 0.5
+      Speed: 0.6
+      Size: 0.06
+      Gravity: 1
+    - Art: {fileID: 21300000, guid: fa682ac4e540484bbf64e06a1a42f081, type: 3}
+      At: 1.75
+      Count: 3
+      From: {x: 0.05, y: 0.95, z: -0.35}
+      Life: 0.5
+      Speed: 0.5
+      Size: 0.06
+      Gravity: 1
+    - Art: {fileID: 21300000, guid: b5e59802e50f48bea83e6c0ce580757f, type: 3}
+      At: 2.5
+      Count: 1
+      From: {x: 0.05, y: 1.1, z: -0.35}
+      Life: 0.6
+      Speed: 0.1
+      Size: 0.14
+      Gravity: 0
+    Library: {fileID: 11400000, guid: 55a07ad600d1b47ceb6c398956c9e8ce, type: 2}
+    Loop: {fileID: 9100000, guid: bdc93c4e588f44a50bd548612a939dc6, type: 2}
