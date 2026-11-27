@@ -31,6 +31,33 @@ tools/publish-pages.sh
 
 `BuildScript.BuildWebGL` chuyển active build target sang WebGL, build Addressables + player, rồi chuyển lại target cũ, để `tools/verify.sh` và `tools/test.sh` vẫn chạy trên target máy tính.
 
+## Đồ hoạ: WebGPU trước, WebGL 2 dự phòng (27/11, Refs #150)
+
+Bản web vẫn là build target Web (WebAssembly). Danh sách Graphics API của Web tắt **Auto Graphics API** và xếp **WebGPU** trước, **WebGL 2** sau. Unity thử API đầu; trình duyệt không có WebGPU (hoặc không lấy được adapter) thì Unity tự chạy WebGL 2 trong **cùng một bản build**. `BuildScript.ConfigureWebGL` đặt lại danh sách này mỗi lần build (`BuildScript.WebGraphicsApis`), `WebGraphicsTests` hỏng nếu danh sách mất WebGPU hoặc WebGL 2.
+
+Tài liệu Unity 6000.6 đã đọc:
+- [Enable the WebGPU graphics API](https://docs.unity.com/en-us/engine/6000.6/manual/platform-specific/webgl/develop/graphics/web-gpu/enable): Unity không tự bật WebGPU; tắt Auto Graphics API, thêm WebGPU, kéo lên đầu, giữ WebGL 2 để trình duyệt cũ vẫn chạy. Không có define hay cờ nào khác. Trang này và các trang dưới không gọi WebGPU là experimental/preview.
+- [Limitations of the WebGPU graphics API](https://docs.unity.com/en-us/engine/6000.6/manual/platform-specific/webgl/develop/graphics/web-gpu/limitations): không async compute, dynamic resolution, cubemap array; **không đọc ngược GPU→CPU đồng bộ** (`GetPixels`, `CaptureScreenshot`...), dùng `AsyncGPUReadback`; Safari/Firefox thiếu vài định dạng texture; máy yếu chạy "compatibility mode".
+- [WebGPU Device Filter asset](https://docs.unity.com/en-us/engine/6000.6/manual/platform-specific/webgl/develop/graphics/web-gpu/webgpu-device-filter-asset/webgpu-intro-device-filter-asset): trình duyệt bị lọc dùng API dự phòng trong Player settings; không có API dự phòng thì không mở được game. Bản này không dùng filter.
+
+Trang web ghi renderer ở góc dưới trái sau khi tải xong: `Renderer: WebGPU`, `Renderer: WebGL 2 (fallback)` (có `navigator.gpu` nhưng không dùng được), hoặc `Renderer: WebGL 2 (fallback: no WebGPU in this browser)`.
+
+Kiểm tra bằng build thật qua cổng Unity, Edge 158.0.4370.45 trên Windows 11 (RTX 4070), `python3 -m http.server`:
+
+| Lần chạy | Renderer trên trang | Ảnh |
+|---|---|---|
+| WebGPU bật | `WebGPU` (console: `Unity WebGPU: Version: WebGPU 1.0`) | `docs/anh/webgpu/webgpu-vuon.png`, `webgpu-the-tram.png`, `webgpu-anh-sau-khi-sua.png` |
+| `--disable-features=WebGPUService,WebGPU` | `WebGL 2 (fallback)` | `webgl2-vuon.png`, `webgl2-bang-tram.png`, `webgl2-anh.png` |
+| xoá `navigator.gpu` trước khi trang chạy | `WebGL 2 (fallback: no WebGPU in this browser)` | `webgl2-khong-co-navigator-gpu.png` |
+
+Shader: build biên dịch 95 shader cho cả `gles3` và `webgpu`, không lỗi, không cảnh báo shader. Game không có shader riêng; vườn 2D (URP 2D renderer), post-processing, hạt Shuriken, UI, font DejaVu có dấu tiếng Việt và DOTween đều hiện giống WebGL 2 trên ảnh. Vườn 2.5D đang tắt trên main (`Features.Garden25DByDefault = false`) nên chỉ biên dịch shader của nó, chưa xem trên trình duyệt.
+
+Lỗi WebGPU duy nhất tìm thấy: chế độ chụp ảnh dùng `ReadPixels` nên dưới WebGPU ảnh xám trắng (`webgpu-anh-truoc-khi-sua.png`, console: "Texture Readback is not supported by WebGPU"). `GardenScreen.Snap` dưới WebGPU chép ảnh bằng `Graphics.CopyTexture` cho khung xem trước và ghi PNG bằng `AsyncGPUReadback`; các nền tảng khác giữ `ReadPixels` như cũ.
+
+Dung lượng (Brotli, 27/11): `WebGL.data.unityweb` 32,93 MB (52,90 MB giải nén), `WebGL.wasm.unityweb` 9,75 MB (53,27 MB), `WebGL.framework.js.unityweb` 0,07 MB (0,43 MB), `WebGL.loader.js` 0,11 MB. Tổng tải 42,87 MB, giải nén 106,71 MB (MB = 2^20 byte). So với bản WebGL 2 ngày 26/11 (32,5 + 9,3 MB) thêm khoảng 0,9 MB vì có cả hai bộ shader và mã WebGPU.
+
+**Nén texture (đề xuất, chưa làm):** 200 trong 271 ảnh PNG để nén = None trên Web (~110 MB nếu tính RGBA32 cho mọi ảnh trong `Assets`, gồm cả ảnh không vào build). Đặt override WebGL dùng DXT5/BC7 (1 byte/pixel, máy tính) cùng ASTC (điện thoại, Unity cho build thêm bản ASTC) sẽ giảm phần texture trong `.data` khoảng 4 lần trước Brotli và giảm RAM GPU tương ứng; ước tính `.data` tải về còn khoảng 12–18 MB thay vì 33 MB. Đổi lại là viền màu nước và alpha mềm có thể bị khối/nhoè, nên phải xem ảnh từng nhóm (nền, thỏ, UI) trước khi áp dụng. Chưa đo.
+
 ## Phát hành một bản mới
 
 1. `git pull` trên nhánh cần phát hành; `tools/verify.sh` xanh.

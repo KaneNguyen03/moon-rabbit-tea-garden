@@ -2261,14 +2261,18 @@ namespace VuonTra.Game.UI
             lens.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
             lens.Render();
-            RenderTexture.active = rt;
             if (_photoTexture != null) { if (Application.isPlaying) Destroy(_photoTexture); else DestroyImmediate(_photoTexture); }
-            _photoTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
-            _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            _photoTexture.Apply();
-            RenderTexture.active = null;
+            bool readsBack = PhotoReadsBackAtOnce;
+            _photoTexture = new Texture2D(width, height, readsBack ? TextureFormat.RGB24 : TextureFormat.RGBA32, false);
+            if (readsBack)
+            {
+                RenderTexture.active = rt;
+                _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                _photoTexture.Apply();
+                RenderTexture.active = null;
+            }
+            else Graphics.CopyTexture(rt, _photoTexture);
             lens.targetTexture = was;
-            rt.Release();
 
             string folder = string.IsNullOrEmpty(PhotoFolder)
                 ? System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyPictures), "VuonTraTho")
@@ -2281,12 +2285,14 @@ namespace VuonTra.Game.UI
                 string stamp = System.DateTime.Now.ToString("yyyyMMdd-HHmmss");
                 path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
                 for (int n = 2; System.IO.File.Exists(path); n++) path = System.IO.Path.Combine(folder, "vuon-" + stamp + "-" + n + ".png");
-                System.IO.File.WriteAllBytes(path, _photoTexture.EncodeToPNG());
+                if (readsBack) System.IO.File.WriteAllBytes(path, _photoTexture.EncodeToPNG());
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning("Không lưu được ảnh: " + e.Message);
             }
+            if (readsBack) rt.Release();
+            else SavePhotoOnceRead(rt, path);
             LastPhotoPath = path;
 
             Sfx.Shutter();
@@ -2299,6 +2305,24 @@ namespace VuonTra.Game.UI
             _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftGolden) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
             _photoReview.SetActive(true);
+        }
+
+        public static bool PhotoReadsBackAtOnce => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.WebGPU;
+
+        static void SavePhotoOnceRead(RenderTexture rt, string path)
+        {
+            UnityEngine.Rendering.AsyncGPUReadback.Request(rt, 0, TextureFormat.RGBA32, request =>
+            {
+                if (!request.hasError && path != null)
+                {
+                    var picture = new Texture2D(rt.width, rt.height, TextureFormat.RGBA32, false);
+                    picture.SetPixelData(request.GetData<byte>(), 0);
+                    try { System.IO.File.WriteAllBytes(path, picture.EncodeToPNG()); }
+                    catch (System.Exception e) { Debug.LogWarning("Không lưu được ảnh: " + e.Message); }
+                    Destroy(picture);
+                }
+                rt.Release();
+            });
         }
 
         /// <summary>Opens the folder with the picture selected (Finder on a Mac).</summary>
