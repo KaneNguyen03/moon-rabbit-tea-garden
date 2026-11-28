@@ -85,6 +85,7 @@ namespace VuonTra.Core.Tests
             defs = catalog.BuildDefs();
             ups = catalog.BuildUpgrades();
             quests = catalog.BuildQuests();
+            likes = catalog.Personalities != null ? catalog.Personalities.ToBook() : PersonalityBook.Empty;
         }
 
         const int Seed = 20261122;
@@ -147,6 +148,7 @@ namespace VuonTra.Core.Tests
             for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
             purpleAt = goldAt = -1;
             ResetNights(seed);
+            ResetStrokes();
             snapshots.Clear();
             trace.Clear();
             if (tireless)
@@ -205,7 +207,7 @@ namespace VuonTra.Core.Tests
             foreach (Rabbit r in s.Rabbits)
             {
                 if (petted >= 3) break;
-                if (Rabbits.Pet(s, r, Today).FirstToday) petted++;
+                if (Stroke(r).FirstToday) petted++;
             }
             if (s.LayoutMoves == 0 && s.Grid.TryTileOf(GardenGrid.StationId(defs[1]), out Hex a) && s.Grid.TryTileOf(GardenGrid.StationId(defs[2]), out Hex b)
                 && Layout.Drop(defs, s, a, b) == LayoutDrop.Swapped)
@@ -253,7 +255,7 @@ namespace VuonTra.Core.Tests
             Rabbit r = Rabbits.AtStation(s, BestToTap());
             if (r == null) return;
             int golden = s.GoldenCarrots;
-            Rabbits.Pet(s, r, Today);
+            Stroke(r);
             for (int k = Fishing.Kinds - 1; k >= 0; k--)
                 for (FeedResult fed; s.Fish[k] > 0 && (fed = Fishing.Feed(s, r, k)).Fed;) fishPoints += fed.Points;
             goldenHearts += s.GoldenCarrots - golden;

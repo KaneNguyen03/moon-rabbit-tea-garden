@@ -5053,6 +5053,366 @@ MonoBehaviour:
     m_Localized: "+{0} \u2665"
     m_Metadata:
       m_Items: []
+  - m_Id: 2288796696166400
+    m_Localized: Sleepy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498048
+    m_Localized: Curious
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498049
+    m_Localized: Sweet tooth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498050
+    m_Localized: Shy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498051
+    m_Localized: Songbird
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498052
+    m_Localized: Tidy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498053
+    m_Localized: Dreamy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498054
+    m_Localized: Foodie
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498055
+    m_Localized: "{0} \xB7 Loves: {1}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498056
+    m_Localized: "Yawn\u2026 just a tiny nap, okay?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498057
+    m_Localized: This warm sun makes me so drowsy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498058
+    m_Localized: I dreamt of a giant fluffy pillow.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498059
+    m_Localized: I sleep best when you're near.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498060
+    m_Localized: Ooh, what's shining under that leaf?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498061
+    m_Localized: I wonder what the moon is made of.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498062
+    m_Localized: Why does tea smell so nice?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498063
+    m_Localized: Explore the garden with me?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498064
+    m_Localized: Could I have a bit more honey?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498065
+    m_Localized: I saved the last candy for later.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498066
+    m_Localized: Caramel smell makes me melt.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498067
+    m_Localized: My sweetest candy is for you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498068
+    m_Localized: "Oh\u2026 are you looking at me?"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498069
+    m_Localized: I'll hide behind a leaf a bit.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498070
+    m_Localized: Speak softly, please. I'm shy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498071
+    m_Localized: With you, I'm not shy anymore.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498072
+    m_Localized: La la la, brew up nice and sweet!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498073
+    m_Localized: I just thought up a new song.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498074
+    m_Localized: The wind hums, so I sing along.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498075
+    m_Localized: I wrote this song for you.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498076
+    m_Localized: Let me line the cups up neatly.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498077
+    m_Localized: Leaves fell. I'll sweep them now.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498078
+    m_Localized: A tidy garden is a pretty one.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498079
+    m_Localized: I tidied this corner just for you.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498080
+    m_Localized: That cloud looks like a bun.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498081
+    m_Localized: I wish I could hop on a rainbow.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498082
+    m_Localized: Close my eyes and I see the moon.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498083
+    m_Localized: You're in every one of my dreams.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498084
+    m_Localized: My tummy is rumbling.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498085
+    m_Localized: Can I taste this batch?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498086
+    m_Localized: Snack first, then work, okay?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498087
+    m_Localized: I saved the tastiest bite for you.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498088
+    m_Localized: I gather dew every morning.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498089
+    m_Localized: Oolong leaves must roll up round.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498090
+    m_Localized: When pink snow melts, spring is here.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498091
+    m_Localized: Distant thunder? I'm not scared!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498092
+    m_Localized: Milk tea with extra pearls!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498093
+    m_Localized: I can paint the whole garden in ink.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498094
+    m_Localized: Dried orange peel smells so nice.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498095
+    m_Localized: Touch my paw, it's icy cool!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498096
+    m_Localized: My long ears can hear the stars.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498097
+    m_Localized: My fur's as fluffy as cotton candy.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498098
+    m_Localized: Look, a heart in the milk foam!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498099
+    m_Localized: I can always tell a ripe berry.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498100
+    m_Localized: I wobble just like a custard.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498101
+    m_Localized: Lavender helps me sleep right away.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498102
+    m_Localized: Taro purple is the prettiest!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498103
+    m_Localized: Cherry petals all over my ears.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498104
+    m_Localized: Please don't forget me, okay?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498105
+    m_Localized: Blueberries turned my tongue blue.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498106
+    m_Localized: Strawberries and cream, the best!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498107
+    m_Localized: Jasmine tea rests overnight.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498108
+    m_Localized: Isn't my fluffy mane grand?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498109
+    m_Localized: Peach blossoms say spring is here.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498110
+    m_Localized: The myrtle hill glows purple today.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498111
+    m_Localized: I float along like a cloud.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498112
+    m_Localized: Moss makes the softest bed.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498113
+    m_Localized: My antlers can hold a lantern!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498114
+    m_Localized: The new moon is a silver thread.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498115
+    m_Localized: My bee friends sent honey today.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498116
+    m_Localized: I fell down from a star.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498117
+    m_Localized: Amber keeps sunshine for ages.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498118
+    m_Localized: The Milky Way is my way home.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498119
+    m_Localized: My fur shimmers in the moonlight.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498120
+    m_Localized: My light's on. Nobody gets lost.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498121
+    m_Localized: A pinch of fairy dust for sweet tea.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498122
+    m_Localized: Tonight I'll light your way.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498123
+    m_Localized: Sunlight through me makes rainbows.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498124
+    m_Localized: Three tails, three wishes!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498125
+    m_Localized: Watch my star lantern spin!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498126
+    m_Localized: My new dress is ready for spring.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498127
+    m_Localized: Ho ho, here's a gift for you!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498128
+    m_Localized: Ruby tea, bold and bright!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498129
+    m_Localized: The moon was my old home.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498130
+    m_Localized: The moon may hide. I stay.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498131
+    m_Localized: The Moon Lady says hello.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498132
+    m_Localized: I bring the morning sun in.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498133
+    m_Localized: Tonight the sky will glow green.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498134
+    m_Localized: Jade pestle, moon medicine!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498135
+    m_Localized: My fire is cozy, never too hot.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498136
+    m_Localized: Every spot on me is a star.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

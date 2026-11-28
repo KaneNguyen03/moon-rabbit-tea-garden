@@ -11,6 +11,8 @@ namespace VuonTra.Game
         public UpgradeData[] Upgrades = new UpgradeData[0];
         public QuestData[] Quests = new QuestData[0];
         public ItemData[] Items = new ItemData[0];
+        [Tooltip("Each rabbit kind's personality and favourite brewing station.")]
+        public RabbitPersonalities Personalities;
         [Tooltip("Names handed out to newly called rabbits.")]
         public string[] RabbitNames = new string[0];
         [Tooltip("Optional: one drawing per tier (silver … red). Empty slots use the shared rabbit.")]

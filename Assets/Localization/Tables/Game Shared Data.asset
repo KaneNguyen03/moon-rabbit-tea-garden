@@ -5011,6 +5011,366 @@ MonoBehaviour:
     m_Key: overnight.bond.gain
     m_Metadata:
       m_Items: []
+  - m_Id: 2288796696166400
+    m_Key: temper.Sleepy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498048
+    m_Key: temper.Curious
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498049
+    m_Key: temper.SweetTooth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498050
+    m_Key: temper.Shy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498051
+    m_Key: temper.Singer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498052
+    m_Key: temper.Tidy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498053
+    m_Key: temper.Dreamy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498054
+    m_Key: temper.Hungry
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498055
+    m_Key: detail.temper
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498056
+    m_Key: chatter.temper.Sleepy.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498057
+    m_Key: chatter.temper.Sleepy.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498058
+    m_Key: chatter.temper.Sleepy.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498059
+    m_Key: chatter.temper.Sleepy.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498060
+    m_Key: chatter.temper.Curious.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498061
+    m_Key: chatter.temper.Curious.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498062
+    m_Key: chatter.temper.Curious.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498063
+    m_Key: chatter.temper.Curious.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498064
+    m_Key: chatter.temper.SweetTooth.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498065
+    m_Key: chatter.temper.SweetTooth.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498066
+    m_Key: chatter.temper.SweetTooth.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498067
+    m_Key: chatter.temper.SweetTooth.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498068
+    m_Key: chatter.temper.Shy.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498069
+    m_Key: chatter.temper.Shy.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498070
+    m_Key: chatter.temper.Shy.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498071
+    m_Key: chatter.temper.Shy.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498072
+    m_Key: chatter.temper.Singer.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498073
+    m_Key: chatter.temper.Singer.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498074
+    m_Key: chatter.temper.Singer.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498075
+    m_Key: chatter.temper.Singer.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498076
+    m_Key: chatter.temper.Tidy.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498077
+    m_Key: chatter.temper.Tidy.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498078
+    m_Key: chatter.temper.Tidy.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498079
+    m_Key: chatter.temper.Tidy.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498080
+    m_Key: chatter.temper.Dreamy.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498081
+    m_Key: chatter.temper.Dreamy.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498082
+    m_Key: chatter.temper.Dreamy.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498083
+    m_Key: chatter.temper.Dreamy.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498084
+    m_Key: chatter.temper.Hungry.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498085
+    m_Key: chatter.temper.Hungry.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498086
+    m_Key: chatter.temper.Hungry.2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498087
+    m_Key: chatter.temper.Hungry.heart
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498088
+    m_Key: chatter.kind.tho-suong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498089
+    m_Key: chatter.kind.tho-o-long
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498090
+    m_Key: chatter.kind.tho-tuyet-hong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498091
+    m_Key: chatter.kind.tho-bao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498092
+    m_Key: chatter.kind.tho-tra-sua
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498093
+    m_Key: chatter.kind.tho-muc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498094
+    m_Key: chatter.kind.tho-cam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498095
+    m_Key: chatter.kind.tho-bang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498096
+    m_Key: chatter.kind.tho-tai-dai
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498097
+    m_Key: chatter.kind.tho-angora
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498098
+    m_Key: chatter.kind.tho-latte
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498099
+    m_Key: chatter.kind.tho-dau
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498100
+    m_Key: chatter.kind.tho-flan
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498101
+    m_Key: chatter.kind.tho-oai-huong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498102
+    m_Key: chatter.kind.tho-khoai-mon
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498103
+    m_Key: chatter.kind.tho-anh-dao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498104
+    m_Key: chatter.kind.tho-luu-ly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498105
+    m_Key: chatter.kind.tho-viet-quat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498106
+    m_Key: chatter.kind.tho-dau-tay
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498107
+    m_Key: chatter.kind.tho-hoa-nhai
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498108
+    m_Key: chatter.kind.tho-su-tu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498109
+    m_Key: chatter.kind.tho-hoa-dao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498110
+    m_Key: chatter.kind.tho-sim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498111
+    m_Key: chatter.kind.tho-may
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498112
+    m_Key: chatter.kind.tho-reu
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498113
+    m_Key: chatter.kind.tho-gac
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498114
+    m_Key: chatter.kind.tho-trang-non
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498115
+    m_Key: chatter.kind.tho-mat-ong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498116
+    m_Key: chatter.kind.tho-sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498117
+    m_Key: chatter.kind.tho-ho-phach
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498118
+    m_Key: chatter.kind.tho-ngan-ha
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498119
+    m_Key: chatter.kind.tho-bach-kim
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498120
+    m_Key: chatter.kind.tho-den-long
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498121
+    m_Key: chatter.kind.tho-tien
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498122
+    m_Key: chatter.kind.tho-dom-dom
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498123
+    m_Key: chatter.kind.tho-pha-le
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498124
+    m_Key: chatter.kind.tho-ba-duoi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498125
+    m_Key: chatter.kind.tho-den-ong-sao
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498126
+    m_Key: chatter.kind.tho-ao-dai
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498127
+    m_Key: chatter.kind.tho-noel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498128
+    m_Key: chatter.kind.tho-hong-tra
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498129
+    m_Key: chatter.kind.tho-trang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498130
+    m_Key: chatter.kind.tho-nguyet-thuc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498131
+    m_Key: chatter.kind.tho-hang-nga
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498132
+    m_Key: chatter.kind.tho-mat-troi
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498133
+    m_Key: chatter.kind.tho-cuc-quang
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498134
+    m_Key: chatter.kind.tho-ngoc
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498135
+    m_Key: chatter.kind.tho-rong
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498136
+    m_Key: chatter.kind.tho-chom-sao
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

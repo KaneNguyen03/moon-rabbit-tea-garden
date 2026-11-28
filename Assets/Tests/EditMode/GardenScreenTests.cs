@@ -4852,8 +4852,8 @@ namespace VuonTra.Core.Tests
             line = root.transform.Find("Canvas/Garden/Content/BondLine");
             Assert.IsNotNull(line, "the line is spoken over the rabbit");
             Assert.IsTrue(line.gameObject.activeSelf);
-            Assert.AreEqual(L10n.T("bond.line.Brewer"), line.Find("Text").GetComponent<Text>().text, "a brewer's line for a brewer");
-            Assert.AreNotEqual("", L10n.T("bond.line.Brewer"));
+            Assert.AreEqual(L10n.T(Personalities.HeartKey(Personality.Sleepy)), line.Find("Text").GetComponent<Text>().text, "a sleepy rabbit's own three-heart line");
+            Assert.AreNotEqual("chatter.temper.Sleepy.heart", L10n.T("chatter.temper.Sleepy.heart"));
             for (int i = 0; i < 30 * 5; i++) screen.Advance(1f / 30f);
             Assert.IsFalse(line.gameObject.activeSelf, "the line leaves on its own");
 
@@ -5820,8 +5820,12 @@ namespace VuonTra.Core.Tests
             return shown;
         }
 
-        static List<string> Allowed(RabbitTrade trade, bool resting, double hour, GameRunner runner, bool boosted, bool dressed) =>
-            Chatter.KeysFor(trade, resting, Daylight.PhaseAt(hour), Seasons.SeasonOf(runner.TodayNumber), boosted, dressed);
+        static List<string> Allowed(RabbitTrade trade, bool resting, double hour, GameRunner runner, bool boosted, bool dressed)
+        {
+            Rabbit speaker = runner.State.Rabbits.Count > 0 ? runner.State.Rabbits[0] : null;
+            runner.Likes.TryGet(speaker != null ? Rabbits.KindOf(speaker) : null, out Liking like);
+            return Chatter.KeysFor(trade, resting, Daylight.PhaseAt(hour), Seasons.SeasonOf(runner.TodayNumber), boosted, dressed, like, Rabbits.HeartsOf(speaker));
+        }
 
         [Test]
         public void After_Seventy_Seconds_A_Working_Rabbit_Has_Said_Exactly_One_Line_Of_Its_Trade_Or_The_Hour()

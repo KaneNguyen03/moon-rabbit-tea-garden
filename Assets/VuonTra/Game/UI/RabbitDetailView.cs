@@ -12,6 +12,7 @@ namespace VuonTra.Game.UI
         readonly GameObject _root;
         readonly RectTransform _card, _body;
         readonly GameCatalog _catalog;
+        readonly PersonalityBook _likes;
         readonly Tweens _tweens;
         readonly Action<long> _onLevelUp, _onLevelMax, _onRename, _onRest, _onWash;
         readonly Action<long, ItemSlot> _onSlot;
@@ -30,6 +31,7 @@ namespace VuonTra.Game.UI
             Action<long, ItemSlot> onSlot, Action<long, int> onAssign, Action<long> onRest, Action<long, int> onDye, Action<long> onWash)
         {
             _catalog = catalog;
+            _likes = catalog.Personalities != null ? catalog.Personalities.ToBook() : PersonalityBook.Empty;
             _tweens = tweens;
             _onLevelUp = onLevelUp;
             _onLevelMax = onLevelMax;
@@ -238,6 +240,7 @@ namespace VuonTra.Game.UI
             string where = working ? L10n.T("detail.working", L10n.Station(defs[r.Station].Id))
                 : RestSpots.IsSeated(s, r) ? L10n.T("detail.resting.share", RabbitGridView.Percent(RestSpots.BonusOf(r)))
                 : L10n.T("detail.resting");
+            TemperLine(Rabbits.KindOf(r), 580, 38, 44, 330, TextAnchor.MiddleLeft);
             Line("Where", 622, 44, where, 30, Palette.Ink, FontStyle.Bold, 44, 330);
             if (working)
             {
@@ -426,9 +429,29 @@ namespace VuonTra.Game.UI
             var names = new StringBuilder();
             for (int i = 0; i < defs.Count; i++)
                 if (defs[i].Trade == kind.Trade) names.Append(names.Length > 0 ? ", " : "").Append(L10n.Station(defs[i].Id));
-            Text about = UiKit.Rect("About", _body).Stretch(0, 1, 1, 1, 70, -1000, 70, 830)
+            TemperLine(kind.Id, 812, 44, 70, 70, TextAnchor.MiddleCenter);
+            Text about = UiKit.Rect("About", _body).Stretch(0, 1, 1, 1, 70, -1040, 70, 870)
                 .AddText(L10n.T("album.kind.about", UiKit.Times(Rabbits.TradeBonus), names.ToString()), UiKit.TextBody, RabbitGridView.Quiet, TextAnchor.UpperCenter);
             about.horizontalOverflow = HorizontalWrapMode.Wrap;
         }
+
+        public static string TemperText(PersonalityBook likes, string kindId)
+        {
+            if (likes == null || !likes.TryGet(kindId, out Liking like)) return null;
+            return L10n.T("detail.temper", L10n.Temper(like.Personality), L10n.Station(like.Favourite));
+        }
+
+        void TemperLine(string kindId, float y, float height, float left, float right, TextAnchor anchor)
+        {
+            string text = TemperText(_likes, kindId);
+            if (text == null) return;
+            RectTransform rt = UiKit.Rect("Temper", _body).Stretch(0, 1, 1, 1, left, -(y + height), right, y);
+            Text t = rt.AddText(text, TemperSize, Palette.Ink, anchor, FontStyle.Bold);
+            t.resizeTextForBestFit = true;
+            t.resizeTextMinSize = TemperLeast;
+            t.resizeTextMaxSize = UiKit.Scaled(TemperSize);
+        }
+
+        public const int TemperSize = 24, TemperLeast = 16;
     }
 }
