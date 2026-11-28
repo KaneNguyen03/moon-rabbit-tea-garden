@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0bba0dd56bcf430d82e8d02334feaf63, type: 3}
+  m_Name: SoundBank
+  m_EditorClassIdentifier: 
+  Summon: {fileID: 8300000, guid: ff933100e8aa48cd867f78c925817054, type: 3}
+  GardenLevel: {fileID: 8300000, guid: a8c14ccf003543cb8e4ffc846efd28e1, type: 3}
+  Plot: {fileID: 8300000, guid: b8e6b7ae4cfb4255a9f4e2f9448acab3, type: 3}
+  Gift: {fileID: 8300000, guid: 61c7414795874de89996070e0d158e11, type: 3}
+  Pet: {fileID: 8300000, guid: 4fb67e91a6df403d8cc7892f578904fe, type: 3}
+  Tray: {fileID: 8300000, guid: 7a23c87981b24884ae3cdd6aca0cb174, type: 3}

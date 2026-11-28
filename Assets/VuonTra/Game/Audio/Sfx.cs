@@ -16,12 +16,13 @@ namespace VuonTra.Game
         public const float MelodyLevel = 0.5f;
         public const float DefaultMusicGain = 0.6f;
         public const float DefaultStationGain = 0.5f;
+        public const float DefaultSfxGain = 0.8f;
         public const float TuneFadeSeconds = 1f;
         public const float MarketLevel = 0.25f;
         public const int TuneChoices = 4;
 
         static bool _loaded;
-        static float _musicGain = DefaultMusicGain, _sfxGain = 0.8f, _stationGain = DefaultStationGain;
+        static float _musicGain = DefaultMusicGain, _sfxGain = DefaultSfxGain, _stationGain = DefaultStationGain;
         static Tune _tune = Tune.Auto;
 
         public static float MusicGain { get { Load(); return _musicGain; } }
@@ -33,7 +34,7 @@ namespace VuonTra.Game
             if (_loaded && !again) return;
             _loaded = true;
             _musicGain = PlayerPrefs.GetFloat(MusicKey, DefaultMusicGain);
-            _sfxGain = PlayerPrefs.GetFloat(SfxKey, 0.8f);
+            _sfxGain = PlayerPrefs.GetFloat(SfxKey, DefaultSfxGain);
             _stationGain = PlayerPrefs.GetFloat(StationKey, DefaultStationGain);
             _tune = (Tune)Mathf.Clamp(PlayerPrefs.GetInt(TuneKey, 0), 0, TuneChoices - 1);
         }
@@ -213,10 +214,16 @@ namespace VuonTra.Game
         public static void Summon(int tier)
         {
             tier = Mathf.Clamp(tier, 0, _summon.Length - 1);
-            Play("summon-" + tier, _summon[tier] ?? (_summon[tier] = MakeSummon(tier)), 0.6f, 0f);
+            int made = tier;
+            Moment(SoundMoment.Summon, "summon-" + tier, () => _summon[made] ?? (_summon[made] = MakeSummon(made)), 0.6f, 0f, SoundBank.TierPitch(tier));
         }
 
-        public static void Pet() => Play("pet", _pet ?? (_pet = MakePet()), 0.5f, 0.1f);
+        public static void Pet() => Moment(SoundMoment.Pet, "pet", () => _pet ?? (_pet = MakePet()), 0.5f, 0.1f);
+        public static void GardenLevel() => Moment(SoundMoment.GardenLevel, "sting", () => _sting ?? (_sting = MakeSting()), 0.6f, 0f);
+        public static void Plot() => Moment(SoundMoment.Plot, "unlock", () => _sting ?? (_sting = MakeSting()), 0.6f, 0f);
+        public static void Gift() => Moment(SoundMoment.Gift, "reward", () => _reward ?? (_reward = MakeReward()), 0.55f, 0.03f);
+        public static void Chest() => Moment(SoundMoment.Gift, "unlock", () => _sting ?? (_sting = MakeSting()), 0.6f, 0f);
+        public static void Collect() => Moment(SoundMoment.Tray, "reward", () => _reward ?? (_reward = MakeReward()), 0.55f, 0.03f);
         public static void Upgrade() => Play("upgrade", _blip ?? (_blip = MakeBlip()), 0.55f, 0.08f);
         public static void Milestone() => Play("milestone", _milestone ?? (_milestone = MakeMilestone()), 0.6f, 0f);
         public static void Unlock() => Play("unlock", _sting ?? (_sting = MakeSting()), 0.6f, 0f);
@@ -233,6 +240,42 @@ namespace VuonTra.Game
             Play("tick", _tick ?? (_tick = MakeTick()), 0.22f, 0.1f);
         }
 
+        static SoundBank _bank;
+        static bool _bankLoaded;
+
+        public static SoundBank Bank
+        {
+            get
+            {
+                if (!_bankLoaded)
+                {
+                    _bankLoaded = true;
+                    _bank = Resources.Load<SoundBank>(SoundBank.ResourcePath);
+                }
+                return _bank;
+            }
+        }
+
+        public static void UseBank(SoundBank bank)
+        {
+            _bank = bank;
+            _bankLoaded = true;
+        }
+
+        public static void ReloadBank() => _bankLoaded = false;
+
+        public static SoundMoment? LastMoment { get; private set; }
+        public static AudioClip LastClip { get; private set; }
+        public static float LastPitch { get; private set; } = 1f;
+
+        static void Moment(SoundMoment moment, string name, Func<AudioClip> synthesized, float volume, float pitchSpread, float pitch = 1f)
+        {
+            AudioClip recorded = Bank != null ? Bank.Clip(moment) : null;
+            if (recorded != null) Play(name, recorded, SoundBank.Volume, SoundBank.PitchSpread, pitch);
+            else Play(name, synthesized(), volume, pitchSpread);
+            LastMoment = moment;
+        }
+
         static readonly List<string> _recent = new List<string>();
         static readonly Dictionary<string, float> _volumes = new Dictionary<string, float>();
 
@@ -240,14 +283,17 @@ namespace VuonTra.Game
         public static void ClearRecent() => _recent.Clear();
         public static float LastVolumeOf(string name) => _volumes.TryGetValue(name, out float v) ? v : 0f;
 
-        static void Play(string name, AudioClip clip, float volume, float pitchSpread)
+        static void Play(string name, AudioClip clip, float volume, float pitchSpread, float pitch = 1f)
         {
             Last = name;
+            LastMoment = null;
+            LastClip = clip;
+            LastPitch = pitch;
             _recent.Add(name);
             if (_recent.Count > 64) _recent.RemoveAt(0);
             _volumes[name] = volume * SfxGain;
             if (_oneShots == null || !Application.isPlaying || SfxGain <= 0f) return;
-            _oneShots.pitch = 1f + UnityEngine.Random.Range(-pitchSpread, pitchSpread);
+            _oneShots.pitch = pitch * (1f + UnityEngine.Random.Range(-pitchSpread, pitchSpread));
             _oneShots.PlayOneShot(clip, volume * SfxGain);
         }
 
