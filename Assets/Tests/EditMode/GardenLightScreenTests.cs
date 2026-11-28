@@ -193,6 +193,44 @@ namespace VuonTra.Core.Tests
                 Assert.AreEqual(night[i], flat[i].color, flat[i].name + " " + i + " is its own colour again at night");
         }
 
+        static bool SameOnScreen(Color a, Color b)
+        {
+            Color32 x = a, y = b;
+            return x.r == y.r && x.g == y.g && x.b == y.b && x.a == y.a;
+        }
+
+        [TestCase(17.5)]
+        [TestCase(6.0)]
+        public void While_The_Hour_Moves_The_Paths_Are_Recoloured_Only_When_The_Wash_On_Screen_Changes(double start)
+        {
+            Image daylight = Canvas.Find("Daylight").GetComponent<Image>();
+            List<Image> flat = FlatGround();
+            bool still = false;
+            for (double hour = start; hour < start + 0.05 && !still; hour += 10.0 / 3600.0)
+            {
+                OverlaysAt(hour, false);
+                Color shown = daylight.color;
+                int washes = screen.FlatGroundWashes;
+                List<Color> tones = flat.Select(i => i.color).ToList();
+                OverlaysAt(hour + 1.0 / 3600.0, false);
+                if (shown.a == daylight.color.a || !SameOnScreen(shown, daylight.color)) continue;
+                still = true;
+                Assert.AreEqual(washes, screen.FlatGroundWashes, "a second later the wash moved, but not by a step the screen shows: nothing is recoloured");
+                for (int i = 0; i < flat.Count; i++) Assert.AreEqual(tones[i], flat[i].color, flat[i].name + " " + i);
+            }
+            Assert.IsTrue(still, "found a second in which the wash moved by less than one step on screen");
+
+            int before = screen.FlatGroundWashes;
+            Color path = flat.First(i => i.name == "Path").color;
+            OverlaysAt(start + 0.5, false);
+            Assert.AreEqual(before + 1, screen.FlatGroundWashes, "half an hour on, the wash on screen has changed: one recolour");
+            Assert.AreNotEqual(path, flat.First(i => i.name == "Path").color);
+            int washed = screen.FlatGroundWashes;
+            screen.Refresh();
+            screen.Advance(0.1f);
+            Assert.AreEqual(washed, screen.FlatGroundWashes, "the same hour again: nothing to redo");
+        }
+
         [Test]
         public void A_Wash_Over_A_Piece_Of_Ground_Is_The_Wash_Over_The_Grass()
         {

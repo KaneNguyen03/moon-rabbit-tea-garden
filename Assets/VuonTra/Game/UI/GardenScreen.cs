@@ -156,6 +156,7 @@ namespace VuonTra.Game.UI
         readonly List<Image> _flatGround = new List<Image>();
         readonly List<Color> _flatGroundTones = new List<Color>();
         Color _flatDay, _flatRain;
+        public int FlatGroundWashes { get; private set; }
         /// <summary>Every paper lantern's picture, for the colour the player hangs on them (#11), and the colour its glow takes.</summary>
         readonly List<Image> _lanternArt = new List<Image>();
         Color _lanternGlowColor = Palette.Lantern;
@@ -7166,9 +7167,11 @@ namespace VuonTra.Game.UI
         {
             Color day = _daylight != null && _daylight.enabled ? _daylight.color : Color.clear;
             Color rain = _rainTint != null && _rainTint.gameObject.activeSelf ? _rainTint.color : Color.clear;
-            if (day == _flatDay && rain == _flatRain) return;
-            _flatDay = day;
-            _flatRain = rain;
+            Color dayShown = SceneOverlays.OnScreen(day), rainShown = SceneOverlays.OnScreen(rain);
+            if (dayShown == _flatDay && rainShown == _flatRain) return;
+            _flatDay = dayShown;
+            _flatRain = rainShown;
+            FlatGroundWashes++;
             for (int i = 0; i < _flatGround.Count; i++)
             {
                 Image piece = _flatGround[i];

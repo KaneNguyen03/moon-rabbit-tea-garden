@@ -40,3 +40,27 @@ VERDICT: APPROVED
 6. pass - lối đi vẫn đọc được là vệt đất ấm, ở mức một vệt mòn chứ không thành đường kẻ đậm; đèn đá viền rừng có vũng sáng như các đèn khác
 7. pass - HUD, thanh tab, bảng tên, "Còn thiếu 120", "Xây · 1,40K" vẫn rõ; không gì bị cắt
 ```
+
+## Điều kiện 1 của QA: không tô lại 839 mảnh mỗi lần làm mới lúc hoàng hôn và bình minh
+`WashFlatGround` chỉ tô lại khi màu 8-bit của lớp theo giờ hoặc lớp mưa đổi, tức là khi màu màn hình thật sự vẽ thay đổi. Khi tô lại, các mảnh vẫn nhận đúng màu của lớp như trước, nên nhìn không đổi. Lúc hoàng hôn, alpha của lớp màu đổi một bậc 1/255 khoảng hai phút một lần, thay vì mỗi 0,1 giây.
+
+Thời gian một lần `Refresh()` cộng `Canvas.ForceUpdateCanvases()`, trung bình 400 lần, giờ tăng 0,1 s mỗi lần, đo trong Editor qua `tools/unity-gate.sh` (test đo tạm, không commit):
+
+| | 13:00 ngày | 22:00 đêm | 18:00 hoàng hôn | 06:00 bình minh |
+|---|---|---|---|---|
+| main (số đo của QA) | 0,69 ms | 0,56 ms | 0,62 ms | — |
+| PR trước khi sửa (`8fdab3f`) | 0,60 ms | 0,58 ms | **2,10 ms** | **1,92 ms** |
+| PR sau khi sửa | 0,69 ms | 0,69 ms | **0,69 ms** | **0,70 ms** |
+
+Ảnh `tools/shot.sh` sau khi sửa, so từng điểm ảnh với ảnh của `8fdab3f`:
+
+| Khung | Số điểm ảnh khác | Chênh lớn nhất | Chỗ khác |
+|---|---|---|---|
+| `21-ban-ngay` | 7531 | 205 | Chỉ ô 91×105 quanh đèn lồng (328–419, 857–962): bong bóng xin chụp ảnh (`PhotoAsk`) ngẫu nhiên của phiên chơi hiện ra ở lần chạy này |
+| `21-hoang-hon` | 7534 | 205 | Cùng ô đó, cùng bong bóng |
+| `2-garden` | 0 | 0 | — |
+| `62-mua-ngay` | 1 | 1 | Một điểm ảnh ở HUD |
+| `62-mua-dem` | 0 | 0 | — |
+| `91c-6-doan-duoi` | 0 | 0 | — |
+
+Lối đi, đá và sương giống hệt từng điểm ảnh.
