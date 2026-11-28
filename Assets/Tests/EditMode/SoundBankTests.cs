@@ -14,6 +14,7 @@ namespace VuonTra.Core.Tests
         const float MaxPeakDb = -3f;
         const float CommonRmsDb = -20f, RmsToleranceDb = 3f;
         const float MaxOverMusicDb = 6f;
+        const float MaxCentroidHz = 4500f;
         const int SummonTier = 2;
 
         static readonly Dictionary<SoundMoment, string> Synthesized = new Dictionary<SoundMoment, string>
@@ -167,6 +168,13 @@ namespace VuonTra.Core.Tests
             Assert.LessOrEqual(m.PeakDb, MaxPeakDb, moment + ": " + m);
             Assert.AreEqual(CommonRmsDb, m.RmsDb, RmsToleranceDb, moment + ": " + m);
             Assert.LessOrEqual(clip.length, SoundBank.MaxSeconds, moment + " is " + clip.length + " s");
+        }
+
+        [Test]
+        public void No_Clip_Is_Shrill([ValueSource(nameof(Moments))] SoundMoment moment)
+        {
+            SoundMeter m = SoundMeter.Of(Loaded(moment));
+            Assert.Less(m.CentroidHz, MaxCentroidHz, moment + ": " + m);
         }
 
         [Test]
