@@ -33,6 +33,16 @@ namespace VuonTra.EditorTools
 
                     FeelLaneGarden(runner, screen, day);
                     screen.OpenSheet(2);
+                    Step(screen, 0.6f);
+                    Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim");
+                    Step(screen, 1f);
+                    Capture(screen, name + "bang-nua-qua");
+                    Step(screen, 2.5f);
+                    screen.CloseSheet();
+                    Step(screen, 0.5f);
+
+                    FeelLaneGarden(runner, screen, day);
+                    screen.OpenSheet(2);
                     Step(screen, 0.5f);
                     screen.DragSheet(GardenScreen.SheetFull);
                     screen.ReleaseSheet();

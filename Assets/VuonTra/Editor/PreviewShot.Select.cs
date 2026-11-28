@@ -164,6 +164,7 @@ namespace VuonTra.EditorTools
                 _asked = null;
                 _only = null;
                 _namesOnly = false;
+                ReleaseFrame();
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             }
         }
