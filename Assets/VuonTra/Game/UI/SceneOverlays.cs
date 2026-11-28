@@ -12,6 +12,15 @@ namespace VuonTra.Game.UI
         public const float GrassTileStrength = 0.40f;
         public const float LanternPoolAlpha = 0.45f;
 
+        public static Color OnScreen(Color c) => (Color32)c;
+
+        public static Color Washed(Color under, Color wash)
+        {
+            if (wash.a <= 0f) return under;
+            Color tone = Palette.Mix(under.linear, wash.linear, wash.a).gamma;
+            return Palette.Alpha(tone, under.a);
+        }
+
         public static List<Graphic> Over(RectTransform canvas, Transform world, Transform hud)
         {
             var found = new List<Graphic>();

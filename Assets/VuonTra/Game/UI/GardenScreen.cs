@@ -153,6 +153,10 @@ namespace VuonTra.Game.UI
         /// <summary>The scenery that moves: trees lean from the root, lanterns swing from the hook and flicker, the pond shimmers.</summary>
         readonly List<RectTransform> _swayTrees = new List<RectTransform>(), _swayLanterns = new List<RectTransform>();
         readonly List<Image> _lanternGlows = new List<Image>(), _lanternPools = new List<Image>(), _ripples = new List<Image>();
+        readonly List<Image> _flatGround = new List<Image>();
+        readonly List<Color> _flatGroundTones = new List<Color>();
+        Color _flatDay, _flatRain;
+        public int FlatGroundWashes { get; private set; }
         /// <summary>Every paper lantern's picture, for the colour the player hangs on them (#11), and the colour its glow takes.</summary>
         readonly List<Image> _lanternArt = new List<Image>();
         Color _lanternGlowColor = Palette.Lantern;
@@ -1171,7 +1175,7 @@ namespace VuonTra.Game.UI
             _decorSpots.Clear(); _lanternArt.Clear(); _lanternGlowColor = Palette.Lantern;
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
-            _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _lanternPools.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
+            _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _lanternPools.Clear(); _ripples.Clear(); _flatGround.Clear(); _flatGroundTones.Clear(); _flatDay = _flatRain = Color.clear; _pondGlow = null; _worldSeen = false;
             _seatHats.Clear(); _seatNames.Clear();
             _worldLabels.Clear(); _labelsNear = false;
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _idleCouriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
@@ -1433,7 +1437,7 @@ namespace VuonTra.Game.UI
                 for (int k = 1; k < steps; k++)
                 {
                     Vector2 at = Vector2.Lerp(a, b, k / (float)steps) + new Vector2(0, Mathf.Sin(k * 1.7f) * 7f);
-                    UiKit.Rect("Stone", _street).Place(0f, 0f, at.x, at.y, 38, 15).AddImage(catalog.Round, stone);
+                    FlatGround(UiKit.Rect("Stone", _street).Place(0f, 0f, at.x, at.y, 38, 15).AddImage(catalog.Round, stone));
                 }
             }
 
@@ -2519,6 +2523,7 @@ namespace VuonTra.Game.UI
                 _daylight.color = wash;
                 _daylight.enabled = wash.a > 0.002f;
             }
+            WashFlatGround();
             int awake = Daylight.FirefliesAt(hour, _fireflies.Count);
             for (int i = 0; i < _fireflies.Count; i++)
                 if (_fireflies[i].gameObject.activeSelf != (i < awake)) _fireflies[i].gameObject.SetActive(i < awake);
@@ -2662,8 +2667,12 @@ namespace VuonTra.Game.UI
             Color tint = LanternTint(s.LanternColor);
             foreach (Image lantern in _lanternArt) if (lantern != null && lantern.color != tint) lantern.color = tint;
             _lanternGlowColor = s.LanternColor > 0 ? Palette.Mix(Palette.Lantern, Palette.Hex(MonthPass.LanternHex(s.LanternColor)), 0.5f) : Palette.Lantern;
-            Color pool = Palette.Alpha(_lanternGlowColor, SceneOverlays.LanternPoolAlpha);
-            foreach (Image light in _lanternPools) if (light != null && light.color != pool) light.color = pool;
+            foreach (Image light in _lanternPools)
+            {
+                if (light == null) continue;
+                Color pool = Palette.Alpha(_lanternGlowColor, light.color.a);
+                if (light.color != pool) light.color = pool;
+            }
             if (DecorCard != null) DecorCard.Refresh(s);
         }
 
@@ -2747,7 +2756,7 @@ namespace VuonTra.Game.UI
                 for (int k = 0; k <= steps; k++)
                 {
                     Vector2 at = Vector2.Lerp(a, b, k / (float)steps) + new Vector2(Mathf.Sin(k * 2.3f) * 9f, Mathf.Sin(k * 1.7f) * 7f);
-                    UiKit.Rect("Path", _street).Place(0f, 0f, at.x, at.y, 118, 64).AddImage(catalog.Round, earth);
+                    FlatGround(UiKit.Rect("Path", _street).Place(0f, 0f, at.x, at.y, 118, 64).AddImage(catalog.Round, earth));
                 }
             }
 
@@ -2759,13 +2768,13 @@ namespace VuonTra.Game.UI
                 float angle = k / 14f * Mathf.PI * 2f + 0.2f;
                 Vector2 at = ring + new Vector2(Mathf.Cos(angle) * 225f, Mathf.Sin(angle) * 150f);
                 float w = 62f + Hash(k + 11f) * 22f;
-                UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, w, w * 0.62f).AddImage(catalog.Round, stone);
+                FlatGround(UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, w, w * 0.62f).AddImage(catalog.Round, stone));
             }
             for (int k = 0; k < 6; k++)
             {
                 float angle = k / 6f * Mathf.PI * 2f + 0.7f;
                 Vector2 at = ring + new Vector2(Mathf.Cos(angle) * 135f, Mathf.Sin(angle) * 92f);
-                UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, 56f, 34f).AddImage(catalog.Round, stone);
+                FlatGround(UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, 56f, 34f).AddImage(catalog.Round, stone));
             }
 
             // Carpets of small flowers where the grass is most open: the spots furthest from every station and seat,
@@ -2854,8 +2863,8 @@ namespace VuonTra.Game.UI
         /// <summary>One piece of the forest rim: a tree, a sapling, a clump of mushrooms, a bush, stones or a stone lantern.</summary>
         sealed class RimPiece
         {
-            public RectTransform Art, Shade;
-            public Image Image, ShadeImage;
+            public RectTransform Art, Shade, Pool;
+            public Image Image, ShadeImage, PoolImage;
             /// <summary>Where its foot stands up the lawn, its size, which side (-1 left, +1 right), and how far behind the edge line its row stands.</summary>
             public float Y, Width, Height, Depth, ShadeAlpha;
             public int Side;
@@ -2893,7 +2902,7 @@ namespace VuonTra.Game.UI
                 Vector2 along = new Vector2(-Mathf.Sin(angle) * at.width, Mathf.Cos(angle) * at.height);
                 var d = UiKit.Rect("Dash", ring).Place(0.5f, 0.5f, o.x, o.y, 24f, 7f);
                 d.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(along.y, along.x) * Mathf.Rad2Deg);
-                d.AddImage(catalog.Round, dash).raycastTarget = false;
+                FlatGround(d.AddImage(catalog.Round, dash)).raycastTarget = false;
             }
             return group;
         }
@@ -2963,6 +2972,11 @@ namespace VuonTra.Game.UI
                 p.Shade.anchoredPosition = new Vector2(x + 6f, p.Y + 4f);
                 p.ShadeImage.color = Palette.Alpha(p.ShadeImage.color, p.ShadeAlpha * alpha);
             }
+            if (p.Pool != null)
+            {
+                p.Pool.anchoredPosition = new Vector2(x, p.Y);
+                p.PoolImage.color = Palette.Alpha(p.PoolImage.color, SceneOverlays.LanternPoolAlpha * alpha);
+            }
         }
 
         /// <summary>Open grass: off every station's prop, plates and name, off the seats, the pond, the mortar and the shop.</summary>
@@ -3006,12 +3020,13 @@ namespace VuonTra.Game.UI
                 return true;
             }
             // Everything that stands casts a soft shadow on the grass, drawn just behind it.
-            void LightPool(float x, float y, float width)
+            Image LightPool(float x, float y, float width)
             {
                 var pool = UiKit.Rect("LanternPool", _street).Place(0f, 0f, x, y, width, width * 0.45f);
                 Image light = pool.AddImage(catalog.Glow, Palette.Alpha(_lanternGlowColor, SceneOverlays.LanternPoolAlpha));
                 light.raycastTarget = false;
                 _lanternPools.Add(light);
+                return light;
             }
             void Shade(Transform parent, List<KeyValuePair<float, Transform>> into, float x, float y, float height)
             {
@@ -3184,6 +3199,11 @@ namespace VuonTra.Game.UI
                 float height = RimHeight(template, seed);
                 float width = height * sprite.rect.width / sprite.rect.height;
                 var piece = new RimPiece { Y = y, Width = width, Height = height, Depth = depth, Side = side };
+                if (template == RimLantern)
+                {
+                    piece.PoolImage = LightPool(0f, y, 300f);
+                    piece.Pool = piece.PoolImage.rectTransform;
+                }
                 if (template != RimStones)
                 {
                     float sw = Mathf.Clamp(height * 0.55f, 50f, 260f);
@@ -4512,6 +4532,7 @@ namespace VuonTra.Game.UI
         {
             p.Art.gameObject.SetActive(on);
             if (p.Shade != null) p.Shade.gameObject.SetActive(on);
+            if (p.Pool != null) p.Pool.gameObject.SetActive(on);
         }
 
         readonly List<Rabbit> _seatedNow = new List<Rabbit>();
@@ -7128,6 +7149,38 @@ namespace VuonTra.Game.UI
             BuildFrog(catalog);
         }
 
+        Color RainWash()
+        {
+            float night = (float)Daylight.NightAt(ClockHours());
+            Color wash = Color.Lerp(new Color(0.46f, 0.56f, 0.68f), new Color(0.16f, 0.23f, 0.38f), night);
+            return Palette.Alpha(wash, Mathf.Lerp(0.13f, 0.22f, night) * RainLevel);
+        }
+
+        Image FlatGround(Image piece)
+        {
+            _flatGround.Add(piece);
+            _flatGroundTones.Add(piece.color);
+            return piece;
+        }
+
+        void WashFlatGround()
+        {
+            Color day = _daylight != null && _daylight.enabled ? _daylight.color : Color.clear;
+            Color rain = _rainTint != null && _rainTint.gameObject.activeSelf ? _rainTint.color : Color.clear;
+            Color dayShown = SceneOverlays.OnScreen(day), rainShown = SceneOverlays.OnScreen(rain);
+            if (dayShown == _flatDay && rainShown == _flatRain) return;
+            _flatDay = dayShown;
+            _flatRain = rainShown;
+            FlatGroundWashes++;
+            for (int i = 0; i < _flatGround.Count; i++)
+            {
+                Image piece = _flatGround[i];
+                if (piece == null) continue;
+                Color tone = SceneOverlays.Washed(SceneOverlays.Washed(_flatGroundTones[i], day), rain);
+                piece.color = Palette.Alpha(tone, piece.color.a);
+            }
+        }
+
         /// <summary>How far the streaks lean from the upright, in degrees, and how fast they fall, in canvas units a second.</summary>
         const float RainSlant = -12f, RainFall = 1500f;
 
@@ -7142,12 +7195,11 @@ namespace VuonTra.Game.UI
             bool shown = RainLevel > 0f;
             if (_rainLayer.gameObject.activeSelf != shown) _rainLayer.gameObject.SetActive(shown);
             if (_rainTint.gameObject.activeSelf != shown) _rainTint.gameObject.SetActive(shown);
+            if (shown) _rainTint.color = RainWash();
+            WashFlatGround();
             if (shown)
             {
                 // A grey-blue wash by day, a deeper blue at night, under the HUD.
-                float night = (float)Daylight.NightAt(ClockHours());
-                Color wash = Color.Lerp(new Color(0.46f, 0.56f, 0.68f), new Color(0.16f, 0.23f, 0.38f), night);
-                _rainTint.color = Palette.Alpha(wash, Mathf.Lerp(0.13f, 0.22f, night) * RainLevel);
                 bool streaks = !Motion.Reduced;
                 if (_rainStreaks.gameObject.activeSelf != streaks) _rainStreaks.gameObject.SetActive(streaks);
                 if (streaks)
@@ -7592,22 +7644,22 @@ namespace VuonTra.Game.UI
             group.interactable = false;
             Color[] washes = { Palette.Alpha(MistTone, 0.15f) };
             // A broad veil first, so the land reads as hidden; the washes over it make the cloud bank's soft shapes.
-            UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (low + high) / 2f, span.y - span.x + 320f, high - low + 300f)
-                .AddImage(catalog.Glow, Palette.Alpha(MistTone, 0.35f)).raycastTarget = false;
+            FlatGround(UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (low + high) / 2f, span.y - span.x + 320f, high - low + 300f)
+                .AddImage(catalog.Glow, Palette.Alpha(MistTone, 0.35f))).raycastTarget = false;
             // The bank at the edge it shares with the open lawn (#16): thick, with a wandering edge like a wash that dried, so the
             // land still to open reads as such on the dark grass. The washes over it keep it soft.
             bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
             float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
             if (aside)
-                UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (low + high) / 2f, MistEdgeWidth, high - low + 200f)
-                    .AddImage(MistEdgeSprite(right), Palette.Alpha(MistTone, 0.5f)).raycastTarget = false;
+                FlatGround(UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (low + high) / 2f, MistEdgeWidth, high - low + 200f)
+                    .AddImage(MistEdgeSprite(right), Palette.Alpha(MistTone, 0.5f))).raycastTarget = false;
             else
             {
                 bool up = GardenGrid.SideOf(segment) == GardenSide.Up;
                 float lawn = LawnEdgeY(segment - 1, up ? GardenSide.Up : GardenSide.Down), outward = up ? 1f : -1f;
                 RectTransform bank = UiKit.Rect("Edge", mist).Place(0f, 0f, (span.x + span.y) / 2f, lawn + outward * (MistEdgeWidth / 2f - MistEdgeOut), MistEdgeWidth, span.y - span.x + 400f);
                 bank.localRotation = Quaternion.Euler(0f, 0f, up ? 90f : -90f);
-                bank.AddImage(MistEdgeSprite(true), Palette.Alpha(MistTone, 0.5f)).raycastTarget = false;
+                FlatGround(bank.AddImage(MistEdgeSprite(true), Palette.Alpha(MistTone, 0.5f))).raycastTarget = false;
             }
             int Across = aside ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9;
             for (int a = 0; a < Across; a++)
@@ -7617,7 +7669,7 @@ namespace VuonTra.Game.UI
                     float x = Mathf.Lerp(span.x, span.y, (a + 0.5f) / Across) + (Hash(seed) - 0.5f) * 60f;
                     float y = Heart.y + Mathf.Lerp(low + 120f, high - 120f, d / (Down - 1f)) + (Hash(seed + 1f) - 0.5f) * 40f;
                     float w = 330f + Hash(seed + 2f) * 120f, h = 300f + Hash(seed + 3f) * 90f;
-                    UiKit.Rect("Wash", mist).Place(0f, 0f, x, y, w, h).AddImage(catalog.Glow, washes[(a + d) % washes.Length]).raycastTarget = false;
+                    FlatGround(UiKit.Rect("Wash", mist).Place(0f, 0f, x, y, w, h).AddImage(catalog.Glow, washes[(a + d) % washes.Length])).raycastTarget = false;
                 }
             mist.gameObject.SetActive(true);
             return group;

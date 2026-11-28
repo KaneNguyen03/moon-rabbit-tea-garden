@@ -118,7 +118,7 @@ namespace VuonTra.Core.Tests
             Transform world = Canvas.Find("Garden/Content");
             var pools = world.GetComponentsInChildren<Image>(true).Where(i => i.name == "LanternPool").ToList();
             var standing = world.GetComponentsInChildren<Image>(true)
-                .Where(i => i.transform.parent == world && i.gameObject.activeSelf && (i.name == "Lantern" || i.name == "StoneLantern")).ToList();
+                .Where(i => i.transform.parent == world && i.gameObject.activeSelf && (i.name == "Lantern" || i.name == "StoneLantern" || i.name == "Rim Lantern")).ToList();
             int lanterns = standing.Count;
             Assert.Greater(lanterns, 0);
             Assert.AreEqual(lanterns, pools.Count, "one pool for every lantern");
@@ -130,6 +130,120 @@ namespace VuonTra.Core.Tests
                 Assert.IsFalse(pool.raycastTarget);
                 Assert.Greater(pool.rectTransform.sizeDelta.x, pool.rectTransform.sizeDelta.y, "lies flat");
             }
+        }
+
+        [Test]
+        public void Every_Stone_Lantern_Of_The_Forest_Rim_Stands_In_Its_Own_Pool_Of_Light()
+        {
+            Transform world = Canvas.Find("Garden/Content");
+            var rim = world.GetComponentsInChildren<Image>(true).Where(i => i.transform.parent == world && i.name == "Rim Lantern").ToList();
+            var pools = world.GetComponentsInChildren<Image>(true).Where(i => i.name == "LanternPool").ToList();
+            Assert.Greater(rim.Count, 0, "the rim has stone lanterns");
+            foreach (Image lantern in rim)
+            {
+                Vector2 foot = lantern.rectTransform.anchoredPosition;
+                Image pool = pools.FirstOrDefault(p => Vector2.Distance(p.rectTransform.anchoredPosition, foot) < 1f);
+                Assert.IsNotNull(pool, "a pool at the foot of the rim lantern at " + foot);
+                Assert.AreEqual(300f, pool.rectTransform.sizeDelta.x, 1e-3f, "the size of the other stone lanterns' pools");
+                Assert.AreEqual(SceneOverlays.LanternPoolAlpha * lantern.color.a, pool.color.a, 1e-4f, "it fades with its lantern");
+            }
+        }
+
+        List<Image> FlatGround()
+        {
+            Transform world = Canvas.Find("Garden/Content");
+            return world.GetComponentsInChildren<Image>(true).Where(i =>
+                (i.transform.parent == world && (i.name == "Path" || i.name == "Stone" || i.name == "Flagstone"))
+                || (i.name == "Dash" && i.transform.parent.name.StartsWith("Ring "))
+                || i.transform.parent.name.StartsWith("Segment Mist ")).ToList();
+        }
+
+        [TestCase(13.0, false)]
+        [TestCase(13.0, true)]
+        [TestCase(18.0, false)]
+        [TestCase(6.0, true)]
+        [TestCase(22.0, true)]
+        public void Paths_And_All_Flat_Ground_Take_The_Same_Washes_As_The_Grass(double hour, bool rain)
+        {
+            OverlaysAt(22.0, false);
+            List<Image> flat = FlatGround();
+            foreach (string kind in new[] { "Path", "Stone", "Flagstone", "Dash", "Veil" })
+                Assert.Greater(flat.Count(i => i.name == kind), 0, "the garden has " + kind);
+            List<Color> night = flat.Select(i => i.color).ToList();
+
+            OverlaysAt(hour, rain);
+            Image daylight = Canvas.Find("Daylight").GetComponent<Image>();
+            Image tint = Canvas.Find("RainTint").GetComponent<Image>();
+            Color day = daylight.enabled ? daylight.color : Color.clear;
+            Color wet = tint.gameObject.activeSelf ? tint.color : Color.clear;
+            Assert.Greater(day.a + wet.a, 0.1f, "a wash lies on the grass");
+            for (int i = 0; i < flat.Count; i++)
+            {
+                Color want = SceneOverlays.Washed(SceneOverlays.Washed(night[i], day), wet);
+                Color got = flat[i].color;
+                string what = flat[i].name + " " + i;
+                Assert.AreEqual(want.r, got.r, 1e-4f, what);
+                Assert.AreEqual(want.g, got.g, 1e-4f, what);
+                Assert.AreEqual(want.b, got.b, 1e-4f, what);
+                Assert.AreEqual(night[i].a, got.a, 1e-6f, what);
+            }
+
+            OverlaysAt(22.0, false);
+            for (int i = 0; i < flat.Count; i++)
+                Assert.AreEqual(night[i], flat[i].color, flat[i].name + " " + i + " is its own colour again at night");
+        }
+
+        static bool SameOnScreen(Color a, Color b)
+        {
+            Color32 x = a, y = b;
+            return x.r == y.r && x.g == y.g && x.b == y.b && x.a == y.a;
+        }
+
+        [TestCase(17.5)]
+        [TestCase(6.0)]
+        public void While_The_Hour_Moves_The_Paths_Are_Recoloured_Only_When_The_Wash_On_Screen_Changes(double start)
+        {
+            Image daylight = Canvas.Find("Daylight").GetComponent<Image>();
+            List<Image> flat = FlatGround();
+            bool still = false;
+            for (double hour = start; hour < start + 0.05 && !still; hour += 10.0 / 3600.0)
+            {
+                OverlaysAt(hour, false);
+                Color shown = daylight.color;
+                int washes = screen.FlatGroundWashes;
+                List<Color> tones = flat.Select(i => i.color).ToList();
+                OverlaysAt(hour + 1.0 / 3600.0, false);
+                if (shown.a == daylight.color.a || !SameOnScreen(shown, daylight.color)) continue;
+                still = true;
+                Assert.AreEqual(washes, screen.FlatGroundWashes, "a second later the wash moved, but not by a step the screen shows: nothing is recoloured");
+                for (int i = 0; i < flat.Count; i++) Assert.AreEqual(tones[i], flat[i].color, flat[i].name + " " + i);
+            }
+            Assert.IsTrue(still, "found a second in which the wash moved by less than one step on screen");
+
+            int before = screen.FlatGroundWashes;
+            Color path = flat.First(i => i.name == "Path").color;
+            OverlaysAt(start + 0.5, false);
+            Assert.AreEqual(before + 1, screen.FlatGroundWashes, "half an hour on, the wash on screen has changed: one recolour");
+            Assert.AreNotEqual(path, flat.First(i => i.name == "Path").color);
+            int washed = screen.FlatGroundWashes;
+            screen.Refresh();
+            screen.Advance(0.1f);
+            Assert.AreEqual(washed, screen.FlatGroundWashes, "the same hour again: nothing to redo");
+        }
+
+        [Test]
+        public void A_Wash_Over_A_Piece_Of_Ground_Is_The_Wash_Over_The_Grass()
+        {
+            Color earth = new Color(0.3f, 0.35f, 0.25f, 1f), wash = new Color(0.9f, 0.85f, 0.7f, 0.2f);
+            Assert.AreEqual(earth, SceneOverlays.Washed(earth, Color.clear));
+            Color washed = SceneOverlays.Washed(earth, wash);
+            Assert.Greater(washed.grayscale, earth.grayscale, "a pale wash lifts the earth");
+            Assert.AreEqual(1f, washed.a);
+            Color half = SceneOverlays.Washed(Palette.Alpha(earth, 0.5f), wash);
+            Assert.AreEqual(0.5f, half.a, "the piece keeps its own alpha");
+            Assert.AreEqual(washed.r, half.r, 1e-6f);
+            Color linear = Palette.Mix(earth.linear, wash.linear, wash.a);
+            Assert.AreEqual(linear.g, washed.linear.g, 1e-4f, "blended in linear light, as the screen blends the wash over the grass");
         }
 
         [Test]
