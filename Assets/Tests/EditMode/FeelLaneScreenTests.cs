@@ -87,7 +87,7 @@ namespace VuonTra.Core.Tests
         {
             Object.DestroyImmediate(root);
             UiKit.SetLargeText(false);
-            PlayerPrefs.DeleteKey("text.large");
+            Prefs.DeleteKey("text.large");
             GardenScreen.SafeInsets = insetsBefore;
             Motion.SetReduced(false);
             L10n.SetLocale("vi");

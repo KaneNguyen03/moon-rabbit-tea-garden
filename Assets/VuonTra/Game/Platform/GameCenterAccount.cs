@@ -30,7 +30,7 @@ namespace VuonTra.Game.Platform
             _prefs = prefs;
         }
 
-        public static GameCenterAccount Device() => new GameCenterAccount(DeviceAuthenticate, new PlayerPrefsStore());
+        public static GameCenterAccount Device() => new GameCenterAccount(DeviceAuthenticate, new DevicePrefs());
 
         public AccountProvider Provider => AccountProvider.GameCenter;
         public BackupState State => _state;
@@ -97,11 +97,11 @@ namespace VuonTra.Game.Platform
 #endif
         }
 
-        sealed class PlayerPrefsStore : IPrefs
+        sealed class DevicePrefs : IPrefs
         {
-            public string Get(string key) => PlayerPrefs.HasKey(key) ? PlayerPrefs.GetString(key) : null;
-            public void Set(string key, string value) { PlayerPrefs.SetString(key, value); PlayerPrefs.Save(); }
-            public void Remove(string key) { PlayerPrefs.DeleteKey(key); PlayerPrefs.Save(); }
+            public string Get(string key) => Prefs.HasKey(key) ? Prefs.GetString(key) : null;
+            public void Set(string key, string value) { Prefs.SetString(key, value); Prefs.Save(); }
+            public void Remove(string key) { Prefs.DeleteKey(key); Prefs.Save(); }
         }
     }
 }

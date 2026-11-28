@@ -21,7 +21,7 @@ namespace VuonTra.Core.Tests
         {
             L10n.SetLocale("vi");
             UiKit.SetLargeText(false);
-            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            Prefs.DeleteKey(GardenScreen.LayoutHintKey);
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
             root = new GameObject("Game");
             var cam = new GameObject("Cam", typeof(Camera));
@@ -49,8 +49,8 @@ namespace VuonTra.Core.Tests
             Object.DestroyImmediate(root);
             Motion.SetReduced(false);
             UiKit.SetLargeText(false);
-            PlayerPrefs.DeleteKey("text.large");
-            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            Prefs.DeleteKey("text.large");
+            Prefs.DeleteKey(GardenScreen.LayoutHintKey);
             L10n.SetLocale("vi");
         }
 

@@ -1,5 +1,6 @@
 area	filter	sources	note
 save	SaveStoreTests|TestSaveFolderTests	Assets/VuonTra/Game/SaveStore.cs Assets/Tests/EditMode/TestSaveFolder.cs	
+prefs	PrefsIsolationTests|StationSoundTests|SeasonSoundTests|GardenScreenTests	Assets/VuonTra/Game/Prefs.cs Assets/Tests/EditMode/TestPrefs.cs	Tests run on an in-memory store; PrefsIsolationTests write a foreign value to the real PlayerPrefs for each key and check the game ignores it.
 web	WebGraphicsTests|BuildSettingsTests	Assets/WebGLTemplates/* ProjectSettings/ProjectSettings.asset	The web page shows the renderer; only a browser run proves WebGPU and the WebGL 2 fallback, the test guards the API list.
 platform	PlatformTests|WebGraphicsTests|PlayGamesTests|BuildSettingsTests|AndroidSigningTests|AnalyticsRunnerTests|ReviewScreenTests|MonetizationFlagScreenTests|AdSeamsScreenTests	Assets/VuonTra/Game/Platform/* Assets/VuonTra/Game/Store/* Assets/VuonTra/Game/AppInfo.cs Assets/VuonTra/Editor/BuildScript.cs Assets/VuonTra/Editor/AndroidSigning.cs Assets/VuonTra/Editor/Notifications/*	Store and device calls are seams; nothing here reaches a real store or phone.
 audio	Sound|JuiceTests|AwaySheetFeelTests|RainScreenTests	Assets/VuonTra/Game/Audio/* Assets/VuonTra/Editor/TuneRecorder.cs Assets/VuonTra/Editor/SoundSeeder.cs Assets/Resources/SoundBank.asset Assets/VuonTra/Art/Final/sfx_* Assets/Tests/EditMode/SoundMeter.cs	

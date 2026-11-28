@@ -1119,7 +1119,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(Notifications.On);
             Assert.AreEqual(1, fake.Asked, "turning it on asks once");
             Assert.AreEqual("Bật", pill.text);
-            Assert.AreEqual(1, PlayerPrefs.GetInt("remind.on", 0), "kept for the next launch");
+            Assert.AreEqual(1, Prefs.GetInt("remind.on", 0), "kept for the next launch");
 
             Find("Canvas/Pause/Card/Remind").onClick.Invoke();
             Assert.IsFalse(Notifications.On);

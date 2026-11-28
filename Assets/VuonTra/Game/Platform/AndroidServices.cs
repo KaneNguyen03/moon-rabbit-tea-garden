@@ -10,8 +10,8 @@ namespace VuonTra.Game.Platform
         {
 #if UNITY_ANDROID && !UNITY_EDITOR && VUONTRA_PLAY_GAMES
             Install(runner, new PlayGamesPlugin(),
-                () => PlayerPrefs.GetInt(PlayGamesAccount.RememberKey, 0) == 1,
-                v => { PlayerPrefs.SetInt(PlayGamesAccount.RememberKey, v ? 1 : 0); PlayerPrefs.Save(); });
+                () => Prefs.GetInt(PlayGamesAccount.RememberKey, 0) == 1,
+                v => { Prefs.SetInt(PlayGamesAccount.RememberKey, v ? 1 : 0); Prefs.Save(); });
             return true;
 #else
             return false;

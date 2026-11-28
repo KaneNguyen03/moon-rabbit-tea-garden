@@ -33,10 +33,10 @@ namespace VuonTra.Game
         {
             if (_loaded && !again) return;
             _loaded = true;
-            _musicGain = PlayerPrefs.GetFloat(MusicKey, DefaultMusicGain);
-            _sfxGain = PlayerPrefs.GetFloat(SfxKey, DefaultSfxGain);
-            _stationGain = PlayerPrefs.GetFloat(StationKey, DefaultStationGain);
-            _tune = (Tune)Mathf.Clamp(PlayerPrefs.GetInt(TuneKey, 0), 0, TuneChoices - 1);
+            _musicGain = Prefs.GetFloat(MusicKey, DefaultMusicGain);
+            _sfxGain = Prefs.GetFloat(SfxKey, DefaultSfxGain);
+            _stationGain = Prefs.GetFloat(StationKey, DefaultStationGain);
+            _tune = (Tune)Mathf.Clamp(Prefs.GetInt(TuneKey, 0), 0, TuneChoices - 1);
         }
 
         static AudioSource _oneShots, _bed, _music, _market;
@@ -88,7 +88,7 @@ namespace VuonTra.Game
         {
             Load();
             _musicGain = Mathf.Clamp01(gain);
-            PlayerPrefs.SetFloat(MusicKey, _musicGain);
+            Prefs.SetFloat(MusicKey, _musicGain);
             if (_bed != null) _bed.volume = BedGain;
             if (_music != null) _music.volume = MelodyGain;
         }
@@ -97,7 +97,7 @@ namespace VuonTra.Game
         {
             Load();
             _sfxGain = Mathf.Clamp01(gain);
-            PlayerPrefs.SetFloat(SfxKey, _sfxGain);
+            Prefs.SetFloat(SfxKey, _sfxGain);
             if (_bed != null) _bed.volume = BedGain;
             if (_market != null) _market.volume = MarketGain;
         }
@@ -106,7 +106,7 @@ namespace VuonTra.Game
         {
             Load();
             _stationGain = Mathf.Clamp01(gain);
-            PlayerPrefs.SetFloat(StationKey, _stationGain);
+            Prefs.SetFloat(StationKey, _stationGain);
         }
 
         public enum Tune { Auto, Moon, Dawn, Rain, MidAutumn, Tet, Christmas }
@@ -139,7 +139,7 @@ namespace VuonTra.Game
         {
             Load();
             _tune = choice;
-            PlayerPrefs.SetInt(TuneKey, (int)choice);
+            Prefs.SetInt(TuneKey, (int)choice);
             Retune();
         }
 

@@ -24,12 +24,12 @@ namespace VuonTra.Game
 
         public static int MillisecondsOf(HapticStrength strength) => strength == HapticStrength.Medium ? MediumMilliseconds : LightMilliseconds;
 
-        public static void Load() => On = PlayerPrefs.GetInt(Key, 1) == 1;
+        public static void Load() => On = Prefs.GetInt(Key, 1) == 1;
 
         public static void SetOn(bool on)
         {
             On = on;
-            PlayerPrefs.SetInt(Key, on ? 1 : 0);
+            Prefs.SetInt(Key, on ? 1 : 0);
         }
 
         public static void Light() => Pulse(HapticStrength.Light);

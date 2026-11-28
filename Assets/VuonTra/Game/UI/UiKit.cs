@@ -95,13 +95,13 @@ namespace VuonTra.Game.UI
         public static float TextScale => LargeText ? LargeScale : 1f;
         public static event Action TextChanged;
 
-        public static void LoadTextSize() => LargeText = PlayerPrefs.GetInt(LargeTextKey, 0) == 1;
+        public static void LoadTextSize() => LargeText = Prefs.GetInt(LargeTextKey, 0) == 1;
 
         public static void SetLargeText(bool on)
         {
             if (LargeText == on) return;
             LargeText = on;
-            PlayerPrefs.SetInt(LargeTextKey, on ? 1 : 0);
+            Prefs.SetInt(LargeTextKey, on ? 1 : 0);
             TextChanged?.Invoke();
         }
 

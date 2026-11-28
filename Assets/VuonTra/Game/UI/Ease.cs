@@ -58,12 +58,12 @@ namespace VuonTra.Game.UI
 
         public static bool Reduced;
 
-        public static void Load() => Reduced = PlayerPrefs.GetInt(ReducedKey, 0) == 1;
+        public static void Load() => Reduced = Prefs.GetInt(ReducedKey, 0) == 1;
 
         public static void SetReduced(bool on)
         {
             Reduced = on;
-            PlayerPrefs.SetInt(ReducedKey, on ? 1 : 0);
+            Prefs.SetInt(ReducedKey, on ? 1 : 0);
         }
 
         public static float Time(float seconds) => Reduced ? 0.0001f : seconds;

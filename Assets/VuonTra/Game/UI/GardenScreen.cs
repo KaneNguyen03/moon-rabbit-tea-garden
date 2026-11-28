@@ -95,9 +95,9 @@ namespace VuonTra.Game.UI
         readonly Dictionary<string, Image> _photoToggles = new Dictionary<string, Image>();
         readonly Dictionary<string, Text> _photoToggleLabels = new Dictionary<string, Text>();
         /// <summary>What a picture includes: the paper frame, the rabbits' name plates, the fireflies. Remembered on the device.</summary>
-        public static bool PhotoFrameOn { get => PlayerPrefs.GetInt("photo.frame", 1) == 1; set => PlayerPrefs.SetInt("photo.frame", value ? 1 : 0); }
-        public static bool PhotoNamesOn { get => PlayerPrefs.GetInt("photo.names", 1) == 1; set => PlayerPrefs.SetInt("photo.names", value ? 1 : 0); }
-        public static bool PhotoFirefliesOn { get => PlayerPrefs.GetInt("photo.fireflies", 1) == 1; set => PlayerPrefs.SetInt("photo.fireflies", value ? 1 : 0); }
+        public static bool PhotoFrameOn { get => Prefs.GetInt("photo.frame", 1) == 1; set => Prefs.SetInt("photo.frame", value ? 1 : 0); }
+        public static bool PhotoNamesOn { get => Prefs.GetInt("photo.names", 1) == 1; set => Prefs.SetInt("photo.names", value ? 1 : 0); }
+        public static bool PhotoFirefliesOn { get => Prefs.GetInt("photo.fireflies", 1) == 1; set => Prefs.SetInt("photo.fireflies", value ? 1 : 0); }
         RectTransform _upgradeAllRow;
         readonly GameObject[] _lists = new GameObject[TabCount];
         readonly Text[] _openLabels = new Text[TabCount];
@@ -8143,9 +8143,9 @@ namespace VuonTra.Game.UI
             _layoutRings.gameObject.SetActive(true);
             _layoutRings.SetAsLastSibling(); // over the scenery, so every free tile reads
             RefreshRings();
-            bool first = PlayerPrefs.GetInt(LayoutHintKey, 0) == 0;
+            bool first = Prefs.GetInt(LayoutHintKey, 0) == 0;
             _layoutHint.SetActive(first);
-            if (first) PlayerPrefs.SetInt(LayoutHintKey, 1);
+            if (first) Prefs.SetInt(LayoutHintKey, 1);
             Refresh();
         }
 

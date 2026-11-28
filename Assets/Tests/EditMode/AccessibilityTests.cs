@@ -45,7 +45,7 @@ namespace VuonTra.Core.Tests
             Object.DestroyImmediate(root);
             GardenScreen.SafeInsets = insetsBefore;
             UiKit.SetLargeText(false);
-            PlayerPrefs.DeleteKey("text.large");
+            Prefs.DeleteKey("text.large");
             Motion.SetReduced(false);
             L10n.SetLocale("vi");
         }
@@ -70,7 +70,7 @@ namespace VuonTra.Core.Tests
 
             pill.GetComponent<Button>().onClick.Invoke();
             Assert.IsTrue(UiKit.LargeText);
-            Assert.AreEqual(1, PlayerPrefs.GetInt("text.large"), "kept for next time");
+            Assert.AreEqual(1, Prefs.GetInt("text.large"), "kept for next time");
             screen.RebuildUi();
             heading = root.transform.Find("Canvas/Pause/Card/Heading").GetComponent<Text>();
             Assert.AreEqual(72, heading.fontSize);
