@@ -17,6 +17,7 @@ class GateTest(unittest.TestCase):
         self.state = tempfile.mkdtemp(prefix="gate-test-")
         self.log = os.path.join(self.state, "events.log")
         self.save = os.path.join(self.state, "save.json")
+        self.busy = os.path.join(self.state, "pc-busy")
         self.children = []
         self.limit(1)
 
@@ -38,7 +39,8 @@ class GateTest(unittest.TestCase):
             rules.write("lim(){ echo %d; }\nunity_count(){ echo 0; }\n" % slots)
 
     def env(self, **extra):
-        env = dict(os.environ, UNITY_GATE_STATE=self.state, UNITY_GATE_POLL="0.1", UNITY_GATE_SAVE=self.save)
+        env = dict(os.environ, UNITY_GATE_STATE=self.state, UNITY_GATE_POLL="0.1", UNITY_GATE_SAVE=self.save,
+                   UNITY_GATE_BUSY=self.busy)
         env.update(extra)
         return env
 
@@ -276,6 +278,50 @@ class GateTest(unittest.TestCase):
         child = self.gate("50", "true")
         self.assertEqual(child.wait(timeout=30), 0)
         self.assertEqual([self.read("save-guard", name) for name in self.names("save-guard")], ["before"])
+
+    def run_gate(self, *args):
+        return subprocess.run([GATE, *args], env=self.env(), capture_output=True, text=True, cwd=ROOT)
+
+    def test_busy_pc_holds_new_runs_until_it_is_free(self):
+        self.assertIn("the PC is busy (playing)", self.run_gate("busy", "playing").stdout)
+        self.assertEqual(self.read("pc-busy"), "playing\n")
+        waiter = self.gate("5", *self.job("waiter", 0))
+        self.until(lambda: os.path.isdir(os.path.join(self.state, "unity-wait")) and len(self.names("unity-wait")) == 1)
+        time.sleep(1.5)
+        self.assertFalse(self.started("waiter"))
+        self.assertIn("free again", self.run_gate("free").stdout)
+        self.assertFalse(os.path.exists(self.busy))
+        self.assertEqual(waiter.wait(timeout=30), 0)
+        self.assertTrue(self.started("waiter"))
+        self.assertIn("the PC is busy (playing)", waiter.stderr.read())
+
+    def test_busy_pc_lets_the_run_holding_a_slot_finish(self):
+        holder = self.gate("50", *self.job("holder", 1))
+        self.until(lambda: self.started("holder"))
+        self.run_gate("busy")
+        self.assertEqual(holder.wait(timeout=30), 0)
+        self.assertIn(["end", "holder"], self.events())
+
+    def test_busy_pc_still_gives_up_after_the_longest_wait_asked_for(self):
+        with open(self.busy, "w") as flag:
+            flag.write("game\r\n")
+        waiter = self.gate("50", *self.job("waiter", 0), UNITY_GATE_MAX_WAIT="1")
+        self.assertEqual(waiter.wait(timeout=30), 75)
+        self.assertFalse(self.started("waiter"))
+        self.assertEqual(self.names("unity-wait"), [])
+
+    def test_status_shows_the_hold_and_its_reason(self):
+        self.assertIn("hold: none", self.status())
+        with open(self.busy, "w") as flag:
+            flag.write("game\r\n")
+        status = self.status()
+        self.assertRegex(status, r"HOLD: the PC is busy \(game\) for \d+s: %s" % self.busy)
+        self.assertIn("tools/unity-gate.sh free", status)
+
+    def test_free_when_not_busy_says_so(self):
+        result = self.run_gate("free")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("was not marked busy", result.stdout)
 
     def test_bad_arguments_are_refused(self):
         for args in ([], ["fast", "true"], ["50"]):

@@ -41,6 +41,7 @@ Mọi checkout dùng chung một máy Mac, nên mọi lần chạy Unity xếp c
 | `tools/unity-gate.sh <ưu tiên> <lệnh>` | Chờ tới lượt rồi chạy lệnh. Số nhỏ đi trước; cùng số thì ai tới trước đi trước |
 | `UNITY_GATE_PRIORITY=5 tools/verify.sh` | Đổi mức ưu tiên của một tool (mặc định 50) |
 | `UNITY_GATE_MAX_WAIT=1800 tools/test.sh <bộ lọc>` | Bỏ cuộc với mã thoát 75 nếu sau số giây đó chưa có lượt; lệnh không chạy |
+| `tools/unity-gate.sh busy [lý do]` / `free` | Đánh dấu PC đang bận (chủ project chơi game) / rảnh lại. Khi có tệp cờ, gate không cho lần chạy mới nào bắt đầu, lần đang giữ lượt vẫn chạy tiếp, `status` in dòng `HOLD:`. Tệp cờ: `UNITY_GATE_BUSY`, nếu không thì `D:\Projects\.pc-busy` (`/mnt/d/Projects/.pc-busy`) trên PC, `/tmp/unity-gate-busy` trên Mac. Từ Windows: bấm đúp `tools/windows/pc-busy.cmd` và `pc-free.cmd` |
 
 Gate bảo đảm:
 

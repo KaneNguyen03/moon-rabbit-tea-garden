@@ -11,6 +11,9 @@ OVERRIDE="$STATE/unity-gate-rules.sh"
 POLL="${UNITY_GATE_POLL:-5}"
 MAX_WAIT="${UNITY_GATE_MAX_WAIT:-0}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+if [ -n "${UNITY_GATE_BUSY:-}" ]; then BUSY="$UNITY_GATE_BUSY"
+elif [ -d /mnt/d/Projects ]; then BUSY=/mnt/d/Projects/.pc-busy
+else BUSY="$STATE/unity-gate-busy"; fi
 . "$ROOT/tools/unity-env.sh"
 
 usage() {
@@ -18,8 +21,11 @@ usage() {
 usage: tools/unity-gate.sh <priority> <command...>   waits for a Unity slot, then runs the command (lower priority number goes first)
        tools/unity-gate.sh status                    shows who holds Unity, who waits and for how long
        tools/unity-gate.sh held                      exits 0 when a parent process already holds a slot
+       tools/unity-gate.sh busy [reason]             the PC is busy (the owner plays): no new run starts, runs holding a slot go on
+       tools/unity-gate.sh free                      the PC is free again: waiting runs start
 tools/verify.sh, tools/test.sh and tools/build.sh call this themselves (priority from UNITY_GATE_PRIORITY, default 50).
 UNITY_GATE_MAX_WAIT=<seconds> gives up with exit 75 when no slot came in that time.
+The busy flag is a file: UNITY_GATE_BUSY, else /mnt/d/Projects/.pc-busy (D:\Projects\.pc-busy) on the PC, else $STATE/unity-gate-busy.
 EOF
   exit 64
 }
@@ -136,6 +142,26 @@ span() {
 
 age() { echo $(($(date +%s) - $(file_time "$1" 2>/dev/null || date +%s))); }
 
+is_busy() { [ -e "$BUSY" ]; }
+
+busy_line() {
+  local reason
+  reason=$(head -1 "$BUSY" 2>/dev/null | tr -d '\r' | sed 's/[[:space:]]*$//')
+  printf 'the PC is busy (%s) for %s: %s' "${reason:-no reason given}" "$(span "$(age "$BUSY")")" "$BUSY"
+}
+
+busy() {
+  local reason="${*:-busy}"
+  printf '%s\n' "$reason" > "$BUSY" || exit 1
+  echo "unity-gate: $(busy_line)"
+  echo "  no new Unity run starts until tools/unity-gate.sh free; runs already holding a slot go on"
+}
+
+free() {
+  if is_busy; then rm -f "$BUSY" || exit 1; echo "unity-gate: the PC is free again; waiting runs start ($BUSY removed)"
+  else echo "unity-gate: the PC was not marked busy ($BUSY)"; fi
+}
+
 field() { sed -n "s/^$2=//p" "$INFO/$1" 2>/dev/null | head -1; }
 
 describe() {
@@ -158,6 +184,12 @@ status() {
   used=$(n 2>/dev/null); limit=$(lim 2>/dev/null)
   for entry in "$WAIT"/*; do [ -e "$entry" ] && waiting=$((waiting + 1)); done
   echo "unity-gate: ${used:-?} of ${limit:-?} slots in use, $waiting waiting (state in $STATE)"
+  if is_busy; then
+    echo "HOLD: $(busy_line)"
+    echo "  no new run starts until tools/unity-gate.sh free (or the file is deleted); runs already holding a slot go on"
+  else
+    echo "hold: none; tools/unity-gate.sh busy [reason] holds every new run while the owner uses the PC"
+  fi
   sees_processes || echo "  warning: this process cannot see other processes (the Claude Code sandbox hides them), so the slot count is too low and names are missing; run status outside the sandbox"
   echo "running:"
   for marker in "$RUNNING"/*; do
@@ -198,7 +230,7 @@ run() {
     echo "unity-gate: cannot see other processes or cannot write the queue in $STATE, so the command did not run. The Claude Code sandbox causes both; run the command outside it." >&2
     exit 73
   fi
-  local started entry name save stamp code waited limit
+  local started entry name save stamp code waited limit told=0
   save="${UNITY_GATE_SAVE:-}"
   [ -n "$save" ] || save=$(player_save) || exit 1
   started=$(date +%s)
@@ -212,14 +244,21 @@ run() {
   : > "$entry"
   echo "unity-gate: queued at priority $priority; tools/unity-gate.sh status shows the queue" >&2
   while true; do
-    load_override
-    limit=$(lim)
-    lock
-    prune
-    if [ "$(first)" = "$name" ] && [ "$(n)" -lt "$limit" ]; then
-      : > "$RUNNING/$$"; rm -f "$entry"; unlock; break
+    if is_busy; then
+      [ $told -eq 1 ] || echo "unity-gate: waiting, $(busy_line); tools/unity-gate.sh free lets runs go" >&2
+      told=1
+    else
+      [ $told -eq 1 ] && echo "unity-gate: the PC is free again" >&2
+      told=0
+      load_override
+      limit=$(lim)
+      lock
+      prune
+      if [ "$(first)" = "$name" ] && [ "$(n)" -lt "$limit" ]; then
+        : > "$RUNNING/$$"; rm -f "$entry"; unlock; break
+      fi
+      unlock
     fi
-    unlock
     waited=$(($(date +%s) - started))
     if [ "$MAX_WAIT" -gt 0 ] && [ "$waited" -ge "$MAX_WAIT" ]; then
       echo "unity-gate: no slot after $(span "$waited") (UNITY_GATE_MAX_WAIT=$MAX_WAIT); the command did not run" >&2
@@ -243,6 +282,8 @@ run() {
 case "${1:-}" in
   status) status ;;
   held) holder >/dev/null ;;
+  busy) shift; busy "$@" ;;
+  free) free ;;
   ''|-h|--help) usage ;;
   *) run "$@" ;;
 esac
