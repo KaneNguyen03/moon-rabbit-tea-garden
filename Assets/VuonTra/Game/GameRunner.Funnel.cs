@@ -11,6 +11,7 @@ namespace VuonTra.Game
             int leaves = State.RecipeLeaves;
             AwayReport away = Away.Claim(Defs, State, Now, Mods, TodayNumber);
             Analytics.LogRecipeLeaves(State.RecipeLeaves - leaves, AnalyticsEvents.FromAway);
+            TellDropped(away);
             return away;
         }
 

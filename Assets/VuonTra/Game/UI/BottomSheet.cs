@@ -12,7 +12,7 @@ namespace VuonTra.Game.UI
         public readonly GameObject Root;
         public readonly RectTransform Card;
         readonly Tweens _tweens;
-        readonly float _height;
+        float _height;
         readonly Action _onClosed;
         int _run;
         float _dragSpeed;
@@ -68,6 +68,14 @@ namespace VuonTra.Game.UI
             var entry = new EventTrigger.Entry { eventID = type };
             entry.callback.AddListener(call);
             trigger.triggers.Add(entry);
+        }
+
+        public void Resize(float height)
+        {
+            if (Mathf.Approximately(height, _height)) return;
+            _height = height;
+            Card.sizeDelta = new Vector2(Card.sizeDelta.x, height);
+            if (!IsOpen) Card.anchoredPosition = new Vector2(0, -height);
         }
 
         public void Open()

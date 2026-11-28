@@ -11,6 +11,8 @@ namespace VuonTra.Core
         public bool TrayFull;
         public int GuestsMissed;
         public long SleepiestId;
+        public System.Collections.Generic.List<Story> Stories;
+        public System.Collections.Generic.List<Story> Dropped;
 
         public bool WorthTelling => Seconds >= Away.SheetSeconds && Paid >= BigNum.One;
     }
@@ -24,7 +26,9 @@ namespace VuonTra.Core
         {
             Modifiers m = mods ?? Modifiers.None;
             int trayBefore = Tray.Count(s);
+            long leftAt = s.LastSeenUnixSeconds;
             BigNum paid = Simulation.ClaimAway(defs, s, nowUnixSeconds, out double counted, m);
+            OvernightRoll night = Overnight.Roll(s, leftAt, nowUnixSeconds);
             return new AwayReport
             {
                 Paid = paid,
@@ -33,7 +37,9 @@ namespace VuonTra.Core
                 TrayAdded = Math.Max(0, Tray.Count(s) - trayBefore),
                 TrayFull = Tray.IsFull(s),
                 GuestsMissed = GuestsWhileAway(defs, s, counted, day ?? s.OrderDay),
-                SleepiestId = Sleepiest(s)
+                SleepiestId = Sleepiest(s),
+                Stories = night.Told,
+                Dropped = night.Dropped
             };
         }
 
