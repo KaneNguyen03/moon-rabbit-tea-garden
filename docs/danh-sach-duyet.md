@@ -15,7 +15,7 @@ Mọi việc dưới đây đã có trên `main` và đã push. Ảnh ở `docs/
 | #58 Câu cá và tim | Tim lên 10, hệ số tim tới ×2,6; nút Cho ăn luôn dùng con cá điểm cao nhất | Giữ trần 10 tim; có cần bảng chọn từng loại cá khi cho ăn không |
 | #61 Sổ thỏ có thưởng | **Đã chốt 23/11:** mốc 10 loài 1 cà rốt vàng, mốc 20 loài 2 cà rốt vàng + 1 cỏ | Không còn gì; đóng sau khi xem ảnh |
 | #62 Mưa và Thỏ Ếch | Thỏ Ếch chỉ đến từ cấp vườn 15; hai cơn mưa mỗi ngày theo giờ máy | Giữ cấp 15 và giờ mưa (từ cấp 1 thì trò chơi + đơn khách ngày 1 tụt 9,5 %) |
-| #63 Tiếng trạm khi phóng to | Mỗi trạm một vòng tiếng, thanh "Tiếng trạm" mặc định 0,7 | Nghe trên bản Mac ở zoom gần, ghi tiếng nào chói |
+| #63 Tiếng trạm khi phóng to | Mỗi trạm một vòng tiếng, thanh "Tiếng trạm" mặc định 0,5 (0,7 tới 23/11, xem #63 / #58 sửa tiếp) | Nghe trên bản Mac ở zoom gần, ghi tiếng nào chói |
 | #64 Hũ trăng | Hũ từ nhiệm vụ thu hoạch và Đêm đom đóm chỉ từ cấp vườn 15 | Giữ cấp 15 (nếu bỏ, người thong thả mở đủ 12 ô ngay ngày 2) |
 | #66 Quảng cáo thưởng | Chỉ có seam và quảng cáo giả trong editor, chưa cài SDK; ba chỗ với trần 1 / 1 mỗi trò / 2; vé Bỏ quảng cáo 2,99 $ (khoảng 75.000 ₫) cho 30 ngày, gói tiêu hao không khôi phục | Có bật quảng cáo không; trần; giá vé và số ngày; vé có cần khôi phục giao dịch không |
 | #67 Bốn trạm mới | Trạm 13–16 mở ở cấp vườn 16 / 18 / 20 / 23 (issue đề xuất 18 / 22 / 26 / 30); vòng rừng R8, R9 hỏi cấp 16, 20 | Giữ 16 / 18 / 20 / 23 (người thong thả đứng ở cấp 23 từ ngày 9 tới 14) |

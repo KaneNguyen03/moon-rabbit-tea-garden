@@ -40,6 +40,7 @@ namespace VuonTra.Core.Tests
             screen.Cam = cam.GetComponent<Camera>();
             screen.Raining = () => false;
             clockBefore = screen.ClockHours;
+            Sfx.SetStation(0.7f);
             screen.Build();
             Sfx.SetStation(0.7f);
             screen.Refresh();
@@ -226,7 +227,7 @@ namespace VuonTra.Core.Tests
 
             screen.Shell.OpenPause();
             Slider slider = root.transform.Find("Canvas/Pause/Card/Station").GetComponent<Slider>();
-            Assert.AreEqual(0.7f, slider.value, 1e-4f);
+            Assert.AreEqual(0.7f, slider.value, 1e-4f, "the slider shows the saved level, not the 0.5 default");
             Assert.AreEqual("Tiếng trạm", root.transform.Find("Canvas/Pause/Card/Station Label").GetComponent<Text>().text);
             slider.value = 0f;
             Step(Frame);
