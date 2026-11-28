@@ -120,7 +120,7 @@ namespace VuonTra.Game.UI
         int _shownClaimable = -1;
         RectTransform _barBadgeRect, _rabbitBadgeRect, _stationBadgeRect;
         Text _rabbitBadgeText, _stationBadgeText;
-        const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f;
+        const float TabBarHeight = 170f, TabBarGap = 16f, TabLabelSize = 26f, TabLiftY = 112f, TabLiftSize = 136f;
         readonly List<Image> _tierChips = new List<Image>();
         readonly List<Text> _tierLabels = new List<Text>();
         readonly List<Image> _tierTradeBadges = new List<Image>();
@@ -152,7 +152,11 @@ namespace VuonTra.Game.UI
         public int SeatedCount => _seated;
         /// <summary>The scenery that moves: trees lean from the root, lanterns swing from the hook and flicker, the pond shimmers.</summary>
         readonly List<RectTransform> _swayTrees = new List<RectTransform>(), _swayLanterns = new List<RectTransform>();
-        readonly List<Image> _lanternGlows = new List<Image>(), _ripples = new List<Image>();
+        readonly List<Image> _lanternGlows = new List<Image>(), _lanternPools = new List<Image>(), _ripples = new List<Image>();
+        readonly List<Image> _flatGround = new List<Image>();
+        readonly List<Color> _flatGroundTones = new List<Color>();
+        Color _flatDay, _flatRain;
+        public int FlatGroundWashes { get; private set; }
         /// <summary>Every paper lantern's picture, for the colour the player hangs on them (#11), and the colour its glow takes.</summary>
         readonly List<Image> _lanternArt = new List<Image>();
         Color _lanternGlowColor = Palette.Lantern;
@@ -265,12 +269,26 @@ namespace VuonTra.Game.UI
         /// <summary>How tall the open sheet stands, in canvas units from the bottom of the screen.</summary>
         public float SheetHeight { get; private set; }
         /// <summary>The sheet opens at about 60% of the screen, so the garden stays in view above it.</summary>
-        public const float SheetHalf = ScreenH * 0.6f;
+        public float SheetHalf => Mathf.Min(ScreenH, CanvasHeight) * 0.6f;
         /// <summary>Pulled all the way up it stops under the HUD.</summary>
-        public const float SheetFull = ScreenH - HudCover - 12f;
+        public float SheetFull => CanvasHeight - HudGainFoot - SheetUnderLane;
+        public float CanvasHeight
+        {
+            get
+            {
+                Canvas canvas = _canvas != null ? _canvas.GetComponent<Canvas>() : null;
+                if (canvas == null) return ScreenH;
+                if (canvas.renderMode == RenderMode.WorldSpace) return _canvas.rect.height;
+                Camera eye = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null;
+                float w = eye != null ? eye.pixelWidth : Screen.width, h = eye != null ? eye.pixelHeight : Screen.height;
+                if (w <= 0f || h <= 0f) return ScreenH;
+                return h / Mathf.Sqrt(w / ScreenW * (h / ScreenH));
+            }
+        }
+        const float SheetUnderLane = 12f;
         const float SheetLeast = 260f, SheetSink = 90f, SheetFling = 1100f, SheetFoot = 196f;
         /// <summary>How far the garden's bottom edge may rise while a sheet is open, so the lowest stations can come above it.</summary>
-        const float SheetLift = SheetHalf - TabCover;
+        float SheetLift => SheetHalf - TabCover;
         /// <summary>The moon pond at the top left of the middle of the strip, where the camera starts from.</summary>
         public static Vector2 PondSpot => Heart + new Vector2(-450f, 430f);
         /// <summary>Nothing that must be read stands further right than this: the canopy's crowns reach in from the edge.</summary>
@@ -285,6 +303,7 @@ namespace VuonTra.Game.UI
         float _sheetDragSpeed;
 
         RectTransform _canvas, _street, _hud, _purse, _currency, _panel, _tabBar, _energyFill, _plotRow;
+        RectTransform _ground;
         RawImage _groundTile;
         readonly List<RectTransform> _fireflies = new List<RectTransform>();
         readonly List<Vector2> _glowSpots = new List<Vector2>(); // lanterns and other lights the fireflies gather round
@@ -373,7 +392,7 @@ namespace VuonTra.Game.UI
                 {
                     _purseHeld = true;
                     Sfx.Blip();
-                    Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -70)), L10n.T("purse.full", s.Coins.Full()), Palette.Ink, 34);
+                    Feel.FloatBelow(UnderHud(_purse), L10n.T("purse.full", s.Coins.Full()), Palette.Ink, 34);
                 }
             }
             if (Shell.State == ShellState.Playing)
@@ -1005,6 +1024,7 @@ namespace VuonTra.Game.UI
                 GameCatalog catalog = Runner.Catalog;
                 Vector2 from = StationSpot(route.x) + new Vector2(112, -70) * StationSize(route.x), to = StationSpot(route.y) + new Vector2(112, -70) * StationSize(route.y);
                 Courier courier = TakeCourier(catalog);
+                UnderFronts(courier.Rect);
                 courier.Item.sprite = catalog.Stations[route.x].Prop;
                 courier.Rect.anchoredPosition = from;
                 courier.From = from;
@@ -1170,7 +1190,7 @@ namespace VuonTra.Game.UI
             _decorSpots.Clear(); _lanternArt.Clear(); _lanternGlowColor = Palette.Lantern;
             PhotoMode = false;
             _tierChips.Clear(); _tierLabels.Clear(); _tierTradeBadges.Clear(); _tierTradeIcons.Clear();
-            _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _ripples.Clear(); _pondGlow = null; _worldSeen = false;
+            _travelers.Clear(); _swayTrees.Clear(); _swayLanterns.Clear(); _lanternGlows.Clear(); _lanternPools.Clear(); _ripples.Clear(); _flatGround.Clear(); _flatGroundTones.Clear(); _flatDay = _flatRain = Color.clear; _pondGlow = null; _worldSeen = false;
             _seatHats.Clear(); _seatNames.Clear();
             _worldLabels.Clear(); _labelsNear = false;
             _walkers.Clear(); _seats.Clear(); _seatArt.Clear(); _seatCushions.Clear(); _seatNaps.Clear(); _seated = 0; _couriers.Clear(); _idleCouriers.Clear(); _supplyRoutes.Clear(); _glowSpots.Clear();
@@ -1248,7 +1268,7 @@ namespace VuonTra.Game.UI
             if (island != null) StandOnTheIsland(catalog, island);
             BuildSheet(catalog);
             BuildLayout(catalog);
-            Feel = new FeelLayer(_canvas, catalog, Tweens);
+            Feel = new FeelLayer(_canvas, catalog, Tweens) { BannerBand = BannerBand };
             Arrival = new SummonMomentView(_canvas, catalog);
             Detail = new RabbitDetailView(_canvas, catalog, Tweens, OnLevelUp, OnLevelMax,
                 rabbitId => { Sfx.Click(); Rename.Open(Runner.State, rabbitId); },
@@ -1304,7 +1324,7 @@ namespace VuonTra.Game.UI
                 {
                     Profile.Close();
                     Shell.Resume();
-                    Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
+                    Feel.FloatBelow(UnderHud(_purse), L10n.T(ok ? "privacy.deleted" : "privacy.delete.partly"), Palette.Ink, 34);
                     Refresh(-1f);
                 }), OnRedeemCode, () => Runner.OpenStorePage(), () => IntroList.Open(Runner.State));
             BuildMail(catalog);
@@ -1323,7 +1343,7 @@ namespace VuonTra.Game.UI
             NewMoonMoment = new NewMoonMomentView(_canvas, catalog);
             CloudChoice = new CloudChoiceView(_canvas, catalog, Tweens, takeRemote => Runner.ResolveSync(takeRemote, r =>
             {
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), L10n.T(r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : "cloud.kept"), Palette.Ink, 34);
+                Feel.FloatBelow(UnderHud(_purse), L10n.T(r.Outcome == SyncOutcome.TookRemote ? "cloud.restored" : "cloud.kept"), Palette.Ink, 34);
                 Refresh(-1f);
             }));
             if (_onSeasonBegan != null) Runner.SeasonBegan -= _onSeasonBegan;
@@ -1378,10 +1398,12 @@ namespace VuonTra.Game.UI
 
         void BuildBackdrop(GameCatalog catalog)
         {
-            var rt = UiKit.Rect("Ground", _canvas).Stretch(0, 0, 1, 1);
-            _groundTile = rt.gameObject.AddComponent<RawImage>();
+            _ground = UiKit.Rect("Ground", _canvas).Stretch(0, 0, 1, 1);
+            _ground.AddImage(null, Palette.Grass).raycastTarget = false;
+            _groundTile = UiKit.Rect("Tile", _ground).Stretch(0, 0, 1, 1).gameObject.AddComponent<RawImage>();
             _groundTile.texture = catalog.BgGrass;
-            _groundTile.color = catalog.BgGrass != null ? Color.white : Palette.Grass;
+            _groundTile.color = Palette.Alpha(Color.white, SceneOverlays.GrassTileStrength);
+            _groundTile.enabled = catalog.BgGrass != null;
             _groundTile.raycastTarget = false;
         }
 
@@ -1431,7 +1453,7 @@ namespace VuonTra.Game.UI
                 for (int k = 1; k < steps; k++)
                 {
                     Vector2 at = Vector2.Lerp(a, b, k / (float)steps) + new Vector2(0, Mathf.Sin(k * 1.7f) * 7f);
-                    UiKit.Rect("Stone", _street).Place(0f, 0f, at.x, at.y, 38, 15).AddImage(catalog.Round, stone);
+                    FlatGround(UiKit.Rect("Stone", _street).Place(0f, 0f, at.x, at.y, 38, 15).AddImage(catalog.Round, stone));
                 }
             }
 
@@ -2264,41 +2286,95 @@ namespace VuonTra.Game.UI
             lens.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
             lens.Render();
-            RenderTexture.active = rt;
             if (_photoTexture != null) { if (Application.isPlaying) Destroy(_photoTexture); else DestroyImmediate(_photoTexture); }
-            _photoTexture = new Texture2D(width, height, TextureFormat.RGB24, false);
-            _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            _photoTexture.Apply();
-            RenderTexture.active = null;
+            bool readsBack = PhotoReadsBackAtOnce;
+            _photoTexture = new Texture2D(width, height, readsBack ? TextureFormat.RGB24 : TextureFormat.RGBA32, false);
+            if (readsBack)
+            {
+                RenderTexture.active = rt;
+                _photoTexture.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+                _photoTexture.Apply();
+                RenderTexture.active = null;
+            }
+            else Graphics.CopyTexture(rt, _photoTexture);
             lens.targetTexture = was;
-            rt.Release();
+            string path = NewPhotoPath();
 
+            Sfx.Shutter();
+            Haptics.Medium();
+            Feel.Flash(Color.white, 0.18f);
+            if (readsBack)
+            {
+                ReleasePhotoTarget(rt);
+                ShowPhoto(WritePhoto(path, _photoTexture));
+                return;
+            }
+            UnityEngine.Rendering.AsyncGPUReadback.Request(rt, 0, TextureFormat.RGBA32, request =>
+            {
+                string written = null;
+                if (!request.hasError)
+                {
+                    var picture = new Texture2D(width, height, TextureFormat.RGBA32, false);
+                    picture.SetPixelData(request.GetData<byte>(), 0);
+                    written = WritePhoto(path, picture);
+                    Destroy(picture);
+                }
+                ReleasePhotoTarget(rt);
+                if (this != null && PhotoMode) ShowPhoto(written);
+            });
+        }
+
+        public static bool PhotoReadsBackAtOnce => SystemInfo.graphicsDeviceType != UnityEngine.Rendering.GraphicsDeviceType.WebGPU;
+
+        string NewPhotoPath()
+        {
             string folder = string.IsNullOrEmpty(PhotoFolder)
                 ? System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.MyPictures), "VuonTraTho")
                 : PhotoFolder;
-            string path = null;
             try
             {
                 System.IO.Directory.CreateDirectory(folder);
                 // One file per picture, even two in the same second.
                 string stamp = System.DateTime.Now.ToString("yyyyMMdd-HHmmss");
-                path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
+                string path = System.IO.Path.Combine(folder, "vuon-" + stamp + ".png");
                 for (int n = 2; System.IO.File.Exists(path); n++) path = System.IO.Path.Combine(folder, "vuon-" + stamp + "-" + n + ".png");
-                System.IO.File.WriteAllBytes(path, _photoTexture.EncodeToPNG());
+                return path;
             }
             catch (System.Exception e)
             {
                 Debug.LogWarning("Không lưu được ảnh: " + e.Message);
+                return null;
             }
-            LastPhotoPath = path;
+        }
 
-            Sfx.Shutter();
-            Haptics.Medium();
-            Feel.Flash(Color.white, 0.18f);
+        static string WritePhoto(string path, Texture2D picture)
+        {
+            if (path == null) return null;
+            try
+            {
+                System.IO.File.WriteAllBytes(path, picture.EncodeToPNG());
+                return path;
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning("Không lưu được ảnh: " + e.Message);
+                return null;
+            }
+        }
+
+        static void ReleasePhotoTarget(RenderTexture rt)
+        {
+            rt.Release();
+            if (Application.isPlaying) Destroy(rt); else DestroyImmediate(rt);
+        }
+
+        void ShowPhoto(string path)
+        {
+            LastPhotoPath = path;
             bool gift = Runner.TakePhoto(path);
             bool asked = PhotoAskFraming && AnswerPhotoAsk();
             _photoAskLine.gameObject.SetActive(asked);
-            _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, width, height), new Vector2(0.5f, 0.5f), 100f);
+            _photoPreview.sprite = Sprite.Create(_photoTexture, new Rect(0, 0, _photoTexture.width, _photoTexture.height), new Vector2(0.5f, 0.5f), 100f);
             _photoGift.text = gift ? L10n.T("photo.gift", Photos.GiftGolden) : L10n.T("photo.again");
             _photoNote.text = path != null ? L10n.T("photo.saved", path) : "";
             _photoReview.SetActive(true);
@@ -2390,18 +2466,19 @@ namespace VuonTra.Game.UI
         /// <summary>Moonlight and darkened corners over the garden, under the HUD.</summary>
         /// <summary>The hour of the day the garden is lit for. Tests and previews set their own.</summary>
         public System.Func<double> ClockHours = () => System.DateTime.Now.TimeOfDay.TotalHours;
-        Image _daylight, _moonGlow;
+        Image _daylight;
         /// <summary>The light round the edges of the screen while a speed burst runs, and how far it has come up.</summary>
         GameObject _boostEdge;
         readonly List<Image> _boostEdges = new List<Image>();
         float _boostGlow;
-        static readonly Color MoonGlowColor = new Color(0.80f, 0.90f, 1f, 0.12f);
 
         void BuildAtmosphere(GameCatalog catalog)
         {
             // The time of day lies over the garden as a wash of colour: amber at dusk, rose and blue at dawn,
             // a pale warmth by day, and nothing at all at night, which is how the garden is meant to be seen.
             _daylight = UiKit.Rect("Daylight", _canvas).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            _daylight.raycastTarget = false;
+            _daylight.transform.SetSiblingIndex(_ground.GetSiblingIndex() + 1);
             // While a speed burst runs the whole screen is rimmed with the tea bar's green, so the garden
             // itself says the burst is on. Four fading bands, one per edge, that pulse and then go.
             var edge = UiKit.Rect("BoostEdge", _canvas).Stretch(0, 0, 1, 1);
@@ -2420,9 +2497,6 @@ namespace VuonTra.Game.UI
             _boostEdge = edge.gameObject;
             _boostEdge.SetActive(false);
             _boostGlow = 0f;
-            // The moon itself is above the canopy; its glow spills in at the top corner.
-            _moonGlow = UiKit.Rect("MoonGlow", _canvas).Place(1f, 1f, -140, -200, 1300, 1300)
-                .AddImage(catalog.Glow, MoonGlowColor);
             if (catalog.BgVignette != null)
             {
                 var v = UiKit.Rect("Vignette", _canvas).Stretch(0, 0, 1, 1);
@@ -2466,7 +2540,7 @@ namespace VuonTra.Game.UI
                 _daylight.color = wash;
                 _daylight.enabled = wash.a > 0.002f;
             }
-            if (_moonGlow != null) _moonGlow.color = Palette.Alpha(MoonGlowColor, MoonGlowColor.a * Mathf.Lerp(0.3f, 1f, night));
+            WashFlatGround();
             int awake = Daylight.FirefliesAt(hour, _fireflies.Count);
             for (int i = 0; i < _fireflies.Count; i++)
                 if (_fireflies[i].gameObject.activeSelf != (i < awake)) _fireflies[i].gameObject.SetActive(i < awake);
@@ -2610,6 +2684,12 @@ namespace VuonTra.Game.UI
             Color tint = LanternTint(s.LanternColor);
             foreach (Image lantern in _lanternArt) if (lantern != null && lantern.color != tint) lantern.color = tint;
             _lanternGlowColor = s.LanternColor > 0 ? Palette.Mix(Palette.Lantern, Palette.Hex(MonthPass.LanternHex(s.LanternColor)), 0.5f) : Palette.Lantern;
+            foreach (Image light in _lanternPools)
+            {
+                if (light == null) continue;
+                Color pool = Palette.Alpha(_lanternGlowColor, light.color.a);
+                if (light.color != pool) light.color = pool;
+            }
             if (DecorCard != null) DecorCard.Refresh(s);
         }
 
@@ -2693,7 +2773,7 @@ namespace VuonTra.Game.UI
                 for (int k = 0; k <= steps; k++)
                 {
                     Vector2 at = Vector2.Lerp(a, b, k / (float)steps) + new Vector2(Mathf.Sin(k * 2.3f) * 9f, Mathf.Sin(k * 1.7f) * 7f);
-                    UiKit.Rect("Path", _street).Place(0f, 0f, at.x, at.y, 118, 64).AddImage(catalog.Round, earth);
+                    FlatGround(UiKit.Rect("Path", _street).Place(0f, 0f, at.x, at.y, 118, 64).AddImage(catalog.Round, earth));
                 }
             }
 
@@ -2705,13 +2785,13 @@ namespace VuonTra.Game.UI
                 float angle = k / 14f * Mathf.PI * 2f + 0.2f;
                 Vector2 at = ring + new Vector2(Mathf.Cos(angle) * 225f, Mathf.Sin(angle) * 150f);
                 float w = 62f + Hash(k + 11f) * 22f;
-                UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, w, w * 0.62f).AddImage(catalog.Round, stone);
+                FlatGround(UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, w, w * 0.62f).AddImage(catalog.Round, stone));
             }
             for (int k = 0; k < 6; k++)
             {
                 float angle = k / 6f * Mathf.PI * 2f + 0.7f;
                 Vector2 at = ring + new Vector2(Mathf.Cos(angle) * 135f, Mathf.Sin(angle) * 92f);
-                UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, 56f, 34f).AddImage(catalog.Round, stone);
+                FlatGround(UiKit.Rect("Flagstone", _street).Place(0f, 0f, at.x, at.y, 56f, 34f).AddImage(catalog.Round, stone));
             }
 
             // Carpets of small flowers where the grass is most open: the spots furthest from every station and seat,
@@ -2800,8 +2880,8 @@ namespace VuonTra.Game.UI
         /// <summary>One piece of the forest rim: a tree, a sapling, a clump of mushrooms, a bush, stones or a stone lantern.</summary>
         sealed class RimPiece
         {
-            public RectTransform Art, Shade;
-            public Image Image, ShadeImage;
+            public RectTransform Art, Shade, Pool;
+            public Image Image, ShadeImage, PoolImage;
             /// <summary>Where its foot stands up the lawn, its size, which side (-1 left, +1 right), and how far behind the edge line its row stands.</summary>
             public float Y, Width, Height, Depth, ShadeAlpha;
             public int Side;
@@ -2839,7 +2919,7 @@ namespace VuonTra.Game.UI
                 Vector2 along = new Vector2(-Mathf.Sin(angle) * at.width, Mathf.Cos(angle) * at.height);
                 var d = UiKit.Rect("Dash", ring).Place(0.5f, 0.5f, o.x, o.y, 24f, 7f);
                 d.localRotation = Quaternion.Euler(0, 0, Mathf.Atan2(along.y, along.x) * Mathf.Rad2Deg);
-                d.AddImage(catalog.Round, dash).raycastTarget = false;
+                FlatGround(d.AddImage(catalog.Round, dash)).raycastTarget = false;
             }
             return group;
         }
@@ -2909,6 +2989,11 @@ namespace VuonTra.Game.UI
                 p.Shade.anchoredPosition = new Vector2(x + 6f, p.Y + 4f);
                 p.ShadeImage.color = Palette.Alpha(p.ShadeImage.color, p.ShadeAlpha * alpha);
             }
+            if (p.Pool != null)
+            {
+                p.Pool.anchoredPosition = new Vector2(x, p.Y);
+                p.PoolImage.color = Palette.Alpha(p.PoolImage.color, SceneOverlays.LanternPoolAlpha * alpha);
+            }
         }
 
         /// <summary>Open grass: off every station's prop, plates and name, off the seats, the pond, the mortar and the shop.</summary>
@@ -2952,6 +3037,14 @@ namespace VuonTra.Game.UI
                 return true;
             }
             // Everything that stands casts a soft shadow on the grass, drawn just behind it.
+            Image LightPool(float x, float y, float width)
+            {
+                var pool = UiKit.Rect("LanternPool", _street).Place(0f, 0f, x, y, width, width * 0.45f);
+                Image light = pool.AddImage(catalog.Glow, Palette.Alpha(_lanternGlowColor, SceneOverlays.LanternPoolAlpha));
+                light.raycastTarget = false;
+                _lanternPools.Add(light);
+                return light;
+            }
             void Shade(Transform parent, List<KeyValuePair<float, Transform>> into, float x, float y, float height)
             {
                 float w = Mathf.Clamp(height * 0.55f, 50f, 260f);
@@ -2993,6 +3086,7 @@ namespace VuonTra.Game.UI
                 }
                 if (kind == Lantern)
                 {
+                    LightPool(x + 14f * DecorScale, y, 380f);
                     var at = new Vector2(x + 14f * DecorScale, y + 150f * DecorScale);
                     var glow = UiKit.Rect("LanternGlow", _street).Place(0f, 0f, at.x, at.y, 300f, 300f);
                     _lanternGlows.Add(glow.AddImage(catalog.Glow, Palette.Alpha(Palette.Lantern, LanternGlowAlpha)));
@@ -3122,6 +3216,11 @@ namespace VuonTra.Game.UI
                 float height = RimHeight(template, seed);
                 float width = height * sprite.rect.width / sprite.rect.height;
                 var piece = new RimPiece { Y = y, Width = width, Height = height, Depth = depth, Side = side };
+                if (template == RimLantern)
+                {
+                    piece.PoolImage = LightPool(0f, y, 300f);
+                    piece.Pool = piece.PoolImage.rectTransform;
+                }
                 if (template != RimStones)
                 {
                     float sw = Mathf.Clamp(height * 0.55f, 50f, 260f);
@@ -3252,7 +3351,9 @@ namespace VuonTra.Game.UI
             foreach (Vector2 o in new[] { new Vector2(-380f, -1010f), new Vector2(120f, -930f) })
             {
                 Vector2 at = Heart + o;
-                if (catalog.StoneLantern != null && Free(at.x, at.y, 150f, 230f, 240f)) Stand(catalog.StoneLantern, "StoneLantern", at.x, at.y, 150f, Color.white, false, true);
+                if (catalog.StoneLantern == null || !Free(at.x, at.y, 150f, 230f, 240f)) continue;
+                LightPool(at.x, at.y, 300f);
+                Stand(catalog.StoneLantern, "StoneLantern", at.x, at.y, 150f, Color.white, false, true);
             }
 
             // Inside: a few small things wherever there is still room that is not a station, a seat or the pond.
@@ -3384,7 +3485,7 @@ namespace VuonTra.Game.UI
             _energyButton.Dip.Denied = () =>
             {
                 Sfx.Deny();
-                Feel.FloatText(Feel.PointOf(energyRect, new Vector2(0, 70)), L10n.T("energy.wait", Span(Energy.SecondsUntilBoost(Runner.State))), Palette.Lantern, 32);
+                Feel.FloatBelow(UnderHud(energyRect), L10n.T("energy.wait", Span(Energy.SecondsUntilBoost(Runner.State))), Palette.Lantern, 32);
             };
             // The name and the action each get their own half of the top row, one line tall, and shrink to fit it:
             // "Trà lực 28" and "×2 · 30 giây" never run into each other (test).
@@ -3496,7 +3597,7 @@ namespace VuonTra.Game.UI
                 });
 
                 // The raised disc under the chosen tab's icon; it pokes a little above the plate.
-                _tabLifts[i] = UiKit.Rect("Lift", rt).Place(0.5f, 0f, 0, 112, 136, 136);
+                _tabLifts[i] = UiKit.Rect("Lift", rt).Place(0.5f, 0f, 0, TabLiftY, TabLiftSize, TabLiftSize);
                 _tabLifts[i].AddShadow(12f, 8f, 0.3f);
                 UiKit.Rect("Lip", _tabLifts[i]).Stretch(0, 0, 1, 1).AddImage(catalog.Round, Palette.CarrotLip);
                 UiKit.Rect("Face", _tabLifts[i]).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Round, Palette.Lantern);
@@ -3918,9 +4019,11 @@ namespace VuonTra.Game.UI
             }
         }
 
+        public float SheetTop => SheetFull - SafeInsets().y;
+
         void SetSheetHeight(float height)
         {
-            SheetHeight = Mathf.Clamp(height, SheetLeast, SheetFull);
+            SheetHeight = Mathf.Clamp(height, SheetLeast, SheetTop);
             _panel.sizeDelta = new Vector2(0, SheetHeight);
         }
 
@@ -3960,15 +4063,15 @@ namespace VuonTra.Game.UI
         public void ReleaseSheet(float speed = 0f)
         {
             if (!SheetOpen) return;
-            float middle = (SheetHalf + SheetFull) / 2f;
-            if (speed > SheetFling) SnapSheet(SheetFull);
+            float middle = (SheetHalf + SheetTop) / 2f;
+            if (speed > SheetFling) SnapSheet(SheetTop);
             else if (speed < -SheetFling)
             {
                 if (SheetHeight > SheetHalf + 60f) SnapSheet(SheetHalf);
                 else CloseSheet();
             }
             else if (SheetHeight < SheetHalf * 0.8f) CloseSheet();
-            else SnapSheet(SheetHeight > middle ? SheetFull : SheetHalf);
+            else SnapSheet(SheetHeight > middle ? SheetTop : SheetHalf);
         }
 
         /// <summary>A row in the station list was touched: the garden above the sheet slides to that station.</summary>
@@ -4002,7 +4105,7 @@ namespace VuonTra.Game.UI
         {
             // The welcome-back sheet (#69); the carrots are already in the purse, Collect only closes it, ×2 pays again.
             AwayCard = new AwayView(_canvas, catalog, Tweens, () => Runner.AwayDoubleCost, () => Runner.State.GoldenCarrots, () => Runner.LastAwayDoubled,
-                CollectAway, OnDoubleAway);
+                CollectAway, OnDoubleAway, OnStory);
         }
 
         public const int AwayFlyCount = 10;
@@ -4019,13 +4122,12 @@ namespace VuonTra.Game.UI
             System.Action arrive = () =>
             {
                 if (_purse == null) return;
-                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 10, 480f, 46f);
                 PopChip(_purse, 0.08f);
                 landed?.Invoke();
             };
             if (!_purse.gameObject.activeInHierarchy) { arrive(); return; }
             Feel.BringToFront();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, AwayFlyCount, 46f, arrive);
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, AwayFlyCount, 46f, arrive);
         }
 
         void AwayDoubled()
@@ -4034,7 +4136,7 @@ namespace VuonTra.Game.UI
             Sfx.Milestone();
             Haptics.Medium();
             Vector2 from = Feel.PointOf(AwayCard.CarrotIcon);
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + Runner.LastAway.Paid.Short(), Palette.Carrot, 44);
+            Feel.FloatBelow(UnderHud(_purse), "+" + Runner.LastAway.Paid.Short(), Palette.Carrot, 44);
             AwayCarrotsHome(from, () => AwayCarrotsHome(from, null));
             AwayCard.Close();
         }
@@ -4253,7 +4355,7 @@ namespace VuonTra.Game.UI
             if (_shownGardenLevel > 0 && gardenLevel > _shownGardenLevel && Shell.State != ShellState.Title)
             {
                 // A new garden level: say so, and say what it brought.
-                Sfx.Sting();
+                Sfx.GardenLevel();
                 Feel.Moment(L10n.T("moment.garden.title", gardenLevel), L10n.T("moment.garden.sub", (gardenLevel - _shownGardenLevel) * Garden.CloversPerLevel));
                 RectTransform badge = _levelBadge;
                 Tweens.Add(0.5f, t => { if (badge != null) badge.localScale = Vector3.one * (1f + 0.3f * Ease.Pop(t)); });
@@ -4446,6 +4548,7 @@ namespace VuonTra.Game.UI
         {
             p.Art.gameObject.SetActive(on);
             if (p.Shade != null) p.Shade.gameObject.SetActive(on);
+            if (p.Pool != null) p.Pool.gameObject.SetActive(on);
         }
 
         readonly List<Rabbit> _seatedNow = new List<Rabbit>();
@@ -4561,8 +4664,8 @@ namespace VuonTra.Game.UI
         {
             if (away.WorthTelling) { AwayCard.Open(away, Runner.State); return; }
             if (away.Paid < BigNum.One || Feel == null) return;
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -90)), "+" + away.Paid.Short(), Palette.Carrot, 40);
-            Feel.Burst(Feel.PointOf(_purse), Runner.Catalog.Currency, new[] { Color.white }, 8, 420f, 40f);
+            Feel.FloatBelow(UnderHud(_purse), "+" + away.Paid.Short(), Palette.Carrot, 40);
+            PopChip(_purse, 0.08f);
         }
 
         /// <summary>The sheet for a plain amount and time, as older callers and the tests had it.</summary>
@@ -4621,7 +4724,7 @@ namespace VuonTra.Game.UI
 
         void StandOnTheIsland(GameCatalog catalog, Garden25DWorld island)
         {
-            _groundTile.gameObject.SetActive(false);
+            _ground.gameObject.SetActive(false);
             _street.parent.gameObject.SetActive(false);
             var home = (RectTransform)_home.transform;
             IslandMap = new GardenMapView(_canvas, catalog, island, HudCover + SafeInsets().y, TabCover + SafeBottom(), home.anchoredPosition, home.sizeDelta);
@@ -4906,7 +5009,7 @@ namespace VuonTra.Game.UI
             int before = Runner.State.Plots;
             if (!Runner.BuyPlot()) return;
             _plotBuy.Press(Tweens);
-            Sfx.Unlock();
+            Sfx.Plot();
             // Name what the new land is for.
             var names = new List<string>();
             for (int i = before; i < Runner.State.Plots && i < Runner.Defs.Count; i++) names.Add(L10n.Station(Runner.Defs[i].Id));
@@ -5207,11 +5310,10 @@ namespace VuonTra.Game.UI
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();
             // The carrots fly from the row up to the purse, which swells as they land.
-            Feel.Fly(carrotsFrom, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(carrotsFrom, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
-                Feel.Burst(Feel.PointOf(_purse), catalog.Currency, new[] { Color.white }, 8, 460f, 40f);
+                Feel.FloatBelow(UnderHud(_purse), gained, Palette.Lantern, 46);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
             if (jars > 0) JarArrived(jarsFrom);
@@ -5541,14 +5643,14 @@ namespace VuonTra.Game.UI
         void PaySale(Vector2 from, BigNum paid, int golden)
         {
             if (paid <= BigNum.Zero && golden <= 0) return;
-            Sfx.Reward();
+            Sfx.Collect();
             Haptics.Light();
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 5, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, 5, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
+                Feel.FloatBelow(UnderHud(_purse), gained, Palette.Lantern, 46);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
             if (golden > 0)
@@ -5913,10 +6015,10 @@ namespace VuonTra.Game.UI
             OrderCard.Close();
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Lantern, 46);
+                Feel.FloatBelow(UnderHud(_purse), gained, Palette.Lantern, 46);
                 Tweens.Add(Motion.Tap, t => { if (_purse != null) _purse.localScale = Vector3.one * (1f + 0.08f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_purse != null) _purse.localScale = Vector3.one; });
             });
             if (clovers > 0)
@@ -6414,9 +6516,9 @@ namespace VuonTra.Game.UI
             Sfx.Reward();
             Haptics.Light();
             string gained = "+" + _askPaid.Short();
-            Feel.Fly(at, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(at, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
-                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+                if (_purse != null) Feel.FloatBelow(UnderHud(_purse), gained, Palette.Carrot, 44);
             });
         }
 
@@ -6720,10 +6822,10 @@ namespace VuonTra.Game.UI
         void JarArrived(Vector2 from)
         {
             GameCatalog catalog = Runner.Catalog;
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Round, Palette.Lantern, 1, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Round, Palette.Lantern, 1, 44f, () =>
             {
                 if (_purse == null) return;
-                Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), L10n.T("float.jar.bought"), Palette.Lantern, 34);
+                Feel.FloatBelow(UnderHud(_purse), L10n.T("float.jar.bought"), Palette.Lantern, 34);
                 if (_jarChip != null) Tweens.Add(Motion.Tap, t => { if (_jarChip != null) _jarChip.localScale = Vector3.one * (1f + 0.12f * Ease.Pop(t)); }, Ease.Linear, 0f, () => { if (_jarChip != null) _jarChip.localScale = Vector3.one; });
             });
         }
@@ -7038,7 +7140,10 @@ namespace VuonTra.Game.UI
             RainLevel = 0f;
             _sheltered = false;
             _rainLayer = UiKit.Rect("Rain", _canvas).Stretch(0, 0, 1, 1);
-            _rainTint = UiKit.Rect("Tint", _rainLayer).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            _rainTint = UiKit.Rect("RainTint", _canvas).Stretch(0, 0, 1, 1).AddImage(null, new Color(0, 0, 0, 0));
+            _rainTint.raycastTarget = false;
+            _rainTint.transform.SetSiblingIndex(_daylight.transform.GetSiblingIndex() + 1);
+            _rainTint.gameObject.SetActive(false);
             // Faint slanting streaks, drawn by code like the mist: thin lines that fall and come round again.
             _rainStreaks = UiKit.Rect("Streaks", _rainLayer).Stretch(0, 0, 1, 1);
             for (int i = 0; i < 90; i++)
@@ -7060,6 +7165,38 @@ namespace VuonTra.Game.UI
             BuildFrog(catalog);
         }
 
+        Color RainWash()
+        {
+            float night = (float)Daylight.NightAt(ClockHours());
+            Color wash = Color.Lerp(new Color(0.46f, 0.56f, 0.68f), new Color(0.16f, 0.23f, 0.38f), night);
+            return Palette.Alpha(wash, Mathf.Lerp(0.13f, 0.22f, night) * RainLevel);
+        }
+
+        Image FlatGround(Image piece)
+        {
+            _flatGround.Add(piece);
+            _flatGroundTones.Add(piece.color);
+            return piece;
+        }
+
+        void WashFlatGround()
+        {
+            Color day = _daylight != null && _daylight.enabled ? _daylight.color : Color.clear;
+            Color rain = _rainTint != null && _rainTint.gameObject.activeSelf ? _rainTint.color : Color.clear;
+            Color dayShown = SceneOverlays.OnScreen(day), rainShown = SceneOverlays.OnScreen(rain);
+            if (dayShown == _flatDay && rainShown == _flatRain) return;
+            _flatDay = dayShown;
+            _flatRain = rainShown;
+            FlatGroundWashes++;
+            for (int i = 0; i < _flatGround.Count; i++)
+            {
+                Image piece = _flatGround[i];
+                if (piece == null) continue;
+                Color tone = SceneOverlays.Washed(SceneOverlays.Washed(_flatGroundTones[i], day), rain);
+                piece.color = Palette.Alpha(tone, piece.color.a);
+            }
+        }
+
         /// <summary>How far the streaks lean from the upright, in degrees, and how fast they fall, in canvas units a second.</summary>
         const float RainSlant = -12f, RainFall = 1500f;
 
@@ -7073,12 +7210,12 @@ namespace VuonTra.Game.UI
             Sfx.SetRain(raining);
             bool shown = RainLevel > 0f;
             if (_rainLayer.gameObject.activeSelf != shown) _rainLayer.gameObject.SetActive(shown);
+            if (_rainTint.gameObject.activeSelf != shown) _rainTint.gameObject.SetActive(shown);
+            if (shown) _rainTint.color = RainWash();
+            WashFlatGround();
             if (shown)
             {
                 // A grey-blue wash by day, a deeper blue at night, under the HUD.
-                float night = (float)Daylight.NightAt(ClockHours());
-                Color wash = Color.Lerp(new Color(0.46f, 0.56f, 0.68f), new Color(0.16f, 0.23f, 0.38f), night);
-                _rainTint.color = Palette.Alpha(wash, Mathf.Lerp(0.13f, 0.22f, night) * RainLevel);
                 bool streaks = !Motion.Reduced;
                 if (_rainStreaks.gameObject.activeSelf != streaks) _rainStreaks.gameObject.SetActive(streaks);
                 if (streaks)
@@ -7291,9 +7428,9 @@ namespace VuonTra.Game.UI
             Feel.FloatText(from + new Vector2(50, 40), "♥", Palette.Blush, 50);
             Feel.FloatText(from + new Vector2(-40, 70), "♥", Palette.Blush, 36);
             string gained = "+" + paid.Short();
-            Feel.Fly(from, Feel.PointOf(_purse), catalog.Currency, Color.white, 6, 44f, () =>
+            Feel.Fly(from, Feel.PointOf(_currency), catalog.Currency, Color.white, 6, 44f, () =>
             {
-                if (_purse != null) Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -110)), gained, Palette.Carrot, 44);
+                if (_purse != null) Feel.FloatBelow(UnderHud(_purse), gained, Palette.Carrot, 44);
             });
             if (clovers > 0)
             {
@@ -7523,22 +7660,22 @@ namespace VuonTra.Game.UI
             group.interactable = false;
             Color[] washes = { Palette.Alpha(MistTone, 0.15f) };
             // A broad veil first, so the land reads as hidden; the washes over it make the cloud bank's soft shapes.
-            UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (low + high) / 2f, span.y - span.x + 320f, high - low + 300f)
-                .AddImage(catalog.Glow, Palette.Alpha(MistTone, 0.35f)).raycastTarget = false;
+            FlatGround(UiKit.Rect("Veil", mist).Place(0f, 0f, (span.x + span.y) / 2f, Heart.y + (low + high) / 2f, span.y - span.x + 320f, high - low + 300f)
+                .AddImage(catalog.Glow, Palette.Alpha(MistTone, 0.35f))).raycastTarget = false;
             // The bank at the edge it shares with the open lawn (#16): thick, with a wandering edge like a wash that dried, so the
             // land still to open reads as such on the dark grass. The washes over it keep it soft.
             bool right = GardenGrid.SideOf(segment) == GardenSide.Right;
             float inner = right ? span.x : span.y, inward = right ? 1f : -1f;
             if (aside)
-                UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (low + high) / 2f, MistEdgeWidth, high - low + 200f)
-                    .AddImage(MistEdgeSprite(right), Palette.Alpha(MistTone, 0.5f)).raycastTarget = false;
+                FlatGround(UiKit.Rect("Edge", mist).Place(0f, 0f, inner + inward * (MistEdgeWidth / 2f - MistEdgeOut), Heart.y + (low + high) / 2f, MistEdgeWidth, high - low + 200f)
+                    .AddImage(MistEdgeSprite(right), Palette.Alpha(MistTone, 0.5f))).raycastTarget = false;
             else
             {
                 bool up = GardenGrid.SideOf(segment) == GardenSide.Up;
                 float lawn = LawnEdgeY(segment - 1, up ? GardenSide.Up : GardenSide.Down), outward = up ? 1f : -1f;
                 RectTransform bank = UiKit.Rect("Edge", mist).Place(0f, 0f, (span.x + span.y) / 2f, lawn + outward * (MistEdgeWidth / 2f - MistEdgeOut), MistEdgeWidth, span.y - span.x + 400f);
                 bank.localRotation = Quaternion.Euler(0f, 0f, up ? 90f : -90f);
-                bank.AddImage(MistEdgeSprite(true), Palette.Alpha(MistTone, 0.5f)).raycastTarget = false;
+                FlatGround(bank.AddImage(MistEdgeSprite(true), Palette.Alpha(MistTone, 0.5f))).raycastTarget = false;
             }
             int Across = aside ? 3 : Mathf.CeilToInt((span.y - span.x) / 300f), Down = 9;
             for (int a = 0; a < Across; a++)
@@ -7548,7 +7685,7 @@ namespace VuonTra.Game.UI
                     float x = Mathf.Lerp(span.x, span.y, (a + 0.5f) / Across) + (Hash(seed) - 0.5f) * 60f;
                     float y = Heart.y + Mathf.Lerp(low + 120f, high - 120f, d / (Down - 1f)) + (Hash(seed + 1f) - 0.5f) * 40f;
                     float w = 330f + Hash(seed + 2f) * 120f, h = 300f + Hash(seed + 3f) * 90f;
-                    UiKit.Rect("Wash", mist).Place(0f, 0f, x, y, w, h).AddImage(catalog.Glow, washes[(a + d) % washes.Length]).raycastTarget = false;
+                    FlatGround(UiKit.Rect("Wash", mist).Place(0f, 0f, x, y, w, h).AddImage(catalog.Glow, washes[(a + d) % washes.Length])).raycastTarget = false;
                 }
             mist.gameObject.SetActive(true);
             return group;
@@ -8833,7 +8970,7 @@ namespace VuonTra.Game.UI
         {
             if (!_built || _purse == null) return;
             Sfx.Reward();
-            Feel.FloatText(Feel.PointOf(_purse, new Vector2(0, -130)), L10n.T("intro.paid", paid.Short(), clovers), Palette.Lantern, 36);
+            Feel.FloatBelow(UnderHud(_purse), L10n.T("intro.paid", paid.Short(), clovers), Palette.Lantern, 36);
         }
 
         #endregion

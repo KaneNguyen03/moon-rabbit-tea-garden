@@ -756,10 +756,10 @@ namespace VuonTra.Core.Tests
             screen.Shell.StartGame();
             screen.OpenSheet(0);
             var panel = (RectTransform)root.transform.Find("Canvas/Sheet/Panel");
-            Assert.Less(panel.anchoredPosition.y, -1000f, "it starts below the screen");
+            Assert.LessOrEqual(panel.anchoredPosition.y, -screen.SheetHalf + 0.5f, "it starts below the screen");
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
             Assert.AreEqual(0f, panel.anchoredPosition.y, 0.5f, "0.25 s later it stands on the bottom edge");
-            Assert.AreEqual(1920f * 0.6f, screen.SheetHeight, 0.5f);
+            Assert.AreEqual(Mathf.Min(1920f, screen.CanvasHeight) * 0.6f, screen.SheetHeight, 0.5f, "60 % of the screen, never taller than on the phone");
             Assert.AreEqual(screen.SheetHeight, panel.sizeDelta.y, 0.5f);
 
             Transform sheet = root.transform.Find("Canvas/Sheet");
@@ -794,17 +794,17 @@ namespace VuonTra.Core.Tests
             screen.DragSheet(400f);
             screen.ReleaseSheet();
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
-            Assert.AreEqual(GardenScreen.SheetFull, screen.SheetHeight, 0.5f, "pulled past the middle it opens all the way");
-            Assert.Less(GardenScreen.SheetFull, 1920f - 150f, "and still stops under the HUD");
+            Assert.AreEqual(screen.SheetFull, screen.SheetHeight, 0.5f, "pulled past the middle it opens all the way");
+            Assert.Less(screen.SheetFull, screen.CanvasHeight - 150f, "and still stops under the HUD");
 
             screen.DragSheet(5000f);
-            Assert.AreEqual(GardenScreen.SheetFull, screen.SheetHeight, 0.5f, "it cannot be pulled over the HUD");
+            Assert.AreEqual(screen.SheetFull, screen.SheetHeight, 0.5f, "it cannot be pulled over the HUD");
 
             screen.DragSheet(-60f);
             screen.ReleaseSheet(-2000f);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
             Assert.IsTrue(screen.SheetOpen, "a flick down from full only drops it to 60%");
-            Assert.AreEqual(GardenScreen.SheetHalf, screen.SheetHeight, 0.5f);
+            Assert.AreEqual(screen.SheetHalf, screen.SheetHeight, 0.5f);
 
             screen.DragSheet(-80f);
             screen.ReleaseSheet(-2000f);
@@ -812,7 +812,7 @@ namespace VuonTra.Core.Tests
 
             screen.OpenSheet(0);
             for (int i = 0; i < 10; i++) screen.Advance(1f / 30f);
-            Assert.AreEqual(GardenScreen.SheetHalf, screen.SheetHeight, 0.5f, "it always opens at 60% again");
+            Assert.AreEqual(screen.SheetHalf, screen.SheetHeight, 0.5f, "it always opens at 60% again");
             screen.DragSheet(-400f);
             screen.ReleaseSheet();
             Assert.IsFalse(screen.SheetOpen, "dragged well down and let go closes it too");
@@ -2982,21 +2982,18 @@ namespace VuonTra.Core.Tests
             screen.Shell.StartGame();
             Transform fireflies = root.transform.Find("Canvas/Garden/Content/Fireflies");
             Image wash = root.transform.Find("Canvas/Daylight").GetComponent<Image>();
-            Image moon = root.transform.Find("Canvas/MoonGlow").GetComponent<Image>();
             int all = fireflies.childCount;
             int Out() { int n = 0; foreach (Transform f in fireflies) if (f.gameObject.activeSelf) n++; return n; }
 
             screen.ClockHours = () => 22.0;
             screen.Refresh();
             Assert.AreEqual(0f, wash.color.a, 1e-6, "at night nothing lies over the garden");
-            Assert.AreEqual(0.12f, moon.color.a, 1e-6);
             Assert.AreEqual(all, Out());
             double before = runner.State.Coins.ToDouble();
 
             screen.ClockHours = () => 13.0;
             screen.Refresh();
             Assert.Greater(wash.color.a, 0.1f, "a pale warmth by day");
-            Assert.Less(moon.color.a, 0.12f, "the moon's glow fades by day");
             Assert.AreEqual(Daylight.FirefliesAt(13, all), Out(), "only a few fireflies by day");
             Assert.AreEqual(before, runner.State.Coins.ToDouble(), 1e-9, "the hour changes the look, never the carrots");
 
@@ -3987,7 +3984,7 @@ namespace VuonTra.Core.Tests
             pull.OnDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -300f) });
             pull.OnEndDrag(new UnityEngine.EventSystems.PointerEventData(null));
             Assert.IsFalse(pull.Pulling);
-            Assert.AreEqual(GardenScreen.SheetHalf, screen.SheetHeight, 0.5f, "the sheet did not move");
+            Assert.AreEqual(screen.SheetHalf, screen.SheetHeight, 0.5f, "the sheet did not move");
             Assert.IsTrue(screen.SheetOpen);
 
             list.verticalNormalizedPosition = 1f;
@@ -3995,7 +3992,7 @@ namespace VuonTra.Core.Tests
             Assert.IsTrue(pull.Pulling);
             Assert.IsFalse(list.enabled, "the list holds still while the sheet moves");
             pull.OnDrag(new UnityEngine.EventSystems.PointerEventData(null) { delta = new Vector2(0, -400f) });
-            Assert.AreEqual(GardenScreen.SheetHalf - 400f, screen.SheetHeight, 0.5f);
+            Assert.AreEqual(screen.SheetHalf - 400f, screen.SheetHeight, 0.5f);
             pull.OnEndDrag(new UnityEngine.EventSystems.PointerEventData(null));
             Assert.IsTrue(list.enabled, "and scrolls again afterwards");
             Assert.IsFalse(screen.SheetOpen, "let go well down, the sheet closes");

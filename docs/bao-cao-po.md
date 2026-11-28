@@ -2548,6 +2548,17 @@ Cùng ngày: đề xuất #8 thỏ theo mùa ở `docs/de-xuat-8.md` với sáu 
 
 **Đã làm:** `README.md` thêm mục "Web version": đường dẫn bản web, hai lệnh `tools/build-webgl.sh` và `tools/publish-pages.sh` chạy sau mỗi lần gộp main, và trỏ tới `docs/phat-hanh/BAN-WEB.md`. Không dựng lại, không đăng lại.
 
+## #162 — Nút "Bản đồ" 2.5D: vùng chạm đạt 48 dp ở Android density 3 (agent-162, B gộp 27/11)
+**Test:** test mới `Garden25DMapPillTouchTests` (2 test: vùng chạm ≥144×144 đơn vị canvas cho nút Bản đồ và nút × của bản đồ, có raycastTarget; hình nút giữ 270×92, vùng chạm nới đều trên dưới), đỏ trước khi sửa (132 < 144), xanh sau. `tools/verify.sh` đầy đủ trên main 71e90de: tests 1890/1890, preview 485 khung, save ok, RESULT GREEN. Core 1001/1001; conventions không đổi (1206).
+
+**Commit:** `0bad625`.
+
+**Đã làm:** `WideTouch` trong `GardenMapView.cs` từ 132 lên 144. Vùng chạm nút Bản đồ thành 270×144 (48 dp ở density 3), nút × thành 144×144. Hình và màu nút không đổi.
+
+### Chưa đạt / cần PO quyết
+- Chưa đo trên máy Android thật, chưa chụp ảnh.
+- Assert ≥132 cũ trong `Garden25DScreenTests.cs` để nâng lên 144 sau khi #146 gộp (tệp đang có thay đổi của #146).
+
 ## Bàn giao (24/11 sáng sớm, sau #91; thay mục 23/11 tối cùng chỗ)
 
 ### Trạng thái

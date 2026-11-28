@@ -8,7 +8,7 @@ namespace VuonTra.Game.UI
     public sealed class GardenMapView
     {
         const float CloseSize = 96f;
-        const float WideTouch = 132f;
+        const float WideTouch = 144f;
         const int MinShotPixels = 256;
         public const double SeaAround = 1d;
 

@@ -4973,6 +4973,86 @@ MonoBehaviour:
     m_Localized: Map
     m_Metadata:
       m_Items: []
+  - m_Id: 2262572523438080
+    m_Localized: "Last night\u2026"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964032
+    m_Localized: A rabbit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964033
+    m_Localized: '{0} found {1} recipe leaves under the tea bush'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964034
+    m_Localized: "A night guest left a clover and a note: \u201CLovely tea!\u201D"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964035
+    m_Localized: 'A new friend waits at the moon gate: {0}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964036
+    m_Localized: '{0} and {1} stayed up talking and grew closer'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964037
+    m_Localized: '{0} dozed off by the teapot, still hugging a cup'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964038
+    m_Localized: '{0} dreamt of a teapot as big as the moon'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964039
+    m_Localized: '{0} dozed off on a sack of flour, nose dusted white'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964040
+    m_Localized: "{0} mumbled in their sleep: \u201Ca little more sugar\u2026\u201D"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964041
+    m_Localized: '{0} fell asleep among the tea rows, head on a leaf basket'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964042
+    m_Localized: '{0} counted tea leaves late into the night and drifted off'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964043
+    m_Localized: '{0} watched the stars till late, then dozed on the teapot'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964044
+    m_Localized: '{0} named a new star, then gave a long yawn'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964045
+    m_Localized: Take
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964046
+    m_Localized: Welcome
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964047
+    m_Localized: Pat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964048
+    m_Localized: Done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964049
+    m_Localized: +{0} leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964050
+    m_Localized: "+{0} \u2665"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
