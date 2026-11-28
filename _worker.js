@@ -1,7 +1,7 @@
 const joined = "/Build/WebGL.data.unityweb";
 const parts = [
   { path: "/Build/WebGL.data.unityweb.part0", size: 20000000 },
-  { path: "/Build/WebGL.data.unityweb.part1", size: 14530333 },
+  { path: "/Build/WebGL.data.unityweb.part1", size: 15149359 },
 ];
 const totalSize = parts.reduce((sum, part) => sum + part.size, 0);
 
