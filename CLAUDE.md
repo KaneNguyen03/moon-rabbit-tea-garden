@@ -41,6 +41,18 @@ Traps:
 
 Who does what, which file is the source of truth, and which skill each role uses: `docs/studio/HUONG-DAN-STUDIO.md` (Vietnamese). Folder map and first-clone setup: `README.md`.
 
+## Working On The PC (Windows 11 + WSL2)
+All game work now runs on the owner's PC: Orca and Claude Code in WSL2 (Ubuntu), Unity 6000.6.10f1 for Windows, one RTX 4070. The tables above were measured on the Mac; the same scripts run here from WSL (PR #165). On the PC:
+
+- **Checkouts.** The main checkout is `/mnt/d/Projects/moon-rabbit-tea-garden` (`D:\Projects\moon-rabbit-tea-garden`). Make every worktree that will run Unity with WSL git under `/mnt/d/Projects/mrtg-wt/<name>`: `git -C /mnt/d/Projects/moon-rabbit-tea-garden worktree add --detach /mnt/d/Projects/mrtg-wt/<name> origin/<branch>`. Unity.exe runs projects on a Windows drive, not on the WSL disk (`/home/...`, where Orca workspaces live): edit in an Orca workspace if you like, but run Unity on a `D:` worktree. Never use Windows git on these checkouts: it checks files out with CRLF, which breaks every bash tool, and Windows `git worktree prune` deletes the WSL worktrees' records because it cannot resolve their `/mnt/d` paths.
+- **Unity.** Set `export UNITY=/mnt/d/Unity/Editors/6000.6.10f1/Editor/Unity.exe` before any Unity tool; without it the tools look for the Mac editor. Everything still goes through `tools/unity-gate.sh`, run outside the Claude Code sandbox.
+- **Light mode.** When the owner is playing on the PC, do not start Unity, ComfyUI, builds, browser renders or other GPU or heavy CPU jobs, even through the gate. Reading, editing, git, `gh`, the Python tool tests and pushing for CI are fine. Write the Unity checks you skipped into the PR as exact commands for later.
+- **Files Unity rewrites.** A batch run on Windows rewrites files that are not your change: `ProjectSettings/ProjectSettings.asset`, `Assets/Localization/LocalizationSettings.asset`, `Assets/Settings/UniversalRenderPipelineGlobalSettings.asset`, `Assets/VuonTra/Scenes/Garden.unity` and `Assets/VuonTra/Art/Placeholder/bg_*.png.meta`. After each run, `git status`, then `git checkout -- <file>` for each of these your branch did not mean to change. Never commit them by accident.
+- **Core tests.** WSL has no .NET SDK. Use the one inside Unity: `DOTNET=/mnt/d/Unity/Editors/6000.6.10f1/Editor/Data/DotNetSdk/dotnet.exe tools/ci/core-tests.sh` (outside the sandbox), or let CI run them on push.
+- **PlayerPrefs.** The Editor's PlayerPrefs live in the Windows registry, shared by every checkout and every parallel run. A test that reads a pref another run writes flakes (#188, #191). Tests that depend on the real clock (`DateTime.Now`) flake by the hour (#166, #179). Name these when a run fails, and do not count them against a change that does not touch them.
+- **Push.** Use `gh` as the credential helper: `git -c credential.helper='!gh auth git-credential' push -u origin <branch>`.
+- **Times.** A fresh worktree imports for 144–275 s and grows a Library of about 3.7 GB. QA runs held the gate 18–30 minutes (#185 to #197); give waits a limit with `UNITY_GATE_MAX_WAIT`.
+
 ## Unity Anti-Slop Rules
 1. **No Procedural Animation Math:** Never animate character limbs, props, or poses via `Mathf.Sin`/`Lerp` in C#. Use Unity `Animator`, `.anim` clips, or `2D Bone Rigging`.
 2. **Data-Driven Modularity:** Use `ScriptableObject` for all items, characters, and station stats. For 2D character customization/skins, use `SpriteLibrary` + `SpriteResolver` + `SortingGroup`, never duplicate prefabs per skin.
