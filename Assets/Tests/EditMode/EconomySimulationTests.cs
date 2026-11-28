@@ -146,6 +146,7 @@ namespace VuonTra.Core.Tests
             plotsAt.Clear();
             for (int i = 0; i < waveLevelAt.Length; i++) waveLevelAt[i] = waveRabbitsAt[i] = waveTakenAt[i] = -1;
             purpleAt = goldAt = -1;
+            ResetNights(seed);
             snapshots.Clear();
             trace.Clear();
             if (tireless)
@@ -174,6 +175,7 @@ namespace VuonTra.Core.Tests
             sessionClock = 0;
             lastSale = 0;
             if (welcomeBack) TakeWelcomeBack();
+            if (nights) TakeStories();
             VuonTra.Core.Seasons.Clamp(s, Today);
             Quests.RollDaily(quests, defs, s, Today, mods);
             goldenGift += Shop.ClaimDailyGift(s, Today, null, BigGiftHat, out _, out _);
@@ -690,8 +692,10 @@ namespace VuonTra.Core.Tests
 
         void Away(double seconds)
         {
-            s.LastSeenUnixSeconds = 0;
-            BigNum paid = Simulation.ClaimAway(defs, s, (long)seconds, out _, mods);
+            long left = nights ? NightEpoch + (long)clock : 0;
+            s.LastSeenUnixSeconds = left;
+            BigNum paid = Simulation.ClaimAway(defs, s, left + (long)seconds, out _, mods);
+            if (nights) TellStories(left, left + (long)seconds);
             earnedAway += paid;
             clock += seconds;
             if (takeFreeDouble && VuonTra.Core.Away.DoubleIsFree(s, Today) && VuonTra.Core.Away.Double(s, Today, paid)) earnedDoubles += paid;
@@ -717,7 +721,7 @@ namespace VuonTra.Core.Tests
 
         int GoldenEarned => goldenGift + goldenPhoto + goldenQuests + goldenGames + goldenTray + goldenAds + goldenHearts + goldenChests + goldenNewcomer + goldenPass + goldenWelcome + goldenMoonPass + GoldenFromLevels;
         int GoldenFromLevels => s.GoldenCarrots + goldenSpent - goldenGift - goldenPhoto - goldenQuests - goldenGames - goldenTray - goldenAds - goldenHearts - goldenChests - goldenNewcomer - goldenPass - goldenWelcome - goldenMoonPass;
-        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversNewcomer - cloversPass - cloversWelcome;
+        int CloversFromLevels => s.Clovers + summoned - cloversQuests - cloversGames - cloversOrders - cloversFrogs - cloversChests - cloversNewcomer - cloversPass - cloversWelcome - cloversNights;
 
         void Snapshot(string label)
         {
@@ -797,9 +801,10 @@ namespace VuonTra.Core.Tests
         }
 
         Week CasualWeek(bool freeDouble, bool watchEveryAd, bool fishing = false, int seed = Seed, bool pressUpgradeAll = false, bool chests = true, bool wholeSet = false, bool firstWeek = false, bool pass = true, bool dishes = true,
-            bool buyMoonPass = false, int goldenAtStart = 0, Tank fiveBaits = Tank.Off)
+            bool buyMoonPass = false, int goldenAtStart = 0, Tank fiveBaits = Tank.Off, bool tellNights = false)
         {
             Reset(false, seed);
+            nights = tellNights;
             tank = fiveBaits;
             if (fiveBaits != Tank.Off) fishing = true;
             raiseDishes = dishes;

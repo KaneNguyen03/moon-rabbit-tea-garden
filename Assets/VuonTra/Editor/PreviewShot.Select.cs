@@ -79,6 +79,8 @@ namespace VuonTra.EditorTools
             new Group("away-count", () => { foreach (string locale in BothLocales) RenderAwayCount(locale); }),
             new Group("monetization-off", RenderMonetizationOffOnly),
             new Group("garden-25d", RenderGarden25D) { OnlyByName = true },
+            new Group("feel-lane", RenderFeelLane) { Standalone = true },
+            new Group("overnight", RenderOvernight) { Standalone = true },
         };
 
         static string _shotFolder;
@@ -162,6 +164,7 @@ namespace VuonTra.EditorTools
                 _asked = null;
                 _only = null;
                 _namesOnly = false;
+                ReleaseFrame();
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             }
         }

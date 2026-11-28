@@ -118,6 +118,7 @@ namespace VuonTra.Core
         public const string MonthPassTier = "monthpass_tier";
         public const string MonthPassBought = "monthpass_bought";
         public const string WelcomeBack = "welcome_back";
+        public const string OvernightStory = "overnight_story";
         public const string TrunkOpen = "trunk_open";
         public const string TrunkBuy = "trunk_buy";
         public const string PassBought = "pass_bought";
@@ -149,7 +150,7 @@ namespace VuonTra.Core
             ReviewAsked, ReviewLiked, ReviewFeedback,
             NewcomerTask, NewcomerDay,
             MonthPassTier, MonthPassBought,
-            WelcomeBack,
+            WelcomeBack, OvernightStory,
             TrunkOpen, TrunkBuy,
             PassBought, PassDayClaimed,
             IntroShown, IntroTry, IntroLater,
@@ -205,6 +206,7 @@ namespace VuonTra.Core
         public const string Item = "item";
         public const string Sale = "sale";
         public const string Days = "days";
+        public const string Claimed = "claimed";
 
         public const string Id = "id";
         public const string Count = "count";
@@ -216,12 +218,12 @@ namespace VuonTra.Core
         public const string Chain = "chain";
         public const string Feature = "feature";
 
-        public const string ViaClover = "clover", ViaGolden = "golden", ViaTrunk = "trunk";
+        public const string ViaClover = "clover", ViaGolden = "golden", ViaTrunk = "trunk", ViaOvernight = "overnight";
         public const string FromShop = "shop";
         public const string AdWatched = "watched", AdClosed = "closed", AdPass = "pass";
 
         public const string FromCard = "card", FromDot = "dot", FromCovered = "covered";
-        public const string FromOrder = "order", FromFish = "fish", FromAway = "away", FromPhotoAsk = "photo_ask",
+        public const string FromOrder = "order", FromFish = "fish", FromAway = "away", FromOvernight = "overnight", FromPhotoAsk = "photo_ask",
             FromPounding = "pounding", FromLeaves = "leaves", FromFireflies = "fireflies", FromWeek = "week", FromMail = "mail";
         public const string FeatureFishing = "fishing", FeaturePounding = "pounding", FeatureMiniGame = "minigame", FeatureLayout = "layout", FeaturePhoto = "photo";
         public const string FeatureRecipeBook = "recipe_book", FeatureTank = "tank", FeatureTrunk = "trunk", FeatureFair = "fair", FeatureMonthPass = "month_pass", FeatureWeekChest = "week_chest";
@@ -349,6 +351,12 @@ namespace VuonTra.Core
 
         public static void LogMonthPassBought(this IAnalytics a, int month, int tier) =>
             a.Send(AnalyticsEvents.MonthPassBought, new AnalyticsParam(AnalyticsEvents.Month, month), new AnalyticsParam(AnalyticsEvents.Tier, tier));
+
+        public static void LogOvernightStory(this IAnalytics a, Story story, bool claimed)
+        {
+            if (story == null) return;
+            a.Log(AnalyticsEvents.OvernightStory, new AnalyticsParam(AnalyticsEvents.Kind, Overnight.IdOf(story.Kind)), new AnalyticsParam(AnalyticsEvents.Claimed, claimed));
+        }
 
         public static void LogWelcomeBack(this IAnalytics a, WelcomeBackGift gift)
         {

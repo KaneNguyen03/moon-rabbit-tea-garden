@@ -4,6 +4,7 @@ using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEditor.iOS.Xcode;
 using UnityEngine;
+using UnityEngine.Rendering;
 using VuonTra.Release;
 
 namespace VuonTra.EditorTools
@@ -16,6 +17,7 @@ namespace VuonTra.EditorTools
         public const string AndroidApkPath = "Build/Android/VuonTraTho.apk";
         public const string WebGLPath = "Build/WebGL";
         public const string WebGLTemplate = "PROJECT:VuonTra";
+        public static readonly GraphicsDeviceType[] WebGraphicsApis = { GraphicsDeviceType.WebGPU, GraphicsDeviceType.OpenGLES3 };
 
         public const int BuildFailedExitCode = 1;
         public const int MissingModuleExitCode = 2;
@@ -59,6 +61,8 @@ namespace VuonTra.EditorTools
             PlayerSettings.WebGL.exceptionSupport = WebGLExceptionSupport.ExplicitlyThrownExceptionsOnly;
             PlayerSettings.WebGL.template = WebGLTemplate;
             PlayerSettings.WebGL.dataCaching = true;
+            PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.WebGL, false);
+            PlayerSettings.SetGraphicsAPIs(BuildTarget.WebGL, WebGraphicsApis);
         }
 
         [MenuItem("VuonTra/Build Android (APK, debug key)")]

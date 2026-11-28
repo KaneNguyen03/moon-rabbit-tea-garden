@@ -4931,6 +4931,86 @@ MonoBehaviour:
     m_Key: map.open
     m_Metadata:
       m_Items: []
+  - m_Id: 2262572523438080
+    m_Key: overnight.title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964032
+    m_Key: overnight.someone
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964033
+    m_Key: overnight.leaves
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964034
+    m_Key: overnight.clover
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964035
+    m_Key: overnight.stranger
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964036
+    m_Key: overnight.bond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964037
+    m_Key: overnight.doze.brewer.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964038
+    m_Key: overnight.doze.brewer.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964039
+    m_Key: overnight.doze.baker.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964040
+    m_Key: overnight.doze.baker.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964041
+    m_Key: overnight.doze.gatherer.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964042
+    m_Key: overnight.doze.gatherer.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964043
+    m_Key: overnight.doze.stargazer.0
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964044
+    m_Key: overnight.doze.stargazer.1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964045
+    m_Key: overnight.take
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964046
+    m_Key: overnight.welcome
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964047
+    m_Key: overnight.pat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964048
+    m_Key: overnight.done
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964049
+    m_Key: overnight.leaves.gain
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2262572577964050
+    m_Key: overnight.bond.gain
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

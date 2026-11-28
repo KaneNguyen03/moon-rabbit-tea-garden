@@ -495,6 +495,7 @@ namespace VuonTra.Core
             sb.Append(",\"setJars\":").Append((s.Aquarium != null ? s.Aquarium.SetJarsGiven : 0).ToString(CultureInfo.InvariantCulture));
             sb.Append(",\"cardSeen\":").Append(s.Aquarium == null || s.Aquarium.CardSeen ? "true" : "false");
             sb.Append('}');
+            WriteOvernight(sb, s.Overnight);
             sb.Append(",\"intros\":{\"seen\":");
             WriteIntroIds(sb, s.IntrosSeen);
             sb.Append(",\"tried\":");
@@ -1097,6 +1098,9 @@ namespace VuonTra.Core
                 s.Aquarium.CardSeen = !s.Aquarium.SetGiven || !(aquarium.TryGetValue("cardSeen", out object tankSeenObj) && tankSeenObj is bool tankSeen) || tankSeen;
             }
 
+            if (root.TryGetValue("overnight", out object overnightObj) && overnightObj is Dictionary<string, object> overnight)
+                ReadOvernight(s, overnight);
+
             if (root.TryGetValue("tally", out object tallyObj) && tallyObj is Dictionary<string, object> tally)
             {
                 s.Pets = Math.Max(0L, ToLong(ReadNumber(tally, "pets")));
@@ -1221,6 +1225,59 @@ namespace VuonTra.Core
         }
 
         static double Sane(double v) => (double.IsNaN(v) || double.IsInfinity(v)) ? 0d : v;
+
+        static void WriteOvernight(StringBuilder sb, OvernightRecord r)
+        {
+            sb.Append(",\"overnight\":{\"mark\":").Append(r.Mark.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"stranger\":").Append(r.StrangerDay.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"week\":").Append(r.Week.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"clovers\":").Append(r.WeekClovers.ToString(CultureInfo.InvariantCulture));
+            sb.Append(",\"waiting\":[");
+            for (int i = 0; i < r.Waiting.Count; i++)
+            {
+                Story story = r.Waiting[i];
+                if (i > 0) sb.Append(',');
+                sb.Append("{\"kind\":");
+                WriteString(sb, Overnight.IdOf(story.Kind));
+                sb.Append(",\"rabbit\":").Append(story.Rabbit.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"friend\":").Append(story.Friend.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"guest\":");
+                WriteString(sb, story.Guest ?? "");
+                sb.Append(",\"amount\":").Append(story.Amount.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"line\":").Append(story.Line.ToString(CultureInfo.InvariantCulture));
+                sb.Append(",\"night\":").Append(story.Night.ToString(CultureInfo.InvariantCulture));
+                sb.Append('}');
+            }
+            sb.Append("]}");
+        }
+
+        static void ReadOvernight(GameState s, Dictionary<string, object> obj)
+        {
+            OvernightRecord r = s.Overnight;
+            r.Mark = TryNumber(obj, "mark", out double mark) ? Math.Max(-1L, ToLong(mark)) : -1;
+            r.StrangerDay = TryNumber(obj, "stranger", out double stranger) ? Math.Max(-1L, ToLong(stranger)) : -1;
+            r.Week = TryNumber(obj, "week", out double week) ? Math.Max(-1L, ToLong(week)) : -1;
+            r.WeekClovers = Small(ReadNumber(obj, "clovers"), Overnight.WeekCloverCap);
+            if (!(obj.TryGetValue("waiting", out object waitingObj) && waitingObj is List<object> waiting)) return;
+            foreach (object item in waiting)
+            {
+                if (r.Waiting.Count >= Overnight.MaxWaiting) break;
+                if (!(item is Dictionary<string, object> entry) || !(entry.TryGetValue("kind", out object kindObj) && kindObj is string kindId)
+                    || !Overnight.TryKind(kindId, out StoryKind kind)) continue;
+                var story = new Story
+                {
+                    Kind = kind,
+                    Rabbit = Math.Max(0L, ToLong(ReadNumber(entry, "rabbit"))),
+                    Friend = Math.Max(0L, ToLong(ReadNumber(entry, "friend"))),
+                    Amount = Small(ReadNumber(entry, "amount"), Overnight.Most(kind)),
+                    Line = Small(ReadNumber(entry, "line"), Overnight.DozeLines - 1),
+                    Night = Math.Max(0L, ToLong(ReadNumber(entry, "night")))
+                };
+                if (entry.TryGetValue("guest", out object guestObj) && guestObj is string guest && RabbitKinds.Find(guest) != null) story.Guest = guest;
+                if (kind == StoryKind.Stranger && story.Guest == null) continue;
+                r.Waiting.Add(story);
+            }
+        }
 
         static void WriteString(StringBuilder sb, string value)
         {

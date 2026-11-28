@@ -24,6 +24,7 @@ Khi cờ bán hàng tắt (`Features.Monetization`, mặc định, #144), các s
 | `review_asked` / `review_liked` / `review_feedback` | `moment`, `asks`, `sent`, `chars` | Hỏi đánh giá lúc nào thì được thích? |
 | `monthpass_tier` / `monthpass_bought` | `tier`, `premium`, `month` | Vé tháng: người chơi lên tới nấc nào, có mua bản trả phí không? |
 | `welcome_back` | `days_away` | Người quay lại đã đi vắng bao lâu? |
+| `overnight_story` | `kind` (`leaves`, `clover`, `stranger`, `bond`, `doze`), `claimed` (1 = chạm nhận, 0 = bị chuyện mới đẩy đi khi chưa nhận) | Chuyện "Đêm qua…" (#174) nào được kể, người chơi có chạm nhận không? |
 | `trunk_open` / `trunk_buy` | `window`, `items` / `item`, `price`, `sale` | Rương xe đẩy: bao nhiêu người mở, món nào bán? |
 | `pass_bought` / `pass_day_claimed` | `product_id`, `price`, `late` / `day`, `days` | Vé trăng: bao nhiêu người mua, nhận quà ngày đủ không? |
 
@@ -38,7 +39,7 @@ Khi cờ bán hàng tắt (`Features.Monetization`, mặc định, #144), các s
 | `tank_release` | `kind` (số loài cá 0–5), `count` (số cá loài đó trong bể sau khi thả) | Mỗi con cá thả vào bể (#114) | Người chơi có thả cá không, loài nào? |
 | `tank_milestone` | `step` (mốc 1–4: 1, 5, 20, 50 con), `kind` | Một loài vừa chạm mốc | Người chơi đi tới mốc nào của bể? |
 | `tank_full` | `count` (tổng cá trong bể) | Lần đầu đủ 6 loài | Bao nhiêu người đủ bộ 6 loài, sau bao nhiêu cá? |
-| `recipe_leaf` | `count`, `from` (`order`, `fish`, `away`) | Nhận lá công thức (#110) từ đơn, cho thỏ ăn cá, hoặc gom lúc vắng | Lá đến từ đâu, có đủ để nâng món không? |
+| `recipe_leaf` | `count`, `from` (`order`, `fish`, `away`, `overnight`) | Nhận lá công thức (#110) từ đơn, cho thỏ ăn cá, gom lúc vắng, hoặc từ chuyện "Đêm qua…" (#174) | Lá đến từ đâu, có đủ để nâng món không? |
 | `dish_unlocked` | `station`, `dish` (món 2 hoặc 3), `moon` | Một trạm vừa mở món mới | Người chơi mở tới món thứ mấy, ở trăng nào? |
 | `dish_level` | `station`, `dish` (đếm từ 1), `level` (cấp mới) | Nâng một món trong sổ công thức | Sổ công thức có được dùng không, món nào được nâng? |
 | `fair_start` | `fair` | Người chơi vào game trong một lễ hội (#112) và nhập hội | Bao nhiêu người gặp từng hội? |

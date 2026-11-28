@@ -19,7 +19,8 @@ namespace VuonTra.Game.UI
         public RectTransform Plate => _chipRect;
 
         readonly int _index;
-        RectTransform _rabbit, _fill, _prop, _pad, _chipRect;
+        RectTransform _rabbit, _fill, _prop, _pad, _padTag, _chipRect;
+        Text _padText;
         Image _rabbitImage, _propImage, _chip, _groundImage;
         Text _label;
         CanvasGroup _plateGroup, _wordsGroup;
@@ -126,7 +127,7 @@ namespace VuonTra.Game.UI
             _halo = halo.gameObject;
             _halo.SetActive(false);
 
-            _pad = UiKit.Rect("Pad", Front).Place(0.5f, 0.5f, -72, -134, 250, 156);
+            _pad = UiKit.Rect("Pad", Front).Place(0.5f, 0.5f, -72, -134, PadW, 156);
             _pad.pivot = new Vector2(0.5f, 0f);
             Image padImage = _pad.AddImage(catalog.Pad, Color.white);
             padImage.preserveAspect = true;
@@ -135,12 +136,11 @@ namespace VuonTra.Game.UI
             padButton.transition = Selectable.Transition.None;
             padButton.targetGraphic = padImage;
             padButton.onClick.AddListener(() => onPad(_index));
-            var tag = UiKit.Rect("Tag", _pad).Place(0.5f, 1f, 0, -14, 150 * UiKit.TextScale, 42 * UiKit.TextScale);
-            tag.AddImage(catalog.Panel, Palette.Mix(Palette.Ink, Palette.Night, 0.35f), true);
-            Text tagText = UiKit.Rect("Text", tag).Stretch(0, 0, 1, 1, 6, 0, 6, 0).AddText(L10n.T("pad.hint") + " +", UiKit.TextSmall, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
-            tagText.resizeTextForBestFit = true;
-            tagText.resizeTextMinSize = 16;
-            tagText.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
+            _padTag = UiKit.Rect("Tag", _pad).Place(0.5f, 0.5f, PadTagX, PadTagY, PadTagMinW, PadTagPad);
+            _padTag.AddImage(catalog.Panel, Palette.Mix(Palette.Ink, Palette.Night, 0.35f), true);
+            _padText = UiKit.Rect("Text", _padTag).Stretch(0, 0, 1, 1, PadTagPad / 2f, 0, PadTagPad / 2f, 0).AddText(L10n.T("pad.hint") + " +", PadHintSize, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _padText.lineSpacing = PadTagLines;
+            FitPadTag(1f);
             _pad.gameObject.SetActive(false);
 
             Image rabbitShade = UiKit.Rect("RabbitShade", Root).Place(0.5f, 0.5f, -72, -106, GuestBox * 0.6f, GuestBox * 0.16f).AddImage(catalog.Glow, Palette.Alpha(Palette.Ink, 0.3f));
@@ -199,6 +199,8 @@ namespace VuonTra.Game.UI
         }
 
         public const float PlateX = 16f, PlateW = 236f, PlateH = 58f, BarPlateH = 28f;
+        public const int PadHintSize = 38;
+        const float PadW = 250f, PadTagMinW = 150f, PadTagPad = 24f, PadTagX = -14f, PadTagY = 6f, PadTagLines = 0.9f, PadTagTrim = 6f;
 
         public void ShowWords(bool near, Tweens tweens)
         {
@@ -243,9 +245,25 @@ namespace VuonTra.Game.UI
             Front.localScale = Root.localScale;
         }
 
+        void FitPadTag(float scale)
+        {
+            float width = Mathf.Clamp(_padText.preferredWidth + PadTagPad, PadTagMinW, PadW / scale);
+            _padTag.sizeDelta = new Vector2(width, _padTag.sizeDelta.y);
+            float height = _padText.preferredHeight;
+            while (width - PadTagTrim >= PadTagMinW)
+            {
+                _padTag.sizeDelta = new Vector2(width - PadTagTrim, _padTag.sizeDelta.y);
+                if (_padText.preferredHeight > height + 0.5f) break;
+                width -= PadTagTrim;
+            }
+            _padTag.sizeDelta = new Vector2(width, height + PadTagPad);
+        }
+
         public void PlacePlate(float scale, Vector2 shift)
         {
             _chipRect.localScale = Vector3.one * scale;
+            _padTag.localScale = Vector3.one * scale;
+            FitPadTag(scale);
             _chipHome += shift;
             _chipRect.anchoredPosition = _chipHome;
         }

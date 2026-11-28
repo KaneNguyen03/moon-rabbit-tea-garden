@@ -13,7 +13,24 @@ namespace VuonTra.EditorTools
     public static partial class PreviewShot
     {
         public const string Folder = "Logs/preview";
-        const int Width = 1080, Height = 1920;
+        static readonly Vector2Int PhoneFrame = new Vector2Int(1080, 1920);
+        static Vector2Int _frameSize = PhoneFrame;
+        static int Width => _frameSize.x;
+        static int Height => _frameSize.y;
+
+        static void AtFrameSize(Vector2Int size, System.Action draw)
+        {
+            Vector2Int before = _frameSize;
+            _frameSize = size;
+            try
+            {
+                draw();
+            }
+            finally
+            {
+                _frameSize = before;
+            }
+        }
 
         static PreviewLanguageCheck _language;
 
@@ -29,6 +46,7 @@ namespace VuonTra.EditorTools
             _language.Write(Folder);
             _language = null;
             Debug.Log("[VuonTra] Previews written to " + Folder);
+            ReleaseFrame();
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
 
@@ -843,7 +861,7 @@ namespace VuonTra.EditorTools
             screen.ShowRabbitAlbum(true);
             screen.Refresh();
             Step(screen, 0.5f);
-            screen.DragSheet(GardenScreen.SheetFull);
+            screen.DragSheet(screen.SheetFull);
             screen.ReleaseSheet();
             Step(screen, 0.6f);
             Capture(screen, "61-so-tho-bo");
@@ -1092,9 +1110,34 @@ namespace VuonTra.EditorTools
             t.GetComponent<Button>().onClick.Invoke();
         }
 
+        static RenderTexture _stepFrame;
+
         static void Step(GardenScreen screen, float seconds)
         {
+            HoldFrame(screen.Cam);
             for (float t = 0f; t < seconds; t += 1f / 30f) screen.Advance(1f / 30f);
+        }
+
+        static void HoldFrame(Camera cam)
+        {
+            if (cam == null) return;
+            if (cam.targetTexture == null || cam.targetTexture == _stepFrame)
+            {
+                if (_stepFrame != null && (_stepFrame.width != Width || _stepFrame.height != Height)) ReleaseFrame();
+                if (_stepFrame == null) _stepFrame = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
+                cam.targetTexture = _stepFrame;
+            }
+            Canvas.ForceUpdateCanvases();
+        }
+
+        static void ReleaseFrame()
+        {
+            if (_stepFrame == null) return;
+            foreach (Camera cam in Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
+                if (cam.targetTexture == _stepFrame) cam.targetTexture = null;
+            _stepFrame.Release();
+            Object.DestroyImmediate(_stepFrame);
+            _stepFrame = null;
         }
 
         static void Capture(GardenScreen screen, string name)
@@ -1102,6 +1145,7 @@ namespace VuonTra.EditorTools
             if (!Wanted(name)) return;
             var rt = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
             Camera cam = screen.Cam;
+            RenderTexture held = cam.targetTexture;
             cam.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
             cam.Render();
@@ -1112,7 +1156,7 @@ namespace VuonTra.EditorTools
             tex.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
             tex.Apply();
             RenderTexture.active = null;
-            cam.targetTexture = null;
+            cam.targetTexture = held;
             File.WriteAllBytes(Path.Combine(OutFolder(Folder), name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             rt.Release();

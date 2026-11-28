@@ -1,7 +1,8 @@
 area	filter	sources	note
 save	SaveStoreTests|TestSaveFolderTests	Assets/VuonTra/Game/SaveStore.cs Assets/Tests/EditMode/TestSaveFolder.cs	
-platform	PlatformTests|PlayGamesTests|BuildSettingsTests|AndroidSigningTests|AnalyticsRunnerTests|ReviewScreenTests|MonetizationFlagScreenTests|AdSeamsScreenTests	Assets/VuonTra/Game/Platform/* Assets/VuonTra/Game/Store/* Assets/VuonTra/Game/AppInfo.cs Assets/VuonTra/Editor/BuildScript.cs Assets/VuonTra/Editor/AndroidSigning.cs Assets/VuonTra/Editor/Notifications/*	Store and device calls are seams; nothing here reaches a real store or phone.
-audio	Sound|JuiceTests|AwaySheetFeelTests|RainScreenTests	Assets/VuonTra/Game/Audio/* Assets/VuonTra/Editor/TuneRecorder.cs Assets/Tests/EditMode/SoundMeter.cs	
+web	WebGraphicsTests|BuildSettingsTests	Assets/WebGLTemplates/* ProjectSettings/ProjectSettings.asset	The web page shows the renderer; only a browser run proves WebGPU and the WebGL 2 fallback, the test guards the API list.
+platform	PlatformTests|WebGraphicsTests|PlayGamesTests|BuildSettingsTests|AndroidSigningTests|AnalyticsRunnerTests|ReviewScreenTests|MonetizationFlagScreenTests|AdSeamsScreenTests	Assets/VuonTra/Game/Platform/* Assets/VuonTra/Game/Store/* Assets/VuonTra/Game/AppInfo.cs Assets/VuonTra/Editor/BuildScript.cs Assets/VuonTra/Editor/AndroidSigning.cs Assets/VuonTra/Editor/Notifications/*	Store and device calls are seams; nothing here reaches a real store or phone.
+audio	Sound|JuiceTests|AwaySheetFeelTests|RainScreenTests	Assets/VuonTra/Game/Audio/* Assets/VuonTra/Editor/TuneRecorder.cs Assets/VuonTra/Editor/SoundSeeder.cs Assets/Resources/SoundBank.asset Assets/VuonTra/Art/Final/sfx_* Assets/Tests/EditMode/SoundMeter.cs	
 content	CatalogTests|FourStationsTests|L10nTests|GardenPacingTests|EconomySimulationTests	Assets/VuonTra/Game/Data/* Assets/VuonTra/Editor/ContentSeeder.cs Assets/VuonTra/Editor/MetaSeeder.cs Assets/VuonTra/Content/*	The pacing simulations are Slow, so --changed leaves them out: run tools/test.sh GardenPacingTests, and the full verify for EconomySimulationTests.
 text	L10nTests|PreviewLanguageCheckTests|ChatterTests|AccessibilityTests	Assets/VuonTra/Game/Text/* Assets/VuonTra/Editor/L10n*.cs Assets/VuonTra/Editor/PreviewLanguageCheck.cs	AccessibilityTests holds the checks that no label spills out of its box.
 garden25d	Garden25D|GardenCameraRigTests|MapViewScreenTests	Assets/VuonTra/Game/Garden25D/* Assets/VuonTra/Game/Rabbit25D/* Assets/VuonTra/Game/UI/GardenMapView.cs	
@@ -21,6 +22,7 @@ review	ReviewScreenTests	Assets/VuonTra/Game/UI/ReviewView.cs
 intros	IntrosScreenTests|FirstSessionScreenTests	Assets/VuonTra/Game/UI/IntroView.cs Assets/VuonTra/Game/UI/TutorialView.cs Assets/VuonTra/Game/UI/GardenScreen.Cards.cs	
 mail	GiftCodeScreenTests	Assets/VuonTra/Game/UI/MailView.cs	
 away	AwaySheetFeelTests	Assets/VuonTra/Game/UI/AwayView.cs	
+overnight	OvernightScreenTests|AwaySheetFeelTests	Assets/VuonTra/Game/GameRunner.Overnight.cs Assets/VuonTra/Game/UI/GardenScreen.Overnight.cs	The pure rules are in OvernightTests (Core tests); the pacing simulation is Slow: run tools/test.sh Overnight.
 world-labels	WorldLabelTiersTests	Assets/VuonTra/Game/UI/GardenScreen.WorldLabels.cs	
 juice	JuiceTests|EaseTests|AwaySheetFeelTests	Assets/VuonTra/Game/UI/GardenScreen.Juice.cs Assets/VuonTra/Game/UI/FeelLayer.cs Assets/VuonTra/Game/UI/PressDip.cs Assets/VuonTra/Game/UI/Ease.cs	
 runner	ScreenTests|RunnerTests	Assets/VuonTra/Game/GameRunner.cs	Every screen test drives the runner.

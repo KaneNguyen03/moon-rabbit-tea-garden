@@ -28,7 +28,7 @@ class TestAreas(unittest.TestCase):
         self.assertEqual([], homeless, "add these files to a row of tools/test-areas.tsv")
 
     def test_every_source_pattern_matches_a_file(self):
-        everything = tracked("Assets/**/*")
+        everything = tracked("Assets/**/*") + tracked("ProjectSettings/*")
         for area in self.areas:
             for source in area.sources:
                 self.assertTrue(any(test_areas.fnmatch.fnmatchcase(path, source) for path in everything),
@@ -52,6 +52,11 @@ class TestAreas(unittest.TestCase):
         self.assertEqual("fishing", name)
         self.assertEqual("PondScreenTests|Fishing", test_filter)
         self.assertEqual("ui", test_areas.place("Assets/VuonTra/Game/UI/ShopView.cs", self.areas)[0])
+
+    def test_a_changed_web_graphics_api_list_runs_the_web_graphics_tests(self):
+        name, test_filter, _ = test_areas.place("ProjectSettings/ProjectSettings.asset", self.areas)
+        self.assertEqual("web", name)
+        self.assertIn("WebGraphicsTests", test_filter.split("|"))
 
     def test_a_changed_unity_test_file_runs_its_own_fixture(self):
         self.assertEqual(("its own tests", "SaveStoreTests", ""), test_areas.place(TESTS + "SaveStoreTests.cs", self.areas))

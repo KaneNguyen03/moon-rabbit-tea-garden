@@ -77,7 +77,7 @@ namespace VuonTra.Core.Tests
             screen.Advance(0.1f);
             Assert.AreNotEqual(before, ((RectTransform)streak).anchoredPosition, "the streaks fall");
             Assert.IsFalse(streak.GetComponent<Image>().raycastTarget, "the rain never takes a touch");
-            Assert.IsFalse(root.transform.Find("Canvas/Rain/Tint").GetComponent<Image>().raycastTarget);
+            Assert.IsFalse(root.transform.Find("Canvas/RainTint").GetComponent<Image>().raycastTarget);
 
             Motion.SetReduced(true);
             screen.Advance(0.1f);

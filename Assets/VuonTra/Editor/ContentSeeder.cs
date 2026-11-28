@@ -132,6 +132,7 @@ namespace VuonTra.EditorTools
             AssetDatabase.SaveAssets();
 
             MetaSeeder.Seed(catalog);
+            SoundSeeder.Seed();
             BuildScene(catalog);
             ApplyPlayerSettings();
             AssetDatabase.SaveAssets();
