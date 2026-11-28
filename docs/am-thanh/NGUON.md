@@ -19,7 +19,7 @@ Tải ngày 28/11/2026. Tệp `License.txt` trong mỗi gói ghi "License (Creat
 
 ## Cách xử lý
 
-Mỗi tệp gốc được đổi sang mono 44,1 kHz, cắt khoảng lặng ở đầu và cuối, cắt tối đa 1,45 giây (mờ dần 80 ms nếu bị cắt), đưa RMS cả tệp về −20 dBFS và giới hạn đỉnh ở −4 dBFS bằng một bộ giới hạn nhìn trước 4 ms, Riêng tiếng đồng xu của thu khay được lọc thấp ở 4 kHz trước đó cho bớt chói. Sau cùng mã hoá lại Ogg Vorbis chất lượng 4 (7–13 KB mỗi tệp).
+Mỗi tệp gốc được đổi sang mono 44,1 kHz, cắt khoảng lặng ở đầu và cuối, cắt tối đa 1,45 giây (mờ dần 80 ms nếu bị cắt), đưa RMS cả tệp về −20 dBFS và giới hạn đỉnh ở −4 dBFS bằng một bộ giới hạn nhìn trước 4 ms. Riêng tiếng đồng xu của thu khay được lọc thấp ở 4 kHz trước đó cho bớt chói. Sau cùng mã hoá lại Ogg Vorbis chất lượng 4 (7–13 KB mỗi tệp).
 
 Mức sau khi mã hoá (đo bằng ffmpeg):
 
