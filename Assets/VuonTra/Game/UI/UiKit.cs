@@ -232,13 +232,14 @@ namespace VuonTra.Game.UI
 
         public static Button Secondary(RectTransform root, Sprite panel, string label, Action onClick, int size = TextBody)
         {
-            Image edge = root.AddImage(panel, Palette.Mix(Palette.Ink, Palette.Paper, 0.25f), true);
+            bool painted = UiFrames.Painted(FrameKind.Slot);
+            Image edge = root.AddImage(panel, painted ? new Color(0, 0, 0, 0) : Palette.Mix(Palette.Ink, Palette.Paper, 0.25f), true);
             edge.raycastTarget = true;
             var button = root.gameObject.AddComponent<Button>();
             button.transition = Selectable.Transition.None;
             button.targetGraphic = edge;
             button.onClick.AddListener(() => onClick());
-            Rect("Face", root).Stretch(0, 0, 1, 1, 3, 3, 3, 3).AddImage(panel, Palette.Card, true);
+            Rect("Face", root).Stretch(0, 0, 1, 1, 3, 3, 3, 3).AddFrame(FrameKind.Slot, panel, Palette.Card);
             Rect("Text", root).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText(label, size, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             return button;
         }
@@ -258,16 +259,16 @@ namespace VuonTra.Game.UI
 
         public static ChunkyButton Chunky(RectTransform root, Sprite panel, Action onClick)
         {
-            var view = new ChunkyButton { Root = root };
-            view.Lip = root.AddImage(panel, Palette.CarrotLip, true);
+            var view = new ChunkyButton { Root = root, Painted = UiFrames.Painted(FrameKind.Button) };
+            view.Lip = root.AddImage(panel, view.Painted ? new Color(0, 0, 0, 0) : Palette.CarrotLip, true);
             view.Lip.raycastTarget = true;
             view.Button = root.gameObject.AddComponent<Button>();
             view.Button.transition = Selectable.Transition.None;
             view.Button.targetGraphic = view.Lip;
             view.FaceRect = Rect("Face", root).Stretch(0, 0, 1, 1, 0, LipHeight, 0, 0);
-            view.Face = view.FaceRect.AddImage(panel, Palette.Carrot, true);
+            view.Face = view.FaceRect.AddFrame(FrameKind.Button, panel, Palette.Carrot);
             view.Shine = Rect("Shine", view.FaceRect).Stretch(0, 0.5f, 1, 1, 5, 0, 5, 5)
-                .AddImage(panel, new Color(1f, 1f, 1f, 0.2f), true).gameObject;
+                .AddImage(panel, new Color(1f, 1f, 1f, view.Painted ? 0f : 0.2f), true).gameObject;
             view.Dip = root.gameObject.AddComponent<PressDip>();
             view.Dip.Face = view.FaceRect;
             view.Dip.Button = view.Button;
@@ -280,7 +281,7 @@ namespace VuonTra.Game.UI
         {
             var slider = root.gameObject.AddComponent<Slider>();
             var track = Rect("Track", root).Stretch(0, 0.5f, 1, 0.5f, 0, -9, 0, -9);
-            track.AddImage(panel, Palette.Track, true).raycastTarget = true;
+            track.AddFrame(FrameKind.Bar, panel, Palette.Track).raycastTarget = true;
 
             var fillArea = Rect("Fill Area", root).Stretch(0, 0.5f, 1, 0.5f, 0, -9, 0, -9);
             var fill = Rect("Fill", fillArea).Stretch(0, 0, 0, 1);
@@ -325,14 +326,15 @@ namespace VuonTra.Game.UI
         public Button Button;
         public GameObject Shine;
         public PressDip Dip;
+        public bool Painted;
 
         public static Color InkFor(bool on) => on ? Palette.OnCarrot : Palette.Ink;
 
         public void SetEnabled(bool on)
         {
             Button.interactable = on;
-            Lip.color = on ? Palette.CarrotLip : new Color(0, 0, 0, 0);
-            Face.color = on ? Palette.Carrot : Palette.Track;
+            Lip.color = on && !Painted ? Palette.CarrotLip : new Color(0, 0, 0, 0);
+            Face.color = Painted ? (on ? Color.white : Palette.Track) : (on ? Palette.Carrot : Palette.Track);
             if (Shine != null && Shine.activeSelf != on) Shine.SetActive(on);
         }
 

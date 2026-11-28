@@ -249,6 +249,7 @@ namespace VuonTra.Game.UI
         /// <summary>The player's profile: avatar, garden name, player code, backup.</summary>
         public ProfileView Profile { get; private set; }
         public RabbitDetailView Detail { get; private set; }
+        public StationSceneView CardScene { get; private set; }
         /// <summary>The moon gate a newly called or merged rabbit steps out of.</summary>
         public SummonMomentView Arrival { get; private set; }
         /// <summary>The new moon (#1): the compare card and the moment that follows it.</summary>
@@ -1247,6 +1248,7 @@ namespace VuonTra.Game.UI
             scaler.matchWidthOrHeight = 0.5f;
             _canvas = (RectTransform)canvasGo.transform;
 
+            UiFrames.Use(catalog);
             BuildBackdrop(catalog);
             Motion.Load();
             UiKit.LoadTextSize();
@@ -1763,8 +1765,7 @@ namespace VuonTra.Game.UI
         {
             _card = UiKit.Rect("Card", _canvas).Place(0.5f, 0f, 0, TabCover + CardHeight / 2f, 1040, CardHeight);
             _card.AddShadow(18f, 10f, 0.4f);
-            UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
-            Image face = UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
+            Image face = UiFrames.AddCard(_card, FrameKind.Card, catalog.Panel, 10f);
             face.raycastTarget = true; // a tap on the card is not a tap on the ground behind it
             // A sideways swipe on the card walks to the neighbouring station, and the garden follows.
             face.gameObject.AddComponent<CardSwipe>().Stepped = StepStation;
@@ -1785,6 +1786,7 @@ namespace VuonTra.Game.UI
             // The same buy modes as the Stations tab; one choice, remembered in both places.
             _cardModes = UiKit.Rect("Modes", _card).Stretch(0, 1, 1, 1, 0, -202, 0, 142);
             BuildModeBar(_cardModes, catalog, -32, 0, 60);
+            CardScene = new StationSceneView(_card, catalog, 32f, 140f, StationSceneView.WidthBeside(1040f - 64f));
 
             // Who works here: the rabbit's face, its name, and its kind and trade.
             _cardWorker = UiKit.Rect("Worker", _card).Place(0f, 0f, 262, 74, 460, 96);
@@ -1987,6 +1989,7 @@ namespace VuonTra.Game.UI
             }
 
             RefreshCardDish(defs, s, i, open);
+            CardScene.Show(Runner.Catalog.Stations[i], Recipes.CurrentDish(s, i), Rabbits.AtStation(s, i), open);
 
             BigNum cost;
             bool can, capped = false;
@@ -3012,7 +3015,7 @@ namespace VuonTra.Game.UI
         {
             Sprite[] d = catalog.Decor;
             if (d == null || d.Length < 9) return;
-            const int Tree = 0, Bush = 1, Lantern = 2, Mushrooms = 4, Stones = 5, Pond = 6, TeaTable = 7, Stump = 8;
+            const int Tree = 0, Bush = 1, Lantern = GameCatalog.DecorLantern, Mushrooms = 4, Stones = 5, Pond = 6, TeaTable = 7, Stump = 8;
             Color soft = Palette.Mix(Color.white, Palette.Night, 0.12f);
 
             // The pond lies in the top corner, where the moonlight comes in.
@@ -3448,8 +3451,7 @@ namespace VuonTra.Game.UI
             BuildMoonPassPill(catalog);
             _purse = UiKit.Rect("Purse", _hud).Place(0f, 1f, 274, -76, 296, 100);
             _purse.AddShadow();
-            UiKit.Rect("Lip", _purse).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
-            Image purseFace = UiKit.Rect("Face", _purse).Stretch(0, 0, 1, 1, 0, 8, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
+            Image purseFace = UiFrames.AddCard(_purse, FrameKind.Hud, catalog.Panel, 8f);
             // A touch on the purse explains the number: which station earns what, and the factors on top.
             purseFace.raycastTarget = true;
             var purseButton = _purse.gameObject.AddComponent<Button>();
@@ -3572,9 +3574,7 @@ namespace VuonTra.Game.UI
             _tabBar.pivot = new Vector2(0.5f, 0f);
             _tabBar.sizeDelta = new Vector2(_tabBar.sizeDelta.x, TabBarHeight);
             _tabBar.AddShadow(26f, 12f, 0.4f);
-            UiKit.Rect("Lip", _tabBar).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true).pixelsPerUnitMultiplier = 0.6f;
-            Image plate = UiKit.Rect("Plate", _tabBar).Stretch(0, 0, 1, 1, 0, 10, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            plate.pixelsPerUnitMultiplier = 0.6f;
+            Image plate = UiFrames.AddCard(_tabBar, FrameKind.Tab, catalog.Panel, 10f, "Plate", 0.6f);
             plate.raycastTarget = true; // a touch between two tabs must not reach the garden behind
 
             Sprite firstProp = catalog.Stations.Length > 0 ? catalog.Stations[0].Prop : null;

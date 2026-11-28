@@ -275,7 +275,7 @@ namespace VuonTra.Game.UI
                     c.Amount.text = "+" + gift.Amount;
                     break;
                 case MonthGiftKind.Lantern:
-                    Icon(c, _catalog.Round, Palette.Hex(MonthPass.LanternColors[cal]));
+                    Icon(c, LanternSwatch.SpriteFor(_catalog), LanternSwatch.TintFor(_catalog, MonthPass.LanternIndex(cal)));
                     c.Icon.rectTransform.sizeDelta = new Vector2(48, 48);
                     c.Amount.text = L10n.T("monthpass.cell.lantern");
                     break;

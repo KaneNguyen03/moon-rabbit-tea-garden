@@ -170,6 +170,12 @@ MonoBehaviour:
   IconCharm: {fileID: 21300000, guid: e16829be44fde40cba27557e4607dd32, type: 3}
   IconQuest: {fileID: 21300000, guid: 7338f1287acd8448580a1cc456ba9c1d, type: 3}
   Background: {fileID: 21300000, guid: bc2b457d3e4834eca89c9e67325cd14a, type: 3}
+  CardFrame: {fileID: 0}
+  ButtonFrame: {fileID: 0}
+  SlotFrame: {fileID: 0}
+  BarFrame: {fileID: 0}
+  HudFrame: {fileID: 0}
+  TabFrame: {fileID: 0}
   BgSky: {fileID: 2800000, guid: 1798bdad823a441b7be24746c4f164c4, type: 3}
   BgHills: {fileID: 2800000, guid: 47d4e619afd924a6cb59c3b0ca1f72a2, type: 3}
   BgTrees: {fileID: 2800000, guid: a6ead2828cd7d4b5a986258d49d8996e, type: 3}
