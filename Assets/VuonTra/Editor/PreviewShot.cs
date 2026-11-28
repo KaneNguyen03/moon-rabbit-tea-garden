@@ -29,6 +29,7 @@ namespace VuonTra.EditorTools
             _language.Write(Folder);
             _language = null;
             Debug.Log("[VuonTra] Previews written to " + Folder);
+            ReleaseFrame();
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
         }
 
@@ -1089,9 +1090,30 @@ namespace VuonTra.EditorTools
             t.GetComponent<Button>().onClick.Invoke();
         }
 
+        static RenderTexture _stepFrame;
+
         static void Step(GardenScreen screen, float seconds)
         {
+            HoldFrame(screen.Cam);
             for (float t = 0f; t < seconds; t += 1f / 30f) screen.Advance(1f / 30f);
+        }
+
+        static void HoldFrame(Camera cam)
+        {
+            if (cam == null || cam.targetTexture != null) return;
+            if (_stepFrame == null) _stepFrame = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
+            cam.targetTexture = _stepFrame;
+            Canvas.ForceUpdateCanvases();
+        }
+
+        static void ReleaseFrame()
+        {
+            if (_stepFrame == null) return;
+            foreach (Camera cam in Object.FindObjectsByType<Camera>(FindObjectsSortMode.None))
+                if (cam.targetTexture == _stepFrame) cam.targetTexture = null;
+            _stepFrame.Release();
+            Object.DestroyImmediate(_stepFrame);
+            _stepFrame = null;
         }
 
         static void Capture(GardenScreen screen, string name)
@@ -1099,6 +1121,7 @@ namespace VuonTra.EditorTools
             if (!Wanted(name)) return;
             var rt = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
             Camera cam = screen.Cam;
+            RenderTexture held = cam.targetTexture;
             cam.targetTexture = rt;
             Canvas.ForceUpdateCanvases();
             cam.Render();
@@ -1109,7 +1132,7 @@ namespace VuonTra.EditorTools
             tex.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
             tex.Apply();
             RenderTexture.active = null;
-            cam.targetTexture = null;
+            cam.targetTexture = held;
             File.WriteAllBytes(Path.Combine(OutFolder(Folder), name + ".png"), tex.EncodeToPNG());
             Object.DestroyImmediate(tex);
             rt.Release();
