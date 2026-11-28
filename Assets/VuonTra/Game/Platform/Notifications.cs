@@ -28,7 +28,7 @@ namespace VuonTra.Game.Platform
         const string Key = "remind.on";
 
         static bool? _on;
-        public static bool On => _on ?? (_on = PlayerPrefs.GetInt(Key, 0) == 1).Value;
+        public static bool On => _on ?? (_on = Prefs.GetInt(Key, 0) == 1).Value;
 
         public static INotifier Notifier = Device();
 
@@ -58,8 +58,8 @@ namespace VuonTra.Game.Platform
         static void Store(bool on)
         {
             _on = on;
-            PlayerPrefs.SetInt(Key, on ? 1 : 0);
-            PlayerPrefs.Save();
+            Prefs.SetInt(Key, on ? 1 : 0);
+            Prefs.Save();
         }
 
         public static IReadOnlyList<Notice> GoingAway(GameState state, Modifiers mods, DateTimeOffset localNow)

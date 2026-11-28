@@ -2261,7 +2261,7 @@ namespace VuonTra.EditorTools
             Rabbits.Arrive(s, 1, "Mây", 0.4);
             s.FreshKinds.Clear();
             runner.Init(s);
-            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            Prefs.DeleteKey(GardenScreen.LayoutHintKey);
             screen.RebuildUi();
             if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
             screen.SelectStation(-1);
@@ -3088,7 +3088,7 @@ namespace VuonTra.EditorTools
             Decor.Place(s, 7, "den-da");
             s.FreshKinds.Clear();
             runner.Init(s);
-            PlayerPrefs.SetInt(GardenScreen.LayoutHintKey, 1);
+            Prefs.SetInt(GardenScreen.LayoutHintKey, 1);
             screen.Build();
             screen.ClockHours = () => 22.0;
             screen.Raining = () => false;
@@ -3113,7 +3113,7 @@ namespace VuonTra.EditorTools
             screen.ExitLayoutMode();
             Step(screen, 0.5f);
             Capture(screen, "54r-sau-xong");
-            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            Prefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
 
         static void RenderGuestByPond()
@@ -3327,7 +3327,7 @@ namespace VuonTra.EditorTools
             Rabbits.Assign(s, Rabbits.Arrive(s, 2, "Lam", 0.2).Id, 1);
             s.FreshKinds.Clear();
             runner.Init(s);
-            PlayerPrefs.SetInt(GardenScreen.LayoutHintKey, 1);
+            Prefs.SetInt(GardenScreen.LayoutHintKey, 1);
             screen.Build();
             screen.ClockHours = () => 13.0;
             screen.Raining = () => false;
@@ -3366,7 +3366,7 @@ namespace VuonTra.EditorTools
             screen.ExitLayoutMode();
             Step(screen, 0.5f);
             Capture(screen, "119-cho-trong-xong-" + locale);
-            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            Prefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
 
         static void RenderBasketFollows(string locale)
@@ -3391,7 +3391,7 @@ namespace VuonTra.EditorTools
             screen.ExitLayoutMode();
             Step(screen, 0.5f);
             Capture(screen, "119-gio-xong-" + locale);
-            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            Prefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
 
         static void RenderAwayCount(string locale)
@@ -3467,7 +3467,7 @@ namespace VuonTra.EditorTools
             Rabbits.Assign(s, Rabbits.Arrive(s, 1, "Mây", 0.4).Id, 2);
             s.FreshKinds.Clear();
             runner.Init(s);
-            PlayerPrefs.SetInt(GardenScreen.LayoutHintKey, 1);
+            Prefs.SetInt(GardenScreen.LayoutHintKey, 1);
             screen.Build();
             screen.ClockHours = () => 13.0;
             screen.Raining = () => false;
@@ -3494,7 +3494,7 @@ namespace VuonTra.EditorTools
             Capture(screen, "88-tha-sat-tram");
             screen.ExitLayoutMode();
             Step(screen, 0.3f);
-            PlayerPrefs.DeleteKey(GardenScreen.LayoutHintKey);
+            Prefs.DeleteKey(GardenScreen.LayoutHintKey);
         }
     }
 }

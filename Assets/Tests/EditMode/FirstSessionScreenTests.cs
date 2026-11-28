@@ -71,7 +71,7 @@ namespace VuonTra.Core.Tests
             UnityEngine.Object.DestroyImmediate(root);
             Motion.SetReduced(false);
             UiKit.SetLargeText(false);
-            PlayerPrefs.DeleteKey("text.large");
+            Prefs.DeleteKey("text.large");
             L10n.SetLocale("vi");
         }
 

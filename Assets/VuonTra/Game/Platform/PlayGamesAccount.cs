@@ -21,8 +21,8 @@ namespace VuonTra.Game.Platform
         }
 
         public static PlayGamesAccount WithPlayerPrefs(IPlayGames games) => new PlayGamesAccount(games,
-            () => PlayerPrefs.GetInt(RememberKey, 0) == 1,
-            v => { PlayerPrefs.SetInt(RememberKey, v ? 1 : 0); PlayerPrefs.Save(); });
+            () => Prefs.GetInt(RememberKey, 0) == 1,
+            v => { Prefs.SetInt(RememberKey, v ? 1 : 0); Prefs.Save(); });
 
         public AccountProvider Provider => AccountProvider.PlayGames;
         public BackupState State => _state;

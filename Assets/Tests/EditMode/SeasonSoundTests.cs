@@ -30,7 +30,7 @@ namespace VuonTra.Core.Tests
         [SetUp]
         public void SetUp()
         {
-            tuneBefore = (Sfx.Tune)PlayerPrefs.GetInt("music.tune", 0);
+            tuneBefore = (Sfx.Tune)Prefs.GetInt("music.tune", 0);
             sfxBefore = Sfx.SfxGain;
             musicBefore = Sfx.MusicGain;
             L10n.SetLocale("vi");

@@ -24,8 +24,8 @@ namespace VuonTra.Core.Tests
         [SetUp]
         public void SetUp()
         {
-            stationBefore = PlayerPrefs.GetFloat("vol.station", Sfx.DefaultStationGain);
-            tuneBefore = (Sfx.Tune)PlayerPrefs.GetInt("music.tune", 0);
+            stationBefore = Prefs.GetFloat("vol.station", Sfx.DefaultStationGain);
+            tuneBefore = (Sfx.Tune)Prefs.GetInt("music.tune", 0);
             L10n.SetLocale("vi");
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
             root = new GameObject("Game");
@@ -234,7 +234,7 @@ namespace VuonTra.Core.Tests
             Assert.AreEqual(0f, Sfx.StationGain);
             Assert.AreEqual(0f, screen.StationSound.Volume, "silent");
             Assert.AreEqual(effects, Sfx.SfxGain, "the Sound slider is not touched");
-            Assert.AreEqual(0f, PlayerPrefs.GetFloat("vol.station", -1f), "kept");
+            Assert.AreEqual(0f, Prefs.GetFloat("vol.station", -1f), "kept");
 
             slider.value = 0.4f;
             Step(Frame);
@@ -244,14 +244,14 @@ namespace VuonTra.Core.Tests
         [Test]
         public void The_Station_Volume_Starts_At_One_Half_And_A_Saved_Level_Is_Kept()
         {
-            PlayerPrefs.DeleteKey("vol.station");
+            Prefs.DeleteKey("vol.station");
             var host = new GameObject("Host");
             Sfx.Attach(host);
             Assert.AreEqual(0.5f, Sfx.DefaultStationGain);
             Assert.AreEqual(0.5f, Sfx.StationGain, 1e-4f, "a new player starts at the default");
             Object.DestroyImmediate(host);
 
-            PlayerPrefs.SetFloat("vol.station", 0.7f);
+            Prefs.SetFloat("vol.station", 0.7f);
             host = new GameObject("Host");
             Sfx.Attach(host);
             Assert.AreEqual(0.7f, Sfx.StationGain, 1e-4f, "a saved level is the player's own, not the default");
@@ -313,7 +313,7 @@ namespace VuonTra.Core.Tests
             {
                 pill.GetComponent<Button>().onClick.Invoke();
                 Assert.AreEqual(next[i], label.text);
-                Assert.AreEqual((i + 1) % 4, PlayerPrefs.GetInt("music.tune", -1), "kept for the next launch");
+                Assert.AreEqual((i + 1) % 4, Prefs.GetInt("music.tune", -1), "kept for the next launch");
             }
             Assert.AreEqual(Sfx.Tune.Auto, Sfx.CurrentTune);
         }
