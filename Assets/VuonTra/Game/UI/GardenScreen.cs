@@ -4341,7 +4341,7 @@ namespace VuonTra.Game.UI
             if (_shownGardenLevel > 0 && gardenLevel > _shownGardenLevel && Shell.State != ShellState.Title)
             {
                 // A new garden level: say so, and say what it brought.
-                Sfx.Sting();
+                Sfx.GardenLevel();
                 Feel.Moment(L10n.T("moment.garden.title", gardenLevel), L10n.T("moment.garden.sub", (gardenLevel - _shownGardenLevel) * Garden.CloversPerLevel));
                 RectTransform badge = _levelBadge;
                 Tweens.Add(0.5f, t => { if (badge != null) badge.localScale = Vector3.one * (1f + 0.3f * Ease.Pop(t)); });
@@ -4995,7 +4995,7 @@ namespace VuonTra.Game.UI
             int before = Runner.State.Plots;
             if (!Runner.BuyPlot()) return;
             _plotBuy.Press(Tweens);
-            Sfx.Unlock();
+            Sfx.Plot();
             // Name what the new land is for.
             var names = new List<string>();
             for (int i = before; i < Runner.State.Plots && i < Runner.Defs.Count; i++) names.Add(L10n.Station(Runner.Defs[i].Id));
@@ -5629,7 +5629,7 @@ namespace VuonTra.Game.UI
         void PaySale(Vector2 from, BigNum paid, int golden)
         {
             if (paid <= BigNum.Zero && golden <= 0) return;
-            Sfx.Reward();
+            Sfx.Collect();
             Haptics.Light();
             GameCatalog catalog = Runner.Catalog;
             string gained = "+" + paid.Short();

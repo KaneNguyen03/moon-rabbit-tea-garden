@@ -33,10 +33,10 @@ namespace VuonTra.Game.UI
         {
             switch (fanfare)
             {
-                case Fanfare.Chest: Sfx.Unlock(); Haptics.Medium(); break;
+                case Fanfare.Chest: Sfx.Chest(); Haptics.Medium(); break;
                 case Fanfare.Milestone: Sfx.Milestone(); Haptics.Medium(); break;
                 case Fanfare.Purchase: Sfx.Sting(); Haptics.Medium(); break;
-                default: Sfx.Reward(); Haptics.Light(); break;
+                default: Sfx.Gift(); Haptics.Light(); break;
             }
         }
 
