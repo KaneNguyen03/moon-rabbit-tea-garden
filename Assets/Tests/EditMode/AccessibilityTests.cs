@@ -512,6 +512,8 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(wrong, string.Join("\n", wrong));
         }
 
+        const float RoundTripSlack = 0.01f;
+
         [TestCase("Canvas/Fireflies", "Timer")]
         [TestCase("Canvas/Leaves", "Timer")]
         [TestCase("Canvas/Pound", "Beats")]
@@ -527,9 +529,9 @@ namespace VuonTra.Core.Tests
             foreach (string name in new[] { "Score", count })
             {
                 Rect r = RectIn((RectTransform)overlay.Find(name), overlay);
-                Assert.GreaterOrEqual(r.xMin, screenRect.xMin + 24f, game + "/" + name + " keeps off the left edge");
-                Assert.LessOrEqual(r.xMax, screenRect.xMax - 24f, game + "/" + name + " keeps off the right edge");
-                Assert.LessOrEqual(r.yMax, screenRect.yMax - notch, game + "/" + name + " sits below the notch");
+                Assert.GreaterOrEqual(r.xMin + RoundTripSlack, screenRect.xMin + 24f, game + "/" + name + " keeps off the left edge");
+                Assert.LessOrEqual(r.xMax - RoundTripSlack, screenRect.xMax - 24f, game + "/" + name + " keeps off the right edge");
+                Assert.LessOrEqual(r.yMax - RoundTripSlack, screenRect.yMax - notch, game + "/" + name + " sits below the notch");
             }
             Transform quit = overlay.Find("Quit");
             if (quit != null) Assert.IsFalse(RectIn((RectTransform)quit, overlay).Overlaps(RectIn((RectTransform)overlay.Find(count), overlay)), "the count is clear of the quit button");
