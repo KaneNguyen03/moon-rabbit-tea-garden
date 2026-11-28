@@ -2930,7 +2930,7 @@ namespace VuonTra.Game.UI
         {
             Sprite[] d = catalog.Decor;
             if (d == null || d.Length < 9) return;
-            const int Tree = 0, Bush = 1, Lantern = 2, Mushrooms = 4, Stones = 5, Pond = 6, TeaTable = 7, Stump = 8;
+            const int Tree = 0, Bush = 1, Lantern = GameCatalog.DecorLantern, Mushrooms = 4, Stones = 5, Pond = 6, TeaTable = 7, Stump = 8;
             Color soft = Palette.Mix(Color.white, Palette.Night, 0.12f);
 
             // The pond lies in the top corner, where the moonlight comes in.

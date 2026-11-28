@@ -261,7 +261,7 @@ namespace VuonTra.Game.UI
                 case TrunkKind.Lantern:
                     UiKit.Rect("Halo", rt).Stretch(0, 0, 1, 1, -10, -10, -10, -10).AddImage(_catalog.Glow, Palette.Alpha(Palette.Hex(LanternHex(offer)), 0.6f));
                     if (LanternSwatch.Art(_catalog) == null) UiKit.Rect("Rim", rt).Place(0.5f, 0.5f, 0, 0, 112, 112).AddImage(_catalog.Round, Palette.Mix(Palette.Paper, Palette.Ink, 0.35f));
-                    LanternSwatch.Add(UiKit.Rect("Fill", rt).Place(0.5f, 0.5f, 0, 0, 104, 104), _catalog, Palette.Hex(LanternHex(offer)));
+                    LanternSwatch.Add(UiKit.Rect("Fill", rt).Place(0.5f, 0.5f, 0, 0, 104, 104), _catalog, LanternColor(offer));
                     break;
                 default:
                     UiKit.Rect("Carrot", rt).Place(0.5f, 0.5f, -22, 6, 120, 120).AddImage(_catalog.GoldenCarrot, Color.white).preserveAspect = true;
@@ -277,7 +277,9 @@ namespace VuonTra.Game.UI
             return colon >= 0 && int.TryParse(offer.Id.Substring(colon + 1), out int cal) ? cal : 0;
         }
 
-        static string LanternHex(TrunkOffer offer) => MonthPass.LanternColors[Mathf.Clamp(LanternMonth(offer), 0, MonthPass.Months - 1)];
+        static int LanternColor(TrunkOffer offer) => MonthPass.LanternIndex(Mathf.Clamp(LanternMonth(offer), 0, MonthPass.Months - 1));
+
+        static string LanternHex(TrunkOffer offer) => MonthPass.LanternHex(LanternColor(offer));
 
         public static string NameOf(TrunkOffer offer)
         {

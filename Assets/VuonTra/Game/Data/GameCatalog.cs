@@ -89,6 +89,10 @@ namespace VuonTra.Game
         [Tooltip("Garden dressing, in this order: tree, bush, lantern, fence, mushrooms, stones, pond, tea table, stump.")]
         public Sprite[] Decor = new Sprite[0];
 
+        public const int DecorLantern = 2;
+
+        public Sprite HangingLantern => Decor != null && Decor.Length > DecorLantern ? Decor[DecorLantern] : null;
+
         public List<StationDef> BuildDefs()
         {
             var defs = new List<StationDef>(Stations.Length);

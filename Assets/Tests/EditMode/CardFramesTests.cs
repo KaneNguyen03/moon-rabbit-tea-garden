@@ -229,29 +229,69 @@ namespace VuonTra.Core.Tests
             }
         }
 
-        [Test]
-        public void TheShopShowsEachLanternColourAsATintedLantern()
+        Image HungLantern() => At("Canvas/Garden/Content/Lantern").GetComponent<Image>();
+
+        Image SwatchUnder(Transform holder)
         {
-            Assert.IsNotNull(catalog.StoneLantern, "the stone lantern is drawn");
-            Build();
-            int seen = 0;
-            foreach (Image image in root.GetComponentsInChildren<Image>(true))
-            {
-                if (image.name != "Fill" || !image.transform.parent.name.StartsWith("Dot ")) continue;
-                int color = int.Parse(image.transform.parent.name.Substring(4));
-                Assert.AreSame(catalog.StoneLantern, image.sprite);
-                Assert.AreEqual(Palette.Hex(Decor.LanternColors[color]), image.color);
-                Assert.IsTrue(image.preserveAspect);
-                seen++;
-            }
-            Assert.AreEqual(Decor.LanternColors.Length, seen);
+            foreach (Image image in holder.GetComponentsInChildren<Image>(true))
+                if (image.name == "Fill") return image;
+            Assert.Fail("no lantern swatch under " + holder.name);
+            return null;
+        }
+
+        void AssertLooksAsHung(Image swatch, int lanternColor)
+        {
+            runner.State.LanternColor = lanternColor;
+            screen.Refresh();
+            Image hung = HungLantern();
+            Assert.AreSame(catalog.HangingLantern, swatch.sprite, "the hanging lantern, as in the garden");
+            Assert.AreNotSame(catalog.StoneLantern, swatch.sprite, "the stone lantern never takes the colour");
+            Assert.AreSame(hung.sprite, swatch.sprite);
+            Assert.AreEqual(GardenScreen.LanternTint(lanternColor), swatch.color, "the garden's own tint");
+            Assert.AreEqual(hung.color, swatch.color, "what the garden shows once this colour hangs");
+            Assert.IsTrue(swatch.preserveAspect);
         }
 
         [Test]
-        public void WithoutLanternArtTheSwatchFallsBackToADot()
+        public void EachShopLanternColourLooksAsTheGardenHangsIt()
         {
-            catalog.StoneLantern = null;
+            Assert.IsNotNull(catalog.HangingLantern, "the hanging lantern is drawn");
+            Build();
+            for (int color = 0; color < Decor.LanternColors.Length; color++)
+                AssertLooksAsHung(SwatchUnder(At("Canvas/Shop/Card/Decor/Lanterns/Dot " + color)), color);
+        }
+
+        [Test]
+        public void TheTrunksLanternOfferLooksAsTheGardenHangsIt()
+        {
+            Build();
+            const int cal = 4;
+            var offer = new TrunkOffer { Slot = 0, Code = "lantern", Kind = TrunkKind.Lantern, Id = "lantern:" + cal, Amount = 1, FullPrice = 10, Price = 10 };
+            screen.TrunkCard.Open(new TrunkShelf { Open = true, Offers = new[] { offer } });
+            AssertLooksAsHung(SwatchUnder(screen.TrunkCard.TileOf(0)), MonthPass.LanternIndex(cal));
+        }
+
+        [Test]
+        public void TheMonthPassLanternLooksAsTheGardenHangsIt()
+        {
+            Build();
+            screen.OpenSheet(2);
+            screen.Refresh();
+            int cal = MonthPass.CalendarMonth(MonthPass.MonthOf(runner.TodayNumber));
+            Image swatch = null;
+            foreach (Image image in At("Canvas/Sheet/Panel/Quests/Content/MonthPassRow").GetComponentsInChildren<Image>(true))
+                if (image.name == "Icon" && image.sprite == catalog.HangingLantern) swatch = image;
+            Assert.IsNotNull(swatch, "the lantern tier shows the hanging lantern");
+            AssertLooksAsHung(swatch, MonthPass.LanternIndex(cal));
+        }
+
+        [Test]
+        public void WithoutLanternArtTheSwatchFallsBackToADotOfTheFullColour()
+        {
+            catalog.Decor = new Sprite[0];
+            Assert.IsNull(catalog.HangingLantern);
             Assert.AreSame(catalog.Round, LanternSwatch.SpriteFor(catalog));
+            Assert.AreEqual(Palette.Hex(Decor.LanternColors[2]), LanternSwatch.TintFor(catalog, 2));
         }
     }
 }
