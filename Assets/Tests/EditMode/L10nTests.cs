@@ -143,6 +143,29 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void Every_Personality_Key_Has_Both_Languages_And_The_English_Line_Is_At_Most_A_Third_Longer()
+        {
+            var rows = new Dictionary<string, int>();
+            for (int i = 0; i < L10nStrings.All.GetLength(0); i++) rows[L10nStrings.All[i, 0]] = i;
+            var keys = new List<string>(Personalities.AllKeys) { "detail.temper", GardenScreen.FavouriteKey };
+            foreach (Personality p in Personalities.All) keys.Add(Personalities.NameKey(p));
+            var bad = new List<string>();
+            foreach (string key in keys)
+            {
+                if (!rows.TryGetValue(key, out int i)) { bad.Add(key + ": not in the table"); continue; }
+                string vi = L10nStrings.All[i, 1], en = L10nStrings.All[i, 2];
+                if (string.IsNullOrWhiteSpace(vi) || string.IsNullOrWhiteSpace(en)) { bad.Add(key + ": a language is empty"); continue; }
+                if (en.Length > 1.3 * vi.Length) bad.Add(key + ": en " + en.Length + " > 1.3 × vi " + vi.Length + " (" + en + " / " + vi + ")");
+                L10n.SetLocale("vi");
+                if (L10n.T(key) != vi) bad.Add(key + ": the vi table says \"" + L10n.T(key) + "\"");
+                L10n.SetLocale("en");
+                if (L10n.T(key) != en) bad.Add(key + ": the en table says \"" + L10n.T(key) + "\"");
+            }
+            Assert.AreEqual(8 * 4 + 49 + 8 + 2, keys.Count);
+            Assert.IsEmpty(bad, bad.Count + " of " + keys.Count + " keys:\n" + string.Join("\n", bad));
+        }
+
+        [Test]
         public void Every_Key_In_The_Table_Has_A_Caller()
         {
             var literals = new HashSet<string>();

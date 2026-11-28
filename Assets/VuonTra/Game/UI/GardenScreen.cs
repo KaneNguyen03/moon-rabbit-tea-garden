@@ -5742,7 +5742,8 @@ namespace VuonTra.Game.UI
             }
             else Feel.FloatText(at + new Vector2(70, 30), "♥", Palette.Blush, 36); // the rest of the day: a smaller heart
             if (pet.Energy > 0d) Feel.FloatText(at + new Vector2(-110, -60), L10n.T("doze.reward", (int)pet.Energy), Palette.Lantern, 38); // by the shoulder, clear of the hearts and of any line
-            if (pet.LineUnlocked) Say(near, offset, L10n.T("bond.line." + Rabbits.TradeOf(r)));
+            if (pet.FirstToday) FavouriteCue(r, at);
+            if (pet.LineUnlocked) Say(near, offset, BondLine(r));
             if (pet.GiftGiven)
             {
                 Sfx.Sting();
@@ -6613,8 +6614,9 @@ namespace VuonTra.Game.UI
             bool resting = station < 0;
             int booster = resting ? -1 : Chatter.BoosterOf(Runner.Defs, s, station);
             bool dressed = speaker.Dye >= 0 || VuonTra.Core.Items.Worn(s, speaker.Id, ItemSlot.Hat) != null;
+            Runner.Likes.TryGet(Rabbits.KindOf(speaker), out Liking like);
             List<string> keys = Chatter.KeysFor(Rabbits.TradeOf(speaker), resting, Daylight.PhaseAt(ClockHours()),
-                Seasons.SeasonOf(Runner.TodayNumber), booster >= 0, dressed);
+                Seasons.SeasonOf(Runner.TodayNumber), booster >= 0, dressed, like, Rabbits.HeartsOf(speaker));
             string key = Chatter.Pick(keys, Hash(_clock + 7f));
             if (key == null || !AskSpot(speaker.Id, out Vector2 head, out _)) return false;
             if (_chatLine == null) BuildChatLine();

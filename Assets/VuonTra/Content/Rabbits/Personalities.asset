@@ -1,0 +1,243 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ef453adfd17342009478664466ec623c, type: 3}
+  m_Name: Personalities
+  m_EditorClassIdentifier: VuonTra.Game::VuonTra.Game.RabbitPersonalities
+  Kinds:
+  - Kind: tho-bong
+    Temper: 0
+    Favourite: noi-mut
+  - Kind: tho-me
+    Temper: 7
+    Favourite: noi-mut
+  - Kind: tho-cup
+    Temper: 3
+    Favourite: am-tra
+  - Kind: tho-matcha
+    Temper: 5
+    Favourite: am-tra
+  - Kind: tho-suong
+    Temper: 6
+    Favourite: binh-sao
+  - Kind: tho-o-long
+    Temper: 1
+    Favourite: tra-sua
+  - Kind: tho-oai-huong
+    Temper: 0
+    Favourite: tra-sua
+  - Kind: tho-khoai-mon
+    Temper: 2
+    Favourite: lo-banh
+  - Kind: tho-mat-ong
+    Temper: 2
+    Favourite: noi-mut
+  - Kind: tho-sao
+    Temper: 4
+    Favourite: binh-sao
+  - Kind: tho-hong-tra
+    Temper: 5
+    Favourite: tra-sua
+  - Kind: tho-trang
+    Temper: 6
+    Favourite: dai-sao
+  - Kind: tho-dau-do
+    Temper: 7
+    Favourite: tiem-banh
+  - Kind: tho-ca-phe
+    Temper: 1
+    Favourite: am-tra
+  - Kind: tho-tro
+    Temper: 3
+    Favourite: lo-banh
+  - Kind: tho-cat
+    Temper: 1
+    Favourite: binh-sao
+  - Kind: tho-bap
+    Temper: 7
+    Favourite: lo-banh
+  - Kind: tho-khoi
+    Temper: 6
+    Favourite: binh-sao
+  - Kind: tho-hong-phan
+    Temper: 3
+    Favourite: tra-sua
+  - Kind: tho-ca-cao
+    Temper: 2
+    Favourite: lo-banh
+  - Kind: tho-cup-kem
+    Temper: 0
+    Favourite: tra-sua
+  - Kind: tho-cup-socola
+    Temper: 2
+    Favourite: noi-mut
+  - Kind: tho-bac-ha
+    Temper: 5
+    Favourite: am-tra
+  - Kind: tho-chanh
+    Temper: 4
+    Favourite: am-tra
+  - Kind: tho-cup-suong
+    Temper: 0
+    Favourite: binh-sao
+  - Kind: tho-la-phong
+    Temper: 1
+    Favourite: lo-banh
+  - Kind: tho-dao
+    Temper: 3
+    Favourite: noi-mut
+  - Kind: tho-tuyet-hong
+    Temper: 6
+    Favourite: tra-sua
+  - Kind: tho-bao
+    Temper: 4
+    Favourite: dai-sao
+  - Kind: tho-tra-sua
+    Temper: 2
+    Favourite: tra-sua
+  - Kind: tho-muc
+    Temper: 5
+    Favourite: binh-sao
+  - Kind: tho-cam
+    Temper: 4
+    Favourite: noi-mut
+  - Kind: tho-bang
+    Temper: 3
+    Favourite: binh-sao
+  - Kind: tho-anh-dao
+    Temper: 6
+    Favourite: tiem-banh
+  - Kind: tho-luu-ly
+    Temper: 3
+    Favourite: binh-sao
+  - Kind: tho-viet-quat
+    Temper: 7
+    Favourite: noi-mut
+  - Kind: tho-dau-tay
+    Temper: 2
+    Favourite: noi-mut
+  - Kind: tho-hoa-nhai
+    Temper: 4
+    Favourite: am-tra
+  - Kind: tho-ho-phach
+    Temper: 5
+    Favourite: lo-keo
+  - Kind: tho-ngan-ha
+    Temper: 6
+    Favourite: dai-sao
+  - Kind: tho-bach-kim
+    Temper: 5
+    Favourite: thuyen-tra
+  - Kind: tho-nguyet-thuc
+    Temper: 3
+    Favourite: dai-sao
+  - Kind: tho-lun
+    Temper: 0
+    Favourite: am-tra
+  - Kind: tho-con
+    Temper: 7
+    Favourite: noi-mut
+  - Kind: tho-va
+    Temper: 1
+    Favourite: am-tra
+  - Kind: tho-dong
+    Temper: 4
+    Favourite: lo-banh
+  - Kind: tho-long-xoan
+    Temper: 0
+    Favourite: tra-sua
+  - Kind: tho-banh-day
+    Temper: 7
+    Favourite: tiem-banh
+  - Kind: tho-dom
+    Temper: 1
+    Favourite: binh-sao
+  - Kind: tho-kem-chay
+    Temper: 2
+    Favourite: noi-mut
+  - Kind: tho-tai-dai
+    Temper: 1
+    Favourite: binh-sao
+  - Kind: tho-angora
+    Temper: 0
+    Favourite: tra-sua
+  - Kind: tho-latte
+    Temper: 5
+    Favourite: tra-sua
+  - Kind: tho-dau
+    Temper: 2
+    Favourite: noi-mut
+  - Kind: tho-flan
+    Temper: 7
+    Favourite: lo-banh
+  - Kind: tho-su-tu
+    Temper: 4
+    Favourite: lo-banh
+  - Kind: tho-hoa-dao
+    Temper: 6
+    Favourite: am-tra
+  - Kind: tho-sim
+    Temper: 3
+    Favourite: noi-mut
+  - Kind: tho-may
+    Temper: 0
+    Favourite: dai-sao
+  - Kind: tho-reu
+    Temper: 5
+    Favourite: am-tra
+  - Kind: tho-gac
+    Temper: 1
+    Favourite: dai-sao
+  - Kind: tho-den-long
+    Temper: 4
+    Favourite: binh-sao
+  - Kind: tho-tien
+    Temper: 6
+    Favourite: tiem-banh
+  - Kind: tho-dom-dom
+    Temper: 3
+    Favourite: dai-sao
+  - Kind: tho-pha-le
+    Temper: 5
+    Favourite: binh-sao
+  - Kind: tho-ba-duoi
+    Temper: 1
+    Favourite: thuyen-tra
+  - Kind: tho-hang-nga
+    Temper: 6
+    Favourite: dai-sao
+  - Kind: tho-mat-troi
+    Temper: 4
+    Favourite: tiem-banh
+  - Kind: tho-cuc-quang
+    Temper: 6
+    Favourite: dai-sao
+  - Kind: tho-ngoc
+    Temper: 5
+    Favourite: thuyen-tra
+  - Kind: tho-rong
+    Temper: 7
+    Favourite: lo-keo
+  - Kind: tho-chom-sao
+    Temper: 1
+    Favourite: dai-sao
+  - Kind: tho-den-ong-sao
+    Temper: 4
+    Favourite: tiem-banh
+  - Kind: tho-ao-dai
+    Temper: 5
+    Favourite: tra-sua
+  - Kind: tho-noel
+    Temper: 2
+    Favourite: lo-keo
+  - Kind: tho-trang-non
+    Temper: 6
+    Favourite: binh-sao

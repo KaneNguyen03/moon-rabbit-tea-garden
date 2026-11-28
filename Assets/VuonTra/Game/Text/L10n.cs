@@ -160,6 +160,7 @@ namespace VuonTra.Game
         public static string Tier(int tier) => T("tier." + tier);
         public static string Rarity(int tier) => Tier(tier) + " " + VuonTra.Core.Rarity.Marks(tier);
         public static string Trade(RabbitTrade trade) => T("trade." + trade);
+        public static string Temper(Personality personality) => T("temper." + personality);
         public static string Kind(Rabbit rabbit) => T("kind." + Rabbits.KindOf(rabbit));
         public static string LevelStars(Rabbit rabbit)
         {

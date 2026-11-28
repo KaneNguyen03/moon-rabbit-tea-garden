@@ -20,10 +20,14 @@ namespace VuonTra.Core
         public static bool IsTradeLine(string key) => key != null && key.StartsWith("chatter.trade.", StringComparison.Ordinal);
 
         public static List<string> KeysFor(RabbitTrade trade, bool resting, DayPhase phase, Season season, bool boosted, bool dressed)
+            => KeysFor(trade, resting, phase, season, boosted, dressed, default, 0);
+
+        public static List<string> KeysFor(RabbitTrade trade, bool resting, DayPhase phase, Season season, bool boosted, bool dressed, Liking like, int hearts)
         {
-            var keys = new List<string>(16);
+            var keys = new List<string>(24);
             if (!resting && trade != RabbitTrade.None)
                 for (int i = 0; i < TradeLines; i++) keys.Add("chatter.trade." + trade + "." + i);
+            Personalities.AddLines(keys, like, hearts);
             for (int i = 0; i < AnyLines; i++) keys.Add("chatter.any." + i);
             for (int i = 0; i < PhaseLines; i++) keys.Add("chatter.phase." + phase + "." + i);
             if (resting) return keys;

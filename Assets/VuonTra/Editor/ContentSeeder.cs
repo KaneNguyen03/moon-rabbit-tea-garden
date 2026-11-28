@@ -14,6 +14,7 @@ namespace VuonTra.EditorTools
     {
         public const string StationFolder = "Assets/VuonTra/Content/Stations";
         public const string CatalogPath = "Assets/VuonTra/Content/GameCatalog.asset";
+        public const string PersonalitiesPath = "Assets/VuonTra/Content/Rabbits/Personalities.asset";
         public const string ScenePath = "Assets/VuonTra/Scenes/Garden.unity";
 
         struct Row
@@ -114,6 +115,7 @@ namespace VuonTra.EditorTools
                 AssetDatabase.CreateAsset(catalog, CatalogPath);
             }
             catalog.Stations = ordered.ToArray();
+            catalog.Personalities = AssetDatabase.LoadAssetAtPath<RabbitPersonalities>(PersonalitiesPath);
             catalog.Rabbit = FinalArt.Load("rabbit");
             catalog.Scarf = FinalArt.Find("rabbit") != null ? FinalArt.Find("scarf") : PlaceholderArt.Load("scarf");
             catalog.Panel = FinalArt.Load("panel");

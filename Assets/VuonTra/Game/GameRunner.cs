@@ -19,6 +19,7 @@ namespace VuonTra.Game
         public IReadOnlyList<UpgradeDef> UpgradeDefs { get; private set; }
         public IReadOnlyList<QuestDef> QuestDefs { get; private set; }
         public IReadOnlyList<ItemDef> ItemDefs { get; private set; }
+        public PersonalityBook Likes { get; private set; } = PersonalityBook.Empty;
         public Modifiers Mods { get; private set; } = Modifiers.None;
 
         public bool Paused;
@@ -96,6 +97,7 @@ namespace VuonTra.Game
             UpgradeDefs = Catalog.BuildUpgrades();
             QuestDefs = Catalog.BuildQuests();
             ItemDefs = Catalog.BuildItems();
+            Likes = Catalog.Personalities != null ? Catalog.Personalities.ToBook() : PersonalityBook.Empty;
 
             bool newGarden = false;
             if (preset != null)
@@ -515,7 +517,7 @@ namespace VuonTra.Game
 
         public PetResult PetRabbit(long id, bool wake = false)
         {
-            PetResult result = Rabbits.Pet(State, Rabbits.Find(State, id), TodayNumber, wake);
+            PetResult result = Personalities.Pet(Defs, Likes, State, Rabbits.Find(State, id), TodayNumber, wake);
             if (result.TenHearts) NoteReview(ReviewMoment.TenHearts);
             if (result.FirstToday || result.Energy > 0d) Changed();
             return result;
