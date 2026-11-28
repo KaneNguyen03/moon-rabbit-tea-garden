@@ -40,12 +40,14 @@ namespace VuonTra.Core.Tests
         {
             if (_player == null) _player = SaveStore.DefaultDirectory;
             Use(For(BetweenTests));
+            TestPrefs.Fresh();
         }
 
         public void TestStarted(ITest test)
         {
             if (test.IsSuite) return;
             Use(For(test.FullName));
+            TestPrefs.Fresh();
         }
 
         public void TestFinished(ITestResult result)
@@ -60,6 +62,7 @@ namespace VuonTra.Core.Tests
             if (_player != null) SaveStore.DefaultDirectory = _player;
             _player = null;
             Clear(Root);
+            TestPrefs.GiveBack();
         }
     }
 }

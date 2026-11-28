@@ -1,33 +1,19 @@
 using System.Collections.Generic;
-using NUnit.Framework.Interfaces;
-using UnityEngine.TestRunner;
-using VuonTra.Core.Tests;
 using VuonTra.Game;
-
-[assembly: TestRunCallback(typeof(TestPrefs))]
 
 namespace VuonTra.Core.Tests
 {
-    public sealed class TestPrefs : ITestRunCallback
+    public static class TestPrefs
     {
         public static readonly MemoryPrefs Store = new MemoryPrefs();
 
-        public void RunStarted(ITest testsToRun)
+        public static void Fresh()
         {
             Store.Clear();
             Prefs.Store = Store;
         }
 
-        public void TestStarted(ITest test)
-        {
-            if (test.IsSuite) return;
-            Store.Clear();
-            Prefs.Store = Store;
-        }
-
-        public void TestFinished(ITestResult result) { }
-
-        public void RunFinished(ITestResult testResults)
+        public static void GiveBack()
         {
             Prefs.Store = Prefs.Device;
             Store.Clear();
