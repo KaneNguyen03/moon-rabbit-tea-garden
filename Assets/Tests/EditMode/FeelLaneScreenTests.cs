@@ -20,6 +20,7 @@ namespace VuonTra.Core.Tests
         GameObject root;
         GameRunner runner;
         GardenScreen screen;
+        System.Func<Vector2> insetsBefore;
 
         public FeelLaneScreenTests(bool portrait)
         {
@@ -29,6 +30,7 @@ namespace VuonTra.Core.Tests
         [SetUp]
         public void SetUp()
         {
+            insetsBefore = GardenScreen.SafeInsets;
             L10n.SetLocale("en");
             Motion.SetReduced(false);
             var catalog = AssetDatabase.LoadAssetAtPath<GameCatalog>("Assets/VuonTra/Content/GameCatalog.asset");
@@ -74,6 +76,7 @@ namespace VuonTra.Core.Tests
             Object.DestroyImmediate(root);
             UiKit.SetLargeText(false);
             PlayerPrefs.DeleteKey("text.large");
+            GardenScreen.SafeInsets = insetsBefore;
             Motion.SetReduced(false);
             L10n.SetLocale("vi");
         }
@@ -119,8 +122,18 @@ namespace VuonTra.Core.Tests
 
         void ClaimDailyQuest()
         {
+            ReadyDailyQuest();
+            PressClaim();
+        }
+
+        void ReadyDailyQuest()
+        {
             for (int i = 0; i < 50; i++) root.transform.Find("Canvas/Garden/Content/Station am-tra").GetComponent<Button>().onClick.Invoke();
             screen.Refresh();
+        }
+
+        void PressClaim()
+        {
             Button claim = root.transform.Find("Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim").GetComponent<Button>();
             Assert.IsTrue(claim.interactable);
             claim.onClick.Invoke();
@@ -227,6 +240,87 @@ namespace VuonTra.Core.Tests
                 if (fault != null) faults.Add("frame " + frame + ": " + fault);
             }
             Assert.IsEmpty(faults, string.Join("\n", faults));
+        }
+
+        List<string> NumbersOverTheSheetHudOrCard(int frames)
+        {
+            var over = new List<string>();
+            var hudWords = new List<KeyValuePair<string, Rect>>();
+            int seen = 0;
+            for (int frame = 0; frame < frames; frame++)
+            {
+                screen.Advance(1f / 30f);
+                Canvas.ForceUpdateCanvases();
+                Rect sheet = InCanvas((RectTransform)root.transform.Find("Canvas/Sheet/Panel"));
+                var banner = (RectTransform)root.transform.Find("Canvas/Feel/Banner");
+                Rect card = InCanvas(banner);
+                hudWords = HudWords();
+                foreach (Text gain in Gains())
+                {
+                    if (gain.color.a < 0.05f) continue;
+                    seen++;
+                    Rect inked = Inked(gain);
+                    if (inked.Overlaps(sheet)) over.Add("frame " + frame + ": \"" + gain.text + "\" " + inked + " over the sheet " + sheet + " at height " + screen.SheetHeight);
+                    if (screen.Feel.BannerVisible && banner.localScale.x > 0.01f && inked.Overlaps(card)) over.Add("frame " + frame + ": \"" + gain.text + "\" " + inked + " under the card " + card);
+                    foreach (KeyValuePair<string, Rect> word in hudWords)
+                        if (inked.Overlaps(word.Value)) over.Add("frame " + frame + ": \"" + gain.text + "\" " + inked + " over " + word.Key + " " + word.Value);
+                }
+            }
+            if (seen == 0) over.Add("no number floated");
+            return over;
+        }
+
+        [TestCase(0f, 0f)]
+        [TestCase(1300f, 0f)]
+        [TestCase(1450f, 0f)]
+        [TestCase(1550f, 0f)]
+        [TestCase(5000f, 0f)]
+        [TestCase(5000f, 120f)]
+        public void At_Every_Sheet_Height_A_Claimed_Quest_s_Number_Floats_Clear_Of_The_Sheet_The_Hud_And_The_Card(float height, float notch)
+        {
+            if (!portrait) Assert.Ignore("the sheet's heights are laid out for the 1920-tall phone canvas; the batch canvas is 1247 tall, shorter than a full sheet");
+            GardenScreen.SafeInsets = () => new Vector2(0f, notch);
+            ReadyDailyQuest();
+            Step(0.2f);
+            screen.OpenSheet(2);
+            Step(0.6f);
+            if (height > 0f)
+            {
+                screen.DragSheet(height - screen.SheetHeight);
+                Step(0.2f);
+            }
+            float expected = height <= 0f ? GardenScreen.SheetHalf : Mathf.Min(height, GardenScreen.SheetFull - notch);
+            Assert.AreEqual(expected, screen.SheetHeight, 0.5f, "the sheet stands where it was pulled");
+            Assert.IsTrue(screen.SheetOpen);
+            PressClaim();
+            Assert.IsNotNull(runner.LastQuestItem, "the gift card comes up too");
+            List<string> over = NumbersOverTheSheetHudOrCard(60);
+            Assert.IsEmpty(over, string.Join("\n", over));
+        }
+
+        [Test]
+        public void A_Full_Sheet_Stops_Under_The_Hud_s_Gain_Lane_And_The_Card_Never_Rises_Into_It()
+        {
+            if (!portrait) Assert.Ignore("the sheet's heights are laid out for the 1920-tall phone canvas");
+            screen.OpenSheet(2);
+            Step(0.6f);
+            screen.DragSheet(GardenScreen.SheetFull);
+            screen.ReleaseSheet();
+            Step(0.6f);
+            Canvas.ForceUpdateCanvases();
+            Rect hud = InCanvas((RectTransform)root.transform.Find("Canvas/Hud"));
+            float laneFoot = hud.yMax - GardenScreen.HudGainFoot;
+            Assert.LessOrEqual(InCanvas((RectTransform)root.transform.Find("Canvas/Sheet/Panel")).yMax, laneFoot, "the full sheet stops under the lane where the HUD's numbers float");
+            for (float h = GardenScreen.SheetHalf; h <= GardenScreen.SheetFull; h += 50f)
+            {
+                screen.DragSheet(h - screen.SheetHeight);
+                screen.Feel.Moment("Title", "Sub");
+                Step(0.5f);
+                Canvas.ForceUpdateCanvases();
+                Rect card = InCanvas((RectTransform)root.transform.Find("Canvas/Feel/Banner"));
+                Assert.LessOrEqual(card.yMax, laneFoot + 0.5f, "at height " + screen.SheetHeight + " the card stays under the lane");
+                Assert.IsNull(CoversTheSheet());
+            }
         }
 
         [Test]

@@ -85,6 +85,7 @@ namespace VuonTra.Game.UI
         }
 
         public const float HudGainLane = 212f + FeelLayer.GainHeight / 2f;
+        public const float HudGainFoot = HudGainLane + FeelLayer.GainHeight / 2f + FeelLayer.GainSink * FeelLayer.GainLife;
 
         Vector2 UnderHud(RectTransform chip) => new Vector2(Feel.PointOf(chip).x, Feel.PointOf(_hud, new Vector2(0f, -HudGainLane)).y);
 
@@ -99,7 +100,7 @@ namespace VuonTra.Game.UI
 
         Vector2 BannerBand()
         {
-            float top = _canvas.rect.height - SafeInsets().y - FeelLayer.BannerGap;
+            float top = _canvas.rect.height - SafeInsets().y - HudGainFoot - FeelLayer.BannerGap;
             float floor = (SheetOpen ? SheetHeight : ProductTray.Root.anchoredPosition.y + TrayView.Height) + FeelLayer.BannerGap;
             if (!SheetOpen) return new Vector2(floor, floor + FeelLayer.BannerHeight);
             if (top - floor >= FeelLayer.BannerHeight * FeelLayer.BannerLeastFit) return new Vector2(floor, Mathf.Min(top, floor + FeelLayer.BannerHeight));

@@ -7,7 +7,7 @@ namespace VuonTra.Game.UI
     public sealed class FeelLayer
     {
         const int MaxParticles = 90;
-        public const float GainHeight = 64f, GainRise = 150f, GainSink = 60f, BannerGap = 24f, BannerHeight = 210f, BannerLeastFit = 0.7f, GainRim = 2f, GainRimAlpha = 0.85f;
+        public const float GainHeight = 64f, GainRise = 150f, GainSink = 60f, BannerGap = 24f, BannerHeight = 210f, BannerLeastFit = 0.7f, GainRim = 2f, GainRimAlpha = 0.85f, GainLife = 0.75f;
 
         struct Particle
         {
@@ -86,7 +86,7 @@ namespace VuonTra.Game.UI
             _particles.Add(new Particle
             {
                 Rect = rt, Graphic = label, Velocity = new Vector2(0, rise),
-                Life = 0.75f, Gravity = gravity, StartScale = 1f
+                Life = GainLife, Gravity = gravity, StartScale = 1f
             });
         }
 

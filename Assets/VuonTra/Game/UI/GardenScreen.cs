@@ -270,7 +270,7 @@ namespace VuonTra.Game.UI
         /// <summary>The sheet opens at about 60% of the screen, so the garden stays in view above it.</summary>
         public const float SheetHalf = ScreenH * 0.6f;
         /// <summary>Pulled all the way up it stops under the HUD.</summary>
-        public const float SheetFull = ScreenH - HudCover - 12f;
+        public const float SheetFull = ScreenH - HudGainFoot - 12f;
         const float SheetLeast = 260f, SheetSink = 90f, SheetFling = 1100f, SheetFoot = 196f;
         /// <summary>How far the garden's bottom edge may rise while a sheet is open, so the lowest stations can come above it.</summary>
         const float SheetLift = SheetHalf - TabCover;
@@ -4005,9 +4005,11 @@ namespace VuonTra.Game.UI
             }
         }
 
+        public static float SheetTop => SheetFull - SafeInsets().y;
+
         void SetSheetHeight(float height)
         {
-            SheetHeight = Mathf.Clamp(height, SheetLeast, SheetFull);
+            SheetHeight = Mathf.Clamp(height, SheetLeast, SheetTop);
             _panel.sizeDelta = new Vector2(0, SheetHeight);
         }
 
@@ -4047,15 +4049,15 @@ namespace VuonTra.Game.UI
         public void ReleaseSheet(float speed = 0f)
         {
             if (!SheetOpen) return;
-            float middle = (SheetHalf + SheetFull) / 2f;
-            if (speed > SheetFling) SnapSheet(SheetFull);
+            float middle = (SheetHalf + SheetTop) / 2f;
+            if (speed > SheetFling) SnapSheet(SheetTop);
             else if (speed < -SheetFling)
             {
                 if (SheetHeight > SheetHalf + 60f) SnapSheet(SheetHalf);
                 else CloseSheet();
             }
             else if (SheetHeight < SheetHalf * 0.8f) CloseSheet();
-            else SnapSheet(SheetHeight > middle ? SheetFull : SheetHalf);
+            else SnapSheet(SheetHeight > middle ? SheetTop : SheetHalf);
         }
 
         /// <summary>A row in the station list was touched: the garden above the sheet slides to that station.</summary>
