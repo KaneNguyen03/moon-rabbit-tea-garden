@@ -495,6 +495,14 @@ feel-lane	168-en-dang-bay
 feel-lane	168-en-qua-va-so-noi
 feel-lane	168-en-bang-nua-qua
 feel-lane	168-en-bang-day-qua
+feel-lane	168-vi-bang-nua-qua-4x3
+feel-lane	168-vi-bang-day-qua-4x3
+feel-lane	168-en-bang-nua-qua-4x3
+feel-lane	168-en-bang-day-qua-4x3
+feel-lane	168-vi-bang-nua-qua-16x10
+feel-lane	168-vi-bang-day-qua-16x10
+feel-lane	168-en-bang-nua-qua-16x10
+feel-lane	168-en-bang-day-qua-16x10
 overnight	174-co-va-la-vi
 overnight	174-dang-bay-vi
 overnight	174-da-nhan-vi

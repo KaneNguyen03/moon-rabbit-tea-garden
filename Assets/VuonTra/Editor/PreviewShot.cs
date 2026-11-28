@@ -13,7 +13,24 @@ namespace VuonTra.EditorTools
     public static partial class PreviewShot
     {
         public const string Folder = "Logs/preview";
-        const int Width = 1080, Height = 1920;
+        static readonly Vector2Int PhoneFrame = new Vector2Int(1080, 1920);
+        static Vector2Int _frameSize = PhoneFrame;
+        static int Width => _frameSize.x;
+        static int Height => _frameSize.y;
+
+        static void AtFrameSize(Vector2Int size, System.Action draw)
+        {
+            Vector2Int before = _frameSize;
+            _frameSize = size;
+            try
+            {
+                draw();
+            }
+            finally
+            {
+                _frameSize = before;
+            }
+        }
 
         static PreviewLanguageCheck _language;
 
@@ -841,7 +858,7 @@ namespace VuonTra.EditorTools
             screen.ShowRabbitAlbum(true);
             screen.Refresh();
             Step(screen, 0.5f);
-            screen.DragSheet(GardenScreen.SheetFull);
+            screen.DragSheet(screen.SheetFull);
             screen.ReleaseSheet();
             Step(screen, 0.6f);
             Capture(screen, "61-so-tho-bo");
@@ -1100,9 +1117,13 @@ namespace VuonTra.EditorTools
 
         static void HoldFrame(Camera cam)
         {
-            if (cam == null || cam.targetTexture != null) return;
-            if (_stepFrame == null) _stepFrame = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
-            cam.targetTexture = _stepFrame;
+            if (cam == null) return;
+            if (cam.targetTexture == null || cam.targetTexture == _stepFrame)
+            {
+                if (_stepFrame != null && (_stepFrame.width != Width || _stepFrame.height != Height)) ReleaseFrame();
+                if (_stepFrame == null) _stepFrame = new RenderTexture(Width, Height, 24, RenderTextureFormat.ARGB32);
+                cam.targetTexture = _stepFrame;
+            }
             Canvas.ForceUpdateCanvases();
         }
 

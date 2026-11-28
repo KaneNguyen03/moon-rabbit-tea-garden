@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using UnityEngine;
 using VuonTra.Core;
 using VuonTra.Game;
 using VuonTra.Game.UI;
@@ -30,30 +32,17 @@ namespace VuonTra.EditorTools
                     Step(screen, 0.5f);
                     Capture(screen, name + "qua-va-so-noi");
                     Step(screen, 2.5f);
-
-                    FeelLaneGarden(runner, screen, day);
-                    screen.OpenSheet(2);
-                    Step(screen, 0.6f);
-                    Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim");
-                    Step(screen, 1f);
-                    Capture(screen, name + "bang-nua-qua");
-                    Step(screen, 2.5f);
-                    screen.CloseSheet();
-                    Step(screen, 0.5f);
-
-                    FeelLaneGarden(runner, screen, day);
-                    screen.OpenSheet(2);
-                    Step(screen, 0.5f);
-                    screen.DragSheet(GardenScreen.SheetFull);
-                    screen.ReleaseSheet();
-                    Step(screen, 0.6f);
-                    Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim");
-                    Step(screen, 1f);
-                    Capture(screen, name + "bang-day-qua");
-                    Step(screen, 2.5f);
-                    screen.CloseSheet();
-                    Step(screen, 0.5f);
+                    SheetClaims(runner, screen, day, name, "");
                 }
+                foreach (KeyValuePair<string, Vector2Int> tablet in Tablets)
+                    AtFrameSize(tablet.Value, () =>
+                    {
+                        foreach (string locale in BothLocales)
+                        {
+                            L10n.SetLocale(locale);
+                            SheetClaims(runner, screen, day, "168-" + locale + "-", "-" + tablet.Key);
+                        }
+                    });
             }
             finally
             {
@@ -63,6 +52,38 @@ namespace VuonTra.EditorTools
             }
         }
 
+        static readonly KeyValuePair<string, Vector2Int>[] Tablets =
+        {
+            new KeyValuePair<string, Vector2Int>("4x3", new Vector2Int(1536, 2048)),
+            new KeyValuePair<string, Vector2Int>("16x10", new Vector2Int(1200, 1920)),
+        };
+
+        static void SheetClaims(GameRunner runner, GardenScreen screen, long day, string name, string size)
+        {
+            FeelLaneGarden(runner, screen, day);
+            screen.OpenSheet(2);
+            Step(screen, 0.6f);
+            Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim");
+            Step(screen, 1f);
+            Capture(screen, name + "bang-nua-qua" + size);
+            Step(screen, 2.5f);
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+
+            FeelLaneGarden(runner, screen, day);
+            screen.OpenSheet(2);
+            Step(screen, 0.5f);
+            screen.DragSheet(screen.SheetFull);
+            screen.ReleaseSheet();
+            Step(screen, 0.6f);
+            Press(screen, "Canvas/Sheet/Panel/Quests/Content/Quest ngay-cham/Claim");
+            Step(screen, 1f);
+            Capture(screen, name + "bang-day-qua" + size);
+            Step(screen, 2.5f);
+            screen.CloseSheet();
+            Step(screen, 0.5f);
+        }
+
         static void FeelLaneGarden(GameRunner runner, GardenScreen screen, long day)
         {
             GameState s = JuiceGarden(runner, day);
@@ -70,6 +91,7 @@ namespace VuonTra.EditorTools
             runner.Init(s);
             s.TotalTaps = s.DailyTapsBase + 50;
             screen.RebuildUi();
+            Motion.Reduced = false;
             if (screen.Shell.State == ShellState.Title) screen.Shell.StartGame();
             else if (screen.Shell.State != ShellState.Playing) screen.Shell.Resume();
             screen.SelectStation(-1);

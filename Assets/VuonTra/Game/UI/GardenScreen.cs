@@ -268,12 +268,26 @@ namespace VuonTra.Game.UI
         /// <summary>How tall the open sheet stands, in canvas units from the bottom of the screen.</summary>
         public float SheetHeight { get; private set; }
         /// <summary>The sheet opens at about 60% of the screen, so the garden stays in view above it.</summary>
-        public const float SheetHalf = ScreenH * 0.6f;
+        public float SheetHalf => Mathf.Min(ScreenH, CanvasHeight) * 0.6f;
         /// <summary>Pulled all the way up it stops under the HUD.</summary>
-        public const float SheetFull = ScreenH - HudGainFoot - 12f;
+        public float SheetFull => CanvasHeight - HudGainFoot - SheetUnderLane;
+        public float CanvasHeight
+        {
+            get
+            {
+                Canvas canvas = _canvas != null ? _canvas.GetComponent<Canvas>() : null;
+                if (canvas == null) return ScreenH;
+                if (canvas.renderMode == RenderMode.WorldSpace) return _canvas.rect.height;
+                Camera eye = canvas.renderMode == RenderMode.ScreenSpaceCamera ? canvas.worldCamera : null;
+                float w = eye != null ? eye.pixelWidth : Screen.width, h = eye != null ? eye.pixelHeight : Screen.height;
+                if (w <= 0f || h <= 0f) return ScreenH;
+                return h / Mathf.Sqrt(w / ScreenW * (h / ScreenH));
+            }
+        }
+        const float SheetUnderLane = 12f;
         const float SheetLeast = 260f, SheetSink = 90f, SheetFling = 1100f, SheetFoot = 196f;
         /// <summary>How far the garden's bottom edge may rise while a sheet is open, so the lowest stations can come above it.</summary>
-        const float SheetLift = SheetHalf - TabCover;
+        float SheetLift => SheetHalf - TabCover;
         /// <summary>The moon pond at the top left of the middle of the strip, where the camera starts from.</summary>
         public static Vector2 PondSpot => Heart + new Vector2(-450f, 430f);
         /// <summary>Nothing that must be read stands further right than this: the canopy's crowns reach in from the edge.</summary>
@@ -4005,7 +4019,7 @@ namespace VuonTra.Game.UI
             }
         }
 
-        public static float SheetTop => SheetFull - SafeInsets().y;
+        public float SheetTop => SheetFull - SafeInsets().y;
 
         void SetSheetHeight(float height)
         {
