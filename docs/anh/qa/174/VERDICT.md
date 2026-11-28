@@ -29,3 +29,19 @@ VERDICT: APPROVED
 7. pass - every line is readable at normal and large text, with no clipping in vi or en. Long lines wrap to two lines. Buttons are 100 units tall (the floor is 88). "Xong"/"Done" greys out the button that was taken.
 ```
 Not changed by #174: in the one-story frame, the tray strip behind the dim overlay shows above the shorter sheet. It is the garden behind the sheet, as on main.
+
+## Round 3, after the QA review of `d697fe6`: APPROVED
+These three changes come from the review's frame nits. The sheet and the crops are rebuilt from `tools/shot.sh overnight` on the new head, and the worker that built the card graded them again.
+- The bond row now shows the two friends side by side at 52% size, 62 units apart. Both faces show, and `OvernightScreenTests` checks the spacing.
+- A kind name now keeps its words together with no-break spaces, so it no longer splits as "Thỏ Ô / Long"; the whole name moves to the next line.
+- The story buttons now have 22 units of padding on each side, so "Welcome" no longer touches the edges at large text.
+```
+VERDICT: APPROVED
+1. pass - both friend portraits sit fully inside the portrait column with both faces visible
+2. pass - rows, card and buttons are where they were in round 2
+3. pass - no new colours
+4. pass - no halos in the 200% crops
+5. pass - no new art
+6. pass - the pair tiles are smaller than the single portraits, as a pair should be
+7. pass - the kind name stays whole, button labels have side padding, nothing clips in vi or en at either text size
+```
