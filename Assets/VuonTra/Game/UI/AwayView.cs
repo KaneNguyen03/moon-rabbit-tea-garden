@@ -21,7 +21,9 @@ namespace VuonTra.Game.UI
         public const float CountSeconds = 0.8f;
         public const int MaxTicks = 12;
         public const float StoryTop = -440f, StoryHead = 64f, StoryRow = 150f, StoryPad = 14f, StoryGap = 20f, StoryPortrait = 118f;
-        public const float StoryButtonWidth = 200f;
+        public const float StoryButtonWidth = 200f, StoryButtonPad = 22f;
+        public const float PairScale = 0.52f, PairOffset = 31f, PairLift = 12f;
+        public const char KeepTogether = '\u00A0';
 
         public static float StoriesHeight(int count) => count <= 0 ? 0f : StoryHead + count * StoryRow + StoryPad;
 
@@ -279,7 +281,7 @@ namespace VuonTra.Game.UI
                 view.Button.Press(_tweens);
                 _onStory?.Invoke(story, row);
             });
-            view.Label = UiKit.Rect("Text", view.Button.FaceRect).Stretch(0, 0, 1, 1, 10, 0, 10, 0)
+            view.Label = UiKit.Rect("Text", view.Button.FaceRect).Stretch(0, 0, 1, 1, StoryButtonPad, 0, StoryButtonPad, 0)
                 .AddText(L10n.T(ButtonKey(story.Kind)), UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             view.Label.resizeTextForBestFit = true;
             view.Label.resizeTextMinSize = 16;
@@ -293,8 +295,8 @@ namespace VuonTra.Game.UI
             Rabbit friend = _state != null && story.Friend > 0 ? Rabbits.Find(_state, story.Friend) : null;
             if (story.Kind == StoryKind.Bond && first != null && friend != null)
             {
-                RabbitGridView.Portrait(holder, _catalog, _state, friend, 24f, 18f, StoryPortrait * 0.68f);
-                RabbitGridView.Portrait(holder, _catalog, _state, first, -24f, -18f, StoryPortrait * 0.68f);
+                RabbitGridView.Portrait(holder, _catalog, _state, friend, PairOffset, PairLift, StoryPortrait * PairScale);
+                RabbitGridView.Portrait(holder, _catalog, _state, first, -PairOffset, -PairLift, StoryPortrait * PairScale);
                 return;
             }
             if (first != null)
@@ -319,7 +321,7 @@ namespace VuonTra.Game.UI
             {
                 case StoryKind.Leaves: return L10n.T("overnight.leaves", name, story.Amount);
                 case StoryKind.Clover: return L10n.T("overnight.clover");
-                case StoryKind.Stranger: return L10n.T("overnight.stranger", L10n.T("kind." + story.Guest));
+                case StoryKind.Stranger: return L10n.T("overnight.stranger", L10n.T("kind." + story.Guest).Replace(' ', KeepTogether));
                 case StoryKind.Bond: return L10n.T("overnight.bond", name, friend != null ? friend.Name : L10n.T("overnight.someone"));
                 default: return L10n.T(DozeKey(first != null ? Rabbits.TradeOf(first) : RabbitTrade.None, story.Line), name);
             }

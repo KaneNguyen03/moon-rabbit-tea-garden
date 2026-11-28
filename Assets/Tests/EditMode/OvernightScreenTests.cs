@@ -170,7 +170,12 @@ namespace VuonTra.Core.Tests
             Wait(s, guest, bond);
             ComeBack(s, 2);
             int rabbits = s.Rabbits.Count, a = s.Rabbits[1].Affection, b = s.Rabbits[2].Affection;
-            StringAssert.Contains(L10n.T("kind.tho-suong"), screen.AwayCard.RowOf(guest).Text.text);
+            StringAssert.Contains(L10n.T("kind.tho-suong").Replace(' ', AwayView.KeepTogether), screen.AwayCard.RowOf(guest).Text.text, "the kind name never breaks across lines");
+            RectTransform[] pair = System.Array.ConvertAll(screen.AwayCard.RowOf(bond).Root.Find("Portrait").GetComponentsInChildren<RectTransform>(), t => t);
+            pair = System.Array.FindAll(pair, t => t.name == "Tile");
+            Assert.AreEqual(2, pair.Length, "both friends are shown");
+            float apart = Mathf.Abs(pair[0].anchoredPosition.x - pair[1].anchoredPosition.x);
+            Assert.GreaterOrEqual(apart, pair[0].rect.width * 0.95f, "side by side, so neither face is hidden");
             Assert.AreEqual(L10n.T("overnight.welcome"), screen.AwayCard.RowOf(guest).Label.text);
 
             screen.AwayCard.RowOf(bond).Button.Button.onClick.Invoke();

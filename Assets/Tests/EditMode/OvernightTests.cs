@@ -116,6 +116,18 @@ namespace VuonTra.Core.Tests
         }
 
         [Test]
+        public void A_Long_Session_Then_The_Clock_Set_Back_And_Forward_Again_Tells_Nothing()
+        {
+            Assert.AreEqual(0, Count(Back(s, T + 10)), "open the garden at T");
+            s.LastSeenUnixSeconds = T + 7 * Hour;
+            Assert.AreEqual(0, Count(Back(s, T + 5 * Minute)), "after seven hours of play, the clock set back");
+            Assert.AreEqual(T + 7 * Hour, s.Overnight.Mark, "the furthest time the garden saw is kept");
+            Assert.AreEqual(0, Count(Back(s, T + 7 * Hour + Minute)), "a minute after the session ended is no night");
+            Assert.AreEqual(0, s.Overnight.Waiting.Count);
+            Assert.AreEqual(1, Count(Back(s, T + 8 * Hour)), "a real hour after the session tells one");
+        }
+
+        [Test]
         public void A_Garden_Never_Left_Tells_Nothing()
         {
             s.LastSeenUnixSeconds = 0;

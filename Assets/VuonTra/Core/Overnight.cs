@@ -119,7 +119,7 @@ namespace VuonTra.Core
             OvernightRecord r = s.Overnight;
             if (leftAt <= 0) { r.Mark = Math.Max(r.Mark, now); return roll; }
             long from = Math.Max(leftAt, r.Mark);
-            if (now > r.Mark) r.Mark = now;
+            r.Mark = Math.Max(r.Mark, Math.Max(leftAt, now));
             int count = StoriesFor(now - from);
             if (count == 0) return roll;
 
