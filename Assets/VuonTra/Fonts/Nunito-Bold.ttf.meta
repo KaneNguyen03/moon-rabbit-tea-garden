@@ -1,0 +1,26 @@
+fileFormatVersion: 2
+guid: 0c92c8eee00f84c9b910520f223494c7
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontNames:
+  - Nunito
+  - Noto Sans Symbols 2
+  - Noto Sans Symbols
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: f5e3aefd7d0844da9b08629890d9bcdf, type: 3}
+  - {fileID: 12800000, guid: 7c54a643059c64f249196e304dae838c, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  subsetRecipes: []
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

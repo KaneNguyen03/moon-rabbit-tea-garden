@@ -214,7 +214,7 @@ namespace VuonTra.Core.Tests
                     foreach (string path in new[] { "Canvas/Pause/Card/Heading", "Canvas/Mail/Card/Title" })
                     {
                         Text text = T(path);
-                        Assert.LessOrEqual(text.preferredHeight, text.rectTransform.rect.height + 1f, code + (large ? " large: " : ": ") + path + " \"" + text.text + "\"");
+                        Assert.LessOrEqual(TextFit.Height(text), text.rectTransform.rect.height + 1f, code + (large ? " large: " : ": ") + path + " \"" + text.text + "\"");
                     }
                     var heading = (RectTransform)root.transform.Find("Canvas/Pause/Card/Heading");
                     var mail = (RectTransform)root.transform.Find("Canvas/Pause/Card/Mail");

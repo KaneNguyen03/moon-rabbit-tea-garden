@@ -187,8 +187,8 @@ namespace VuonTra.Core.Tests
                 {
                     if (text.preferredWidth > r.width + 1f) spills.Add(where + ": " + Path(rt) + " wide " + Mathf.RoundToInt(text.preferredWidth) + ">" + Mathf.RoundToInt(r.width) + " \"" + text.text + "\"");
                 }
-                else if (text.preferredHeight > r.height + 1f)
-                    spills.Add(where + ": " + Path(rt) + " tall " + Mathf.RoundToInt(text.preferredHeight) + ">" + Mathf.RoundToInt(r.height) + " \"" + text.text + "\"");
+                else if (TextFit.Height(text) > r.height + 1f)
+                    spills.Add(where + ": " + Path(rt) + " tall " + Mathf.RoundToInt(TextFit.Height(text)) + ">" + Mathf.RoundToInt(r.height) + " \"" + text.text + "\"");
             }
         }
 
@@ -221,7 +221,7 @@ namespace VuonTra.Core.Tests
             settings.horizontalOverflow = HorizontalWrapMode.Overflow;
             settings.verticalOverflow = VerticalWrapMode.Overflow;
             float ppu = text.pixelsPerUnit;
-            float w = gen.GetPreferredWidth(text.text, settings) / ppu, h = gen.GetPreferredHeight(text.text, settings) / ppu;
+            float w = gen.GetPreferredWidth(text.text, settings) / ppu, h = TextFit.Height(gen, text.text, settings) / ppu;
             if (w <= size.x + 1f && h <= size.y + 1f) return null;
             return Path(text.transform) + " \"" + text.text + "\" at " + Mathf.RoundToInt(settings.fontSize / ppu) + "px is " + Mathf.RoundToInt(w) + "x" + Mathf.RoundToInt(h) + " in " + Mathf.RoundToInt(size.x) + "x" + Mathf.RoundToInt(size.y);
         }
@@ -436,7 +436,7 @@ namespace VuonTra.Core.Tests
             settings.resizeTextForBestFit = false;
             settings.verticalOverflow = VerticalWrapMode.Overflow;
             float ppu = text.pixelsPerUnit;
-            float h = gen.GetPreferredHeight(text.text, settings) / ppu, drawn = settings.fontSize / ppu;
+            float h = TextFit.Height(gen, text.text, settings) / ppu, drawn = settings.fontSize / ppu;
             if (h <= size.y + 1f && drawn >= least - 0.01f) return null;
             return Path(text.transform) + " \"" + text.text + "\" at " + Mathf.RoundToInt(drawn) + "px is " + Mathf.RoundToInt(h) + " tall in " + Mathf.RoundToInt(size.x) + "x" + Mathf.RoundToInt(size.y);
         }

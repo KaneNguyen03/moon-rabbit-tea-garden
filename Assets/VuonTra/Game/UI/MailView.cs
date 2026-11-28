@@ -41,10 +41,10 @@ namespace VuonTra.Game.UI
             _card.AddShadow(26f, 16f, 0.45f);
             UiKit.Rect("Lip", _card).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _card).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true).raycastTarget = true;
-            UiKit.Rect("Title", _card).Place(0.5f, 1f, 0, -80, 600, 70)
+            UiKit.Rect("Title", _card).Place(0.5f, 1f, 0, -80, 600, 76)
                 .AddText(L10n.T("mail.title"), 52, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _note = UiKit.Rect("Note", _card).Place(0.5f, 1f, 0, -160, 740, 50)
-                .AddText("", UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _note.resizeTextForBestFit = true;
             _note.resizeTextMinSize = 14;
             _note.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);

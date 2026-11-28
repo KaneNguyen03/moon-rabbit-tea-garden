@@ -12,27 +12,29 @@ namespace VuonTra.Game.UI
         const int UiLayer = 5;
         public const float LipHeight = 10f;
 
-        static Font _font;
+        static Font _body, _title, _fallback;
 
         public const string BundledFontPath = "Fonts/DejaVuSans";
 
-        public static bool HasNoOSFonts =>
-#if UNITY_WEBGL && !UNITY_EDITOR
-            true;
-#else
-            false;
-#endif
+        public static void UseFonts(Font body, Font title)
+        {
+            _body = body;
+            _title = title;
+        }
 
-        public static Font Font
+        public static Font Font => _body != null ? _body : Fallback;
+
+        public static Font TitleFont => _title != null ? _title : Font;
+
+        public static Font FontFor(int size) => size >= TextTitle ? TitleFont : Font;
+
+        static Font Fallback
         {
             get
             {
-                if (_font != null) return _font;
-                if (HasNoOSFonts) _font = Resources.Load<Font>(BundledFontPath);
-                if (_font == null) _font = Font.CreateDynamicFontFromOSFont(
-                    new[] { "Avenir Next", "Helvetica Neue", "Arial", "Roboto", "Noto Sans", "Segoe UI" }, 32);
-                if (_font == null) _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-                return _font;
+                if (_fallback == null) _fallback = Resources.Load<Font>(BundledFontPath);
+                if (_fallback == null) _fallback = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+                return _fallback;
             }
         }
 
@@ -121,7 +123,7 @@ namespace VuonTra.Game.UI
             TextAnchor anchor = TextAnchor.MiddleCenter, FontStyle style = FontStyle.Normal)
         {
             var t = rt.gameObject.AddComponent<Text>();
-            t.font = Font;
+            t.font = FontFor(size);
             t.text = text;
             t.fontSize = Scaled(size);
             t.color = color;
@@ -256,6 +258,20 @@ namespace VuonTra.Game.UI
             return button;
         }
 
+        public const float LockSize = 44f;
+
+        public static RectTransform LockBadge(RectTransform parent, Sprite panel)
+        {
+            var badge = Rect("Lock", parent).Place(0f, 1f, -12, 14, LockSize, LockSize);
+            badge.AddImage(panel, Palette.Ink, true);
+            Rect("Plate", badge).Stretch(0, 0, 1, 1, 3, 3, 3, 3).AddImage(panel, Palette.Paper, true);
+            Rect("Shackle", badge).Place(0.5f, 0.5f, 0, 6, 18, 22).AddImage(panel, Palette.Ink, true);
+            Rect("Gap", badge).Place(0.5f, 0.5f, 0, 5, 8, 14).AddImage(panel, Palette.Paper, true);
+            Rect("Body", badge).Place(0.5f, 0.5f, 0, -6, 26, 17).AddImage(null, Palette.Ink);
+            Rect("Keyhole", badge).Place(0.5f, 0.5f, 0, -6, 4, 8).AddImage(null, Palette.Paper);
+            return badge;
+        }
+
         public static ChunkyButton Chunky(RectTransform root, Sprite panel, Action onClick)
         {
             var view = new ChunkyButton { Root = root };
@@ -326,7 +342,15 @@ namespace VuonTra.Game.UI
         public GameObject Shine;
         public PressDip Dip;
 
+        GameObject _lock;
+
         public static Color InkFor(bool on) => on ? Palette.OnCarrot : Palette.Ink;
+
+        public void SetShort(bool on)
+        {
+            if (on && _lock == null) _lock = UiKit.LockBadge(Root, Lip.sprite).gameObject;
+            if (_lock != null && _lock.activeSelf != on) _lock.SetActive(on);
+        }
 
         public void SetEnabled(bool on)
         {

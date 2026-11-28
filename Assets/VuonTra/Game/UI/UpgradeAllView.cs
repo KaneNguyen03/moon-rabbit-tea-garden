@@ -179,7 +179,7 @@ namespace VuonTra.Game.UI
             UiKit.Rect("Levels", root).Stretch(0.5f, 0, 0.75f, 1, 0, 0, 0, 0)
                 .AddText(L10n.T("upgradeall.levels", step.Levels), UiKit.TextBody, Palette.MossInk, TextAnchor.MiddleRight, FontStyle.Bold);
             UiKit.Rect("Cost", root).Stretch(0.75f, 0, 1, 1, 0, 0, 24, 0)
-                .AddText(step.Cost.Short(), UiKit.TextBody, Palette.CarrotLip, TextAnchor.MiddleRight, FontStyle.Bold);
+                .AddText(step.Cost.Short(), UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleRight, FontStyle.Bold);
             _rows.Add(root.gameObject);
         }
     }

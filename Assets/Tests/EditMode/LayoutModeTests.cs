@@ -452,7 +452,7 @@ namespace VuonTra.Core.Tests
             settings.horizontalOverflow = HorizontalWrapMode.Overflow;
             settings.verticalOverflow = VerticalWrapMode.Overflow;
             float ppu = text.pixelsPerUnit;
-            float w = gen.GetPreferredWidth(text.text, settings) / ppu, h = gen.GetPreferredHeight(text.text, settings) / ppu;
+            float w = gen.GetPreferredWidth(text.text, settings) / ppu, h = TextFit.Height(gen, text.text, settings) / ppu;
             if (w <= size.x + 1f && h <= size.y + 1f && used / ppu >= 18f) return null;
             return text.name + " \"" + text.text + "\" at " + Mathf.RoundToInt(used / ppu) + "px is " + Mathf.RoundToInt(w) + "x" + Mathf.RoundToInt(h) + " in " + Mathf.RoundToInt(size.x) + "x" + Mathf.RoundToInt(size.y);
         }

@@ -14,6 +14,10 @@ namespace VuonTra.EditorTools
     {
         public const string StationFolder = "Assets/VuonTra/Content/Stations";
         public const string CatalogPath = "Assets/VuonTra/Content/GameCatalog.asset";
+        public const string FontFolder = "Assets/VuonTra/Fonts/";
+        public const string BodyFontPath = FontFolder + "Nunito-Regular.ttf";
+        public const string TitleFontPath = FontFolder + "Baloo2-Regular.ttf";
+        public static readonly string[] SymbolFontPaths = { FontFolder + "NotoSansSymbols2-Subset.ttf", FontFolder + "NotoSansSymbols-Subset.ttf" };
         public const string ScenePath = "Assets/VuonTra/Scenes/Garden.unity";
 
         struct Row
@@ -122,6 +126,8 @@ namespace VuonTra.EditorTools
             catalog.Currency = FinalArt.Load("carrot");
             catalog.Gear = FinalArt.Load("gear");
             catalog.Background = FinalArt.Load("background");
+            catalog.BodyFont = AssetDatabase.LoadAssetAtPath<Font>(BodyFontPath);
+            catalog.TitleFont = AssetDatabase.LoadAssetAtPath<Font>(TitleFontPath);
             EditorUtility.SetDirty(catalog);
             AssetDatabase.SaveAssets();
 

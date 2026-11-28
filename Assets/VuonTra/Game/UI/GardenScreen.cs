@@ -1226,6 +1226,7 @@ namespace VuonTra.Game.UI
             _cardPacer.Reset();
             GameCatalog catalog = Runner.Catalog;
             UiKit.ShadowSprite = catalog.Shadow;
+            UiKit.UseFonts(catalog.BodyFont, catalog.TitleFont);
 
             if (Application.isPlaying && FindAnyObjectByType<EventSystem>() == null)
             {
@@ -1774,7 +1775,7 @@ namespace VuonTra.Game.UI
             _cardName.horizontalOverflow = HorizontalWrapMode.Overflow;
             var chip = UiKit.Rect("Level", _card).Place(1f, 1f, -104, -42, 160, 46);
             _cardLevelChip = chip.AddImage(catalog.Panel, Palette.Moss, true);
-            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Card, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _cardLevel = UiKit.Rect("Text", chip).Stretch(0, 0, 1, 1, 8, 0, 8, 0).AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             // "Cấp 500 ✦✦✦" is wider than the pill at full size: the words shrink to stay on one line (#73).
             _cardLevel.resizeTextForBestFit = true;
             _cardLevel.resizeTextMinSize = 14;
@@ -1802,7 +1803,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextBody, Palette.Ink, TextAnchor.LowerLeft, FontStyle.Bold);
             _cardWorkerName.horizontalOverflow = HorizontalWrapMode.Overflow;
             _cardWorkerSub = UiKit.Rect("Sub", _cardWorker).Stretch(0, 0, 1, 0.5f, 104, 10, 12, 4)
-                .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.UpperLeft);
+                .AddText("", UiKit.TextSmall, Palette.Ink, TextAnchor.UpperLeft);
             _cardWorkerSub.resizeTextForBestFit = true;
             _cardWorkerSub.resizeTextMinSize = 13;
             _cardWorkerSub.resizeTextMaxSize = 20;
@@ -1970,7 +1971,6 @@ namespace VuonTra.Game.UI
                         _cardWorkerName.text = L10n.T("card.noworker");
                         _cardWorkerSub.text = L10n.T("card.noworker.sub", L10n.Trade(defs[i].Trade));
                     }
-                    _cardWorkerSub.color = Palette.InkSoft;
                 }
                 else
                 {
@@ -1982,7 +1982,6 @@ namespace VuonTra.Game.UI
                     if (_cardWorkerShown.Changes(_cardWorkerSub, worker.Id, inTrade ? 1L : 0L, Rabbits.KindOf(worker), (long)Rabbits.TradeOf(worker)))
                         _cardWorkerSub.text = L10n.T("card.worker", L10n.Kind(worker), L10n.Trade(Rabbits.TradeOf(worker)))
                             + (inTrade ? L10n.T("rabbits.intrade", UiKit.Times(Rabbits.TradeBonus)) : "");
-                    _cardWorkerSub.color = inTrade ? Palette.Mix(Palette.Moss, Palette.Ink, 0.45f) : Palette.InkSoft;
                 }
             }
 
@@ -2038,6 +2037,7 @@ namespace VuonTra.Game.UI
             _cardBuyTop.color = ink;
             _cardBuyCost.color = ink;
             _cardBuy.SetEnabled(can);
+            _cardBuy.SetShort(shortOnly);
         }
 
         void BuildPhotoMode(GameCatalog catalog)
@@ -2080,7 +2080,7 @@ namespace VuonTra.Game.UI
             _frameName = UiKit.Rect("GardenName", photoFrame).Stretch(0, 0, 0.6f, 0, Edge + 16, 70, 0, -(Foot - 10)).AddText("", 40, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             _frameName.horizontalOverflow = HorizontalWrapMode.Overflow;
             _frameDate = UiKit.Rect("Date", photoFrame).Stretch(0.5f, 0, 1, 0, 0, 70, Edge + 16, -(Foot - 10)).AddText("", UiKit.TextTitle, Palette.InkSoft, TextAnchor.MiddleRight);
-            UiKit.Rect("Logo", photoFrame).Stretch(0, 0, 1, 0, Edge + 16, 24, Edge + 16, -66).AddText(L10n.T("photo.logo"), UiKit.TextBody, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UiKit.Rect("Logo", photoFrame).Stretch(0, 0, 1, 0, Edge + 16, 24, Edge + 16, -66).AddText(L10n.T("photo.logo"), UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleLeft, FontStyle.Bold);
             photoFrame.SetSiblingIndex(bar.GetSiblingIndex()); // under the snap bar, over the garden
             _photoFrame = photoFrame.gameObject;
             _photoFrame.SetActive(false);
@@ -2117,7 +2117,7 @@ namespace VuonTra.Game.UI
             _photoPreview = UiKit.Rect("Picture", frame).Stretch(0, 0, 1, 1, 14, 14, 14, 14).AddImage(null, Color.white);
             _photoPreview.preserveAspect = true;
             _photoGift = UiKit.Rect("Gift", card).Stretch(0, 0, 1, 0, 40, 290, 40, -340)
-                .AddText("", UiKit.TextBody, Palette.Mix(Palette.Moss, Palette.Ink, 0.45f), TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.MossInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _photoNote = UiKit.Rect("Note", card).Stretch(0, 0, 1, 0, 40, 236, 40, -286)
                 .AddText("", UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleCenter);
             _photoNote.resizeTextForBestFit = true;
@@ -2125,7 +2125,7 @@ namespace VuonTra.Game.UI
             _photoNote.resizeTextMaxSize = UiKit.TextSmall;
             // #56: the thanks of the rabbit that asked for this picture, and what it paid.
             _photoAskLine = UiKit.Rect("Ask", card).Stretch(0, 0, 1, 0, 40, 344, 40, -396)
-                .AddText("", UiKit.TextBody, Palette.Mix(Palette.Carrot, Palette.Ink, 0.55f), TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _photoAskLine.resizeTextForBestFit = true;
             _photoAskLine.resizeTextMinSize = 16;
             _photoAskLine.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
@@ -3853,7 +3853,7 @@ namespace VuonTra.Game.UI
             var buy = UiKit.Rect("Buy", _plotRow).Place(1f, 0.5f, -166, 4, 284, 120);
             _plotBuy = UiKit.Chunky(buy, catalog.Panel, OnBuyPlot);
             _plotBuy.Dip.Denied = () => Deny(_plotBuy, !Expansion.HasCarrots(Runner.Defs, Runner.State));
-            UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 10)
+            UiKit.Rect("Top", _plotBuy.FaceRect).Stretch(0, 0.62f, 1, 1, 8, 0, 8, 7)
                 .AddText(L10n.T("plot.buy"), UiKit.TextSmall, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
             _plotCost = UiKit.Rect("Cost", _plotBuy.FaceRect).Stretch(0, 0, 1, 0.64f, 8, 10, 8, 0)
                 .AddText("", UiKit.TextTitle, Palette.OnCarrot, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -4374,7 +4374,7 @@ namespace VuonTra.Game.UI
             // Cream like the purse, so it never outshines the garden; only the word lights up when it is ready.
             _energyButton.Lip.color = boosting ? Palette.Mix(Palette.Moss, Palette.Ink, 0.3f) : Palette.CardLip;
             _energyButton.Face.color = boosting ? Palette.Mix(Palette.Moss, Palette.Paper, 0.6f) : Palette.Paper;
-            _energyAction.color = boosting ? Palette.Ink : (can ? Palette.CarrotLip : Palette.InkSoft);
+            _energyAction.color = boosting ? Palette.Ink : (can ? Palette.CarrotInk : Palette.InkSoft);
         }
 
         /// <summary>Which stations stand in the garden, who works at each, and the open station card.</summary>

@@ -56,13 +56,13 @@ namespace VuonTra.Game.UI
             start.transition = Selectable.Transition.None;
             start.onClick.AddListener(StartGame);
 
-            Text name = UiKit.Rect("Name", title).Place(0.5f, 0.895f, 0, 0, 980, 280)
+            Text name = UiKit.Rect("Name", title).Place(0.5f, 0.895f, 0, 0, 980, 290)
                 .AddText(L10n.T("title.name"), 100, Palette.Lantern, TextAnchor.MiddleCenter, FontStyle.Bold);
             name.lineSpacing = 0.9f;
             name.AddShadow(0.85f, 8f);
             UiKit.Rect("Tagline", title).Place(0.5f, 0.895f, 0, -168, 1000, 60)
                 .AddText(L10n.T("title.tagline"), UiKit.TextTitle, Palette.Alpha(Palette.Paper, 0.9f)).AddShadow();
-            _prompt = UiKit.Rect("Prompt", title).Place(0.5f, 0.17f, 0, 0, 900, 60)
+            _prompt = UiKit.Rect("Prompt", title).Place(0.5f, 0.17f, 0, 0, 900, 68)
                 .AddText(L10n.T("title.prompt"), UiKit.TextTitle, Palette.Paper, TextAnchor.MiddleCenter, FontStyle.Bold);
             _prompt.AddShadow();
 
@@ -74,7 +74,7 @@ namespace VuonTra.Game.UI
             _pauseCard = UiKit.Rect("Card", pause).Place(0.5f, 0.5f, 0, 0, 820, 1720);
             UiKit.Rect("Lip", _pauseCard).Stretch(0, 0, 1, 1).AddImage(catalog.Panel, Palette.CardLip, true);
             UiKit.Rect("Face", _pauseCard).Stretch(0, 0, 1, 1, 0, 12, 0, 0).AddImage(catalog.Panel, Palette.Paper, true);
-            UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 440, 80)
+            UiKit.Rect("Heading", _pauseCard).Place(0.5f, 1f, 0, -100, 440, 88)
                 .AddText(L10n.T("pause.title"), 60, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var mail = UiKit.Rect("Mail", _pauseCard).Place(0f, 1f, 115, -100, 150, UiKit.MinTouch);
@@ -345,7 +345,7 @@ namespace VuonTra.Game.UI
             }
             _resetArmedAt = Time.unscaledTime;
             _resetLabel.text = L10n.T("pause.reset.confirm");
-            _resetLabel.color = Palette.CarrotLip;
+            _resetLabel.color = Palette.CarrotInk;
         }
 
         void SetState(ShellState next)

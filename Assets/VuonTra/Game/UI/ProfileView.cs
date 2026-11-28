@@ -131,7 +131,7 @@ namespace VuonTra.Game.UI
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             giftText.supportRichText = false;
             Text giftHint = UiKit.Rect("Hint", _giftField).Stretch(0, 0, 1, 1, 28, 0, 28, 0)
-                .AddText(L10n.T("gift.hint"), UiKit.TextBody, Palette.OffInk, TextAnchor.MiddleLeft);
+                .AddText(L10n.T("gift.hint"), UiKit.TextBody, Palette.InkSoft, TextAnchor.MiddleLeft);
             giftHint.resizeTextForBestFit = true;
             giftHint.resizeTextMinSize = 14;
             giftHint.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
@@ -155,7 +155,7 @@ namespace VuonTra.Game.UI
             redeemLabel.resizeTextMinSize = 14;
             redeemLabel.resizeTextMaxSize = UiKit.Scaled(UiKit.TextBody);
             _giftNote = UiKit.Rect("GiftNote", _card).Place(0.5f, 1f, 0, -836, 740, 40)
-                .AddText("", UiKit.TextSmall, Palette.CarrotLip, TextAnchor.MiddleLeft, FontStyle.Bold);
+                .AddText("", UiKit.TextSmall, Palette.CarrotInk, TextAnchor.MiddleLeft, FontStyle.Bold);
             _giftNote.resizeTextForBestFit = true;
             _giftNote.resizeTextMinSize = 12;
             _giftNote.resizeTextMaxSize = UiKit.Scaled(UiKit.TextSmall);
@@ -197,7 +197,7 @@ namespace VuonTra.Game.UI
             var rateButton = rate.gameObject.AddComponent<Button>();
             rateButton.transition = Selectable.Transition.None;
             rateButton.onClick.AddListener(() => { Sfx.Click(); onRate?.Invoke(); });
-            UiKit.Rect("Text", rate).Stretch(0, 0, 1, 1).AddText(L10n.T("review.rate"), UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleRight, FontStyle.Bold)
+            UiKit.Rect("Text", rate).Stretch(0, 0, 1, 1).AddText(L10n.T("review.rate"), UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleRight, FontStyle.Bold)
                 .FitOneLine(260, 14);
             var privacy = UiKit.Rect("Privacy", _card).Place(0.5f, 1f, 0, -1472, 740, UiKit.MinTouch);
             Image privacyHit = privacy.AddImage(null, new Color(0, 0, 0, 0));
@@ -205,7 +205,7 @@ namespace VuonTra.Game.UI
             var privacyButton = privacy.gameObject.AddComponent<Button>();
             privacyButton.transition = Selectable.Transition.None;
             privacyButton.onClick.AddListener(() => { Sfx.Click(); OpenUrl(AppInfo.PrivacyUrl); });
-            UiKit.Rect("Text", privacy).Stretch(0, 0, 1, 1).AddText(L10n.T("privacy.open"), UiKit.TextBody, Palette.Carrot, TextAnchor.MiddleLeft, FontStyle.Bold);
+            UiKit.Rect("Text", privacy).Stretch(0, 0, 1, 1).AddText(L10n.T("privacy.open"), UiKit.TextBody, Palette.CarrotInk, TextAnchor.MiddleLeft, FontStyle.Bold);
             Text support = UiKit.Rect("Support", _card).Place(0.5f, 1f, 0, -1530, 740, 44)
                 .AddText(L10n.T("privacy.support", AppInfo.SupportEmail), UiKit.TextSmall, Palette.InkSoft, TextAnchor.MiddleLeft);
             support.resizeTextForBestFit = true;

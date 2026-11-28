@@ -101,7 +101,7 @@ namespace VuonTra.Game.UI
             _resultScore = UiKit.Rect("Score", _resultCard).Place(0.5f, 1f, 0, -280, 760, 50)
                 .AddText("", UiKit.TextTitle, Palette.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
             _resultCarrots = UiKit.Rect("Carrots", _resultCard).Place(0.5f, 1f, 0, -350, 760, 60)
-                .AddText("", 40, Palette.CarrotLip, TextAnchor.MiddleCenter, FontStyle.Bold);
+                .AddText("", 40, Palette.CarrotInk, TextAnchor.MiddleCenter, FontStyle.Bold);
             _resultExtra = UiKit.Rect("Extra", _resultCard).Place(0.5f, 1f, 0, -500, 760, 160)
                 .AddText("", UiKit.TextBody, Palette.InkSoft, TextAnchor.UpperCenter);
             var done = UiKit.Rect("Done", _resultCard).Place(0.5f, 0f, 0, 100, 420, 110);

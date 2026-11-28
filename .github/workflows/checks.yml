@@ -27,3 +27,14 @@ jobs:
           dotnet-version: 8.0.x
       - name: Core rules and their tests without Unity
         run: tools/ci/core-tests.sh
+  fonts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Bundled fonts carry Vietnamese and every character of the string tables
+        run: |
+          python3 -m pip install --quiet fonttools==4.63.0
+          python3 tools/fonts/check-fonts.py

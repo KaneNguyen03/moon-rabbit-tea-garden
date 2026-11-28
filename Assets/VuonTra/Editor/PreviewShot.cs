@@ -444,6 +444,9 @@ namespace VuonTra.EditorTools
             screen.RebuildUi();
             Step(screen, 0.8f);
             Capture(screen, "11-garden-en");
+            screen.OpenSheet(0);
+            Step(screen, 0.5f);
+            Capture(screen, "142-tram-en");
             screen.OpenSheet(3);
             Step(screen, 0.5f);
             Capture(screen, "12-rabbits-en");
