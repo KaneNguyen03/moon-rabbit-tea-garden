@@ -15,12 +15,14 @@ namespace VuonTra.Core.Tests
     public class FeelLaneScreenTests
     {
         const float LeastWorldText = 24f, PhoneW = 1080f, PhoneH = 1920f;
+        const float QuestRowHeight = 176f, LeastRowsOnAFullSheet = 4f;
 
         readonly bool portrait;
         GameObject root;
         GameRunner runner;
         GardenScreen screen;
         System.Func<Vector2> insetsBefore;
+        Vector2 canvasSize = new Vector2(PhoneW, PhoneH);
 
         public FeelLaneScreenTests(bool portrait)
         {
@@ -58,9 +60,19 @@ namespace VuonTra.Core.Tests
             canvas.renderMode = RenderMode.WorldSpace;
             var rt = (RectTransform)canvas.transform;
             rt.localScale = Vector3.one;
-            rt.sizeDelta = new Vector2(PhoneW, PhoneH);
+            rt.sizeDelta = canvasSize;
             Canvas.ForceUpdateCanvases();
-            Assert.AreEqual(PhoneH, rt.rect.height, 0.01f);
+            Assert.AreEqual(canvasSize.y, rt.rect.height, 0.01f);
+        }
+
+        void Device(float pixelsW, float pixelsH)
+        {
+            var scaler = root.transform.Find("Canvas").GetComponent<CanvasScaler>();
+            float scale = Mathf.Pow(pixelsW / scaler.referenceResolution.x, 1f - scaler.matchWidthOrHeight) * Mathf.Pow(pixelsH / scaler.referenceResolution.y, scaler.matchWidthOrHeight);
+            canvasSize = new Vector2(pixelsW / scale, pixelsH / scale);
+            Phone();
+            screen.Refresh();
+            Step(0.2f);
         }
 
         void Rebuild()
@@ -206,10 +218,10 @@ namespace VuonTra.Core.Tests
         {
             screen.OpenSheet(2);
             Step(0.6f);
-            screen.DragSheet(GardenScreen.SheetFull);
+            screen.DragSheet(screen.SheetFull);
             screen.ReleaseSheet();
             Step(0.6f);
-            Assert.AreEqual(GardenScreen.SheetFull, screen.SheetHeight, 0.5f, "the sheet stands at full height");
+            Assert.AreEqual(screen.SheetFull, screen.SheetHeight, 0.5f, "the sheet stands at full height");
             screen.Feel.Moment(L10n.T("moment.gift.title", "Silver Bell"), "Silver ★ tier · +10% income at its station · equip it in the Rabbits tab");
             Step(0.5f);
             Assert.IsNull(CoversTheSheet());
@@ -233,7 +245,7 @@ namespace VuonTra.Core.Tests
             var faults = new List<string>();
             for (int frame = 0; frame < 40; frame++)
             {
-                if (frame == 10) { screen.DragSheet(GardenScreen.SheetFull); screen.ReleaseSheet(); }
+                if (frame == 10) { screen.DragSheet(screen.SheetFull); screen.ReleaseSheet(); }
                 screen.Advance(1f / 30f);
                 if (frame < 12 || !screen.Feel.BannerVisible) continue;
                 string fault = CoversTheSheet();
@@ -270,16 +282,27 @@ namespace VuonTra.Core.Tests
             return over;
         }
 
-        [TestCase(0f, 0f)]
-        [TestCase(1300f, 0f)]
-        [TestCase(1450f, 0f)]
-        [TestCase(1550f, 0f)]
-        [TestCase(5000f, 0f)]
-        [TestCase(5000f, 120f)]
-        public void At_Every_Sheet_Height_A_Claimed_Quest_s_Number_Floats_Clear_Of_The_Sheet_The_Hud_And_The_Card(float height, float notch)
+        [TestCase(1080f, 1920f, 0f, 0f)]
+        [TestCase(1080f, 1920f, 1300f, 0f)]
+        [TestCase(1080f, 1920f, 1450f, 0f)]
+        [TestCase(1080f, 1920f, 1550f, 0f)]
+        [TestCase(1080f, 1920f, 5000f, 0f)]
+        [TestCase(1080f, 1920f, 5000f, 120f)]
+        [TestCase(1536f, 2048f, 0f, 0f)]
+        [TestCase(1536f, 2048f, 1150f, 0f)]
+        [TestCase(1536f, 2048f, 1300f, 0f)]
+        [TestCase(1536f, 2048f, 5000f, 0f)]
+        [TestCase(1536f, 2048f, 5000f, 60f)]
+        [TestCase(1200f, 1920f, 0f, 0f)]
+        [TestCase(1200f, 1920f, 1300f, 0f)]
+        [TestCase(1200f, 1920f, 1450f, 0f)]
+        [TestCase(1200f, 1920f, 5000f, 0f)]
+        [TestCase(1200f, 1920f, 5000f, 60f)]
+        public void At_Every_Sheet_Height_A_Claimed_Quest_s_Number_Floats_Clear_Of_The_Sheet_The_Hud_And_The_Card(float pixelsW, float pixelsH, float height, float notch)
         {
-            if (!portrait) Assert.Ignore("the sheet's heights are laid out for the 1920-tall phone canvas; the batch canvas is 1247 tall, shorter than a full sheet");
+            if (!portrait) Assert.Ignore("this test sizes the canvas to a portrait phone or tablet itself; the batch canvas is a 640x480 landscape screen no player has");
             GardenScreen.SafeInsets = () => new Vector2(0f, notch);
+            Device(pixelsW, pixelsH);
             ReadyDailyQuest();
             Step(0.2f);
             screen.OpenSheet(2);
@@ -289,7 +312,7 @@ namespace VuonTra.Core.Tests
                 screen.DragSheet(height - screen.SheetHeight);
                 Step(0.2f);
             }
-            float expected = height <= 0f ? GardenScreen.SheetHalf : Mathf.Min(height, GardenScreen.SheetFull - notch);
+            float expected = height <= 0f ? screen.SheetHalf : Mathf.Min(height, screen.SheetFull - notch);
             Assert.AreEqual(expected, screen.SheetHeight, 0.5f, "the sheet stands where it was pulled");
             Assert.IsTrue(screen.SheetOpen);
             PressClaim();
@@ -298,20 +321,33 @@ namespace VuonTra.Core.Tests
             Assert.IsEmpty(over, string.Join("\n", over));
         }
 
-        [Test]
-        public void A_Full_Sheet_Stops_Under_The_Hud_s_Gain_Lane_And_The_Card_Never_Rises_Into_It()
+        [TestCase(1080f, 1920f, 0f)]
+        [TestCase(1080f, 1920f, 120f)]
+        [TestCase(1536f, 2048f, 0f)]
+        [TestCase(1536f, 2048f, 60f)]
+        [TestCase(1200f, 1920f, 0f)]
+        [TestCase(1200f, 1920f, 60f)]
+        public void A_Full_Sheet_Stops_Under_The_Hud_s_Gain_Lane_And_The_Card_Never_Rises_Into_It(float pixelsW, float pixelsH, float notch)
         {
-            if (!portrait) Assert.Ignore("the sheet's heights are laid out for the 1920-tall phone canvas");
+            if (!portrait) Assert.Ignore("this test sizes the canvas to a portrait phone or tablet itself");
+            GardenScreen.SafeInsets = () => new Vector2(0f, notch);
+            Device(pixelsW, pixelsH);
             screen.OpenSheet(2);
             Step(0.6f);
-            screen.DragSheet(GardenScreen.SheetFull);
+            screen.DragSheet(screen.SheetFull);
             screen.ReleaseSheet();
             Step(0.6f);
             Canvas.ForceUpdateCanvases();
             Rect hud = InCanvas((RectTransform)root.transform.Find("Canvas/Hud"));
             float laneFoot = hud.yMax - GardenScreen.HudGainFoot;
-            Assert.LessOrEqual(InCanvas((RectTransform)root.transform.Find("Canvas/Sheet/Panel")).yMax, laneFoot, "the full sheet stops under the lane where the HUD's numbers float");
-            for (float h = GardenScreen.SheetHalf; h <= GardenScreen.SheetFull; h += 50f)
+            Rect panel = InCanvas((RectTransform)root.transform.Find("Canvas/Sheet/Panel"));
+            Assert.AreEqual(screen.SheetFull - notch, screen.SheetHeight, 0.5f, "the sheet stands at full height");
+            Assert.LessOrEqual(panel.yMax, laneFoot + 0.5f, "the full sheet stops under the lane where the HUD's numbers float");
+            Assert.LessOrEqual(panel.yMax, hud.yMin, "and never slides under the HUD");
+            Assert.Greater(screen.SheetFull, screen.SheetHalf + 150f, "pulling it up still shows more than the 60 % sheet");
+            float rows = InCanvas((RectTransform)root.transform.Find("Canvas/Sheet/Panel/Quests")).height / (QuestRowHeight + UiKit.CardGap);
+            Assert.GreaterOrEqual(rows, LeastRowsOnAFullSheet, "the full sheet's list still holds a handful of quest rows");
+            for (float h = screen.SheetHalf; h <= screen.SheetTop; h += 50f)
             {
                 screen.DragSheet(h - screen.SheetHeight);
                 screen.Feel.Moment("Title", "Sub");
