@@ -33,6 +33,31 @@
 
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) document.body.className = "phone";
 
+      var backing = { width: 0, height: 0 };
+
+      function applyBacking() {
+        if (backing.width <= 0 || backing.height <= 0) return;
+        if (canvas.width !== backing.width) canvas.width = backing.width;
+        if (canvas.height !== backing.height) canvas.height = backing.height;
+      }
+
+      function measureBacking(entry) {
+        var box = entry.devicePixelContentBoxSize && entry.devicePixelContentBoxSize[0];
+        if (box) return { width: box.inlineSize, height: box.blockSize };
+        var ratio = window.devicePixelRatio || 1;
+        return { width: Math.round(entry.contentRect.width * ratio), height: Math.round(entry.contentRect.height * ratio) };
+      }
+
+      var watcher = new ResizeObserver(function (entries) {
+        backing = measureBacking(entries[entries.length - 1]);
+        applyBacking();
+      });
+      try {
+        watcher.observe(canvas, { box: "device-pixel-content-box" });
+      } catch (unsupported) {
+        watcher.observe(canvas);
+      }
+
       var config = {
         arguments: [],
 #if PROGRESSIVE_ASSET_LOADING
@@ -52,7 +77,7 @@
         companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
         productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
         productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
-        devicePixelRatio: Math.min(window.devicePixelRatio || 1, 2),
+        matchWebGLToCanvasSize: false,
         autoSyncPersistentDataPath: true,
         showBanner: function (message, type) {
           if (type === "error") error.textContent = message;
@@ -63,6 +88,7 @@
       createUnityInstance(canvas, config, function (progress) {
         fill.style.width = Math.round(progress * 100) + "%";
       }).then(function () {
+        applyBacking();
         loading.remove();
         var line = "Renderer: " + rendererName();
         console.info(line);
