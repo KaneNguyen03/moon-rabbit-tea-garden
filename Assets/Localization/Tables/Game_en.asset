@@ -5098,7 +5098,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498058
-    m_Localized: I dreamt of a giant fluffy pillow.
+    m_Localized: I dreamed of a giant fluffy pillow.
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498059
@@ -5226,7 +5226,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498090
-    m_Localized: When pink snow melts, spring is here.
+    m_Localized: When rose snow melts, spring is here.
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498091
@@ -5302,7 +5302,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498109
-    m_Localized: Peach blossoms say spring is here.
+    m_Localized: Peach blossoms mean spring is near.
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498110
@@ -5370,7 +5370,7 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498126
-    m_Localized: My new dress is ready for spring.
+    m_Localized: "My new \xE1o d\xE0i is ready for spring."
     m_Metadata:
       m_Items: []
   - m_Id: 2288796746498127
@@ -5411,6 +5411,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 2288796746498136
     m_Localized: Every spot on me is a star.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2288796746498137
+    m_Localized: "\u2665 Favorite spot!"
     m_Metadata:
       m_Items: []
   references:

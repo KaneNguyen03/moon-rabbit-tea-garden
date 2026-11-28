@@ -5721,6 +5721,7 @@ namespace VuonTra.Game.UI
             }
             else Feel.FloatText(at + new Vector2(70, 30), "♥", Palette.Blush, 36); // the rest of the day: a smaller heart
             if (pet.Energy > 0d) Feel.FloatText(at + new Vector2(-110, -60), L10n.T("doze.reward", (int)pet.Energy), Palette.Lantern, 38); // by the shoulder, clear of the hearts and of any line
+            if (pet.FirstToday) FavouriteCue(r, at);
             if (pet.LineUnlocked) Say(near, offset, BondLine(r));
             if (pet.GiftGiven)
             {

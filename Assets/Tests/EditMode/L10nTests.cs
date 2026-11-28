@@ -147,7 +147,7 @@ namespace VuonTra.Core.Tests
         {
             var rows = new Dictionary<string, int>();
             for (int i = 0; i < L10nStrings.All.GetLength(0); i++) rows[L10nStrings.All[i, 0]] = i;
-            var keys = new List<string>(Personalities.AllKeys) { "detail.temper" };
+            var keys = new List<string>(Personalities.AllKeys) { "detail.temper", GardenScreen.FavouriteKey };
             foreach (Personality p in Personalities.All) keys.Add(Personalities.NameKey(p));
             var bad = new List<string>();
             foreach (string key in keys)
@@ -161,7 +161,7 @@ namespace VuonTra.Core.Tests
                 L10n.SetLocale("en");
                 if (L10n.T(key) != en) bad.Add(key + ": the en table says \"" + L10n.T(key) + "\"");
             }
-            Assert.AreEqual(8 * 4 + 49 + 8 + 1, keys.Count);
+            Assert.AreEqual(8 * 4 + 49 + 8 + 2, keys.Count);
             Assert.IsEmpty(bad, bad.Count + " of " + keys.Count + " keys:\n" + string.Join("\n", bad));
         }
 

@@ -4840,6 +4840,44 @@ namespace VuonTra.Core.Tests
             Assert.IsFalse(screen.Detail.IsOpen, "a stroke does not open the sheet");
         }
 
+        List<string> FloatingTexts()
+        {
+            var texts = new List<string>();
+            foreach (Text text in root.transform.Find("Canvas/Feel").GetComponentsInChildren<Text>()) texts.Add(text.text);
+            return texts;
+        }
+
+        [Test]
+        public void The_First_Stroke_Of_The_Day_At_The_Favourite_Station_Shows_A_Cue_And_Nowhere_Else()
+        {
+            screen.Shell.StartGame();
+            runner.State.Levels[2] = 1;
+            Assert.IsTrue(runner.Likes.TryGet("tho-bong", out Liking like));
+            Assert.AreEqual("noi-mut", like.Favourite, "Bông loves the jam pot");
+            string cue = L10n.T(GardenScreen.FavouriteKey);
+            Assert.AreNotEqual(GardenScreen.FavouriteKey, cue);
+
+            Rabbit elsewhere = GiveWorker(1, 0);
+            Find("Canvas/Garden/Content/Station am-tra").onClick.Invoke();
+            Assert.AreEqual(Rabbits.PetPoints, elsewhere.Affection, "the teapot is not its favourite");
+            CollectionAssert.DoesNotContain(FloatingTexts(), cue, "no cue at another station");
+            runner.State.Rabbits.Remove(elsewhere);
+            for (int i = 0; i < 30 * 3; i++) screen.Advance(1f / 30f);
+            Assert.IsFalse(FloatingTexts().Contains("♥"), "the teapot's hearts have floated away");
+
+            Rabbit r = GiveWorker(2, 2);
+            Find("Canvas/Garden/Content/Station noi-mut").onClick.Invoke();
+            Assert.AreEqual(Rabbits.PetPoints + Personalities.FavouritePoints, r.Affection, "PetPoints + 2 at the jam pot");
+            CollectionAssert.Contains(FloatingTexts(), cue, "the +2 shows as its own line over the hearts");
+            Assert.Greater(FloatingTexts().FindAll(t => t == "♥").Count, 3, "and one heart more than a usual first stroke");
+
+            for (int i = 0; i < 30 * 3; i++) screen.Advance(1f / 30f);
+            CollectionAssert.DoesNotContain(FloatingTexts(), cue, "the cue floats away");
+            Find("Canvas/Garden/Content/Station noi-mut").onClick.Invoke();
+            Assert.AreEqual(Rabbits.PetPoints + Personalities.FavouritePoints, r.Affection, "the second stroke of the day adds nothing");
+            CollectionAssert.DoesNotContain(FloatingTexts(), cue, "and shows no cue");
+        }
+
         [Test]
         public void Close_Friends_Say_A_Line_In_The_Garden_And_Give_A_Clover()
         {

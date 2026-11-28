@@ -5090,6 +5090,10 @@ MonoBehaviour:
     m_Localized: "M\u1ED7i \u0111\u1ED1m tr\xEAn m\xECnh l\xE0 m\u1ED9t v\xEC sao."
     m_Metadata:
       m_Items: []
+  - m_Id: 2288796746498137
+    m_Localized: "\u2665 Ch\u1ED7 y\xEAu th\xEDch!"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

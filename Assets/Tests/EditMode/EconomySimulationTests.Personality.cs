@@ -112,7 +112,7 @@ namespace VuonTra.Core.Tests
                 + " | " + Math.Round(Median(plain, w => w.DaysToTenHearts)) + " → " + Math.Round(Median(asset, w => w.DaysToTenHearts)) + " | " + Percent(Median(heartShift)) + " | " + Percent(Median(heartBound))
                 + " | " + Median(asset, w => w.FavouriteStrokes) + " / " + Median(always, w => w.FavouriteStrokes) + " |");
             report.AppendLine();
-            report.AppendLine("Lớn nhất trên một hạt: thu nhập ngày 7 " + Percent(incomeShift.Max(Math.Abs)) + " (asset), " + Percent(incomeBound.Max(Math.Abs)) + " (luôn); 10 tim sớm hơn "
+            report.AppendLine("Trung vị thu nhập ngày 7 khi luôn ở món thích: " + Percent(Median(incomeBound)) + ". Lớn nhất trên một hạt: thu nhập ngày 7 " + Percent(incomeShift.Max(Math.Abs)) + " (asset), " + Percent(incomeBound.Max(Math.Abs)) + " (luôn); 10 tim sớm hơn "
                 + Percent(heartShift.Max()) + " (asset), " + Percent(heartBound.Max()) + " (luôn).");
             report.AppendLine("Chỉ vuốt, không cho ăn cá, luôn ở món thích: 10 tim sớm hơn " + Percent(Shift(Rabbits.PointsFor(Rabbits.HeartMax) / (double)(Rabbits.PetPoints + Personalities.FavouritePoints),
                 Rabbits.PointsFor(Rabbits.HeartMax) / (double)Rabbits.PetPoints)) + " (tính tay, không mô phỏng).");
