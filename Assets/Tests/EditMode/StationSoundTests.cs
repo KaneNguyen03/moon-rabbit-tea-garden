@@ -42,6 +42,7 @@ namespace VuonTra.Core.Tests
             clockBefore = screen.ClockHours;
             Sfx.SetStation(0.7f);
             screen.Build();
+            Sfx.SetStation(0.7f);
             screen.Refresh();
         }
 
